@@ -7,6 +7,7 @@
 abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
+    protected $put_data = [];
 
     /*
      * 初始化
@@ -14,50 +15,58 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     public function init() {
         ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
-        $jsondata = json_decode(file_get_contents("php://input"), true);
-        if (!empty($jsondata["token"])) {
-            $token = $jsondata["token"];
-        }
-        $data = $this->getRequest()->getPost();
-        if (!empty($data["token"])) {
-            $token = $data["token"];
-        }
-        if (!empty($token)) {
-            try {
+        error_reporting(E_ALL | E_STRICT);
+        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        if ($this->getRequest()->getModuleName() == 'V1' && $this->getRequest()->getControllerName() == 'User' && in_array($this->getRequest()->getActionName(), ['login', 'register'])) {
 
-                $tks = explode('.', $token);
+        } else {
 
-                $tokeninfo = JwtInfo($token); //解析token
+            if (!empty($jsondata["token"])) {
+                $token = $jsondata["token"];
+            }
+            $data = $this->getRequest()->getPost();
 
-                $model = new UsermainModel();
-                $userinfo = $model->Userinfo("*", array("username" => $tokeninfo["account"]));
-                if (empty($userinfo)) {
-                    echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            $model = new UserModel();
+            if (!empty($token)) {
+                try {
+
+                    $tks = explode('.', $token);
+
+                    $tokeninfo = JwtInfo($token); //解析token
+
+
+                    $userinfo = $model->Userinfo("*", array("username" => $tokeninfo["account"]));
+                    if (empty($userinfo)) {
+                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+                        exit;
+                        $data = array(
+                            "username" => $tokeninfo["account"]
+                        );
+                        $user_main_id = $model->UserCreate($data);
+                        $this->user = array(
+                            "user_main_id" => $user_main_id,
+                            "username" => $tokeninfo["account"],
+                            "token" => $token, //token
+                        );
+                    } else {
+                        $this->user = array(
+                            "user_main_id" => $userinfo["id"],
+                            "username" => $tokeninfo["account"],
+                            "token" => $token, //token
+                        );
+                    }
+                } catch (Exception $e) {
+                   // LOG::write($e->getMessage());
+                    $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                     exit;
-                    $data = array(
-                        "username" => $tokeninfo["account"]
-                    );
-                    $user_main_id = $model->UserCreate($data);
-                    $this->user = array(
-                        "user_main_id" => $user_main_id,
-                        "username" => $tokeninfo["account"],
-                        "token" => $token, //token
-                    );
-                } else {
-                    $this->user = array(
-                        "user_main_id" => $userinfo["id"],
-                        "username" => $tokeninfo["account"],
-                        "token" => $token, //token
-                    );
                 }
-            } catch (Exception $e) {
-                echo json_encode(array("code" => "-101", "message" => $e->getMessage()));
+            } else {
+                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                 exit;
             }
-        } else {
-            echo json_encode(array("code" => "-101", "message" => "缺少token"));
-            exit;
         }
     }
 
@@ -74,7 +83,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @return mix
      * @author zyg
      */
-    public function getlist($condition = []);
+//    public function getlist($condition = []) {
+//
+//    }
 
     /**
      * 获取列表
@@ -84,7 +95,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @return mix
      * @author zyg
      */
-    public function info($code = '', $id = '', $lang = '');
+//    public function info($code = '', $id = '', $lang = '') {
+//
+//    }
 
     /**
      * 删除数据
@@ -94,7 +107,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @return bool
      * @author zyg
      */
-    public function delete($code = '', $id = '', $lang = '');
+//    public function delete($code = '', $id = '', $lang = '') {
+//
+//    }
 
     /**
      * 更新数据
@@ -102,7 +117,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @return bool
      * @author zyg
      */
-    public function update($upcondition = []);
+//    public function update($upcondition = []) {
+//
+//    }
 
     /**
      * 新增数据
@@ -110,5 +127,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @return bool
      * @author zyg
      */
-    public function create($createcondition = []);
+//    public function create($createcondition = []) {
+//
+//    }
 }

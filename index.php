@@ -1,29 +1,5 @@
 <?php
 
-$json = '{
-"code":"0",
-"message":"",
-"data":{
-        "code":"010203",
-        "level":"2",
-        "sort_order":"3",
-        "en":{
-            "name":"一级分类",
-        },
-        "zh":{
-            "name":"一级分类",
-        },
-        "es":{
-            "name":"一级分类",
-        },
-        "ru":{
-            "name":"一级分类",
-        },
-        "parent_code":"0102"
-    }
-}';
-var_dump(json_decode($json));
-die();
 header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
 header('Access-Control-Allow-Methods:POST');
@@ -36,7 +12,7 @@ define("MYPATH", dirname(__FILE__));
  * 另外在配置文件中, 可以替换PHP的常量, 比如此处的APPLICATION_PATH
  */
 $application = new Yaf_Application("conf/application.ini");
-define('DEBUG_MODE', true);
+
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端
  * 而不会写入Response对象
  */
