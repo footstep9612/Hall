@@ -33,12 +33,13 @@ class AutoloadPlugin extends Yaf_Plugin_Abstract {
 
 //路由结束之后触发，此时路由一定正确完成, 否则这个事件不会触发
     public function routerShutdown(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response) {
-        var_dump($request);
-        var_dump($response);
+
         if (isset($this->config->application->autofunction) && !empty($this->config->application->autofunction)) {
             $autofunction = explode(',', $this->config->application->autofunction);
             foreach ($autofunction as $v) {
                 if (is_dir(APPLICATION_PATH . '/' . $v)) {
+
+
 
                     $this->getlist(APPLICATION_PATH . '/' . $v, 'function');
                 } else {

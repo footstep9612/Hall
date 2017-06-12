@@ -2,11 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group name="op">
-            <file>file:/E:/wwwroot/boss/conf/application.ini</file>
-            <file>file:/E:/wwwroot/boss/application/library/ESClient.php</file>
-            <file>file:/E:/wwwroot/boss/application/library/KafKaServer.php</file>
-            <file>file:/E:/wwwroot/boss/application/controllers/Goods.php</file>
-        </group>
+        <group name="op"/>
     </open-files>
 </project-private>
