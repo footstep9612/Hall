@@ -1,0 +1,125 @@
+<?php if($_SESSION['language'] == "zh"){
+	include("zh.php");
+}else{
+	include("en.php");
+}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta charset="UTF-8">
+		<title>商务需求</title>
+		<link rel="stylesheet" type="text/css" href="/public/css/good_index.css"/>
+	</head>
+	<body>
+		<div class="need">
+			<div class="need-quantity">
+				<span class="eq-qu"><?php echo $lang['num'.$type];?></span>
+				<span class="qu years" id="num">0 <?php echo $lang['unit'];?></span>
+				<a href="/Goods/BussinessNum"><span class="need_jt"><img src="/public/images/boultr.png" style="height: 1rem;width: 0.56rem;"></span></a>
+			</div>
+			<div class="need-quantity">
+				<span class="eq-qu"><?php echo $lang['useyear'.$type];?></span>
+				<span class="qu years" id="useYears">0 <?php echo $lang['years'];?></span>
+				<a href="/Goods/BussinessUseYear"><span class="need_jt"><img src="/public/images/boultr.png" style="height: 1rem;width: 0.56rem;"></span></a>
+			</div>
+			<h2><?php echo $lang['Forecastprice'.$type];?></h2>
+			<?php if($type == 3){?>
+			<div class="particulaess business-type">
+				<p id="businessType"><span id="23"><?php echo $lang['SellRent'];?></span><span id="22"><?php echo $lang['Sell'];?></span><span  id="21"><?php echo $lang['Rent'];?></span></p>
+			</div>
+			<?php }?>
+			<?php if($type == 2){?>
+			<div class="particulaess business-type">
+				<p id="businessType"><span id="13"><?php echo $lang['BuyingSeekingrent'];?></span><span id="12"><?php echo $lang['Buying'];?></span><span  id="11"><?php echo $lang['Seekingrent'];?></span></p>
+			</div>
+			<?php }?>
+			<div class="needs" style="margin-top: 1.5rem;">
+				<?php if($type == 1 || $type == 3){?>
+				<div class="price" id="price">
+					<span class="price-up"><?php echo $lang['price'.$type];?></span>
+					<span class="price-us">US $</span>
+					<input type="number" placeholder="xxx<?php echo $lang['tenthousand'];?>" id="minPrice"  />
+					<span class="price-ux">----</span>
+					<input type="number"  placeholder="xxx<?php echo $lang['tenthousand'];?>" id="maxPrice" />
+				</div>
+				<?php }?>
+				<div class="valid">
+					<span class="valids"><?php echo $lang['valid'.$type];?></span>
+					<!--<input type="text"  id="minPrice"  onclick="demand.onSelectDate()"/>-->
+					<span class="valid-time" id="endTime"></span>
+					<a href="javascript:void()"  onclick="demand.onSelectDate()"><span class="need_jt"><img src="/public/images/boultr.png" style="height: 1rem;width: 0.56rem;"></span></a>
+				</div>
+			</div>
+		</div>
+		</div>
+<script>
+	var pagetype = "<?php echo $type;?>";
+	var json = localStorage.getItem("creategood");
+	var json = JSON.parse(json);
+	console.log(json);
+	if(json.useYears != ""){
+		document.getElementById("useYears").innerHTML = json.useYears+' <?php echo $lang['years'];?>';
+	}
+	if(json.endTime != ""){
+		//document.getElementById("endTime").innerHTML = json.endTime+' weeks';
+		document.getElementById("endTime").innerHTML = json.endTime;
+	}
+	if(json.num != ""){
+		document.getElementById("num").innerHTML = json.num+' <?php echo $lang['unit'];?>';
+	}
+	if(pagetype == 1 || pagetype == 3){
+		if(json.minPrice != ""){
+			document.getElementById("minPrice").value = json.minPrice;
+		}
+		if(json.maxPrice != ""){
+			document.getElementById("maxPrice").value = json.maxPrice;
+		}
+	}
+	if(pagetype == 1){
+		json.businessType = 23;
+	}
+	if(pagetype == 2 || pagetype == 3){
+		if(json.businessType != ""){
+			jsspan(document.getElementById(json.businessType));
+		}
+		var clickbus = document.getElementById("businessType");
+		var spantype = clickbus.getElementsByTagName("span");
+		for(var i=0;i<spantype.length;i++){
+			spantype[i].onclick=function (){
+				//类型（类型（11 租赁 12 购买， 13 租赁or购买 ,21 出租 22 出售 23 出租or出售））
+				jsspan(this);
+			}
+		}
+		function jsspan(span){
+			json.businessType = span.id;
+			span.style.background = "#ff9900";
+			span.style.color = "#fff";
+			var sbiling = span.parentNode.getElementsByTagName("span");
+			for (var i=0; i<sbiling.length; i++){
+				if(span != sbiling[i]){
+					sbiling[i].style.background="#fff";
+					sbiling[i].style.color="#ff9900";
+				}
+			}
+		}
+
+	}
+function setDate(time){
+	document.getElementById("endTime").innerHTML = time;
+}
+
+window.addEventListener("pagehide", function(){
+	if(pagetype == 1 || pagetype == 3){
+		json.minPrice = document.getElementById("minPrice").value;
+		json.maxPrice = document.getElementById("maxPrice").value;
+	}
+	json.endTime = document.getElementById("endTime").innerHTML;
+	//离开保存数据 json对像转成字符串
+	var data = JSON.stringify(json);
+	localStorage.setItem("creategood", data);
+}, false);
+</script>
+	</body>
+</html>

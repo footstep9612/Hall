@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta charset="UTF-8">
+		<title>手动选择设备</title>
+		<link rel="stylesheet" type="text/css" href="./css/index.css"/>
+		<script src="./js/hammer.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div class="core" id="coreli">
+			<h2>First class<span id="" class="class-lb"><img src="./images/boult.png"></span></h2>
+			<div class="classli">
+				<ul>
+					<li id="">Drilling category</li>
+					<li id="">Drilling category</li>
+					<li id="">Drilling category</li>
+				</ul>
+			</div>
+			<h2>Second class<span id="" class="class-lb"><img src="./images/boult.png"></span></h2>
+			<div class="classli">
+				<ul>
+					<li id="">Drilling category</li>
+					<li id="">Drilling category</li>
+					<li id="">Drilling category</li>
+				</ul>
+			</div>
+			<h2>Three categories<span id="" class="class-lb"><img src="./images/boult.png"></span></h2>
+			<div class="classli">
+				<ul>
+					<li id="">Drilling category</li>
+					<li id="">Drilling category</li>
+					<li id="">Drilling category</li>
+				</ul>
+			</div>
+		</div>
+		<script type="text/javascript">
+		window.addEventListener('load',function(){
+         
+            var topNav = document.getElementById("coreli");
+                navLi = topNav.getElementsByTagName("li");
+                navs=topNav.getElementsByTagName('ul');
+                navUl=topNav.getElementsByTagName('span');
+            for(var k=0; k < navLi.length; k++){
+             
+                (function(k){
+                 
+                    var hammerLi = new Hammer(navLi[k]);
+                    hammerLi.on("pan", function(e){
+//                  	if(navLi[k].style.borderColor !="black"){
+//                  		navLi[k].style.borderColor="#ff6600";
+//                  		navLi[k].style.color="#ff6600";
+//                  	}else{
+//                  		navLi[k].style.borderColor="#F4F4F4";
+//                  		navLi[k].style.color="black";
+//                  	}
+						navLi[k].style.borderColor ="#ff6600"
+                    	
+                    });
+                 
+                })(k);
+                     
+            }
+             for(var u=0; u < navUl.length; u++){
+             
+                (function(u){
+                 
+                    var hammerUl = new Hammer(navUl[u]);
+                    hammerUl.on("panend", function(e){
+                    	navs[u].style.display="none";
+                    });
+                 
+                })(u);
+                     
+            }
+            });
+ 
+		</script>
+	</body>
+</html>

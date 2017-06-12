@@ -1,0 +1,33 @@
+<?php if($_SESSION['language'] == "zh"){
+	include("zh.php");
+}else{
+	include("en.php");
+}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta charset="UTF-8">
+		<title><?php echo $lang['orgtel'];?></title>
+		<link rel="stylesheet" type="text/css" href="/public/css/good_index.css"/>
+	</head>
+	<body>
+		<input type="number" name="number" id="contactPhone" class="suppliername supplierconnum" placeholder="<?php echo $lang['paddorgtel'];?>" oninput="if(value.length>20)value=value.slice(0,20)"/>
+<script>
+	var json = localStorage.getItem("organization");
+	json = JSON.parse(json);
+	if(json.contactPhone != ""){
+		document.getElementById("contactPhone").value = json.contactPhone;
+	}
+//回显数据
+window.addEventListener("pagehide", function(){
+	//return "123";
+	//离开保存数据 json对像转成字符串
+	json.contactPhone = document.getElementById("contactPhone").value;
+	var data = JSON.stringify(json);
+	localStorage.setItem("organization", data);
+}, false);
+</script>
+	</body>
+</html>

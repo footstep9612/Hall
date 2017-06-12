@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta charset="UTF-8">
+		<title>有效期</title>
+		<link rel="stylesheet" type="text/css" href="/public/css/good_index.css"/>
+	</head>
+	<body>
+		<input type="text" id="endTime" class="suppliername" placeholder="Please enter the valid time" />
+<script>
+	var json = localStorage.getItem("creategood");
+	var json = JSON.parse(json);
+	console.log(json);
+	if(json.endTime != ""){
+		document.getElementById("endTime").value = json.endTime
+	}
+	//回显数据
+window.onbeforeunload = function(){
+	json.endTime = document.getElementById("endTime").value;
+	//return "123";
+	//离开保存数据 json对像转成字符串
+	var data = JSON.stringify(json);
+	localStorage.setItem("creategood", data);
+}
+</script>
+	</body>
+</html>

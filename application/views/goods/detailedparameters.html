@@ -1,0 +1,88 @@
+<?php if($_SESSION['language'] == "zh"){
+	include("zh.php");
+}else{
+	include("en.php");
+}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta charset="UTF-8">
+		<title><?php echo $lang['devicedeinfo'];?></title>
+		<link rel="stylesheet" type="text/css" href="/public/css/good_index.css"/>
+	</head>
+	<body>
+		<div class="particulaess particulaes-name">
+			<h2><?php echo $lang['category'];?></h2>
+			<p><?php echo $data['category'];?></p>
+		</div>
+		<div class="particulaess particulaes-title">
+			<h2><?php echo $lang['labeltitle'];?></h2>
+			<p><?php echo $data['name'];?></p>
+		</div>
+		<div class="particulaess particulaes-brand">
+			<h2><?php echo $lang['selectedbrand'];?></h2>
+			<p><?php echo $data['brand'];?></p>
+		</div>
+		<div class="particulaess particulaes-model">
+			<h2><?php echo $lang['selectedtypes'];?></h2>
+			<p><?php echo $data['types'];?></p>
+		</div>
+		<div class="particulaess particulaes-key">
+			<h2><?php echo $lang['keyparameter'];?></h2>
+			<ul>
+				<?php if(!empty($data['keyParam'])){?>
+					<?php foreach($data['keyParam'] as $key=>$param){?>
+						<li class="ownd-sj-csli"><span><?php echo $key;?>:</span><span><?php echo $param;?></span></li>
+					<?php }?>
+				<?php }?>
+			</ul>
+		</div>
+		<div class="particulaess particulaes-business">
+			<h2><?php echo $lang['business'];?></h2>
+			<ul>
+				<li class="ownd-sj-csli"><span><?php echo $lang['num'.$type];?>:</span><span><?php echo $data['num'];?> <?php echo $lang['unit'];?></span></li>
+				<li class="ownd-sj-csli"><span><?php echo $lang['useyear'.$type];?>:</span><span><?php echo $data['useYears'];?> <?php echo $lang['years'];?></span></li>
+				<?php if(!empty($data['businessType'])){?>
+					<li class="ownd-sj-csli"><span><?php echo $lang['Forecastprice'.$type];?>:</span><span><?php echo $data['businessTypeVal'];?></span></li>
+				<?php }?>
+				<?php if(!empty($data['minPrice'])){?>
+				<li class="ownd-sj-csli"><span><?php echo $lang['price'.$type];?>:</span><span> US $ <?php echo $data['minPrice'];?> <?php echo $lang['tenthousand'];?>-<?php echo $data['maxPrice'];?> <?php echo $lang['tenthousand'];?></span></li>
+				<li class="ownd-sj-csli"><span><?php echo $lang['valid'.$type];?>:</span><span><?php echo $data['endTime'];?></span></li>
+				<?php }?>
+			</ul>
+		</div>
+		<div class="particulaess particulaes-describe">
+				<h2><?php echo $lang['remarks'];?></h2>
+				<textarea readonly class="particulaes-describe-t" placeholder=""><?php echo $data['describe'];?></textarea>
+		</div>
+		<?php if(!empty($data['imageUrls'])){?>
+		<div class="particulaess particulaes-multimedia">
+				<h2><?php echo $lang['medias'];?></h2>
+				<div class="uploading-img more-img" id="uploading-img" style="padding-bottom:1rem">
+					<?php foreach($data['imageUrls'] as $img){?>
+						<img src="<?php echo $img;?>" onclick="demand.showBigImage('<?php echo $img;?>')" />
+					<?php }?>
+					<!--<button class="clickc" id="clicks" value="" /><a href="" ></a></button>-->
+				</div>
+				<div class="uploading-foot">
+				<!--<span>Uploads up to <?php echo $data['imageUrlscount'];?> photos</span>-->
+			</div>
+		</div>
+		<?php }?>
+		<?php if(!empty($data['orgVal'])){?>
+		<div class="particulaess particulaes-subordinate">
+			<h2><?php echo $lang['supplier'];?></h2>
+			<div class="">
+				<ul>
+				<li class="ownd-sj-csli"><span><?php echo $lang['orgsupplier'];?>:</span><span><?php echo $data['orgVal']['org_name'];?></span></li>
+				
+				<li class="ownd-sj-csli"><span><?php echo $lang['orgname'];?>:</span><span><?php echo $data['orgVal']['org_contact_person'];?></span></li>
+				<li class="ownd-sj-csli"><span><?php echo $lang['orgtel'];?>:</span><span onclick="javascript:void(0)"><?php echo $data['orgVal']['org_contact_telno'];?></span></li>
+			</ul>
+			</div>
+		</div>
+		<?php }?>
+	</body>
+</html>

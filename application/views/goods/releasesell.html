@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta charset="UTF-8">
+		<title>Release the information to sell 发布出售信息</title>
+		<link rel="stylesheet" type="text/css" href="./css/index.css"/>
+	</head>
+	<body>
+		<div class="search release">
+			<img src="images/search.png" class="searchphoto" />
+			<input type="text" onKeypress="javascript:if(event.keyCode == 32)event.returnValue = false;" class="searchs"  placeholder="Enter the name of the category" />
+			<span class="gt">
+				<a href="class.html">></a>
+			</span>
+			<p>Name of the category 1</p>
+		</div>
+		<div class="select-cs releasename">
+				<p>Equipment Title</p>
+				<input type="text"  class="cs" placeholder="Default recommended category name: category name 1" />
+		</div>
+		<div class="particulaess releasechoose">
+			<span>The selected brand</span>
+			<p>TESCO</p>
+			<span><a href="brand.html">></a></span>
+		</div>
+		<div class="particulaess releasechoose">
+			<span>The selected model</span>
+			<p>3500LX</p>
+			<span><a href="model.html">></a></span>
+		</div>
+		<div class="releasekey">
+				<div class="select-sj-head releasehead">
+					<span class="select_key release-key">The selected core parameters</span>
+					<span class="select_keyjt"><a href="keyparameter.html">></a></span>
+				</div>
+				<div class="select-sj-cs">
+					<ul>
+						<li class="ownd-sj-csli"><span>Well depth:</span><span>5000m</span></li>
+						<li class="ownd-sj-csli"><span>Hook load:</span><span>5000m</span></li>
+						<li class="ownd-sj-csli"><span>Power:</span><span>5000w</span></li>
+					</ul>
+				</div>
+		</div>
+		<div class="releasekey">
+				<div class="select-sj-head releasehead">
+					<span class="select_key release-key">The selected business information</span>
+					<span class="select_keyjt"><a href="">></a></span>
+				</div>
+				<div class="select-sj-cs">
+					<ul>
+						<li class="ownd-sj-csli"><span>Quantity:</span><span>Five</span></li>
+						<li class="ownd-sj-csli"><span>Years of use:</span><span>2 years</span></li>
+						<li class="ownd-sj-csli"><span>Transaction type</span><span>Rent Sell</span></li>
+						<li class="ownd-sj-csli"><span>unit price:</span><span> US $ 2,000,000-5,000,000</span></li>
+					</ul>
+				</div>
+		</div>
+		<div class="particulaess particulaes-describe">
+				<h2>Remarks</h2>
+				<textarea class="particulaes-describe-t" placeholder="Please enter a note message"></textarea>
+		</div>
+		<div class="particulaess particulaes-multimedia">
+				<h2>Multimedia data</h2>
+				<div class="uploading-img" id="uploading-img">
+					<button class="clickc" id="clicks" value="" /><a href="" ></a></button>
+				</div>
+				<div class="uploading-foot">
+				<span>Uploads up to 10 photos</span>
+			</div>
+		</div>
+		<div class="particulaes-subordinate release-particulaes">
+			<h2>Subordinate to the supplier</h2>
+			<div class="release-particulaes-s">
+				<span>REGI</span>
+				<span><a href="selectsuppliers.html">></a></span>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+			var clicks=document.getElementById("clicks");
+		         clicks.onclick=function(){
+		         		var para = document.createElement("div");
+		         		var span=document.createElement("span");
+		         		var img =document.createElement("img");
+					  	var testdiv = document.getElementById("uploading-img");
+					  		span.className="spans";
+							para.appendChild(span);
+							para.appendChild(img);
+					  	if(testdiv.firstChild){
+							testdiv.insertBefore(para,testdiv.firstChild);
+							} else {
+
+								testdiv.appendChild(para);
+							}
+							var spans = para.getElementsByClassName("spans");
+												for(var i=0;i<spans.length;i++){
+													spans[i].onclick = function(){
+														testdiv.removeChild(this.parentNode);
+													}
+												}
+
+
+		         }
+		</script>
+</html>

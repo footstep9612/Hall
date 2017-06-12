@@ -1,0 +1,793 @@
+*{
+		margin: 0;
+		padding: 0;
+		font-family: helvetica;
+		font-size: 15px;
+		}
+	html,body{
+		background: #f1f1f1;
+	}
+	h2{
+		background: #f1f1f1;
+		padding-top: 1rem;
+		color: #333333;
+		padding-bottom: 0.5rem;
+		padding-left: 1em;
+	}
+	ul,li{
+		list-style: none;
+	}
+	a{
+		color: #999999;
+		text-decoration: none;
+	}
+	a:link {	
+		color: #999999;
+		text-decoration: none;
+		}
+		a:visited{
+		color: #999999;
+		text-decoration: none;
+		}
+		a:hover{
+			color: #999999;
+		 	text-decoration: none;
+			-webkit-tap-highlight-color: transparent;
+		}
+	input,textarea{
+		-webkit-appearance: none;
+		outline: none;
+	}
+
+/*搜索*/
+	.search{
+		overflow: hidden;
+		background: white;
+	}
+	.searchphoto{
+		width: 1rem;
+		height: 1rem;
+		position: absolute;
+		left: 1.5rem;
+		top: 1.5rem;
+	}
+	.searchs{
+		width: 80%;
+		height: 2rem;
+		background: #f1f1f1;
+		border: none;
+		line-height: 2rem;
+		border-radius: 0.25rem;
+		margin:  1rem;
+		color: #666666;
+        text-indent: 2em;
+	}
+	.searchs::-webkit-input-placeholder{
+    	color: #666666;
+        text-indent: 2em;
+        z-index: -20;
+        /*onfocus="this.placeholder=''" onblur="this.placeholder='Your Email Address'"*/
+	}
+	.search p{
+		background:#F1F1F1;
+		padding-left: 1rem;
+		line-height: 3rem;
+		word-wrap: break-word;
+		color: #FF6600;
+	}
+/*需选择参数*/
+	.select>div{
+		margin-bottom: 1rem;
+	}
+	.select h2{
+		color: #ff6600;
+		height:2rem;
+		line-height: 2rem;
+		padding-left:1em;
+	}
+	.select-cs{
+		background: white;
+		height: 5.5rem;
+		padding-left:1rem;
+		overflow: hidden;
+		border-top: 1px solid #DDDDDD;
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.select-cs p{
+		color: #333333;
+		line-height: 2rem;
+		padding-top: 0.5rem;
+	}
+	.cs{
+		width: 94%;
+		height: 2rem;
+		line-height: 2rem;
+		color: #333333;
+		border-radius: 0.25rem;
+		border: 1px solid #dddddd;
+		box-sizing: border-box;
+	}
+	.select-pp{
+		line-height:4rem;
+		padding-left: 1rem;
+		background: white;
+		border-top: 1px solid #DDDDDD;
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.select_brand{
+		color: #333333;
+	}
+	.pp{
+		color: #666666;
+		position: absolute;
+		right: 2.5rem;
+	}
+	.select_jt{
+		position: absolute;
+		right: 0rem;
+		padding-left: 100%;
+		padding-right: 1rem;
+		font-size: 1.3rem;
+	}
+/*........*/
+	.select-sj{
+		background: white;
+		padding-left: 1rem;
+		border-top: 1px solid #DDDDDD;
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.select-sj-head{
+		line-height: 3rem;
+	}
+	.select_key{
+		color: #333333;
+	}
+	.select_keyjt{
+		position: absolute;
+		font-size: 1.3rem;
+		right: 0;
+		padding-right: 1rem;
+		padding-left: 100%;
+	}
+	.select-sj-cs ul{
+		overflow: hidden;
+	}
+	.select-sj-cs li{
+		color: #666666;
+		line-height: 2rem;
+		background: white;
+	}
+	.select-sj-cs li>span{
+		color: #333333;
+		word-wrap: break-word
+	}
+	
+	.owned{
+		background: white;
+		padding-left: 1rem;
+		border-top: 1px solid #DDDDDD;
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.owned-sj-cs ul{
+		overflow: hidden;
+	}
+	.owned-sj-cs li{
+		overflow: hidden;
+		display: flex;
+		color: #666666;
+		line-height: 2rem;
+		background: white;
+	}
+	.ownd-sj-csli{
+		display: flex;
+		align-items: flex-end;
+	}
+	
+	.ownd-sj-csli span:first-child{
+		flex: 4;
+		color: #666666;
+		display: inline-block;
+		line-height: 2rem;
+		word-wrap: break-word;
+	}
+	.ownd-sj-csli span:last-child{
+		flex: 6;
+		display: inline-block;
+		color: #333333;
+		word-wrap: break-word;
+		line-height: 2rem;
+	}
+	/*Enter the supplier*/
+	.supplier{
+		line-height: 2rem;
+		border-top: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.supplier-name{
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+		background: white;
+		line-height: 4rem;
+		overflow: hidden;
+		display: flex;
+	}
+	.suppliers{
+		flex: 5;
+		padding-left: 1rem;
+		color: #999999;
+	}
+	.supplierx {
+		flex: 5;
+		padding-right: 3rem;
+		text-align: right;
+		color: #666666;
+		word-wrap: break-word;
+	}
+	.supplier-jt{
+		position: absolute;
+		right: 0rem;
+		color: #999999;
+		padding-left: 100%;
+		padding-right: 1rem;
+		font-size: 1.3rem;
+	}
+	.supplier-app{
+		margin-top: 1rem;
+		border-top: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+/*......................Supplier name 供应商名字*/
+/*................................................输入的input*/
+	.suppliername{
+		width: 100%;
+		height: 4rem;
+		margin-right: 0;
+		line-height: 2rem;
+		text-indent: 1rem;
+		border-top: 1px solid #DDDDDD;
+		border-left: none;
+		border-right: none;
+		border-bottom: 1px solid #DDDDDD;
+		margin-top: 1rem;
+		color: #333333;
+	}
+	
+		/*remarks*/
+	.remarks{
+		background: white;
+		height: 8rem;
+		padding-left:1rem ;
+		overflow: hidden;
+		border-top: 1px solid #DDDDDD;
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.remarks p{
+		line-height: 2rem;
+		color: #333333;
+	}
+	.remark{
+		width: 94%;
+		height: 5.5rem;
+		border: 1px solid #dddddd;
+		box-sizing: border-box;
+		color: #333333;
+	}
+	.uploading{
+		background: white;
+		border-top: 1px solid #DDDDDD;
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+		margin-bottom: 2rem;
+	}
+	.uploading-head-h2 {
+		padding-left: 1rem;
+		line-height: 2rem;
+	}
+	.uploading-img{
+		padding-left: 1rem;
+	}
+	.uploading-click{
+		width: 5rem;
+		height: 5rem;
+		border: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.uploading-img div {
+		width:5rem;
+		height: 5rem;
+		float: left;
+		margin-right: 1.5rem;
+		margin-top: 1rem;
+		position: relative;
+	}
+	.uploading-img div span{
+		width: 1rem;
+		height: 1rem;
+		position: absolute;
+		right: -0.5rem;
+		top:-0.5rem;
+	}
+	.uploading-img div img{
+		width:5rem;
+		height: 5rem;
+	}
+	.clickc{
+		margin-top: 1rem;
+		margin-right: 1rem;
+		width:5rem; 
+		height:5rem; 
+		border:1px solid #DDDDDD;
+		box-sizing: border-box; 
+		background:url(../images/uploading.png) no-repeat 50% 50%;
+		background-size: 2rem 2rem;
+		margin-bottom: 2rem;
+	}
+	.uploading-foot{
+		line-height: 2rem;
+		overflow: hidden;
+	}
+	.uploading-foot span{
+		float: right;
+		margin-right: 1rem;
+		color: #DDDDDD;
+	}
+	
+	.spans{
+		background:url(../images/remove.png) no-repeat 50% 50%;
+		background-size: 1rem 1rem;
+	}
+	
+	/*........Choose a supplier 选择供应商*/
+	.chooseSupplier ul{
+		position: relative;
+		background: white;
+		margin-bottom: 1rem;
+		box-sizing: border-box;
+		border: 1px solid #DDDDDD;
+	}
+	.chooseSupplier ul li:first-child{
+		line-height: 4rem;
+		padding-left: 1rem;
+		border-bottom: 1px solid #DDDDDD;
+		box-sizing: border-box;
+	}
+	.chooseSupplier ul li{
+		padding-left: 1rem;
+	}
+	.chooseSupplier p{
+		position: absolute;
+		top: 0.5rem;
+		right: 0rem;
+		padding: 1rem;
+	}
+
+
+/*Bussiness needs (录入设备)商务需求*/
+	.need-quantity{
+		line-height: 4rem;
+		margin-top:1.5rem ;
+		position: relative;
+		overflow: hidden;
+		background: white;
+	}
+	.eq-qu{
+		color: #333333;
+		padding-left: 1rem;
+	}
+	.qu{
+		float: right;
+		padding-right: 2rem;
+		color: #999999;
+		padding-left: 1rem;
+		word-wrap: break-word;
+	}
+	.years{
+		color: #666666;
+	}
+	.need_jt{
+		position: absolute;
+		right: 0;
+		padding-right: 1rem;
+		padding-left: 100%;
+		font-size: 1.3rem;
+	}
+	.need_jt img{
+		vertical-align: middle;
+	}
+	.needs{
+		background: white;
+		line-height: 4rem ;
+	}
+	.price{
+		overflow: hidden;
+	}
+	.needs input{
+		flex: 2;
+		width: 0.5rem;
+		height: 2rem;
+		margin: 1rem 0;
+		border: 1px solid #999999;
+		margin-right: 1em;
+		box-sizing: border-box;
+		border-radius: 0.25rem;
+		color: #333333;
+		text-align: center;
+	}
+	.price{
+		display: flex;
+		border-bottom: 1px solid #F1F1F1;
+	}
+	.price-up{
+		text-indent: 1rem;
+		color: #333333;
+		flex: 3;
+	}
+	.price-us{
+		flex: 2;
+		color: #FF6600;
+	}
+	.price-ux{
+		flex: 1;
+		margin-left: -1em;
+		text-align: center;
+	}
+	.valids{
+		color: #333333;
+		padding-left: 1rem;
+	}
+	.valid-time{
+		color: #666666;
+		float: right;
+		padding-right: 2rem;
+		padding-left: 1rem;
+		word-wrap: break-word;
+	}
+			
+/*Brand品牌*/
+	.name{
+		background: white;
+		height: 92vh;
+		overflow: hidden;
+	}
+	.name li{
+		float: left;
+		margin: 0.75rem 0.6rem;
+		border: 1px solid #999999;
+		box-sizing: border-box;
+		border-radius: 0.25rem;
+		padding: 0.6rem 0.75rem;
+		color: #666666;
+	}
+	
+	/*Manually select the device 手动选择设备*/
+	.core{
+		height: 100vh;
+		background: white;
+	}
+	.core ul{
+			width: 100%;
+			overflow:hidden;
+			background: white;
+		}
+	.core ul li{
+		float: left;
+		background: white;
+		padding:0.5rem 0.75rem;
+		margin: 0.5rem 0.25rem;
+		border: 1px solid #f1f1f1;
+		box-sizing: border-box;
+		border-radius: 0.25rem;
+	}
+	.class-lb{
+		position: absolute;
+		right: 0.5rem;
+		text-align: center;
+	}
+	.class-lb img{
+		width: 50%;
+		height: 50%;
+	}
+
+
+/*model*/
+	.modelli{
+		background: white;
+		height: 92vh;
+		overflow: hidden;
+	}
+	.model ul li{
+		float: left;
+		margin: 0.75rem 0.6rem;
+		border: 1px solid #999999;
+		box-sizing: border-box;
+		border-radius: 0.25rem;
+		padding: 0.6rem 0.75rem;
+		color: #666666;
+	}
+	/*Particulars of sale出售信息详情*/
+	
+	.particulaess h2{
+		line-height: 1rem;
+		color: #999999;
+		background: #F1F1F1;
+	}
+	.particulaess p{
+		text-align: center;
+		color: #FF6600;
+		line-height: 3rem;
+		background: white;
+	}
+	.particulaess ul li{
+		padding-left: 1rem;
+		background: white;
+	}
+	.particulaess ul li:first-child{
+		padding-top: 0.8rem;
+	}
+	.particulaess ul li:last-child{
+		padding-bottom: 0.8rem;
+	}
+	.particulaess textarea{
+		width: 100%;
+		height: 5rem;
+		border: 1px solid #DDDDDD;
+		box-sizing: border-box;
+		padding-left: 1rem;
+		color: #666666;
+		line-height: 2rem;
+	}
+	.particulaes-multimedia{
+		background: white;
+	}
+	.particulaes-subordinate{
+		margin-bottom: 2rem;
+	}
+	.particulaes-subordinate-s{
+		background: white;
+		line-height: 2rem;
+		text-align: center;
+	}
+	.particulaes-subordinate-s span:first-child{
+		color: #fe0000;
+	}
+	.particulaes-subordinate-s span:last-child{
+		position: absolute;
+		right: 1rem;
+	}
+	.supplierdetails ul{
+		
+	}
+	.supplierdetails ul li{
+		padding-left: 1rem;
+		height: 3rem;
+		padding-top: 1rem;
+	}
+/*Release the information to sell 发布出售信息*/
+	.release{
+		background: #F1F1F1;
+	}
+	.release input{
+		background: white;
+	}
+	.release p{
+		text-align: center;
+		color: #FF6600;
+		background: white;
+		line-height: 3rem;
+	}
+	.releasename{
+		background: #F1F1F1;
+	}
+	.releasechoose{
+		position: relative;
+	}
+	.releasechoose span{
+		color: #999999;
+		line-height: 3rem;
+		padding-left: 1rem;
+	}
+	.releasechoose span:last-child{
+		position: absolute;
+		right: 0rem;
+		padding-left: 100%;
+		font-size: 1.3rem;
+		padding-right: 1rem;
+		top:0;
+	}
+	.releasehead{
+		background: #F1F1F1;
+	}
+	.release-key{
+		padding-left: 1rem;
+		color: #999999;
+	}
+	.releasekey ul li{
+		padding-left: 1rem;
+	}
+	.release-particulaes h2{
+		line-height: 2rem;
+		color: #999999;
+	}
+	.release-particulaes-s{
+		line-height: 2rem;
+		background: white;
+		position: relative;
+	}
+	.release-particulaes-s span:first-child{
+		margin-left: 1rem;
+		color: #999999;
+	}
+	.release-particulaes-s span:last-child{
+		position: absolute;
+		right: 1rem;
+	}
+	/*Select suppliers 选择供应商*/
+	.selectsuppliers-customer{
+		line-height: 4rem;
+	}
+	.selectsuppliers-customer ul{
+		position: relative;
+		background: white;
+		margin-bottom: 2rem;
+		box-sizing: border-box;
+		border: 1px solid #DDDDDD;
+	}
+	.selectsuppliers-customer ul li{
+		text-indent: 1rem;
+		display: flex;
+		color: #999999;
+		word-wrap: break-word;
+		align-items: flex-end;
+	}
+	.selectsuppliers-customer ul li:first-child{
+		border-bottom: 1px solid #DDDDDD;
+	}
+	.selectsuppliers-customer ul li span{
+		flex: 5;
+		display: inline-block;
+	}
+	.selectsuppliers-customer ul p{
+		position: absolute;
+		right: 0rem;
+		padding: 0.2rem 1rem;
+		top: -0.2rem;
+	}
+/*Business needs 商务需求(发布出售信息)*/
+.business-num{
+	color: #999999;
+}
+	.business-type span{
+		padding: 0.3rem 1.5rem;
+		background: white;
+		border: 1px solid #FF6600;
+		box-sizing: border-box;
+		border-radius: 0.25rem;
+		margin:0 1rem;
+		color: #ff9900;
+	}
+	.business-price-h {
+		color: #999999;
+	}
+	.business-price-c{
+		color: #999999;
+	}
+	.business-valids{
+		margin-left: 1rem;
+	}
+	/*More information on the equipment 更多设备信息*/
+	.more-img{
+		overflow: hidden;
+	}
+	.more-img img{
+		width:5rem;
+		height: 5rem;
+		float: left;
+		margin-right: 1.5rem;
+		margin-top: 1rem;
+	}
+	
+/*Purchasing information details 求购信息详情*/
+	.purchname{
+		background: white;
+		margin-bottom: 1rem;
+	}
+	.purchname p{
+		word-break: break-word;
+		line-height: 4rem;
+		padding-left: 1rem;
+		color: #FF6600;
+	}
+	.purchnav{
+		padding-left: 1rem;
+		background: white;
+		margin-bottom: 1rem;
+	}
+	.purchnav p{
+		padding-top: 0.5rem;
+		line-height: 2rem;
+		color: #333333;
+	}
+	.purchnav span{
+		line-height: 1.5rem;
+		word-break: break-word;
+		color:#666666;
+		display: inline-block;
+		padding-bottom: 1rem;
+	}
+	.purchcustomer{
+		background: white;
+		margin-bottom: 1rem;
+	}
+	.purchcustomer p{
+		padding-top: 0.5rem;
+		line-height: 2rem;
+		color: #333333;
+		text-indent:1rem ;
+	}
+	.purchcustomer ul li{
+		display: flex;
+		align-items: flex-end;
+	}
+	.purchcustomer ul li>span{
+		padding-left: 1rem;
+		flex: 5;
+		line-height: 2rem;
+	}
+	.purchcustomer ul li>span:first-child{
+		color: #999999;
+	}
+	.purchcustomer ul li>span:last-child{
+		color: #333333;
+	}
+	.purchcustomers{
+		background: white;
+	}
+	.purchcustomers>p{
+		padding: 0.5rem 0;
+		line-height: 2rem;
+		color: #333333;
+		padding-left: 1rem;
+	}
+	.purchInformation{
+		padding: 0.5rem 0;
+		position: relative;
+		border-bottom: 1px solid #E6E6E6;
+		box-sizing: border-box;
+	}
+	.purchcustomers div:nth-child(2){
+		border-top: 1px solid #e6e6e6;
+	}
+	.purchInformation p{
+		line-height: 2rem;
+		color: #333333;
+		padding-left: 1rem;
+	}
+	.purchInformation ul{
+		display: flex;
+		align-items: flex-end;
+	}
+	.purchInformation ul li{
+		flex: 5;
+		padding-left: 1rem;
+		line-height: 2rem;
+	}
+	.purchInformation ul li>span:first-child{
+		color: #999999;
+	}
+	.purchInformation ul li>span:last-child{
+		color: #333333;
+	}
+	.purch_jt{
+		position: absolute;
+		top: 0.5rem;
+		line-height: 4rem;
+		padding-left: 100%;
+		padding-right: 1rem;
+		font-size: 1.3rem;
+		right: 0;
+	}
