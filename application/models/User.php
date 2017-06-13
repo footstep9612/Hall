@@ -40,13 +40,13 @@ class UserModel extends PublicModel {
             $where['user_id'] = $condition['user_id'];
         }
         if ($condition['name']) {
-            $where['name'] = ['like' => '%' . $condition['name'] . '%'];
+            $where['name'] = ['LIKE', '%' . $condition['name'] . '%'];
         }
         if ($condition['email']) {
-            $where['email'] = ['like' => '%' . $condition['email'] . '%'];
+            $where['email'] = ['LIKE', '%' . $condition['email'] . '%'];
         }
         if ($condition['mobile']) {
-            $where['mobile'] = ['like' => '%' . $condition['mobile'] . '%'];
+            $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
         }
         if ($condition['enc_password']) {
             $where['enc_password'] = md5($condition['enc_password']);
@@ -110,6 +110,51 @@ class UserModel extends PublicModel {
         return $this->where($where)
                         ->field('id,user_id,name,email,mobile,status')
                         ->find();
+    }
+
+    /**
+     * 登录
+     * @param  string $name 用户名
+     * @param  string$enc_password 密码
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function login($name, $enc_password) {
+        $where['name'] = $name;
+        $where['enc_password'] = md5($enc_password);
+        return $this->where($where)
+                        ->field('id,user_id,name,email,mobile,status')
+                        ->find();
+    }
+
+    /**
+     * 判断用户是否存在
+     * @param  string $name 用户名
+     * @param  string$enc_password 密码
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function Exist($name, $type = 'name') {
+        switch (strtolower($type)) {
+            case 'name':
+                $where['name'] = $name;
+                break;
+            case 'email':
+                $where['email'] = $name;
+                break;
+            default :
+                return false;
+                break;
+        }
+        //$where['enc_password'] = md5($enc_password);
+        $row = $this->where($where)
+                ->field('id,user_id,name,email,mobile,status')
+                ->find();
+
+        var_dump();
+        return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
     }
 
     /**
@@ -178,8 +223,9 @@ class UserModel extends PublicModel {
     public function create_data($createcondition = []) {
 
 
+        $data = $this->create($createcondition);
 
-        $data['enc_password'] = md5($condition['enc_password']);
+        $data['enc_password'] = md5($data['enc_password']);
         switch ($condition['status']) {
 
             case self::STATUS_DELETED:
@@ -191,8 +237,10 @@ class UserModel extends PublicModel {
             case self::STATUS_NORMAL:
                 $data['status'] = $condition['status'];
                 break;
+            default : $data['status'] = self::STATUS_NORMAL;
+                break;
         }
-        $data = $this->create($data);
+
 
         return $this->add($data);
     }
