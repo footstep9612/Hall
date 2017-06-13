@@ -15,9 +15,11 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     public function init() {
         ini_set("display_errors", "On");
-        error_reporting(E_ALL | E_STRICT);
+        error_reporting(E_ERROR | E_STRICT);
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        if ($this->getRequest()->getModuleName() == 'V1' && $this->getRequest()->getControllerName() == 'User' && in_array($this->getRequest()->getActionName(), ['login', 'register'])) {
+        if ($this->getRequest()->getModuleName() == 'V1' && 
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register','es'])) {
 
         } else {
 
@@ -59,7 +61,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                         );
                     }
                 } catch (Exception $e) {
-                   // LOG::write($e->getMessage());
+                    // LOG::write($e->getMessage());
                     $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                     exit;
                 }

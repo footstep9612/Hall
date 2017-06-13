@@ -70,13 +70,13 @@ class UserController extends PublicController {
             $jwt['iat'] = time();
             $jwt['account'] = $userinfo['name'];
             $data['obj'] = ['token' => $jwtclient->encode($jwt)]; //加密
-            $data['jsonStr'] = json_decode($data);
+            $data['jsonStr'] = json_encode($data);
             $this->jsonReturn($data);
         } else {
             $data['success'] = 0;
             $data['msg'] = '登录失败!';
             $data['obj'] = [];
-            $data['jsonStr'] = json_decode($data);
+            $data['jsonStr'] = json_encode($data);
             $this->jsonReturn($data);
         }
     }
@@ -109,14 +109,14 @@ class UserController extends PublicController {
             $jwt['iat'] = time();
             $jwt['account'] = $userinfo['name'];
             $data['obj'] = ['token' => $jwtclient->encode($jwt)]; //加密
-            $data['jsonStr'] = json_decode($data);
+            $data['jsonStr'] = json_encode($data);
             $this->jsonReturn($data);
             // $this->jsonReturn($model->getMessage(UserModel::MSG_SUCCESS));
         } else {
             $data['success'] = 0;
             $data['msg'] = '注册失败!';
             $data['obj'] = [];
-            $data['jsonStr'] = json_decode($data);
+            $data['jsonStr'] = json_encode($data);
             $this->jsonReturn($data);
             // $this->jsonReturn($model->getMessage(UserModel::MSG_PARAMETER_ERR));
         }
