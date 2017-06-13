@@ -28,7 +28,7 @@ class KafKaServer {
 
     public function produce() {
 
-        $KafKa_Lite = new KafKa_Lite("localhost:9093,localhost");
+        $KafKa_Lite = new KafKa_Lite("localhost");
 // 设置一个Topic
         $KafKa_Lite->setTopic("test");
 // 单次写入效率ok  写入1w条15 毫秒
@@ -69,7 +69,7 @@ class KafKaServer {
     public function Consumer($topic) {
 
 // 配置KafKa集群(默认端口9092)通过逗号分隔
-        $KafKa_Lite = new KafKa_Lite("127.0.0.1:9093,localhost");
+        $KafKa_Lite = new KafKa_Lite("localhost");
 // 设置一个Topic
         $KafKa_Lite->setTopic("test");
 // 设置Consumer的Group分组(不使用自动offset的时候可以不设置)

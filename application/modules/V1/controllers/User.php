@@ -149,11 +149,15 @@ class UserController extends PublicController {
             'created_by' => '',
             'created_at' => ''
         ];
-        $es->create_index($index, $type, $body);
+        $es->add_document($index, $type, $body);
         //  echo '<pre>';
         //  $val = $es->setmust(['testField'=>'加安疗'],ESClient::MATCH)->search($index, $type);
         //  var_dump($val);
         die();
+    }
+    public function kafkaAction(){
+        $kafka=new KafKaServer();
+        $kafka->produce();
     }
 
     //put your code here

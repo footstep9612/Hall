@@ -19,7 +19,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         if ($this->getRequest()->getModuleName() == 'V1' && 
                 $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register','es'])) {
+                in_array($this->getRequest()->getActionName(), ['login', 'register','es','kafka'])) {
 
         } else {
 

@@ -78,7 +78,7 @@ class ESClient {
      * 增加文档
      */
 
-    public function add_document($body, $index, $type, $id) {
+    public function add_document($index, $type, $body, $id) {
         $params = array();
         $params['body'] = $body; /* array(
           'testField' => 'dfdsfdsf',
