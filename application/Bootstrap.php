@@ -33,31 +33,6 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
             'action' => ':name']);
         //使用路由器装载路由协议
         $router->addRoute('Materialcat', $route);
-
-        //echo "_initRoute call second<br/>\n";
-        //$router = Yaf_Dispatcher::getInstance()->getRouter();
-        /**
-         * add the routes defined in ini config file
-         */
-        //$router->addConfig(Yaf_Registry::get("config")->routes);
-        /**
-         * test this route by access http://yourdomain.com/product/list/?/?/
-         */
-        /* $route  = new Yaf_Route_Rewrite(
-          "/product/list/:id/:name",
-          array(
-          "controller" => "product",
-          "action"	 => "info",
-          )
-          ); */
-        //$route  = new Yaf_Route_Rewrite(
-        //"/User/index/:id/:name",
-        //array(
-        //"controller" => "User",
-        //"action"	 => "index",
-        //)
-        //);
-        //$router->addRoute('User', $route);
     }
 
 }
