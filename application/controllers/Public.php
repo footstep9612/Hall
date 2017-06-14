@@ -15,12 +15,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     public function init() {
         ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
+        error_reporting(E_ALL | E_STRICT);
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        if ($this->getRequest()->getModuleName() == 'V1' && 
+        if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register','es','kafka'])) {
-
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka','excel'])) {
+            
         } else {
 
             if (!empty($jsondata["token"])) {
@@ -40,22 +40,14 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     $tokeninfo = JwtInfo($token); //解析token
 
 
-                    $userinfo = $model->Userinfo("*", array("username" => $tokeninfo["account"]));
+                    $userinfo = $model->Userinfo("*", array("name" => $tokeninfo["account"]));
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
-                        $data = array(
-                            "username" => $tokeninfo["account"]
-                        );
-                        $user_main_id = $model->UserCreate($data);
-                        $this->user = array(
-                            "user_main_id" => $user_main_id,
-                            "username" => $tokeninfo["account"],
-                            "token" => $token, //token
-                        );
+                       
                     } else {
                         $this->user = array(
-                            "user_main_id" => $userinfo["id"],
+                            "user_main_id" => md5($userinfo["id"]) ,
                             "username" => $tokeninfo["account"],
                             "token" => $token, //token
                         );

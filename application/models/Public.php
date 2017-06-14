@@ -39,8 +39,8 @@ class PublicModel extends Model {
     protected $tablePrefix = 't_';
     protected $tableName = '';
 
-    public function __construct() {
-        parent::__construct();
+    public function __construct($str='') {
+        parent::__construct($str);
     }
 
 //

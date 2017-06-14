@@ -12,6 +12,8 @@ class AutoloadPlugin extends Yaf_Plugin_Abstract {
     var $config;
     var $fileload;
 
+
+
     public function routerStartup(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response) {
 
 

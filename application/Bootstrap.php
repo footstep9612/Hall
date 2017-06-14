@@ -25,6 +25,15 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
     }
 
     public function _initRoute(Yaf_Dispatcher $dispatcher) {
+
+        $router = Yaf_Dispatcher::getInstance()->getRouter();
+        //创建一个路由协议实例
+        $route = new Yaf_Route_Rewrite('/v1/material_cat/:name', ['module' => 'V1',
+            'controller' => 'Materialcat',
+            'action' => ':name']);
+        //使用路由器装载路由协议
+        $router->addRoute('Materialcat', $route);
+
         //echo "_initRoute call second<br/>\n";
         //$router = Yaf_Dispatcher::getInstance()->getRouter();
         /**
