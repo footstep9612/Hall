@@ -16,6 +16,8 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
     public function _initConfig() {
         $this->config = Yaf_Application::app()->getConfig();
         Yaf_Registry::set("config", $this->config);
+        //关闭自动加载模板
+        Yaf_Dispatcher::getInstance()->autoRender(false);
     }
 
     public function _initPlugin(Yaf_Dispatcher $dispatcher) {
