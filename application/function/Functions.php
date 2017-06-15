@@ -773,3 +773,16 @@ function format_size($size) {
 
     return $size . $units[$unit];
 }
+
+/**
+ * 数组打印函数
+ * @param $var 数组
+ * @author maimaiti
+ */
+function p($var)
+{
+    header('Content-Type:text/html;charset=utf-8');
+    echo "<pre style='padding:10px;background: #f3f3f3'>";
+    print_r($var);
+    echo "</pre>";
+}
