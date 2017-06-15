@@ -773,3 +773,23 @@ function format_size($size) {
 
     return $size . $units[$unit];
 }
+
+/**
+ * 浏览器语言
+ * 目前只处理中(CN)英(EN)俄(RU)西班牙(ES)语
+ * @return string
+ */
+function browser_lang(){
+    $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 4); //只取前4位，这样只判断最优先的语言。如果取前5位，可能出现en,zh的情况，影响判断。
+    $language = '';
+    if (preg_match("/zh-c|zh/i", $lang)) {
+        $language = 'CN';
+    }else if (preg_match("/en/i", $lang)) {
+        $language = 'EN';
+    }else if(preg_match("/es/i", $lang)) {
+        $language = 'ES';
+    }else if(preg_match("/ru/i", $lang)) {
+        $language = 'RU';
+    }
+    return $language;
+}
