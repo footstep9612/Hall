@@ -773,3 +773,54 @@ function format_size($size) {
 
     return $size . $units[$unit];
 }
+
+/*
+ * 随机生成字符串
+ *
+ * @param int $size
+ * @return string
+ * @author jhw
+ */
+function randStr($len)
+{
+    $chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz'; // characters to build the password from
+    $string='';
+    for(;$len>=1;$len--)
+    {
+        $position=rand()%strlen($chars);
+        $string.=substr($chars,$position,1);
+    }
+    return $string;
+}
+
+/*
+ * 判断邮箱
+ *
+ * @param int $size
+ * @return string
+ * @author jhw
+ */
+function isEmail($email)
+{
+    $mode = '/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/';
+    if (preg_match($mode, $email)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/*
+ * 判断邮箱
+ *
+ * @param int $size
+ * @return string
+ * @author jhw
+ */
+function isMobile($mobile){
+    if(preg_match("/^1[34578]{1}\d{9}$/",$mobile)){
+        return true;
+    }else{
+        return false;
+    }
+}
