@@ -50,16 +50,17 @@ class ESClient {
      * @since 1.0
      * @return array
      */
-    public function create_index($index, $type) {
+    public function create_index($index, $type, $body, $id) {
         $indexParams['index'] = $index;
-        $indexParams['type'] = $index;
+        $indexParams['type'] = $type;
+        $indexParams['body'] = $body;
         $indexParams['body']['settings']['number_of_shards'] = 5;
         $indexParams['body']['settings']['number_of_replicas'] = 0;
         /*
          * 使用自己的ID只要再添加一个id字段即可。例：
          */
 
-        $indexParams['id'] = 0;
+        $indexParams['id'] = $id;
         return $this->server->create($indexParams);
     }
 
@@ -69,9 +70,118 @@ class ESClient {
 
     public function delete_index($index) {
         $deleteParams['index'] = $index;
+        try {
+            $ret = $this->server->indices()->delete($deleteParams);
 
-        $ret = $this->server->indices()->delete($deleteParams);
-        var_dump($ret);
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /*
+     * 关闭索引
+     */
+
+    public function close($index) {
+        $params['index'] = $index;
+        try {
+            $ret = $this->server->indices()->close($params);
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /*
+     * 开启索引
+     */
+
+    public function open($index) {
+        $params['index'] = $index;
+        try {
+            $this->server->indices()->open($params);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+        }
+    }
+
+    /* 更新索引 
+     * 更新索引的Updating Index Analysis 必须 先关闭索引 然后再更新 再开启索引
+     * 
+     * 
+     */
+
+    public function updateanalyzers($index) {
+        $this->close($index);
+        $SettingsParam = ['index' => $index,
+            'body' => [
+                "analysis" => [
+                    "analyzer" => [
+                        "content" => [
+                            "type" => "custom",
+                            "tokenizer" => "whitespace"
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        try {
+            $response = $this->server->indices()->putSettings($index, $Settings);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+        }
+        $this->open($index);
+
+        return $response;
+    }
+
+    /*
+     * 删除索引
+     */
+
+    public function delete_type($index) {
+        $deleteParams['index'] = $index;
+        try {
+            $ret = $this->server->delete($deleteParams);
+
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /* 更新索引 
+     * 更新索引的Updating Index Analysis 必须 先关闭索引 然后再更新 再开启索引
+     * 
+     * 
+     */
+
+    public function putSettings($index, $Settings) {
+
+        $SettingsParam = ['index' => $index, 'body' => $Settings];
+        try {
+            $response = $this->server->indices()->putSettings($SettingsParam);
+            return $response;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    public function getSettings($index) {
+
+        $SettingsParam = ['index' => $index];
+        try {
+            $response = $this->server->indices()->getSettings($SettingsParam);
+            return $response;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
@@ -88,10 +198,13 @@ class ESClient {
         $params['index'] = $index;
         $params['type'] = $type;
         $params['id'] = $id;
-
-        $ret = $this->server->index($params);
-
-        var_dump($ret);
+        try {
+            $ret = $this->server->index($params);
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
@@ -103,9 +216,13 @@ class ESClient {
         $getParams['index'] = $index;
         $getParams['type'] = $type;
         $getParams['id'] = $id;
-
-        $retDoc = $this->server->get($getParams);
-        dump($retDoc);
+        try {
+            $retDoc = $this->server->get($getParams);
+            return $retDoc;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
@@ -120,8 +237,13 @@ class ESClient {
             )
         );
 
-
-        $retDoc = $this->server->search($searchParams);
+        try {
+            $retDoc = $this->server->search($searchParams);
+            return $retDoc;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
@@ -203,6 +325,38 @@ class ESClient {
      * must_not : 多个查询条件的相反匹配，相当于 not。
      */
 
+    public function setdefault($must_not, $type = self::TERM) {
+
+        $val = [];
+        switch ($type) {
+            case self::MATCH:
+                $this->body['query'][self::MATCH] = $must_not;
+                break;
+            case self::PREFIX:
+                $this->body['query'][self::PREFIX] = $must_not;
+                break;
+            case self::REGEXP:
+                $this->body['query'][self::REGEXP] = $must_not;
+                break;
+            case self::WILDCARD:
+                $this->body['query'][self::WILDCARD] = $must_not;
+                break;
+            case self::TERM:
+                $this->body['query'][self::TERM] = $must_not;
+                break;
+            default : $this->body['query'][self::MATCH] = $must_not;
+                break;
+        }
+
+
+
+        return $this;
+    }
+
+    /*
+     * must_not : 多个查询条件的相反匹配，相当于 not。
+     */
+
     public function setmust_not($must_not, $type = self::TERM) {
 
         $val = [];
@@ -263,19 +417,27 @@ class ESClient {
      * 空查询
      */
 
-    public function search($index, $type, $from = 0, $size = 100) {
+    public function search($index, $type, $analyzer = '', $from = 0, $size = 100) {
         $searchParams = array(
             'index' => $index,
             'type' => $type,
             'body' => $this->body,
         );
-
+        if ($analyzer) {
+            $searchParams ['analyzer'] = $analyzer;
+        }
 
         $searchParams['from'] = $from;
         $searchParams['size'] = $size;
 
-        var_dump($searchParams);
-        return $this->server->search($searchParams);
+        try {
+            echo json_encode($searchParams['body']);
+            return $this->server->search($searchParams);
+        } catch (Exception $ex) {
+
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
         //   var_dump($retDoc);
     }
 
@@ -289,24 +451,65 @@ class ESClient {
             'type' => $type,
             'id' => $id
         );
-
-        $exists = $this->server->exists($getParams);
-        dump($exists);
+        try {
+            return $this->server->exists($getParams);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
      * 更改文档
      */
 
-    public function update_document($index, $type, $id, $body) {
+    public function update_document($index, $type, $body, $id) {
         $updateParams = array();
         $updateParams['index'] = $index;
         $updateParams['type'] = $type;
         $updateParams['id'] = $id;
         $updateParams['body'] = $body; //['doc']['testField'] = 'xxxx';
+        try {
+            return $this->server->update($updateParams);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
 
-        $response = $this->server->update($updateParams);
-        dump($response);
+//    /putMapping
+    public function putMapping($index, $type, $mapParam) {
+
+        $indexParam = array();
+        $indexParam['index'] = $index;
+        $indexParam['type'] = $type;
+
+        $indexParam['body'] = [
+            $type => $mapParam
+        ];
+        try {
+
+            $response = $this->server->indices()->putMapping($indexParam);
+            return $response;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+//    /putMapping
+    public function getMapping($index, $type) {
+
+        $indexParam = array();
+        $indexParam['index'] = $index;
+        $indexParam['type'] = $type;
+        try {
+            $response = $this->server->indices()->getMapping($indexParam);
+            return $response;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
@@ -318,106 +521,12 @@ class ESClient {
         $deleteParams['index'] = $index;
         $deleteParams['type'] = $type;
         $deleteParams['id'] = $id;
-
-        $retDelete = $this->server->delete($deleteParams);
-        dump($retDelete);
-    }
-
-    public function getMapping() {
-
-        return $this->server->indices()->getMapping();
-    }
-
-    /**
-     * createindices
-     * 创建索引
-     * @access public
-     * @param string $index 索引名称
-     * @param string $type 类型名称
-     * @param int $number_of_shards 主分片数量
-     * @param int $number_of_replicas 从分片数量
-     * @since 1.0
-     * @return array
-     */
-    public function insertindex() {
-
-        $params = [
-            'client' => ['future' => true],
-            'index' => 'reuters',
-            'id' => 1,
-            'type' => 'shingle',
-            'body' => [
-                'settings' => [// 顶级设置包含关于索引（分片等）和分析器的配置
-                    'number_of_shards' => 1,
-                    'number_of_replicas' => 0,
-                    'analysis' => [// 分析嵌套设置，包含分词器、过滤器、字符过滤器和分析器
-                        'filter' => [
-                            'shingle' => [
-                                'type' => 'shingle'
-                            ]
-                        ],
-                        'char_filter' => [
-                            'pre_negs' => [
-                                'type' => 'pattern_replace',
-                                'pattern' => '(\\w+)\\s+((?i:never|no|nothing|nowhere|noone|none|not|havent|hasnt|hadnt|cant|couldnt|shouldnt|wont|wouldnt|dont|doesnt|didnt|isnt|arent|aint))\\b',
-                                'replacement' => '~$1 $2'
-                            ],
-                            'post_negs' => [
-                                'type' => 'pattern_replace',
-                                'pattern' => '\\b((?i:never|no|nothing|nowhere|noone|none|not|havent|hasnt|hadnt|cant|couldnt|shouldnt|wont|wouldnt|dont|doesnt|didnt|isnt|arent|aint))\\s+(\\w+)',
-                                'replacement' => '$1 ~$2'
-                            ]
-                        ],
-                        'analyzer' => [
-                            'reuters' => [
-                                'type' => 'custom',
-                                'tokenizer' => 'standard',
-                                'filter' => ['lowercase', 'stop', 'kstem']
-                            ]
-                        ]
-                    ]
-                ],
-                'mappings' => [// 映射是另外一个嵌套在body中的顶级元素，包含各种类型的映射
-                    '_default_' => [// 默认类型是动态模版，应用于任何没有明确配置的字段
-                        'properties' => [
-                            'title' => [
-                                'type' => 'string',
-                                'analyzer' => 'reuters',
-                                'term_vector' => 'yes',
-                                'copy_to' => 'combined'
-                            ],
-                            'body' => [
-                                'type' => 'string',
-                                'analyzer' => 'reuters',
-                                'term_vector' => 'yes',
-                                'copy_to' => 'combined'
-                            ],
-                            'combined' => [
-                                'type' => 'string',
-                                'analyzer' => 'reuters',
-                                'term_vector' => 'yes'
-                            ],
-                            'topics' => [
-                                'type' => 'string',
-                                'index' => 'not_analyzed'
-                            ],
-                            'places' => [
-                                'type' => 'string',
-                                'index' => 'not_analyzed'
-                            ]
-                        ]
-                    ],
-                    'my_type' => [// my_type类型是一个用户自定义的类型，包含一个my_field字段
-                        'properties' => [
-                            'my_field' => [
-                                'type' => 'string'
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
-        $this->server->index($params);
+        try {
+            return $this->server->delete($deleteParams);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     public function delete($index) {
