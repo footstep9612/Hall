@@ -5,7 +5,7 @@
  * Date: 2017/6/15
  * Time: 15:52
  */
-class ShowcatModel extends PublicModel
+class ShowCatModel extends PublicModel
 {
     //数据库 表映射
     protected $dbName = 'erui_db_ddl_goods';
@@ -34,10 +34,8 @@ class ShowcatModel extends PublicModel
             $condition['parent_cat_no'] = '';
         }
 
-        //语言默认取EN    这里注意后期数据库中定义的大小写
-        if(!isset($condition['lang'])){
-            $condition['lang'] = browser_lang() ? browser_lang() : 'EN' ;
-        }
+        //语言默认取en 统一小写
+        $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : ( browser_lang() ? browser_lang() : 'en') ;
         $condition['status'] = self::STATUS_VALID;
 
         try{
@@ -58,5 +56,7 @@ class ShowcatModel extends PublicModel
             return false;
         }
     }
+
+
 
 }

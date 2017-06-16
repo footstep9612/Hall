@@ -5,7 +5,7 @@
  * Date: 2017/6/15
  * Time: 11:09
  */
-class ShowcatController extends Yaf_Controller_Abstract{
+class ShowcatController extends PublicController{
     public function init(){
 
     }
@@ -25,15 +25,15 @@ class ShowcatController extends Yaf_Controller_Abstract{
             $condition['parent_cat_no'] = $parent_cat_no;
         }
 
-        $showcat = new ShowcatModel();
+        $showcat = new ShowCatModel();
         $result  = $showcat->getList($condition);
         //这里注意code与message的后期同步
         if($result){
             $result['code'] = 0;
             $result['message'] = '成功';
-            echo json_encode($result);
+            $this->jsonReturn($result);
         }else{
-            echo json_encode(array('code'=>'400','message'=>'失败'));
+            $this->jsonReturn(array('code'=>'400','message'=>'失败'));
         }
         exit;
     }
