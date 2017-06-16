@@ -44,3 +44,4 @@ Temporary Items
 conf/
 logs/
 /nbproject/private/
+.idea
