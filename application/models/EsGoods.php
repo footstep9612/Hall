@@ -56,8 +56,12 @@ class EsgoodsModel extends PublicModel {
             $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
             $body['show_cat'] = $productattrs[$item['spu']]['show_cat'];
 
-            $body['goods_attrs'] = $goods_attrs[$item['sku']];
-            $body['product_attrs'] = $productattrs[$item['spu']]['attrs'];
+            $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
+            foreach ($goods_attrs[$item['sku']] as $attr) {
+
+                array_push($product_attrs, $attr);
+            }
+          $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
 
             $ret[$id] = $body;
         }
@@ -75,10 +79,10 @@ class EsgoodsModel extends PublicModel {
         $spus = array_unique($spus);
         $skus = array_unique($skus);
         $espoducmodel = new EsProductModel();
-
+        $es = new ESClient();
         $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
         $goods_attrs = $this->getgoods_attrbyskus($spus, $lang);
-        $ret = [];
+
         foreach ($goodss as $item) {
             $id = $item['id'];
             $body = $item;
@@ -86,11 +90,14 @@ class EsgoodsModel extends PublicModel {
             $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
             $body['show_cat'] = $productattrs[$item['spu']]['show_cat'];
 
-            $body['goods_attrs'] = $goods_attrs[$item['sku']];
-            $body['product_attrs'] = $productattrs[$item['spu']]['attrs'];
 
+            $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
+            foreach ($goods_attrs[$item['sku']] as $attr) {
 
-            $es->add_document($this->dbName, $this->tableName, $body, $id);
+                array_push($product_attrs, $attr);
+            }
+            $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
+            $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         }
     }
 

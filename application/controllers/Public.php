@@ -19,7 +19,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka','excel'])) {
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             
         } else {
 
@@ -44,10 +44,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
-                       
                     } else {
                         $this->user = array(
-                            "user_main_id" => md5($userinfo["id"]) ,
+                            "user_main_id" => md5($userinfo["id"]),
                             "username" => $tokeninfo["account"],
                             "token" => $token, //token
                         );
@@ -64,11 +63,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
     }
 
+    public function __call($method, $args) {
+        $data['code'] = -1;
+        $data['message'] = 'Action :There is no method list4Action ';
+        $this->jsonReturn($data);
+    }
+
     protected function jsonReturn($data, $type = 'JSON') {
 
 
         header('Content-Type:application/json; charset=utf-8');
-        exit(json_encode($data));
+        exit(json_encode($data,JSON_UNESCAPED_UNICODE));
     }
 
     /**
