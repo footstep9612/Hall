@@ -11,7 +11,7 @@ class Error{
     private $message = array(
         'SUCCESS' => '成功',
     );
-    public static function getMessage(){
+    public static function getMessage($code){
         return 'error';
     }
 }

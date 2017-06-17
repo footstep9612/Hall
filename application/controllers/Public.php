@@ -69,7 +69,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if($code !=0){
             exit(json_encode(array('code'=>$code,'message'=>$message)));
         }
-        if(is_array($data)){
+        if(is_array($data) && !isset($data['code'])){
             $data['code']=0;
             $data['message'] = '成功';
         }
