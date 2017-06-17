@@ -15,7 +15,7 @@ class UserModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'user';
-    Protected $autoCheckFields = ture;
+   // Protected $autoCheckFields = ture;
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
