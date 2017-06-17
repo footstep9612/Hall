@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * Description of ProAttrModel
+ *
+ * @author  klp
+ */
 class ProAttrModel extends PublicModel
 {
     //protected $dbName = 'erui_goods'; //测试数据库名称
@@ -16,10 +20,25 @@ class ProAttrModel extends PublicModel
      * @param null $where string 条件
      * @return mixed
      */
-    public function wherelistp($where)
+    public function wherelist($where)
     {
         return $this->field('spu, attr_group, attr_no, attr_name, attr_value_type, attr_value, goods_flag, logistics_flag, hs_flag, required_flag, search_flag, sort_order, status, created_by, created_at')
                      ->where($where)
                      ->select();
     }
+
+    /**
+     * 根据商品条件查询产品属性
+     * @param null $where 条件 spu lang语言 (必)
+     * @return string json
+     */
+    public function ProInfo($where)
+    {
+        $result = $this->field('id, spu, attr_group, created_by, created_at')
+                       ->where($where)
+                       ->select();
+        return $result;
+    }
+
+
 }

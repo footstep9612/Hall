@@ -2,6 +2,7 @@
 
 /**
  * Class GoodsAttrModel
+ *  @author  klp
  */
 class GoodsAttrModel extends PublicModel
 {
@@ -26,26 +27,50 @@ class GoodsAttrModel extends PublicModel
         return $result;
     }
 
+    /**
+     * 删除数据
+     * @param $where
+     * @return	bool
+     */
 
+    public function Delete($where)
+    {
+        $sta = $this->where($where)->delete();
+        return ($sta)? true : false;
+    }
 
     /**
-     * order处理
-     * @access protected
-     * @param mixed $order
-     * @return string
+     * 添加数据
+     * @param $data
+     * @return mixed
      */
-    protected function dealOrder($order) {
-        if(is_array($order)) {
-            $array   =  array();
-            foreach ($order as $key=>$val){
-                if(is_numeric($key)) {
-                    $array[] =  $val;
-                }else{
-                    $array[] =  $key.' '.$val;
-                }
-            }
-            $order   =  implode(',',$array);
+
+    public function CreateInfo($data){
+        $sta = $this->add($data);
+        if($sta){
+            return true;
+        }else{
+            return false;
         }
-        return $order;
     }
+
+    /**
+     * 修改数据
+     * @param $where
+     * @param $data
+     * @return bool
+     */
+
+    public function UpdatedInfo($where, $data)
+    {
+        $sta = $this->where($where)
+                     ->save($data);
+        if($sta){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+
 }

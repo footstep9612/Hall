@@ -1,5 +1,9 @@
 <?php
-
+/**
+* Description of GoodsAttrTplModel
+*
+ * @author  klp
+*/
 class GoodsAttrTplModel extends PublicModel
 {
     //protected $dbName = 'erui_goods'; //测试数据库名称
@@ -20,6 +24,32 @@ class GoodsAttrTplModel extends PublicModel
         $result = $this->field('input_type, value_type, value_unit, options, input_hint')
                        ->where($where)
                        ->select();
+        return $result;
+    }
+
+    /**
+     * 根据条件查询商品属性 sku数据查询
+     * @param null $where 条件 sku lang语言(必) skuid  attr_group规格
+     * @return string json
+     */
+    public function AttrInfo($where)
+    {
+        $result = $this->field('id, spu, sku, attr_group, attr_name, sort_order, created_by, created_at')
+            ->where($where)
+            ->select();
+        return $result;
+    }
+
+    /**
+     * 根据条件查询商品总数
+     * @param null $where 条件  sku
+     * @return string json
+     */
+    public function GetCount($where)
+    {
+        $result = $this->where($where)
+                 /*->field('id, spu, sku, attr_group, sort_order, created_by, created_at')*/
+                ->count('id');
         return $result;
     }
 }
