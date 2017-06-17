@@ -327,4 +327,27 @@ class MaterialcatModel extends PublicModel {
         return $this->add($data);
     }
 
+    /**
+     * 根据编码获取分类信息
+     * @param string $catNo 分类编码
+     * @param string $lang 语言
+     * @return array
+     */
+    public function getMeterialCatByNo($catNo='',$lang=''){
+        if($catNo=='' || $lang=='')
+            return false;
+
+        /**
+         * 需要先做缓存读取与写入判断操作（后期需要完善）
+         * ......
+         */
+        $field = 'name';
+        $condition = array(
+            'cat_no'=>$catNo,
+            'status'=>self::STATUS_VALID,
+            'lang'=>$lang
+        );
+        return $this->field($field)->where($condition)->find();
+    }
+
 }

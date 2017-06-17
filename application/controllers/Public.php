@@ -64,10 +64,15 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //        }
     }
 
-    protected function jsonReturn($data, $type = 'JSON') {
-
-
+    protected function jsonReturn($data,$code=0,$message='', $type = 'JSON') {
         header('Content-Type:application/json; charset=utf-8');
+        if($code !=0){
+            exit(json_encode(array('code'=>$code,'message'=>$message)));
+        }
+        if(is_array($data) && !isset($data['code'])){
+            $data['code']=0;
+            $data['message'] = '成功';
+        }
         exit(json_encode($data));
     }
 
