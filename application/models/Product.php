@@ -145,6 +145,11 @@ class ProductModel extends PublicModel{
         $field = 'spu,lang,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,profile';
         try{
             $result = $this ->field($field)->where($condition)->select();
+
+            //查询品牌
+            $brand = $this->getBrandBySpu($result['spu'],$lang);
+            $result['brand'] = $brand;
+
             //查询属性
             $pattrModel = new ProductAttrModel();
             $attrs = $pattrModel->getAttrBySpu($spu);

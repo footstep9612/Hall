@@ -37,12 +37,24 @@ class GoodsModel extends PublicModel{
          */
         $result = $this->field($field)->where($condition)->find();
         if($result){
-            //查询品牌
-            $productModel = new ProductModel();
-            $brand = $productModel->getBrandBySpu($result['spu'],$lang);
-            $result['brand'] = $brand;
+            //查询型号
+            $model = $this->getModelBySku($result['sku'],$lang);
+            $result['model'] = $model;
 
             //查询属性
+            $skuAttrModel = new GoodsAttrModel();
+            $where['sku'] = $sku;
+            $attrs = $skuAttrModel->getAttrBySku($where,$lang);
+
+            $data = array(
+                'lang' => $lang
+            );
+            if($result){
+                foreach($result as $key => $val){
+                    $val['attrs'] = $attrs[$val[$lang]];
+                    $data[$val[$lang]] = $val;
+                }
+            }
             return $result;
         }
         return false;
@@ -94,4 +106,27 @@ class GoodsModel extends PublicModel{
             $where .= " AND source='".$condition['source']."'";
         }
     }
+
+    /**
+     * 根据SPU获取品牌
+     * @param string $spu
+     * @param $lang
+     * @return string
+     */
+    public function getModelBySku($sku='',$lang){
+        if(empty($sku))
+            return '';
+
+        $condition =array(
+            'sku'=>$sku,
+            'status'=>self::STATUS_NORMAL,
+            'lang'=>$lang
+        );
+        $result = $this->field('model')->where($condition)->find();
+        if($result){
+            return $result['model'];
+        }
+        return '';
+    }
+
 }

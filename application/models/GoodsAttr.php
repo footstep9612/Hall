@@ -6,8 +6,8 @@
  */
 class GoodsAttrModel extends PublicModel
 {
-    //protected $dbName = 'erui_goods'; //数据库名称
-    protected $dbName = 'erui_db_ddl_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
+    //protected $dbName = 'erui_db_ddl_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
     public function __construct() {
@@ -26,17 +26,74 @@ class GoodsAttrModel extends PublicModel
                        ->select();
         return $result;
     }
+    /**
+     * 编辑商品属性查询
+     * @param null $where string 条件
+     * @return mixed
+     */
+    public function getAttrBySku($where, $lang)
+    {
+        $where['lang'] = $lang;
+        $result = $this->field('id, spu, attr_group, attr_no, attr_name, attr_value, attr_value_type, sort_order, status')
+                       ->where($where)
+                       ->select();//return $result;exit;
+        if($result){
+            $res = array();
+            foreach($result as $val){
+                /* 属性分组: 适用范围scope、技术参数tech、执行标准exe、产品优势advantage、图标ico、产品图片images、附件attach,其他　*/
+                switch($val['attr_group']){
+                    case 'scope':
+                        $group = 'scope';
+                        break;
+                    case 'tech':
+                        $group = 'tech';
+                        break;
+                    case 'exe':
+                        $group = 'exe';
+                        break;
+                    case 'advantage':
+                        $group = 'advantage';
+                        break;
+                    case 'ico':
+                        $group = 'ico';
+                        break;
+                    case 'images':
+                        $group = 'images';
+                        break;
+                    case 'attach':
+                        $group = 'attach';
+                        break;
+                    default:
+                        $group = 'other';
+                        break;
+                }
+                $res[$lang][$group][] = $val;
+            }
+            $result = $res;
+        }
+        if($result){
+            return $result;
+        } else {
+            return array();
+        }
+    }
 
     /**
-     * 删除数据
-     * @param $where
-     * @return	bool
+     * 根据条件sku详情和
+     * @param null $where string 条件
+     * @return mixed
      */
-
-    public function Delete($where)
+    public function getInfoBySku($where, $lang)
     {
-        $sta = $this->where($where)->delete();
-        return ($sta)? true : false;
+        $where['lang'] = $lang;
+        $result = $this->field('qrcode, name, show_name, model, description, purchase_price1, purchase_price2, purchase_price_cur, purchase_unit, created_by, created_at')
+            ->where($where)
+            ->select();
+        if($result){
+            return $result;
+        } else {
+            return array();
+        }
     }
 
     /**
