@@ -15,7 +15,7 @@ class UserModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'user';
-
+   // Protected $autoCheckFields = ture;
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
@@ -33,25 +33,25 @@ class UserModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if ($condition['id']) {
+        if (isset($condition['id'])) {
             $where['id'] = $condition['id'];
         }
-        if ($condition['user_id']) {
-            $where['user_id'] = $condition['user_id'];
+        if (isset($condition['id'])) {
+            $where['user_no'] = $condition['user_no'];
         }
-        if ($condition['name']) {
+        if (isset($condition['name'])) {
             $where['name'] = ['LIKE', '%' . $condition['name'] . '%'];
         }
-        if ($condition['email']) {
+        if (isset($condition['email'])) {
             $where['email'] = ['LIKE', '%' . $condition['email'] . '%'];
         }
-        if ($condition['mobile']) {
+        if (isset($condition['mobile'])) {
             $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
         }
-        if ($condition['enc_password']) {
+        if (isset($condition['enc_password'])) {
             $where['enc_password'] = md5($condition['enc_password']);
         }
-        if ($condition['status']) {
+        if (isset($condition['status'])) {
             $where['status'] = $condition['status'];
         }
         return $where;
@@ -70,7 +70,7 @@ class UserModel extends PublicModel {
                             ->field('id,user_id,name,email,mobile,status')
                             ->count('id');
         } catch (Exception $ex) {
-            Log::write($ex->getMessage(), $level);
+            Log::write($ex->getMessage());
             return false;
         }
     }
@@ -81,18 +81,19 @@ class UserModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getlist($condition = []) {
+    public function getlist($condition = [],$order="id desc") {
         $where = $this->getcondition($condition);
-
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
             $count = $this->getcount($condition);
             return $this->where($where)
                             ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                            ->field('id,user_id,name,email,mobile,status')
+                            ->field('id,user_no,name,email,mobile,status')
+                            ->order($order)
                             ->select();
         } else {
             return $this->where($where)
-                            ->field('id,user_id,name,email,mobile,status')
+                            ->field('id,user_no,name,email,mobile,status')
+                            ->order($order)
                             ->select();
         }
     }
@@ -114,46 +115,56 @@ class UserModel extends PublicModel {
 
     /**
      * 登录
-     * @param  string $name 用户名
-     * @param  string$enc_password 密码
-     * @param  string $lang 语言
-     * @return mix
-     * @author zyg
+     * @param   array $data;
+     * @author jhw
      */
-    public function login($name, $enc_password) {
-        $where['name'] = $name;
-        $where['enc_password'] = md5($enc_password);
-        return $this->where($where)
-                        ->field('id,user_id,name,email,mobile,status')
-                        ->find();
+    public function login($data) {
+        $where=array();
+        if(!empty($data['email'])){
+            $where['email'] = $data['email'];
+        }
+        if(!empty($data['mobile'])){
+            $where['mobile'] = $data['mobile'];
+        }
+        if(empty($where['mobile'])&&empty($where['mobile'])){
+            echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
+            exit();
+        }
+        if(!empty($data['password'])){
+            $where['password_hash'] = md5($data['password']);
+        }
+        $where['status'] = 'NORMAL';
+        $this->where($where)
+            ->field('id,user_no,name,email,mobile,status')
+            ->find();
+        $row = $this->where($where)
+            ->field('id,user_no,name,email,mobile,status')
+            ->find();
+        return $row;
     }
 
     /**
      * 判断用户是否存在
-     * @param  string $name 用户名
-     * @param  string$enc_password 密码
-     * @param  string $lang 语言
-     * @return mix
-     * @author zyg
+     * @param  string $email 邮箱
+     * @param  string $moblie 手机
+     * @author jhw
      */
-    public function Exist($name, $type = 'name') {
-        switch (strtolower($type)) {
-            case 'name':
-                $where['name'] = $name;
-                break;
-            case 'email':
-                $where['email'] = $name;
-                break;
-            default :
-                return false;
-                break;
+    public function Exist($email=null,$moblie=null) {
+        $where='';
+        if($email){
+           $where ="email='".$email."'";
+        }
+        if($moblie){
+            if($where){
+                $where .= " or mobile='".$moblie."'";
+            }else{
+                $where = "mobile='".$moblie."'";
+            }
         }
         //$where['enc_password'] = md5($enc_password);
         $row = $this->where($where)
-                ->field('id,user_id,name,email,mobile,status')
+                ->field('id,user_no,name,email,mobile,status')
                 ->find();
-
-        var_dump();
         return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
     }
 
@@ -164,55 +175,12 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function delete_data($id = '') {
-
         $where['id'] = $id;
         return $this->where($where)
                         ->save(['status' => 'DELETED']);
     }
 
-    /**
-     * 更新数据
-     * @param  mix $upcondition 更新条件
-     * @return bool
-     * @author zyg
-     */
-    public function update_data($upcondition = []) {
-        $data = [];
-        $where = [];
-        if ($condition['id']) {
-            $where['id'] = $condition['id'];
-        }
-        if ($condition['user_id']) {
-            $data['user_id'] = $condition['user_id'];
-        }
-        if ($condition['name']) {
-            $data['name'] = $condition['name'];
-        }
-        if ($condition['email']) {
-            $data['email'] = $condition['email'];
-        }
-        if ($condition['mobile']) {
-            $data['mobile'] = $condition['mobile'];
-        }
-        if ($condition['enc_password']) {
-            $data['enc_password'] = md5($condition['enc_password']);
-        }
-        switch ($condition['status']) {
 
-            case self::STATUS_DELETED:
-                $data['status'] = $condition['status'];
-                break;
-            case self::STATUS_DISABLED:
-                $data['status'] = $condition['status'];
-                break;
-            case self::STATUS_NORMAL:
-                $data['status'] = $condition['status'];
-                break;
-        }
-
-
-        return $this->where($where)->save($data);
-    }
 
     /**
      * 新增数据
@@ -221,27 +189,7 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function create_data($createcondition = []) {
-
-
         $data = $this->create($createcondition);
-
-        $data['enc_password'] = md5($data['enc_password']);
-        switch ($condition['status']) {
-
-            case self::STATUS_DELETED:
-                $data['status'] = $condition['status'];
-                break;
-            case self::STATUS_DISABLED:
-                $data['status'] = $condition['status'];
-                break;
-            case self::STATUS_NORMAL:
-                $data['status'] = $condition['status'];
-                break;
-            default : $data['status'] = self::STATUS_NORMAL;
-                break;
-        }
-
-
         return $this->add($data);
     }
 
