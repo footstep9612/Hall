@@ -1,6 +1,6 @@
 <?php
 /**
- * sku
+ * Created by PhpStorm.
  * User: linkai
  * Date: 2017/6/15
  * Time: 18:48
@@ -26,7 +26,7 @@ class ProductController extends PublicController{
 
         $show_cat_no = $this->getRequest()->getQuery('show_cat_no','');
         if($show_cat_no==''){
-            jsonReturn(array('code'=>10000,'message'=>'分类编码不能为空'));
+            $this->jsonReturn(array('code'=>10000,'message'=>'分类编码不能为空'));
             exit;
         }
 
@@ -35,9 +35,9 @@ class ProductController extends PublicController{
         if($return){
             $return['code']=0;
             $return['message'] = '成功';
-            jsonReturn($return);
+            $this->jsonReturn($return);
         }else{
-            jsonReturn(array('code'=>400,'message'=>'失败'));
+            $this->jsonReturn(array('code'=>400,'message'=>'失败'));
         }
         exit;
     }
@@ -48,7 +48,7 @@ class ProductController extends PublicController{
     public function infoAction(){
         $sku = $this->getRequest()->getQuery("sku",'');
         if($sku == ''){
-            jsonReturn(array('code'=>10000,'message'=>'SKU编码不能为空'));
+            $this->jsonReturn(array('code'=>10000,'message'=>'SKU编码不能为空'));
             exit;
         }
 
@@ -60,9 +60,9 @@ class ProductController extends PublicController{
                 'message' => '成功',
                 'data' => $resolt
             );
-            jsonReturn($data);
+            $this->jsonReturn($data);
         }else {
-            jsonReturn(array('code' => 400, 'message' => '失败'));
+            $this->jsonReturn(array('code' => 400, 'message' => '失败'));
         }
         exit;
     }

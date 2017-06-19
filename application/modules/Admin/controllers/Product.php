@@ -52,14 +52,14 @@ class ProductController extends PublicController{
         }
 
         $current_num = $this->getRequest()->getQuery('current_num',1);
-            $pagesize = $this->getRequest()->getQuery('pagesize',10);
+        $pagesize = $this->getRequest()->getQuery('pagesize',10);
 
         $productModel = new ProductModel();
         $result = $productModel->getList($condition,$current_num,$pagesize);
         if($result){
-            jsonReturn($result);
+            $this->jsonReturn($result);
         }else{
-            jsonReturn('',400,'失败');
+            $this->jsonReturn('',400,'失败');
         }
         exit;
     }
@@ -73,9 +73,9 @@ class ProductController extends PublicController{
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu,$lang);
         if($result){
-            jsonReturn($result);
+            $this->jsonReturn($result);
         }else{
-            jsonReturn('',400,'失败');
+            $this->jsonReturn('',400,'失败');
         }
         exit;
     }

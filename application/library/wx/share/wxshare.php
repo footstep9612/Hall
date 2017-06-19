@@ -44,7 +44,7 @@ class wx_share_wxshare {
 
   private function getJsApiTicket() {
     // jsapi_ticket 应该全局存储与更新，以下代码以写入到文件中做示例
-    $data = json_decode(file_get_contents(MYPATH."/public/test/json/jsapi_ticket.json"));
+    $data = json_decode(file_get_contents(MYPATH."/public/json/jsapi_ticket.json"));
     if ($data->expire_time < time()) {
       $accessToken = $this->getAccessToken();
       $url = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=$accessToken";

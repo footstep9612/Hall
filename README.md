@@ -45,7 +45,7 @@
         	$sql = array('type'=>'sql','data'=>'show tables');
         	var_dump(distributed::getInstance()->query($sql));
         	//文件同步（不用安装rsync+inotify就可以实现文件同步，并且是触发式的占用很小的资源，调用sendfile零复制）
-            	$dir_pre=MYPATH.'/public/test/uploads/';
+            	$dir_pre=MYPATH.'/public/uploads/';
             	if(!is_dir($dir_pre.date('Ymd'))){
                 	mkdir($dir_pre.date('Ymd'),0777,true);
         	 }
@@ -54,7 +54,7 @@
                 $filename=uniqid().substr(time(),-4).'.'.$upname[1];
                 if(move_uploaded_file($_FILES['file']['tmp_name'],$dir_pre.date('Ymd').'/'.$filename)){  
                     echo "Stored in: " . $dir_pre.date('Ymd').'/'.$filename; 
-                    $fileinfo = array('type'=>'file','data'=>array('path' =>'/public/test/uploads/'.date('Ymd').'/'.$filename,'size'=>$_FILES['file']['size'],'ext'=>$upname[1]));
+                    $fileinfo = array('type'=>'file','data'=>array('path' =>'/public/uploads/'.date('Ymd').'/'.$filename,'size'=>$_FILES['file']['size'],'ext'=>$upname[1]));
                     var_dump(distributed::getInstance()->queryfile($fileinfo));
                 	}else{  
                     	echo 'Stored failed:file save error';  
@@ -65,9 +65,9 @@
        	}
        		本地访问：http:/localhost/index/distributed/
        		架构图
-![](https://github.com/qieangel2013/yaf/blob/master/public/test/images/jg.png)
+![](https://github.com/qieangel2013/yaf/blob/master/public/images/jg.png)
        		执行结果如下
-![](https://github.com/qieangel2013/yaf/blob/master/public/test/images/dis1.png)![](https://github.com/qieangel2013/yaf/blob/master/public/test/images/dis2.png)
+![](https://github.com/qieangel2013/yaf/blob/master/public/images/dis1.png)![](https://github.com/qieangel2013/yaf/blob/master/public/images/dis2.png)
 ###thrift的rpc远程调用
 	本地访问http://localhost/index/rpc （返回0表示成功）
 ###数据库连接池使用方法
@@ -94,16 +94,16 @@
         exit;
         本地访问：http:/localhost/index/dbtest/
 ###数据库连接池多进程执行如下
-![](https://github.com/qieangel2013/yaf/blob/master/public/test/images/multiprocess.png)
+![](https://github.com/qieangel2013/yaf/blob/master/public/images/multiprocess.png)
 ###swoole实现简单的视频直播（可以实时传音频、视频、聊天）
 	录制视频页面 http://localhost/index/swoolelivecamera
 	接受视频页面 http://localhost/index/swoolelive
 	采用vue+html5实现的聊天ui界面
-![](https://github.com/qieangel2013/yaf/blob/master/public/test/images/testlive.png)
+![](https://github.com/qieangel2013/yaf/blob/master/public/images/testlive.png)
 ###vmstat服务器监控
 	本地访问http://localhost/vmstat/
 	执行如下：
-![](https://github.com/qieangel2013/yaf/blob/master/public/test/images/vmstats.png)
+![](https://github.com/qieangel2013/yaf/blob/master/public/images/vmstats.png)
 ###yac、yaconf提供共享数据、配置使用如下
 	需要安装php扩展yac、yaconf
 	//注意：需要安装yaconf扩展，并且yaconf.directory=/tmp/yaconf 必须在php.ini里设置，不能动态加载
@@ -173,5 +173,5 @@
 
 Apache License Version 2.0 see http://www.apache.org/licenses/LICENSE-2.0.html
 ###如果你对我的辛勤劳动给予肯定，请给我捐赠，你的捐赠是我最大的动力
-![](https://github.com/qieangel2013/zys/blob/master/public/test/images/pay.png)
+![](https://github.com/qieangel2013/zys/blob/master/public/images/pay.png)
 [项目捐赠列表](https://github.com/qieangel2013/zys/wiki/%E9%A1%B9%E7%9B%AE%E6%8D%90%E8%B5%A0)

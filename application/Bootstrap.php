@@ -32,20 +32,14 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
 
         $Request = $dispatcher->getRequest();
 
-        preg_match('/\/v1\/([a-zA-Z0-9\_\-]+)\/(.*?)/ie', $Request->getRequestUri(), $out);
+        preg_match('/\/v1\/([a-zA-Z0-9\_\-]+)\/(.*?)/', $Request->getRequestUri(), $out);
 
         $ControllerName = ucfirst($out[1]);
         $ControllerName = str_replace('_', '', $ControllerName);
         //创建一个路由协议实例
-        if ($ControllerName) {
-            $route = new Yaf_Route_Rewrite('/v1/:Controller/:Action', ['module' => 'V1',
-                'controller' => $ControllerName,
-                'action' => ':Action']);
-        } else {
-            $route = new Yaf_Route_Rewrite('/v1/:Controller/:Action', ['module' => 'V1',
-                'controller' => ':Controller',
-                'action' => ':Action']);
-        }
+        $route = new Yaf_Route_Rewrite('/v1/:Controller/:Action', ['module' => 'V1',
+            'controller' => $ControllerName,
+            'action' => ':Action']);
         //使用路由器装载路由协议
         $router->addRoute('Materialcat', $route);
     }

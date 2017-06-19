@@ -825,157 +825,6 @@ function isMobile($mobile){
     }
 }
 
-/*
- * 缓存Hash存放
- *
- * @param str $name
- * @param str $key
- * @param str $value
- * @return string
- * @author jhw
- */
-function redisHashSet($name,$key,$value){
-
-    $reids = new phpredis();
-    if(empty($name) && !is_string($name)){
-        return false;
-    }
-    if(empty($key) && !is_string($name)){
-        return false;
-    }
-    if(empty($value) && !is_string($value)){
-        return false;
-    }
-
-    if($reids->hashExists($name,$key)){
-        $reids->hashDel($name,$key);
-    }
-
-    $data[$key] = $value;
-    if($reids->hashSet($name,$data)){
-        return true;
-    }else{
-        return false;
-    }
-}
-
-/*
- * 缓存Hash获取
- *
- * @param str $name
- * @param str $key
- * @return string
- * @author jhw
- */
-function redisHashGet($name,$key){
-    $reids = new phpredis();
-    $string = $reids->hashGet($name,$key);
-    if($string){
-        return $string;
-    }else{
-        return false;
-    }
-}
-/*
- * 缓存判断是否存在
- *
- * @param str $name
- * @param str $key
- * @return string
- * @author jhw
- */
-function redisHashExist($name,$key){
-    $reids = new phpredis();
-    if($reids->hashExists($name,$key)){
-        return true;
-    }else{
-        return false;
-    }
-}
-
-/*
- * 缓存存放
- *
- * @param str $name
- * @param str $key
- * @param str $value
- * @return string
- * @author jhw
- */
-function redisSet($name,$value,$second = 0){
-    $reids = new phpredis();
-    if(empty($name) && !is_string($name)){
-        return false;
-    }
-    if(empty($value) && !is_string($value)){
-        return false;
-    }
-    if($reids->exists($name)){
-        $reids->delete($name);
-    }
-    if(is_int($second) && $second>0){
-        $result = $reids->set($name,$value,$second);
-    }else{
-        $result = $reids->set($name,$value);
-    }
-    if($result){
-        return true;
-    }else{
-        return false;
-    }
-}
-/*
- * 缓存获取
- *
- * @param str $name
- * @param str $key
- * @param str $value
- * @return string
- * @author jhw
- */
-function redisGet($name){
-    $reids = new phpredis();
-    $result = $reids->get($name);
-    if($result){
-        return $result;
-    }else{
-        return false;
-    }
-}
-/*
- * 缓存判断是否存在
- *
- * @param str $name
- * @param str $key
- * @return string
- * @author jhw
- */
-function redisExist($name){
-    $reids = new phpredis();
-    if($reids->exists($name)){
-        return true;
-    }else{
-        return false;
-    }
-}
-
-/*
- * 平台计算公式
- *
- * @param str $name
- * @param str $key
- * @return string
- * @author jhw
- */
-function redi($name){
-    $reids = new phpredis();
-    if($reids->exists($name)){
-        return true;
-    }else{
-        return false;
-    }
-}
-
 /**
  * 浏览器语言
  * 目前只处理中(zn)英(en)俄(ru)西班牙(es)语
@@ -986,29 +835,12 @@ function browser_lang(){
     $language = '';
     if (preg_match("/zh-c|zh/i", $lang)) {
         $language = 'zh';
-    } else if (preg_match("/en/i", $lang)) {
+    }else if (preg_match("/en/i", $lang)) {
         $language = 'en';
-    } else if (preg_match("/es/i", $lang)) {
+    }else if(preg_match("/es/i", $lang)) {
         $language = 'es';
-    } else if (preg_match("/ru/i", $lang)) {
+    }else if(preg_match("/ru/i", $lang)) {
         $language = 'ru';
     }
     return $language;
-}
-
-/**
- * json输出
- * @param array $data    返回值
- * @param int $code    错误编码
- * @param string $message    错误提示
- * @param string $type
- */
-function jsonReturn($data,$code=0,$message='', $type = 'JSON') {
-    header('Content-Type:application/json; charset=utf-8');
-    if($code !=0){
-        exit(json_encode(array('code'=>$code,'message'=>$message)));
-    }
-    $data['code']=0;
-    $data['message'] = '成功';
-    exit(json_encode($data));
 }

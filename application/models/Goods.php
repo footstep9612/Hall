@@ -5,7 +5,8 @@
  * Date: 2017/6/15
  * Time: 21:04
  */
-class GoodsModel extends PublicModel{
+class GoodsModel extends PublicModel
+{
     //数据库 表映射
     protected $dbName = 'erui_db_ddl_goods';
     protected $tableName = 'goods';
@@ -23,14 +24,69 @@ class GoodsModel extends PublicModel{
     }
 
     /**
+     * pc-sku查看详情
+     */
+    public function getGoodsInfo($sku, $lang = '')
+    {
+        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+        $field = 'sku,lang,spu,qrcode,name,show_name,model,description';
+        $condition = array(
+            'sku' => $sku
+        );
+
+        $result = $this->field($field)->where($condition)->find();
+        if ($result) {
+
+            //查询附件
+            $skuAchModel = new GoodsAchModel();
+            //$where['sku'] = $result['sku'];
+            $where['spu'] = $result['spu'];
+            $attach = $skuAchModel->getInfoByAch($where);
+
+            //附件分组
+            /**
+             * SMALL_IMAGE-小图；
+             * MIDDLE_IMAGE-中图；
+             * BIG_IMAGE-大图；
+             * DOC-文档（包括图片和各种文档类型）
+             * */
+            foreach ($attach as $val) {
+                //$res = array();
+                switch ($val['attach_type']) {
+                    case 'SMALL_IMAGE':
+                        $group = 'SMALL_IMAGE';
+                        break;
+                    case 'MIDDLE_IMAGE':
+                        $group = 'MIDDLE_IMAGE';
+                        break;
+                    case 'BIG_IMAGE':
+                        $group = 'BIG_IMAGE';
+                        break;
+                    case 'DOC':
+                        $group = 'DOC';
+                        break;
+                    default:
+                        $group = 'OTHERS';
+                        break;
+                }
+                $result[$group] = $val;
+            }
+            return $result;
+        }
+        return false;
+    }
+
+    /**
      * SKU详情
      */
-    public function getInfo($sku,$lang){
+    public function getInfo($sku, $lang)
+    {
         $field = 'sku,spu,lang,show_name,model';
         $condition = array(
             'sku' => $sku,
-            'lang'=>$lang
+            'lang' => $lang
         );
+
 
         try{
             //缓存数据的判断读取
@@ -47,6 +103,11 @@ class GoodsModel extends PublicModel{
                     $result['brand'] = $brand;
 
                     //查询属性
+		            $skuAttrModel = new GoodsAttrModel();
+		            $where['sku'] = $sku;
+		            $attrs = $skuAttrModel->getAttrBySku($where, $lang);
+		            $result['attrs'] = $attrs;
+            
                     redisSet($redis_key,$result);
                     return $result;
                 }
@@ -60,20 +121,21 @@ class GoodsModel extends PublicModel{
 
     /**
      * 根据spu获取sku数
-     * @param string $spu  spu编码
+     * @param string $spu spu编码
      * @param string $lang 语言
      * @retrun int
      */
     public function getCountBySpu($spu='',$lang=''){
         $condition = array(
-            'status' => array('neq'  ,self::STATUS_NORMAL)
+            'status' => array('neq', self::STATUS_NORMAL)
         );
-        if($spu != ''){
+        if ($spu != '') {
             $condition['spu'] = $spu;
         }
-        if($lang!=''){
+        if ($lang != '') {
             $condition['lang'] = $lang;
         }
+
 
         try{
             //redis 操作
@@ -93,7 +155,8 @@ class GoodsModel extends PublicModel{
     /**
      * sku 列表 （admin）
      */
-    public function getList($condition=[],$current_no=1,$pagesize=10){
+    public function getList($condition = [], $current_no = 1, $pagesize = 10)
+    {
         //取product表名
         $productModel = new ProductModel();
         $ptable = $productModel->getTableName();
@@ -105,65 +168,64 @@ class GoodsModel extends PublicModel{
 
         $where = array();
         //spu 编码
-        if(isset($condition['spu'])) {
+        if (isset($condition['spu'])) {
             $where["$thistable.spu"] = $condition['spu'];
         }
 
         //审核状态
-        if(isset($condition['status'])) {
+        if (isset($condition['status'])) {
             $where["$thistable.status"] = $condition['status'];
         }
 
         //语言
         $lang = '';
-        if(isset($condition['lang'])){
+        if (isset($condition['lang'])) {
             $where["$thistable.lang"] = $lang = strtolower($condition['lang']);
         }
 
         //规格型号
-        if(isset($condition['model'])){
+        if (isset($condition['model'])) {
             $where["$thistable.model"] = $condition['model'];
         }
 
         //来源
-        if(isset($condition['source'])){
+        if (isset($condition['source'])) {
             $where["$ptable.source"] = $condition['source'];
         }
 
         //是否已定价
-        if(isset($condition['pricing_flag'])){
+        if (isset($condition['pricing_flag'])) {
             $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
         }
 
         //sku_name
-        if(isset($condition['name'])){
+        if (isset($condition['name'])) {
             $where["$thistable.name"] = $condition['name'];
         }
 
         //sku id  这里用sku编号
-        if(isset($condition['id'])){
+        if (isset($condition['id'])) {
             $where["$thistable.sku"] = $condition['id'];
         }
 
-        try{
-            $count = $this->field($field)->join($ptable." On $ptable.spu = $thistable.spu",'LEFT')->where($where)->count();
-            $result = $this->field($field)->join($ptable." On $ptable.spu = $thistable.spu",'LEFT')->where($where)->page($current_no,$pagesize)->select();
+        try {
+            $count = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->count();
+            $result = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
             $data = array(
-                'lang' =>$lang,
+                'lang' => $lang,
                 'count' => 0,
-                'current_no' =>$current_no,
-                'pagesize'=>$pagesize,
-                'data' =>array(),
+                'current_no' => $current_no,
+                'pagesize' => $pagesize,
+                'data' => array(),
             );
-            if($result){
-                $data['count']= $count;
+            if ($result) {
+                $data['count'] = $count;
                 $data['data'] = $result;
             }
             return $data;
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return false;
         }
     }
-
 
 }

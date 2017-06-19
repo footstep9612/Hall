@@ -18,20 +18,14 @@ class GoodsController extends PublicController{
             $condition['lang'] = strtolower($lang);
         }
 
-        //spu编码
-        $spu = $this->getRequest()->getQuery("spu",'');
-        if ($spu != '') {
-            $condition['spu'] = $spu;
-        }
-
-        //sku name
-        $sku = $this->getRequest()->getQuery("name", '');
+        //sku编码
+        $sku = $this->getRequest()->getQuery("sku", '');
         if ($sku != '') {
-            $condition['name'] = $sku;
+            $condition['sku'] = $sku;
         }
 
-        //sku
-        $id = $this->getRequest()->getQuery("sku", '');
+        //skuid
+        $id = $this->getRequest()->getQuery("skuid", '');
         if ($id != '') {
             $condition['id'] = $id;
         }
@@ -42,18 +36,6 @@ class GoodsController extends PublicController{
             $condition['source'] = $source;
         }
 
-        //定价
-        $pricing_flag = $this->getRequest()->getQuery('pricing_flag','');
-        if($pricing_flag !=''){
-            $condition['pricing_flag'] = $pricing_flag;
-        }
-
-        //规格型号
-        $model = $this->getRequest()->getQuery('model','');
-        if($model !=''){
-            $condition['model'] = $model;
-        }
-
         //分页
         $current_num = $this->getRequest()->getQuery('current_num',1);
         $pagesize = $this->getRequest()->getQuery('pagesize',10);
@@ -61,9 +43,9 @@ class GoodsController extends PublicController{
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getList($condition,$current_num,$pagesize);
         if($result){
-            jsonReturn($result);
+            $this->jsonReturn($result);
         }else{
-            jsonReturn('',400,'失败');
+            $this->jsonReturn('',400,'失败');
         }
         exit;
     }
