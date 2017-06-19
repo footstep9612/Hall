@@ -49,17 +49,17 @@ class EsgoodsController extends PublicController {
     }
 
     public function indexAction() {
+        $model = new EsgoodsModel();
 
-      $flag=  $this->es->exists($this->index,  'goods_en' , 0);
-      var_dump($flag);
-        die();
         foreach ($this->langs as $lang) {
             $this->goodsAction($lang);
 
             $this->productAction($lang);
         }
-        echo '1';
-        die();
+        $data['code'] = 0;
+        $data['message'] = '初始化成功!';
+        $this->jsonReturn($data);
+       
     }
 
     public function goodsAction($lang = 'en') {

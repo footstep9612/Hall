@@ -21,6 +21,26 @@ class EsgoodsModel extends PublicModel {
         parent::__construct($str = '');
     }
 
+    /* 通过ES 获取数据列表
+     * @param string $name // 商品名称 属性名称或属性值
+     * @param string $show_cat_no // 展示分类编码
+     * @return mix  
+     */
+
+    public function getGoodsbyname($name, $show_cat_no, $lang) {
+
+        $es = new ESClient();
+
+        $es->setshould(['name' => $name], ESClient::MATCH)
+                ->setshould(['attrs' => '*' . $name . '*'], ESClient::WILDCARD)
+                ->setshould(['attrs' => '?*"attr_value":"?*' . $name . '?*"?*'], ESClient::REGEXP, 0,
+                        ESClient::SHOULD, ['show_cats' => '*?"' . $show_cat_no . '"?*']);
+
+
+
+        return $es->search($this->dbName, $this->tableName . '_' . $lang);
+    }
+
     public function getgoods_attrbyskus($skus, $lang = 'en') {
         $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
                 ->field('*')

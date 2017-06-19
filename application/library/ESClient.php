@@ -49,6 +49,9 @@ class ESClient {
      * 如果不指定prefix_lengh和fuzziniess参数，该查询负担较重。
      */
     const FUZZY = 'fuzzy';
+    const MUST = 'must';
+    const MUST_NOT = 'must_not';
+    const SHOULD = 'should';
 
 //put your code here
     // "client", "custom", "filter_path", "human", "master_timeout", "timeout", "update_all_types", "wait_for_active_shards"
@@ -427,245 +430,15 @@ class ESClient {
     }
 
     /*
-     * 前缀查询（prefix Query）为了找到所有以 W1 开始的邮编，我们可以使用简单的前缀查询：
+     * 数据处理
      */
 
-    public function setprefix($prefix, $boost = 0) {
-
-        if (!$boost) {
-            return $prefix;
-        } else {
-
-            $keys = array_keys($prefix);
-
-
-            if (is_string($prefix[$keys[0]])) {
-                return [
-                    $keys[0] => [
-                        "value" => $prefix[$keys[0]],
-                        "boost" => $boost
-                    ]
-                ];
-            } else {
-                $child = $prefix[$keys[0]];
-                $child['boost'] = $boost;
-                return [
-                    $keys[0] => $child
-                ];
-            }
-        }
-    }
-
-    /*
-     * 主要根据fuzziniess和prefix_length进行匹配distance查询。根据type不同distance计算不一样。
-     * numeric类型的distance类似于区间，string类型则依据Levenshtein distance，
-     * 即从一个stringA变换到另一个stringB，需要变换的最小字母数。
-     * 如果指定为AUTO，则根据term的length有以下规则：0-1：完全一致  1-4：1 >4：2
-     * 推荐指定prefix_length，表明这个范围的字符需要精准匹配，
-     * 如果不指定prefix_lengh和fuzziniess参数，该查询负担较重。
-     * $fuzzy 可以包含 $fuzziness  $prefix_length  $max_expansions
-     * 形如{ "fuzzy" : {
-     *               "user" : {
-     *                       "value" :"ki",
-     *                       "boost" :1.0,
-     *                       "fuzziness" :2,
-     *                       "prefix_length" : 0,
-     *                       "max_expansions": 100
-     *                      }
-     *                  }
-     *     }
-     */
-
-    public function setfuzzy($fuzzy, $boost = 0) {
-        if (!$boost) {
-            return $fuzzy;
-        } else {
-
-            $keys = array_keys($fuzzy);
-
-
-            if (is_string($fuzzy[$keys[0]])) {
-                return [
-                    $keys[0] => [
-                        "value" => $fuzzy[$keys[0]],
-                        "boost" => $boost
-                    ]
-                ];
-            } else {
-                $child = $fuzzy[$keys[0]];
-                $child['boost'] = $boost;
-                return [
-                    $keys[0] => $child
-                ];
-            }
-        }
-    }
-
-    /*
-     * 与前缀查询的特性类似，模糊（wildcard）查询也是一种低层次基于术语的查询，
-     * 与前缀查询不同的是它可以让我们给出匹配的正则式。
-     * 它使用标准的 shell 模糊查询：? 匹配任意字符，* 匹配0个或多个字符。
-     */
-
-    public function setwildcard($wildcard, $boost = 0) {
-
-        if (!$boost) {
-            return $wildcard;
-        } else {
-
-            $keys = array_keys($wildcard);
-
-
-            if (is_string($wildcard[$keys[0]])) {
-                return [
-                    $keys[0] => [
-                        "value" => $wildcard[$keys[0]],
-                        "boost" => $boost
-                    ]
-                ];
-            } else {
-                $child = $wildcard[$keys[0]];
-                $child['boost'] = $boost;
-                return [
-                    $keys[0] => $child
-                ];
-            }
-        }
-    }
-
-    /*
-     * #1 ? 匹配 1 和 2，* 与空格以及 7 和 8 匹配。
-     * 如果现在我们只想匹配 W 区域的所有邮编，前缀匹配也会匹配以 WC 为开始的所有邮编，
-     * 与模糊匹配碰到的问题类似，如果我们只想匹配以 W 开始并跟着一个数字的所有邮编，
-     * 正则式（regexp）查询让我们能写出这样更复杂的模式：
-     */
-
-    public function setregexp($regexp, $boost = 0) {
-        if (!$boost) {
-            return $regexp;
-        } else {
-
-            $keys = array_keys($regexp);
-
-
-            if (is_string($regexp[$keys[0]])) {
-                return [
-                    $keys[0] => [
-                        "value" => $regexp[$keys[0]],
-                        "boost" => $boost
-                    ]
-                ];
-            } else {
-                $child = $regexp[$keys[0]];
-                $child['boost'] = $boost;
-                return [
-                    $keys[0] => $child
-                ];
-            }
-        }
-    }
-
-    /*
-     * 模糊匹配。
-     */
-
-    public function setmatch($match, $boost = 0) {
+    public function setdata($match, $boost = 0) {
         if (!$boost) {
             return $match;
         } else {
 
             $keys = array_keys($match);
-
-
-            if (is_string($match[$keys[0]])) {
-                return [
-                    $keys[0] => [
-                        "value" => $match[$keys[0]],
-                        "boost" => $boost
-                    ]
-                ];
-            } else {
-                $child = $match[$keys[0]];
-                $child['boost'] = $boost;
-                return [
-                    $keys[0] => $child
-                ];
-            }
-        }
-    }
-
-    /*
-     * 完全匹配。
-     */
-
-    public function setterm($match, $boost = 0) {
-        if (!$boost) {
-            return $match;
-        } else {
-
-            $keys = array_keys($match);
-
-
-            if (is_string($match[$keys[0]])) {
-                return [
-                    $keys[0] => [
-                        "value" => $match[$keys[0]],
-                        "boost" => $boost
-                    ]
-                ];
-            } else {
-                $child = $match[$keys[0]];
-                $child['boost'] = $boost;
-                return [
-                    $keys[0] => $child
-                ];
-            }
-        }
-    }
-
-    /*
-     * gte lte
-     * "created_at":{"gt":"2017-06--1","lt":"2017-06-18"}
-     */
-
-    public function setrange($match, $boost = 0) {
-        if (!$boost) {
-            return $match;
-        } else {
-
-            $keys = array_keys($match);
-
-
-            if (is_string($match[$keys[0]])) {
-                return [
-                    $keys[0] => [
-                        "value" => $match[$keys[0]],
-                        "boost" => $boost
-                    ]
-                ];
-            } else {
-                $child = $match[$keys[0]];
-                $child['boost'] = $boost;
-                return [
-                    $keys[0] => $child
-                ];
-            }
-        }
-    }
-
-    /*
-     * gte lte
-     * 下面我有一个例子，是查询文档中，含有某字段的nested查询，与不含有某字段的nested查询办法。
-     */
-
-    public function setmissing($match, $boost = 0) {
-        if (!$boost) {
-            return $match;
-        } else {
-
-            $keys = array_keys($match);
-
-
             if (is_string($match[$keys[0]])) {
                 return [
                     $keys[0] => [
@@ -688,41 +461,33 @@ class ESClient {
      * $bost 权重
      */
 
-    public function setmust($must, $type = self::MATCH, $bost = 0) {
+    public function setmust($must, $type = self::MATCH, $bost = 0, $type1 = NULL, $data = []) {
 
-        $val = [];
 
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($must, $bost);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($must, $bost);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($must, $bost);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($must, $bost);
-                break;
-            case self::TERM:
-                $val = $this->setterm($must, $bost);
-                break;
-            case self::RANGE:
-                $val = $this->setrange($must, $bost);
-                break;
-            case self::MISSING:
-                $val = $this->setmissing($must, $bost);
-                break;
-            case self::FUZZY:
-                $val = $this->setfuzzy($must, $bost);
-                break;
-            default :$val = $this->setmatch($must, $bost);
-                $type = self::MATCH;
-                break;
+
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE
+                ])) {
+
+            $type = self::MATCH;
         }
-        $this->body['query']['bool']['must'] [] = [$type => $val];
-        return $this;
+        if (in_array($type1, [self::SHOULD,
+                    self::MUST,
+                    self::MUST_NOT])) {
+            $val = $this->setdata($must, $bost);
+            $this->body['query']['bool']['must'] [] = [$type => $val, $type1 => $data,];
+            return $this;
+        } else {
+            $val = $this->setdata($must, $bost);
+            $this->body['query']['bool']['must'] [] = [$type => $val];
+            return $this;
+        }
     }
 
     /*
@@ -731,35 +496,18 @@ class ESClient {
 
     public function setdefault($match, $type = self::MATCH, $bost = 0) {
 
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($must, $bost);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($must, $bost);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($must, $bost);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($must, $bost);
-                break;
-            case self::TERM:
-                $val = $this->setterm($must, $bost);
-                break;
-            case self::RANGE:
-                $val = $this->setrange($must, $bost);
-                break;
-            case self::MISSING:
-                $val = $this->setmissing($must, $bost);
-                break;
-            case self::FUZZY:
-                $val = $this->setfuzzy($must, $bost);
-                break;
-            default :$val = $this->setmatch($must, $bost);
-                $type = self::MATCH;
-                break;
+        $val = $this->setdata($match, $bost);
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE
+                ])) {
+
+            $type = self::MATCH;
         }
 
         $this->body['query'][$type] = $val;
@@ -771,119 +519,129 @@ class ESClient {
      * must_not : 多个查询条件的相反匹配，相当于 not。
      */
 
-    public function setmust_not($must_not, $type = self::MATCH, $bost = 0) {
+    public function setmust_not($must_not, $type = self::MATCH, $bost = 0, $type1 = NULL, $data = []) {
 
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($must, $bost);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($must, $bost);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($must, $bost);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($must, $bost);
-                break;
-            case self::TERM:
-                $val = $this->setterm($must, $bost);
-                break;
-            case self::RANGE:
-                $val = $this->setrange($must, $bost);
-                break;
-            case self::MISSING:
-                $val = $this->setmissing($must, $bost);
-                break;
-            case self::FUZZY:
-                $val = $this->setfuzzy($must, $bost);
-                break;
-            default :$val = $this->setmatch($must, $bost);
-                $type = self::MATCH;
-                break;
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE,
+                    self::SHOULD,
+                    self::MUST,
+                    self::MUST_NOT
+                ])) {
+
+            $type = self::MATCH;
         }
+        if (in_array($type, [self::SHOULD,
+                    self::MUST,
+                    self::MUST_NOT])) {
+            $val = $this->setdata($must_not, $bost);
 
-        $this->body['query']['bool']['must_not'] [] = [$type => $val];
-        return $this;
+            $this->body['query']['bool']['must_not'] [$type] = [$type => $val, $type1 => $data,];
+            return $this;
+        } else {
+            $val = $this->setdata($must_not, $bost);
+            $this->body['query']['bool']['must_not'] [] = [$type => $val];
+            return $this;
+        }
     }
 
     /*
      * should : 至少有一个查询条件匹配, 相当于 or。
      */
 
-    public function setshould($should, $type = self::MATCH, $bost = 0) {
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($must, $bost);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($must, $bost);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($must, $bost);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($must, $bost);
-                break;
-            case self::TERM:
-                $val = $this->setterm($must, $bost);
-                break;
-            case self::RANGE:
-                $val = $this->setrange($must, $bost);
-                break;
-            case self::MISSING:
-                $val = $this->setmissing($must, $bost);
-                break;
-            case self::FUZZY:
-                $val = $this->setfuzzy($must, $bost);
-                break;
-            default :$val = $this->setmatch($must, $bost);
-                $type = self::MATCH;
-                break;
+    public function setshould($should, $type = self::MATCH, $bost = 0, $type1 = NULL, $data = []) {
+
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE,
+                    self::SHOULD,
+                    self::MUST,
+                    self::MUST_NOT
+                ])) {
+
+            $type = self::MATCH;
         }
-        $this->body['query']['bool']['should'] [] = [$type => $val];
-        return $this;
+        if (in_array($type, [self::SHOULD,
+                    self::MUST,
+                    self::MUST_NOT])) {
+            $val = $this->setdata($should, $bost);
+            $this->body['query']['bool']['should'] [] = [$type => $val, $type1 => $data,];
+
+            return $this;
+        } else {
+            $val = $this->setdata($should, $bost);
+            $this->body['query']['bool']['should'] [] = [$type => $val];
+            return $this;
+        }
+    }
+
+    public function popmust_not() {
+        $must_not = $this->body['query']['bool']['must_not'];
+        unset($this->body['query']['bool']['must_not']);
+        return $must_not;
+    }
+
+    public function popmust() {
+        $must = $this->body['query']['bool']['must'];
+        unset($this->body['query']['bool']['must']);
+        return $must;
+    }
+
+    public function popfilter() {
+        $must = $this->body['query']['bool']['filter'];
+        unset($this->body['query']['bool']['filter']);
+        return $must;
+    }
+
+    public function popshouold() {
+        $must = $this->body['query']['bool']['should'];
+        unset($this->body['query']['bool']['should']);
+        return $must;
     }
 
     /*
      * filter : 过滤。
      */
 
-    public function setfilter($filter, $type = self::MATCH) {
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($must, $bost);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($must, $bost);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($must, $bost);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($must, $bost);
-                break;
-            case self::TERM:
-                $val = $this->setterm($must, $bost);
-                break;
-            case self::RANGE:
-                $val = $this->setrange($must, $bost);
-                break;
-            case self::MISSING:
-                $val = $this->setmissing($must, $bost);
-                break;
-            case self::FUZZY:
-                $val = $this->setfuzzy($must, $bost);
-                break;
-            default :$val = $this->setmatch($must, $bost);
-                $type = self::MATCH;
-                break;
+    public function setfilter($filter, $type = self::MATCH, $bost = 0, $type1 = NULL, $data = []) {
+        $val = $this->setdata($filter, $bost);
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE,
+                    self::SHOULD,
+                    self::MUST,
+                    self::MUST_NOT
+                ])) {
+
+            $type = self::MATCH;
         }
-        $this->body['query']['bool']['filter'] [] = [$type => $val];
-        return $this;
+        if (in_array($type, [self::SHOULD,
+                    self::MUST,
+                    self::MUST_NOT])) {
+
+            $val = $this->setdata($should, $bost);
+            $this->body['query']['bool']['filter'] [] = [$type => $val, $type1 => $data,];
+            return $this;
+        } else {
+            $val = $this->setdata($should, $bost);
+            $this->body['query']['bool']['filter'] [] = [$type => $val];
+            return $this;
+        }
     }
 
     /*
@@ -941,6 +699,8 @@ class ESClient {
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
 
+
+            var_dump($ex->getMessage());
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }

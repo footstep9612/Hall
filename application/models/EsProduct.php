@@ -257,7 +257,7 @@ class EsProductModel extends PublicModel {
 
            $flag= $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
            
-           var_dump($flag);
+          return $flag;
         }
     }
 
