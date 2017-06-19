@@ -87,30 +87,33 @@ class GoodsModel extends PublicModel
             'lang' => $lang
         );
 
-        /**
-         * 缓存数据的判断读取
-         */
-        $result = $this->field($field)->where($condition)->find();
-        if ($result) {
-            //查询型号
-            $model = $this->getModelBySku($result['sku'], $lang);
-            $result['model'] = $model;
 
-            //查询属性
-            $skuAttrModel = new GoodsAttrModel();
-            $where['sku'] = $sku;
-            $attrs = $skuAttrModel->getAttrBySku($where, $lang);
+        try{
+            //缓存数据的判断读取
+            $redis_key = md5(json_encode($condition));
+            if(redisExist($redis_key)){
+                $result = redisGet($redis_key);
+                return $result ? $result : false;
+            }else {
+                $result = $this->field($field)->where($condition)->find();
+                if ($result) {
+                    //查询品牌
+                    $productModel = new ProductModel();
+                    $brand = $productModel->getBrandBySpu($result['spu'], $lang);
+                    $result['brand'] = $brand;
 
-            $data = array(
-                'lang' => $lang
-            );
-            if ($result) {
-                foreach ($result as $key => $val) {
-                    $val['attrs'] = $attrs[$val[$lang]];
-                    $data[$val[$lang]] = $val;
+                    //查询属性
+		            $skuAttrModel = new GoodsAttrModel();
+		            $where['sku'] = $sku;
+		            $attrs = $skuAttrModel->getAttrBySku($where, $lang);
+		            $result['attrs'] = $attrs;
+            
+                    redisSet($redis_key,$result);
+                    return $result;
                 }
             }
-            return $result;
+        }catch(Exception $e){
+            return false;
         }
         return false;
     }
@@ -122,11 +125,7 @@ class GoodsModel extends PublicModel
      * @param string $lang 语言
      * @retrun int
      */
-    public function getCountBySpu($spu = '', $lang = '')
-    {
-        /**
-         * 统计这  后期也注意通过缓存处理下
-         */
+    public function getCountBySpu($spu='',$lang=''){
         $condition = array(
             'status' => array('neq', self::STATUS_NORMAL)
         );
@@ -137,8 +136,20 @@ class GoodsModel extends PublicModel
             $condition['lang'] = $lang;
         }
 
-        $count = $this->where($condition)->count('id');
-        return $count ? $count : 0;
+
+        try{
+            //redis 操作
+            $redis_key = md5(json_encode($condition));
+            if(redisExist($redis_key)){
+                return redisGet($redis_key);
+            }else{
+                $count = $this->where($condition)->count('id');
+                redisSet($redis_key,$count);
+                return $count ? $count : 0 ;
+            }
+        }catch (Exception $e){
+            return 0;
+        }
     }
 
     /**
