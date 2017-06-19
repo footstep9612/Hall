@@ -95,25 +95,21 @@ class ESClient {
      * createindices
      * 创建索引
      * @access public
-     * @param string $index 索引名称
-     * @param string $type 类型名称
-     * @param int $number_of_shards 主分片数量
+     * @param string $index 索引名称    
+     * @param mix $body 资源定义
      * @param int $number_of_replicas 从分片数量
      * @since 1.0
      * @return array     *
      */
 
-    public function create_index($index, $type, $body, $id) {
+    public function create_index($index,  $body) {
         $indexParams['index'] = $index;
-        $indexParams['type'] = $type;
+       // $indexParams['type'] = $type;
         $indexParams['body'] = $body;
-        $indexParams['body']['settings']['number_of_shards'] = 5;
-        $indexParams['body']['settings']['number_of_replicas'] = 0;
-        /*
-         * 使用自己的ID只要再添加一个id字段即可。例：
-         */
-        $indexParams['id'] = $id;
-        return $this->server->create($indexParams);
+        $indexParams['body']['settings']['number_of_shards'] = 15;
+        $indexParams['body']['settings']['number_of_replicas'] = 0;      
+      
+        return $this->server->indices()->create($indexParams);
     }
 
     /*
@@ -189,8 +185,9 @@ class ESClient {
         //   var_dump($retDoc);
     }
 
+    
     /*
-     * 删除索引
+     * 删除类型
      */
 
     public function delete_type($index) {
@@ -536,7 +533,7 @@ class ESClient {
 
             $type = self::MATCH;
         }
-        if (in_array($type, [self::SHOULD,
+        if (in_array($type1, [self::SHOULD,
                     self::MUST,
                     self::MUST_NOT])) {
             $val = $this->setdata($must_not, $bost);
@@ -571,7 +568,7 @@ class ESClient {
 
             $type = self::MATCH;
         }
-        if (in_array($type, [self::SHOULD,
+        if (in_array($type1, [self::SHOULD,
                     self::MUST,
                     self::MUST_NOT])) {
             $val = $this->setdata($should, $bost);
@@ -676,20 +673,23 @@ class ESClient {
         return $this;
     }
 
+    public function setbody($body = []) {
+        $this->body = $body;
+        return $this;
+    }
+
     /*
      * 查询
      *
      */
 
-    public function search($index, $type, $analyzer = '', $from = 0, $size = 100) {
+    public function search($index, $type, $from = 0, $size = 10) {
         $searchParams = array(
             'index' => $index,
             'type' => $type,
             'body' => $this->body,
         );
-        if ($analyzer) {
-            $searchParams ['analyzer'] = $analyzer;
-        }
+
 
         $searchParams['from'] = $from;
         $searchParams['size'] = $size;
@@ -699,8 +699,6 @@ class ESClient {
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
 
-
-            var_dump($ex->getMessage());
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
@@ -724,7 +722,6 @@ class ESClient {
 
             return $this->server->count($searchParams);
         } catch (Exception $ex) {
-
             LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
