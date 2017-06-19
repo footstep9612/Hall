@@ -67,14 +67,9 @@ class InquiryModel extends PublicModel {
      */
     public function getcount($condition = []) {
         $where = $this->getcondition($condition);
-        try {
-            return $this->where($where)
+        return $this->where($where)
                 ->field('id,inquiry_no,customer_id,inquirer,agent,inquiry_time,inquiry_status,quote_status,created_at')
                 ->count('id');
-        } catch (Exception $ex) {
-            Log::write($ex->getMessage(), $level);
-            return false;
-        }
     }
 
     /**
@@ -105,11 +100,9 @@ class InquiryModel extends PublicModel {
      * @return mix
      * @author zhangyuliang
      */
-    public function info($inquiry_no = '') {
-        $where['inquiry_no'] = $inquiry_no;
-        return $this->where($where)
-            ->field('id,inquiry_no,customer_id,inquirer,agent,inquiry_time,inquiry_region,inquiry_country,trade_terms,trans_mode_bn,kerui_flag,bid_flag')
-            ->find();
+    public function info($condition = []) {
+        $where = $this->getcondition($condition);
+        return $this->where($where)->find();
     }
 
     /**
@@ -118,8 +111,22 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-
         $data = $this->create($createcondition);
+        $data['inquiry_status'] = STATUS_DRAFT;
+
+        return $this->add($data);
+    }
+
+    /**
+     * 更新数据
+     * @param  mix $data 更新数据
+     * @param  int $inquiry_no 询单号
+     * @return bool
+     * @author zhangyuliang
+     */
+    public function update_data($createcondition = []) {
+        $data = $this->create($createcondition);
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         switch ($createcondition['inquiry_status']) {
             case self::STATUS_DRAFT:
@@ -160,23 +167,7 @@ class InquiryModel extends PublicModel {
             default : $data['inquiry_status'] = self::STATUS_NOT_QUOTED;
                 break;
         }
-
-        return $this->add($data);
-
-    }
-
-    /**
-     * 更新数据
-     * @param  mix $data 更新数据
-     * @param  int $inquiry_no 询单号
-     * @return bool
-     * @author zhangyuliang
-     */
-    public function update_data($inquiry_no = '',$data = []) {
-
-        $where['inquiry_no'] = $inquiry_no;
         return $this->where($where)->save($data);
-
     }
 
     /**
@@ -185,9 +176,8 @@ class InquiryModel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function delete_data($inquiry_no = '') {
-        $where['inquiry_no'] = $inquiry_no;
-        return $this->where($where)
-            ->save(['inquiry_status' => 'DELETED']);
+    public function delete_data($createcondition = []) {
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
+        return $this->where($where)->save(['inquiry_status' => 'DELETED']);
     }
 }
