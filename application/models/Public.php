@@ -138,12 +138,9 @@ class PublicModel extends Model {
             case self::MSG_MOBILE_EXIST :
                 return ['code' => self::MSG_MOBILE_EXIST,
                     'message' => '手机号已经注册'];
-
-
             case self::MSG_PASSWORD_DIFFER :
                 return ['code' => self::MSG_MOBILE_EXIST,
                     'message' => '两次输入密码不一致'];
-
 
             case self::MSG_VERIFICATION_ERR :
                 return ['code' => self::MSG_VERIFICATION_ERR,
