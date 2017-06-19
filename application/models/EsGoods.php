@@ -27,7 +27,7 @@ class EsgoodsModel extends PublicModel {
                 ->where(['sku' => ['in', $skus], 'lang' => $lang])
                 ->select();
         $ret = [];
-        foreach ($show_cat_products as $item) {
+        foreach ($product_attrs as $item) {
 
             $ret[$item['sku']][] = $item;
         }
@@ -54,14 +54,14 @@ class EsgoodsModel extends PublicModel {
             $body = $item;
 
             $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
-            $body['show_cat'] = $productattrs[$item['spu']]['show_cat'];
+            $body['show_cat'] = $productattrs[$item['spu']]['show_cats'];
 
             $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
             foreach ($goods_attrs[$item['sku']] as $attr) {
 
                 array_push($product_attrs, $attr);
             }
-          $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
+            $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
 
             $ret[$id] = $body;
         }
@@ -88,13 +88,15 @@ class EsgoodsModel extends PublicModel {
             $body = $item;
 
             $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
-            $body['show_cat'] = $productattrs[$item['spu']]['show_cat'];
+            $body['show_cats'] = $productattrs[$item['spu']]['show_cats'];
 
 
             $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
-            foreach ($goods_attrs[$item['sku']] as $attr) {
+            if (isset($goods_attrs[$item['sku']])) {
+                foreach ($goods_attrs[$item['sku']] as $attr) {
 
-                array_push($product_attrs, $attr);
+                    array_push($product_attrs, $attr);
+                }
             }
             $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
             $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);

@@ -255,7 +255,9 @@ class EsProductModel extends PublicModel {
             $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
             $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
 
-            $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+           $flag= $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+           
+           var_dump($flag);
         }
     }
 
