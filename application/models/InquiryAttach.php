@@ -40,6 +40,17 @@ class InquiryAttachModel extends PublicModel {
     }
 
     /**
+     * 获取数据条数
+     * @param mix $condition
+     * @return mix
+     * @author zhangyuliang
+     */
+    public function getcount($condition = []) {
+        $where = $this->getcondition($condition);
+        return $this->where($where)->count('id');
+    }
+
+    /**
      * 获取列表
      * @param mix $condition
      * @return mix
@@ -64,10 +75,8 @@ class InquiryAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-
-        //$data = $this->create($createcondition);
-        return $this->add($createcondition);
-
+        $data = $this->create($createcondition);
+        return $this->add($data);
     }
 
     /**
@@ -77,11 +86,10 @@ class InquiryAttachModel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function update_data($inquiry_no = '',$data = []) {
-
-        $where['inquiry_no'] = $inquiry_no;
+    public function update_data($createcondition = []) {
+        $data = $this->create($createcondition);
+        $where['id'] = $createcondition['id'];
         return $this->where($where)->save($data);
-
     }
 
     /**
@@ -90,9 +98,8 @@ class InquiryAttachModel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function delete_data($where = []) {
-
+    public function delete_data($createcondition = []) {
+        $where['id'] = $createcondition['id'];
         return $this->where($where)->delete();
-
     }
 }
