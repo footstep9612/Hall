@@ -61,7 +61,6 @@ class Arithmetic {
     private static $collection_period = 0; //回款周期
     private static $bank_interest = 0; //银行利息
     private static $funds_occupied = 0; //占用资金比例
-    private static $Qty = 0; //数量
 
     /*
      * 商检费
