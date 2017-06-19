@@ -6,26 +6,14 @@
  */
 class GoodsAttrModel extends PublicModel
 {
-    //protected $dbName = 'erui_goods'; //数据库名称
     protected $dbName = 'erui_db_ddl_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
-    public function __construct() {
-        parent::__construct();
-    }
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_INVALID = 'INVALID'; //无效；
+    const STATUS_DELETE = 'DELETE'; //删除；
 
-    /**
-     * 根据条件获取商品属性值
-     * @param null $where string 条件
-     * @return mixed
-     */
-    public function WhereList($where)
-    {
-        $result = $this->field('attr_group, attr_no, attr_name, attr_value, attr_value_type, goods_flag, logistics_flag, hs_flag, spec_flag, required_flag, search_flag, sort_order, status')
-                       ->where($where)
-                       ->select();
-        return $result;
-    }
     /**
      * 编辑商品属性查询
      * @param null $where string 条件
@@ -33,64 +21,70 @@ class GoodsAttrModel extends PublicModel
      */
     public function getAttrBySku($where, $lang)
     {
-        $where['lang'] = $lang;
-        $result = $this->field('id, spu, attr_group, attr_no, attr_name, attr_value, attr_value_type, sort_order, status')
+        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+        $where['status'] = self::STATUS_VALID;
+        $field = 'id,lang,spu,attr_name,input_type,value_type,value_unit,options,input_hint,attr_group';
+        $result = $this->field($field)
                        ->where($where)
-                       ->select();//return $result;exit;
+                       ->select();
+
+        //获取对应产品属性并分组
+        $product = new ProductAttrModel();
+        $spu = $result[0]['spu'];
+        $p_attrs = $product->getAttrBySpu($spu);
+
+        //进行属性分组
+        /**
+         * 属性分组:
+         *   Specs - 规格
+         *   Technical Parameters - 技术参数
+         *   Executive Standard - 技术标准
+         *   Product Information - 简要信息
+         *   Quatlity Warranty - 质量保证
+         *   Others - 其他属性
+         *  Image - 附件
+         *  Documentation - 技术文档　
+        */
         if($result){
             $res = array();
             foreach($result as $val){
-                /* 属性分组: 适用范围scope、技术参数tech、执行标准exe、产品优势advantage、图标ico、产品图片images、附件attach,其他　*/
+
                 switch($val['attr_group']){
-                    case 'scope':
-                        $group = 'scope';
+                    case 'Specs':
+                        $group = 'Specs';
                         break;
-                    case 'tech':
-                        $group = 'tech';
+                    case 'Technical Parameters':
+                        $group = 'Technical Parameters';
                         break;
-                    case 'exe':
-                        $group = 'exe';
+                    case 'Executive Standard':
+                        $group = 'Executive Standard';
                         break;
-                    case 'advantage':
-                        $group = 'advantage';
+                    case 'Product Information':
+                        $group = 'Product Information';
                         break;
-                    case 'ico':
-                        $group = 'ico';
+                    case 'Quatlity Warranty':
+                        $group = 'Quatlity Warranty';
                         break;
-                    case 'images':
-                        $group = 'images';
+                    case 'Image':
+                        $group = 'Image';
                         break;
-                    case 'attach':
-                        $group = 'attach';
+                    case 'Documentation':
+                        $group = 'Documentation';
                         break;
                     default:
-                        $group = 'other';
+                        $group = 'others';
                         break;
                 }
-                $res[$lang][$group][] = $val;
+                $res[$lang][$group] = $val;
             }
             $result = $res;
         }
-        if($result){
-            return $result;
-        } else {
-            return array();
-        }
-    }
-
-    /**
-     * 根据条件sku详情和
-     * @param null $where string 条件
-     * @return mixed
-     */
-    public function getInfoBySku($where, $lang)
-    {
-        $where['lang'] = $lang;
-        $result = $this->field('qrcode, name, show_name, model, description, purchase_price1, purchase_price2, purchase_price_cur, purchase_unit, created_by, created_at')
-            ->where($where)
-            ->select();
-        if($result){
-            return $result;
+        //合并sku/spu数组属性
+        $data = array();
+        $data['sku_attrs'] = $result;
+        $data['spu_attrs'] = $p_attrs;
+        if($data){
+            return $data;
         } else {
             return array();
         }

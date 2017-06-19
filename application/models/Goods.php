@@ -5,7 +5,8 @@
  * Date: 2017/6/15
  * Time: 21:04
  */
-class GoodsModel extends PublicModel{
+class GoodsModel extends PublicModel
+{
     //数据库 表映射
     protected $dbName = 'erui_db_ddl_goods';
     protected $tableName = 'goods';
@@ -23,34 +24,88 @@ class GoodsModel extends PublicModel{
     }
 
     /**
+     * pc-sku查看详情
+     */
+    public function getGoodsInfo($sku, $lang = '')
+    {
+        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+        $field = 'sku,lang,spu,qrcode,name,show_name,model,description';
+        $condition = array(
+            'sku' => $sku
+        );
+
+        $result = $this->field($field)->where($condition)->find();
+        if ($result) {
+
+            //查询附件
+            $skuAchModel = new GoodsAchModel();
+            //$where['sku'] = $result['sku'];
+            $where['spu'] = $result['spu'];
+            $attach = $skuAchModel->getInfoByAch($where);
+
+            //附件分组
+            /**
+             * SMALL_IMAGE-小图；
+             * MIDDLE_IMAGE-中图；
+             * BIG_IMAGE-大图；
+             * DOC-文档（包括图片和各种文档类型）
+             * */
+            foreach ($attach as $val) {
+                //$res = array();
+                switch ($val['attach_type']) {
+                    case 'SMALL_IMAGE':
+                        $group = 'SMALL_IMAGE';
+                        break;
+                    case 'MIDDLE_IMAGE':
+                        $group = 'MIDDLE_IMAGE';
+                        break;
+                    case 'BIG_IMAGE':
+                        $group = 'BIG_IMAGE';
+                        break;
+                    case 'DOC':
+                        $group = 'DOC';
+                        break;
+                    default:
+                        $group = 'OTHERS';
+                        break;
+                }
+                $result[$group] = $val;
+            }
+            return $result;
+        }
+        return false;
+    }
+
+    /**
      * SKU详情
      */
-    public function getInfo($sku,$lang){
+    public function getInfo($sku, $lang)
+    {
         $field = 'sku,spu,lang,show_name,model';
         $condition = array(
             'sku' => $sku,
-            'lang'=>$lang
+            'lang' => $lang
         );
 
         /**
          * 缓存数据的判断读取
          */
         $result = $this->field($field)->where($condition)->find();
-        if($result){
+        if ($result) {
             //查询型号
-            $model = $this->getModelBySku($result['sku'],$lang);
+            $model = $this->getModelBySku($result['sku'], $lang);
             $result['model'] = $model;
 
             //查询属性
             $skuAttrModel = new GoodsAttrModel();
             $where['sku'] = $sku;
-            $attrs = $skuAttrModel->getAttrBySku($where,$lang);
+            $attrs = $skuAttrModel->getAttrBySku($where, $lang);
 
             $data = array(
                 'lang' => $lang
             );
-            if($result){
-                foreach($result as $key => $val){
+            if ($result) {
+                foreach ($result as $key => $val) {
                     $val['attrs'] = $attrs[$val[$lang]];
                     $data[$val[$lang]] = $val;
                 }
@@ -63,70 +118,103 @@ class GoodsModel extends PublicModel{
 
     /**
      * 根据spu获取sku数
-     * @param string $spu  spu编码
+     * @param string $spu spu编码
      * @param string $lang 语言
      * @retrun int
      */
-    public function getCountBySpu($spu='',$lang=''){
+    public function getCountBySpu($spu = '', $lang = '')
+    {
         /**
          * 统计这  后期也注意通过缓存处理下
          */
         $condition = array(
-            'status' => array('neq'  ,self::STATUS_NORMAL)
+            'status' => array('neq', self::STATUS_NORMAL)
         );
-        if($spu != ''){
+        if ($spu != '') {
             $condition['spu'] = $spu;
         }
-        if($lang!=''){
+        if ($lang != '') {
             $condition['lang'] = $lang;
         }
 
         $count = $this->where($condition)->count('id');
-        return $count ? $count : 0 ;
+        return $count ? $count : 0;
     }
 
     /**
      * sku 列表 （admin）
      */
-    public function getList($condition=[],$current_no,$pagesize){
+    public function getList($condition = [], $current_no = 1, $pagesize = 10)
+    {
+        //取product表名
         $productModel = new ProductModel();
         $ptable = $productModel->getTableName();
 
+        //获取当前表名
         $thistable = $this->getTableName();
-        $field = "$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
-        $condition = array(
-            "$thistable.status" => array('neq',self::STATUS_DELETED)
-        );
-        //语言 有传递取传递语言，没传递取浏览器，浏览器取不到取en英文
-        $condition[$thistable.'lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $field = "$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
-
-        if(isset($condition['source'])){
-            $where .= " AND source='".$condition['source']."'";
+        $where = array();
+        //spu 编码
+        if (isset($condition['spu'])) {
+            $where["$thistable.spu"] = $condition['spu'];
         }
-    }
 
-    /**
-     * 根据SPU获取品牌
-     * @param string $spu
-     * @param $lang
-     * @return string
-     */
-    public function getModelBySku($sku='',$lang){
-        if(empty($sku))
-            return '';
-
-        $condition =array(
-            'sku'=>$sku,
-            'status'=>self::STATUS_NORMAL,
-            'lang'=>$lang
-        );
-        $result = $this->field('model')->where($condition)->find();
-        if($result){
-            return $result['model'];
+        //审核状态
+        if (isset($condition['status'])) {
+            $where["$thistable.status"] = $condition['status'];
         }
-        return '';
+
+        //语言
+        $lang = '';
+        if (isset($condition['lang'])) {
+            $where["$thistable.lang"] = $lang = strtolower($condition['lang']);
+        }
+
+        //规格型号
+        if (isset($condition['model'])) {
+            $where["$thistable.model"] = $condition['model'];
+        }
+
+        //来源
+        if (isset($condition['source'])) {
+            $where["$ptable.source"] = $condition['source'];
+        }
+
+        //是否已定价
+        if (isset($condition['pricing_flag'])) {
+            $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
+        }
+
+        //sku_name
+        if (isset($condition['name'])) {
+            $where["$thistable.name"] = $condition['name'];
+        }
+
+        //sku id  这里用sku编号
+        if (isset($condition['id'])) {
+            $where["$thistable.sku"] = $condition['id'];
+        }
+
+        try {
+            $count = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->count();
+            $result = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
+            $data = array(
+                'lang' => $lang,
+                'count' => 0,
+                'current_no' => $current_no,
+                'pagesize' => $pagesize,
+                'data' => array(),
+            );
+            if ($result) {
+                $data['count'] = $count;
+                $data['data'] = $result;
+            }
+            return $data;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
 }
