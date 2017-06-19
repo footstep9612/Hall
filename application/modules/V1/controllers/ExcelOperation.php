@@ -99,9 +99,18 @@ class ExcelOperationController extends Yaf_Controller_Abstract
 
 
         //3.填充数据
+        //设置边框
+        $styleArray = [
+            'borders'=>[
+                'outline'=>[
+                    'style'=>PHPExcel_Style_Border::BORDER_THIN,
+                    'color'=>['rgb'=>'333333'],
+                ],
+            ],
+        ];
         /*设置A1~R1标题并合并单元格(水平整行，垂直2列)*/
         $objSheet->setCellValue("A1",'易瑞国际电子商务有限公司商务技术部')->mergeCells("A1:R2");
-
+        $objSheet->getStyle("A3:R5")->applyFromArray($styleArray);
 
 
         $objSheet->getStyle("A1:R2")
@@ -122,15 +131,6 @@ class ExcelOperationController extends Yaf_Controller_Abstract
             ->setName("微软雅黑")
             ->setSize(10);
 
-        $style = [
-            'borders'=>[
-                'outline'=>[
-                    'style'=>PHPExcel_Style_Border::BORDER_THICK,
-                    'color'=>['rgb'=>'000']
-                ],
-            ]
-        ];
-        $objSheet->getStyle()->applyFromArray($style);
         $objSheet->getStyle()
             ->getAlignment()
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
@@ -289,16 +289,16 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         $objSheet->setCellValue("J15","");
         $objSheet->setCellValue("K15","");
 
-        //居中文字
-        $letters = ["B","C","D","E","F","G","H","I","J","K"];
-        $row_nums = ["11","12","13","14","15"];
+
+        $objSheet->getStyle("A11:K15")->applyFromArray($styleArray);
 
         $total_rows = [
-                        "B11","B12","B13","B14","B15","C11","C12","C13","C14","C15",
-                        "D11","D12","D13","D14","D15","E11","E12","E13","E14","E15",
-                        "F11","F12","F13","F14","F15","G11","G12","G13","G14","G15",
-                        "H11","H12","H13","H14","H15","I11","I12","I13","I14","I15",
-                        "J11","J12","J13","J14","J15","K11","K12","K13","K14","K15",
+                        "A11","A12","A13","A14","A15","B11","B12","B13","B14","B15",
+                        "C11","C12","C13","C14","C15","D11","D12","D13","D14","D15",
+                        "E11","E12","E13","E14","E15","F11","F12","F13","F14","F15",
+                        "G11","G12","G13","G14","G15","H11","H12","H13","H14","H15",
+                        "I11","I12","I13","I14","I15","J11","J12","J13","J14","J15",
+                        "K11","K12","K13","K14","K15",
         ];
         foreach ($total_rows as $total_row)
         {
@@ -306,31 +306,29 @@ class ExcelOperationController extends Yaf_Controller_Abstract
                 ->getAlignment()
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
                 ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $objSheet->getStyle($total_row)->applyFromArray($styleArray);
         }
 
-        $objSheet->getCell("B11")->getStyle()
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-
-
-        $objSheet->setCellValue("A17",'报价备注 : ')->mergeCells("A17:R18");
-        $objSheet->getCell("A17")
+        $objSheet->setCellValue("A16",'报价备注 : ')->mergeCells("A16:K17");
+        $objSheet->getStyle("A16:K17")->applyFromArray($styleArray);
+        $objSheet->getCell("A16")
             ->getStyle()
             ->getAlignment()
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
             ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
-        $objSheet->setCellValue("A19",'物流备注 : ')->mergeCells("A19:R20");
-        $objSheet->getCell("A19")
+        $objSheet->setCellValue("A18",'物流备注 : ')->mergeCells("A18:K19");
+        $objSheet->getStyle("A18:K19")->applyFromArray($styleArray);
+        $objSheet->getCell("A18")
             ->getStyle()
             ->getAlignment()
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
             ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
+        $objSheet->setCellValue("A20","")->mergeCells("A20:K21");
+        $objSheet->getStyle("A20:K21")->applyFromArray($styleArray);
 
         //添加logo
-
 
 
         //4.保存文件
@@ -344,8 +342,4 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         //$objWriter->save("php://output");
 
     }
-
-
-
-
 }
