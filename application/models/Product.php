@@ -39,7 +39,7 @@ class ProductModel extends PublicModel{
      * @param int $current_num 当前页
      * @param int $pagesize 每页显示条数
      */
-    public function getList($condition=[],$current_num=1,$pagesize=10){
+    public function getList($condition=[]){
         $field = "lang,spu,brand,name,created_by,created_at,meterial_cat_no";
 
         $where = "status <> '".self::STATUS_DELETED."'";
@@ -71,10 +71,13 @@ class ProductModel extends PublicModel{
                             OR spu = '".$condition['keyword']."'
                           )";
         }
-       // try{
+
+        $current_num = isset($condition['current_no'])?$condition['current_no']:1;
+        $pagesize = isset($condition['pagesize'])?$condition['pagesize']:10;
+        try{
             $return = array(
                 'count' =>0,
-                'current_num' => $current_num,
+                'current_no' => $current_num,
                 'pagesize'=>$pagesize
             );
             $result = $this->field($field)->where($where)->order('created_at DESC')->page($current_num,$pagesize)->select();
@@ -99,9 +102,9 @@ class ProductModel extends PublicModel{
                 $return['data'] = array();
                 return $return;
             }
-        /*}catch (Exception $e){
+        }catch (Exception $e){
             return false;
-        }*/
+        }
     }
 
     /**
@@ -134,7 +137,7 @@ class ProductModel extends PublicModel{
      */
     public function getInfo($spu='',$lang=''){
         if(empty($spu))
-            return false;
+           jsonReturn('','10000','spu不能为空');
 
         //详情返回四种语言， 这里的lang作当前语言类型返回
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');

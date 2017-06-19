@@ -844,3 +844,20 @@ function browser_lang(){
     }
     return $language;
 }
+
+/**
+ * jsons输出
+ * @param array  $data   结果集
+ * @param int $code    编码
+ * @param string $message    提示
+ * @param string $type
+ */
+function jsonReturn($data,$code=0,$message='', $type = 'JSON') {
+    header('Content-Type:application/json; charset=utf-8');
+    if($code !=0){
+        exit(json_encode(array('code'=>$code,'message'=>$message)));
+    }
+    $data['code']=0;
+    $data['message'] = '成功';
+    exit(json_encode($data));
+}

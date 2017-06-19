@@ -8,6 +8,7 @@
 class GoodsController extends PublicController{
     /**
      * spu列表
+     * 搬迁至v1下goods
      */
     public function listAction()
     {
