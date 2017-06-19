@@ -155,7 +155,7 @@ class GoodsModel extends PublicModel
     /**
      * sku 列表 （admin）
      */
-    public function getList($condition = [], $current_no = 1, $pagesize = 10)
+    public function getList($condition = [])
     {
         //取product表名
         $productModel = new ProductModel();
@@ -207,6 +207,9 @@ class GoodsModel extends PublicModel
         if (isset($condition['id'])) {
             $where["$thistable.sku"] = $condition['id'];
         }
+
+        $current_no = $condition['current_no']?$condition['current_no']:1;
+        $pagesize = $condition['pagesize']?$condition['pagesize']:10;
 
         try {
             $count = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->count();
