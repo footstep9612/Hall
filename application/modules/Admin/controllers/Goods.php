@@ -18,14 +18,20 @@ class GoodsController extends PublicController{
             $condition['lang'] = strtolower($lang);
         }
 
-        //sku编码
-        $sku = $this->getRequest()->getQuery("sku", '');
-        if ($sku != '') {
-            $condition['sku'] = $sku;
+        //spu编码
+        $spu = $this->getRequest()->getQuery("spu",'');
+        if ($spu != '') {
+            $condition['spu'] = $spu;
         }
 
-        //skuid
-        $id = $this->getRequest()->getQuery("skuid", '');
+        //sku name
+        $sku = $this->getRequest()->getQuery("name", '');
+        if ($sku != '') {
+            $condition['name'] = $sku;
+        }
+
+        //sku
+        $id = $this->getRequest()->getQuery("sku", '');
         if ($id != '') {
             $condition['id'] = $id;
         }
@@ -34,6 +40,18 @@ class GoodsController extends PublicController{
         $source = $this->getRequest()->getQuery('source','');
         if ($source != '') {
             $condition['source'] = $source;
+        }
+
+        //定价
+        $pricing_flag = $this->getRequest()->getQuery('pricing_flag','');
+        if($pricing_flag !=''){
+            $condition['pricing_flag'] = $pricing_flag;
+        }
+
+        //规格型号
+        $model = $this->getRequest()->getQuery('model','');
+        if($model !=''){
+            $condition['model'] = $model;
         }
 
         //分页

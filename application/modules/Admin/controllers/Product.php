@@ -52,7 +52,7 @@ class ProductController extends PublicController{
         }
 
         $current_num = $this->getRequest()->getQuery('current_num',1);
-        $pagesize = $this->getRequest()->getQuery('pagesize',10);
+            $pagesize = $this->getRequest()->getQuery('pagesize',10);
 
         $productModel = new ProductModel();
         $result = $productModel->getList($condition,$current_num,$pagesize);

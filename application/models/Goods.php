@@ -76,22 +76,77 @@ class GoodsModel extends PublicModel{
     /**
      * sku 列表 （admin）
      */
-    public function getList($condition=[],$current_no,$pagesize){
+    public function getList($condition=[],$current_no=1,$pagesize=10){
+        //取product表名
         $productModel = new ProductModel();
         $ptable = $productModel->getTableName();
 
+        //获取当前表名
         $thistable = $this->getTableName();
-        $field = "$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
-        $condition = array(
-            "$thistable.status" => array('neq',self::STATUS_DELETED)
-        );
-        //语言 有传递取传递语言，没传递取浏览器，浏览器取不到取en英文
-        $condition[$thistable.'lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $field = "$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
+        $where = array();
+        //spu 编码
+        if(isset($condition['spu'])) {
+            $where["$thistable.spu"] = $condition['spu'];
+        }
 
+        //审核状态
+        if(isset($condition['status'])) {
+            $where["$thistable.status"] = $condition['status'];
+        }
+
+        //语言
+        $lang = '';
+        if(isset($condition['lang'])){
+            $where["$thistable.lang"] = $lang = strtolower($condition['lang']);
+        }
+
+        //规格型号
+        if(isset($condition['model'])){
+            $where["$thistable.model"] = $condition['model'];
+        }
+
+        //来源
         if(isset($condition['source'])){
-            $where .= " AND source='".$condition['source']."'";
+            $where["$ptable.source"] = $condition['source'];
+        }
+
+        //是否已定价
+        if(isset($condition['pricing_flag'])){
+            $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
+        }
+
+        //sku_name
+        if(isset($condition['name'])){
+            $where["$thistable.name"] = $condition['name'];
+        }
+
+        //sku id  这里用sku编号
+        if(isset($condition['id'])){
+            $where["$thistable.sku"] = $condition['id'];
+        }
+
+        try{
+            $count = $this->field($field)->join($ptable." On $ptable.spu = $thistable.spu",'LEFT')->where($where)->count();
+            $result = $this->field($field)->join($ptable." On $ptable.spu = $thistable.spu",'LEFT')->where($where)->page($current_no,$pagesize)->select();
+            $data = array(
+                'lang' =>$lang,
+                'count' => 0,
+                'current_no' =>$current_no,
+                'pagesize'=>$pagesize,
+                'data' =>array(),
+            );
+            if($result){
+                $data['count']= $count;
+                $data['data'] = $result;
+            }
+            return $data;
+        }catch (Exception $e){
+            return false;
         }
     }
+
+
 }

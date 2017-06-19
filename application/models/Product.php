@@ -71,8 +71,9 @@ class ProductModel extends PublicModel{
                             OR spu = '".$condition['keyword']."'
                           )";
         }
-       // try{
+        try{
             $return = array(
+                'lang' => $condition['lang'],
                 'count' =>0,
                 'current_num' => $current_num,
                 'pagesize'=>$pagesize
@@ -99,9 +100,9 @@ class ProductModel extends PublicModel{
                 $return['data'] = array();
                 return $return;
             }
-        /*}catch (Exception $e){
+        }catch (Exception $e){
             return false;
-        }*/
+        }
     }
 
     /**
@@ -146,17 +147,23 @@ class ProductModel extends PublicModel{
         try{
             $result = $this ->field($field)->where($condition)->select();
             //查询属性
-            $pattrModel = new ProductAttrModel();
-            $attrs = $pattrModel->getAttrBySpu($spu);
+            /*$pattrModel = new ProductAttrModel();
+            $attrs = $pattrModel->getAttrBySpu($spu);*/
 
             $data = array(
                 'lang' => $lang
             );
             if($result){
-                foreach($result as $k => $r){
-                    $r['attrs'] = $attrs[$r['lang']];
+                //查询产品附件信息    附件信息暂时不分语言
+                $attachModel = new ProductAttachModel();
+                $attach = $attachModel ->getAttachBySpu($spu);
+                $data['attachs'] = $attach ? $attach : array();
+
+               //根据语言树形化
+               foreach($result as $k => $r){
+                    //$r['attrs'] = $attrs[$r['lang']];
                     $data[$r['lang']] = $r;
-                }
+               }
             }
             return $data;
         }catch (Exception $e){
