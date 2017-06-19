@@ -342,4 +342,102 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         //$objWriter->save("php://output");
 
     }
+
+    /**
+     * SKU信息导出接口
+     * 操作表quote_item 只导出商品信息
+     * @author maimaiti
+     */
+    public function export_skuAction()
+    {
+        //后期添加api身份验证
+        if (false)
+        {
+            $data = [
+                'code'=>0,
+                'message'=>'权限验证失败',
+                'data'=>[]
+            ];
+        }
+
+        //成功导出
+        $data = [
+            'code'=>1,
+            'message'=>'询价单列表导出成功',
+            'data'=>[
+                'file'=>$this->export_sku_handler()
+            ]
+        ];
+
+        exit(json_encode($data));
+
+    }
+
+
+    protected function export_sku_handler()
+    {
+        //创建表格
+        $objPHPExcel = new PHPExcel();
+        //2.创建sheet(内置表)
+        $objSheet = $objPHPExcel->getActiveSheet();//获取当前sheet
+        $objSheet->setTitle('询价单');//设置当前sheet标题
+
+        //设置列宽度
+        $normal_cols = ["A","B","C","D","E","F","G","H"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('16');
+        endforeach;
+
+        //填充数据
+        $objSheet->setCellValue("A1","客户单号");
+        $objSheet->setCellValue("B1","中文品名");
+        $objSheet->setCellValue("C1","外文品名");
+        $objSheet->setCellValue("D1","规格");
+        $objSheet->setCellValue("E1","客户需求描述");
+        $objSheet->setCellValue("F1","数量");
+        $objSheet->setCellValue("G1","单位");
+        $objSheet->setCellValue("H1","品牌");
+
+        //追加数据库数据
+        $sku = new QouteItemModel();
+        $fields = [
+            'id',//序号
+            'quote_no',//询单号
+            'name_cn',//中文名
+            'name_en',//外文名
+            'quote_spec',//规格
+            'inquiry_desc',//客户需求描述
+            'quote_quantity',//数量
+            'quote_unit',//单位
+            'quote_brand'//品牌
+        ];
+        $sku_items = $sku->get_quote_item_list($fields);
+        //P($sku_items);
+        $item = 2;
+        foreach ($sku_items as $key=>$value)
+        {
+            $objSheet->setCellValue("A".$item,$value['quote_no'])
+                ->setCellValue("B".$item,$value['name_cn'])
+                ->setCellValue("C".$item,$value['name_en'])
+                ->setCellValue("D".$item,$value['quote_spec'])
+                ->setCellValue("E".$item,$value['inquiry_desc'])
+                ->setCellValue("F".$item,$value['quote_quantity'])
+                ->setCellValue("G".$item,$value['quote_unit'])
+                ->setCellValue("H".$item,$value['quote_brand']);
+            $item++;
+        }
+
+
+        //居中设置
+        $objSheet->getDefaultStyle()
+            ->getAlignment()
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        //保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel,'Excel2007');
+        //保存到服务器指定目录
+        return $this->export_to_disc($objWriter,"ExcelFiles","sku.xls");
+
+    }
 }
