@@ -101,6 +101,9 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         //3.填充数据
         /*设置A1~R1标题并合并单元格(水平整行，垂直2列)*/
         $objSheet->setCellValue("A1",'易瑞国际电子商务有限公司商务技术部')->mergeCells("A1:R2");
+
+
+
         $objSheet->getStyle("A1:R2")
             ->getFont()
             ->setSize(18)
@@ -286,6 +289,31 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         $objSheet->setCellValue("J15","");
         $objSheet->setCellValue("K15","");
 
+        //居中文字
+        $letters = ["B","C","D","E","F","G","H","I","J","K"];
+        $row_nums = ["11","12","13","14","15"];
+
+        $total_rows = [
+                        "B11","B12","B13","B14","B15","C11","C12","C13","C14","C15",
+                        "D11","D12","D13","D14","D15","E11","E12","E13","E14","E15",
+                        "F11","F12","F13","F14","F15","G11","G12","G13","G14","G15",
+                        "H11","H12","H13","H14","H15","I11","I12","I13","I14","I15",
+                        "J11","J12","J13","J14","J15","K11","K12","K13","K14","K15",
+        ];
+        foreach ($total_rows as $total_row)
+        {
+            $objSheet->getCell($total_row)->getStyle()
+                ->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        }
+
+        $objSheet->getCell("B11")->getStyle()
+                ->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+
         $objSheet->setCellValue("A17",'报价备注 : ')->mergeCells("A17:R18");
         $objSheet->getCell("A17")
             ->getStyle()
@@ -299,6 +327,9 @@ class ExcelOperationController extends Yaf_Controller_Abstract
             ->getAlignment()
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
             ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+
+        //添加logo
 
 
 
