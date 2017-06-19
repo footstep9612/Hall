@@ -24,7 +24,8 @@ class GoodsModel extends PublicModel
     }
 
     /**
-     * pc-sku查看详情
+     * pc-sku商品详情
+     * klp
      */
     public function getGoodsInfo($sku, $lang = '')
     {
@@ -33,47 +34,28 @@ class GoodsModel extends PublicModel
         $condition = array(
             'sku' => $sku
         );
-
-        $result = $this->field($field)->where($condition)->find();
-        if ($result) {
-
-            //查询附件
-            $skuAchModel = new GoodsAchModel();
-            //$where['sku'] = $result['sku'];
-            $where['spu'] = $result['spu'];
-            $attach = $skuAchModel->getInfoByAch($where);
-
-            //附件分组
-            /**
-             * SMALL_IMAGE-小图；
-             * MIDDLE_IMAGE-中图；
-             * BIG_IMAGE-大图；
-             * DOC-文档（包括图片和各种文档类型）
-             * */
-            foreach ($attach as $val) {
-                //$res = array();
-                switch ($val['attach_type']) {
-                    case 'SMALL_IMAGE':
-                        $group = 'SMALL_IMAGE';
-                        break;
-                    case 'MIDDLE_IMAGE':
-                        $group = 'MIDDLE_IMAGE';
-                        break;
-                    case 'BIG_IMAGE':
-                        $group = 'BIG_IMAGE';
-                        break;
-                    case 'DOC':
-                        $group = 'DOC';
-                        break;
-                    default:
-                        $group = 'OTHERS';
-                        break;
+        try {
+            $result = $this->field($field)->where($condition)->select();
+            if ($result) {
+                $data = array(
+                    'lang' => $lang
+                );
+                //语言分组
+                foreach($result as $k => $v){
+                    $data[$v['lang']] = $v;
                 }
-                $result[$group] = $val;
+
+                //查询附件
+                $skuAchModel = new GoodsAchModel();
+                $where['sku'] = $result['sku'];
+                $attach = $skuAchModel->getInfoByAch($where);
+
+                $data['attachs'] = $attach ? $attach : array();
+                return $data;
             }
-            return $result;
+        } catch(Exception $e){
+            return false;
         }
-        return false;
     }
 
     /**
