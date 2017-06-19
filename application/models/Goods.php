@@ -32,18 +32,27 @@ class GoodsModel extends PublicModel{
             'lang'=>$lang
         );
 
-        /**
-         * 缓存数据的判断读取
-         */
-        $result = $this->field($field)->where($condition)->find();
-        if($result){
-            //查询品牌
-            $productModel = new ProductModel();
-            $brand = $productModel->getBrandBySpu($result['spu'],$lang);
-            $result['brand'] = $brand;
+        try{
+            //缓存数据的判断读取
+            $redis_key = md5(json_encode($condition));
+            if(redisExist($redis_key)){
+                $result = redisGet($redis_key);
+                return $result ? $result : false;
+            }else {
+                $result = $this->field($field)->where($condition)->find();
+                if ($result) {
+                    //查询品牌
+                    $productModel = new ProductModel();
+                    $brand = $productModel->getBrandBySpu($result['spu'], $lang);
+                    $result['brand'] = $brand;
 
-            //查询属性
-            return $result;
+                    //查询属性
+                    redisSet($redis_key,$result);
+                    return $result;
+                }
+            }
+        }catch(Exception $e){
+            return false;
         }
         return false;
     }
@@ -56,9 +65,6 @@ class GoodsModel extends PublicModel{
      * @retrun int
      */
     public function getCountBySpu($spu='',$lang=''){
-        /**
-         * 统计这  后期也注意通过缓存处理下
-         */
         $condition = array(
             'status' => array('neq'  ,self::STATUS_NORMAL)
         );
@@ -69,8 +75,19 @@ class GoodsModel extends PublicModel{
             $condition['lang'] = $lang;
         }
 
-        $count = $this->where($condition)->count('id');
-        return $count ? $count : 0 ;
+        try{
+            //redis 操作
+            $redis_key = md5(json_encode($condition));
+            if(redisExist($redis_key)){
+                return redisGet($redis_key);
+            }else{
+                $count = $this->where($condition)->count('id');
+                redisSet($redis_key,$count);
+                return $count ? $count : 0 ;
+            }
+        }catch (Exception $e){
+            return 0;
+        }
     }
 
     /**
