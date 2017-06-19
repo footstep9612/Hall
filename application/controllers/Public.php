@@ -26,7 +26,7 @@ class PublicController extends Yaf_Controller_Abstract {
 	/**
 	 * 获取生成的报价单流水号
 	 * @author liujf 2017-06-19
-	 * @return string $quoteSerialNo 询价单流水号
+	 * @return string $quoteSerialNo 报价单流水号
 	 */
 	public function getQuoteSerialNo() {
 		$time = date('Ymd');
