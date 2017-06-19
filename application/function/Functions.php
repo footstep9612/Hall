@@ -825,6 +825,156 @@ function isMobile($mobile){
     }
 }
 
+/*
+ * 缓存Hash存放
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+function redisHashSet($name,$key,$value){
+
+    $reids = new phpredis();
+    if(empty($name) && !is_string($name)){
+        return false;
+    }
+    if(empty($key) && !is_string($name)){
+        return false;
+    }
+    if(empty($value) && !is_string($value)){
+        return false;
+    }
+
+    if($reids->hashExists($name,$key)){
+        $reids->hashDel($name,$key);
+    }
+
+    $data[$key] = $value;
+    if($reids->hashSet($name,$data)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/*
+ * 缓存Hash获取
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redisHashGet($name,$key){
+    $reids = new phpredis();
+    $string = $reids->hashGet($name,$key);
+    if($string){
+        return $string;
+    }else{
+        return false;
+    }
+}
+/*
+ * 缓存判断是否存在
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redisHashExist($name,$key){
+    $reids = new phpredis();
+    if($reids->hashExists($name,$key)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/*
+ * 缓存存放
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+function redisSet($name,$value,$second = 0){
+    $reids = new phpredis();
+    if(empty($name) && !is_string($name)){
+        return false;
+    }
+    if(empty($value) && !is_string($value)){
+        return false;
+    }
+    if($reids->exists($name)){
+        $reids->delete($name);
+    }
+    if(is_int($second) && $second>0){
+        $result = $reids->set($name,$value,$second);
+    }else{
+        $result = $reids->set($name,$value);
+    }
+    if($result){
+        return true;
+    }else{
+        return false;
+    }
+}
+/*
+ * 缓存获取
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+function redisGet($name){
+    $reids = new phpredis();
+    $result = $reids->get($name);
+    if($result){
+        return $result;
+    }else{
+        return false;
+    }
+}
+/*
+ * 缓存判断是否存在
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redisExist($name){
+    $reids = new phpredis();
+    if($reids->exists($name)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/*
+ * 平台计算公式
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redi($name){
+    $reids = new phpredis();
+    if($reids->exists($name)){
+        return true;
+    }else{
+        return false;
+    }
+}
 /**
  * 浏览器语言
  * 目前只处理中(zn)英(en)俄(ru)西班牙(es)语
