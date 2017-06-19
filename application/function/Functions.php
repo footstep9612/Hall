@@ -975,6 +975,7 @@ function redi($name){
         return false;
     }
 }
+
 /**
  * 浏览器语言
  * 目前只处理中(zn)英(en)俄(ru)西班牙(es)语
@@ -985,12 +986,29 @@ function browser_lang(){
     $language = '';
     if (preg_match("/zh-c|zh/i", $lang)) {
         $language = 'zh';
-    }else if (preg_match("/en/i", $lang)) {
+    } else if (preg_match("/en/i", $lang)) {
         $language = 'en';
-    }else if(preg_match("/es/i", $lang)) {
+    } else if (preg_match("/es/i", $lang)) {
         $language = 'es';
-    }else if(preg_match("/ru/i", $lang)) {
+    } else if (preg_match("/ru/i", $lang)) {
         $language = 'ru';
     }
     return $language;
+}
+
+/**
+ * json输出
+ * @param array $data    返回值
+ * @param int $code    错误编码
+ * @param string $message    错误提示
+ * @param string $type
+ */
+function jsonReturn($data,$code=0,$message='', $type = 'JSON') {
+    header('Content-Type:application/json; charset=utf-8');
+    if($code !=0){
+        exit(json_encode(array('code'=>$code,'message'=>$message)));
+    }
+    $data['code']=0;
+    $data['message'] = '成功';
+    exit(json_encode($data));
 }
