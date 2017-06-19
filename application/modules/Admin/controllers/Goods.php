@@ -61,9 +61,9 @@ class GoodsController extends PublicController{
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getList($condition,$current_num,$pagesize);
         if($result){
-            $this->jsonReturn($result);
+            jsonReturn($result);
         }else{
-            $this->jsonReturn('',400,'失败');
+            jsonReturn('',400,'失败');
         }
         exit;
     }

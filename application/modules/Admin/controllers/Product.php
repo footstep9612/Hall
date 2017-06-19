@@ -57,9 +57,9 @@ class ProductController extends PublicController{
         $productModel = new ProductModel();
         $result = $productModel->getList($condition,$current_num,$pagesize);
         if($result){
-            $this->jsonReturn($result);
+            jsonReturn($result);
         }else{
-            $this->jsonReturn('',400,'失败');
+            jsonReturn('',400,'失败');
         }
         exit;
     }
@@ -73,9 +73,9 @@ class ProductController extends PublicController{
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu,$lang);
         if($result){
-            $this->jsonReturn($result);
+            jsonReturn($result);
         }else{
-            $this->jsonReturn('',400,'失败');
+            jsonReturn('',400,'失败');
         }
         exit;
     }

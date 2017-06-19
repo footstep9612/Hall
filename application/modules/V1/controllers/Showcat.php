@@ -31,9 +31,9 @@ class ShowcatController extends PublicController{
         if($result){
             $result['code'] = 0;
             $result['message'] = '成功';
-            $this->jsonReturn($result);
+            jsonReturn($result);
         }else{
-            $this->jsonReturn(array('code'=>'400','message'=>'失败'));
+            jsonReturn(array('code'=>'400','message'=>'失败'));
         }
         exit;
     }
