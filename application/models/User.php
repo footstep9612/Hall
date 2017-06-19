@@ -126,7 +126,7 @@ class UserModel extends PublicModel {
         if(!empty($data['mobile'])){
             $where['mobile'] = $data['mobile'];
         }
-        if(empty($where['mobile'])&&empty($where['mobile'])){
+        if(empty($where['mobile'])&&empty($where['email'])){
             echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
             exit();
         }

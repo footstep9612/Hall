@@ -53,21 +53,15 @@ class UserController extends PublicController {
         if (!isset($this->put_data['name'])) {
             $this->jsonReturn($model->getMessage(UserModel::MSG_USERNAME_CANNOTEMPTY));
         }
-
         if (!isset($this->put_data['enc_password'])) {
             $this->jsonReturn($model->getMessage(UserModel::MSG_PASSWORD_CANNOTEMPTY));
         }
-
-
         $userinfo = $model->login($this->put_data['name'], $this->put_data['enc_password']);
-
         if ($userinfo['id']) {
             $data['success'] = 1;
             $data['msg'] = '登录成功!';
             $jwtclient = new JWTClient();
             $jwt['uid'] = md5($userinfo['id']);
-            $jwt['ext'] = time();
-            $jwt['iat'] = time();
             $jwt['account'] = $userinfo['name'];
             $data['obj'] = ['token' => $jwtclient->encode($jwt)]; //加密
             $data['jsonStr'] = json_encode($data);
