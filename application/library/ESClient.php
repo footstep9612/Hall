@@ -18,10 +18,37 @@ use Elasticsearch\ClientBuilder;
 class ESClient {
 
     const MATCH = 'match'; //match : 相当于模糊查询
-    const TERM = 'term'; //term : 相当于精确查询
+    const TERM = 'term'; //term：代表完全匹配，即不进行分词器分析，文档中必须包含整个搜索的词汇
+    /*
+     * 正则匹配
+     * 使用regexp查询能够让你写下更复杂的模式
+     */
     const REGEXP = 'regexp'; //term : 相当于正则式查询
-    const WILDCARD = 'wildcard'; //term : 相当于模糊查询
-    const PREFIX = 'prefix'; //term : 相当于前缀查询
+    /* wildcard查询和prefix查询类似，也是一个基于词条的低级别查询。
+     * 但是它能够让你指定一个模式(Pattern)，而不是一个前缀(Prefix)。
+     * 它使用标准的shell通配符：?用来匹配任意字符，*用来匹配零个或者多个字符
+     */
+    const WILDCARD = 'wildcard';
+    const PREFIX = 'prefix'; //prefix前缀匹配
+    const RANGE = 'range'; //区间查询
+    /*
+     * 查询文档中不存在某字段(missing account.userId)的nested
+     * 查询，简单意义上，你可以理解为，它不会被索引，只是被暂时隐藏起来，而查询的时候，
+     * 开关就是使用nested query/filter去查询
+     */
+    const MISSING = 'missing';
+
+    /*
+     * 主要根据fuzziniess和prefix_length进行匹配distance查询。
+     * 根据type不同distance计算不一样。numeric类型的distance类似于区间，
+     * string类型则依据Levenshtein distance，即从一个stringA变换到另一个stringB，
+     * 需要变换的最小字母数。如果指定为AUTO，则根据term的length有以下规则：0-1：完全一致
+     * 1-4：1
+     * >4：2
+     * 推荐指定prefix_length，表明这个范围的字符需要精准匹配，
+     * 如果不指定prefix_lengh和fuzziniess参数，该查询负担较重。
+     */
+    const FUZZY = 'fuzzy';
 
 //put your code here
     // "client", "custom", "filter_path", "human", "master_timeout", "timeout", "update_all_types", "wait_for_active_shards"
@@ -32,6 +59,28 @@ class ESClient {
     private $wildcard = []; //模糊查询
     private $prefix = []; //前缀查询
 
+    /*
+     * $source_hosts = [
+     *     '192.168.1.1:9200',         // IP + Port
+     *     '192.168.1.2',              // Just IP
+     *     'mydomain.server.com:9201', // Domain + Port
+     *     'mydomain2.server.com',     // Just Domain
+     *     'https://localhost',        // SSL to localhost
+      'https://192.168.1.3:9200'  // SSL to IP + Port
+     * ];
+     * $hosts = [
+     *     'http://user:pass@localhost:9200',       // HTTP Basic Authentication
+     *     'http://user2:pass2@other-host.com:9200' // Different credentials on different host
+     * ];$hosts = ['https://user:pass@localhost:9200'];
+     * $myCert = 'path/to/cacert.pem';
+     * $client = ClientBuilder::create()
+     *                     ->setHosts($hosts)
+     *                     ->setSSLVerification($myCert)
+     *                     ->build();
+     * 连接池
+     * 请查看 https://www.elastic.co/guide/en/elasticsearch/client/php-api/current/_connection_pool.html
+     */
+
     public function __construct() {
         $server = Yaf_Application::app()->getConfig()->esapi;
         $source_hosts = [$server];
@@ -39,7 +88,7 @@ class ESClient {
                         ->setHosts($source_hosts)->build();
     }
 
-    /**
+    /*     * ********************************---索引操作---***************************************
      * createindices
      * 创建索引
      * @access public
@@ -48,8 +97,9 @@ class ESClient {
      * @param int $number_of_shards 主分片数量
      * @param int $number_of_replicas 从分片数量
      * @since 1.0
-     * @return array
+     * @return array     *
      */
+
     public function create_index($index, $type, $body, $id) {
         $indexParams['index'] = $index;
         $indexParams['type'] = $type;
@@ -59,7 +109,6 @@ class ESClient {
         /*
          * 使用自己的ID只要再添加一个id字段即可。例：
          */
-
         $indexParams['id'] = $id;
         return $this->server->create($indexParams);
     }
@@ -108,34 +157,33 @@ class ESClient {
         }
     }
 
-    /* 更新索引 
-     * 更新索引的Updating Index Analysis 必须 先关闭索引 然后再更新 再开启索引
-     * 
-     * 
+    /*
+     * 查询
+     *
      */
 
-    public function updateanalyzers($index) {
-        $this->close($index);
-        $SettingsParam = ['index' => $index,
-            'body' => [
-                "analysis" => [
-                    "analyzer" => [
-                        "content" => [
-                            "type" => "custom",
-                            "tokenizer" => "whitespace"
-                        ]
-                    ]
-                ]
-            ]
-        ];
-        try {
-            $response = $this->server->indices()->putSettings($index, $Settings);
-        } catch (Exception $ex) {
-            LOG::write($ex->getMessage(), LOG::ERR);
+    public function analyze($index, $type, $analyzer = '', $from = 0, $size = 100) {
+        $searchParams = array(
+            'index' => $index,
+            'type' => $type,
+            'body' => $this->body,
+        );
+        if ($analyzer) {
+            $searchParams ['analyzer'] = $analyzer;
         }
-        $this->open($index);
 
-        return $response;
+        $searchParams['from'] = $from;
+        $searchParams['size'] = $size;
+
+        try {
+            echo json_encode($searchParams['body']);
+            return $this->server->indices()->analyze($searchParams);
+        } catch (Exception $ex) {
+
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+        //   var_dump($retDoc);
     }
 
     /*
@@ -154,10 +202,9 @@ class ESClient {
         }
     }
 
-    /* 更新索引 
-     * 更新索引的Updating Index Analysis 必须 先关闭索引 然后再更新 再开启索引
-     * 
-     * 
+    /* 更新索引 设置 *
+     *
+     *
      */
 
     public function putSettings($index, $Settings) {
@@ -172,6 +219,10 @@ class ESClient {
         }
     }
 
+    /*
+     * 获取索引设置
+     */
+
     public function getSettings($index) {
 
         $SettingsParam = ['index' => $index];
@@ -184,7 +235,7 @@ class ESClient {
         }
     }
 
-    /*
+    /*     * *********************************文档操作***************************************************
      * 增加文档
      */
 
@@ -208,6 +259,77 @@ class ESClient {
     }
 
     /*
+     * 批量创建文档
+     */
+
+    public function bulk() {
+        $params = [];
+        for ($i = 0; $i < 100; $i++) {
+            $params['body'][] = [
+                'index' => [
+                    '_index' => 'my_index',
+                    '_type' => 'my_type',
+                    '_id' => $i
+                ]
+            ];
+
+            $params['body'][] = [
+                'my_field' => 'my_value',
+                'second_field' => 'some more values'
+            ];
+        }
+
+        $responses = $this->server->bulk($params);
+    }
+
+    /*
+     * 部分方法调用
+     */
+
+    public function __call($name, $arguments) {
+
+        $Whitelist = $this->getParamWhitelist();
+        if (in_array($name, $Whitelist)) {
+            return $this->server->$name($arguments);
+        } else {
+            throw $name . " NOT ALLOWN!";
+        }
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getParamWhitelist() {
+        return [
+            'reindex',
+            'suggest',
+            'explain',
+            'searchShards',
+            'searchTemplate',
+            'scroll',
+            'clearScroll',
+            'getScript',
+            'deleteScript',
+            'putScript',
+            'getTemplate',
+            'deleteTemplate',
+            'putTemplate',
+            'fieldStats',
+            'renderSearchTemplate',
+            'cluster',
+            'indices',
+            'nodes',
+            'snapshot',
+            'cat',
+            'ingest',
+            'tasks',
+            'extractArgument',
+            'info',
+            'ping'
+        ];
+    }
+
+    /*
      * 获取文档
      */
 
@@ -219,6 +341,64 @@ class ESClient {
         try {
             $retDoc = $this->server->get($getParams);
             return $retDoc;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /*
+     * 批量获取文档
+     * 暂定获取同一索引 同一类型下的文档
+     */
+
+    public function mget_documents($index, $type, $body = []) {
+        $getParams = [];
+
+
+        $getParams['index'] = $index;
+        $getParams['type'] = $type;
+
+        $getParams[] = [];
+
+        try {
+            $retDoc = $this->server->mget($getParams);
+            return $retDoc;
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /*
+     * 更改文档
+     */
+
+    public function update_document($index, $type, $body, $id) {
+        $updateParams = array();
+        $updateParams['index'] = $index;
+        $updateParams['type'] = $type;
+        $updateParams['id'] = $id;
+        $updateParams['body'] = $body; //['doc']['testField'] = 'xxxx';
+        try {
+            return $this->server->update($updateParams);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /*
+     * 删除文档
+     */
+
+    public function delete_document($index, $type, $id) {
+        $deleteParams = array();
+        $deleteParams['index'] = $index;
+        $deleteParams['type'] = $type;
+        $deleteParams['id'] = $id;
+        try {
+            return $this->server->delete($deleteParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
@@ -247,77 +427,55 @@ class ESClient {
     }
 
     /*
-     * 前缀查询（prefix Query）为了找到所有以 W1 开始的邮编，我们可以使用简单的前缀查询：
+     * 数据处理
      */
 
-    public function setprefix($prefix) {
-        return ['prefix' => $prefix];
-    }
+    public function setdata($match, $boost = 0) {
+        if (!$boost) {
+            return $match;
+        } else {
 
-    /*
-     * 与前缀查询的特性类似，模糊（wildcard）查询也是一种低层次基于术语的查询，
-     * 与前缀查询不同的是它可以让我们给出匹配的正则式。
-     * 它使用标准的 shell 模糊查询：? 匹配任意字符，* 匹配0个或多个字符。
-     */
-
-    public function setwildcard($wildcard) {
-        return ['wildcard' => $wildcard];
-    }
-
-    /*
-     * #1 ? 匹配 1 和 2，* 与空格以及 7 和 8 匹配。
-     * 如果现在我们只想匹配 W 区域的所有邮编，前缀匹配也会匹配以 WC 为开始的所有邮编，
-     * 与模糊匹配碰到的问题类似，如果我们只想匹配以 W 开始并跟着一个数字的所有邮编，
-     * 正则式（regexp）查询让我们能写出这样更复杂的模式：
-     */
-
-    public function setregexp($regexp) {
-        return ['regexp' => $regexp];
-    }
-
-    /*
-     * 模糊匹配。
-     */
-
-    public function setmatch($match) {
-        return ['match' => $match];
-    }
-
-    /*
-     * 模糊匹配。
-     */
-
-    public function setterm($match) {
-        return [self::TERM => $match];
+            $keys = array_keys($match);
+            if (is_string($match[$keys[0]])) {
+                return [
+                    $keys[0] => [
+                        "value" => $match[$keys[0]],
+                        "boost" => $boost
+                    ]
+                ];
+            } else {
+                $child = $match[$keys[0]];
+                $child['boost'] = $boost;
+                return [
+                    $keys[0] => $child
+                ];
+            }
+        }
     }
 
     /*
      * must : 多个查询条件的完全匹配,相当于 and。
+     * $bost 权重
      */
 
-    public function setmust($must, $type = self::TERM) {
+    public function setmust($must, $type = self::MATCH, $bost = 0) {
 
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($must);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($must);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($must);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($must);
-                break;
-            case self::TERM:
-                $val = $this->setterm($must);
-                break;
-            default :$val = $this->setmatch($must);
-                break;
+
+        $val = $this->setdata($must, $bost);
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE
+                ])) {
+
+            $type = self::MATCH;
         }
-        $this->body['query']['bool']['must'] [] = $val;
+
+        $this->body['query']['bool']['must'] [] = [$type => $val];
         return $this;
     }
 
@@ -325,30 +483,23 @@ class ESClient {
      * must_not : 多个查询条件的相反匹配，相当于 not。
      */
 
-    public function setdefault($must_not, $type = self::TERM) {
+    public function setdefault($match, $type = self::MATCH, $bost = 0) {
 
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $this->body['query'][self::MATCH] = $must_not;
-                break;
-            case self::PREFIX:
-                $this->body['query'][self::PREFIX] = $must_not;
-                break;
-            case self::REGEXP:
-                $this->body['query'][self::REGEXP] = $must_not;
-                break;
-            case self::WILDCARD:
-                $this->body['query'][self::WILDCARD] = $must_not;
-                break;
-            case self::TERM:
-                $this->body['query'][self::TERM] = $must_not;
-                break;
-            default : $this->body['query'][self::MATCH] = $must_not;
-                break;
+        $val = $this->setdata($match, $bost);
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE
+                ])) {
+
+            $type = self::MATCH;
         }
 
-
+        $this->body['query'][$type] = $val;
 
         return $this;
     }
@@ -357,30 +508,23 @@ class ESClient {
      * must_not : 多个查询条件的相反匹配，相当于 not。
      */
 
-    public function setmust_not($must_not, $type = self::TERM) {
+    public function setmust_not($must_not, $type = self::MATCH, $bost = 0) {
 
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($must_not);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($must_not);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($must_not);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($must_not);
-                break;
-            case self::TERM:
-                $val = $this->setterm($must_not);
-                break;
-            default :$val = $this->setmatch($must_not);
-                break;
+        $val = $this->setdata($match, $bost);
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE
+                ])) {
+
+            $type = self::MATCH;
         }
 
-        $this->body['query']['bool']['must_not'] [] = $val;
+        $this->body['query']['bool']['must_not'] [] = [$type => $val];
         return $this;
     }
 
@@ -388,33 +532,81 @@ class ESClient {
      * should : 至少有一个查询条件匹配, 相当于 or。
      */
 
-    public function setshould($should, $type = self::TERM) {
-        $val = [];
-        switch ($type) {
-            case self::MATCH:
-                $val = $this->setmatch($should);
-                break;
-            case self::PREFIX:
-                $val = $this->setprefix($should);
-                break;
-            case self::REGEXP:
-                $val = $this->setregexp($should);
-                break;
-            case self::WILDCARD:
-                $val = $this->setwildcard($should);
-                break;
-            case self::TERM:
-                $val = $this->setterm($should);
-                break;
-            default :$val = $this->setmatch($should);
-                break;
+    public function setshould($should, $type = self::MATCH, $bost = 0) {
+        $val = $this->setdata($match, $bost);
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE
+                ])) {
+
+            $type = self::MATCH;
         }
-        $this->body['query']['bool']['should'] [] = $val;
+        $this->body['query']['bool']['should'] [] = [$type => $val];
         return $this;
     }
 
     /*
-     * 空查询
+     * filter : 过滤。
+     */
+
+    public function setfilter($filter, $type = self::MATCH) {
+        $val = $this->setdata($match, $bost);
+        if (!in_array($type, [self::MATCH,
+                    self::PREFIX,
+                    self::REGEXP,
+                    self::FUZZY,
+                    self::MISSING,
+                    self::WILDCARD,
+                    self::TERM,
+                    self::RANGE
+                ])) {
+
+            $type = self::MATCH;
+        }
+        $this->body['query']['bool']['filter'] [] = [$type => $val];
+        return $this;
+    }
+
+    /*
+     * 配置高亮显示
+     *  $params['body'] = array(
+     *     'query' => array(
+     *         'match' => array(
+     *             'content' => 'quick brown fox'
+     *         )
+     *     ),
+     *     'highlight' => array(
+     *         'fields' => array(
+     *             'content' => new \stdClass()
+     *         )
+     *     )
+     * );
+     */
+
+    public function sethighlight($fields) {
+        $this->body['highlight']['fields'] = $fields;
+        return $this;
+    }
+
+    /*
+     * 配置高亮显示
+     * $sort desc asc
+     * $field 需要拍下的字段
+     */
+
+    public function setsort($field, $sort) {
+        $this->body['sort'][] = [$field => ['order' => $sort]];
+        return $this;
+    }
+
+    /*
+     * 查询
+     *
      */
 
     public function search($index, $type, $analyzer = '', $from = 0, $size = 100) {
@@ -431,12 +623,36 @@ class ESClient {
         $searchParams['size'] = $size;
 
         try {
-            echo json_encode($searchParams['body']);
+
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
 
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
+        }
+        //   var_dump($retDoc);
+    }
+
+    public function count($index, $type, $analyzer = '', $from = 0, $size = 100) {
+        $searchParams = array(
+            'index' => $index,
+            'type' => $type,
+            'body' => $this->body,
+        );
+        if ($analyzer) {
+            $searchParams ['analyzer'] = $analyzer;
+        }
+
+        $searchParams['from'] = $from;
+        $searchParams['size'] = $size;
+
+        try {
+
+            return $this->server->count($searchParams);
+        } catch (Exception $ex) {
+
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
         }
         //   var_dump($retDoc);
     }
@@ -459,18 +675,33 @@ class ESClient {
         }
     }
 
-    /*
-     * 更改文档
+    /**
+     * $params['id']              = (string) The document ID (Required)
+     *        ['index']           = (string) The name of the index (Required)
+     *        ['type']            = (string) The type of the document (use `_all` to fetch the first document matching the ID across all types) (Required)
+     *        ['ignore_missing']  = ??
+     *        ['fields']          = (list) A comma-separated list of fields to return in the response
+     *        ['parent']          = (string) The ID of the parent document
+     *        ['preference']      = (string) Specify the node or shard the operation should be performed on (default: random)
+     *        ['realtime']        = (boolean) Specify whether to perform the operation in realtime or search mode
+     *        ['refresh']         = (boolean) Refresh the shard containing the document before performing the operation
+     *        ['routing']         = (string) Specific routing value
+     *        ['_source']         = (list) True or false to return the _source field or not, or a list of fields to return
+     *        ['_source_exclude'] = (list) A list of fields to exclude from the returned _source field
+     *        ['_source_include'] = (list) A list of fields to extract and return from the _source field
+     *
+     * @param $params array Associative array of parameters
+     *
+     * @return array
      */
-
-    public function update_document($index, $type, $body, $id) {
-        $updateParams = array();
-        $updateParams['index'] = $index;
-        $updateParams['type'] = $type;
-        $updateParams['id'] = $id;
-        $updateParams['body'] = $body; //['doc']['testField'] = 'xxxx';
+    public function get($index, $type, $id) {
+        $getParams = array(
+            'index' => $index,
+            'type' => $type,
+            'id' => $id
+        );
         try {
-            return $this->server->update($updateParams);
+            return $this->server->get($getParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
@@ -506,23 +737,6 @@ class ESClient {
         try {
             $response = $this->server->indices()->getMapping($indexParam);
             return $response;
-        } catch (Exception $ex) {
-            LOG::write($ex->getMessage(), LOG::ERR);
-            return false;
-        }
-    }
-
-    /*
-     * 删除文档
-     */
-
-    public function delete_document($index, $type, $id) {
-        $deleteParams = array();
-        $deleteParams['index'] = $index;
-        $deleteParams['type'] = $type;
-        $deleteParams['id'] = $id;
-        try {
-            return $this->server->delete($deleteParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
