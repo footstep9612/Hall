@@ -45,11 +45,6 @@ class ProductController extends PublicController{
      * 展示分类 - SKU列表
      */
     public function listAction(){
-        $page = $this->getRequest()->getQuery("current_num",1);
-        $pagesize = $this->getRequest()->getQuery('pagesize',10);
-
-        $show_cat_no = $this->getRequest()->getQuery('show_cat_no','');
-        if($show_cat_no==''){
         if(!isset($this->input['show_cat_no'])){
             jsonReturn(array('code'=>10000,'message'=>'分类编码不能为空'));
             exit;
@@ -74,8 +69,6 @@ class ProductController extends PublicController{
      * SKU详情
      */
     public function infoAction(){
-        $sku = $this->getRequest()->getQuery("sku",'');
-        if($sku == ''){
         if(!isset($this->input['sku'])){
             jsonReturn(array('code'=>10000,'message'=>'SKU编码不能为空'));
             exit;
