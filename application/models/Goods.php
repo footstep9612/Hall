@@ -146,7 +146,7 @@ class GoodsModel extends PublicModel
         //获取当前表名
         $thistable = $this->getTableName();
 
-        $field = "$ptable.source,$ptable.supplier_name,$ptable.brand,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
+        $field = "$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
         $where = array();
         //spu 编码
