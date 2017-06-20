@@ -65,7 +65,7 @@
 								<input type="text" name ="title"  placeholder="数量"   class="col-xs-10 col-sm-5" />
 							</div>
 							<div class="col-sm-4">
-								<label class="col-sm-2 control-label no-padding-right" >单价2：</label>
+								<label class="col-sm-2 control-label no-padding-right" >报出价格：</label>
 								<input type="text" name ="title" placeholder="单价"   class="col-xs-10 col-sm-5" />
 							</div>
 							<div class="col-sm-4">
@@ -76,41 +76,28 @@
 								<label class="col-sm-2 control-label no-padding-right" >数量：</label>
 								<input type="text" name ="title"  placeholder="数量"   class="col-xs-10 col-sm-5" />
 							</div>
+							<div class="col-sm-4">
+								<label class="col-sm-2 control-label no-padding-right" >报出价格：</label>
+								<input type="text" name ="title" placeholder="单价"   class="col-xs-10 col-sm-5" />
+							</div>
 						</div>
 						<div class="form-group">
-
-
-						</div>
-						<div class="form-group">
-							<label class="col-sm-1 control-label no-padding-right" >权限：</label>
-							<div class="col-sm-9">
-								<volist name="rules" id="vo">
-									<label>
-										<!--in_array($vo['id'],$info['rules'],true)判断id是否存在数组中，同时该id和数组中的值的类型一致，返回true时勾选-->
-										<input type="checkbox" class="ace" name="rules[]" value="{$vo.id}"
-										<if condition="in_array($vo['id'],$info['rules'],true)">
-											checked="checked"
-										</if> >
-										<span class="lbl">
-                                <!--如果pid大于0就不是顶级，显示|--->
-                                <if condition='$vo.pid gt 0'>
-                                    |-{$vo.level|str_repeat='-',###}{$vo.title}
-                                    <else/>
-                                    {$vo.title}
-                                </if>
-                            </span>
-									</label>
-									<br/>
-								</volist>
+							<div class="col-sm-4">
+								<label class="col-sm-3 control-label no-padding-right" >贸易方式：</label>
+								<select name="trade_terms" id="trade_terms">
+									<option value="EXW" >EXW</option>
+								</select>
+							</div>
+							<div class="col-sm-4">
+								<label class="col-sm-2 control-label no-padding-right" >商检费：</label>
+								<input type="text" name ="inspection_fee" id = "inspection_fee" placeholder="单价"   class="col-xs-10 col-sm-5" />
 							</div>
 						</div>
 						<div class="clearfix form-actions">
 							<div class="col-md-offset-3 col-md-9">
 								<button class="btn btn-info" type="Submit">
 									<i class="ace-icon fa fa-check bigger-110"></i>
-									<if condition="$id">提交修改
-										<else />添加
-									</if>
+											提交
 								</button>
 								<a href="__ROOT__/Group" class="btn" type="reset" >
 									<i class="ace-icon fa fa-undo bigger-110"></i>
@@ -123,39 +110,6 @@
 			</div>
 		</div>
 	</div>
-
-		<div class="footer">
-			<div class="footer-inner">
-				<!-- #section:basics/footer -->
-				<div class="footer-content">
-						<span class="bigger-120">
-							<span class="blue bolder">Ace</span>
-							Application &copy; 2013-2014
-						</span>
-
-					&nbsp; &nbsp;
-					<span class="action-buttons">
-							<a href="#">
-								<i class="ace-icon fa fa-twitter-square light-blue bigger-150"></i>
-							</a>
-
-							<a href="#">
-								<i class="ace-icon fa fa-facebook-square text-primary bigger-150"></i>
-							</a>
-
-							<a href="#">
-								<i class="ace-icon fa fa-rss-square orange bigger-150"></i>
-							</a>
-						</span>
-				</div>
-
-				<!-- /section:basics/footer -->
-			</div>
-		</div>
-
-		<a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
-			<i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
-		</a>
 	</div><!-- /.main-container -->
 
 	<!-- basic scripts -->

@@ -1161,8 +1161,15 @@ function logistics($data){
         }else{
             $arr['total_quote_price'] = round($numerator/$denominator,8);
         }
+        //目的地关税
+        $arr['dest_tariff'] = $arr['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
+        $arr['dest_va_tax'] = $arr['dest_tariff'];
+        $arr['dest_tariff'] = round($arr['dest_tariff'] * $data['dest_tariff_rate'] ,8);
+        //  目的地增值税
+        $arr['dest_va_tax'] =round($arr['dest_va_tax'] * (1 + $data['dest_tariff_rate']) * $data['dest_va_tax_rate'], 8);
         $arr['freightage_insu'] = $arr['total_quote_price'] *1.1*$data['cargo_insurance_rate'];
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping']+$arr['freightage_insu']+$data['dest_delivery_charge'];
+        $arr['total_logi_fee'] = $arr['total_logi_fee'] + $arr['dest_tariff'] + $arr['dest_va_tax'] + $data['dest_clearance_fee'];
         return $arr;
     }
 
