@@ -1,15 +1,18 @@
 <?php
-
 class GoodsController extends PublicController
 {
     private $lang;
+    private $input;
     public function init()
     {
+        $this->input = json_decode(file_get_contents("php://input"), true);
+
         $lang = $this->getRequest()->getPost("lang");
         $this->lang = empty($lang) ?  'en': strtolower($lang);
         if(!in_array($this->lang,array('en','ru','es','zh'))){
             $this->lang = 'en';
         }
+
     }
 
     /**
@@ -60,5 +63,21 @@ class GoodsController extends PublicController
         exit;
     }
 
+
+    /**
+     * spu列表(pc)
+     * @author  link  2017/6/17
+     */
+    public function listAction()
+    {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->getList($this->input);
+        if($result){
+            jsonReturn($result);
+        }else{
+            jsonReturn('',400,'失败');
+        }
+        exit;
+    }
 
 }

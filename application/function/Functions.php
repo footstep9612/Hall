@@ -152,17 +152,17 @@ function getPassedHours($distence) {
     $passed = "";
     switch ($distence) {
         case ($distence < 60 ): {
-                $passed = $distence . "秒";
-                break;
-            }
+            $passed = $distence . "秒";
+            break;
+        }
         case ($distence > 60 && $distence < 60 * 60): {
-                $passed = intval($distence / 60) . "分钟";
-                break;
-            }
+            $passed = intval($distence / 60) . "分钟";
+            break;
+        }
         case ($distence > 60 * 60): {
-                $passed = sprintf("%.1f", $distence / (60 * 60)) . "小时";
-                break;
-            }
+            $passed = sprintf("%.1f", $distence / (60 * 60)) . "小时";
+            break;
+        }
     }
 
     return $passed;
@@ -210,11 +210,11 @@ function escapeInfo($info) {
  */
 function htmlspecialcharsUni($text, $entities = true) {
     return str_replace(
-            // replace special html characters
-            array('<', '>', '"', '\''), array('&lt;', '&gt;', '&quot;', '&apos;'), preg_replace(
-                    // translates all non-unicode entities
-                    '/&(?!' . ($entities ? '#[0-9]+|shy' : '(#[0-9]+|[a-z]+)') . ';)/si', '&amp;', $text
-            )
+    // replace special html characters
+        array('<', '>', '"', '\''), array('&lt;', '&gt;', '&quot;', '&apos;'), preg_replace(
+        // translates all non-unicode entities
+            '/&(?!' . ($entities ? '#[0-9]+|shy' : '(#[0-9]+|[a-z]+)') . ';)/si', '&amp;', $text
+        )
     );
 }
 
@@ -364,7 +364,7 @@ function removeXSS($str) {
         $str = preg_replace('/&lt;' . $val . '(.*)(\/?)&gt;/isU', '<' . $val . "\\1\\2>", $str);
         $str = transCase($str);
         $str = preg_replace_callback(
-                '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
+            '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
         );
     }
     $str = preg_replace('/&amp;/i', '&', $str);
@@ -376,7 +376,7 @@ function removeXSS($str) {
         $str = preg_replace('/&lt;' . $val . '(.*)&gt;/isU', '<' . $val . "\\1>", $str);
         $str = transCase($str);
         $str = preg_replace_callback(
-                '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
+            '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
         );
         $str = preg_replace('/&lt;\/' . $val . '&gt;/is', '</' . $val . ">", $str);
     }
@@ -563,7 +563,7 @@ function encrypt($str, $toBase64 = false, $key = "www.smesauz.com20380201") {
         if ($c == $l)
             $c = 0;
         $v .= substr($r, $c, 1) .
-                (substr($str, $i, 1) ^ substr($r, $c, 1));
+            (substr($str, $i, 1) ^ substr($r, $c, 1));
         $c++;
     }
     if ($toBase64) {
@@ -627,7 +627,7 @@ function GetData($url) {
  * 名称:  请求接口提交数据
  * 参数:  string $key     接口地址
  * 参数:  array $data     提交数据
-  参数： bool  $json	 是否json提交
+参数： bool  $json	 是否json提交
  * 返回值: array   数据;
  */
 function PostData($url, $data, $json = false) {
@@ -640,8 +640,8 @@ function PostData($url, $data, $json = false) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $datastring);
     if ($json) {
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json; charset=utf-8',
-            'Content-Length: ' . strlen($datastring))
+                'Content-Type: application/json; charset=utf-8',
+                'Content-Length: ' . strlen($datastring))
         );
     }
     $output = curl_exec($ch);
@@ -825,6 +825,157 @@ function isMobile($mobile){
     }
 }
 
+/*
+ * 缓存Hash存放
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+function redisHashSet($name,$key,$value){
+
+    $reids = new phpredis();
+    if(empty($name) && !is_string($name)){
+        return false;
+    }
+    if(empty($key) && !is_string($name)){
+        return false;
+    }
+    if(empty($value) && !is_string($value)){
+        return false;
+    }
+
+    if($reids->hashExists($name,$key)){
+        $reids->hashDel($name,$key);
+    }
+
+    $data[$key] = $value;
+    if($reids->hashSet($name,$data)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/*
+ * 缓存Hash获取
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redisHashGet($name,$key){
+    $reids = new phpredis();
+    $string = $reids->hashGet($name,$key);
+    if($string){
+        return $string;
+    }else{
+        return false;
+    }
+}
+/*
+ * 缓存判断是否存在
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redisHashExist($name,$key){
+    $reids = new phpredis();
+    if($reids->hashExists($name,$key)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/*
+ * 缓存存放
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+function redisSet($name,$value,$second = 0){
+    $reids = new phpredis();
+    if(empty($name) && !is_string($name)){
+        return false;
+    }
+    if(empty($value) && !is_string($value)){
+        return false;
+    }
+    if($reids->exists($name)){
+        $reids->delete($name);
+    }
+    if(is_int($second) && $second>0){
+        $result = $reids->set($name,$value,$second);
+    }else{
+        $result = $reids->set($name,$value);
+    }
+    if($result){
+        return true;
+    }else{
+        return false;
+    }
+}
+/*
+ * 缓存获取
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+function redisGet($name){
+    $reids = new phpredis();
+    $result = $reids->get($name);
+    if($result){
+        return $result;
+    }else{
+        return false;
+    }
+}
+/*
+ * 缓存判断是否存在
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redisExist($name){
+    $reids = new phpredis();
+    if($reids->exists($name)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/*
+ * 平台计算公式
+ *
+ * @param str $name
+ * @param str $key
+ * @return string
+ * @author jhw
+ */
+function redi($name){
+    $reids = new phpredis();
+    if($reids->exists($name)){
+        return true;
+    }else{
+        return false;
+    }
+}
+
 /**
  * 浏览器语言
  * 目前只处理中(zn)英(en)俄(ru)西班牙(es)语
@@ -835,12 +986,29 @@ function browser_lang(){
     $language = '';
     if (preg_match("/zh-c|zh/i", $lang)) {
         $language = 'zh';
-    }else if (preg_match("/en/i", $lang)) {
+    } else if (preg_match("/en/i", $lang)) {
         $language = 'en';
-    }else if(preg_match("/es/i", $lang)) {
+    } else if (preg_match("/es/i", $lang)) {
         $language = 'es';
-    }else if(preg_match("/ru/i", $lang)) {
+    } else if (preg_match("/ru/i", $lang)) {
         $language = 'ru';
     }
     return $language;
+}
+
+/**
+ * json输出
+ * @param array $data    返回值
+ * @param int $code    错误编码
+ * @param string $message    错误提示
+ * @param string $type
+ */
+function jsonReturn($data,$code=0,$message='', $type = 'JSON') {
+    header('Content-Type:application/json; charset=utf-8');
+    if($code !=0){
+        exit(json_encode(array('code'=>$code,'message'=>$message)));
+    }
+    $data['code']=0;
+    $data['message'] = '成功';
+    exit(json_encode($data));
 }

@@ -27,7 +27,7 @@ class ShowCatProductModel extends PublicModel{
      * @param int $pagesize 每页显示多少条
      * @return array|bool
      */
-    public function getSkuByCat($show_cat_no='',$lang='',$current_num=1,$pagesize=10){
+    public function getSkuByCat($show_cat_no='',$lang='',$current_no=1,$pagesize=10){
         if(empty($show_cat_no))
             return false;
 
@@ -41,11 +41,11 @@ class ShowCatProductModel extends PublicModel{
         try {
             $return = array(
                 'count' => 0,
-                'current_num' => $current_num,
+                'current_no' => $current_no,
                 'pagesize' => $pagesize
             );
             $obj = $this->field($field)->join($goods->getTableName() . ' g ON ' . $this->getTableName() . '.spu=g.spu', 'LEFT')->where($condition);
-            $result = $obj->page($current_num, $pagesize)->select();
+            $result = $obj->page($current_no, $pagesize)->select();
             if ($result) {
                 $return['count'] = $obj->count();
                 $return['data'] = $result;
