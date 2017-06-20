@@ -8,11 +8,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
-
     /*
      * 初始化
      */
-
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ALL | E_STRICT);
@@ -75,7 +73,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     }
 
     /*
-     *  获取put过来的数据
+     *  获取put过来的数据 待过滤优化
      * @param string $name
      * @param mixed $default
      *
