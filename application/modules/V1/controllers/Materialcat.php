@@ -9,12 +9,11 @@ class MaterialcatController extends Yaf_Controller_Abstract {
         //  parent::init();
         $this->_model = new MaterialcatModel();
     }
-    
+
     public function listAction() {
         $jsondata = json_decode(file_get_contents("php://input"), true);
         $condition['level_no'] = 0;
         $arr = $this->_model->getlist($jsondata);
-       
         if ($arr) {
             $data['code'] = 0;
             $data['message'] = '获取成功!';
@@ -115,8 +114,10 @@ class MaterialcatController extends Yaf_Controller_Abstract {
     }
 
     protected function jsonReturn($data, $type = 'JSON') {
+
+
         header('Content-Type:application/json; charset=utf-8');
-        exit(json_encode($data,JSON_UNESCAPED_UNICODE));
+        exit(json_encode($data));
     }
 
 }

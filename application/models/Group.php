@@ -51,7 +51,6 @@ class GroupModel extends PublicModel {
      */
     public function detail($id = '') {
         $where['id'] = $id;
-        $where['status'] = 'NORMAL';
         if(!empty($where['id'])){
             $row = $this->where($where)
                 ->field('id,parent_id,name,description,status')

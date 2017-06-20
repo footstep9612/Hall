@@ -3,6 +3,7 @@
 /**
  * Class AttributeController
  * 属性
+ * @author  klp
  */
 class AttributeModel extends PublicModel
 {
@@ -17,7 +18,7 @@ class AttributeModel extends PublicModel
     }
 
     //获取商品属性列表
-    public function GetSkuAction($sku, $lang = "en")
+    public function GetSku($sku, $lang = "en")
     {
         if(empty($sku)){
             return self::OutJson(-2, '无效的请求');
@@ -58,13 +59,13 @@ class AttributeModel extends PublicModel
         return self::OutJson(0, '获取成功', $res);
     }
 
-/**
- * 按json方式输出通信数据
- * @param integer $code 状态码
- * @param string $message 提示信息
- * @param array $data 数据
- * return
- */
+    /**
+     * 按json方式输出通信数据
+     * @param integer $code 状态码
+     * @param string $message 提示信息
+     * @param array $data 数据
+     * return
+     */
     public static function OutJson($code, $message = '', $data = array(), $type = "json") {
 
         if(!is_numeric($code)) {

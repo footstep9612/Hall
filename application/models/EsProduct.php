@@ -201,9 +201,9 @@ class EsProductModel extends PublicModel {
             }
 
 
-            $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
-            $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
-            $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
+            $body['meterial_cat'] = $mcats[$item['meterial_cat_no']];
+            $body['show_cat'] = $mcats[$item['meterial_cat_no']];
+            $body['attrs'] = $product_attrs[$item['spu']];
             $ret[$item['spu']] = $body;
         }
         return $ret;
@@ -251,13 +251,11 @@ class EsProductModel extends PublicModel {
             }
 
 
-            $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
-            $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
-            $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
+            $body['meterial_cat'] = $mcats[$item['meterial_cat_no']];
+            $body['show_cat'] = $show_cat; // $mcats[$item['meterial_cat_no']];
+            $body['attrs'] = $product_attrs[$item['spu']];
 
-           $flag= $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-           
-           var_dump($flag);
+            $es->add_document($this->dbName, $this->tableName, $body, $id);
         }
     }
 
