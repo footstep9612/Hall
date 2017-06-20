@@ -12,6 +12,16 @@ class InquiryController extends PublicController {
         parent::__init();
     }
 
+    //返回询价单号
+    public function getInquiryNoAction() {
+        $inquiryno = $this->getInquirySerialNo();
+        if(!empty($inquiryno)){
+            $this->respon(0,$inquiryno);
+        }else{
+            $this->respon('-101','生成询单号错误！');
+        }
+    }
+
     //询价单列表
     public function getListAction(){
         $inquiry = new InquiryModel();

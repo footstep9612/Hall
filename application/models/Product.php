@@ -39,7 +39,7 @@ class ProductModel extends PublicModel{
      * @param int $current_num 当前页
      * @param int $pagesize 每页显示条数
      */
-    public function getList($condition=[],$current_num=1,$pagesize=10){
+    public function getList($condition=[]){
         $field = "lang,spu,brand,name,created_by,created_at,meterial_cat_no";
 
         $where = "status <> '".self::STATUS_DELETED."'";
@@ -71,11 +71,13 @@ class ProductModel extends PublicModel{
                             OR spu = '".$condition['keyword']."'
                           )";
         }
+
+        $current_num = isset($condition['current_no'])?$condition['current_no']:1;
+        $pagesize = isset($condition['pagesize'])?$condition['pagesize']:10;
         try{
             $return = array(
-                'lang' => $condition['lang'],
                 'count' =>0,
-                'current_num' => $current_num,
+                'current_no' => $current_num,
                 'pagesize'=>$pagesize
             );
             $result = $this->field($field)->where($where)->order('created_at DESC')->page($current_num,$pagesize)->select();
@@ -128,14 +130,14 @@ class ProductModel extends PublicModel{
     }
 
     /**
-     * spu详情
+     * spu 详情
      * @param string $spu    spu编码
      * @param string $lang    语言
      * return array
      */
     public function getInfo($spu='',$lang=''){
         if(empty($spu))
-            return false;
+           jsonReturn('','10000','spu不能为空');
 
         //详情返回四种语言， 这里的lang作当前语言类型返回
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
@@ -146,24 +148,22 @@ class ProductModel extends PublicModel{
         $field = 'spu,lang,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,profile';
         try{
             $result = $this ->field($field)->where($condition)->select();
-            //查询属性
-            /*$pattrModel = new ProductAttrModel();
-            $attrs = $pattrModel->getAttrBySpu($spu);*/
-
             $data = array(
                 'lang' => $lang
             );
             if($result){
-                //查询产品附件信息    附件信息暂时不分语言
-                $attachModel = new ProductAttachModel();
-                $attach = $attachModel ->getAttachBySpu($spu);
-                $data['attachs'] = $attach ? $attach : array();
+                foreach($result as $item){
+                    //查询品牌
+                    $brand = $this->getBrandBySpu($spu,$item['lang']);
+                    $item['brand'] = $brand;
 
-               //根据语言树形化
-               foreach($result as $k => $r){
-                    //$r['attrs'] = $attrs[$r['lang']];
-                    $data[$r['lang']] = $r;
-               }
+                    //语言分组
+                    $data[$item['lang']] = $item;
+                }
+
+                //附件不分语言，暂时放循环外
+                $pattach = new ProductAttachModel();
+                $data['attachs'] = $pattach->getAttachBySpu($spu);
             }
             return $data;
         }catch (Exception $e){
