@@ -978,13 +978,14 @@ function exw($data,$gross,$exchange_rate = 1){
         $arr['msg'] = '毛利率不能为空';
         return $arr;
     }
-    $data['code'] = 1;
-    $data['total']=0;
+
     $count=count($data);
+    $data['code'] = 1;
+    $data['total_exw_price']=0;
     for($i = 0;$i<$count;$i++){
-        $data[$i]['busyer_unit_price'] = round($data[$i]['busyer_unit_price']*$gross/$exchange_rate,8);
-        $data[$i]['total'] = round($data[$i]['busyer_unit_price'] * $data[$i]['num'],8);
-        $data['total'] = $data['total']+$data[$i]['total'];
+        $data[$i]['exw_unit_price'] = round($data[$i]['busyer_unit_price']* $gross/$exchange_rate,8);
+        $data[$i]['total_exw_price'] = round($data[$i]['exw_unit_price'] * $data[$i]['num'],8);
+        $data['total_exw_price'] = $data['total_exw_price']+$data[$i]['total_exw_price'];
     }
     return $data;
 }
