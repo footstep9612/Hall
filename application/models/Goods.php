@@ -146,7 +146,7 @@ class GoodsModel extends PublicModel
         //获取当前表名
         $thistable = $this->getTableName();
 
-        $field = "$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
+        $field = "$ptable.source,$ptable.supplier_name,$ptable.brand,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
         $where = array();
         //spu 编码
@@ -175,6 +175,18 @@ class GoodsModel extends PublicModel
             $where["$ptable.source"] = $condition['source'];
         }
 
+        //按供应商
+        if (isset($condition['supplier_name'])) {
+            $where["$ptable.supplier_name"] = array('like',$condition['supplier_name']);
+        }
+        //按品牌
+        if (isset($condition['brand'])) {
+            $where["$ptable.brand"] = $condition['brand'];
+        }
+
+        //按分类名称
+
+
         //是否已定价
         if (isset($condition['pricing_flag'])) {
             $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
@@ -182,7 +194,7 @@ class GoodsModel extends PublicModel
 
         //sku_name
         if (isset($condition['name'])) {
-            $where["$thistable.name"] = $condition['name'];
+            $where["$thistable.name"] = array('like',$condition['name']);
         }
 
         //sku id  这里用sku编号
