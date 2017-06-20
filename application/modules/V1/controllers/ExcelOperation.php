@@ -412,7 +412,16 @@ class ExcelOperationController extends Yaf_Controller_Abstract
             'quote_brand'//品牌
         ];
         $sku_items = $sku->get_quote_item_list($fields);
-        //P($sku_items);
+        if (empty($sku_items))
+        {
+            $data = [
+                'code'=>0,
+                'message'=>'数据库没有数据',
+                'data'=>[]
+            ];
+            exit(json_encode($data));
+        }
+        //P($sku_items);die;
         $item = 2;
         foreach ($sku_items as $key=>$value)
         {
