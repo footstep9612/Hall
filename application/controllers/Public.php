@@ -131,45 +131,76 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //    }
 
 	/**
+	 * 获取采购商流水号
+	 * @author liujf 2017-06-20
+	 * @return string $buyerSerialNo 采购商流水号
+	 */
+	public function getBuyerSerialNo() {
+		
+		$buyerSerialNo = $this->getSerialNo('buyerSerialNo', 'E-B-S-');
+		
+		return $buyerSerialNo;
+	}
+	
+	/**
+	 * 获取供应商流水号
+	 * @author liujf 2017-06-20
+	 * @return string $supplierSerialNo 供应商流水号
+	 */
+	public function getSupplierSerialNo() {
+		
+		$supplierSerialNo = $this->getSerialNo('supplierSerialNo', 'E-S-');
+		
+		return $supplierSerialNo;
+	}
+
+	/**
 	 * 获取生成的询价单流水号
-	 * @author liujf 2017-06-19
+	 * @author liujf 2017-06-20
 	 * @return string $inquirySerialNo 询价单流水号
 	 */
 	public function getInquirySerialNo() {
-		$time = date('Ymd');
-		$duration = 3600 * 48;
-		$inquirySerialNoCreateTime = redisGet('inquirySerialNoCreateTime') ? : '19700101';
-		if ($time > $inquirySerialNoCreateTime) {
-			redisSet('inquirySerialNoStep', 0, $duration);
-			redisSet('inquirySerialNoCreateTime', $time, $duration);
-		}
-		$inquirySerialNoStep = redisGet('inquirySerialNoStep') ? : 0;
-		$inquirySerialNoStep ++;
-		redisSet('inquirySerialNoStep', $inquirySerialNoStep, $duration);
-		$inquirySerialNo = $this->createSerialNo($inquirySerialNoStep, 'INQ_');
+		
+		$inquirySerialNo = $this->getSerialNo('inquirySerialNo', 'INQ_');
 		
 		return $inquirySerialNo;
 	}
 	
 	/**
 	 * 获取生成的报价单流水号
-	 * @author liujf 2017-06-19
+	 * @author liujf 2017-06-20
 	 * @return string $quoteSerialNo 报价单流水号
 	 */
 	public function getQuoteSerialNo() {
-		$time = date('Ymd');
-		$duration = 3600 * 48;
-		$quoteSerialNoCreateTime = redisGet('quoteSerialNoCreateTime') ? : '19700101';
-		if ($time > $quoteSerialNoCreateTime) {
-			redisSet('quoteSerialNoStep', 0, $duration);
-			redisSet('quoteSerialNoCreateTime', $time, $duration);
-		}
-		$quoteSerialNoStep = redisGet('quoteSerialNoStep') ? : 0;
-		$quoteSerialNoStep ++;
-		redisSet('inquirySerialNoStep', $quoteSerialNoStep, $duration);
-		$quoteSerialNo = $this->createSerialNo($quoteSerialNoStep, 'QUO_');
+		
+		$quoteSerialNo = $this->getSerialNo('quoteSerialNo', 'QUO_');
 		
 		return $quoteSerialNo;
+	}
+	
+	/**
+	 * 根据流水号名称获取流水号
+	 * @param string $name 流水号名称
+	 * @param string $prefix 前缀
+	 * @author liujf 2017-06-20
+	 * @return string $code
+	 */
+	private function getSerialNo($name, $prefix = '') {
+		$time = date('Ymd');
+		$duration = 3600 * 48;
+		$createTimeName = $name . 'CreateTime';
+		$stepName = $name . 'Step';
+		$createTime = redisGet($createTimeName) ? : '19700101';
+		if ($time > $createTime) {
+			redisSet($stepName, 0, $duration);
+			redisSet($createTimeName, $time, $duration);
+		}
+		$step = redisGet($stepName) ? : 0;
+		$step ++;
+		redisSet($stepName, $step, $duration);
+		$code = $this->createSerialNo($step, $prefix);
+		
+		return $code;
 	}
 	
 	/**
