@@ -29,7 +29,7 @@ class ProductController extends PublicController{
      * spu 详情
      */
     public function getInfoAction(){
-        $spu = isset($this->input['spu']) ? $this->input['spu'] : '';
+        $spu = sset($this->input['spu']) ? $this->input['spu'] : '';
         $lang =isset($this->input['lang']) ? $this->input['lang'] : '';
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu,$lang);

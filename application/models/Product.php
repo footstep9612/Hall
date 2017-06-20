@@ -130,7 +130,7 @@ class ProductModel extends PublicModel{
     }
 
     /**
-     * spu详情
+     * spu 详情
      * @param string $spu    spu编码
      * @param string $lang    语言
      * return array
@@ -148,23 +148,22 @@ class ProductModel extends PublicModel{
         $field = 'spu,lang,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,profile';
         try{
             $result = $this ->field($field)->where($condition)->select();
-
-            //查询品牌
-            $brand = $this->getBrandBySpu($result['spu'],$lang);
-            $result['brand'] = $brand;
-
-            //查询属性
-            $pattrModel = new ProductAttrModel();
-            $attrs = $pattrModel->getAttrBySpu($spu);
-
             $data = array(
                 'lang' => $lang
             );
             if($result){
-                foreach($result as $k => $r){
-                    $r['attrs'] = $attrs[$r['lang']];
-                    $data[$r['lang']] = $r;
+                foreach($result as $item){
+                    //查询品牌
+                    $brand = $this->getBrandBySpu($spu,$item['lang']);
+                    $item['brand'] = $brand;
+
+                    //语言分组
+                    $data[$item['lang']] = $item;
                 }
+
+                //附件不分语言，暂时放循环外
+                $pattach = new ProductAttachModel();
+                $data['attachs'] = $pattach->getAttachBySpu($spu);
             }
             return $data;
         }catch (Exception $e){
