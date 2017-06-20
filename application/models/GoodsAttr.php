@@ -14,8 +14,39 @@ class GoodsAttrModel extends PublicModel
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
 
+
     /**
-     * 编辑商品属性查询
+     * 根据sku条件获取属性值a
+     * @param $data
+     * @return mixed
+     */
+
+    public function AttrInfo($sku='',$lang='')
+    {
+        if($sku=='')
+            return false;
+        if($lang=='')
+            return false;
+        $field = 'attr_group,attr_no,attr_name,input_type,value_type,value_unit,options,input_hint';
+        $condition = array(
+            'sku' => $sku,
+            'lang' => $lang,
+            'status' => self::STATUS_VALID
+        );
+        try{
+            $result = $this->field($field)->where($condition)->select();
+            if($result){
+                return $result;
+            } else{
+                return false;
+            }
+        } catch(Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * 编辑商品属性查询p
      * @param null $where string 条件
      * @return mixed
      */
@@ -23,7 +54,7 @@ class GoodsAttrModel extends PublicModel
     {
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $where['status'] = self::STATUS_VALID;
-        $field = 'id,lang,spu,attr_name,input_type,value_type,value_unit,options,input_hint,attr_group';
+        $field = 'lang,spu,attr_name,input_type,value_type,value_unit,options,input_hint,attr_group';
         $result = $this->field($field)
                        ->where($where)
                        ->select();
@@ -31,7 +62,7 @@ class GoodsAttrModel extends PublicModel
         //获取对应产品属性并分组
         $product = new ProductAttrModel();
         $spu = $result[0]['spu'];
-        $p_attrs = $product->getAttrBySpu($spu);
+        $p_attrs = $product->getAttrBySpu($spu, $lang);
 
         //进行属性分组
         /**
@@ -89,39 +120,5 @@ class GoodsAttrModel extends PublicModel
             return array();
         }
     }
-
-    /**
-     * 添加数据
-     * @param $data
-     * @return mixed
-     */
-
-    public function CreateInfo($data){
-        $sta = $this->add($data);
-        if($sta){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    /**
-     * 修改数据
-     * @param $where
-     * @param $data
-     * @return bool
-     */
-
-    public function UpdatedInfo($where, $data)
-    {
-        $sta = $this->where($where)
-                     ->save($data);
-        if($sta){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
 
 }

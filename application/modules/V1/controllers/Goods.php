@@ -16,7 +16,7 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku查询数据编辑
+     * sku属性查询数据编辑p
      */
     public function getInfoAction()
     {
@@ -25,7 +25,7 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $where['sku'] = $data['sku'];
         } else{
-            echo json_encode(array("code" => "-101", "message" => "sku不可以都为空"));
+            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
             exit();
         }
         //获取商品属性
@@ -33,14 +33,14 @@ class GoodsController extends PublicController
         $result = $goods->getAttrBySku($where,$this->lang);
 
         if($result){
-            echo json_encode(array("code" => "01", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }
         exit;
     }
     /**
-     * sku查看详情
+     * sku查看详情p
      */
     public function showGoodsAction()
     {
@@ -62,14 +62,7 @@ class GoodsController extends PublicController
         }
         exit;
     }
-    /**
-     * 商品基本信息修改
-     */
-    public function UpGoodsAction()
-    {
-       // $data = json_decode(file_get_contents("php://input"), true);
 
-    }
 
     /**
      * spu列表(pc)
