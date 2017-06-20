@@ -44,6 +44,165 @@ class EsProductModel extends PublicModel {
             $show_cat_no = $condition['show_cat_no'];
             $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_cats' => $show_cat_no]];
         }
+
+        if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
+            $created_at_start = $condition['created_at_start'];
+            $created_at_end = $condition['created_at_end'];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' =>
+                    ['gte' => $created_at_start,
+                        'gle' => $created_at_end,
+                    ]
+                ]
+            ];
+        } elseif (isset($condition['created_at_start'])) {
+            $created_at_start = $condition['created_at_start'];
+
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' =>
+                    ['gte' => $created_at_start,
+                    ]
+                ]
+            ];
+        } elseif (isset($condition['created_at_end'])) {
+            $created_at_end = $condition['created_at_end'];
+
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' =>
+                    ['gle' => $created_at_end,
+                    ]
+                ]
+            ];
+        }
+        if (isset($condition['checked_at_start']) && isset($condition['checked_at_end'])) {
+            $checked_at_start = $condition['checked_at_start'];
+            $checked_at_end = $condition['checked_at_end'];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
+                    ['gte' => $checked_at_start,
+                        'gle' => $checked_at_end,
+                    ]
+                ]
+            ];
+        } elseif (isset($condition['checked_at_start'])) {
+            $checked_at_start = $condition['checked_at_start'];
+
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
+                    ['gte' => $checked_at_start,
+                    ]
+                ]
+            ];
+        } elseif (isset($condition['created_at_end'])) {
+            $checked_at_end = $condition['checked_at_end'];
+
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
+                    ['gle' => $checked_at_end,
+                    ]
+                ]
+            ];
+        }
+
+        if (isset($condition['updated_at_start']) && isset($condition['updated_at_end'])) {
+            $updated_at_start = $condition['updated_at_start'];
+            $updated_at_end = $condition['updated_at_end'];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
+                    ['gte' => $updated_at_start,
+                        'gle' => $updated_at_end,
+                    ]
+                ]
+            ];
+        } elseif (isset($condition['updated_at_start'])) {
+            $updated_at_start = $condition['updated_at_start'];
+
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
+                    ['gte' => $updated_at_start,
+                    ]
+                ]
+            ];
+        } elseif (isset($condition['updated_at_end'])) {
+            $updated_at_end = $condition['updated_at_end'];
+
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
+                    ['gle' => $updated_at_end,
+                    ]
+                ]
+            ];
+        }
+        if (isset($condition['status'])) {
+            $status = $condition['status'];
+            if (!in_array($updated_at_end, ['NORMAL', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+                $status = 'NORMAL';
+            }
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status
+                ]
+            ];
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status
+            ]];
+        }
+
+        if (isset($condition['recommend_flag'])) {
+            $recommend_flag = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
+
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $recommend_flag
+                ]
+            ];
+        }
+        if (isset($condition['brand'])) {
+            $brand = $condition['brand'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand
+                ]
+            ];
+        }
+        if (isset($condition['source'])) {
+            $source = $condition['source'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['source' => $source
+                ]
+            ];
+        }
+        if (isset($condition['source_detail'])) {
+            $source_detail = $condition['source_detail'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['source_detail' => $source_detail
+                ]
+            ];
+        }
+
+        if (isset($condition['keywords'])) {
+            $keywords = $condition['keywords'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['keywords' => $keywords
+                ]
+            ];
+        }
+        if (isset($condition['supplier_id'])) {
+            $supplier_id = $condition['supplier_id'];
+
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['supplier_id' => $supplier_id
+                ]
+            ];
+        }
+
+        if (isset($condition['created_by'])) {
+            $created_by = $condition['created_by'];
+
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['created_by' => $created_by
+                ]
+            ];
+        }
+
+        if (isset($condition['updated_by'])) {
+            $updated_by = $condition['updated_by'];
+
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['updated_by' => $updated_by
+                ]
+            ];
+        }
+        if (isset($condition['checked_by'])) {
+            $checked_by = $condition['checked_by'];
+
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['checked_by' => $checked_by
+                ]
+            ];
+        }
         if (isset($condition['show_name'])) {
             $show_name = $condition['show_name'];
             $body['query']['bool']['must'][] = ['bool' => ['should' => [
