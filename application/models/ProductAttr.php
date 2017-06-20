@@ -1,9 +1,7 @@
 <?php
 /**
- * Sｐu属性
- * User: linkai
- * Date: 2017/6/17
- * Time: 15:58
+ * ProductAttrModel
+ * klp
  */
 class ProductAttrModel extends PublicModel{
     //数据库 表映射
@@ -70,34 +68,43 @@ class ProductAttrModel extends PublicModel{
             $data = array();
             foreach($result as $item){
                 /**
-                 * 属性组: 适用范围、技术参数、执行标准、产品优势、图标、产品图片、附件,其他　
-                 * !!!!!! 注意：这里的属性组定死了，如果后期改动了，要及时修改ｓｗｉｔｃｈ对应
-                 **/
-                $group = 'other';
+                 * 属性分组:
+                 *   Specs - 规格
+                 *   Technical Parameters - 技术参数
+                 *   Executive Standard - 技术标准
+                 *   Product Information - 简要信息
+                 *   Quatlity Warranty - 质量保证
+                 *   Others - 其他属性
+                 *  Image - 附件
+                 *  Documentation - 技术文档　
+                 */
                 switch($item['attr_group']){
-                    case '适用范围':
-                        $group = 'scope';
+                    case 'Specs':
+                        $group = 'Specs';
                         break;
-                    case '技术参数':
-                        $group = 'tech';
+                    case 'Technical Parameters':
+                        $group = 'Technical Parameters';
                         break;
-                    case '执行标准':
-                        $group = 'exe';
+                    case 'Executive Standard':
+                        $group = 'Executive Standard';
                         break;
-                    case '产品优势':
-                        $group = 'advantage';
+                    case 'Product Information':
+                        $group = 'Product Information';
                         break;
-                    case '图标':
-                        $group = 'ico';
+                    case 'Quatlity Warranty':
+                        $group = 'Quatlity Warranty';
                         break;
-                    case '产品图片':
-                        $group = 'images';
+                    case 'Image':
+                        $group = 'Image';
                         break;
-                    case '附件':
-                        $group = 'attach';
+                    case 'Documentation':
+                        $group = 'Documentation';
+                        break;
+                    default:
+                        $group = 'others';
                         break;
                 }
-                $data[$item['lang']][$group][] = $item;
+                $data['lang'][$group] = $item;
             }
             $result = $data;
         }

@@ -52,9 +52,10 @@ class GoodsController extends PublicController
             echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
             exit();
         }
+        $lang= !empty($data['lang'])? $data['lang'] : '';
         //获取商品属性
         $goods = new GoodsAttrModel();
-        $result = $goods->getAttrBySku($where,$this->lang);
+        $result = $goods->getAttrBySku($where,$lang);
 
         if($result){
             echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));

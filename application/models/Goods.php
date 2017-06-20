@@ -27,19 +27,20 @@ class GoodsModel extends PublicModel
      * pc-sku商品详情
      * klp
      */
-    public function getGoodsInfo($sku, $lang = '')
+    public function getGoodsInfo($sku ='', $lang = '')
     {
-        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+        if($sku=='')
+            return false;
+
         $field = 'lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku
+            'sku' => $sku,
+            'lang'=> $lang
         );
         try {
             $result = $this->field($field)->where($condition)->select();
             if ($result) {
-                $data = array(
-                    'lang' => $lang
-                );
+                $data = array();
                 //语言分组
                 foreach($result as $k => $v){
                     $data[$v['lang']] = $v;
