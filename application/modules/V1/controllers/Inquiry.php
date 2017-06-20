@@ -14,9 +14,9 @@ class InquiryController extends PublicController {
 
     //返回询价单号
     public function getInquiryNoAction() {
-        $inquiryno = $this->getInquirySerialNo();
-        if(!empty($inquiryno)){
-            $this->respon(0,$inquiryno);
+        $data['inquiryno'] = $this->getInquirySerialNo();
+        if(!empty($data)){
+            $this->respon(0,$data);
         }else{
             $this->respon('-101','生成询单号错误！');
         }
@@ -38,14 +38,14 @@ class InquiryController extends PublicController {
     }
 
     //询价单详情
-    public function infoAction() {
+    public function getInfoAction() {
         $inquiry = new InquiryModel();
         $where = json_decode(file_get_contents("php://input"), true);
         //$where['inquiry_no'] = '10001';
-        $info = $inquiry->info($where);
-        var_dump($info);die;
+        $info = $inquiry->getinfo($where);
+        //var_dump($info);die;
         if(!empty($info)){
-            $this->respon(0,$data);
+            $this->respon(0,$info);
         }else{
             $this->respon('-101','没有找到相关信息！');
         }
@@ -58,7 +58,7 @@ class InquiryController extends PublicController {
 
         $id = $inquiry->add_data($data);
         if(!empty($id)){
-            $this->respon(0,$data);
+            $this->respon(0,'添加成功！');
         }else{
             $this->respon('-101','添加失败！');
         }
@@ -71,7 +71,7 @@ class InquiryController extends PublicController {
 
         $id = $inquiry->update_data($data);
         if(!empty($id)){
-            $this->respon(0,$data);
+            $this->respon(0,"修改成功！");
         }else{
             $this->respon('-101','添加失败！');
         }
@@ -83,7 +83,7 @@ class InquiryController extends PublicController {
         $where = json_decode(file_get_contents("php://input"), true);
         //$where['inquiry_no'] = '10001';
         $id = $inquiry->delete_data($where);
-        var_dump($id);die;
+        //var_dump($id);die;
         if(!empty($id)){
             $this->respon(0,'删除成功！');
         }else{
@@ -157,7 +157,7 @@ class InquiryController extends PublicController {
         $id = $Item->add_data($data);
         //var_dump($rs);die;
         if(!empty($id)){
-            $this->respon(0,$data);
+            $this->respon(0,"添加成功！");
         }else{
             $this->respon('-101','保存失败！');
         }

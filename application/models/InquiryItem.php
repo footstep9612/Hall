@@ -67,14 +67,20 @@ class InquiryItemodel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
+        $page = $condition['page']?$condition['page']:1;
+        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
 
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            $count = $this->getcount($condition);
-            return $this->where($where)
-                ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                ->select();
-        } else {
-            return $this->where($where)->select();
+        try {
+            if (isset($page) && isset($pagesize)) {
+                $count = $this->getcount($condition);
+                return $this->where($where)
+                    ->page($page, $pagesize)
+                    ->select();
+            } else {
+                return $this->where($where)->select();
+            }
+        } catch (Exception $e) {
+            return false;
         }
     }
 
@@ -87,7 +93,11 @@ class InquiryItemodel extends PublicModel {
         $data = $this->create($createcondition);
         $data['status'] = 'INVALID';
 
-        return $this->add($data);
+        try {
+            return $this->add($data);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -110,7 +120,12 @@ class InquiryItemodel extends PublicModel {
             default : $data['status'] = self::STATUS_INVALID;
                 break;
         }
-        return $this->where($where)->save($data);
+
+        try {
+            return $this->where($where)->save($data);
+        } catch (Exception $e) {
+            return false;
+        }
 
     }
 
@@ -122,6 +137,11 @@ class InquiryItemodel extends PublicModel {
      */
     public function delete_data($createcondition =  []) {
         $where['id'] = $createcondition['id'];
-        return $this->where($where)->save(['status' => 'DELETED']);
+
+        try {
+            return $this->where($where)->save(['status' => 'DELETED']);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }

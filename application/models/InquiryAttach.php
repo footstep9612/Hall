@@ -58,14 +58,20 @@ class InquiryAttachModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
+        $page = $condition['page']?$condition['page']:1;
+        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
 
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            $count = $this->getcount($condition);
-            return $this->where($where)
-                ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                ->select();
-        } else {
-            return $this->where($where)->select();
+        try {
+            if (isset($page) && isset($pagesize)) {
+                $count = $this->getcount($condition);
+                return $this->where($where)
+                    ->page($page, $pagesize)
+                    ->select();
+            } else {
+                return $this->where($where)->select();
+            }
+        } catch (Exception $e) {
+            return false;
         }
     }
 
@@ -76,7 +82,12 @@ class InquiryAttachModel extends PublicModel {
      */
     public function add_data($createcondition = []) {
         $data = $this->create($createcondition);
-        return $this->add($data);
+
+        try {
+            return $this->add($data);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -89,7 +100,12 @@ class InquiryAttachModel extends PublicModel {
     public function update_data($createcondition = []) {
         $data = $this->create($createcondition);
         $where['id'] = $createcondition['id'];
-        return $this->where($where)->save($data);
+
+        try {
+            return $this->where($where)->save($data);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -100,6 +116,11 @@ class InquiryAttachModel extends PublicModel {
      */
     public function delete_data($createcondition = []) {
         $where['id'] = $createcondition['id'];
-        return $this->where($where)->delete();
+
+        try {
+            return $this->where($where)->delete();
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }

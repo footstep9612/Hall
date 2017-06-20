@@ -35,8 +35,8 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (!empty($condition['id'])) {
-            $where['id'] = $condition['id'];
+        if (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];
         }
         if (!empty($condition['inquiry_no'])) {
             $where['inquiry_no'] = $condition['inquiry_no'];
@@ -49,6 +49,12 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];
+        }
+        if (!empty($condition['inquiry_region'])) {
+            $where['inquiry_region'] = $condition['inquiry_region'];
+        }
+        if (!empty($condition['inquiry_country'])) {
+            $where['inquiry_country'] = $condition['inquiry_country'];
         }
         if(!empty($condition['start_time']) && !empty($condition['end_time'])){
             $where['inquiry_time'] = array(
@@ -68,7 +74,7 @@ class InquiryModel extends PublicModel {
     public function getcount($condition = []) {
         $where = $this->getcondition($condition);
         return $this->where($where)
-                ->field('id,inquiry_no,customer_id,inquirer,agent,inquiry_time,inquiry_status,quote_status,created_at')
+                ->field('id,inquiry_no,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at')
                 ->count('id');
     }
 
@@ -80,18 +86,24 @@ class InquiryModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
+        $filed = 'id,inquiry_no,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
+        $page = $condition['page']?$condition['page']:1;
+        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
 
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            $count = $this->getcount($condition);
-            return $this->where($where)
-                ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                ->field('id,inquiry_no,customer_id,inquirer,agent,inquiry_time,inquiry_status,quote_status,created_at')
-                ->select();
-        } else {
-            return $this->where($where)
-                ->field('id,inquiry_no,customer_id,inquirer,agent,inquiry_time,inquiry_status,quote_status,created_at')
-                ->select();
+        try {
+            if (isset($page) && isset($pagesize)) {
+                $count = $this->getcount($condition);
+                return $this->where($where)
+                    ->page($page, $pagesize)
+                    ->field($filed)
+                    ->select();
+            } else {
+                return $this->where($where)->select();
+            }
+        } catch (Exception $e) {
+            return false;
         }
+
     }
 
     /**
@@ -100,9 +112,14 @@ class InquiryModel extends PublicModel {
      * @return mix
      * @author zhangyuliang
      */
-    public function info($condition = []) {
+    public function getinfo($condition = []) {
         $where = $this->getcondition($condition);
-        return $this->where($where)->find();
+        try {
+            return $this->where($where)->find();
+        } catch (Exception $e) {
+            return false;
+        }
+
     }
 
     /**
@@ -114,7 +131,11 @@ class InquiryModel extends PublicModel {
         $data = $this->create($createcondition);
         $data['inquiry_status'] = STATUS_DRAFT;
 
-        return $this->add($data);
+        try {
+            return $this->add($data);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -167,7 +188,12 @@ class InquiryModel extends PublicModel {
             default : $data['inquiry_status'] = self::STATUS_NOT_QUOTED;
                 break;
         }
-        return $this->where($where)->save($data);
+
+        try {
+            return $this->where($where)->save($data);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -178,6 +204,10 @@ class InquiryModel extends PublicModel {
      */
     public function delete_data($createcondition = []) {
         $where['inquiry_no'] = $createcondition['inquiry_no'];
-        return $this->where($where)->save(['inquiry_status' => 'DELETED']);
+        try {
+            return $this->where($where)->save(['inquiry_status' => 'DELETED']);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }
