@@ -21,13 +21,13 @@ class GoodsAttrModel extends PublicModel
      * @return mixed
      */
 
-    public function AttrInfo($sku='',$lang='')
+    public function AttrInfoBy($sku='',$lang='')
     {
         if($sku=='')
             return false;
         if($lang=='')
             return false;
-        $field = 'attr_group,attr_no,attr_name,input_type,value_type,value_unit,options,input_hint';
+        $field = 'lang,spu,attr_name,input_type,value_type,value_unit,options,input_hint,attr_group';
         $condition = array(
             'sku' => $sku,
             'lang' => $lang,
@@ -36,7 +36,18 @@ class GoodsAttrModel extends PublicModel
         try{
             $result = $this->field($field)->where($condition)->select();
             if($result){
-                return $result;
+
+                //获取对应产品属性
+                $product = new ProductAttrModel();
+                $spu = $result[0]['spu'];
+                $p_attrs = $product->AttrInfoBy($spu, $lang);
+
+                //合并sku/spu数组属性
+                $data = array();
+                $data['sku_attrs'] = $result;
+                $data['spu_attrs'] = $p_attrs;
+
+                return $data;
             } else{
                 return false;
             }
@@ -50,9 +61,11 @@ class GoodsAttrModel extends PublicModel
      * @param null $where string 条件
      * @return mixed
      */
-    public function getAttrBySku($where, $lang)
+    public function getAttrBySku($where, $lang='')
     {
-        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+        if(''!=$lang){
+            $where['lang'] = $lang;
+        }
         $where['status'] = self::STATUS_VALID;
         $field = 'lang,spu,attr_name,input_type,value_type,value_unit,options,input_hint,attr_group';
         $result = $this->field($field)
@@ -106,7 +119,7 @@ class GoodsAttrModel extends PublicModel
                         $group = 'others';
                         break;
                 }
-                $res[$lang][$group] = $val;
+                $res['lang'][$group] = $val;
             }
             $result = $res;
         }

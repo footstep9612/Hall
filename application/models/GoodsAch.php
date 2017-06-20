@@ -7,7 +7,14 @@
 class GoodsAchModel extends PublicModel
 {
     protected $dbName = 'erui_db_ddl_goods'; //数据库名称
-    protected $tableName = 'product_attach'; //数据表表名
+    protected $tableName = 'goods_attach'; //数据表表名
+
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_TEST = 'TEST';    //测试
+    const STATUS_CHECKING = 'CHECKING';  //审核中
+    const STATUS_INVALID = 'INVALID';   //无效
+    const STATUS_DELETED = 'DELETED';    //-删除
 
     public function __construct()
     {
@@ -20,7 +27,7 @@ class GoodsAchModel extends PublicModel
      */
     public function getInfoByAch($where)
     {
-        $field = 'attach_type,attach_name,attach_url,sort_order,status';
+        $field = 'attach_type,attach_name,attach_url,sort_order';
         try {
             $result = $this->field($field)
                             ->where($where)
@@ -33,8 +40,8 @@ class GoodsAchModel extends PublicModel
                  * BIG_IMAGE-大图；
                  * DOC-文档（包括图片和各种文档类型）
                  * */
+                $data = array();
                 foreach ($result as $val) {
-                    //$res = array();
                     switch ($val['attach_type']) {
                         case 'SMALL_IMAGE':
                             $group = 'SMALL_IMAGE';
@@ -52,9 +59,9 @@ class GoodsAchModel extends PublicModel
                             $group = 'OTHERS';
                             break;
                     }
-                    $result[$group] = $val;
+                    $data[$group] = $val;
                 }
-                return $result;
+                return $data;
             } else {
                 return array();
             }

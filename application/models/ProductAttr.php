@@ -16,6 +16,36 @@ class ProductAttrModel extends PublicModel{
     const STATUS_DELETE = 'DELETE'; //删除；
 
     /**
+     * 根据spu条件获取属性值a
+     * @param $data
+     * @return mixed
+     */
+
+    public function AttrInfoBy($spu='',$lang='')
+    {
+        if($spu=='')
+            return false;
+        if($lang=='')
+            return false;
+        $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
+        $condition = array(
+            'spu' => $spu,
+            'lang' => $lang,
+            'status' => self::STATUS_VALID
+        );
+        try{
+            $result = $this->field($field)->where($condition)->select();
+            if($result){
+                return $result;
+            } else{
+                return false;
+            }
+        } catch(Exception $e) {
+            return false;
+        }
+    }
+
+    /**k
      * 根据spu获取属性
      * @param string $spu
      * @param string $lang
@@ -25,7 +55,7 @@ class ProductAttrModel extends PublicModel{
         if($spu=='')
             return false;
 
-        $field = 'lang,attr_group,attr_no,attr_name,attr_value_type,attr_value';
+        $field = 'lang,attr_no,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
         $condition = array(
             'spu' => $spu,
             'status' => self::STATUS_VALID

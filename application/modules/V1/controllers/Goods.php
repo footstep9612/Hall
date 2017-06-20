@@ -16,9 +16,33 @@ class GoodsController extends PublicController
     }
 
     /**
+     * sku属性详情a
+     */
+    public function attrInfoAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if(!empty($data['sku'])){
+            $sku = $data['sku'];
+        } else{
+            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
+            exit();
+        }
+        $lang= !empty($data['lang'])? $data['lang'] : '';
+        $goods = new GoodsAttrModel();
+        $result = $goods->AttrInfoBy($sku,$lang);
+
+        if($result){
+            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+        }else{
+            echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
+        }
+        exit;
+    }
+    /**
      * sku属性查询数据编辑p
      */
-    public function getInfoAction()
+    public function getAttrInfoAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -49,7 +73,7 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            echo json_encode(array("code" => "-101", "message" => "sku不可以都为空"));
+            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
             exit();
         }
         $goods = new GoodsModel();

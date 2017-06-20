@@ -30,7 +30,7 @@ class GoodsModel extends PublicModel
     public function getGoodsInfo($sku, $lang = '')
     {
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
-        $field = 'sku,lang,spu,qrcode,name,show_name,model,description';
+        $field = 'lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
             'sku' => $sku
         );
@@ -45,9 +45,9 @@ class GoodsModel extends PublicModel
                     $data[$v['lang']] = $v;
                 }
 
-                //查询附件
+                //查询附件,暂未分语言
                 $skuAchModel = new GoodsAchModel();
-                $where['sku'] = $result['sku'];
+                $where['spu'] = $result[0]['spu'];
                 $attach = $skuAchModel->getInfoByAch($where);
 
                 $data['attachs'] = $attach ? $attach : array();
