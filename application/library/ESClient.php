@@ -102,13 +102,13 @@ class ESClient {
      * @return array     *
      */
 
-    public function create_index($index,  $body) {
+    public function create_index($index, $body) {
         $indexParams['index'] = $index;
-       // $indexParams['type'] = $type;
+        // $indexParams['type'] = $type;
         $indexParams['body'] = $body;
         $indexParams['body']['settings']['number_of_shards'] = 15;
-        $indexParams['body']['settings']['number_of_replicas'] = 0;      
-      
+        $indexParams['body']['settings']['number_of_replicas'] = 0;
+
         return $this->server->indices()->create($indexParams);
     }
 
@@ -185,7 +185,6 @@ class ESClient {
         //   var_dump($retDoc);
     }
 
-    
     /*
      * 删除类型
      */
@@ -670,6 +669,18 @@ class ESClient {
 
     public function setsort($field, $sort) {
         $this->body['sort'][] = [$field => ['order' => $sort]];
+        return $this;
+    }
+
+    /* 聚合查询 类似group by
+     *  @param mix $field // 字段属性
+     *  @param string $do// 指标(Metrics) stats 统计 avg 平均 min 最小，mean，max 最大以及sum 合计
+     *   
+     *  @param string $alis // 别名
+     */
+
+    public function setaggs($field = [], $alis, $do = 'stats') {
+        $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
         return $this;
     }
 

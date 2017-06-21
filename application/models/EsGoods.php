@@ -217,7 +217,7 @@ class EsgoodsModel extends PublicModel {
         try {
             $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
                     ->field('*')
-                    ->where(['sku' => ['in', $skus], 'lang' => $lang])
+                    ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
             $ret = [];
             foreach ($product_attrs as $item) {
