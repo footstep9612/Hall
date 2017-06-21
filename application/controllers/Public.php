@@ -14,54 +14,50 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
 
     public function init() {
-//        ini_set("display_errors", "On");
-//        error_reporting(E_ALL | E_STRICT);
-//        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-//        if ($this->getRequest()->getModuleName() == 'V1' &&
-//                $this->getRequest()->getControllerName() == 'User' &&
-//                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka','excel'])) {
-//
-//        } else {
-//
-//            if (!empty($jsondata["token"])) {
-//                $token = $jsondata["token"];
-//            }
-//            $data = $this->getRequest()->getPost();
-//
-//            if (!empty($data["token"])) {
-//                $token = $data["token"];
-//            }
-//            $model = new UserModel();
-//            if (!empty($token)) {
-//                try {
-//
-//                    $tks = explode('.', $token);
-//
-//                    $tokeninfo = JwtInfo($token); //解析token
-//
-//
-//                    $userinfo = $model->Userinfo("*", array("name" => $tokeninfo["account"]));
-//                    if (empty($userinfo)) {
-//                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
-//                        exit;
-//
-//                    } else {
-//                        $this->user = array(
-//                            "user_main_id" => md5($userinfo["id"]) ,
-//                            "username" => $tokeninfo["account"],
-//                            "token" => $token, //token
-//                        );
-//                    }
-//                } catch (Exception $e) {
-//                    // LOG::write($e->getMessage());
-//                    $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
-//                    exit;
-//                }
-//            } else {
-//                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
-//                exit;
-//            }
-//        }
+        ini_set("display_errors", "off");
+        error_reporting(E_ALL | E_STRICT);
+        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        if ($this->getRequest()->getModuleName() == 'V1' &&
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka','excel'])) {
+
+        } else {
+
+            if (!empty($jsondata["token"])) {
+                $token = $jsondata["token"];
+            }
+            $data = $this->getRequest()->getPost();
+
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            $model = new UserModel();
+            if (!empty($token)) {
+                try {
+                    $tks = explode('.', $token);
+                    $tokeninfo = JwtInfo($token); //解析token
+                    $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
+                    if (empty($userinfo)) {
+                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+                        exit;
+
+                    } else {
+                        $this->user = array(
+                            "id" =>$userinfo["id"] ,
+                            "name" => $tokeninfo["name"],
+                            "token" => $token, //token
+                        );
+                    }
+                } catch (Exception $e) {
+                    // LOG::write($e->getMessage());
+                    $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
+                    exit;
+                }
+            } else {
+                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
+                exit;
+            }
+        }
     }
 
     protected function jsonReturn($data,$code=0,$message='', $type = 'JSON') {

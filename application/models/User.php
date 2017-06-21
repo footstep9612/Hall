@@ -15,7 +15,8 @@ class UserModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'user';
-   // Protected $autoCheckFields = ture;
+    protected $g_table ='t_user';
+    Protected $autoCheckFields = false;
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
@@ -24,56 +25,6 @@ class UserModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-    /**
-     * 根据条件获取查询条件
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     *
-     */
-    protected function getcondition($condition = []) {
-        $where = [];
-        if (isset($condition['id'])) {
-            $where['id'] = $condition['id'];
-        }
-        if (isset($condition['id'])) {
-            $where['user_no'] = $condition['user_no'];
-        }
-        if (isset($condition['name'])) {
-            $where['name'] = ['LIKE', '%' . $condition['name'] . '%'];
-        }
-        if (isset($condition['email'])) {
-            $where['email'] = ['LIKE', '%' . $condition['email'] . '%'];
-        }
-        if (isset($condition['mobile'])) {
-            $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
-        }
-        if (isset($condition['enc_password'])) {
-            $where['enc_password'] = md5($condition['enc_password']);
-        }
-        if (isset($condition['status'])) {
-            $where['status'] = $condition['status'];
-        }
-        return $where;
-    }
-
-    /**
-     * 获取数据条数
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
-    public function getcount($condition = []) {
-        $where = $this->getcondition($condition);
-        try {
-            return $this->where($where)
-                            ->field('id,user_id,name,email,mobile,status')
-                            ->count('id');
-        } catch (Exception $ex) {
-            Log::write($ex->getMessage());
-            return false;
-        }
-    }
 
     /**
      * 获取列表
@@ -81,21 +32,18 @@ class UserModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getlist($condition = [],$order="id desc") {
-        $where = $this->getcondition($condition);
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            $count = $this->getcount($condition);
-            return $this->where($where)
-                            ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                            ->field('id,user_no,name,email,mobile,status')
-                            ->order($order)
-                            ->select();
-        } else {
-            return $this->where($where)
-                            ->field('id,user_no,name,email,mobile,status')
-                            ->order($order)
-                            ->select();
+    public function getlist($condition = [],$order=" id desc") {
+        $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`,`description`';
+        $sql .= ' FROM '.$this->g_table;
+        $sql .= ' WHERE `status`= "NORMAL"';
+        if ( !empty($condition['where']) ){
+            $sql .= ' AND '.$condition['where'];
         }
+        $sql .= ' Order By '.$order;
+        if ( $condition['page'] ){
+            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
+        }
+        return $this->query( $sql );
     }
 
     /**
@@ -126,7 +74,7 @@ class UserModel extends PublicModel {
         if(!empty($data['mobile'])){
             $where['mobile'] = $data['mobile'];
         }
-        if(empty($where['mobile'])&&empty($where['mobile'])){
+        if(empty($where['mobile'])&&empty($where['email'])){
             echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
             exit();
         }
@@ -188,8 +136,14 @@ class UserModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = []) {
-        $data = $this->create($createcondition);
+    public function create_data($create = []) {
+        $data['user_no']=$create['user_no'];
+        $data['name']=$create['name'];
+        $data['email']=$create['email'];
+        $data['mobile']=$create['mobile'];
+        $data['password_hash']=$create['password_hash'];
+        $data['description']=$create['description'];
+        $data = $this->create($create);
         return $this->add($data);
     }
 

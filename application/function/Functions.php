@@ -978,13 +978,14 @@ function exw($data,$gross,$exchange_rate = 1){
         $arr['msg'] = '毛利率不能为空';
         return $arr;
     }
-    $data['code'] = 1;
-    $data['total']=0;
+
     $count=count($data);
+    $data['code'] = 1;
+    $data['total_exw_price']=0;
     for($i = 0;$i<$count;$i++){
-        $data[$i]['busyer_unit_price'] = round($data[$i]['busyer_unit_price']*$gross/$exchange_rate,8);
-        $data[$i]['total'] = round($data[$i]['busyer_unit_price'] * $data[$i]['num'],8);
-        $data['total'] = $data['total']+$data[$i]['total'];
+        $data[$i]['exw_unit_price'] = round($data[$i]['busyer_unit_price']* $gross/$exchange_rate,8);
+        $data[$i]['total_exw_price'] = round($data[$i]['exw_unit_price'] * $data[$i]['num'],8);
+        $data['total_exw_price'] = $data['total_exw_price']+$data[$i]['total_exw_price'];
     }
     return $data;
 }
@@ -1049,6 +1050,7 @@ function logistics($data){
         $arr['code'] = 1;
         $arr['total_logi_fee'] = $data['inspection_fee'];
         $arr['total_quote_price'] = round(($data['inspection_fee'] + $data['total_exw_price'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
         return $arr;
     }
     if(empty($data['land_freight'])){
@@ -1066,6 +1068,7 @@ function logistics($data){
         $arr['inland_marine_insurance'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insurance'] +  $data['land_freight'];
         $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
         return $arr;
     }
     if(empty($data['port_surcharge'])){
@@ -1078,6 +1081,7 @@ function logistics($data){
         $arr['inland_marine_insu'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] +  $data['port_surcharge'];
         $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
         return $arr;
     }
     if(empty($data['inter_shipping'])){
@@ -1090,6 +1094,7 @@ function logistics($data){
         $arr['inland_marine_insu'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
         $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
         return $arr;
     }
     if(empty($data['cargo_insurance_rate'])){
@@ -1109,6 +1114,7 @@ function logistics($data){
         }
         $arr['freightage_insu'] = $arr['total_quote_price'] *1.1*$data['cargo_insurance_rate'];
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping']+$arr['freightage_insu'];
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
         return $arr;
     }
     if(empty($data['dest_delivery_charge'])){
@@ -1128,6 +1134,7 @@ function logistics($data){
         }
         $arr['freightage_insu'] = $arr['total_quote_price'] *1.1*$data['cargo_insurance_rate'];
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping']+$arr['freightage_insu']+$data['dest_delivery_charge'];
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
         return $arr;
     }
     if(empty($data['dest_delivery_charge'])){
@@ -1161,8 +1168,16 @@ function logistics($data){
         }else{
             $arr['total_quote_price'] = round($numerator/$denominator,8);
         }
+        //目的地关税
+        $arr['dest_tariff'] = $arr['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
+        $arr['dest_va_tax'] = $arr['dest_tariff'];
+        $arr['dest_tariff'] = round($arr['dest_tariff'] * $data['dest_tariff_rate'] ,8);
+        //  目的地增值税
+        $arr['dest_va_tax'] =round($arr['dest_va_tax'] * (1 + $data['dest_tariff_rate']) * $data['dest_va_tax_rate'], 8);
         $arr['freightage_insu'] = $arr['total_quote_price'] *1.1*$data['cargo_insurance_rate'];
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping']+$arr['freightage_insu']+$data['dest_delivery_charge'];
+        $arr['total_logi_fee'] = $arr['total_logi_fee'] + $arr['dest_tariff'] + $arr['dest_va_tax'] + $data['dest_clearance_fee'];
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
         return $arr;
     }
 
