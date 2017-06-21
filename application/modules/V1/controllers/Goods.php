@@ -16,24 +16,49 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku属性查询数据编辑p
+     * sku属性详情a
      */
-    public function getInfoAction()
+    public function attrInfoAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if(!empty($data['sku'])){
-            $where['sku'] = $data['sku'];
+            $sku = $data['sku'];
         } else{
             echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
             exit();
         }
-        //获取商品属性
+        $lang= !empty($data['lang'])? $data['lang'] : '';
         $goods = new GoodsAttrModel();
-        $result = $goods->getAttrBySku($where,$this->lang);
+        $result = $goods->getAttrBySku($sku,$lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
+        }else{
+            echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
+        }
+        exit;
+    }
+    /**
+     * sku属性查询数据编辑p
+     */
+    public function getAttrInfoAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if(!empty($data['sku'])){
+            $sku = $data['sku'];
+        } else{
+            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
+            exit();
+        }
+        $lang= !empty($data['lang'])? $data['lang'] : '';
+        //获取商品属性
+        $goods = new GoodsAttrModel();
+        $result = $goods->getAttrBySku($sku,$lang);
+
+        if($result){
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }
@@ -49,14 +74,14 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            echo json_encode(array("code" => "-101", "message" => "sku不可以都为空"));
+            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
             exit();
         }
         $goods = new GoodsModel();
         $result = $goods->getGoodsInfo($sku,$this->lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }
