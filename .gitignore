@@ -47,3 +47,5 @@ logs/
 logs/
 .idea/
 application/ExcelFiles/
+.settings
+.project
