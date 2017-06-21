@@ -8,7 +8,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
-    protected $code = 0;
+    protected $code = 1;
     protected $message = '';
     protected $lang = '';
 
@@ -39,22 +39,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $model = new UserModel();
             if (!empty($token)) {
                 try {
-
                     $tks = explode('.', $token);
-
                     $tokeninfo = JwtInfo($token); //解析token
 
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
+
 
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
                     } else {
                         $this->user = array(
-
                             "id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
-
                             "token" => $token, //token
                         );
                     }
@@ -125,7 +122,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return $this->message;
     }
 
-
     /*     * *******************------公共输出JSON函数------*************************
      * @param mix $data // 发送到客户端的数据 如果$data 中含有code 则直接输出
      * 否则 与$this->code $this->message 组合输出
@@ -144,7 +140,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $send['data'] = $data;
             }
             $send['code'] = $this->getCode();
-            $send['message'] = $this->getMessage();
+            if ($send['code'] == 1 && !$this->getMessage()) {
+                $send['message'] = '成功!';
+            } elseif (!$this->getMessage()) {
+                $send['message'] = '未知错误!';
+            } else {
+                $send['message'] = $this->getMessage();
+            }
             exit(json_encode($data, JSON_UNESCAPED_UNICODE));
         }
     }

@@ -15,7 +15,8 @@ class UserModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'user';
-
+    protected $g_table ='t_user';
+    Protected $autoCheckFields = false;
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
@@ -81,20 +82,18 @@ class UserModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getlist($condition = []) {
-        $where = $this->getcondition($condition);
-
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            $count = $this->getcount($condition);
-            return $this->where($where)
-                            ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                            ->field('id,user_id,name,email,mobile,status')
-                            ->select();
-        } else {
-            return $this->where($where)
-                            ->field('id,user_id,name,email,mobile,status')
-                            ->select();
+    public function getlist($condition = [],$order=" id desc") {
+        $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`,`description`';
+        $sql .= ' FROM '.$this->g_table;
+        $sql .= ' WHERE `status`= "NORMAL"';
+        if ( !empty($condition['where']) ){
+            $sql .= ' AND '.$condition['where'];
         }
+        $sql .= ' Order By '.$order;
+        if ( $condition['page'] ){
+            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
+        }
+        return $this->query( $sql );
     }
 
     /**
@@ -120,12 +119,29 @@ class UserModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function login($name, $enc_password) {
-        $where['name'] = $name;
-        $where['enc_password'] = md5($enc_password);
-        return $this->where($where)
-                        ->field('id,user_id,name,email,mobile,status')
-                        ->find();
+    public function login($data) {
+        $where=array();
+        if(!empty($data['email'])){
+            $where['email'] = $data['email'];
+        }
+        if(!empty($data['mobile'])){
+            $where['mobile'] = $data['mobile'];
+        }
+        if(empty($where['mobile'])&&empty($where['email'])){
+            echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
+            exit();
+        }
+        if(!empty($data['password'])){
+            $where['password_hash'] = md5($data['password']);
+        }
+        $where['status'] = 'NORMAL';
+        $this->where($where)
+            ->field('id,user_no,name,email,mobile,status')
+            ->find();
+        $row = $this->where($where)
+            ->field('id,user_no,name,email,mobile,status')
+            ->find();
+        return $row;
     }
 
     /**
@@ -220,29 +236,15 @@ class UserModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = []) {
-
-
-        $data = $this->create($createcondition);
-
-        $data['enc_password'] = md5($data['enc_password']);
-        switch ($condition['status']) {
-
-            case self::STATUS_DELETED:
-                $data['status'] = $condition['status'];
-                break;
-            case self::STATUS_DISABLED:
-                $data['status'] = $condition['status'];
-                break;
-            case self::STATUS_NORMAL:
-                $data['status'] = $condition['status'];
-                break;
-            default : $data['status'] = self::STATUS_NORMAL;
-                break;
-        }
-
-
-        return $this->add($data);
+    public function create_data($create = []) {
+        $data['user_no']=$create['user_no'];
+        $data['name']=$create['name'];
+        $data['email']=$create['email'];
+        $data['mobile']=$create['mobile'];
+        $data['password_hash']=$create['password_hash'];
+        $data['description']=$create['description'];
+        $datajson = $this->create($data);
+        return $this->add($datajson);
     }
 
 }
