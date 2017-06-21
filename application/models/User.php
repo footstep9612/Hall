@@ -25,6 +25,56 @@ class UserModel extends PublicModel {
         parent::__construct($str = '');
     }
 
+    /**
+     * 根据条件获取查询条件
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     *
+     */
+    protected function getcondition($condition = []) {
+        $where = [];
+        if ($condition['id']) {
+            $where['id'] = $condition['id'];
+        }
+        if ($condition['user_id']) {
+            $where['user_id'] = $condition['user_id'];
+        }
+        if ($condition['name']) {
+            $where['name'] = ['LIKE', '%' . $condition['name'] . '%'];
+        }
+        if ($condition['email']) {
+            $where['email'] = ['LIKE', '%' . $condition['email'] . '%'];
+        }
+        if ($condition['mobile']) {
+            $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
+        }
+        if ($condition['enc_password']) {
+            $where['enc_password'] = md5($condition['enc_password']);
+        }
+        if ($condition['status']) {
+            $where['status'] = $condition['status'];
+        }
+        return $where;
+    }
+
+    /**
+     * 获取数据条数
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getcount($condition = []) {
+        $where = $this->getcondition($condition);
+        try {
+            return $this->where($where)
+                            ->field('id,user_id,name,email,mobile,status')
+                            ->count('id');
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), $level);
+            return false;
+        }
+    }
 
     /**
      * 获取列表
@@ -63,8 +113,11 @@ class UserModel extends PublicModel {
 
     /**
      * 登录
-     * @param   array $data;
-     * @author jhw
+     * @param  string $name 用户名
+     * @param  string$enc_password 密码
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
      */
     public function login($data) {
         $where=array();
@@ -93,26 +146,30 @@ class UserModel extends PublicModel {
 
     /**
      * 判断用户是否存在
-     * @param  string $email 邮箱
-     * @param  string $moblie 手机
-     * @author jhw
+     * @param  string $name 用户名
+     * @param  string$enc_password 密码
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
      */
-    public function Exist($email=null,$moblie=null) {
-        $where='';
-        if($email){
-           $where ="email='".$email."'";
-        }
-        if($moblie){
-            if($where){
-                $where .= " or mobile='".$moblie."'";
-            }else{
-                $where = "mobile='".$moblie."'";
-            }
+    public function Exist($name, $type = 'name') {
+        switch (strtolower($type)) {
+            case 'name':
+                $where['name'] = $name;
+                break;
+            case 'email':
+                $where['email'] = $name;
+                break;
+            default :
+                return false;
+                break;
         }
         //$where['enc_password'] = md5($enc_password);
         $row = $this->where($where)
-                ->field('id,user_no,name,email,mobile,status')
+                ->field('id,user_id,name,email,mobile,status')
                 ->find();
+
+        var_dump();
         return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
     }
 
@@ -123,12 +180,55 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function delete_data($id = '') {
+
         $where['id'] = $id;
         return $this->where($where)
                         ->save(['status' => 'DELETED']);
     }
 
+    /**
+     * 更新数据
+     * @param  mix $upcondition 更新条件
+     * @return bool
+     * @author zyg
+     */
+    public function update_data($upcondition = []) {
+        $data = [];
+        $where = [];
+        if ($condition['id']) {
+            $where['id'] = $condition['id'];
+        }
+        if ($condition['user_id']) {
+            $data['user_id'] = $condition['user_id'];
+        }
+        if ($condition['name']) {
+            $data['name'] = $condition['name'];
+        }
+        if ($condition['email']) {
+            $data['email'] = $condition['email'];
+        }
+        if ($condition['mobile']) {
+            $data['mobile'] = $condition['mobile'];
+        }
+        if ($condition['enc_password']) {
+            $data['enc_password'] = md5($condition['enc_password']);
+        }
+        switch ($condition['status']) {
 
+            case self::STATUS_DELETED:
+                $data['status'] = $condition['status'];
+                break;
+            case self::STATUS_DISABLED:
+                $data['status'] = $condition['status'];
+                break;
+            case self::STATUS_NORMAL:
+                $data['status'] = $condition['status'];
+                break;
+        }
+
+
+        return $this->where($where)->save($data);
+    }
 
     /**
      * 新增数据
@@ -143,8 +243,8 @@ class UserModel extends PublicModel {
         $data['mobile']=$create['mobile'];
         $data['password_hash']=$create['password_hash'];
         $data['description']=$create['description'];
-        $data = $this->create($create);
-        return $this->add($data);
+        $datajson = $this->create($data);
+        return $this->add($datajson);
     }
 
 }

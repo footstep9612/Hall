@@ -15,489 +15,518 @@ class EsgoodsController extends PublicController {
 
     protected $index = 'erui_db_ddl_goods';
     protected $es = '';
+    protected $langs = ['en', 'es', 'ru', 'zh'];
 
     //put your code here
     public function init() {
 
-        
+
 //        $espoductmodel = new EsgoodsModel();
 //        $flag = $espoductmodel->getproductattrsbyspus(['01']);
 //        echo '<pre>';
 //        var_dump($flag);
 //        die();
-         $this->es = new ESClient();
+        $this->es = new ESClient();
         //  parent::init();
     }
 
-    public function importgoods_enAction() {
-        
+    /*
+     * goods 数据导入
+     */
+
+    public function importgoodsAction($lang = 'en') {
+        try {
+            $espoductmodel = new EsgoodsModel();
+            $espoductmodel->importgoodss($lang);
+            $this->setCode(1);
+            $this->jsonReturn([]);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn([]);
+        }
     }
 
-    public function importgoods_zhAction() {
-        
-    }
+    /*
+     * product数据导入
+     */
 
-    public function importgoods_esAction() {
-        
-    }
-
-    public function importgoods_ruAction() {
-        
+    public function importproductsAction($lang = 'en') {
+        try {
+            $espoductmodel = new EsProductModel();
+            $espoductmodel->importproducts($lang);
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn([]);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn([]);
+        }
     }
 
     public function indexAction() {
+//        $this->es->delete('index');
+        // $this->es->delete($this->index);
+        //$model = new EsgoodsModel();
 
+        $body['mappings'] = [];
 
+        foreach ($this->langs as $lang) {
+            $body['mappings']['goods_' . $lang] = $this->goodsAction($lang);
 
-        $this->es->delete_index($this->index);
-        $this->goods_enAction();
-        $this->goods_esAction();
-        $this->goods_ruAction();
-        $this->goods_zhAction();
-        $this->product_enAction();
-        $this->product_esAction();
-        $this->product_zhAction();
-        $this->product_ruAction();
+            $body['mappings']['product_' . $lang] = $this->productAction($lang);
+        }
 
-        echo '1';
-        die();
+        $this->es->create_index($this->index, $body);
+        $this->setCode(1);
+        $this->setMessage('成功!');
+        $this->jsonReturn($data);
     }
 
-    public function goods_enAction() {
-        $type = 'goods_en';
-        $id = 0;
-        $body = [
-            'lang' => "en",
-            'spu' => "",
-            'sku' => "",
-            'qrcode' => "",
-            'name' => "",
-            'show_name' => "",
-            'model' => "",
-            'description' => "",
-            'purchase_price1' => "",
-            'purchase_price2' => "",
-            'purchase_price_cur' => "",
-            'purchase_unit' => "",
-            'created_by' => "",
-            'created_at' => "",
-            "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attr" => [['id' => "",
-            'lang' => "ru",
-            'spu' => "",
-            'sku' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'spec_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
+    public function getGoodsAction() {
+
+        $name = 'CONDOR';
+        $model = new EsgoodsModel();
+        $flag = $model->getGoodsbyname($name, 'S010102');
+
+        echo '<pre>';
+        var_dump($flag);
     }
 
-    public function goods_zhAction() {
-        $type = 'goods_zh';
+    public function goodsAction($lang = 'en') {
+        if (!in_array($lang, $this->langs)) {
+
+            $lang = 'en';
+        }
+        $type = 'goods_' . $lang;
         $id = 0;
-        $body = [
-            'lang' => "zh",
-            'spu' => "",
-            'sku' => "",
-            'qrcode' => "",
-            'name' => "",
-            'show_name' => "",
-            'model' => "",
-            'description' => "",
-            'purchase_price1' => "",
-            'purchase_price2' => "",
-            'purchase_price_cur' => "",
-            'purchase_unit' => "",
-            'created_by' => "",
-            'created_at' => "",
-            "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attr" => [['id' => "",
-            'lang' => "ru",
-            'spu' => "",
-            'sku' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'spec_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
+        if ($lang != 'zh') {
+            $body = ['properties' => [
+                    'lang' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'spu' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'sku' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'qrcode' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'model' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'show_name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'purchase_price1' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'purchase_price2' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'purchase_price_cur' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'purchase_unit' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'created_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'created_at' => [
+                        'type' => 'date', "index" => "not_analyzed",
+                    ],
+                    'meterial_cat' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'show_cats' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'attrs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'specs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                ]
+            ];
+        } else {
+            $body = ['properties' => [
+                    'lang' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'spu' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'sku' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'qrcode' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'model' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'show_name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'purchase_price1' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'purchase_price2' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'purchase_price_cur' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'purchase_unit' => [
+                        'type' => 'text', "index" => "not_analyzed",
+                    ],
+                    'created_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'created_at' => [
+                        'type' => 'date',
+                    ],
+                    'meterial_cat' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'show_cats' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'attrs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'specs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                ]
+            ];
+        }
+        return $body;
     }
 
-    public function goods_esAction() {
-        $type = 'goods_es';
-        $id = 0;
-        $body = [
-            'lang' => "es",
-            'spu' => "",
-            'sku' => "",
-            'qrcode' => "",
-            'name' => "",
-            'show_name' => "",
-            'model' => "",
-            'description' => "",
-            'purchase_price1' => "",
-            'purchase_price2' => "",
-            'purchase_price_cur' => "",
-            'purchase_unit' => "",
-            'created_by' => "",
-            'created_at' => "",
-            "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attr" => [['id' => "",
-            'lang' => "ru",
-            'spu' => "",
-            'sku' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'spec_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
-    }
+    public function productAction($lang = 'en') {
 
-    public function goods_ruAction() {
-        $type = 'goods_ru';
-        $id = 0;
-        $body = [
-            'lang' => "ru",
-            'spu' => "",
-            'sku' => "",
-            'qrcode' => "",
-            'name' => "",
-            'show_name' => "",
-            'model' => "",
-            'description' => "",
-            'purchase_price1' => "",
-            'purchase_price2' => "",
-            'purchase_price_cur' => "",
-            'purchase_unit' => "",
-            'created_by' => "",
-            'created_at' => "",
-            "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attr" => [['id' => "",
-            'lang' => "ru",
-            'spu' => "",
-            'sku' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'spec_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
-    }
+        if (!in_array($lang, $this->langs)) {
 
-    public function product_enAction() {
-        $type = 'product_en';
-        $id = 0;
-        $body = [
-            'lang' => "en",
-            'spu' => "",
-            'meterial_cat_no' => "",
-            'name' => "",
-            'show_name' => "",
-            'keywords' => "",
-            'description' => "",
-            'supplier_id' => "",
-            'brand' => "",
-            'source' => "",
-            'source_detail' => "",
-            'recommend_flag' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",
-            'updated_by' => "",
-            'updated_at' => "",
-            'checked_by' => "",
-            'checked_at' => "",
-            "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attrs" => [['id' => "",
-            'lang' => "",
-            'spu' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
-    }
-
-    public function product_zhAction() {
-        $type = 'product_zh';
-        $id = 0;
-        $body = [
-            'lang' => "zh",
-            'spu' => "",
-            'meterial_cat_no' => "",
-            'name' => "",
-            'show_name' => "",
-            'keywords' => "",
-            'description' => "",
-            'supplier_id' => "",
-            'brand' => "",
-            'source' => "",
-            'source_detail' => "",
-            'recommend_flag' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",
-            'updated_by' => "",
-            'updated_at' => "",
-            'checked_by' => "",
-            'checked_at' => "", "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attrs" => [['id' => "",
-            'lang' => "",
-            'spu' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
-    }
-
-    public function product_esAction() {
-        $type = 'product_es';
+            $lang = 'en';
+        }
 
         $id = 0;
-        $body = [
-            'lang' => "es",
-            'spu' => "",
-            'meterial_cat_no' => "",
-            'name' => "",
-            'show_name' => "",
-            'keywords' => "",
-            'description' => "",
-            'supplier_id' => "",
-            'brand' => "",
-            'source' => "",
-            'source_detail' => "",
-            'recommend_flag' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",
-            'updated_by' => "",
-            'updated_at' => "",
-            'checked_by' => "",
-            'checked_at' => "",
-            "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attrs" => [['id' => "",
-            'lang' => "",
-            'spu' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
-    }
+        if ($lang != 'zh') {
+            $body = ['properties' => [
+                    'lang' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'spu' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'skus' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'show_name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'keywords' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 1
+                    ],
+                    'supplier_id' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'brand' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 2
+                    ],
+                    'source' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 1
+                    ],
+                    'source_detail' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 1
+                    ],
+                    'recommend_flag' => [
+                        'type' => 'text',
+                        'analyzer' => 'whitespace'
+                    ],
+                    'status' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'created_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ], 'created_at' => [
+                        'type' => 'date',
+                        "index" => "not_analyzed",
+                    ], 'updated_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ], 'updated_at' => [
+                        'type' => 'date',
+                        "index" => "not_analyzed",
+                    ], 'checked_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ], 'checked_at' => [
+                        'type' => 'date',
+                        "index" => "not_analyzed",
+                    ],
+                    'meterial_cat' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'show_cats' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'attrs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'specs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                ]
+                    ]
+            ;
+        } else {
 
-    public function product_ruAction() {
-        $type = 'product_ru';
+            $body = ['properties' => [
+                    'lang' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'spu' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'skus' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'show_name' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 8
+                    ],
+                    'keywords' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 1
+                    ],
+                    'supplier_id' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'brand' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 2
+                    ],
+                    'source' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 1
+                    ],
+                    'source_detail' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 1
+                    ],
+                    'recommend_flag' => [
+                        'type' => 'text',
+                        'analyzer' => 'whitespace'
+                    ],
+                    'status' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ],
+                    'created_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ], 'created_at' => [
+                        'type' => 'date',
+                        "index" => "not_analyzed",
+                    ], 'updated_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ], 'updated_at' => [
+                        'type' => 'date',
+                        "index" => "not_analyzed",
+                    ], 'checked_by' => [
+                        'type' => 'text',
+                        "index" => "not_analyzed",
+                    ], 'checked_at' => [
+                        'type' => 'date',
+                        "index" => "not_analyzed",
+                    ],
+                    'meterial_cat' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'show_cats' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'attrs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                    'specs' => [
+                        'type' => 'text',
+                        "analyzer" => "ik_max_word",
+                        "search_analyzer" => "ik_max_word",
+                        "include_in_all" => "true",
+                        "boost" => 4
+                    ],
+                ]
+            ];
+        }
 
-        $id = 0;
-        $body = [
-            'lang' => "ru",
-            'spu' => "",
-            'meterial_cat_no' => "",
-            'name' => "",
-            'show_name' => "",
-            'keywords' => "",
-            'description' => "",
-            'supplier_id' => "",
-            'brand' => "",
-            'source' => "",
-            'source_detail' => "",
-            'recommend_flag' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",
-            'updated_by' => "",
-            'updated_at' => "",
-            'checked_by' => "",
-            'checked_at' => "",
-            "meterial_cat" => ['mcat_no1' => '',
-                'mcat_no2' => '',
-                'mcat_no3' => '',
-                'mcat_name1' => '',
-                'mcat_name2' => '',
-                'mcat_name3' => '',],
-            'show_cat' => [['cat_no1' => '',
-            'cat_no2' => '',
-            'cat_no3' => '',
-            'cat_name1' => '',
-            'cat_name2' => '',
-            'cat_name3' => '',]],
-            "attrs" => [['id' => "",
-            'lang' => "",
-            'spu' => "",
-            'attr_group' => "",
-            'attr_no' => "",
-            'attr_name' => "",
-            'attr_value_type' => "",
-            'attr_value' => "",
-            'goods_flag' => "",
-            'logistics_flag' => "",
-            'hs_flag' => "",
-            'required_flag' => "",
-            'search_flag' => "",
-            'sort_order' => "",
-            'status' => "",
-            'created_by' => "",
-            'created_at' => "",]]
-        ];
-        $this->es->create_index($this->index, $type, $body, $id);
+        return $body;
+        // $this->es->create_index($this->index,  $body);
     }
 
 }
