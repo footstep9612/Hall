@@ -8,72 +8,211 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
-
     /*
      * 初始化
      */
-
     public function init() {
-//        ini_set("display_errors", "On");
-//        error_reporting(E_ALL | E_STRICT);
-//        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-//        if ($this->getRequest()->getModuleName() == 'V1' &&
-//                $this->getRequest()->getControllerName() == 'User' &&
-//                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka','excel'])) {
-//
-//        } else {
-//
-//            if (!empty($jsondata["token"])) {
-//                $token = $jsondata["token"];
-//            }
-//            $data = $this->getRequest()->getPost();
-//
-//            if (!empty($data["token"])) {
-//                $token = $data["token"];
-//            }
-//            $model = new UserModel();
-//            if (!empty($token)) {
-//                try {
-//
-//                    $tks = explode('.', $token);
-//
-//                    $tokeninfo = JwtInfo($token); //解析token
-//
-//
-//                    $userinfo = $model->Userinfo("*", array("name" => $tokeninfo["account"]));
-//                    if (empty($userinfo)) {
-//                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
-//                        exit;
-//
-//                    } else {
-//                        $this->user = array(
-//                            "user_main_id" => md5($userinfo["id"]) ,
-//                            "username" => $tokeninfo["account"],
-//                            "token" => $token, //token
-//                        );
-//                    }
-//                } catch (Exception $e) {
-//                    // LOG::write($e->getMessage());
-//                    $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
-//                    exit;
-//                }
-//            } else {
-//                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
-//                exit;
-//            }
-//        }
+        ini_set("display_errors", "On");
+        error_reporting(E_ALL | E_STRICT);
+        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        if ($this->getRequest()->getModuleName() == 'V1' &&
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+            
+        } else {
+
+            if (!empty($jsondata["token"])) {
+                $token = $jsondata["token"];
+            }
+            $data = $this->getRequest()->getPost();
+
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            $model = new UserModel();
+            if (!empty($token)) {
+                try {
+
+                    $tks = explode('.', $token);
+
+                    $tokeninfo = JwtInfo($token); //解析token
+
+
+                    $userinfo = $model->Userinfo("*", array("name" => $tokeninfo["account"]));
+                    if (empty($userinfo)) {
+                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+                        exit;
+                    } else {
+                        $this->user = array(
+                            "user_main_id" => md5($userinfo["id"]),
+                            "username" => $tokeninfo["account"],
+                            "token" => $token, //token
+                        );
+                    }
+                } catch (Exception $e) {
+                    // LOG::write($e->getMessage());
+                    $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
+                    exit;
+                }
+            } else {
+                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
+                exit;
+            }
+        }
     }
 
-    protected function jsonReturn($data,$code=0,$message='', $type = 'JSON') {
+    public function __call($method, $args) {
+        $data['code'] = -1;
+        $data['message'] = 'Action :There is no method list4Action ';
+        $this->jsonReturn($data);
+    }
+
+    protected function jsonReturn($data, $type = 'JSON') {
         header('Content-Type:application/json; charset=utf-8');
-        if($code !=0){
-            exit(json_encode(array('code'=>$code,'message'=>$message)));
+        exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+    }
+
+    /*
+     *  获取put过来的数据 待过滤优化
+     * @param string $name
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+
+    public function getPut($name, $default = null) {
+        $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
+        // return array_walk_recursive($data, 'think_filter');
+        return $data;
+    }
+
+    /**
+     *
+     * @link http://www.php.net/manual/en/yaf-request-abstract.getparam.php
+     *
+     * @param string $name
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    public function getParam($name, $default = null) {
+
+        return $this->getRequest()->getParam($name, $default);
+    }
+
+    /**
+     * Retrieve variable from client, this method will search the name in $_REQUEST params, if the name is not found, then will search in $_POST, $_GET, $_COOKIE, $_SERVER
+     *
+     * @link http://www.php.net/manual/en/yaf-request-http.get.php
+     *
+     * @param string $name the variable name
+     * @param string $default if this parameter is provide, this will be returned if the variable can not be found
+     *
+     * @return mixed
+     */
+    public function get($name, $default = null) {
+
+        return $this->getRequest()->get($name, $default);
+    }
+
+    /**
+     * Retrieve $_GET variable
+     *
+     * @link http://www.php.net/manual/en/yaf-request-http.getquery.php
+     *
+     * @param string $name the variable name, if not provided returns all
+     * @param mixed $default if this parameter is provide, this will be returned if the variable can not be found
+     *
+     * @return mixed
+     */
+    public function getQuery($name, $default = null) {
+
+        return $this->getRequest()->getQuery($name, $default);
+    }
+
+    /**
+     * Retrieve $_POST variable
+     *
+     * @link http://www.php.net/manual/en/yaf-request-http.getpost.php
+     *
+     * @param string $name the variable name, if not provided returns all
+     * @param mixed $default if this parameter is provide, this will be returned if the variable can not be found
+     *
+     * @return mixed
+     */
+    public function getPost($name, $default = null) {
+
+        return $this->getRequest()->getPost($name, $default);
+    }
+
+    /**
+     * @link http://www.php.net/manual/en/yaf-request-abstract.getmethod.php
+     *
+     * @return string
+     */
+    public function getMethod() {
+        return $this->getRequest()->getMethod();
+    }
+
+    /**
+     * Retrieve $_SERVER variable
+     *
+     * @link http://www.php.net/manual/en/yaf-request-abstract.getserver.php
+     *
+     * @param string $name the variable name, if not provided returns all
+     * @param mixed $default if this parameter is provide, this will be returned if the variable can not be found
+     *
+     * @return mixed
+     */
+    public function getServer($name, $default = null) {
+
+        return $this->getRequest()->getServer($name, $default);
+    }
+
+    /**
+     * Retrieve $_COOKIE variable
+     *
+     * @link http://www.php.net/manual/en/yaf-request-http.getcookie.php
+     *
+     * @param string $name the variable name, if not provided returns all
+     * @param mixed $default if this parameter is provide, this will be returned if the variable can not be found
+     *
+     * @return mixed
+     */
+    public function getCookie($name, $default = null) {
+
+        return $this->getRequest()->getCookie($name, $default);
+    }
+
+    /**
+     * Retrieve $_FILES variable
+     *
+     * @link http://www.php.net/manual/en/yaf-request-http.getfiles.php
+     *
+     * @param string $name the variable name, if not provided returns all
+     * @param mixed $default if this parameter is provide, this will be returned if the variable can not be found
+     *
+     * @return mixed
+     */
+    public function getFiles($name, $default = null) {
+
+        return $this->getRequest()->getCookie($name, $default);
+    }
+
+    function think_filter(&$value) {
+        // TODO 其他安全过滤
+        // 过滤查询特殊字符
+        if (preg_match('/^(EXP|NEQ|GT|EGT|LT|ELT|OR|XOR|LIKE|NOTLIKE|NOT BETWEEN|NOTBETWEEN|BETWEEN|NOTIN|NOT IN|IN)$/i', $value)) {
+            $value .= ' ';
         }
-        if(is_array($data) && !isset($data['code'])){
-            $data['code']=0;
-            $data['message'] = '成功';
+    }
+
+    function array_map_recursive($filter, $data) {
+        $result = array();
+        foreach ($data as $key => $val) {
+            $result[$key] = is_array($val) ? array_map_recursive($filter, $val) : call_user_func($filter, $val);
         }
-        exit(json_encode($data));
+        return $result;
     }
 
     /**
@@ -129,91 +268,4 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //    public function create($createcondition = []) {
 //
 //    }
-
-	/**
-	 * 获取采购商流水号
-	 * @author liujf 2017-06-20
-	 * @return string $buyerSerialNo 采购商流水号
-	 */
-	public function getBuyerSerialNo() {
-		
-		$buyerSerialNo = $this->getSerialNo('buyerSerialNo', 'E-B-S-');
-		
-		return $buyerSerialNo;
-	}
-	
-	/**
-	 * 获取供应商流水号
-	 * @author liujf 2017-06-20
-	 * @return string $supplierSerialNo 供应商流水号
-	 */
-	public function getSupplierSerialNo() {
-		
-		$supplierSerialNo = $this->getSerialNo('supplierSerialNo', 'E-S-');
-		
-		return $supplierSerialNo;
-	}
-
-	/**
-	 * 获取生成的询价单流水号
-	 * @author liujf 2017-06-20
-	 * @return string $inquirySerialNo 询价单流水号
-	 */
-	public function getInquirySerialNo() {
-		
-		$inquirySerialNo = $this->getSerialNo('inquirySerialNo', 'INQ_');
-		
-		return $inquirySerialNo;
-	}
-	
-	/**
-	 * 获取生成的报价单流水号
-	 * @author liujf 2017-06-20
-	 * @return string $quoteSerialNo 报价单流水号
-	 */
-	public function getQuoteSerialNo() {
-		
-		$quoteSerialNo = $this->getSerialNo('quoteSerialNo', 'QUO_');
-		
-		return $quoteSerialNo;
-	}
-	
-	/**
-	 * 根据流水号名称获取流水号
-	 * @param string $name 流水号名称
-	 * @param string $prefix 前缀
-	 * @author liujf 2017-06-20
-	 * @return string $code
-	 */
-	private function getSerialNo($name, $prefix = '') {
-		$time = date('Ymd');
-		$duration = 3600 * 48;
-		$createTimeName = $name . 'CreateTime';
-		$stepName = $name . 'Step';
-		$createTime = redisGet($createTimeName) ? : '19700101';
-		if ($time > $createTime) {
-			redisSet($stepName, 0, $duration);
-			redisSet($createTimeName, $time, $duration);
-		}
-		$step = redisGet($stepName) ? : 0;
-		$step ++;
-		redisSet($stepName, $step, $duration);
-		$code = $this->createSerialNo($step, $prefix);
-		
-		return $code;
-	}
-	
-	/**
-	 * 生成流水号
-	 * @param string $step 需要补零的字符
-	 * @param string $prefix 前缀
-	 * @author liujf 2017-06-19
-	 * @return string $code
-	 */
-	private function createSerialNo($step = 1, $prefix = '') {
-		$time = date('Ymd');
-		$pad  = str_pad($step, 5, '0', STR_PAD_LEFT);
-		$code = $prefix . $time . '_' . $pad;
-		return $code;
-	}
 }

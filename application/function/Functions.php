@@ -152,17 +152,17 @@ function getPassedHours($distence) {
     $passed = "";
     switch ($distence) {
         case ($distence < 60 ): {
-            $passed = $distence . "秒";
-            break;
-        }
+                $passed = $distence . "秒";
+                break;
+            }
         case ($distence > 60 && $distence < 60 * 60): {
-            $passed = intval($distence / 60) . "分钟";
-            break;
-        }
+                $passed = intval($distence / 60) . "分钟";
+                break;
+            }
         case ($distence > 60 * 60): {
-            $passed = sprintf("%.1f", $distence / (60 * 60)) . "小时";
-            break;
-        }
+                $passed = sprintf("%.1f", $distence / (60 * 60)) . "小时";
+                break;
+            }
     }
 
     return $passed;
@@ -210,11 +210,11 @@ function escapeInfo($info) {
  */
 function htmlspecialcharsUni($text, $entities = true) {
     return str_replace(
-    // replace special html characters
-        array('<', '>', '"', '\''), array('&lt;', '&gt;', '&quot;', '&apos;'), preg_replace(
-        // translates all non-unicode entities
-            '/&(?!' . ($entities ? '#[0-9]+|shy' : '(#[0-9]+|[a-z]+)') . ';)/si', '&amp;', $text
-        )
+            // replace special html characters
+            array('<', '>', '"', '\''), array('&lt;', '&gt;', '&quot;', '&apos;'), preg_replace(
+                    // translates all non-unicode entities
+                    '/&(?!' . ($entities ? '#[0-9]+|shy' : '(#[0-9]+|[a-z]+)') . ';)/si', '&amp;', $text
+            )
     );
 }
 
@@ -364,7 +364,7 @@ function removeXSS($str) {
         $str = preg_replace('/&lt;' . $val . '(.*)(\/?)&gt;/isU', '<' . $val . "\\1\\2>", $str);
         $str = transCase($str);
         $str = preg_replace_callback(
-            '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
+                '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
         );
     }
     $str = preg_replace('/&amp;/i', '&', $str);
@@ -376,7 +376,7 @@ function removeXSS($str) {
         $str = preg_replace('/&lt;' . $val . '(.*)&gt;/isU', '<' . $val . "\\1>", $str);
         $str = transCase($str);
         $str = preg_replace_callback(
-            '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
+                '/<' . $val . '(.+?)>/i', create_function('$temp', 'return str_replace("&quot;","\"",$temp[0]);'), $str
         );
         $str = preg_replace('/&lt;\/' . $val . '&gt;/is', '</' . $val . ">", $str);
     }
@@ -563,7 +563,7 @@ function encrypt($str, $toBase64 = false, $key = "www.smesauz.com20380201") {
         if ($c == $l)
             $c = 0;
         $v .= substr($r, $c, 1) .
-            (substr($str, $i, 1) ^ substr($r, $c, 1));
+                (substr($str, $i, 1) ^ substr($r, $c, 1));
         $c++;
     }
     if ($toBase64) {
@@ -627,7 +627,7 @@ function GetData($url) {
  * 名称:  请求接口提交数据
  * 参数:  string $key     接口地址
  * 参数:  array $data     提交数据
-参数： bool  $json	 是否json提交
+  参数： bool  $json	 是否json提交
  * 返回值: array   数据;
  */
 function PostData($url, $data, $json = false) {
@@ -640,8 +640,8 @@ function PostData($url, $data, $json = false) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $datastring);
     if ($json) {
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json; charset=utf-8',
-                'Content-Length: ' . strlen($datastring))
+            'Content-Type: application/json; charset=utf-8',
+            'Content-Length: ' . strlen($datastring))
         );
     }
     $output = curl_exec($ch);
@@ -773,7 +773,6 @@ function format_size($size) {
 
     return $size . $units[$unit];
 }
-
 /*
  * 随机生成字符串
  *
