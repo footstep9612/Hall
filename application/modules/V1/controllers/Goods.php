@@ -30,10 +30,10 @@ class GoodsController extends PublicController
         }
         $lang= !empty($data['lang'])? $data['lang'] : '';
         $goods = new GoodsAttrModel();
-        $result = $goods->AttrInfoBy($sku,$lang);
+        $result = $goods->getAttrBySku($sku,$lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }
@@ -47,7 +47,7 @@ class GoodsController extends PublicController
         $data = json_decode(file_get_contents("php://input"), true);
 
         if(!empty($data['sku'])){
-            $where['sku'] = $data['sku'];
+            $sku = $data['sku'];
         } else{
             echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
             exit();
@@ -55,10 +55,10 @@ class GoodsController extends PublicController
         $lang= !empty($data['lang'])? $data['lang'] : '';
         //获取商品属性
         $goods = new GoodsAttrModel();
-        $result = $goods->getAttrBySku($where,$lang);
+        $result = $goods->getAttrBySku($sku,$lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }
@@ -81,7 +81,7 @@ class GoodsController extends PublicController
         $result = $goods->getGoodsInfo($sku,$this->lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }

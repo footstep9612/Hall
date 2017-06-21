@@ -53,6 +53,8 @@ class GoodsModel extends PublicModel
 
                 $data['attachs'] = $attach ? $attach : array();
                 return $data;
+            } else{
+                return array();
             }
         } catch(Exception $e){
             return false;

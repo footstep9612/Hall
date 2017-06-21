@@ -119,7 +119,7 @@ class ProductController extends PublicController{
         $result = $goods->getAttrBySpu($spu,$lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }
@@ -142,10 +142,10 @@ class ProductController extends PublicController{
         $lang= !empty($data['lang'])? $data['lang'] : '';
         //获取产品属性
         $goods = new ProductAttrModel();
-        $result = $goods->AttrInfoBy($spu,$lang);
+        $result = $goods->getAttrBySpu($spu,$lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
         }else{
             echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
         }

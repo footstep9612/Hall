@@ -15,124 +15,108 @@ class GoodsAttrModel extends PublicModel
     const STATUS_DELETE = 'DELETE'; //删除；
 
     /**
-     * 根据sku条件获取属性值a
-     * @param $data
-     * @return mixed
-     */
-    public function AttrInfoBy($sku='',$lang='')
-    {
-        if($sku=='')
-            return false;
-        if($lang=='')
-            return false;
-        $condition = array(
-            'sku' => $sku,
-            'lang' => $lang,
-            'status' => self::STATUS_VALID
-        );
-        //获取productAttr表名
-        $proAttrModel = new ProductAttrModel();
-        $pattr_table = $proAttrModel->getTableName();
-        //获取本表面
-        $this_table = $this->getTableName();
-
-
-            $field = "$this_table.lang,$this_table.spu,$this_table.attr_name,$this_table.input_type,$this_table.value_type,$this_table.value_unit,$this_table.options,$this_table.input_hint,$this_table.attr_group,$pattr_table.lang,$pattr_table.attr_no,$pattr_table.attr_name,$pattr_table.attr_value_type,$pattr_table.attr_value,$pattr_table.value_unit,$pattr_table.goods_flag,$pattr_table.spec_flag,$pattr_table.logi_flag,$pattr_table.hs_flag";
-        try{
-            $result = $this->field($field)
-                           ->join($pattr_table . " ON $pattr_table.spu = $this_table.spu AND $pattr_table.lang = $this_table.lang", 'LEFT')
-                           ->where($condition)
-                           ->select();
-
-            if($result){
-              return $result;
-            } else{
-                return array();
-            }
-        } catch(Exception $e) {
-            return false;
-        }
-    }
-
-    /**
      * 编辑商品属性查询p
      * @param null $where string 条件
      * @return mixed
      */
-    public function getAttrBySku($where, $lang='')
+    public function getAttrBySku($sku, $lang='')
     {
         if(''!=$lang){
             $where['lang'] = $lang;
         }
-        $where['status'] = self::STATUS_VALID;
-        //获取productAttr表名
-        $proAttrModel = new ProductAttrModel();
-        $pattr_table = $proAttrModel->getTableName();
-        //获取本表面
-        $this_table = $this->getTableName();
+        $where = array(
+            'sku' => $sku,
+            'status' => self::STATUS_VALID
+        );
 
-        //关联表查询合并
-        $field = "$this_table.lang,$this_table.spu,$this_table.attr_name,$this_table.input_type,$this_table.value_type,$this_table.value_unit,$this_table.options,$this_table.input_hint,$this_table.attr_group,$pattr_table.lang,$pattr_table.attr_no,$pattr_table.attr_name,$pattr_table.attr_value_type,$pattr_table.attr_value,$pattr_table.value_unit,$pattr_table.goods_flag,$pattr_table.spec_flag,$pattr_table.logi_flag,$pattr_table.hs_flag";
+        $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
-        try{
-            $result = $this->field($field)
-                           ->join($pattr_table . " ON $pattr_table.spu = $this_table.spu AND $pattr_table.lang = $this_table.lang", 'LEFT')
-                           ->where($where)
-                           ->select();
+        $gattrs = $this->field($field)
+                        ->where($where)
+                        ->select();
 
-            //进行属性分组
+        //查询产品对应属性
+        $productAttr = new ProductAttrModel();
+        $spu = $gattrs[0]['spu'];
+        $condition = array(
+            'spu' => $spu,
+            'lang' => $lang,
+            'status' => self::STATUS_VALID
+        );
+        $pattrs = $productAttr->field($field)->where($condition)->select();
+
+        $data = array_merge($pattrs,$gattrs);
+        //进行属性分组
             /**
-             * 属性分组:
-             *   Specs - 规格
-             *   Technical Parameters - 技术参数
-             *   Executive Standard - 技术标准
-             *   Product Information - 简要信息
-             *   Quatlity Warranty - 质量保证
-             *   Others - 其他属性
-             *  Image - 附件
-             *  Documentation - 技术文档　
+             ** 属性分类:一级
+                 *   goods_flag - 商品属性
+                 *   spec_flag - 规格型号
+                 *   logi_flag  - 物流属性
+                 *   hs_flag  - 申报要素
+                 *   Others - 其他　
+             ** 属性分组:二级
+                 *   Specs - 规格
+                 *   Technical Parameters - 技术参数
+                 *   Executive Standard - 技术标准
+                 *   Product Information - 简要信息
+                 *   Quatlity Warranty - 质量保证
+                 *   Others - 其他属性
+                 *  Image - 附件
+                 *  Documentation - 技术文档　
             */
-            if($result){
-                $res = array();
-                foreach($result as $val){
-                    switch($val['attr_group']){
-                        case 'Specs':
-                            $group = 'Specs';
-                            break;
-                        case 'Technical Parameters':
-                            $group = 'Technical Parameters';
-                            break;
-                        case 'Executive Standard':
-                            $group = 'Executive Standard';
-                            break;
-                        case 'Product Information':
-                            $group = 'Product Information';
-                            break;
-                        case 'Quatlity Warranty':
-                            $group = 'Quatlity Warranty';
-                            break;
-                        case 'Image':
-                            $group = 'Image';
-                            break;
-                        case 'Documentation':
-                            $group = 'Documentation';
-                            break;
-                        default:
-                            $group = 'others';
-                            break;
-                    }
-                    $res['lang'][$group] = $val;
-                }
-                $result = $res;
+        $attrs = array();
+        foreach($data as $item){
+            $group1 = '';
+            $group2 = 'others';
+            switch($item['attr_group']){
+                case 'Specs':
+                    $group2 = 'Specs';
+                    break;
+                case 'Technical Parameters':
+                    $group2 = 'Technical Parameters';
+                    break;
+                case 'Executive Standard':
+                    $group2 = 'Executive Standard';
+                    break;
+                case 'Product Information':
+                    $group2 = 'Product Information';
+                    break;
+                case 'Quatlity Warranty':
+                    $group2 = 'Quatlity Warranty';
+                    break;
+                case 'Image':
+                    $group2 = 'Image';
+                    break;
+                case 'Documentation':
+                    $group2 = 'Documentation';
+                    break;
             }
-            if($result){
-                return $result;
+            if($item['goods_flag'] == 'Y'){
+                $group1 = 'goods_flag';
+                $attrs[$item['lang']][$group1][$group2][] = $item;
+            }
+            if($item['logi_flag'] == 'Y'){
+                $group1 = 'logi_flag';
+                $attrs[$item['lang']][$group1][$group2][] = $item;
+            }
+            if($item['hs_flag'] == 'Y'){
+                $group1 = 'hs_flag';
+                $attrs[$item['lang']][$group1][$group2][] = $item;
+            }
+            if($item['spec_flag'] == 'Y'){
+                $group1 = 'spec_flag';
+                $attrs[$item['lang']][$group1][$group2][] = $item;
+            }
+            if($group1==''){
+                $group1 = 'others';
+                $attrs[$item['lang']][$group1][$group2][] = $item;
+            }
+        }
+            if($attrs){
+                return $attrs;
             } else {
                 return array();
             }
-        } catch(Exception $e) {
-            return false;
-        }
     }
 
 }
