@@ -40,16 +40,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
-                    $tokeninfo = JwtInfo($token); //解析token
+                    $tokeninfo = JwtInfo($token); //解析token<<<<<<< HEAD
 
-                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
+
+
+                    $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
+
 
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
                     } else {
                         $this->user = array(
-                            "id" => $userinfo["id"],
+							"id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
