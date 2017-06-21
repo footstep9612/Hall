@@ -10,6 +10,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     protected $put_data = [];
     protected $code = 0;
     protected $message = '';
+    protected $lang = '';
 
     /*
      * 初始化
@@ -19,6 +20,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ALL | E_STRICT);
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $lang = $this->getPut('lang', 'en');
+        $this->setLang($lang);
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
@@ -69,6 +72,14 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $data['code'] = -1;
         $data['message'] = 'Action :There is no method list4Action ';
         $this->jsonReturn($data);
+    }
+
+    public function setLang($lang) {
+        $this->lang = $lang;
+    }
+
+    public function getLang() {
+        return $this->lang;
     }
 
     public function setCode($code) {
