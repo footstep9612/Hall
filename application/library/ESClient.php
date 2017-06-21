@@ -674,13 +674,22 @@ class ESClient {
 
     /* 聚合查询 类似group by
      *  @param mix $field // 字段属性
-     *  @param string $do// 指标(Metrics) stats 统计 avg 平均 min 最小，mean，max 最大以及sum 合计
+     *  @param string $do// 指标(Metrics) terms 总条数, stats 统计 avg 平均 min 最小，mean，max 最大以及sum 合计
      *   
      *  @param string $alis // 别名
      */
 
-    public function setaggs($field = [], $alis, $do = 'stats') {
+    public function setaggs($field = [], $alis, $do = 'terms') {
         $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
+        return $this;
+    }
+
+    /*
+     * 查询的字段
+     */
+
+    public function setfields($fields = []) {
+        $this->body['fields'] = $fields;
         return $this;
     }
 

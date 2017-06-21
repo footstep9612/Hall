@@ -39,20 +39,14 @@ class EsgoodsController extends PublicController {
             $espoductmodel = new EsgoodsModel();
             $espoductmodel->importgoodss($lang);
             $this->setCode(1);
-
             $this->setMessage('成功!');
-
             $this->jsonReturn();
-
-
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             $this->setCode(-2001);
             $this->setMessage('系统错误!');
-
             $this->jsonReturn();
-
         }
     }
 
@@ -68,7 +62,6 @@ class EsgoodsController extends PublicController {
             $this->setMessage('成功!');
 
             $this->jsonReturn();
-
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

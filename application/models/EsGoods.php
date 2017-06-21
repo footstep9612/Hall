@@ -21,15 +21,69 @@ class EsgoodsModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-    /* 通过搜索条件获取数据列表
-     * @param mix $condition // 搜索条件
-     * @param string $lang // 语言
-     * @return mix  
+    /* 新增ES
+     * 
      */
 
-    public function getgoods($condition, $lang = 'en') {
+    public function add_data($insert = [], $lang = 'en') {
+        $es = new ESClient();
+        $type = $this->tableName . '_' . $lang;
+        $id = $insert['sku'];
+        $es->add_document($this->dbName, $type, $insert, $id);
+    }
 
+    /* 新增ES
+     * 
+     */
 
+    public function Update_data($updatedata = [], $lang = 'en') {
+        $es = new ESClient();
+        $type = $this->tableName . '_' . $lang;
+        $id = $insert['sku'];
+        $es->add_document($this->dbName, $type, $updatedata, $id);
+    }
+
+    /* 新增ES
+     * 
+     */
+
+    public function Updateshowcats($showcatsdata = [], $lang = 'en') {
+        $es = new ESClient();
+        $type = $this->tableName . '_' . $lang;
+        $id = $insert['sku'];
+
+        $es->add_document($this->dbName, $type, $body, $id);
+    }
+
+    /* 新增ES
+     * 
+     */
+
+    public function UpdateAttrs($attrdata = [], $lang = 'en') {
+        $es = new ESClient();
+        $type = $this->tableName . '_' . $lang;
+        $id = $insert['sku'];
+        $data = $es->get_document($this->dbName, $type, $id);
+
+        $es->add_document($this->dbName, $type, $body, $id);
+    }
+
+    /* 新增ES
+     * 
+     */
+
+    public function delete_data($sku, $lang = 'en') {
+        $es = new ESClient();
+        $type = $this->tableName . '_' . $lang;
+        $id = $insert['sku'];
+        $es->delete_document($this->dbName, $type, $id);
+    }
+
+    /* 条件组合
+     * @param mix $condition // 搜索条件
+     */
+
+    private function getCondition($condition) {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         if (isset($condition['sku'])) {
@@ -151,18 +205,53 @@ class EsgoodsModel extends PublicModel {
                     ]
             ]];
         }
-        $pagesize = 10;
-        $current_no = 1;
-        if (isset($condition['current_no'])) {
-            $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-        }
-        if (isset($condition['pagesize'])) {
-            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-        }
-        $from = ($current_no - 1) * $pagesize;
-        $es = new ESClient();
+    }
+
+    /* 通过搜索条件获取数据列表
+     * @param mix $condition // 搜索条件
+     * @param string $lang // 语言
+     * @return mix  
+     */
+
+    public function getgoods($condition, $lang = 'en') {
         try {
+            $body = $this->getCondition($condition);
+            $pagesize = 10;
+            $current_no = 1;
+            if (isset($condition['current_no'])) {
+                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+            }
+            if (isset($condition['pagesize'])) {
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+            }
+            $from = ($current_no - 1) * $pagesize;
+            $es = new ESClient();
+
             return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /* 通过搜索条件获取数据列表
+     * @param mix $condition // 搜索条件
+     * @param string $lang // 语言
+     * @return mix  
+     */
+
+    public function getshow_catlist($condition, $lang = 'en') {
+
+        try {
+            $body = $this->getCondition($condition);
+
+            $from = ($current_no - 1) * $pagesize;
+            $es = new ESClient();
+
+            return $es->setbody($body)
+                            ->setaggs(['field' => 'show_cats'], 'chowcat', 'stats')
+                            ->search($this->dbName, $this->tableName . '_' . $lang, $from);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -320,11 +409,14 @@ class EsgoodsModel extends PublicModel {
             $goodss = $this->where(['lang' => $lang])
                     ->select();
             $spus = $skus = [];
-            foreach ($goodss as $item) {
-                $skus[] = $item['sku'];
-                $spus[] = $item['spu'];
+            if ($goodss) {
+                foreach ($goodss as $item) {
+                    $skus[] = $item['sku'];
+                    $spus[] = $item['spu'];
+                }
+            } else {
+                return false;
             }
-
 
             $spus = array_unique($spus);
             $skus = array_unique($skus);
@@ -336,7 +428,7 @@ class EsgoodsModel extends PublicModel {
             $goods_attrs = $this->getgoods_attrbyskus($spus, $lang);
             $specs = $this->getgoods_specsbyskus($skus, $lang);
             foreach ($goodss as $item) {
-                $id = $item['id'];
+                $id = $item['sku'];
                 $body = $item;
                 $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
                 $body['show_cats'] = $productattrs[$item['spu']]['show_cats'];

@@ -717,7 +717,7 @@ class EsProductModel extends PublicModel {
                 $es = new ESClient();
 
                 foreach ($products as $item) {
-                    $id = $item['id'];
+                    $id = $item['spu'];
                     $body = $item;
                     if (isset($skus[$item['spu']])) {
 

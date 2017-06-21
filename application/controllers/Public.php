@@ -8,7 +8,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
-    protected $code = 1;
+    protected $code = "1";
     protected $message = '';
     protected $lang = '';
 
@@ -130,7 +130,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @return json
      */
 
-    public function jsonReturn($data, $type = 'JSON') {
+    public function jsonReturn($data = [], $type = 'JSON') {
 
         header('Content-Type:application/json; charset=utf-8');
         if (isset($data['code'])) {
@@ -139,15 +139,18 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if ($data) {
                 $send['data'] = $data;
             }
+
             $send['code'] = $this->getCode();
-            if ($send['code'] == 1 && !$this->getMessage()) {
+           
+            if ($send['code'] == "1" && !$this->getMessage()) {
                 $send['message'] = '成功!';
             } elseif (!$this->getMessage()) {
                 $send['message'] = '未知错误!';
             } else {
                 $send['message'] = $this->getMessage();
             }
-            exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        
+            exit(json_encode($send, JSON_UNESCAPED_UNICODE));
         }
     }
 
