@@ -8,7 +8,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
-    protected $code = 0;
+    protected $code = "1";
     protected $message = '';
     protected $lang = '';
 
@@ -25,6 +25,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+            
         } else {
 
             if (!empty($jsondata["token"])) {
@@ -39,15 +40,20 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
+
                     $tokeninfo = JwtInfo($token); //解析token
+
                     $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
+
+
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
-
                     } else {
                         $this->user = array(
+
                             "id" =>$userinfo["id"] ,
+
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
@@ -70,31 +76,71 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->jsonReturn($data);
     }
 
-    public function setLang($lang) {
+    /*
+     * 设置语言
+     */
+
+    public function setLang($lang = 'en') {
         $this->lang = $lang;
     }
+
+    /*
+     * 获取语言
+     */
 
     public function getLang() {
         return $this->lang;
     }
 
+    /*
+     * 设置信息编码
+     */
+
     public function setCode($code) {
         $this->code = $code;
     }
+
+    /*
+     * 设置提示信息
+     * 以后会和错误码同一起来
+     */
 
     public function setMessage($message) {
         $this->message = $message;
     }
 
+    /*
+     * 获取信息编码
+     */
+
     public function getCode() {
         return $this->code;
     }
 
+    /*
+     * 获取提示信息
+     */
+
     public function getMessage() {
+
+        if (!$this->message) {
+            $message = MSG::getMessage($this->getCode(), $this->getLang());
+            $this->message = $message;
+            return $message;
+        }
         return $this->message;
     }
 
-    public function jsonReturn($data, $type = 'JSON') {
+    /*     * *******************------公共输出JSON函数------*************************
+     * @param mix $data // 发送到客户端的数据 如果$data 中含有code 则直接输出
+     * 否则 与$this->code $this->message 组合输出
+     * $this ->message 有待完善 如果错误码都有对应的message
+     * 可以和错误码表经过对应 输出错误信息
+     * @return json
+     */
+
+    public function jsonReturn($data = [], $type = 'JSON') {
+
         header('Content-Type:application/json; charset=utf-8');
         if (isset($data['code'])) {
             exit(json_encode($data, JSON_UNESCAPED_UNICODE));
@@ -102,9 +148,18 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if ($data) {
                 $send['data'] = $data;
             }
+
             $send['code'] = $this->getCode();
-            $send['message'] = $this->getMessage();
-            exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+
+            if ($send['code'] == "1" && !$this->getMessage()) {
+                $send['message'] = '成功!';
+            } elseif (!$this->getMessage()) {
+                $send['message'] = '未知错误!';
+            } else {
+                $send['message'] = $this->getMessage();
+            }
+
+            exit(json_encode($send, JSON_UNESCAPED_UNICODE));
         }
     }
 
@@ -304,4 +359,118 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //    public function create($createcondition = []) {
 //
 //    }
+
+    /**
+     * 获取采购商流水号
+     * @author liujf 2017-06-20
+     * @return string $buyerSerialNo 采购商流水号
+     */
+    public function getBuyerSerialNo() {
+
+        $buyerSerialNo = $this->getSerialNo('buyerSerialNo', 'E-B-S-');
+
+        return $buyerSerialNo;
+    }
+
+    /**
+     * 获取供应商流水号
+     * @author liujf 2017-06-20
+     * @return string $supplierSerialNo 供应商流水号
+     */
+    public function getSupplierSerialNo() {
+
+        $supplierSerialNo = $this->getSerialNo('supplierSerialNo', 'E-S-');
+
+        return $supplierSerialNo;
+    }
+
+    /**
+     * 获取生成的询价单流水号
+     * @author liujf 2017-06-20
+     * @return string $inquirySerialNo 询价单流水号
+     */
+    public function getInquirySerialNo() {
+
+        $inquirySerialNo = $this->getSerialNo('inquirySerialNo', 'INQ_');
+
+        return $inquirySerialNo;
+    }
+
+    /**
+     * 获取生成的报价单流水号
+     * @author liujf 2017-06-20
+     * @return string $quoteSerialNo 报价单流水号
+     */
+    public function getQuoteSerialNo() {
+
+        $quoteSerialNo = $this->getSerialNo('quoteSerialNo', 'QUO_');
+
+        return $quoteSerialNo;
+    }
+
+    /**
+     * 根据流水号名称获取流水号
+     * @param string $name 流水号名称
+     * @param string $prefix 前缀
+     * @author liujf 2017-06-20
+     * @return string $code
+     */
+    private function getSerialNo($name, $prefix = '') {
+        $time = date('Ymd');
+        $duration = 3600 * 48;
+        $createTimeName = $name . 'CreateTime';
+        $stepName = $name . 'Step';
+        $createTime = redisGet($createTimeName) ?: '19700101';
+        if ($time > $createTime) {
+            redisSet($stepName, 0, $duration);
+            redisSet($createTimeName, $time, $duration);
+        }
+        $step = redisGet($stepName) ?: 0;
+        $step ++;
+        redisSet($stepName, $step, $duration);
+        $code = $this->createSerialNo($step, $prefix);
+
+        return $code;
+    }
+
+    /**
+     * 生成流水号
+     * @param string $step 需要补零的字符
+     * @param string $prefix 前缀
+     * @author liujf 2017-06-19
+     * @return string $code
+     */
+    private function createSerialNo($step = 1, $prefix = '') {
+        $time = date('Ymd');
+        $pad = str_pad($step, 5, '0', STR_PAD_LEFT);
+        $code = $prefix . $time . '_' . $pad;
+        return $code;
+    }
+
+    /**
+     * 返回josn数据
+     * @author liujf 2017-06-20
+     * @param array $data 数据
+     * @param string $msg 错误消息
+     */
+    public function jsonOutput($data, $msg = '') {
+
+        if ($data) {
+            $this->code = '0';
+            $this->message = '成功';
+            $out = $data;
+        } else {
+            $this->code = '-1';
+            $this->message = '失败';
+            $out = '';
+        }
+
+        if ($msg != '') {
+            $this->code = '-1';
+            $this->message = $msg;
+        }
+
+        $this->jsonReturn($data);
+    }
+
 }

@@ -12,10 +12,10 @@ class GoodsModel extends PublicModel
     protected $tableName = 'goods';
 
     //状态
-    const STATUS_NORMAL = 'NORMAL'; //发布
+    const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
-    const STATUS_CLOSED = 'CLOSED';  //关闭
+    const STATUS_INVALID = 'INVALID';  //无效
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
     public function __construct()
@@ -27,34 +27,51 @@ class GoodsModel extends PublicModel
      * pc-sku商品详情
      * klp
      */
-    public function getGoodsInfo($sku ='', $lang = '')
+    public function getGoodsInfo($sku, $lang = '')
     {
-        if($sku=='')
-            return false;
-
-        $field = 'lang,spu,qrcode,name,show_name,model,description';
+        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+        $field = 'sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku,
-            'lang'=> $lang
+            'sku' => $sku
         );
+        //查询商品附件(未分语言)
+        $skuAchModel = new GoodsAchModel();
+        $where['sku'] = $sku;
+        $attach = $skuAchModel->getInfoByAch($where);
+
         try {
-            $result = $this->field($field)->where($condition)->select();
-            if ($result) {
+            //缓存数据redis
+            $key_redis = md5(json_encode($condition.time()));
+            if(redisExist($key_redis)){
+                $result = redisHashGet('data',$key_redis);
+                //判断语言,返回对应语言集
                 $data = array();
-                //语言分组
-                foreach($result as $k => $v){
-                    $data[$v['lang']] = $v;
+                if(''!=$lang){
+                    foreach($result as $val) {
+                        if ($val['lang'] == $lang) {
+                            $data[$val['lang']] = $val;
+                            $data['attachs'] = $attach ? $attach : array();
+                        }
+                    }
+                    return $data ? $data : array();
+                } else{
+                    $result['attachs'] = $attach ? $attach : array();
+                    return $result ? $result : array();
                 }
+            } else {
+                $result = $this->field($field)->where($condition)->select();
+                if ($result) {
+                    $data = array(
+                        'lang' => $lang
+                    );
+                    //语言分组
+                    foreach ($result as $k => $v) {
+                        $data[$v['lang']] = $v;
+                    }
 
-                //查询附件,暂未分语言
-                $skuAchModel = new GoodsAchModel();
-                $where['spu'] = $result[0]['spu'];
-                $attach = $skuAchModel->getInfoByAch($where);
-
-                $data['attachs'] = $attach ? $attach : array();
-                return $data;
-            } else{
-                return array();
+                    redisHashSet('data',$key_redis,$data);
+                    return $data;
+                }
             }
         } catch(Exception $e){
             return false;
@@ -71,7 +88,6 @@ class GoodsModel extends PublicModel
             'sku' => $sku,
             'lang' => $lang
         );
-
 
         try{
             //缓存数据的判断读取

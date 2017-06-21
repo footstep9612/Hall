@@ -43,3 +43,5 @@ Temporary Items
 .apdisk
 conf/
 logs/
+.settings
+.project
