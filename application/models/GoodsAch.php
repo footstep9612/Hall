@@ -7,7 +7,7 @@
 class GoodsAchModel extends PublicModel
 {
     protected $dbName = 'erui_db_ddl_goods'; //数据库名称
-    protected $tableName = 'product_attach'; //数据表表名
+    protected $tableName = 'goods_attach'; //数据表表名
 
     public function __construct()
     {
