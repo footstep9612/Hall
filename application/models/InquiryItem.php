@@ -49,6 +49,17 @@ class InquiryItemodel extends PublicModel {
     }
 
     /**
+     * 获取数据条数
+     * @param mix $condition
+     * @return mix
+     * @author zhangyuliang
+     */
+    public function getcount($condition = []) {
+        $where = $this->getcondition($condition);
+        return $this->where($where)->count('id');
+    }
+
+    /**
      * 获取列表
      * @param mix $condition
      * @return mix
@@ -56,14 +67,20 @@ class InquiryItemodel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
+        $page = $condition['page']?$condition['page']:1;
+        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
 
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            $count = $this->getcount($condition);
-            return $this->where($where)
-                ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                ->select();
-        } else {
-            return $this->where($where)->select();
+        try {
+            if (isset($page) && isset($pagesize)) {
+                $count = $this->getcount($condition);
+                return $this->where($where)
+                    ->page($page, $pagesize)
+                    ->select();
+            } else {
+                return $this->where($where)->select();
+            }
+        } catch (Exception $e) {
+            return false;
         }
     }
 
@@ -73,12 +90,14 @@ class InquiryItemodel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
+        $data = $this->create($createcondition);
+        $data['status'] = 'INVALID';
 
-        //$data = $this->create($createcondition);
-        $createcondition['status'] = 'INVALID';
-
-        return $this->add($createcondition);
-
+        try {
+            return $this->add($data);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -89,24 +108,24 @@ class InquiryItemodel extends PublicModel {
      * @author zhangyuliang
      */
     public function update_data($createcondition =  []) {
-
         $where['inquiry_no'] = $createcondition['inquiry_no'];
         $where['id'] = $createcondition['id'];
         switch ($createcondition['status']) {
-
             case self::STATUS_DELETED:
                 $data['status'] = $createcondition['status'];
                 break;
-            case self::STATUS_DISABLED:
+            case self::STATUS_INVALID:
                 $data['status'] = $createcondition['status'];
                 break;
-            case self::STATUS_NORMAL:
-                $data['status'] = $createcondition['status'];
-                break;
-            default : $data['status'] = self::STATUS_NORMAL;
+            default : $data['status'] = self::STATUS_INVALID;
                 break;
         }
-        return $this->where($where)->save($data);
+
+        try {
+            return $this->where($where)->save($data);
+        } catch (Exception $e) {
+            return false;
+        }
 
     }
 
@@ -116,10 +135,13 @@ class InquiryItemodel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function delete_data($inquiry_no = '') {
+    public function delete_data($createcondition =  []) {
+        $where['id'] = $createcondition['id'];
 
-        $where['inquiry_no'] = $inquiry_no;
-        return $this->where($where)->save(['status' => 'DELETED']);
-
+        try {
+            return $this->where($where)->save(['status' => 'DELETED']);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }
