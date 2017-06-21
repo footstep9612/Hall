@@ -12,10 +12,10 @@ class GoodsModel extends PublicModel
     protected $tableName = 'goods';
 
     //状态
-    const STATUS_NORMAL = 'NORMAL'; //发布
+    const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
-    const STATUS_CLOSED = 'CLOSED';  //关闭
+    const STATUS_INVALID = 'INVALID';  //无效
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
     public function __construct()

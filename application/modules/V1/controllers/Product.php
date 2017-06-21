@@ -113,9 +113,14 @@ class ProductController extends PublicController{
         $result = $goods->getAttrBySpu($spu,$lang);
 
         if($result){
-            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         }else{
-            echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
+            jsonReturn(array('code' => -1005, 'message' => '获取失败'));
         }
         exit;
     }
@@ -139,9 +144,14 @@ class ProductController extends PublicController{
         $result = $goods->getAttrBySpu($spu,$lang);
 
         if($result){
-            echo json_encode(array("code" => "1", "message" => "获取数据成功", "data"=>$result));
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         }else{
-            echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
+            jsonReturn(array('code' => -1006, 'message' => '获取失败'));
         }
         exit;
     }

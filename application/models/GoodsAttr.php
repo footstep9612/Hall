@@ -28,7 +28,6 @@ class GoodsAttrModel extends PublicModel
             'sku' => $sku,
             'status' => self::STATUS_VALID
         );
-
         $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
         $gattrs = $this->field($field)
