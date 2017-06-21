@@ -103,7 +103,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if (isset($data['code'])) {
             exit(json_encode($data, JSON_UNESCAPED_UNICODE));
         } else {
-            $send['data'] = $data;
+            if ($data) {
+                $send['data'] = $data;
+            }
             $send['code'] = $this->getCode();
             $send['message'] = $this->getMessage();
             exit(json_encode($data, JSON_UNESCAPED_UNICODE));
