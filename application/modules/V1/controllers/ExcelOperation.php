@@ -15,14 +15,20 @@ class ExcelOperationController extends Yaf_Controller_Abstract
      */
     public function exportAction()
     {
+        //请求验证
+        if (!$this->getRequest()->isPost())
+        {
+            jsonReturn(array(),400,'错误的请求类型');
+        }
         //后期补上api身份验证相关的逻辑
         $file = $this->data2excelAction();
         if (file_exists($file)){
             $returnData = [
-                'code'=>0,
-                'message'=>'success',
+                'code'=>1,
+                'message'=>'导出成功',
                 'data'=>[
-                    'file'=>$file
+                    'file'=>$file,
+                    'exported_at'=>date('YmdHis')
                 ]
             ];
         }
@@ -351,21 +357,18 @@ class ExcelOperationController extends Yaf_Controller_Abstract
     public function export_skuAction()
     {
         //后期添加api身份验证
-        if (false)
+        //请求验证
+        if (!$this->getRequest()->isPost())
         {
-            $data = [
-                'code'=>0,
-                'message'=>'权限验证失败',
-                'data'=>[]
-            ];
+            jsonReturn(array(),400,'错误的请求类型');
         }
-
         //成功导出
         $data = [
             'code'=>1,
             'message'=>'询价单列表导出成功',
             'data'=>[
-                'file'=>$this->export_sku_handler()
+                'file'=>$this->export_sku_handler(),
+                'exported_at'=>date('YmdHis')
             ]
         ];
 
@@ -417,7 +420,6 @@ class ExcelOperationController extends Yaf_Controller_Abstract
             $data = [
                 'code'=>0,
                 'message'=>'数据库没有数据',
-                'data'=>[]
             ];
             exit(json_encode($data));
         }
@@ -448,5 +450,13 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter,"ExcelFiles","sku.xls");
 
+    }
+
+
+    public function testAction()
+    {
+        //$data = $this->getRequest()->getParam('lang');
+        $data = $this->getRequest()->getMethod();
+        var_dump($data);
     }
 }
