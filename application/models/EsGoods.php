@@ -161,7 +161,13 @@ class EsgoodsModel extends PublicModel {
         }
         $from = ($current_no - 1) * $pagesize;
         $es = new ESClient();
-        return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+        try {
+            return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
     }
 
     /* 通过ES 获取数据列表
@@ -171,9 +177,15 @@ class EsgoodsModel extends PublicModel {
      */
 
     public function getGoodsbysku($sku, $lang = 'en') {
-        $es = new ESClient();
-        $es->setmust(['sku' => $sku], ESClient::TERM);
-        return $es->search($this->dbName, $this->tableName . '_' . $lang);
+        try {
+            $es = new ESClient();
+            $es->setmust(['sku' => $sku], ESClient::TERM);
+            return $es->search($this->dbName, $this->tableName . '_' . $lang);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
     }
 
     /* 通过ES 获取数据列表
@@ -183,9 +195,15 @@ class EsgoodsModel extends PublicModel {
      */
 
     public function getGoodsbyspu($sku, $lang = 'en') {
-        $es = new ESClient();
-        $es->setmust(['sku' => $sku], ESClient::TERM);
-        return $es->search($this->dbName, $this->tableName . '_' . $lang);
+        try {
+            $es = new ESClient();
+            $es->setmust(['sku' => $sku], ESClient::TERM);
+            return $es->search($this->dbName, $this->tableName . '_' . $lang);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
     }
 
     /* 通过SKU获取数据商品属性列表
@@ -195,16 +213,23 @@ class EsgoodsModel extends PublicModel {
      */
 
     public function getgoods_attrbyskus($skus, $lang = 'en') {
-        $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
-                ->field('*')
-                ->where(['sku' => ['in', $skus], 'lang' => $lang])
-                ->select();
-        $ret = [];
-        foreach ($product_attrs as $item) {
 
-            $ret[$item['sku']][] = $item;
+        try {
+            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+                    ->field('*')
+                    ->where(['sku' => ['in', $skus], 'lang' => $lang])
+                    ->select();
+            $ret = [];
+            foreach ($product_attrs as $item) {
+
+                $ret[$item['sku']][] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
-        return $ret;
     }
 
     /* 通过SKU获取数据商品规格列表
@@ -214,20 +239,27 @@ class EsgoodsModel extends PublicModel {
      */
 
     public function getgoods_specsbyskus($skus, $lang = 'en') {
-        $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
-                ->field('sku,attr_name,attr_value,attr_no')
-                ->where(['sku' => ['in', $skus],
-                    'lang' => $lang,
-                    'spec_flag' => 'Y',
-                ])
-                ->select();
-        $ret = [];
-        foreach ($product_attrs as $item) {
-            $sku = $item['sku'];
-            unset($item['sku']);
-            $ret[$sku][] = $item;
+        try {
+            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+                    ->field('sku,attr_name,attr_value,attr_no')
+                    ->where(['sku' => ['in', $skus],
+                        'lang' => $lang,
+                        'spec_flag' => 'Y',
+                        'status' => 'VALID'
+                    ])
+                    ->select();
+            $ret = [];
+            foreach ($product_attrs as $item) {
+                $sku = $item['sku'];
+                unset($item['sku']);
+                $ret[$sku][] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
-        return $ret;
     }
 
     /* 通过SKU获取数据商品产品属性分类等信息列表
@@ -237,38 +269,44 @@ class EsgoodsModel extends PublicModel {
      */
 
     public function getproductattrsbyspus($skus, $lang = 'en') {
-        $goodss = $this->where(['sku' => ['in', $skus], 'lang' => $lang])
-                ->select();
-        $spus = $skus = [];
-        foreach ($goodss as $item) {
-            $skus[] = $item['sku'];
-            $spus[] = $item['spu'];
-        }
-        $spus = array_unique($spus);
-        $skus = array_unique($skus);
-        $espoducmodel = new EsProductModel();
-
-        $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-        $goods_attrs = $this->getgoods_attrbyskus($spus, $lang);
-        $specs = $this->getgoods_specsbyskus($skus, $lang);
-        $ret = [];
-        foreach ($goodss as $item) {
-            $id = $item['id'];
-            $body = $item;
-
-            $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
-            $body['show_cat'] = $productattrs[$item['spu']]['show_cats'];
-            $body['specs'] = $specs[$item['sku']];
-            $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
-            foreach ($goods_attrs[$item['sku']] as $attr) {
-
-                array_push($product_attrs, $attr);
+        try {
+            $goodss = $this->where(['sku' => ['in', $skus], 'lang' => $lang])
+                    ->select();
+            $spus = $skus = [];
+            foreach ($goodss as $item) {
+                $skus[] = $item['sku'];
+                $spus[] = $item['spu'];
             }
-            $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
-            // $body['specs'] = json_encode($specs, JSON_UNESCAPED_UNICODE);
-            $ret[$id] = $body;
+            $spus = array_unique($spus);
+            $skus = array_unique($skus);
+            $espoducmodel = new EsProductModel();
+
+            $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
+            $goods_attrs = $this->getgoods_attrbyskus($spus, $lang);
+            $specs = $this->getgoods_specsbyskus($skus, $lang);
+            $ret = [];
+            foreach ($goodss as $item) {
+                $id = $item['id'];
+                $body = $item;
+
+                $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
+                $body['show_cat'] = $productattrs[$item['spu']]['show_cats'];
+                $body['specs'] = $specs[$item['sku']];
+                $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
+                foreach ($goods_attrs[$item['sku']] as $attr) {
+
+                    array_push($product_attrs, $attr);
+                }
+                $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
+                // $body['specs'] = json_encode($specs, JSON_UNESCAPED_UNICODE);
+                $ret[$id] = $body;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
-        return $ret;
     }
 
     /* 通过批量导入商品信息到ES
@@ -278,43 +316,49 @@ class EsgoodsModel extends PublicModel {
      */
 
     public function importgoodss($lang = 'en') {
-        $goodss = $this->where(['lang' => $lang])
-                ->select();
-        $spus = $skus = [];
-        foreach ($goodss as $item) {
-            $skus[] = $item['sku'];
-            $spus[] = $item['spu'];
-        }
-
-
-        $spus = array_unique($spus);
-        $skus = array_unique($skus);
-        $espoducmodel = new EsProductModel();
-        $es = new ESClient();
-        $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-
-
-        $goods_attrs = $this->getgoods_attrbyskus($spus, $lang);
-        $specs = $this->getgoods_specsbyskus($skus, $lang);
-        foreach ($goodss as $item) {
-            $id = $item['id'];
-            $body = $item;
-            $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
-            $body['show_cats'] = $productattrs[$item['spu']]['show_cats'];
-            $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
-            if ($specs[$item['sku']]) {
-                $body['specs'] = $specs[$item['sku']];
-            } else {
-                $body['specs'] = '[]';
+        try {
+            $goodss = $this->where(['lang' => $lang])
+                    ->select();
+            $spus = $skus = [];
+            foreach ($goodss as $item) {
+                $skus[] = $item['sku'];
+                $spus[] = $item['spu'];
             }
-            if (isset($goods_attrs[$item['sku']])) {
-                foreach ($goods_attrs[$item['sku']] as $attr) {
 
-                    array_push($product_attrs, $attr);
+
+            $spus = array_unique($spus);
+            $skus = array_unique($skus);
+            $espoducmodel = new EsProductModel();
+            $es = new ESClient();
+            $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
+
+
+            $goods_attrs = $this->getgoods_attrbyskus($spus, $lang);
+            $specs = $this->getgoods_specsbyskus($skus, $lang);
+            foreach ($goodss as $item) {
+                $id = $item['id'];
+                $body = $item;
+                $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
+                $body['show_cats'] = $productattrs[$item['spu']]['show_cats'];
+                $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
+                if ($specs[$item['sku']]) {
+                    $body['specs'] = $specs[$item['sku']];
+                } else {
+                    $body['specs'] = '[]';
                 }
+                if (isset($goods_attrs[$item['sku']])) {
+                    foreach ($goods_attrs[$item['sku']] as $attr) {
+
+                        array_push($product_attrs, $attr);
+                    }
+                }
+                $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
+                $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
             }
-            $body['attrs'] = json_encode($product_attrs, JSON_UNESCAPED_UNICODE);
-            $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
         }
     }
 
