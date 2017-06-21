@@ -8,9 +8,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
+    protected $code = 0;
+    protected $message = '';
+
     /*
      * 初始化
      */
+
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ALL | E_STRICT);
@@ -67,9 +71,32 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->jsonReturn($data);
     }
 
-    protected function jsonReturn($data, $type = 'JSON') {
+    public function setCode($code) {
+        $this->code = $code;
+    }
+
+    public function setMessage($message) {
+        $this->message = $message;
+    }
+
+    public function getCode() {
+        return $this->code;
+    }
+
+    public function getMessage() {
+        return $this->message;
+    }
+
+    public function jsonReturn($data, $type = 'JSON') {
         header('Content-Type:application/json; charset=utf-8');
-        exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        if (isset($data['code'])) {
+            exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        } else {
+            $send['data'] = $data;
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
+            exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        }
     }
 
     /*
