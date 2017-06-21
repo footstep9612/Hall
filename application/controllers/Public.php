@@ -8,17 +8,23 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
+    protected $code = 0;
+    protected $message = '';
+    protected $lang = '';
+
     /*
      * 初始化
      */
+
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ALL | E_STRICT);
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $lang = $this->getPut('lang', 'en');
+        $this->setLang($lang);
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            
         } else {
 
             if (!empty($jsondata["token"])) {
@@ -32,20 +38,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $model = new UserModel();
             if (!empty($token)) {
                 try {
-
                     $tks = explode('.', $token);
-
                     $tokeninfo = JwtInfo($token); //解析token
-
-
-                    $userinfo = $model->Userinfo("*", array("name" => $tokeninfo["account"]));
+                    $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
+
                     } else {
                         $this->user = array(
-                            "user_main_id" => md5($userinfo["id"]),
-                            "username" => $tokeninfo["account"],
+                            "id" =>$userinfo["id"] ,
+                            "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
                     }
@@ -67,9 +70,42 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->jsonReturn($data);
     }
 
-    protected function jsonReturn($data, $type = 'JSON') {
+    public function setLang($lang) {
+        $this->lang = $lang;
+    }
+
+    public function getLang() {
+        return $this->lang;
+    }
+
+    public function setCode($code) {
+        $this->code = $code;
+    }
+
+    public function setMessage($message) {
+        $this->message = $message;
+    }
+
+    public function getCode() {
+        return $this->code;
+    }
+
+    public function getMessage() {
+        return $this->message;
+    }
+
+    public function jsonReturn($data, $type = 'JSON') {
         header('Content-Type:application/json; charset=utf-8');
-        exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        if (isset($data['code'])) {
+            exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        } else {
+            if ($data) {
+                $send['data'] = $data;
+            }
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
+            exit(json_encode($data, JSON_UNESCAPED_UNICODE));
+        }
     }
 
     /*

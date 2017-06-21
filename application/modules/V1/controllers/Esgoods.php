@@ -35,8 +35,18 @@ class EsgoodsController extends PublicController {
      */
 
     public function importgoodsAction($lang = 'en') {
-        $espoductmodel = new EsgoodsModel();
-        $espoductmodel->importgoodss($lang);
+        try {
+            $espoductmodel = new EsgoodsModel();
+            $espoductmodel->importgoodss($lang);
+            $this->setCode(1);
+            $this->jsonReturn([]);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn([]);
+        }
     }
 
     /*
@@ -44,8 +54,19 @@ class EsgoodsController extends PublicController {
      */
 
     public function importproductsAction($lang = 'en') {
-        $espoductmodel = new EsProductModel();
-        $espoductmodel->importproducts($lang);
+        try {
+            $espoductmodel = new EsProductModel();
+            $espoductmodel->importproducts($lang);
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn([]);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn([]);
+        }
     }
 
     public function indexAction() {
@@ -62,8 +83,8 @@ class EsgoodsController extends PublicController {
         }
 
         $this->es->create_index($this->index, $body);
-        $data['code'] = 0;
-        $data['message'] = '初始化成功!';
+        $this->setCode(1);
+        $this->setMessage('成功!');
         $this->jsonReturn($data);
     }
 
