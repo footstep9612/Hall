@@ -21,6 +21,13 @@ class ProductModel extends PublicModel{
     const RECOMMEND_Y = 'Y';
     const RECOMMEND_N = 'N';
 
+    //定义校验规则
+    protected $field = array(
+        'name' => array('required'),
+        'meterial_cat_no'=>array('required'),
+        'brand'=>array('required'),
+    );
+
     public function __construct()
     {
         parent::__construct();
@@ -137,7 +144,7 @@ class ProductModel extends PublicModel{
      */
     public function getInfo($spu='',$lang=''){
         if(empty($spu))
-           jsonReturn('','10000','spu不能为空');
+           jsonReturn('','1000','spu不能为空');
 
         //详情返回四种语言， 这里的lang作当前语言类型返回
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
@@ -169,6 +176,114 @@ class ProductModel extends PublicModel{
         }catch (Exception $e){
             return false;
         }
+    }
+
+    /**
+     * 编辑spu详情
+     * @param array $input 参数
+     */
+    public function editInfo($input){
+        if(empty($input))
+            return false;
+
+        $spu = isset($input['spu']) ? trim($input['spu']) : createSpu();    //不存在生产spu
+        $this->startTrans();
+        try{
+            foreach($input as $key=>$item){
+                if( in_array( $key , array( 'zh', 'en', 'ru', 'es' ) ) ){
+                    //字段校验
+                    $item = $this->checkParam($item,$this->field);
+                    $data = array(
+                        'lang'=>$key,
+                        'name'=>$item['name'],
+                        'show_name' => isset($item['show_name']) ? $item['show_name'] : '',
+                        'meterial_cat_no' => $item['meterial_cat_no'],
+                       // 'show_cat_no' => isset($item['show_cat_no']) ? $item['show_cat_no'] : '',    //后期实现
+                        'brand' => $item['brand'],
+                        'exe_standard' => isset($item['exe_standard']) ? $item['exe_standard'] : '',    //执行标准
+                        'profile' => isset($item['profile']) ? $item['profile'] : '',    //产品简介
+                        'keywords' => isset($item['keywords']) ? $item['profile'] : '',    //简介
+                        'description' =>isset($item['description']) ? $item['description'] : '',    //描述
+                        'status' => self::STATUS_CHECKING,
+                    );
+
+                    //不存在添加，存在则为修改
+                    if(!isset($input['spu'])){
+                        $data['spu'] = $spu;
+                        $data['qrcode'] = 'abc123';    //生成spu二维码    冗余字段这块还要看后期需求是否分语言
+                        $data['created_by'] = '';    //创建人
+                        $data['created_at'] = date('Y-m-d H:i:s',time());
+                        $data['updated_at'] = date('Y-m-d H:i:s',time());    //修改时间
+                        $this->add($data);
+                    }else{
+                        $data['updated_by'] = '';    //修改人
+                        $data['updated_at'] = date('Y-m-d H:i:s',time());    //修改时间
+                        $this->where(array('spu'=>trim($input['spu']),'lang'=>$key))->save();
+                    }
+                }elseif($key == 'attachs'){
+                    if($item){
+                        foreach($item as $atta){
+                            $data = array(
+                                'spu' => $spu,
+                                'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '' ,
+                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '' ,
+                                'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
+                            );
+                            $pattach = new ProductAttachModel();
+                            $pattach->addAttach($data);
+                        }
+                    }
+                }else{
+                    break;
+                }
+            }
+            $this->commit();
+            return $spu;
+        }catch (Exception $e){
+            $this->rollback();
+        }
+    }
+
+    /**
+     * 参数校验    注：没有参数或没有规则，默认返回true（即不做验证）
+     * @param array $param  参数
+     * @param array $field  校验规则
+     * @return bool
+     *
+     * Example
+     * checkParam(
+     *      array('name'=>'','key'=>''),
+     *      array(
+     *          'name'=>array('required'),
+     *          'key'=>array('method','fun')
+     * )
+     */
+    private function checkParam($param=[],$field=[]){
+        if(empty($param) || empty($field))
+            return array();
+        foreach($param as $k => $v){
+            if(isset($field[$k])){
+                $item = $field[$k];
+                switch($item[0]){
+                    case 'required':
+                        if($v=='' || empty($v)){
+                            jsonReturn('','1000','Param '.$k.' Not null !');
+                        }
+                        break;
+                    case 'method':
+                        if(!method_exists($item[1])){
+                            jsonReturn('','404','Method '.$item[1].' nont find !');
+                        }
+                        if(!call_user_func($item[1],$v)){
+                            jsonReturn('','1001','Param '.$k.' Validate failed !');
+                        }
+                        break;
+                }
+            }
+            $param[$k] = htmlspecialchars(trim($v));
+            continue;
+        }
+        return $param;
     }
 
 }

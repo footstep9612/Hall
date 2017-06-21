@@ -1,7 +1,9 @@
 <?php
 /**
- * ProductAttrModel
- * klp
+ * Sｐu属性
+ * User: linkai
+ * Date: 2017/6/17
+ * Time: 15:58
  */
 class ProductAttrModel extends PublicModel
 {
@@ -14,7 +16,7 @@ class ProductAttrModel extends PublicModel
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
 
-    /**k
+    /**
      * 根据spu获取属性
      * @param string $spu
      * @param string $lang
@@ -24,7 +26,6 @@ class ProductAttrModel extends PublicModel
     {
         if ($spu == '')
             return false;
-
         $field = 'lang,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
         $condition = array(
             'spu' => $spu,

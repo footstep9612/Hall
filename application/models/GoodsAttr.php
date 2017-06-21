@@ -14,6 +14,7 @@ class GoodsAttrModel extends PublicModel
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
 
+
     /**
      * 编辑商品属性查询p
      * @param null $where string 条件
@@ -21,14 +22,10 @@ class GoodsAttrModel extends PublicModel
      */
     public function getAttrBySku($sku, $lang='')
     {
-        if(''!=$lang){
-            $where['lang'] = $lang;
-        }
         $where = array(
             'sku' => $sku,
             'status' => self::STATUS_VALID
         );
-
 
         //缓存数据redis查询
         $key_redis = md5(json_encode($where.time()));
@@ -129,14 +126,14 @@ class GoodsAttrModel extends PublicModel
                     $group1 = 'others';
                     $attrs[$item['lang']][$group1][$group2][] = $item;
                 }
+
+                if ($attrs) {
+                    redisHashSet('attrs', $key_redis, $attrs);
+                    return $attrs;
+                } else {
+                    return array();
+                }
+
             }
         }
-        if($attrs){
-            redisHashSet('attrs',$key_redis,$attrs);
-            return $attrs;
-        } else {
-            return array();
-        }
-    }
-
 }

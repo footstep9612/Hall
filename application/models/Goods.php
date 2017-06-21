@@ -32,8 +32,7 @@ class GoodsModel extends PublicModel
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $field = 'sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku,
-            'lang'=> $lang
+            'sku' => $sku
         );
         //查询商品附件(未分语言)
         $skuAchModel = new GoodsAchModel();

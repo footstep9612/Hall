@@ -41,6 +41,17 @@ class ProductController extends PublicController{
         exit;
     }
 
+    public function editAction(){
+        $productModel = new ProductModel();
+        $result = $productModel ->editInfo($this->input);
+        if($result){
+            jsonReturn($result);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+        exit;
+    }
+
     /**
      * 展示分类 - SKU列表
      */
@@ -53,23 +64,21 @@ class ProductController extends PublicController{
         $page = isset($this->input['current_no']) ? $this->input['current_no'] : 1;
         $pagesize = isset($this->input['pagesize']) ? $this->input['pagesize'] : 10;
 
-
-            $product = new ShowCatProductModel();
-            $return = $product->getSkuByCat($this->input['show_cat_no'], $lang, $page, $pagesize);
-            if ($return) {
-                $return['code'] = 0;
-                $return['message'] = '成功';
-                jsonReturn($return);
-            } else {
-                jsonReturn(array('code' => 400, 'message' => '失败'));
-            }
-            exit;
-
+        $product = new ShowCatProductModel();
+        $return = $product->getSkuByCat($this->input['show_cat_no'],$lang,$page,$pagesize);
+        if($return){
+            $return['code']=0;
+            $return['message'] = '成功';
+            jsonReturn($return);
+        }else{
+            jsonReturn(array('code'=>400,'message'=>'失败'));
+        }
+        exit;
     }
+
     /**
      * SKU详情
      */
-
     public function infoAction(){
         if(!isset($this->input['sku'])){
             jsonReturn(array('code'=>10000,'message'=>'SKU编码不能为空'));
@@ -77,21 +86,19 @@ class ProductController extends PublicController{
         }
         $lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-
-            $goodsModel = new GoodsModel();
-            $result = $goodsModel->getInfo($this->input['sku'], $lang);
-            if ($result) {
-                $data = array(
-                    'code' => 0,
-                    'message' => '成功',
-                    'data' => $result
-                );
-                jsonReturn($data);
-            } else {
-                jsonReturn(array('code' => 400, 'message' => '失败'));
-            }
-            exit;
-
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->getInfo($this->input['sku'],$lang);
+        if($result){
+            $data = array(
+                'code' => 0,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else {
+            jsonReturn(array('code' => 400, 'message' => '失败'));
+        }
+        exit;
     }
     /**
      * SPU属性详情p
@@ -107,12 +114,12 @@ class ProductController extends PublicController{
             echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
             exit();
         }
-        $lang= !empty($data['lang'])? $data['lang'] : '';
         //获取产品属性
         $goods = new ProductAttrModel();
-        $result = $goods->getAttrBySpu($spu,$lang);
+        $result = $goods->getAttrBySpu($spu,$this->lang);
 
         if($result){
+
             $data = array(
                 'code' => 1,
                 'message' => '数据获取成功',
@@ -124,6 +131,7 @@ class ProductController extends PublicController{
         }
         exit;
     }
+
 
     /**
      * SPU属性详情a
@@ -155,5 +163,6 @@ class ProductController extends PublicController{
         }
         exit;
     }
+
 
 }
