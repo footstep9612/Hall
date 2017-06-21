@@ -25,6 +25,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+            
         } else {
 
             if (!empty($jsondata["token"])) {
@@ -39,16 +40,20 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
+
                     $tokeninfo = JwtInfo($token); //解析token
+
                     $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
+
 
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
-
                     } else {
                         $this->user = array(
+
                             "id" =>$userinfo["id"] ,
+
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
@@ -117,6 +122,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
 
     public function getMessage() {
+
+        if (!$this->message) {
+            $message = MSG::getMessage($this->getCode(), $this->getLang());
+            $this->message = $message;
+            return $message;
+        }
         return $this->message;
     }
 
@@ -139,7 +150,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             }
 
             $send['code'] = $this->getCode();
-           
+
             if ($send['code'] == "1" && !$this->getMessage()) {
                 $send['message'] = '成功!';
             } elseif (!$this->getMessage()) {
@@ -147,7 +158,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             } else {
                 $send['message'] = $this->getMessage();
             }
-        
+
             exit(json_encode($send, JSON_UNESCAPED_UNICODE));
         }
     }
@@ -349,117 +360,117 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //
 //    }
 
-	/**
-	 * 获取采购商流水号
-	 * @author liujf 2017-06-20
-	 * @return string $buyerSerialNo 采购商流水号
-	 */
-	public function getBuyerSerialNo() {
-		
-		$buyerSerialNo = $this->getSerialNo('buyerSerialNo', 'E-B-S-');
-		
-		return $buyerSerialNo;
-	}
-	
-	/**
-	 * 获取供应商流水号
-	 * @author liujf 2017-06-20
-	 * @return string $supplierSerialNo 供应商流水号
-	 */
-	public function getSupplierSerialNo() {
-		
-		$supplierSerialNo = $this->getSerialNo('supplierSerialNo', 'E-S-');
-		
-		return $supplierSerialNo;
-	}
+    /**
+     * 获取采购商流水号
+     * @author liujf 2017-06-20
+     * @return string $buyerSerialNo 采购商流水号
+     */
+    public function getBuyerSerialNo() {
 
-	/**
-	 * 获取生成的询价单流水号
-	 * @author liujf 2017-06-20
-	 * @return string $inquirySerialNo 询价单流水号
-	 */
-	public function getInquirySerialNo() {
-		
-		$inquirySerialNo = $this->getSerialNo('inquirySerialNo', 'INQ_');
-		
-		return $inquirySerialNo;
-	}
-	
-	/**
-	 * 获取生成的报价单流水号
-	 * @author liujf 2017-06-20
-	 * @return string $quoteSerialNo 报价单流水号
-	 */
-	public function getQuoteSerialNo() {
-		
-		$quoteSerialNo = $this->getSerialNo('quoteSerialNo', 'QUO_');
-		
-		return $quoteSerialNo;
-	}
-	
-	/**
-	 * 根据流水号名称获取流水号
-	 * @param string $name 流水号名称
-	 * @param string $prefix 前缀
-	 * @author liujf 2017-06-20
-	 * @return string $code
-	 */
-	private function getSerialNo($name, $prefix = '') {
-		$time = date('Ymd');
-		$duration = 3600 * 48;
-		$createTimeName = $name . 'CreateTime';
-		$stepName = $name . 'Step';
-		$createTime = redisGet($createTimeName) ? : '19700101';
-		if ($time > $createTime) {
-			redisSet($stepName, 0, $duration);
-			redisSet($createTimeName, $time, $duration);
-		}
-		$step = redisGet($stepName) ? : 0;
-		$step ++;
-		redisSet($stepName, $step, $duration);
-		$code = $this->createSerialNo($step, $prefix);
-		
-		return $code;
-	}
-	
-	/**
-	 * 生成流水号
-	 * @param string $step 需要补零的字符
-	 * @param string $prefix 前缀
-	 * @author liujf 2017-06-19
-	 * @return string $code
-	 */
-	private function createSerialNo($step = 1, $prefix = '') {
-		$time = date('Ymd');
-		$pad  = str_pad($step, 5, '0', STR_PAD_LEFT);
-		$code = $prefix . $time . '_' . $pad;
-		return $code;
-	}
-	
-	/**
-	 * 返回josn数据
-	 * @author liujf 2017-06-20
-	 * @param array $data 数据
-	 * @param string $msg 错误消息
-	 */
-	public function jsonOutput($data, $msg = '') {
-		
-		if ($data) {
-			$this->code = '0';
-			$this->message = '成功';
-			$out = $data;
-		} else {
-			$this->code = '-1';
-			$this->message = '失败';
-			$out = '';
-		}
-		
-		if ($msg != '') {
-			$this->code = '-1';
-			$this->message = $msg;
-		}
-		
-		$this->jsonReturn($data);
-	}
-    
+        $buyerSerialNo = $this->getSerialNo('buyerSerialNo', 'E-B-S-');
+
+        return $buyerSerialNo;
+    }
+
+    /**
+     * 获取供应商流水号
+     * @author liujf 2017-06-20
+     * @return string $supplierSerialNo 供应商流水号
+     */
+    public function getSupplierSerialNo() {
+
+        $supplierSerialNo = $this->getSerialNo('supplierSerialNo', 'E-S-');
+
+        return $supplierSerialNo;
+    }
+
+    /**
+     * 获取生成的询价单流水号
+     * @author liujf 2017-06-20
+     * @return string $inquirySerialNo 询价单流水号
+     */
+    public function getInquirySerialNo() {
+
+        $inquirySerialNo = $this->getSerialNo('inquirySerialNo', 'INQ_');
+
+        return $inquirySerialNo;
+    }
+
+    /**
+     * 获取生成的报价单流水号
+     * @author liujf 2017-06-20
+     * @return string $quoteSerialNo 报价单流水号
+     */
+    public function getQuoteSerialNo() {
+
+        $quoteSerialNo = $this->getSerialNo('quoteSerialNo', 'QUO_');
+
+        return $quoteSerialNo;
+    }
+
+    /**
+     * 根据流水号名称获取流水号
+     * @param string $name 流水号名称
+     * @param string $prefix 前缀
+     * @author liujf 2017-06-20
+     * @return string $code
+     */
+    private function getSerialNo($name, $prefix = '') {
+        $time = date('Ymd');
+        $duration = 3600 * 48;
+        $createTimeName = $name . 'CreateTime';
+        $stepName = $name . 'Step';
+        $createTime = redisGet($createTimeName) ?: '19700101';
+        if ($time > $createTime) {
+            redisSet($stepName, 0, $duration);
+            redisSet($createTimeName, $time, $duration);
+        }
+        $step = redisGet($stepName) ?: 0;
+        $step ++;
+        redisSet($stepName, $step, $duration);
+        $code = $this->createSerialNo($step, $prefix);
+
+        return $code;
+    }
+
+    /**
+     * 生成流水号
+     * @param string $step 需要补零的字符
+     * @param string $prefix 前缀
+     * @author liujf 2017-06-19
+     * @return string $code
+     */
+    private function createSerialNo($step = 1, $prefix = '') {
+        $time = date('Ymd');
+        $pad = str_pad($step, 5, '0', STR_PAD_LEFT);
+        $code = $prefix . $time . '_' . $pad;
+        return $code;
+    }
+
+    /**
+     * 返回josn数据
+     * @author liujf 2017-06-20
+     * @param array $data 数据
+     * @param string $msg 错误消息
+     */
+    public function jsonOutput($data, $msg = '') {
+
+        if ($data) {
+            $this->code = '0';
+            $this->message = '成功';
+            $out = $data;
+        } else {
+            $this->code = '-1';
+            $this->message = '失败';
+            $out = '';
+        }
+
+        if ($msg != '') {
+            $this->code = '-1';
+            $this->message = $msg;
+        }
+
+        $this->jsonReturn($data);
+    }
+
 }
