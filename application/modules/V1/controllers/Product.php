@@ -41,6 +41,17 @@ class ProductController extends PublicController{
         exit;
     }
 
+    public function editAction(){
+        $productModel = new ProductModel();
+        $result = $productModel ->editInfo($this->input);
+        if($result){
+            jsonReturn($result);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+        exit;
+    }
+
     /**
      * 展示分类 - SKU列表
      */

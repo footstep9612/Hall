@@ -1282,10 +1282,22 @@ function browser_lang(){
 function jsonReturn($data,$code=1,$message='', $type = 'JSON') {
     header('Content-Type:application/json; charset=utf-8');
     if($data){
+        if(!is_array($data)){
+            $data = array('data'=>$data);
+        }
         $data['code']=$code;
         $data['message'] = ErrorMsg::getMessage($code,$message);
         exit(json_encode($data));
     }else{
         exit(json_encode(array('code'=>$code,'message'=>ErrorMsg::getMessage($code,$message))));
     }
+}
+
+/**
+ * 生成spu编码
+ * 这里临时生成七位数字，后期根据具体需求改动
+ */
+function createSpu(){
+    $rand = rand(0,9999999);
+    return str_pad( $rand ,7,"0",STR_PAD_LEFT);
 }
