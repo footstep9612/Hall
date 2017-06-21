@@ -27,34 +27,31 @@ class GoodsModel extends PublicModel
      * pc-sku商品详情
      * klp
      */
-    public function getGoodsInfo($sku ='', $lang = '')
+    public function getGoodsInfo($sku, $lang = '')
     {
-        if($sku=='')
-            return false;
-
-        $field = 'lang,spu,qrcode,name,show_name,model,description';
+        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+        $field = 'sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku,
-            'lang'=> $lang
+            'sku' => $sku
         );
         try {
             $result = $this->field($field)->where($condition)->select();
             if ($result) {
-                $data = array();
+                $data = array(
+                    'lang' => $lang
+                );
                 //语言分组
                 foreach($result as $k => $v){
                     $data[$v['lang']] = $v;
                 }
 
-                //查询附件,暂未分语言
+                //查询附件
                 $skuAchModel = new GoodsAchModel();
-                $where['spu'] = $result[0]['spu'];
+                $where['sku'] = $result['sku'];
                 $attach = $skuAchModel->getInfoByAch($where);
 
                 $data['attachs'] = $attach ? $attach : array();
                 return $data;
-            } else{
-                return array();
             }
         } catch(Exception $e){
             return false;

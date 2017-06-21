@@ -1289,4 +1289,3 @@ function jsonReturn($data,$code=1,$message='', $type = 'JSON') {
         exit(json_encode(array('code'=>$code,'message'=>ErrorMsg::getMessage($code,$message))));
     }
 }
-
