@@ -14,6 +14,12 @@ class ErrorMsg{
     private static $message = array(
         '0' => '失败',
         '1' => '成功',
+
+        /**
+         * 买买提定义
+         */
+        '-2101'=>'非法请求',//BadRequest
+        '-2102'=>'数据表没有数据',//NoData
     );
 
     //返回错误信息
