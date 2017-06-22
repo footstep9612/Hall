@@ -6,7 +6,7 @@
  * Date: 2017/6/16
  * Time: 14:51
  */
-class InquiryController extends Yaf_Controller_Abstract {
+class InquiryController extends PublicController {
 
     public function __init() {
         parent::__init();
@@ -64,7 +64,6 @@ class InquiryController extends Yaf_Controller_Abstract {
     public function addAction(){
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['inquiryno'] = $this->getInquirySerialNo();
 
         $id = $inquiry->add_data($data);
         if(!empty($id)){
