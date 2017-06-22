@@ -94,7 +94,7 @@ class InquiryModel extends PublicModel {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
                 return $this->where($where)
-                    ->page($page, $pagesize)
+                    //->page($page, $pagesize)
                     ->field($filed)
                     ->select();
             } else {
@@ -130,6 +130,7 @@ class InquiryModel extends PublicModel {
     public function add_data($createcondition = []) {
         $data = $this->create($createcondition);
         $data['inquiry_status'] = STATUS_DRAFT;
+        $data['created_at'] = $this->getTime();
 
         try {
             return $this->add($data);
@@ -209,5 +210,13 @@ class InquiryModel extends PublicModel {
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * 返回格式化时间
+     * @author zhangyuliang
+     */
+    public function getTime(){
+        return date('Y-m-d h:i:s',time());
     }
 }

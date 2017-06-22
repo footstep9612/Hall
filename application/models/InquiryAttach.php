@@ -65,7 +65,7 @@ class InquiryAttachModel extends PublicModel {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
                 return $this->where($where)
-                    ->page($page, $pagesize)
+                    //->page($page, $pagesize)
                     ->select();
             } else {
                 return $this->where($where)->select();
