@@ -226,7 +226,7 @@ class EsgoodsModel extends PublicModel {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
-            return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+            return [$es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize),$from,$pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -244,9 +244,17 @@ class EsgoodsModel extends PublicModel {
 
         try {
             $body = $this->getCondition($condition);
-
+            $pagesize = 10;
+            $current_no = 1;
+            if (isset($condition['current_no'])) {
+                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+            }
+            if (isset($condition['pagesize'])) {
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+            }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
+
 
             return $es->setbody($body)
                             ->setaggs('show_cats', 'chowcat', 'terms')

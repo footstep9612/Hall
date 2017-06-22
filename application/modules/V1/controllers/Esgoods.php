@@ -21,11 +21,6 @@ class EsgoodsController extends PublicController {
     public function init() {
 
 
-//        $espoductmodel = new EsgoodsModel();
-//        $flag = $espoductmodel->getproductattrsbyspus(['01']);
-//        echo '<pre>';
-//        var_dump($flag);
-//        die();
         $this->es = new ESClient();
         //  parent::init();
     }
@@ -34,7 +29,7 @@ class EsgoodsController extends PublicController {
      * goods 数据导入
      */
 
-    public function importgoodsAction($lang = 'en') {
+    public function importAction($lang = 'en') {
         try {
             $espoductmodel = new EsgoodsModel();
             $espoductmodel->importgoodss($lang);
@@ -47,27 +42,6 @@ class EsgoodsController extends PublicController {
             $this->setCode(-2001);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
-        }
-    }
-
-    /*
-     * product数据导入
-     */
-
-    public function importproductsAction($lang = 'en') {
-        try {
-            $espoductmodel = new EsProductModel();
-            $espoductmodel->importproducts($lang);
-            $this->setCode(1);
-            $this->setMessage('成功!');
-
-            $this->jsonReturn();
-        } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
-            $this->setCode(-2001);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn([]);
         }
     }
 
@@ -90,14 +64,28 @@ class EsgoodsController extends PublicController {
         $this->jsonReturn($data);
     }
 
-    public function getGoodsAction() {
+    public function listAction() {
 
-        $name = 'CONDOR';
         $model = new EsgoodsModel();
-        $flag = $model->getGoodsbyname($name, 'S010102');
+        $ret = $model->getgoods($this->put_data, $this->getLang());
+        if ($ret) {
+            $list = [];
+            $data = $ret[0];
+            $send['count'] = intval($flag['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
 
-        echo '<pre>';
-        var_dump($flag);
+            foreach ($data['hits']['hits'] as $key => $item) {
+                $list[$key] = $item["_source"];
+                $list[$key]['id'] = $item['_id'];
+            }
+            $send['data'] = $list;
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($send);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
     }
 
     public function goodsAction($lang = 'en') {

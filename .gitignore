@@ -49,3 +49,5 @@ logs/
 application/ExcelFiles/
 .settings
 .project
+/application/modules/V1/controllers/Test.php
+/application/models/Test.php
