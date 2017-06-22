@@ -6,50 +6,52 @@
 */
 class GoodsAttrTplModel extends PublicModel
 {
-    //protected $dbName = 'erui_goods'; //测试数据库名称
     protected $dbName = 'erui_goods'; //数据库名称
-    protected $tableName = 'goods_tpl_attr'; //数据表表名
+    protected $tableName = 'goods_attr_tpl'; //数据表表名
 
     public function __construct()
     {
         parent::__construct();
     }
+
+    public function ini()
+    {
+        $this->catModel = new MaterialcatModel();
+        $this->spuModel = new ProductAttrModel();
+    }
+
     /**
-     * 根据条件获取商品模板属性值
+     * 根据条件获取商品模板属性
      * @param null $where string 条件
-     * @return mixed
+     * @return
      */
-    public function WhereAttrlist($where)
+    public function getlist($type='',$cat_no,$spu,$sku)
     {
-        $result = $this->field('input_type, value_type, value_unit, options, input_hint')
-                       ->where($where)
-                       ->select();
-        return $result;
+        $where = array(
+            'attr_type' => ''
+        );
+        $field = "lang,attr_group,attr_no,attr_name,goods_flag,spec_flag,logi_flag,hs_flag";
+        $common = $this->field($field)->where($where)->select();
+       if($type == 'CATEGORY'){
+           $category = $this->catModel->field('name')->where(array('cat_no' => $cat_no))->select();
+           if($category){
+               $cate = array();
+               foreach($category as $k => $v){
+                   $groups = $this->spuModel->field($field)->where(array('spu' => $v['spu']))->select();
+                   $cate[] = $groups? $groups : array();
+               }
+           }
+       } elseif($type == 'PRODUCT'){
+           $products = $this->spuModel->field($field)->where(array('spu' => $spu))->select();
+           $product = $products ? $products : array();
+       } elseif($type == 'GOODS'){
+           $skuModel = new GoodsAttrModel();
+            $goods = $skuModel->field($field)->where(array('sku' => $sku))->select();
+           $good = $goods ? $goods : array();
+       }
+        $result = array_merge($common,$cate,$product,$good);
+
     }
 
-    /**
-     * 根据条件查询商品属性 sku数据查询
-     * @param null $where 条件 sku lang语言(必) skuid  attr_group规格
-     * @return string json
-     */
-    public function AttrInfo($where)
-    {
-        $result = $this->field('id, spu, sku, attr_group, attr_name, sort_order, created_by, created_at')
-            ->where($where)
-            ->select();
-        return $result;
-    }
 
-    /**
-     * 根据条件查询商品总数
-     * @param null $where 条件  sku
-     * @return string json
-     */
-    public function GetCount($where)
-    {
-        $result = $this->where($where)
-                 /*->field('id, spu, sku, attr_group, sort_order, created_by, created_at')*/
-                ->count('id');
-        return $result;
-    }
 }
