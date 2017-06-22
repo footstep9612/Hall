@@ -67,15 +67,15 @@ class InquiryItemModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        $page = $condition['page']?$condition['page']:1;
-        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
+        $page = isset($condition['page'])?$condition['page']:1;
+        $pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
 
         try {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
-                return $this->where($where)
+                return $this->where($where)->select();
                     //->page($page, $pagesize)
-                    ->select();
+                    //->select();
             } else {
                 return $this->where($where)->select();
             }
