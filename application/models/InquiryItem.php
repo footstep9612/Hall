@@ -46,6 +46,7 @@ class InquiryItemModel extends PublicModel {
         if (!empty($condition['brand'])) {
             $where['brand'] = $condition['brand'];
         }
+        $where['status'] = isset($condition['status'])?$condition['status']:self::STATUS_INVALID;
         return $where;
     }
 
@@ -77,9 +78,9 @@ class InquiryItemModel extends PublicModel {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
 
-                return $this->where($where)
-                                ->page($page, $pagesize)
-                                ->select();
+                return $this->where($where)->select();
+                                //->page($page, $pagesize)
+                                //->select();
             } else {
                 return $this->where($where)->select();
             }
@@ -94,8 +95,7 @@ class InquiryItemModel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-
-//$data = $this->create($createcondition);
+        //$data = $this->create($createcondition);
         if (isset($createcondition['inquiry_no'])) {
             $data['inquiry_no'] = $createcondition['inquiry_no'];
         } else {
@@ -135,14 +135,12 @@ class InquiryItemModel extends PublicModel {
         }
         $data = $this->create($createcondition);
 
-        $data['status'] = 'INVALID';
+        $data['status'] = self::STATUS_INVALID;
         $data['created_at'] = $this->getTime();
 
         try {
             return $this->add($data);
         } catch (Exception $e) {
-
-            echo $e->getMessage();
             return false;
         }
     }
@@ -160,8 +158,6 @@ class InquiryItemModel extends PublicModel {
 
         if (isset($createcondition['inquiry_no'])) {
             $data['inquiry_no'] = $createcondition['inquiry_no'];
-        } else {
-            return false;
         }
         if (isset($createcondition['quantity'])) {
             $data['quantity'] = $createcondition['quantity'];
