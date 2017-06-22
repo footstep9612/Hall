@@ -72,7 +72,7 @@ class ExcelOperationController extends PublicController {
      * @return array $data 返回数据
      */
     private function getData($quote_no) {
-        $obj = new QouteModel();
+        $obj = new QuoteModel();
         $fields = [
             'quoter', //商务报价人
             'quoter_email', //商务报价人邮箱
@@ -411,7 +411,7 @@ class ExcelOperationController extends PublicController {
         $objSheet->setCellValue("H1", "品牌");
 
         //追加数据库数据
-        $sku = new QouteItemModel();
+        $sku = new QuoteItemModel();
         $fields = [
             'id', //序号
             'quote_no', //询单号
@@ -423,7 +423,7 @@ class ExcelOperationController extends PublicController {
             'quote_unit', //单位
             'quote_brand'//品牌
         ];
-        $sku_items = $sku->get_quote_item_list($fields);
+        $sku_items = $sku->field($fields)->select();
         if (empty($sku_items)) {
             $data = [
                 'code' => -2102,
