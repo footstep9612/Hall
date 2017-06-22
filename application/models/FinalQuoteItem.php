@@ -1,12 +1,12 @@
 <?php
 /**
- * @desc 报价单明细模型
- * @author liujf 2017-06-17
+ * @desc 最终报价单明细模型
+ * @author liujf 2017-06-21
  */
-class QuoteItemModel extends PublicModel {
+class FinalQuoteItemModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
-    protected $tableName = 'quote_item';
+    protected $tableName = 'final_quote_item';
     
     public function __construct() {
         parent::__construct();
@@ -24,16 +24,6 @@ class QuoteItemModel extends PublicModel {
     	}
     	
         return $this->where($where)->select();
-    }
-    
-	/**
-     * 获取sku询价单列表
-     * @param $fields   array 筛选字段
-     * @return array
-     */
-    public function get_quote_item_list($fields)
-    {
-        return $this->field($fields)->select();
     }
 
 }

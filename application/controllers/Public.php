@@ -442,30 +442,4 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return $code;
     }
 
-    /**
-     * 返回josn数据
-     * @author liujf 2017-06-20
-     * @param array $data 数据
-     * @param string $msg 错误消息
-     */
-    public function jsonOutput($data, $msg = '') {
-
-        if ($data) {
-            $this->code = '0';
-            $this->message = '成功';
-            $out = $data;
-        } else {
-            $this->code = '-1';
-            $this->message = '失败';
-            $out = '';
-        }
-
-        if ($msg != '') {
-            $this->code = '-1';
-            $this->message = $msg;
-        }
-
-        $this->jsonReturn($data);
-    }
-
 }
