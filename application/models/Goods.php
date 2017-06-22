@@ -244,4 +244,20 @@ class GoodsModel extends PublicModel
         }
     }
 
+    /**
+     * 根据sku获取spu
+     * @param string $sku sku编码
+     * @return bool
+     */
+    public function getSpubySku($sku='',$lang =''){
+        if(empty($sku) || empty($lang))
+            return false;
+
+        $result =$this->field('spu')->where(array('sku'=>$sku,'lang'=>$lang,'status'=>self::STATUS_VALID))->find();
+        if($result){
+            return $result['spu'];
+        }
+        return false;
+    }
+
 }

@@ -28,19 +28,19 @@ class GoodsAttrModel extends PublicModel
         );
 
         //缓存数据redis查询
-        $key_redis = md5(json_encode($where.time()));
-        if(redisExist($key_redis)){
-            $result = redisHashGet('attrs',$key_redis);
+        $key_redis = md5(json_encode($where . time()));
+        if (redisExist($key_redis)) {
+            $result = redisHashGet('attrs', $key_redis);
             //判断语言,返回对应语言集
             $data = array();
-            if(''!=$lang){
-                foreach($result as $val) {
+            if ('' != $lang) {
+                foreach ($result as $val) {
                     if ($val['lang'] == $lang) {
                         $data[$val['lang']] = $val;
                     }
                 }
                 return $data ? $data : array();
-            } else{
+            } else {
                 return $result ? $result : array();
             }
         } else {
@@ -136,4 +136,6 @@ class GoodsAttrModel extends PublicModel
 
             }
         }
+    }
+
 }
