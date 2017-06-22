@@ -79,17 +79,17 @@ class GoodsAttrModel extends PublicModel
                     case 'Specs':
                         $group2 = 'Specs';
                         break;
-                    case 'Technical Parameters':
-                        $group2 = 'Technical Parameters';
+                    case 'TechnicalParameters':
+                        $group2 = 'TechnicalParameters';
                         break;
-                    case 'Executive Standard':
-                        $group2 = 'Executive Standard';
+                    case 'ExecutiveStandard':
+                        $group2 = 'ExecutiveStandard';
                         break;
-                    case 'Product Information':
-                        $group2 = 'Product Information';
+                    case 'ProductInformation':
+                        $group2 = 'ProductInformation';
                         break;
-                    case 'Quatlity Warranty':
-                        $group2 = 'Quatlity Warranty';
+                    case 'QuatlityWarranty':
+                        $group2 = 'QuatlityWarranty';
                         break;
                     case 'Image':
                         $group2 = 'Image';
