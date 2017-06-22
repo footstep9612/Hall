@@ -773,6 +773,7 @@ function format_size($size) {
 
     return $size . $units[$unit];
 }
+
 /*
  * 随机生成字符串
  *
@@ -780,14 +781,13 @@ function format_size($size) {
  * @return string
  * @author jhw
  */
-function randStr($len)
-{
-    $chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz'; // characters to build the password from
-    $string='';
-    for(;$len>=1;$len--)
-    {
-        $position=rand()%strlen($chars);
-        $string.=substr($chars,$position,1);
+
+function randStr($len) {
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz'; // characters to build the password from
+    $string = '';
+    for (; $len >= 1; $len--) {
+        $position = rand() % strlen($chars);
+        $string .= substr($chars, $position, 1);
     }
     return $string;
 }
@@ -799,8 +799,8 @@ function randStr($len)
  * @return string
  * @author jhw
  */
-function isEmail($email)
-{
+
+function isEmail($email) {
     $mode = '/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/';
     if (preg_match($mode, $email)) {
         return true;
@@ -816,10 +816,11 @@ function isEmail($email)
  * @return string
  * @author jhw
  */
-function isMobile($mobile){
-    if(preg_match("/^1[34578]{1}\d{9}$/",$mobile)){
+
+function isMobile($mobile) {
+    if (preg_match("/^1[34578]{1}\d{9}$/", $mobile)) {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
@@ -833,27 +834,28 @@ function isMobile($mobile){
  * @return string
  * @author jhw
  */
-function redisHashSet($name,$key,$value){
+
+function redisHashSet($name, $key, $value) {
 
     $reids = new phpredis();
-    if(empty($name) && !is_string($name)){
+    if (empty($name) && !is_string($name)) {
         return false;
     }
-    if(empty($key) && !is_string($name)){
+    if (empty($key) && !is_string($name)) {
         return false;
     }
-    if(empty($value) && !is_string($value)){
+    if (empty($value) && !is_string($value)) {
         return false;
     }
 
-    if($reids->hashExists($name,$key)){
-        $reids->hashDel($name,$key);
+    if ($reids->hashExists($name, $key)) {
+        $reids->hashDel($name, $key);
     }
 
     $data[$key] = $value;
-    if($reids->hashSet($name,$data)){
+    if ($reids->hashSet($name, $data)) {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
@@ -866,15 +868,17 @@ function redisHashSet($name,$key,$value){
  * @return string
  * @author jhw
  */
-function redisHashGet($name,$key){
+
+function redisHashGet($name, $key) {
     $reids = new phpredis();
-    $string = $reids->hashGet($name,$key);
-    if($string){
+    $string = $reids->hashGet($name, $key);
+    if ($string) {
         return $string;
-    }else{
+    } else {
         return false;
     }
 }
+
 /*
  * 缓存判断是否存在
  *
@@ -883,11 +887,12 @@ function redisHashGet($name,$key){
  * @return string
  * @author jhw
  */
-function redisHashExist($name,$key){
+
+function redisHashExist($name, $key) {
     $reids = new phpredis();
-    if($reids->hashExists($name,$key)){
+    if ($reids->hashExists($name, $key)) {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
@@ -901,28 +906,30 @@ function redisHashExist($name,$key){
  * @return string
  * @author jhw
  */
-function redisSet($name,$value,$second = 0){
+
+function redisSet($name, $value, $second = 0) {
     $reids = new phpredis();
-    if(empty($name) && !is_string($name)){
+    if (empty($name) && !is_string($name)) {
         return false;
     }
-    if(empty($value) && !is_string($value)){
+    if (empty($value) && !is_string($value)) {
         return false;
     }
-    if($reids->exists($name)){
+    if ($reids->exists($name)) {
         $reids->delete($name);
     }
-    if(is_int($second) && $second>0){
-        $result = $reids->set($name,$value,$second);
-    }else{
-        $result = $reids->set($name,$value);
+    if (is_int($second) && $second > 0) {
+        $result = $reids->set($name, $value, $second);
+    } else {
+        $result = $reids->set($name, $value);
     }
-    if($result){
+    if ($result) {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
+
 /*
  * 缓存获取
  *
@@ -932,15 +939,17 @@ function redisSet($name,$value,$second = 0){
  * @return string
  * @author jhw
  */
-function redisGet($name){
+
+function redisGet($name) {
     $reids = new phpredis();
     $result = $reids->get($name);
-    if($result){
+    if ($result) {
         return $result;
-    }else{
+    } else {
         return false;
     }
 }
+
 /*
  * 缓存判断是否存在
  *
@@ -949,11 +958,12 @@ function redisGet($name){
  * @return string
  * @author jhw
  */
-function redisExist($name){
+
+function redisExist($name) {
     $reids = new phpredis();
-    if($reids->exists($name)){
+    if ($reids->exists($name)) {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
@@ -966,29 +976,29 @@ function redisExist($name){
  * @param float $exchange_rate 汇率
  * @author jhw
  */
-function exw($data,$gross,$exchange_rate = 1){
-    if(empty($data)){
+
+function exw($data, $gross, $exchange_rate = 1) {
+    if (empty($data)) {
         $arr['code'] = 0;
         $arr['msg'] = '采购信息不能为空';
         return $arr;
     }
-    if(empty($gross)){
+    if (empty($gross)) {
         $arr['code'] = 0;
         $arr['msg'] = '毛利率不能为空';
         return $arr;
     }
 
-    $count=count($data);
+    $count = count($data);
     $data['code'] = 1;
-    $data['total_exw_price']=0;
-    for($i = 0;$i<$count;$i++){
-        $data[$i]['exw_unit_price'] = round($data[$i]['busyer_unit_price']* $gross/$exchange_rate,8);
-        $data[$i]['total_exw_price'] = round($data[$i]['exw_unit_price'] * $data[$i]['num'],8);
-        $data['total_exw_price'] = $data['total_exw_price']+$data[$i]['total_exw_price'];
+    $data['total_exw_price'] = 0;
+    for ($i = 0; $i < $count; $i++) {
+        $data[$i]['exw_unit_price'] = round($data[$i]['busyer_unit_price'] * $gross / $exchange_rate, 8);
+        $data[$i]['total_exw_price'] = round($data[$i]['exw_unit_price'] * $data[$i]['num'], 8);
+        $data['total_exw_price'] = $data['total_exw_price'] + $data[$i]['total_exw_price'];
     }
     return $data;
 }
-
 
 /*
  * 物流报价
@@ -1008,179 +1018,180 @@ function exw($data,$gross,$exchange_rate = 1){
  * @param float $data[ dest_clearance_fee ] 目的地送货费
  * @author jhw
  */
-function logistics($data){
+
+function logistics($data) {
     $arr = [];
-    if(empty($data['trade_terms'])){
+    if (empty($data['trade_terms'])) {
         $arr['code'] = 0;
         $arr['msg'] = '贸易方式不能为空';
         return $arr;
     }
-    if(empty($data['bank_interest'])){
+    if (empty($data['bank_interest'])) {
         $arr['code'] = 0;
         $arr['msg'] = '银行利息不能为空';
         return $arr;
     }
-    if(empty($data['fund_occupation_rate'])){
+    if (empty($data['fund_occupation_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '资金占用比例不能为空';
         return $arr;
     }
-    if(empty($data['payment_received_days'])){
+    if (empty($data['payment_received_days'])) {
         $arr['code'] = 0;
         $arr['msg'] = '回款周期不能为空';
         return $arr;
     }
-    if(empty($data['premium_rate'])){
+    if (empty($data['premium_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '保险税率不能为空';
         return $arr;
     }
-    if(empty($data['total_exw_price'])){
+    if (empty($data['total_exw_price'])) {
         $arr['code'] = 0;
         $arr['msg'] = 'EXW合计不能为空';
         return $arr;
     }
-    if(empty($data['inspection_fee'])){
+    if (empty($data['inspection_fee'])) {
         $arr['code'] = 0;
         $arr['msg'] = '商检费不能为空';
         return $arr;
     }
-    if($data['trade_terms'] == 'EXW'){
+    if ($data['trade_terms'] == 'EXW') {
         $arr['code'] = 1;
         $arr['total_logi_fee'] = $data['inspection_fee'];
-        $arr['total_quote_price'] = round(($data['inspection_fee'] + $data['total_exw_price'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
+        $arr['total_quote_price'] = round(($data['inspection_fee'] + $data['total_exw_price']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
         return $arr;
     }
-    if(empty($data['land_freight'])){
+    if (empty($data['land_freight'])) {
         $arr['code'] = 0;
         $arr['msg'] = '陆运费不能为空';
         return $arr;
     }
-    if(empty($data['overland_insu_rate'])){
+    if (empty($data['overland_insu_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '陆运险率不能为空';
         return $arr;
     }
-    if($data['trade_terms'] == 'FCA' || $data['trade_terms'] == 'FAS'){
+    if ($data['trade_terms'] == 'FCA' || $data['trade_terms'] == 'FAS') {
         $arr['code'] = 1;
-        $arr['inland_marine_insurance'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
-        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insurance'] +  $data['land_freight'];
-        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
+        $arr['inland_marine_insurance'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
+        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insurance'] + $data['land_freight'];
+        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
         return $arr;
     }
-    if(empty($data['port_surcharge'])){
+    if (empty($data['port_surcharge'])) {
         $arr['code'] = 0;
         $arr['msg'] = '港杂费不能为空';
         return $arr;
     }
-    if($data['trade_terms'] == 'FOB'){
+    if ($data['trade_terms'] == 'FOB') {
         $arr['code'] = 1;
-        $arr['inland_marine_insu'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
-        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] +  $data['port_surcharge'];
-        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
+        $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
+        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'];
+        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
         return $arr;
     }
-    if(empty($data['inter_shipping'])){
+    if (empty($data['inter_shipping'])) {
         $arr['code'] = 0;
         $arr['msg'] = '国际运输费不能为空';
         return $arr;
     }
-    if($data['trade_terms'] == 'CPT' || $data['trade_terms'] == 'CFR'){
+    if ($data['trade_terms'] == 'CPT' || $data['trade_terms'] == 'CFR') {
         $arr['code'] = 1;
-        $arr['inland_marine_insu'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
-        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
-        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee'])/(1-$data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
+        $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
+        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
+        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
         return $arr;
     }
-    if(empty($data['cargo_insurance_rate'])){
+    if (empty($data['cargo_insurance_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '货物运输险率不能为空';
         return $arr;
     }
-    if($data['trade_terms'] == 'CIF' || $data['trade_terms'] == 'CIP'){
+    if ($data['trade_terms'] == 'CIF' || $data['trade_terms'] == 'CIP') {
         $arr['code'] = 1;
-        $numerator = $data['total_exw_price'] +$data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
-        $denominator = (1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365);
-        $arr['inland_marine_insu'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
-        if($numerator*1.1 * $data['cargo_insurance_rate']/$denominator < 8 && $numerator*1.1 * $data['cargo_insurance_rate']/$denominator !=0){
-            $arr['total_quote_price'] = round(($numerator +8) / (1 - $data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365),8);
-        }else{
-            $arr['total_quote_price'] = round($numerator/$denominator,8);
+        $numerator = $data['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
+        $denominator = (1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365);
+        $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
+        if ($numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator < 8 && $numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator != 0) {
+            $arr['total_quote_price'] = round(($numerator + 8) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
+        } else {
+            $arr['total_quote_price'] = round($numerator / $denominator, 8);
         }
-        $arr['freightage_insu'] = $arr['total_quote_price'] *1.1*$data['cargo_insurance_rate'];
-        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping']+$arr['freightage_insu'];
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
+        $arr['freightage_insu'] = $arr['total_quote_price'] * 1.1 * $data['cargo_insurance_rate'];
+        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $arr['freightage_insu'];
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
         return $arr;
     }
-    if(empty($data['dest_delivery_charge'])){
+    if (empty($data['dest_delivery_charge'])) {
         $arr['code'] = 0;
         $arr['msg'] = '目的地送货费不能为空';
         return $arr;
     }
-    if($data['trade_terms'] == ' DAP' || $data['trade_terms'] == 'DAT'){
+    if ($data['trade_terms'] == ' DAP' || $data['trade_terms'] == 'DAT') {
         $arr['code'] = 1;
-        $arr['inland_marine_insu'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
-        $numerator = $data['total_exw_price'] +$data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $data['dest_delivery_charge'];
-        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] -  $data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365 ,8);
-        if($numerator * 1.1 * $data['cargo_insurance_rate']/$denominator <8 && $numerator * 1.1 * $data['cargo_insurance_rate']/$denominator != 0){
-            $arr['total_quote_price'] = round(($numerator+8)/$denominator,8);
-        }else{
-            $arr['total_quote_price'] = round($numerator/$denominator,8);
+        $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
+        $numerator = $data['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $data['dest_delivery_charge'];
+        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
+        if ($numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator < 8 && $numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator != 0) {
+            $arr['total_quote_price'] = round(($numerator + 8) / $denominator, 8);
+        } else {
+            $arr['total_quote_price'] = round($numerator / $denominator, 8);
         }
-        $arr['freightage_insu'] = $arr['total_quote_price'] *1.1*$data['cargo_insurance_rate'];
-        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping']+$arr['freightage_insu']+$data['dest_delivery_charge'];
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
+        $arr['freightage_insu'] = $arr['total_quote_price'] * 1.1 * $data['cargo_insurance_rate'];
+        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $arr['freightage_insu'] + $data['dest_delivery_charge'];
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
         return $arr;
     }
-    if(empty($data['dest_delivery_charge'])){
+    if (empty($data['dest_delivery_charge'])) {
         $arr['code'] = 0;
         $arr['msg'] = '目的地送货费不能为空';
         return $arr;
     }
-    if(empty($data['dest_tariff_rate'])){
+    if (empty($data['dest_tariff_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '目的地关税税率不能为空';
         return $arr;
     }
-    if(empty($data['dest_va_tax_rate'])){
+    if (empty($data['dest_va_tax_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '目的地增值税税率不能为空';
         return $arr;
     }
-    if(empty($data['dest_clearance_fee'])){
+    if (empty($data['dest_clearance_fee'])) {
         $arr['code'] = 0;
         $arr['msg'] = '目的地清关费不能为空';
         return $arr;
     }
-    if($data['trade_terms'] == ' DDP' ){
+    if ($data['trade_terms'] == ' DDP') {
         $arr['code'] = 1;
-        $arr['inland_marine_insu'] = inlandMarineInsurance([ 'overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price'] ]);
-        $numerator = $data['total_exw_price'] +$data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] ;
-        $numerator = $numerator * (1+$data['dest_tariff_rate']) * (1+$data['dest_va_tax_rate']) + $data['dest_delivery_charge'] + $data['dest_clearance_fee'];
-        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] -  $data['premium_rate']-$data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate']/365 ,8);
-        if($numerator * 1.1 * $data['cargo_insurance_rate']/$denominator <8 && $numerator * 1.1 * $data['cargo_insurance_rate']/$denominator != 0){
-            $arr['total_quote_price'] = round(($numerator+8)/$denominator,8);
-        }else{
-            $arr['total_quote_price'] = round($numerator/$denominator,8);
+        $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
+        $numerator = $data['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
+        $numerator = $numerator * (1 + $data['dest_tariff_rate']) * (1 + $data['dest_va_tax_rate']) + $data['dest_delivery_charge'] + $data['dest_clearance_fee'];
+        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
+        if ($numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator < 8 && $numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator != 0) {
+            $arr['total_quote_price'] = round(($numerator + 8) / $denominator, 8);
+        } else {
+            $arr['total_quote_price'] = round($numerator / $denominator, 8);
         }
         //目的地关税
-        $arr['dest_tariff'] = $arr['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
+        $arr['dest_tariff'] = $arr['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
         $arr['dest_va_tax'] = $arr['dest_tariff'];
-        $arr['dest_tariff'] = round($arr['dest_tariff'] * $data['dest_tariff_rate'] ,8);
+        $arr['dest_tariff'] = round($arr['dest_tariff'] * $data['dest_tariff_rate'], 8);
         //  目的地增值税
-        $arr['dest_va_tax'] =round($arr['dest_va_tax'] * (1 + $data['dest_tariff_rate']) * $data['dest_va_tax_rate'], 8);
-        $arr['freightage_insu'] = $arr['total_quote_price'] *1.1*$data['cargo_insurance_rate'];
-        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] +  $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping']+$arr['freightage_insu']+$data['dest_delivery_charge'];
+        $arr['dest_va_tax'] = round($arr['dest_va_tax'] * (1 + $data['dest_tariff_rate']) * $data['dest_va_tax_rate'], 8);
+        $arr['freightage_insu'] = $arr['total_quote_price'] * 1.1 * $data['cargo_insurance_rate'];
+        $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $arr['freightage_insu'] + $data['dest_delivery_charge'];
         $arr['total_logi_fee'] = $arr['total_logi_fee'] + $arr['dest_tariff'] + $arr['dest_va_tax'] + $data['dest_clearance_fee'];
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] *$data['fund_occupation_rate'] * $data['payment_received_days']/365,8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
         return $arr;
     }
-
 }
+
 /*
  * 报出单价
  *
@@ -1189,24 +1200,25 @@ function logistics($data){
  * @param float $data[ exw_unit_price ] EXW单价 -- 必填
  * @author jhw
  */
-function quoteUnitPrice($data){
-    if(empty($data['total_exw_price'])){
+
+function quoteUnitPrice($data) {
+    if (empty($data['total_exw_price'])) {
         $arr['code'] = 0;
         $arr['msg'] = 'EXW合计不能为空';
         return $arr;
     }
-    if(empty($data['exw_unit_price'])){
+    if (empty($data['exw_unit_price'])) {
         $arr['code'] = 0;
         $arr['msg'] = 'EXW单价不能为空';
         return $arr;
     }
-    if(empty($data['total_quote_price'])){
+    if (empty($data['total_quote_price'])) {
         $arr['code'] = 0;
         $arr['msg'] = '报出总价不能为空';
         return $arr;
     }
     $arr['code'] = 1;
-    $arr['quote_unit_price'] = round($data['total_quote_price'] * $data['exw_unit_price'] /$data['total_exw_price'],8);
+    $arr['quote_unit_price'] = round($data['total_quote_price'] * $data['exw_unit_price'] / $data['total_exw_price'], 8);
     return $arr;
 }
 
@@ -1217,18 +1229,19 @@ function quoteUnitPrice($data){
  * @param float $data[ overland_insu_rate ] 陆运险率
  * @author jhw
  */
-function inlandMarineInsurance($data){
-    if(empty($data['overland_insu_rate'])){
+
+function inlandMarineInsurance($data) {
+    if (empty($data['overland_insu_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '陆运险率不能为空';
         return $arr;
     }
-    if(empty($data['total_exw_price'])){
+    if (empty($data['total_exw_price'])) {
         $arr['code'] = 0;
         $arr['msg'] = 'EXW合计不能为空';
         return $arr;
     }
-    return round($data['overland_insu_rate'] * 1.1 * $data['total_exw_price'],8);
+    return round($data['overland_insu_rate'] * 1.1 * $data['total_exw_price'], 8);
 }
 
 /*
@@ -1238,18 +1251,19 @@ function inlandMarineInsurance($data){
  * @param float $data[ cargo_insurance_rate ] 货物运输险率
  * @author jhw
  */
-function freightage_insurance($data){
-    if(empty($data['cargo_insurance_rate'])){
+
+function freightage_insurance($data) {
+    if (empty($data['cargo_insurance_rate'])) {
         $arr['code'] = 0;
         $arr['msg'] = '货物运输险率不能为空';
         return $arr;
     }
-    if(empty($data['total_price'])){
+    if (empty($data['total_price'])) {
         $arr['code'] = 0;
         $arr['msg'] = '报价合计不能为空';
         return $arr;
     }
-    return round($data['cargo_insurance_rate'] * 1.1 * $data['total_price'],8);
+    return round($data['cargo_insurance_rate'] * 1.1 * $data['total_price'], 8);
 }
 
 /**
@@ -1257,7 +1271,7 @@ function freightage_insurance($data){
  * 目前只处理中(zn)英(en)俄(ru)西班牙(es)语
  * @return string
  */
-function browser_lang(){
+function browser_lang() {
     $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 4); //只取前4位，这样只判断最优先的语言。如果取前5位，可能出现en,zh的情况，影响判断。
     $language = '';
     if (preg_match("/zh-c|zh/i", $lang)) {
@@ -1279,29 +1293,27 @@ function browser_lang(){
  * @param string $message    错误提示
  * @param string $type
  */
-
-function jsonReturn($data,$code=1,$message='', $type = 'JSON') {
+function jsonReturn($data, $code = 1, $message = '', $type = 'JSON') {
     header('Content-Type:application/json; charset=utf-8');
-    if($data){
-        if(!is_array($data)){
-            $data = array('data'=>$data);
+    if ($data) {
+        if (!is_array($data)) {
+            $data = array('data' => $data);
         }
-        $data['code']=$code;
-        $data['message'] = ErrorMsg::getMessage($code,$message);
+        $data['code'] = $code;
+        $data['message'] = ErrorMsg::getMessage($code, $message);
         exit(json_encode($data));
-    }else{
-        exit(json_encode(array('code'=>$code,'message'=>ErrorMsg::getMessage($code,$message))));
+    } else {
+        exit(json_encode(array('code' => $code, 'message' => ErrorMsg::getMessage($code, $message))));
     }
-
 }
 
 /**
  * 生成spu编码
  * 这里临时生成七位数字，后期根据具体需求改动
  */
-function createSpu(){
-    $rand = rand(0,9999999);
-    return str_pad( $rand ,7,"0",STR_PAD_LEFT);
+function createSpu() {
+    $rand = rand(0, 9999999);
+    return str_pad($rand, 7, "0", STR_PAD_LEFT);
 }
 
 /**
@@ -1313,8 +1325,8 @@ function createSpu(){
  * @param char $error_level 容错级别
  * @param string 二维码地址
  */
-function createQrcode($url='',$logo='',$msize=6,$error_level='L'){
-    if(empty($url))
+function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
+    if (empty($url))
         return '';
 
     return '';
@@ -1324,14 +1336,14 @@ function createQrcode($url='',$logo='',$msize=6,$error_level='L'){
  * 获取当前用户信息
  * @return array|bool
  */
-function getLoinInfo(){
+function getLoinInfo() {
     $jsondata = json_decode(file_get_contents("php://input"), true);
     $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
     $token = (isset($jsondata['token']) && !empty($jsondata['token'])) ? $jsondata['token'] : '';
-    if(isset($post['token']) && !empty($post['token'])){
+    if (isset($post['token']) && !empty($post['token'])) {
         $token = $post['token'];
     }
-    if(empty($token))
+    if (empty($token))
         return array();
     $tokeninfo = JwtInfo($token); //解析token
     return $tokeninfo;

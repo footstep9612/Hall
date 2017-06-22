@@ -1,4 +1,5 @@
 <?php
+
 /**
  * name: InquiryItem
  * desc: 询价单明细表
@@ -8,7 +9,7 @@
  */
 class InquiryItemModel extends PublicModel {
 
-    protected $dbName = 'erui_db_ddl_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
 
     const STATUS_INVALID = 'INVALID'; //NORMAL-有效；
@@ -67,15 +68,18 @@ class InquiryItemModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        $page = isset($condition['page'])?$condition['page']:1;
-        $pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
+
+        $page = isset($condition['page']) ? $condition['page'] : 1;
+        $pagesize = isset($condition['countPerPage']) ? $condition['countPerPage'] : 10;
+
 
         try {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
-                return $this->where($where)->select();
-                    //->page($page, $pagesize)
-                    //->select();
+
+                return $this->where($where)
+                                ->page($page, $pagesize)
+                                ->select();
             } else {
                 return $this->where($where)->select();
             }
@@ -90,50 +94,55 @@ class InquiryItemModel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-        //$data = $this->create($createcondition);
-        if(isset($createcondition['inquiry_no'])) {
+
+//$data = $this->create($createcondition);
+        if (isset($createcondition['inquiry_no'])) {
             $data['inquiry_no'] = $createcondition['inquiry_no'];
-        }else{
+        } else {
             return false;
         }
-        if(isset($createcondition['quantity'])) {
+        if (isset($createcondition['quantity'])) {
             $data['quantity'] = $createcondition['quantity'];
-        }else{
+        } else {
             return false;
         }
-        if(isset($createcondition['sku'])){
+        if (isset($createcondition['sku'])) {
             $data['sku'] = $createcondition['sku'];
         }
-        if(isset($createcondition['name_en'])){
+        if (isset($createcondition['name_en'])) {
             $data['name_en'] = $createcondition['name_en'];
         }
-        if(isset($createcondition['name_cn'])){
+        if (isset($createcondition['name_cn'])) {
             $data['name_cn'] = $createcondition['name_cn'];
         }
-        if(isset($createcondition['model'])){
+        if (isset($createcondition['model'])) {
             $data['model'] = $createcondition['model'];
         }
-        if(isset($createcondition['spec'])){
+        if (isset($createcondition['spec'])) {
             $data['spec'] = $createcondition['spec'];
         }
-        if(isset($createcondition['brand'])){
+        if (isset($createcondition['brand'])) {
             $data['brand'] = $createcondition['brand'];
         }
-        if(isset($createcondition['quantity'])){
+        if (isset($createcondition['quantity'])) {
             $data['quantity'] = $createcondition['quantity'];
         }
-        if(isset($createcondition['unit'])){
+        if (isset($createcondition['unit'])) {
             $data['unit'] = $createcondition['unit'];
         }
-        if(isset($createcondition['description'])){
+        if (isset($createcondition['description'])) {
             $data['description'] = $createcondition['description'];
         }
+        $data = $this->create($createcondition);
+
         $data['status'] = 'INVALID';
         $data['created_at'] = $this->getTime();
 
         try {
             return $this->add($data);
         } catch (Exception $e) {
+
+            echo $e->getMessage();
             return false;
         }
     }
@@ -145,53 +154,52 @@ class InquiryItemModel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function update_data($createcondition =  []) {
+    public function update_data($createcondition = []) {
         $where['inquiry_no'] = $createcondition['inquiry_no'];
         $where['id'] = $createcondition['id'];
 
-        if(isset($createcondition['inquiry_no'])) {
+        if (isset($createcondition['inquiry_no'])) {
             $data['inquiry_no'] = $createcondition['inquiry_no'];
-        }else{
+        } else {
             return false;
         }
-        if(isset($createcondition['quantity'])) {
+        if (isset($createcondition['quantity'])) {
             $data['quantity'] = $createcondition['quantity'];
         }
-        if(isset($createcondition['sku'])){
+        if (isset($createcondition['sku'])) {
             $data['sku'] = $createcondition['sku'];
         }
-        if(isset($createcondition['name_en'])){
+        if (isset($createcondition['name_en'])) {
             $data['name_en'] = $createcondition['name_en'];
         }
-        if(isset($createcondition['name_cn'])){
+        if (isset($createcondition['name_cn'])) {
             $data['name_cn'] = $createcondition['name_cn'];
         }
-        if(isset($createcondition['model'])){
+        if (isset($createcondition['model'])) {
             $data['model'] = $createcondition['model'];
         }
-        if(isset($createcondition['spec'])){
+        if (isset($createcondition['spec'])) {
             $data['spec'] = $createcondition['spec'];
         }
-        if(isset($createcondition['brand'])){
+        if (isset($createcondition['brand'])) {
             $data['brand'] = $createcondition['brand'];
         }
-        if(isset($createcondition['quantity'])){
+        if (isset($createcondition['quantity'])) {
             $data['quantity'] = $createcondition['quantity'];
         }
-        if(isset($createcondition['unit'])){
+        if (isset($createcondition['unit'])) {
             $data['unit'] = $createcondition['unit'];
         }
-        if(isset($createcondition['description'])){
+        if (isset($createcondition['description'])) {
             $data['description'] = $createcondition['description'];
         }
-        $data['status'] = isset($createcondition['status'])?$createcondition['status']:self::STATUS_INVALID;
+        $data['status'] = isset($createcondition['status']) ? $createcondition['status'] : self::STATUS_INVALID;
 
         try {
             return $this->where($where)->save($data);
         } catch (Exception $e) {
             return false;
         }
-
     }
 
     /**
@@ -200,7 +208,7 @@ class InquiryItemModel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function delete_data($createcondition =  []) {
+    public function delete_data($createcondition = []) {
         $where['id'] = $createcondition['id'];
         $where['inquiry_no'] = $createcondition['inquiry_no'];
 
@@ -215,7 +223,8 @@ class InquiryItemModel extends PublicModel {
      * 返回格式化时间
      * @author zhangyuliang
      */
-    public function getTime(){
-        return date('Y-m-d h:i:s',time());
+    public function getTime() {
+        return date('Y-m-d h:i:s', time());
     }
+
 }
