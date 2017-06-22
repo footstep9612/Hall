@@ -29,14 +29,15 @@ class GroupModel extends PublicModel {
      * @author jhw
      */
     public function getlist($data,$limit,$order='id desc') {
+        $data["status"] = 'NORMAL';
         if(!empty($limit)){
-            return $this->field('id,parent_id,name,description,status')
+            return $this->field('id,parent_id,name,description')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,parent_id,name,description,status')
+            return $this->field('id,parent_id,name,description')
                 ->where($data)
                 ->order($order)
                 ->select();

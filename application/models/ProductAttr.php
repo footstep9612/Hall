@@ -8,7 +8,7 @@
 class ProductAttrModel extends PublicModel
 {
     //数据库 表映射
-    protected $dbName = 'erui_db_ddl_goods';
+    protected $dbName = 'erui_goods';
     protected $tableName = 'product_attr';
 
     //状态
