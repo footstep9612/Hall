@@ -135,20 +135,35 @@ class GoodsAttrTplModel extends PublicModel
         if(empty($lang))
             return array();
 
+        //判断redis缓存
+        if(redisHashExist('AttrTpl','common_'.$lang)){
+            $redisInfo =redisHashGet('AttrTpl','common_'.$lang);
+            return json_decode($redisInfo);
+        }
+
         $attrModel = new AttrModel();
         $attrTable = $attrModel->getTableName();
         $thisTable = $this->getTableName();
 
-        $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
-        $where = array(
-            "$thisTable.attr_type" => '',
-            "$thisTable.lang" =>$lang,
-            "$thisTable.status" => self::STATUS_VALID,
-            "$attrTable.status"=> $attrModel::STATUS_VALID,
-            "$attrTable.lang" => $lang,
-        );
-        $result = $this->field($field)->join($attrTable." ON $thisTable.attr_no = $attrTable.attr_no" , 'LEFT')->where($where)->select();
-        return $result ? $result : array();
+        try{
+            $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
+            $where = array(
+                "$thisTable.attr_type" => '',
+                "$thisTable.lang" =>$lang,
+                "$thisTable.status" => self::STATUS_VALID,
+                "$attrTable.status"=> $attrModel::STATUS_VALID,
+                "$attrTable.lang" => $lang,
+            );
+            $result = $this->field($field)->join($attrTable." ON $thisTable.attr_no = $attrTable.attr_no" , 'LEFT')->where($where)->select();
+            if($result){
+                //redis缓存  这里后期可以考虑通过队列缓存以减少等待。
+                redisHashSet('AttrTpl','common_'.$lang,json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
     }
 
     /**
@@ -162,23 +177,38 @@ class GoodsAttrTplModel extends PublicModel
         if(empty($cat_no) || empty($lang))
             return array();
 
+        //判断redis缓存
+        if(redisHashExist('AttrTpl',$cat_no.'_'.$lang)){
+            $redisInfo =redisHashGet('AttrTpl',$cat_no.'_'.$lang);
+            return json_decode($redisInfo);
+        }
+
         $attrModel = new AttrModel();
         $attrTable = $attrModel->getTableName();
         $thisTable = $this->getTableName();
 
-        $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
-        $where = array(
-            "$thisTable.attr_type" => 'CATEGORY',
-            "$thisTable.cat_no" =>strtolower($cat_no),
-            "$thisTable.lang" =>$lang,
-            "$thisTable.status" => self::STATUS_VALID,
-            "$attrTable.status"=> $attrModel::STATUS_VALID,
-            "$attrTable.lang" => $lang,
-        );
-        $result = $this->find($field)
-            ->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no",'LEFT')
-            ->where($where)->select();
-        return $result ? $result : array();
+        try{
+            $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
+            $where = array(
+                "$thisTable.attr_type" => 'CATEGORY',
+                "$thisTable.cat_no" =>strtolower($cat_no),
+                "$thisTable.lang" =>$lang,
+                "$thisTable.status" => self::STATUS_VALID,
+                "$attrTable.status"=> $attrModel::STATUS_VALID,
+                "$attrTable.lang" => $lang,
+            );
+            $result = $this->find($field)
+                ->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no",'LEFT')
+                ->where($where)->select();
+            if($result){
+                //redis缓存
+                redisHashSet('AttrTpl', $cat_no.'_'.$lang, json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
     }
 
     /**
@@ -192,27 +222,42 @@ class GoodsAttrTplModel extends PublicModel
         if(empty($spu) || empty($lang))
             return array();
 
+        //判断redis缓存
+        if(redisHashExist('AttrTpl',$spu.'_'.$lang)){
+            $redisInfo =redisHashGet('AttrTpl',$spu.'_'.$lang);
+            return json_decode($redisInfo);
+        }
+
         $attrModel = new AttrModel();
         $attrTable = $attrModel->getTableName();
         $thisTable = $this->getTableName();
 
-        $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
-        $where = array(
-            "$thisTable.attr_type" => 'PRODUCT',
-            "$thisTable.spu" =>$spu,
-            "$thisTable.lang" =>$lang,
-            "$thisTable.status" => self::STATUS_VALID,
-            "$attrTable.status"=> $attrModel::STATUS_VALID,
-            "$attrTable.lang" => $lang,
-        );
-        $result = $this->find($field)
-            ->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no",'LEFT')
-            ->where($where)->select();
-        return $result ? $result : array();
+        try{
+            $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
+            $where = array(
+                "$thisTable.attr_type" => 'PRODUCT',
+                "$thisTable.spu" =>$spu,
+                "$thisTable.lang" =>$lang,
+                "$thisTable.status" => self::STATUS_VALID,
+                "$attrTable.status"=> $attrModel::STATUS_VALID,
+                "$attrTable.lang" => $lang,
+            );
+            $result = $this->find($field)
+                ->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no",'LEFT')
+                ->where($where)->select();
+            if($result){
+                //redis缓存
+                redisHashSet('AttrTpl', $spu.'_'.$lang, json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
     }
 
     /**
-     * 获取产品属性模板
+     * 获取商品属性模板
      * @author link 2017-06-22
      * @param string $sku  sku编码
      * @param string $lang  语言
@@ -222,23 +267,38 @@ class GoodsAttrTplModel extends PublicModel
         if(empty($sku) || empty($lang))
             return array();
 
+        //判断redis缓存
+        if(redisHashExist('AttrTpl',$sku.'_'.$lang)){
+            $redisInfo =redisHashGet('AttrTpl',$sku.'_'.$lang);
+            return json_decode($redisInfo);
+        }
+
         $attrModel = new AttrModel();
         $attrTable = $attrModel->getTableName();
         $thisTable = $this->getTableName();
 
-        $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
-        $where = array(
-            "$thisTable.attr_type" => 'GOODS',
-            "$thisTable.sku" =>$sku,
-            "$thisTable.lang" =>$lang,
-            "$thisTable.status" => self::STATUS_VALID,
-            "$attrTable.status"=> $attrModel::STATUS_VALID,
-            "$attrTable.lang" => $lang,
-        );
-        $result = $this->find($field)
-            ->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no",'LEFT')
-            ->where($where)->select();
-        return $result ? $result : array();
+        try{
+            $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
+            $where = array(
+                "$thisTable.attr_type" => 'GOODS',
+                "$thisTable.sku" =>$sku,
+                "$thisTable.lang" =>$lang,
+                "$thisTable.status" => self::STATUS_VALID,
+                "$attrTable.status"=> $attrModel::STATUS_VALID,
+                "$attrTable.lang" => $lang,
+            );
+            $result = $this->find($field)
+                ->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no",'LEFT')
+                ->where($where)->select();
+            if($result){
+                //redis缓存
+                redisHashSet('AttrTpl', $sku.'_'.$lang, json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
     }
 
 }
