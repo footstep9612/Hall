@@ -74,7 +74,7 @@ class InquiryItemModel extends PublicModel {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
                 return $this->where($where)
-                    ->page($page, $pagesize)
+                    //->page($page, $pagesize)
                     ->select();
             } else {
                 return $this->where($where)->select();
@@ -212,7 +212,8 @@ class InquiryItemModel extends PublicModel {
     }
 
     /**
-     *
+     * 返回格式化时间
+     * @author zhangyuliang
      */
     public function getTime(){
         return date('Y-m-d h:i:s',time());
