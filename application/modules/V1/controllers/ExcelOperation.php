@@ -5,9 +5,22 @@
  * Class ExcelOperationController
  * @author maimaiti
  */
-class ExcelOperationController extends Yaf_Controller_Abstract
+class ExcelOperationController extends PublicController
 {
 
+    /**
+     * 测试接口
+     */
+    public function testAction()
+    {
+        if (!$this->getRequest()->isPost())
+        {
+            $response = ['code'=>400,'message'=>'BadRequest...','data'=>[]];
+            exit(json_encode($response));
+        }
+        $response = ['code'=>200,'message'=>'Response successfuly...','data'=>[]];
+        exit(json_encode($response));
+    }
 
     /**
      * 报价单Excel导出api接口
@@ -450,20 +463,5 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter,"ExcelFiles","sku.xls");
 
-    }
-
-
-    /**
-     * 测试接口
-     */
-    public function testAction()
-    {
-        if (!$this->getRequest()->isPost())
-        {
-            $response = ['code'=>400,'message'=>'BadRequest...','data'=>[]];
-            exit(json_encode($response));
-        }
-        $response = ['code'=>200,'message'=>'Response successfuly...','data'=>[]];
-        exit(json_encode($response));
     }
 }
