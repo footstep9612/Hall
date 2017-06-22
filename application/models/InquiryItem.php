@@ -45,7 +45,6 @@ class InquiryItemModel extends PublicModel {
         if (!empty($condition['brand'])) {
             $where['brand'] = $condition['brand'];
         }
-        $where['status'] = isset($condition['status'])?$condition['status']:'INVALID';
         return $where;
     }
 

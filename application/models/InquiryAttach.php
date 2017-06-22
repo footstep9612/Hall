@@ -116,7 +116,6 @@ class InquiryAttachModel extends PublicModel {
      */
     public function delete_data($createcondition = []) {
         $where['id'] = $createcondition['id'];
-        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         try {
             return $this->where($where)->delete();
