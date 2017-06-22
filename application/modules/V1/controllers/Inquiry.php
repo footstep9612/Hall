@@ -177,17 +177,19 @@ class InquiryController extends PublicController {
 
     //添加明细
     public function addItemAction() {
-        $Item = new InquiryItemodel();
+        $Item = new InquiryItemModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
         $id = $Item->add_data($data);
-        //var_dump($rs);die;
+  
         if(!empty($id)){
             $this->setCode(1);
             $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('保存失败!');
+            $this->jsonReturn();
         }
 
     }

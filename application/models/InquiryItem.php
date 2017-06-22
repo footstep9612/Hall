@@ -1,4 +1,5 @@
 <?php
+
 /**
  * name: InquiryItem
  * desc: 询价单明细表
@@ -6,7 +7,7 @@
  * Date: 2017/6/17
  * Time: 10:54
  */
-class InquiryItemodel extends PublicModel {
+class InquiryItemModel extends PublicModel {
 
     protected $dbName = 'erui_db_ddl_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
@@ -67,15 +68,15 @@ class InquiryItemodel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        $page = $condition['page']?$condition['page']:1;
-        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
+        $page = $condition['page'] ? $condition['page'] : 1;
+        $pagesize = $condition['countPerPage'] ? $condition['countPerPage'] : 10;
 
         try {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
                 return $this->where($where)
-                    ->page($page, $pagesize)
-                    ->select();
+                                ->page($page, $pagesize)
+                                ->select();
             } else {
                 return $this->where($where)->select();
             }
@@ -90,12 +91,16 @@ class InquiryItemodel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
+
+
         $data = $this->create($createcondition);
         $data['status'] = 'INVALID';
 
         try {
             return $this->add($data);
         } catch (Exception $e) {
+
+            echo $e->getMessage();
             return false;
         }
     }
@@ -107,7 +112,7 @@ class InquiryItemodel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function update_data($createcondition =  []) {
+    public function update_data($createcondition = []) {
         $where['inquiry_no'] = $createcondition['inquiry_no'];
         $where['id'] = $createcondition['id'];
         switch ($createcondition['status']) {
@@ -126,7 +131,6 @@ class InquiryItemodel extends PublicModel {
         } catch (Exception $e) {
             return false;
         }
-
     }
 
     /**
@@ -135,7 +139,7 @@ class InquiryItemodel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function delete_data($createcondition =  []) {
+    public function delete_data($createcondition = []) {
         $where['id'] = $createcondition['id'];
 
         try {
@@ -144,4 +148,5 @@ class InquiryItemodel extends PublicModel {
             return false;
         }
     }
+
 }
