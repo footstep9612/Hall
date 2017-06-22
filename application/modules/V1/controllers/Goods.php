@@ -16,7 +16,6 @@ class GoodsController extends PublicController
     }
 
     /**
-<<<<<<< HEAD
      * sku属性详情a
      */
     public function attrInfoAction()
@@ -46,8 +45,6 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-=======
->>>>>>> 6208908e474abdd3dd726d5381f637f9f026cbd5
      * sku属性查询数据编辑p
      */
     public function getInfoAction()
