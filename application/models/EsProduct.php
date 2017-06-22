@@ -15,7 +15,7 @@ class EsProductModel extends PublicModel {
 
 //put your code here
     protected $tableName = 'product';
-    protected $dbName = 'erui_db_ddl_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
 
     public function __construct($str = '') {
         parent::__construct($str = '');
