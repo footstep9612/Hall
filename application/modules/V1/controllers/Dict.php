@@ -182,13 +182,13 @@ class DictController extends Yaf_Controller_Abstract {
         }
         $market_area_country = new MarketAreaCountryModel();
         if(empty($where)&&empty($limit)){
-            if(redisHashExist('marketAreaCountryList',$lang)){
-                $arr = json_decode(redisHashGet('marketAreaCountryList',$lang),true);
+            if(redisExist('marketAreaCountryList')){
+                $arr = json_decode(redisGet('marketAreaCountryList'),true);
             }else{
                 $arr = $market_area_country->getlist($where,$limit); //($this->put_data);
-
                 if($arr){
-                    redisHashSet('marketAreaCountryList', $lang, json_encode($arr));
+                    redisSet('marketAreaCountryList', json_encode($arr));
+                    //var_dump(redisGet('marketAreaCountryList'));
                 }
             }
         }else{

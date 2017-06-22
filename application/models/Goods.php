@@ -7,10 +7,6 @@
  */
 class GoodsModel extends PublicModel
 {
-    //数据库 表映射
-    protected $dbName = 'erui_goods';
-    protected $tableName = 'goods';
-
     //状态
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试；
@@ -20,6 +16,13 @@ class GoodsModel extends PublicModel
 
     public function __construct()
     {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj=Yaf_Registry::get("config");
+        $config_db=$config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'goods';
+
         parent::__construct();
     }
 
@@ -234,6 +237,7 @@ class GoodsModel extends PublicModel
     }
 
     /**
+
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
@@ -328,6 +332,24 @@ class GoodsModel extends PublicModel
         }
 
     }
-}
 
+
+
+    /**
+     * 根据sku获取spu
+     * @param string $sku sku编码
+     * @return bool
+     */
+    public function getSpubySku($sku='',$lang =''){
+        if(empty($sku) || empty($lang))
+            return false;
+
+        $result =$this->field('spu')->where(array('sku'=>$sku,'lang'=>$lang,'status'=>self::STATUS_VALID))->find();
+        if($result){
+            return $result['spu'];
+        }
+        return false;
+    }
+
+}
 
