@@ -22,41 +22,48 @@ class GoodsAchModel extends PublicModel
     {
         $field = 'attach_type,attach_name,attach_url,sort_order,status';
         try {
-            $result = $this->field($field)
-                            ->where($where)
-                            ->select();
-            if ($result) {
-                //附件分组
-                /**
-                 * SMALL_IMAGE-小图；
-                 * MIDDLE_IMAGE-中图；
-                 * BIG_IMAGE-大图；
-                 * DOC-文档（包括图片和各种文档类型）
-                 * */
-                foreach ($result as $val) {
-                    //$res = array();
-                    switch ($val['attach_type']) {
-                        case 'SMALL_IMAGE':
-                            $group = 'SMALL_IMAGE';
-                            break;
-                        case 'MIDDLE_IMAGE':
-                            $group = 'MIDDLE_IMAGE';
-                            break;
-                        case 'BIG_IMAGE':
-                            $group = 'BIG_IMAGE';
-                            break;
-                        case 'DOC':
-                            $group = 'DOC';
-                            break;
-                        default:
-                            $group = 'OTHERS';
-                            break;
-                    }
-                    $result[$group] = $val;
-                }
-                return $result;
+            $key_redis = md5(json_encode($where.time()));
+            if(redisExist($key_redis)){
+                $result = redisHashGet('attachs',$key_redis);
+                return $result ? $result : array();
             } else {
-                return array();
+                $result = $this->field($field)
+                    ->where($where)
+                    ->select();
+                if ($result) {
+                    //附件分组
+                    /**
+                     * SMALL_IMAGE-小图；
+                     * MIDDLE_IMAGE-中图；
+                     * BIG_IMAGE-大图；
+                     * DOC-文档（包括图片和各种文档类型）
+                     * */
+                    foreach ($result as $val) {
+                        //$res = array();
+                        switch ($val['attach_type']) {
+                            case 'SMALL_IMAGE':
+                                $group = 'SMALL_IMAGE';
+                                break;
+                            case 'MIDDLE_IMAGE':
+                                $group = 'MIDDLE_IMAGE';
+                                break;
+                            case 'BIG_IMAGE':
+                                $group = 'BIG_IMAGE';
+                                break;
+                            case 'DOC':
+                                $group = 'DOC';
+                                break;
+                            default:
+                                $group = 'OTHERS';
+                                break;
+                        }
+                        $result[$group] = $val;
+                    }
+                    redisHashSet('attachs',$key_redis,$result);
+                    return $result;
+                } else {
+                    return array();
+                }
             }
         }catch (Exception $e){
             return false;

@@ -125,13 +125,42 @@ class LoginController extends Yaf_Controller_Abstract {
         $id=$model->create_data($arr);
         if($id){
             $arr['id'] = $id;
-            echo json_encode(array("code" => "01", "data"=>$arr, "message" => "提交成功"));
+            echo json_encode(array("code" => "1", "data"=>$arr, "message" => "提交成功"));
             exit();
         }else{
             echo json_encode(array("code" => "-101", "message" => "数据添加失败"));
             exit();
         }
     }
-
+    //获取部门信息
+    public function groupListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['parent_id'])){
+            $where['parent_id'] = $data['parent_id'];
+        }
+        if(!empty($data['name'])){
+            $where['name'] = $data['name'];
+        }
+        if(!empty($data['page'])){
+            $limit['page'] = $data['page'];
+        }
+        if(!empty($data['countPerPage'])){
+            $limit['num'] = $data['countPerPage'];
+        }
+        $model_group = new GroupModel();
+        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -101;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+        echo json_encode($datajson);
+        exit();
+    }
 
 }

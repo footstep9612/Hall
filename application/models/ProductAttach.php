@@ -41,4 +41,17 @@ class ProductAttachModel extends PublicModel{
         }
         return array();
     }
+
+    /**
+     * 添加附件
+     * @param array $data
+     * @return bool|mixed
+     */
+    public function addAttach($data=[]){
+        if(empty($data))
+            return false;
+        $data['status'] = self::STATUS_CHECKING;
+        $data['created_at'] = date('Y-m-d H:i:s',time());
+        return $this->add($data);
+    }
 }

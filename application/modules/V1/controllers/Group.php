@@ -18,9 +18,6 @@ class GroupController extends PublicController {
     }
 
     public function listAction() {
-//        $reids=new phpredis();
-//        $reids->set("name",'eww');
-//        var_dump($reids->get("name"));die;
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
