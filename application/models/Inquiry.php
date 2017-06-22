@@ -8,7 +8,7 @@
  */
 class InquiryModel extends PublicModel {
 
-    protected $dbName = 'erui_db_ddl_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry'; //数据表表名
 
     const STATUS_DRAFT = 'DRAFT'; //DRAFT-草稿；
@@ -87,16 +87,16 @@ class InquiryModel extends PublicModel {
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
         $filed = 'id,inquiry_no,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
-        $page = $condition['page']?$condition['page']:1;
-        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
+        $page = isset($condition['page'])?$condition['page']:1;
+        $pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
 
         try {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
-                return $this->where($where)
-                    ->page($page, $pagesize)
-                    ->field($filed)
-                    ->select();
+                return $this->where($where)->field($filed)->select();
+                    //->page($page, $pagesize)
+                    //->field($filed)
+                    //->select();
             } else {
                 return $this->where($where)->select();
             }
@@ -129,7 +129,11 @@ class InquiryModel extends PublicModel {
      */
     public function add_data($createcondition = []) {
         $data = $this->create($createcondition);
-        $data['inquiry_status'] = STATUS_DRAFT;
+        $data['inquiry_status'] = self::STATUS_DRAFT;
+        $data['quote_status'] = self::STATUS_NOT_QUOTED;
+        $data['biz_quote_status'] = self::STATUS_NOT_QUOTED;
+        $data['logi_quote_status'] = self::STATUS_NOT_QUOTED;
+        $data['created_at'] = $this->getTime();
 
         try {
             return $this->add($data);
@@ -148,46 +152,6 @@ class InquiryModel extends PublicModel {
     public function update_data($createcondition = []) {
         $data = $this->create($createcondition);
         $where['inquiry_no'] = $createcondition['inquiry_no'];
-
-        switch ($createcondition['inquiry_status']) {
-            case self::STATUS_DRAFT:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_SENT:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_DELETED:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_CANCELED:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_INVALID:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            default : $data['inquiry_status'] = self::STATUS_DRAFT;
-                break;
-        }
-
-        switch ($createcondition['quote_status']) {
-            case self::STATUS_NOT_QUOTED:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_ONGOING:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_APPROVED:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_APPROVING:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_WITHDREW:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            default : $data['inquiry_status'] = self::STATUS_NOT_QUOTED;
-                break;
-        }
 
         try {
             return $this->where($where)->save($data);
@@ -209,5 +173,13 @@ class InquiryModel extends PublicModel {
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * 返回格式化时间
+     * @author zhangyuliang
+     */
+    public function getTime(){
+        return date('Y-m-d h:i:s',time());
     }
 }

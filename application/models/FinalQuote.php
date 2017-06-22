@@ -1,29 +1,30 @@
 <?php
 /**
- * @desc 报价单明细模型
- * @author liujf 2017-06-17
+ * @desc 最终报价单模型
+ * @author liujf 2017-06-21
  */
-class QuoteItemModel extends PublicModel {
+class FinalQuoteModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
-    protected $tableName = 'quote_item';
+    protected $tableName = 'final_quote';
     
     public function __construct() {
         parent::__construct();
     }
-
+    
 	/**
-     * @desc 获取报价单项目列表
+     * @desc 获取报价单详情
  	 * @author liujf 2017-06-17
      * @param array $condition
      * @return array
      */
-    public function getItemList($condition) {
+    public function getDetail($condition) {
+    	
     	if(isset($condition['inquiry_no'])) {
     		$where['inquiry_no'] = $condition['inquiry_no'];
     	}
     	
-        return $this->where($where)->select();
-    }
+        return $this->where($where)->find();
+    }   
 
 }
