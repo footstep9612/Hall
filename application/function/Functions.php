@@ -1301,3 +1301,36 @@ function createSpu(){
     $rand = rand(0,9999999);
     return str_pad( $rand ,7,"0",STR_PAD_LEFT);
 }
+
+/**
+ * 生成二维码
+ * 这里事先预留了个二维码扩展，方便后期使用与维护（待实现）
+ * @param string $url
+ * @param string $logo logo图地址
+ * @param int $msize 二维码大小
+ * @param char $error_level 容错级别
+ * @param string 二维码地址
+ */
+function createQrcode($url='',$logo='',$msize=6,$error_level='L'){
+    if(empty($url))
+        return '';
+
+    return '';
+}
+
+/**
+ * 获取当前用户信息
+ * @return array|bool
+ */
+function getLoinInfo(){
+    $jsondata = json_decode(file_get_contents("php://input"), true);
+    $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
+    $token = (isset($jsondata['token']) && !empty($jsondata['token'])) ? $jsondata['token'] : '';
+    if(isset($post['token']) && !empty($post['token'])){
+        $token = $post['token'];
+    }
+    if(empty($token))
+        return array();
+    $tokeninfo = JwtInfo($token); //解析token
+    return $tokeninfo;
+}

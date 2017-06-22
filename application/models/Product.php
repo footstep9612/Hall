@@ -6,6 +6,8 @@
  * Time: 18:52
  */
 class ProductModel extends PublicModel{
+    protected $module = '';
+
     //数据库 表映射
     protected $dbName = 'erui_db_ddl_goods';
     protected $tableName = 'product';
@@ -186,6 +188,13 @@ class ProductModel extends PublicModel{
         if(empty($input))
             return false;
 
+        //获取当前模块地址
+        $config_obj = Yaf_Registry::get("config");
+        $this_module = $config_obj->myhost.$this->module;
+
+        //获取当前用户信息
+        $userInfo = getLoinInfo();
+
         $spu = isset($input['spu']) ? trim($input['spu']) : createSpu();    //不存在生产spu
         $this->startTrans();
         try{
@@ -198,7 +207,6 @@ class ProductModel extends PublicModel{
                         'name'=>$item['name'],
                         'show_name' => isset($item['show_name']) ? $item['show_name'] : '',
                         'meterial_cat_no' => $item['meterial_cat_no'],
-                       // 'show_cat_no' => isset($item['show_cat_no']) ? $item['show_cat_no'] : '',    //后期实现
                         'brand' => $item['brand'],
                         'exe_standard' => isset($item['exe_standard']) ? $item['exe_standard'] : '',    //执行标准
                         'profile' => isset($item['profile']) ? $item['profile'] : '',    //产品简介
@@ -210,18 +218,22 @@ class ProductModel extends PublicModel{
                     //不存在添加，存在则为修改
                     if(!isset($input['spu'])){
                         $data['spu'] = $spu;
-                        $data['qrcode'] = 'abc123';    //生成spu二维码    冗余字段这块还要看后期需求是否分语言
-                        $data['created_by'] = '';    //创建人
+                        $data['qrcode'] = createQrcode($this_module.'/product/info/'.$spu);    //生成spu二维码    冗余字段这块还要看后期需求是否分语言
+                        $data['created_by'] = $userInfo['name'];    //创建人
                         $data['created_at'] = date('Y-m-d H:i:s',time());
                         $data['updated_at'] = date('Y-m-d H:i:s',time());    //修改时间
                         $this->add($data);
                     }else{
-                        $data['updated_by'] = '';    //修改人
+                        $data['updated_by'] = $userInfo['name'];    //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s',time());    //修改时间
                         $this->where(array('spu'=>trim($input['spu']),'lang'=>$key))->save();
                     }
                 }elseif($key == 'attachs'){
                     if($item){
+                        //验证附件
+                        if(!$this->checkAttachImage($item)){
+                            jsonReturn('','1000','产品图不能为空');
+                        }
                         foreach($item as $atta){
                             $data = array(
                                 'spu' => $spu,
@@ -256,6 +268,7 @@ class ProductModel extends PublicModel{
      *      array(
      *          'name'=>array('required'),
      *          'key'=>array('method','fun')
+     *      )
      * )
      */
     private function checkParam($param=[],$field=[]){
@@ -284,6 +297,32 @@ class ProductModel extends PublicModel{
             continue;
         }
         return $param;
+    }
+
+    /**
+     * 验证附件
+     * 这里只验证图片附件是否为空
+     * @param array $item 附件集
+     * @param 空返回false,否则返回true
+     */
+    public function checkAttachImage($item){
+        if(empty($item))
+            return false;
+        foreach($item as $r){
+            if(in_array($r['attach_type'],array('SMALL_IMAGE','MIDDLE_IMAGE','BIG_IMAGE'))){
+                return true;
+            }
+            continue;
+        }
+        return false;
+    }
+
+    /**
+     * 设置当前module
+     * @param $module
+     */
+    public function setModule($module){
+        $this->module = $module;
     }
 
 }
