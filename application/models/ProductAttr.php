@@ -5,7 +5,8 @@
  * Date: 2017/6/17
  * Time: 15:58
  */
-class ProductAttrModel extends PublicModel{
+class ProductAttrModel extends PublicModel
+{
     //数据库 表映射
     protected $dbName = 'erui_db_ddl_goods';
     protected $tableName = 'product_attr';
@@ -21,56 +22,77 @@ class ProductAttrModel extends PublicModel{
      * @param string $lang
      * @return array|bool|mixed
      */
-    public function getAttrBySpu($spu='',$lang=''){
-        if($spu=='')
+    public function getAttrBySpu($spu = '', $lang = '')
+    {
+        if ($spu == '')
             return false;
-
-        $field = 'lang,attr_group,attr_no,attr_name,attr_value_type,attr_value';
+        $field = 'lang,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
         $condition = array(
             'spu' => $spu,
             'status' => self::STATUS_VALID
         );
-        if($lang!=''){
+        if ($lang != '') {
             $condition['lang'] = $lang;
         }
-        $result = $this->field($field)->where($condition)->order('created_at DESC')->select();
 
-        if($result){
-            //按语言树形结构
+        //缓存数据redis查询
+        $key_redis = md5(json_encode(array('spu' => $spu, 'status' => self::STATUS_VALID) . time()));
+        if (redisExist($key_redis)) {
+            $result = redisHashGet('pattrs',$key_redis);
+            //判断语言,返回对应语言集
             $data = array();
-            foreach($result as $item){
-                /**
-                 * 属性组: 适用范围、技术参数、执行标准、产品优势、图标、产品图片、附件,其他　
-                 * !!!!!! 注意：这里的属性组定死了，如果后期改动了，要及时修改ｓｗｉｔｃｈ对应
-                 **/
-                $group = 'other';
-                switch($item['attr_group']){
-                    case '适用范围':
-                        $group = 'scope';
-                        break;
-                    case '技术参数':
-                        $group = 'tech';
-                        break;
-                    case '执行标准':
-                        $group = 'exe';
-                        break;
-                    case '产品优势':
-                        $group = 'advantage';
-                        break;
-                    case '图标':
-                        $group = 'ico';
-                        break;
-                    case '产品图片':
-                        $group = 'images';
-                        break;
-                    case '附件':
-                        $group = 'attach';
-                        break;
+            if(''!=$lang){
+                foreach($result as $val) {
+                    if ($val['lang'] == $lang) {
+                        $data[$val['lang']] = $val;
+                    }
                 }
-                $data[$item['lang']][$group][] = $item;
+                return $data ? $data : array();
+            } else{
+                return $result ? $result : array();
             }
-            $result = $data;
+        } else {
+            $result = $this->field($field)->where($condition)->select();
+
+            if ($result) {
+                //按语言树形结构
+                /**
+                 * 属性分类:一级
+                 *   goods_flag - 商品属性
+                 *   spec_flag - 规格型号
+                 *   logi_flag  - 物流属性
+                 *   hs_flag  - 申报要素
+                 *   Others - 其他　
+                 */
+                $attrs = array();
+                foreach ($result as $item) {
+                    $group1 = '';
+                    if ($item['goods_flag'] == 'Y') {
+                        $group1 = 'goods_flag';
+                        $attrs[$item['lang']][$group1][] = $item;
+                    }
+                    if ($item['logi_flag'] == 'Y') {
+                        $group1 = 'logi_flag';
+                        $attrs[$item['lang']][$group1][] = $item;
+                    }
+                    if ($item['hs_flag'] == 'Y') {
+                        $group1 = 'hs_flag';
+                        $attrs[$item['lang']][$group1][] = $item;
+                    }
+                    if ($item['spec_flag'] == 'Y') {
+                        $group1 = 'spec_flag';
+                        $attrs[$item['lang']][$group1][] = $item;
+                    }
+                    if ($group1 == '') {
+                        $group1 = 'others';
+                        $attrs[$item['lang']][$group1][] = $item;
+                    }
+                }
+                redisHashSet('pattrs', $key_redis, $attrs);
+                return $attrs;
+            } else {
+                return array();
+            }
         }
-        return $result ? $result : array();
     }
 }

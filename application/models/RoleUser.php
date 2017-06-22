@@ -9,13 +9,16 @@
 /**
  * Description of User
  *
- * @author jhw
+ * @author zyg
  */
-class GroupModel extends PublicModel {
+class RoleUserModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'group';
-    Protected $autoCheckFields = true;
+    protected $tableName = 'role_user';
+    protected $table_name= 't_role_user';
+    protected $table_role= 't_role';
+    protected $table_url_perm= 't_url_perm';
+    Protected $autoCheckFields = false;
 
     public function __construct($str = '') {
         parent::__construct($str = '');
@@ -28,20 +31,20 @@ class GroupModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='id desc') {
-        $data["status"] = 'NORMAL';
-        if(!empty($limit)){
-            return $this->field('id,parent_id,name,description')
-                            ->where($data)
-                            ->limit($limit['page'] . ',' . $limit['num'])
-                            ->order($order)
-                            ->select();
-        }else{
-            return $this->field('id,parent_id,name,description')
-                ->where($data)
-                ->order($order)
-                ->select();
+    public function getRoleslist($where,$order='id desc') {
+        $sql = 'SELECT `t_role_user`.`role_id`,`user_id`, `t_role`.`name`,`t_role_access_perm`.`url_perm_id`,`t_url_perm`.`url`, `t_url_perm`.`description` ';
+        $sql .= ' FROM '.$this->table_name;
+        $sql .= ' LEFT JOIN  `t_role` ON `t_role_user`.`role_id` =`t_role`.`id`';
+        $sql .= ' LEFT JOIN  `t_role_access_perm` ON `t_role_access_perm`.`role_id` =`t_role`.`id`';
+        $sql .= ' LEFT JOIN  `t_url_perm` ON `t_url_perm`.`id` =`t_role_access_perm`.`url_perm_id`';
+        $sql_where = '';
+        if(empty($where['user_id'])) {
+            $sql_where .= ' WHERE `user_id`=' . $where['user_id'];
         }
+        if ( $where ){
+            $sql .= $sql_where;
+        }
+        return $this->query( $sql );
     }
 
     /**
@@ -54,7 +57,7 @@ class GroupModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,parent_id,name,description,status')
+                ->field('id,name,description,status')
                 ->find();
             return $row;
         }else{
@@ -64,7 +67,7 @@ class GroupModel extends PublicModel {
 
     /**
      * 删除数据
-     * @param  int  $id
+     * @param  int $id id
      * @return bool
      * @author jhw
      */
@@ -79,15 +82,12 @@ class GroupModel extends PublicModel {
     }
 
     /**
-     * 修改数据
+     * 删除数据
      * @param  int $id id
      * @return bool
      * @author jhw
      */
     public function update_data($data,$where) {
-        if(isset($data['parent_id'])){
-            $arr['parent_id'] = $data['parent_id'];
-        }
         if(isset($data['parent_id'])){
             $arr['parent_id'] = $data['parent_id'];
         }
@@ -101,7 +101,7 @@ class GroupModel extends PublicModel {
             $arr['status'] = $data['status'];
         }
         if(!empty($where)){
-            return $this->where($where)->save($arr);
+            return $this->where($where)->save($data);
         }else{
             return false;
         }
@@ -118,8 +118,6 @@ class GroupModel extends PublicModel {
     public function create_data($create= []) {
         if(isset($create['parent_id'])){
             $arr['parent_id'] = $create['parent_id'];
-        }else{
-            $arr['parent_id'] = 0;
         }
         if(isset($create['name'])){
             $arr['name'] = $create['name'];

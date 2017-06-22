@@ -9,190 +9,205 @@
 class InquiryController extends PublicController {
 
     public function __init() {
-        $this->put_data = json_decode(file_get_contents("php://input"), true);
-        //   parent::__init();
+        parent::__init();
+    }
+
+    //返回询价单号
+    public function getInquiryNoAction() {
+        $data['inquiryno'] = $this->getInquirySerialNo();
+        if(!empty($data)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('生成询单号错误!');
+        }
     }
 
     //询价单列表
     public function getListAction(){
         $inquiry = new InquiryModel();
-        //$data = $inquiry->getlist($this->put_data);
-        //$where['start_time'] = '2017-06-15 00:00:00';
-        //$where['end_time'] = '2017-06-17 00:00:00';
-        $where['created_by'] = 'zyl';
+        $where = json_decode(file_get_contents("php://input"), true);
+        //var_dump($where);die;
+        //$where['created_by'] = 'zyl';
         $data = $inquiry->getlist($where);
         //var_dump($data);die;
         if(!empty($data)){
-            $this->respon(1,$data);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
         }else{
-            $this->respon(0,'读取列表为空');
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
         }
     }
 
     //询价单详情
-    public function infoAction() {
+    public function getInfoAction() {
         $inquiry = new InquiryModel();
-        $inquiry_no = '10001';
-        $info = $inquiry->info($inquiry_no);
-        var_dump($info);die;
+        $where = json_decode(file_get_contents("php://input"), true);
+        //$where['inquiry_no'] = '10001';
+        $info = $inquiry->getinfo($where);
+        //var_dump($info);die;
         if(!empty($info)){
-            $this->respon(1,$data);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($info);
         }else{
-            $this->respon(0,'没有找到相关信息！');
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
         }
     }
 
     //添加询价单
     public function addAction(){
         $inquiry = new InquiryModel();
+        $data = json_decode(file_get_contents("php://input"), true);
 
+        $id = $inquiry->add_data($data);
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('添加失败!');
+        }
+    }
+
+    //修改询价单
+    public function updateAction(){
+        $inquiry = new InquiryModel();
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $id = $inquiry->update_data($data);
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('修改失败!');
+        }
     }
 
     //删除询价单
     public function deleteAction() {
-
         $inquiry = new InquiryModel();
-        //$inquiry_no = $this->put_data['inquiry_no'];
-        $inquiry_no = '10001';
-        $rs = $inquiry->delete_data($inquiry_no);
-        var_dump($rs);die;
-        if(!empty($rs)){
-            $this->respon(1,$data);
+        $where = json_decode(file_get_contents("php://input"), true);
+        //$where['inquiry_no'] = '10001';
+        $id = $inquiry->delete_data($where);
+        //var_dump($id);die;
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
         }else{
-            $this->respon(0,'没有找到相关信息！');
+            $this->setCode('-101');
+            $this->setMessage('删除失败!');
         }
 
     }
 
+    //附件列表
+    public function getListAttachAction() {
+        $attach = new InquiryAttachModel();
+        $where = json_decode(file_get_contents("php://input"), true);
+
+        $data = $attach->getlist($where);
+        //var_dump($data);die;
+        if(!empty($data)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
+        }
+    }
+
     //添加附件
     public function addAttachAction() {
-
         $attach = new InquiryAttachModel();
-        if($_GET['inquiry_no']){
-            $data['inquiry_no'] = $this->getRequest()->getQuery('inquiry_no');
-        }else{
-            $this->respon(0,'询单号不存在！');
-        }
-        if($_GET['attach_type']){
-            $data['attach_type'] = $this->getRequest()->getQuery('attach_type');
-        }
-        if($_GET['attach_name']){
-            $data['attach_name'] = $this->getRequest()->getQuery('attach_name');
-        }
-        if($_GET['attach_url']){
-            $data['attach_url'] = $this->getRequest()->getQuery('attach_url');
-        }
+        $data = json_decode(file_get_contents("php://input"), true);
 
-        $rs = $attach->add_data($data);
-        //var_dump($rs);die;
-        if(!empty($rs)){
-            $this->respon(1,$rs);
+        $id = $attach->add_data($data);
+        //var_dump($id);die;
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
         }else{
-            $this->respon(0,'保存失败！');
+            $this->setCode('-101');
+            $this->setMessage('保存失败!');
         }
 
     }
 
     //删除附件
     public function delAttachAction() {
-
         $attach = new InquiryAttachModel();
-        if($_GET['inquiry_no']){
-            $data['inquiry_no'] = $this->getRequest()->getQuery('inquiry_no');
-        }else{
-            $this->respon(0,'询单号不存在！');
-        }
-        if($_GET['id']){
-            $data['id'] = $this->getRequest()->getQuery('id');
-        }else{
-            $this->respon(0,'删除的附件不存在！');
-        }
+        $data = json_decode(file_get_contents("php://input"), true);
 
-        $rs = $attach->delete_data($data);
-        if(!empty($rs)){
-            $this->respon(1,'删除成功！');
+        $id = $attach->delete_data($data);
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
         }else{
-            $this->respon(0,'删除失败！');
+            $this->setCode('-101');
+            $this->setMessage('删除失败!');
+        }
+    }
+
+    //明细列表
+    public function getListItemAction() {
+        $Item = new InquiryItemModel();
+
+        $where = json_decode(file_get_contents("php://input"), true);
+
+        $data = $Item->getlist($where);
+        //var_dump($data);die;
+        if(!empty($data)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
         }
     }
 
     //添加明细
     public function addItemAction() {
+        $Item = new InquiryItemModel();
+        $data = json_decode(file_get_contents("php://input"), true);
 
-        $attach = new InquiryAttachModel();
-        if($_GET['inquiry_no']){
-            $data['inquiry_no'] = $this->getRequest()->getQuery('inquiry_no');
-        }else{
-            $this->respon(0,'询单号不存在！');
-        }
-        if($_GET['sku']){
-            $data['sku'] = $this->getRequest()->getQuery('sku');
-        }
-        if($_GET['model']){
-            $data['model'] = $this->getRequest()->getQuery('model');
-        }
-        if($_GET['spec']){
-            $data['spec'] = $this->getRequest()->getQuery('spec');
-        }
-        if($_GET['brand']){
-            $data['brand'] = $this->getRequest()->getQuery('brand');
-        }
-        if($_GET['quantity']){
-            $data['quantity'] = $this->getRequest()->getQuery('quantity');
-        }
-        if($_GET['unit']){
-            $data['unit'] = $this->getRequest()->getQuery('unit');
-        }
-        if($_GET['description']){
-            $data['description'] = $this->getRequest()->getQuery('description');
-        }
+        //$data['inquiry_no'] = 'INQ_20170607_00003';
+        //$data['quantity'] = 100;
 
-        $rs = $attach->add_data($data);
-        //var_dump($rs);die;
-        if(!empty($rs)){
-            $this->respon(1,$rs);
+        $id = $Item->add_data($data);
+        //var_dump($id);die;
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
         }else{
-            $this->respon(0,'保存失败！');
+            $this->setCode('-101');
+            $this->setMessage('保存失败!');
         }
 
     }
 
     //删除附件
     public function delItemAction() {
+        $Item = new InquiryItemModel();
+        $data = json_decode(file_get_contents("php://input"), true);
 
-        $attach = new InquiryAttachModel();
-        if($_GET['inquiry_no']){
-            $data['inquiry_no'] = $this->getRequest()->getQuery('inquiry_no');
+        $id = $Item->delete_data($data);
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
         }else{
-            $this->respon(0,'询单号不存在！');
-        }
-        if($_GET['id']){
-            $data['id'] = $this->getRequest()->getQuery('id');
-        }else{
-            $this->respon(0,'删除的附件不存在！');
-        }
-
-        $rs = $attach->delete_data($data);
-        if(!empty($rs)){
-            $this->respon(1,'删除成功！');
-        }else{
-            $this->respon(0,'删除失败！');
+            $this->setCode('-101');
+            $this->setMessage('删除失败!');
         }
     }
 
-    //添加明细
-
-    //输出JSON格式
-    protected function respon($code=0, $data, $type = 'JSON') {
-
-        $result['error_code'] = $code;
-        if( $code ){
-            $result['data'] = $data;
-        }else{
-            $result['message'] = $data;
-        }
-        header('Content-Type:application/json; charset=utf-8');
-        exit(json_encode($result));
-
-    }
 }

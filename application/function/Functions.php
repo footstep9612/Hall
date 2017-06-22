@@ -1279,6 +1279,7 @@ function browser_lang(){
  * @param string $message    错误提示
  * @param string $type
  */
+
 function jsonReturn($data,$code=1,$message='', $type = 'JSON') {
     header('Content-Type:application/json; charset=utf-8');
     if($data){
@@ -1291,6 +1292,7 @@ function jsonReturn($data,$code=1,$message='', $type = 'JSON') {
     }else{
         exit(json_encode(array('code'=>$code,'message'=>ErrorMsg::getMessage($code,$message))));
     }
+
 }
 
 /**

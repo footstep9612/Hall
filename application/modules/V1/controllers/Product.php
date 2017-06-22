@@ -120,9 +120,47 @@ class ProductController extends PublicController{
         $result = $goods->getAttrBySpu($spu,$this->lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         }else{
-            echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
+            jsonReturn(array('code' => -1005, 'message' => '获取失败'));
+        }
+        exit;
+    }
+
+
+    /**
+     * SPU属性详情a
+     */
+    public function attrInfoAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if(!empty($data['spu'])){
+            $spu = $data['spu'];
+        } else{
+            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
+            exit();
+        }
+        $lang= !empty($data['lang'])? $data['lang'] : '';
+        //获取产品属性
+        $goods = new ProductAttrModel();
+        $result = $goods->getAttrBySpu($spu,$lang);
+
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn(array('code' => -1006, 'message' => '获取失败'));
         }
         exit;
     }

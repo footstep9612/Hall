@@ -6,7 +6,7 @@
  * Date: 2017/6/17
  * Time: 10:54
  */
-class InquiryItemodel extends PublicModel {
+class InquiryItemModel extends PublicModel {
 
     protected $dbName = 'erui_db_ddl_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
@@ -49,6 +49,17 @@ class InquiryItemodel extends PublicModel {
     }
 
     /**
+     * 获取数据条数
+     * @param mix $condition
+     * @return mix
+     * @author zhangyuliang
+     */
+    public function getcount($condition = []) {
+        $where = $this->getcondition($condition);
+        return $this->where($where)->count('id');
+    }
+
+    /**
      * 获取列表
      * @param mix $condition
      * @return mix
@@ -56,14 +67,20 @@ class InquiryItemodel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
+        $page = $condition['page']?$condition['page']:1;
+        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
 
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            $count = $this->getcount($condition);
-            return $this->where($where)
-                ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                ->select();
-        } else {
-            return $this->where($where)->select();
+        try {
+            if (isset($page) && isset($pagesize)) {
+                $count = $this->getcount($condition);
+                return $this->where($where)
+                    ->page($page, $pagesize)
+                    ->select();
+            } else {
+                return $this->where($where)->select();
+            }
+        } catch (Exception $e) {
+            return false;
         }
     }
 
@@ -73,12 +90,52 @@ class InquiryItemodel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-
         //$data = $this->create($createcondition);
-        $createcondition['status'] = 'INVALID';
+        if(isset($createcondition['inquiry_no'])) {
+            $data['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['quantity'])) {
+            $data['quantity'] = $createcondition['quantity'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['sku'])){
+            $data['sku'] = $createcondition['sku'];
+        }
+        if(isset($createcondition['name_en'])){
+            $data['name_en'] = $createcondition['name_en'];
+        }
+        if(isset($createcondition['name_cn'])){
+            $data['name_cn'] = $createcondition['name_cn'];
+        }
+        if(isset($createcondition['model'])){
+            $data['model'] = $createcondition['model'];
+        }
+        if(isset($createcondition['spec'])){
+            $data['spec'] = $createcondition['spec'];
+        }
+        if(isset($createcondition['brand'])){
+            $data['brand'] = $createcondition['brand'];
+        }
+        if(isset($createcondition['quantity'])){
+            $data['quantity'] = $createcondition['quantity'];
+        }
+        if(isset($createcondition['unit'])){
+            $data['unit'] = $createcondition['unit'];
+        }
+        if(isset($createcondition['description'])){
+            $data['description'] = $createcondition['description'];
+        }
+        $data['status'] = 'INVALID';
+        $data['created_at'] = $this->getTime();
 
-        return $this->add($createcondition);
-
+        try {
+            return $this->add($data);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -89,24 +146,51 @@ class InquiryItemodel extends PublicModel {
      * @author zhangyuliang
      */
     public function update_data($createcondition =  []) {
-
         $where['inquiry_no'] = $createcondition['inquiry_no'];
         $where['id'] = $createcondition['id'];
-        switch ($createcondition['status']) {
 
-            case self::STATUS_DELETED:
-                $data['status'] = $createcondition['status'];
-                break;
-            case self::STATUS_DISABLED:
-                $data['status'] = $createcondition['status'];
-                break;
-            case self::STATUS_NORMAL:
-                $data['status'] = $createcondition['status'];
-                break;
-            default : $data['status'] = self::STATUS_NORMAL;
-                break;
+        if(isset($createcondition['inquiry_no'])) {
+            $data['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
         }
-        return $this->where($where)->save($data);
+        if(isset($createcondition['quantity'])) {
+            $data['quantity'] = $createcondition['quantity'];
+        }
+        if(isset($createcondition['sku'])){
+            $data['sku'] = $createcondition['sku'];
+        }
+        if(isset($createcondition['name_en'])){
+            $data['name_en'] = $createcondition['name_en'];
+        }
+        if(isset($createcondition['name_cn'])){
+            $data['name_cn'] = $createcondition['name_cn'];
+        }
+        if(isset($createcondition['model'])){
+            $data['model'] = $createcondition['model'];
+        }
+        if(isset($createcondition['spec'])){
+            $data['spec'] = $createcondition['spec'];
+        }
+        if(isset($createcondition['brand'])){
+            $data['brand'] = $createcondition['brand'];
+        }
+        if(isset($createcondition['quantity'])){
+            $data['quantity'] = $createcondition['quantity'];
+        }
+        if(isset($createcondition['unit'])){
+            $data['unit'] = $createcondition['unit'];
+        }
+        if(isset($createcondition['description'])){
+            $data['description'] = $createcondition['description'];
+        }
+        $data['status'] = isset($createcondition['status'])?$createcondition['status']:self::STATUS_INVALID;
+
+        try {
+            return $this->where($where)->save($data);
+        } catch (Exception $e) {
+            return false;
+        }
 
     }
 
@@ -116,10 +200,21 @@ class InquiryItemodel extends PublicModel {
      * @return bool
      * @author zhangyuliang
      */
-    public function delete_data($inquiry_no = '') {
+    public function delete_data($createcondition =  []) {
+        $where['id'] = $createcondition['id'];
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
-        $where['inquiry_no'] = $inquiry_no;
-        return $this->where($where)->save(['status' => 'DELETED']);
+        try {
+            return $this->where($where)->save(['status' => 'DELETED']);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 
+    /**
+     *
+     */
+    public function getTime(){
+        return date('Y-m-d h:i:s',time());
     }
 }

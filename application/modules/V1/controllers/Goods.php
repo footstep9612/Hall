@@ -16,6 +16,35 @@ class GoodsController extends PublicController
     }
 
     /**
+     * sku属性详情a
+     */
+    public function attrInfoAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if(!empty($data['sku'])){
+            $sku = $data['sku'];
+        } else{
+            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
+            exit();
+        }
+        $lang= !empty($data['lang'])? $data['lang'] : '';
+        $goods = new GoodsAttrModel();
+        $result = $goods->getAttrBySku($sku,$lang);
+
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn(array('code' => -1001, 'message' => '获取失败'));
+        }
+        exit;
+    }
+    /**
      * sku属性查询数据编辑p
      */
     public function getInfoAction()
@@ -33,9 +62,15 @@ class GoodsController extends PublicController
         $result = $goods->getAttrBySku($where,$this->lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         }else{
-            echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
+            jsonReturn(array('code' => -1003, 'message' => '获取失败'));
         }
         exit;
     }
@@ -56,9 +91,14 @@ class GoodsController extends PublicController
         $result = $goods->getGoodsInfo($sku,$this->lang);
 
         if($result){
-            echo json_encode(array("code" => "0", "message" => "获取数据成功", "data"=>$result));
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         }else{
-            echo json_encode(array("code" => "-101", "message" => "获取数据失败"));
+            jsonReturn(array('code' => -1002, 'message' => '获取失败'));
         }
         exit;
     }
