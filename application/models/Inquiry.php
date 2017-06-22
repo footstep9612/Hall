@@ -8,7 +8,7 @@
  */
 class InquiryModel extends PublicModel {
 
-    protected $dbName = 'erui_db_ddl_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry'; //数据表表名
 
     const STATUS_DRAFT = 'DRAFT'; //DRAFT-草稿；
