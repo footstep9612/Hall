@@ -5,7 +5,7 @@
  */
 class QuoteModel extends PublicModel {
 
-    protected $dbName = 'erui_db_ddl_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'quote';
     
     public function __construct() {
