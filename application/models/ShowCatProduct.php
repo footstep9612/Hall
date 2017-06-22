@@ -6,17 +6,21 @@
  * Time: 19:24
  */
 class ShowCatProductModel extends PublicModel{
-    //数据库 表映射
-    protected $dbName = 'erui_goods';
-    protected $tableName = 'show_cat_product';
-
     //状态
     const STATUS_DRAFT = 'DRAFT';    //草稿
     const STATUS_APPROVING = 'APPROVING';    //审核
     const STATUS_VALID = 'VALID';    //生效
     const STATUS_DELETED = 'DELETED';    //删除
 
-    public function __construct(){
+    public function __construct()
+    {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj=Yaf_Registry::get("config");
+        $config_db=$config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'show_cat_product';
+
         parent::__construct();
     }
 
