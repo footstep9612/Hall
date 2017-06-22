@@ -5,7 +5,7 @@
  * Class ExcelOperationController
  * @author maimaiti
  */
-class ExcelOperationController extends PublicController
+class ExcelOperationController extends Yaf_Controller_Abstract
 {
 
     /**
@@ -33,8 +33,15 @@ class ExcelOperationController extends PublicController
         {
             jsonReturn(null,-2101,ErrorMsg::getMessage('-2101'));
         }
+        //获取post
+        $raw = json_decode(file_get_contents("php://input"),true);
+        if (!isset($raw['quote_no']))
+        {
+            jsonReturn(null,-2103,ErrorMsg::getMessage('-2103'));
+        }
+
         //后期补上api身份验证相关的逻辑
-        $file = $this->data2excelAction();
+        $file = $this->data2excelAction($raw['quote_no']);
         if (file_exists($file)){
             $returnData = [
                 'code'=>1,
@@ -70,11 +77,19 @@ class ExcelOperationController extends PublicController
      * @author maimaiti
      * @return array $data 返回数据
      */
-    private function getData()
+    private function getData($quote_no)
     {
-        //$obj = new QouteModel();
-        //$data = $obj->field(['id','user_no','name','email','mobile'],false)->select();
-        //return $data;
+        $obj = new QouteModel();
+        $fields = [
+            'quoter',//商务报价人
+            'quoter_email',//商务报价人邮箱
+            'quote_at',//商务报价时间
+            'id',//编号
+            // ...
+        ];
+        $where = ['quote_no'=>$quote_no];
+        $data = $obj->where($where)->field($fields,false)->find();
+        return $data;
     }
 
     /**
@@ -102,7 +117,7 @@ class ExcelOperationController extends PublicController
      * 数据导出为Excel
      * @author maimaiti
      */
-    public function data2excelAction()
+    public function data2excelAction($quote_no)
     {
 
         //加载PHPExcel类,新建Excel表格
@@ -113,8 +128,8 @@ class ExcelOperationController extends PublicController
         $objSheet->setTitle('商务技术报价单');//设置当前sheet标题
 
         //数据重组
-        //$exportData = $this->getData();
-        //p($exportData);
+        $quote = $this->getData($quote_no);
+        //var_dump($quote);die;
 
 
         //3.填充数据
@@ -174,13 +189,13 @@ class ExcelOperationController extends PublicController
 //        $objSheet->getColumnDimension("A")->setWidth('6');
 //        $objSheet->getColumnDimension("B")->setWidth('16');
 
-        $objSheet->setCellValue("A3","报价人 : ")->mergeCells("A3:E3");
+        $objSheet->setCellValue("A3","报价人 : ".$quote['quoter'])->mergeCells("A3:E3");
         $objSheet->setCellValue("A4","电话 : ")->mergeCells("A4:E4");
-        $objSheet->setCellValue("A5","邮箱 : maimt@keruigroup.com")->mergeCells("A5:E5");
+        $objSheet->setCellValue("A5","邮箱 : ".$quote['quoter_email'])->mergeCells("A5:E5");
 
         $objSheet->setCellValue("F3","询价单位 : (加拿大)孙继飞")->mergeCells("F3:R3");
         $objSheet->setCellValue("F4","业务对接人 : 孙继飞")->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5","报价时间 : 2017-04-13")->mergeCells("F5:R5");
+        $objSheet->setCellValue("F5","报价时间 : ".date('Y-m-d',$quote['quote_at']))->mergeCells("F5:R5");
 
         $objSheet->setCellValue("A6",'易瑞国际电子商务有限公司商务技术部')
             //单元格合并
@@ -223,7 +238,7 @@ class ExcelOperationController extends PublicController
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
 
-        $objSheet->setCellValue("A9","1");
+        $objSheet->setCellValue("A9",$quote['id']);
         $objSheet->setCellValue("B9","科瑞");
         $objSheet->setCellValue("C9","kerui");
         $objSheet->setCellValue("D9","1|22|35");
