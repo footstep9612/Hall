@@ -5,7 +5,7 @@
  * Class ExcelOperationController
  * @author maimaiti
  */
-class ExcelOperationController extends Yaf_Controller_Abstract
+class ExcelOperationController extends PublicController
 {
 
 
