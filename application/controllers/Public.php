@@ -18,7 +18,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     public function init() {
         ini_set("display_errors", "On");
-        error_reporting(E_ALL | E_STRICT);
+        error_reporting(E_ERROR | E_STRICT);
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
@@ -40,26 +40,21 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
-
                     $tokeninfo = JwtInfo($token); //解析token
-
-                    $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
-
+                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
 
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
                     } else {
                         $this->user = array(
-
-                            "id" =>$userinfo["id"] ,
-
+                            "id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
                     }
                 } catch (Exception $e) {
-                    // LOG::write($e->getMessage());
+                    LOG::write($e->getMessage());
                     $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                     exit;
                 }
@@ -445,32 +440,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $pad = str_pad($step, 5, '0', STR_PAD_LEFT);
         $code = $prefix . $time . '_' . $pad;
         return $code;
-    }
-
-    /**
-     * 返回josn数据
-     * @author liujf 2017-06-20
-     * @param array $data 数据
-     * @param string $msg 错误消息
-     */
-    public function jsonOutput($data, $msg = '') {
-
-        if ($data) {
-            $this->code = '0';
-            $this->message = '成功';
-            $out = $data;
-        } else {
-            $this->code = '-1';
-            $this->message = '失败';
-            $out = '';
-        }
-
-        if ($msg != '') {
-            $this->code = '-1';
-            $this->message = $msg;
-        }
-
-        $this->jsonReturn($data);
     }
 
 }

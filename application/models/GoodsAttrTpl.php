@@ -6,10 +6,12 @@
 */
 class GoodsAttrTplModel extends PublicModel
 {
+
     //状态
     const STATUS_VALID = 'VALID';    //有效的
     const STATUS_INVALID = 'INVALID';    //无效
     const STATUS_DELETED = 'DELETED';    //删除
+
 
     public function __construct()
     {

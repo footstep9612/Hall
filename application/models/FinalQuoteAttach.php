@@ -1,12 +1,12 @@
 <?php
 /**
- * @desc 报价单附件模型
- * @author liujf 2017-06-17
+ * @desc 最终报价单附件模型
+ * @author liujf 2017-06-21
  */
-class QuoteAttachModel extends PublicModel {
+class FinalQuoteAttachModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
-    protected $tableName = 'quote_attach';
+    protected $tableName = 'final_quote_attach';
     
     public function __construct() {
         parent::__construct();

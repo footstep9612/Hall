@@ -1,12 +1,12 @@
 <?php
 /**
- * @desc 报价单附件模型
- * @author liujf 2017-06-17
+ * @desc 最终报价单明细附件模型
+ * @author liujf 2017-06-21
  */
-class QuoteAttachModel extends PublicModel {
+class FinalQuoteItemAttachModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
-    protected $tableName = 'quote_attach';
+    protected $tableName = 'final_quote_item_attach';
     
     public function __construct() {
         parent::__construct();
@@ -33,7 +33,7 @@ class QuoteAttachModel extends PublicModel {
     }
 
 	/**
-     * @desc 获取报价单附件
+     * @desc 获取报价单明细附件
  	 * @author liujf 2017-06-17
      * @param $condition array
      * @return array

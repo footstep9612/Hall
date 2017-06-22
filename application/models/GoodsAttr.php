@@ -4,24 +4,25 @@
  * Class GoodsAttrModel
  *  @author  klp
  */
-class GoodsAttrModel extends PublicModel
-{
-    protected $dbName = 'erui_db_ddl_goods'; //数据库名称
+class GoodsAttrModel extends PublicModel {
+
+
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
+
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
-
 
     /**
      * 编辑商品属性查询p
      * @param null $where string 条件
      * @return mixed
      */
-    public function getAttrBySku($sku, $lang='')
-    {
+
+    public function getAttrBySku($sku, $lang = '') {
         $where = array(
             'sku' => $sku,
             'status' => self::STATUS_VALID
@@ -47,8 +48,8 @@ class GoodsAttrModel extends PublicModel
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
             $gattrs = $this->field($field)
-                ->where($where)
-                ->select();
+                    ->where($where)
+                    ->select();
 
             //查询产品对应属性
             $productAttr = new ProductAttrModel();
@@ -63,13 +64,13 @@ class GoodsAttrModel extends PublicModel
             $data = array_merge($pattrs, $gattrs);
             //进行属性分组
             /**
-             ** 属性分类:一级
+             * * 属性分类:一级
              *   goods_flag - 商品属性
              *   spec_flag - 规格型号
              *   logi_flag  - 物流属性
              *   hs_flag  - 申报要素
              *   Others - 其他　
-             ** 属性分组:二级
+             * * 属性分组:二级
              *   Specs - 规格
              *   Technical Parameters - 技术参数
              *   Executive Standard - 技术标准
@@ -133,7 +134,6 @@ class GoodsAttrModel extends PublicModel
                 } else {
                     return array();
                 }
-
             }
         }
     }

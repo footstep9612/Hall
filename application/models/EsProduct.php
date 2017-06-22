@@ -15,7 +15,7 @@ class EsProductModel extends PublicModel {
 
 //put your code here
     protected $tableName = 'product';
-    protected $dbName = 'erui_db_ddl_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
 
     public function __construct($str = '') {
         parent::__construct($str = '');
@@ -201,12 +201,18 @@ class EsProductModel extends PublicModel {
         }
         if (isset($condition['show_name'])) {
             $show_name = $condition['show_name'];
-            $body['query']['bool']['must'][] = ['bool' => ['should' => [
-                        [ESClient::MATCH => ['show_name' => $show_name]],
-                        [ESClient::MATCH => ['attrs' => $show_name]],
-                        [ESClient::MATCH => ['specs' => $show_name]],
-                    ]
+
+            $body['query'] = ['multi_match' => [
+                    "query" => $show_name,
+                    "type" => "most_fields",
+                    "fields" => ["show_name", "attrs", 'specs']
             ]];
+//            $body['query']['bool']['must'][] = ['bool' => ['should' => [
+//                        [ESClient::MATCH => ['show_name' => $show_name]],
+//                        [ESClient::MATCH => ['attrs' => $show_name]],
+//                        [ESClient::MATCH => ['specs' => $show_name]],
+//                    ]
+//            ]];
         }
         return $body;
     }
@@ -255,7 +261,7 @@ class EsProductModel extends PublicModel {
             $es = new ESClient();
 
             return $es->setbody($body)
-                            ->setaggs(['field' => 'show_cats'], 'chowcat', 'stats')
+                            ->setaggs('show_cats', 'chowcat', 'terms')
                             ->search($this->dbName, $this->tableName . '_' . $lang, $from);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

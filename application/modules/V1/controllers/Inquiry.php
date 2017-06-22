@@ -22,6 +22,7 @@ class InquiryController extends PublicController {
         }else{
             $this->setCode('-101');
             $this->setMessage('生成询单号错误!');
+            $this->jsonReturn();
         }
     }
 
@@ -40,6 +41,7 @@ class InquiryController extends PublicController {
         }else{
             $this->setCode('-101');
             $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
@@ -57,6 +59,7 @@ class InquiryController extends PublicController {
         }else{
             $this->setCode('-101');
             $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
@@ -69,9 +72,11 @@ class InquiryController extends PublicController {
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('添加失败!');
+            $this->jsonReturn();
         }
     }
 
@@ -84,9 +89,11 @@ class InquiryController extends PublicController {
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('修改失败!');
+            $this->jsonReturn();
         }
     }
 
@@ -100,9 +107,11 @@ class InquiryController extends PublicController {
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('删除失败!');
+            $this->jsonReturn();
         }
 
     }
@@ -121,6 +130,7 @@ class InquiryController extends PublicController {
         }else{
             $this->setCode('-101');
             $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
@@ -138,6 +148,7 @@ class InquiryController extends PublicController {
         }else{
             $this->setCode('-101');
             $this->setMessage('保存失败!');
+            $this->jsonReturn();
         }
 
     }
@@ -151,9 +162,11 @@ class InquiryController extends PublicController {
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('删除失败!');
+            $this->jsonReturn();
         }
     }
 
@@ -172,6 +185,7 @@ class InquiryController extends PublicController {
         }else{
             $this->setCode('-101');
             $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
@@ -184,13 +198,17 @@ class InquiryController extends PublicController {
         //$data['quantity'] = 100;
 
         $id = $Item->add_data($data);
+
         //var_dump($id);die;
+
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('保存失败!');
+            $this->jsonReturn();
         }
 
     }
@@ -204,9 +222,11 @@ class InquiryController extends PublicController {
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('删除失败!');
+            $this->jsonReturn();
         }
     }
 
