@@ -6,7 +6,7 @@
  * Date: 2017/6/16
  * Time: 14:51
  */
-class InquiryController extends PublicController {
+class InquiryController extends Yaf_Controller_Abstract {
 
     public function __init() {
         parent::__init();
@@ -16,7 +16,7 @@ class InquiryController extends PublicController {
     public function getInquiryNoAction() {
         $data['inquiryno'] = $this->getInquirySerialNo();
         if(!empty($data)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
         }else{
@@ -34,7 +34,7 @@ class InquiryController extends PublicController {
         $data = $inquiry->getlist($where);
         //var_dump($data);die;
         if(!empty($data)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
         }else{
@@ -51,7 +51,7 @@ class InquiryController extends PublicController {
         $info = $inquiry->getinfo($where);
         //var_dump($info);die;
         if(!empty($info)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($info);
         }else{
@@ -64,10 +64,11 @@ class InquiryController extends PublicController {
     public function addAction(){
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['inquiryno'] = $this->getInquirySerialNo();
 
         $id = $inquiry->add_data($data);
         if(!empty($id)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
         }else{
             $this->setCode('-101');
@@ -82,7 +83,7 @@ class InquiryController extends PublicController {
 
         $id = $inquiry->update_data($data);
         if(!empty($id)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
         }else{
             $this->setCode('-101');
@@ -98,7 +99,7 @@ class InquiryController extends PublicController {
         $id = $inquiry->delete_data($where);
         //var_dump($id);die;
         if(!empty($id)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
         }else{
             $this->setCode('-101');
@@ -115,7 +116,7 @@ class InquiryController extends PublicController {
         $data = $attach->getlist($where);
         //var_dump($data);die;
         if(!empty($data)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
         }else{
@@ -132,7 +133,7 @@ class InquiryController extends PublicController {
         $id = $attach->add_data($data);
         //var_dump($id);die;
         if(!empty($id)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
         }else{
@@ -149,7 +150,7 @@ class InquiryController extends PublicController {
 
         $id = $attach->delete_data($data);
         if(!empty($id)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
         }else{
             $this->setCode('-101');
@@ -159,14 +160,14 @@ class InquiryController extends PublicController {
 
     //明细列表
     public function getListItemAction() {
-        $Item = new InquiryItemodel();
+        $Item = new InquiryItemModel();
 
         $where = json_decode(file_get_contents("php://input"), true);
 
         $data = $Item->getlist($where);
         //var_dump($data);die;
         if(!empty($data)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
         }else{
@@ -177,13 +178,16 @@ class InquiryController extends PublicController {
 
     //添加明细
     public function addItemAction() {
-        $Item = new InquiryItemodel();
+        $Item = new InquiryItemModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
+        //$data['inquiry_no'] = 'INQ_20170607_00003';
+        //$data['quantity'] = 100;
+
         $id = $Item->add_data($data);
-        //var_dump($rs);die;
+        //var_dump($id);die;
         if(!empty($id)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
         }else{
             $this->setCode('-101');
@@ -194,12 +198,12 @@ class InquiryController extends PublicController {
 
     //删除附件
     public function delItemAction() {
-        $Item = new InquiryItemodel();
+        $Item = new InquiryItemModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
         $id = $Item->delete_data($data);
         if(!empty($id)){
-            $this->setCode(1);
+            $this->setCode('1');
             $this->setMessage('成功!');
         }else{
             $this->setCode('-101');

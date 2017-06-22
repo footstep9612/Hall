@@ -6,7 +6,7 @@
  * Date: 2017/6/17
  * Time: 10:54
  */
-class InquiryItemodel extends PublicModel {
+class InquiryItemModel extends PublicModel {
 
     protected $dbName = 'erui_db_ddl_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
@@ -90,8 +90,46 @@ class InquiryItemodel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-        $data = $this->create($createcondition);
+        //$data = $this->create($createcondition);
+        if(isset($createcondition['inquiry_no'])) {
+            $data['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['quantity'])) {
+            $data['quantity'] = $createcondition['quantity'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['sku'])){
+            $data['sku'] = $createcondition['sku'];
+        }
+        if(isset($createcondition['name_en'])){
+            $data['name_en'] = $createcondition['name_en'];
+        }
+        if(isset($createcondition['name_cn'])){
+            $data['name_cn'] = $createcondition['name_cn'];
+        }
+        if(isset($createcondition['model'])){
+            $data['model'] = $createcondition['model'];
+        }
+        if(isset($createcondition['spec'])){
+            $data['spec'] = $createcondition['spec'];
+        }
+        if(isset($createcondition['brand'])){
+            $data['brand'] = $createcondition['brand'];
+        }
+        if(isset($createcondition['quantity'])){
+            $data['quantity'] = $createcondition['quantity'];
+        }
+        if(isset($createcondition['unit'])){
+            $data['unit'] = $createcondition['unit'];
+        }
+        if(isset($createcondition['description'])){
+            $data['description'] = $createcondition['description'];
+        }
         $data['status'] = 'INVALID';
+        $data['created_at'] = $this->getTime();
 
         try {
             return $this->add($data);
@@ -110,16 +148,43 @@ class InquiryItemodel extends PublicModel {
     public function update_data($createcondition =  []) {
         $where['inquiry_no'] = $createcondition['inquiry_no'];
         $where['id'] = $createcondition['id'];
-        switch ($createcondition['status']) {
-            case self::STATUS_DELETED:
-                $data['status'] = $createcondition['status'];
-                break;
-            case self::STATUS_INVALID:
-                $data['status'] = $createcondition['status'];
-                break;
-            default : $data['status'] = self::STATUS_INVALID;
-                break;
+
+        if(isset($createcondition['inquiry_no'])) {
+            $data['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
         }
+        if(isset($createcondition['quantity'])) {
+            $data['quantity'] = $createcondition['quantity'];
+        }
+        if(isset($createcondition['sku'])){
+            $data['sku'] = $createcondition['sku'];
+        }
+        if(isset($createcondition['name_en'])){
+            $data['name_en'] = $createcondition['name_en'];
+        }
+        if(isset($createcondition['name_cn'])){
+            $data['name_cn'] = $createcondition['name_cn'];
+        }
+        if(isset($createcondition['model'])){
+            $data['model'] = $createcondition['model'];
+        }
+        if(isset($createcondition['spec'])){
+            $data['spec'] = $createcondition['spec'];
+        }
+        if(isset($createcondition['brand'])){
+            $data['brand'] = $createcondition['brand'];
+        }
+        if(isset($createcondition['quantity'])){
+            $data['quantity'] = $createcondition['quantity'];
+        }
+        if(isset($createcondition['unit'])){
+            $data['unit'] = $createcondition['unit'];
+        }
+        if(isset($createcondition['description'])){
+            $data['description'] = $createcondition['description'];
+        }
+        $data['status'] = isset($createcondition['status'])?$createcondition['status']:self::STATUS_INVALID;
 
         try {
             return $this->where($where)->save($data);
@@ -137,11 +202,19 @@ class InquiryItemodel extends PublicModel {
      */
     public function delete_data($createcondition =  []) {
         $where['id'] = $createcondition['id'];
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         try {
             return $this->where($where)->save(['status' => 'DELETED']);
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    /**
+     *
+     */
+    public function getTime(){
+        return date('Y-m-d h:i:s',time());
     }
 }
