@@ -65,6 +65,7 @@ class UserController extends PublicController {
             );
         }
     }
+
     public function excelAction() {
 
         $objPHPExcel = new PHPExcel();

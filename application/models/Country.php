@@ -14,7 +14,7 @@
 class CountryModel extends PublicModel {
 
     //put your code here
-    protected $dbName='erui_db_ddl_dict';
+    protected $dbName='erui_dict';
     protected $tableName = 'country';
     public function __construct($str = '') {
         parent::__construct($str = '');
