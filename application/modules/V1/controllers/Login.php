@@ -76,6 +76,10 @@ class LoginController extends Yaf_Controller_Abstract {
             echo json_encode(array("code" => "-101", "message" => "密码不可以都为空"));
             exit();
         }
+        if(empty($data['group_id'])){
+            echo json_encode(array("code" => "-101", "message" => "部门不能为空"));
+            exit();
+        }
         if(!empty($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
             if(!isMobile($arr['mobile'])){
@@ -124,6 +128,11 @@ class LoginController extends Yaf_Controller_Abstract {
         $arr['user_no'] = $real_num;
         $id=$model->create_data($arr);
         if($id){
+            //添加部门
+            $group['group_id'] = $data['group_id'];
+            $group['user_id'] = $id;
+            $group_user_model = new GroupUserModel();
+            $group_user_model -> create_data($group);
             $arr['id'] = $id;
             echo json_encode(array("code" => "1", "data"=>$arr, "message" => "提交成功"));
             exit();

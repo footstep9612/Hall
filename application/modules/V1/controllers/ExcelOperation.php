@@ -451,4 +451,21 @@ class ExcelOperationController extends Yaf_Controller_Abstract
         return $this->export_to_disc($objWriter,"ExcelFiles","sku.xls");
 
     }
+
+
+
+    /**
+     * 测试接口
+     */
+    public function testAction()
+    {
+        if (!$this->getRequest()->isPost())
+        {
+            $response = ['code'=>400,'message'=>'BadRequest...','data'=>[]];
+            exit(json_encode($response));
+        }
+        $response = ['code'=>200,'message'=>'Response successfuly...','data'=>[]];
+        exit(json_encode($response));
+    }
+
 }

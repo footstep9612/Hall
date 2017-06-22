@@ -47,40 +47,24 @@ class UserController extends PublicController {
         $this->jsonReturn($data);
     }
 
-    public function loginAction() {
-        $model = new UserModel();
-        $this->put_data = ['name' => 'azhong', 'email' => '87725826@qq.com', 'enc_password' => '1234567890'];
-        if (!isset($this->put_data['name'])) {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_USERNAME_CANNOTEMPTY));
-        }
-
-        if (!isset($this->put_data['enc_password'])) {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_PASSWORD_CANNOTEMPTY));
-        }
-
-
-        $userinfo = $model->login($this->put_data['name'], $this->put_data['enc_password']);
-
-        if ($userinfo['id']) {
-            $data['success'] = 1;
-            $data['msg'] = '登录成功!';
-            $jwtclient = new JWTClient();
-            $jwt['uid'] = md5($userinfo['id']);
-            $jwt['ext'] = time();
-            $jwt['iat'] = time();
-            $jwt['account'] = $userinfo['name'];
-            $data['obj'] = ['token' => $jwtclient->encode($jwt)]; //加密
-            $data['jsonStr'] = json_encode($data);
-            $this->jsonReturn($data);
-        } else {
-            $data['success'] = 0;
-            $data['msg'] = '登录失败!';
-            $data['obj'] = [];
-            $data['jsonStr'] = json_encode($data);
-            $this->jsonReturn($data);
+    public function getRoleAction(){
+        if($this->user['id']){
+            $role_user = new RoleUserModel();
+            $where['user_id'] = $this->user['id'];
+            $data = $role_user->getRoleslist($where);
+            $datajson = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $data
+            );
+            jsonReturn($datajson);
+        }else{
+            $datajson = array(
+                'code' => -104,
+                'message' => '用户验证失败',
+            );
         }
     }
-
     public function excelAction() {
 
         $objPHPExcel = new PHPExcel();
@@ -282,46 +266,7 @@ class UserController extends PublicController {
         }
     }
 
-    public function registerAction() {
-        $model = new UserModel();
-        $this->put_data = ['name' => 'azhong', 'email' => '87725826@qq.com', 'enc_password' => '1234567890'];
-        if (!isset($this->put_data['name'])) {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_USERNAME_CANNOTEMPTY));
-        }
-        if (!isset($this->put_data['email'])) {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_EMAIL_CANNOTEMPTY));
-        }
-        if (!isset($this->put_data['enc_password'])) {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_PASSWORD_CANNOTEMPTY));
-        }
-        if ($model->Exist($this->put_data['name'])) {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_NAME_ERR));
-        }
-        if ($model->Exist($this->put_data['email'], 'email')) {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_EMAIL_CANNOTEMPTY));
-        }
-        $flag = $model->create_data($this->put_data);
-        if ($flag) {
-            $data['success'] = 1;
-            $data['msg'] = '注册成功!';
-            $jwtclient = new JWTClient();
-            $jwt['uid'] = md5($userinfo['id']);
-            $jwt['ext'] = time();
-            $jwt['iat'] = time();
-            $jwt['account'] = $userinfo['name'];
-            $data['obj'] = ['token' => $jwtclient->encode($jwt)]; //加密
-            $data['jsonStr'] = json_encode($data);
-            $this->jsonReturn($data);
-            // $this->jsonReturn($model->getMessage(UserModel::MSG_SUCCESS));
-        } else {
-            $data['success'] = 0;
-            $data['msg'] = '注册失败!';
-            $data['obj'] = [];
-            $data['jsonStr'] = json_encode($data);
-            $this->jsonReturn($data);
-            // $this->jsonReturn($model->getMessage(UserModel::MSG_PARAMETER_ERR));
-        }
-    }
+
 
     public function esAction() {
         $es = new ESClient();
