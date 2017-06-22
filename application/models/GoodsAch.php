@@ -6,7 +6,7 @@
 */
 class GoodsAchModel extends PublicModel
 {
-    protected $dbName = 'erui_db_ddl_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attach'; //数据表表名
 
     public function __construct()
@@ -22,8 +22,8 @@ class GoodsAchModel extends PublicModel
     {
         $field = 'attach_type,attach_name,attach_url,sort_order,status';
         try {
-            $key_redis = md5(json_encode($where.time()));
-            if(redisExist($key_redis)){
+            $key_redis = md5(json_encode($where));
+            if(redisHashExist('attachs',$key_redis)){
                 $result = redisHashGet('attachs',$key_redis);
                 return $result ? $result : array();
             } else {
@@ -39,7 +39,7 @@ class GoodsAchModel extends PublicModel
                      * DOC-文档（包括图片和各种文档类型）
                      * */
                     foreach ($result as $val) {
-                        //$res = array();
+                        $group = 'OTHERS';
                         switch ($val['attach_type']) {
                             case 'SMALL_IMAGE':
                                 $group = 'SMALL_IMAGE';

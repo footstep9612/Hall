@@ -8,7 +8,7 @@
 class GoodsModel extends PublicModel
 {
     //数据库 表映射
-    protected $dbName = 'erui_db_ddl_goods';
+    protected $dbName = 'erui_goods';
     protected $tableName = 'goods';
 
     //状态
@@ -35,30 +35,13 @@ class GoodsModel extends PublicModel
             'sku' => $sku,
             'lang'=> $lang
         );
-        //查询商品附件(未分语言)
-        $skuAchModel = new GoodsAchModel();
-        $where['sku'] = $sku;
-        $attach = $skuAchModel->getInfoByAch($where);
 
         try {
             //缓存数据redis
-            $key_redis = md5(json_encode($condition.time()));
-            if(redisExist($key_redis)){
+            $key_redis = md5(json_encode($condition));
+            if(redisHashExist('data',$key_redis)){
                 $result = redisHashGet('data',$key_redis);
-                //判断语言,返回对应语言集
-                $data = array();
-                if(''!=$lang){
-                    foreach($result as $val) {
-                        if ($val['lang'] == $lang) {
-                            $data[$val['lang']] = $val;
-                            $data['attachs'] = $attach ? $attach : array();
-                        }
-                    }
-                    return $data ? $data : array();
-                } else{
-                    $result['attachs'] = $attach ? $attach : array();
-                    return $result ? $result : array();
-                }
+                return $result ? $result : array();
             } else {
                 $result = $this->field($field)->where($condition)->select();
                 if ($result) {
@@ -69,6 +52,12 @@ class GoodsModel extends PublicModel
                     foreach ($result as $k => $v) {
                         $data[$v['lang']] = $v;
                     }
+
+                    //查询商品附件(未分语言)
+                    $skuAchModel = new GoodsAchModel();
+                    $where['sku'] = $sku;
+                    $attach = $skuAchModel->getInfoByAch($where);
+                    $data['attachs'] = $attach ? $attach : array();
 
                     redisHashSet('data',$key_redis,$data);
                     return $data;
@@ -245,4 +234,101 @@ class GoodsModel extends PublicModel
         }
     }
 
+    /**
+     * 新增数据
+     * @param  mix $createcondition 新增条件
+     * @return bool
+     * @author klp
+     */
+    public function create_data($createcondition)
+    {
+        $where = [];
+        $data = $this->condition($createcondition);
+        return $this->where($where)->save($data);
+    }
+
+
+    //公共部分处理
+    public function condition($condition, $username = '')
+    {
+        if ($condition['id']) {
+            $where['id'] = $condition['id'];
+        }
+        if ($condition['lang']) {
+            $data['lang'] = $condition['lang'];
+        }
+        if ($condition['spu']) {
+            $data['spu'] = $condition['spu'];
+        }
+        if ($condition['sku']) {
+            $data['sku'] = $condition['sku'];
+        }
+        if ($condition['cat_no']) {
+            $data['cat_no'] = $condition['cat_no'];
+        }
+        if ($condition['attr_value_type']) {
+            $data['attr_value_type'] = $condition['attr_value_type'];
+        }
+        if ($condition['attr_group']) {
+            $data['attr_group'] = $condition['attr_group'];
+        }
+        if ($condition['sort_order']) {
+            $data['sort_order'] = $condition['sort_order'];
+        }
+        switch ($condition['status']) {
+            case self::STATUS_DELETED:
+                $data['status'] = $condition['status'];
+                break;
+            case self::STATUS_VALID:
+                $data['status'] = $condition['status'];
+                break;
+            case self::STATUS_INVALID:
+                $data['status'] = $condition['status'];
+                break;
+        }
+        $data['created_at'] = date('Y-m-d H:i:s');
+        $data['created_by'] = $username;
+
+        $attrs = array();
+        if ($condition['goods_flag']) {
+            foreach($condition['goods_flag'] as $v){
+                $v['goods_flag'] = 'Y';
+                $v['spec_flag'] = 'N';
+                $v['logi_flag'] = 'N';
+                $v['hs_flag'] = 'N';
+                $r = array_merge($data,$v);
+                $attrs[] = $r;
+            }
+        } elseif($condition['spec_flag']){
+            foreach($condition['spec_flag'] as $v){
+                $v['goods_flag'] = 'N';
+                $v['spec_flag'] = 'Y';
+                $v['logi_flag'] = 'N';
+                $v['hs_flag'] = 'N';
+                $r = array_merge($data,$v);
+                $attrs[] = $r;
+            }
+        } elseif($condition['logi_flag']){
+            foreach($condition['logi_flag'] as $v){
+                $v['goods_flag'] = 'N';
+                $v['spec_flag'] = 'N';
+                $v['logi_flag'] = 'Y';
+                $v['hs_flag'] = 'N';
+                $r = array_merge($data,$v);
+                $attrs[] = $r;
+            }
+        } elseif($condition['hs_flag']){
+            foreach($condition['hs_flag'] as $v){
+                $v['goods_flag'] = 'N';
+                $v['spec_flag'] = 'N';
+                $v['logi_flag'] = 'N';
+                $v['hs_flag'] = 'Y';
+                $r = array_merge($data,$v);
+                $attrs[] = $r;
+            }
+        }
+
+    }
 }
+
+

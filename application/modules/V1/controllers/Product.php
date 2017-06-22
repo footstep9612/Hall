@@ -77,7 +77,6 @@ class ProductController extends PublicController{
         }
         $lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-
             $goodsModel = new GoodsModel();
             $result = $goodsModel->getInfo($this->input['sku'], $lang);
             if ($result) {
@@ -104,8 +103,7 @@ class ProductController extends PublicController{
         if(!empty($data['spu'])){
             $spu = $data['spu'];
         } else{
-            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
-            exit();
+            jsonReturn(array("code" => "-1002", "message" => "spu不可以为空"));
         }
         $lang= !empty($data['lang'])? $data['lang'] : '';
         //获取产品属性
@@ -135,8 +133,7 @@ class ProductController extends PublicController{
         if(!empty($data['spu'])){
             $spu = $data['spu'];
         } else{
-            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
-            exit();
+            jsonReturn(array("code" => "-1002", "message" => "spu不可以为空"));
         }
         $lang= !empty($data['lang'])? $data['lang'] : '';
         //获取产品属性

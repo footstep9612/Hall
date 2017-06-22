@@ -6,7 +6,7 @@
  */
 class GoodsAttrModel extends PublicModel
 {
-    protected $dbName = 'erui_db_ddl_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
@@ -31,27 +31,16 @@ class GoodsAttrModel extends PublicModel
 
 
         //缓存数据redis查询
-        $key_redis = md5(json_encode($where.time()));
-        if(redisExist($key_redis)){
+        $key_redis = md5(json_encode($where));
+        if(redisHashExist('attrs',$key_redis)){
             $result = redisHashGet('attrs',$key_redis);
-            //判断语言,返回对应语言集
-            $data = array();
-            if(''!=$lang){
-                foreach($result as $val) {
-                    if ($val['lang'] == $lang) {
-                        $data[$val['lang']] = $val;
-                    }
-                }
-                return $data ? $data : array();
-            } else{
-                return $result ? $result : array();
-            }
+            return $result ? $result : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
             $gattrs = $this->field($field)
-                ->where($where)
-                ->select();
+                           ->where($where)
+                           ->select();
 
             //查询产品对应属性
             $productAttr = new ProductAttrModel();
@@ -107,6 +96,9 @@ class GoodsAttrModel extends PublicModel
                         break;
                     case 'Documentation':
                         $group2 = 'Documentation';
+                        break;
+                    default:
+                        $group2 = 'others';
                         break;
                 }
                 if ($item['goods_flag'] == 'Y') {
