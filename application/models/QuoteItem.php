@@ -25,15 +25,5 @@ class QuoteItemModel extends PublicModel {
     	
         return $this->where($where)->select();
     }
-    
-	/**
-     * 获取sku询价单列表
-     * @param $fields   array 筛选字段
-     * @return array
-     */
-    public function get_quote_item_list($fields)
-    {
-        return $this->field($fields)->select();
-    }
 
 }
