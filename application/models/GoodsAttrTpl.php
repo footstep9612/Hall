@@ -65,6 +65,7 @@ class GoodsAttrTplModel extends PublicModel
 
     /**
      * 获取属性模板
+     * @author link 2017-06-22
      * @param $input
      * @return array
      */
