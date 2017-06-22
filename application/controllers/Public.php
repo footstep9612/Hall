@@ -41,7 +41,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 try {
                     $tks = explode('.', $token);
 
-                    $tokeninfo = JwtInfo($token); //解析token<<<<<<< HEAD
+                    $tokeninfo = JwtInfo($token); //解析token
 
                     $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
 
@@ -52,7 +52,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     } else {
                         $this->user = array(
 
-							"id" => $userinfo["id"],
+                            "id" =>$userinfo["id"] ,
+
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );

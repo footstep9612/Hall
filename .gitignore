@@ -43,5 +43,9 @@ Temporary Items
 .apdisk
 conf/
 logs/
+/nbproject/private/
+logs/
+.idea/
+application/ExcelFiles/
 .settings
 .project
