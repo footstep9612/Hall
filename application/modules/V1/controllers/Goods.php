@@ -45,11 +45,6 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-<<<<<<< HEAD
-=======
->>>>>>> 6208908e474abdd3dd726d5381f637f9f026cbd5
-=======
->>>>>>> 1f9538f7c34375fcfb00d3954f64f53cee836fea
      * sku属性查询数据编辑p
      */
     public function getInfoAction()

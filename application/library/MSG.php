@@ -51,13 +51,13 @@ class MSG {
     const MSG_EXPRESS_ERROR = -622; //表达式错误 
     const MSG_TOKEN_ERROR = -623; //表单令牌错误 
     const MSG_RECORD_HAS_UPDATE = -624; //记录已经更新 
-    const MSG_PARAM_ERROR = -625; //参数错误或者未定义
-    const MSG_ERROR_QUERY_EXPRESS = -626; //错误的查询条件
+    const MSG_PARAM_ERROR = -625; //参数错误或者未定义 
+    const MSG_ERROR_QUERY_EXPRESS = -626; //错误的查询条件   
     const MSG_HTTP_200 = 200; //正常；请求已完成。
     const MSG_HTTP_201 = 201; //正常；紧接 POST 命令。  
     const MSG_HTTP_202 = 202; //正常；已接受用于处理，但处理尚未完成。  
     const MSG_HTTP_203 = 203; //正常；部分信息 — 返回的信息只是一部分。  
-    const MSG_HTTP_204 = 204; //正常；无响应 — 已接收请求，但不存在要回送的信息。  
+	const MSG_HTTP_204 = 204; //正常；无响应 — 已接收请求，但不存在要回送的信息。
     const MSG_HTTP_301 = -301; //已移动 — 请求的数据具有新的位置且更改是永久的。  
     const MSG_HTTP_302 = -302; //已找到 — 请求的数据临时具有不同 URI。  
     const MSG_HTTP_303 = -303; //请参阅其它 — 可在另一 URI 下找到对请求的响应，且应使用 GET 方法检索此响应。  
@@ -106,7 +106,7 @@ class MSG {
             self::MSG_RECORD_HAS_UPDATE => '记录已经更新 ',
             self::MSG_PARAM_ERROR => '参数错误或者未定义 ',
             self::MSG_ERROR_QUERY_EXPRESS => '错误的查询条件',
-            self::MSG_HTTP_200 => '正常；请求已完成。',
+			self::MSG_HTTP_200 => '正常；请求已完成。',
             self::MSG_HTTP_201 => '正常；紧接 POST 命令。  ',
             self::MSG_HTTP_202 => '正常；已接受用于处理，但处理尚未完成。  ',
             self::MSG_HTTP_203 => '正常；部分信息 — 返回的信息只是一部分。  ',
