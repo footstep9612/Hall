@@ -129,7 +129,10 @@ class InquiryModel extends PublicModel {
      */
     public function add_data($createcondition = []) {
         $data = $this->create($createcondition);
-        $data['inquiry_status'] = STATUS_DRAFT;
+        $data['inquiry_status'] = self::STATUS_DRAFT;
+        $data['quote_status'] = self::STATUS_NOT_QUOTED;
+        $data['biz_quote_status'] = self::STATUS_NOT_QUOTED;
+        $data['logi_quote_status'] = self::STATUS_NOT_QUOTED;
         $data['created_at'] = $this->getTime();
 
         try {
@@ -149,46 +152,6 @@ class InquiryModel extends PublicModel {
     public function update_data($createcondition = []) {
         $data = $this->create($createcondition);
         $where['inquiry_no'] = $createcondition['inquiry_no'];
-
-        switch ($createcondition['inquiry_status']) {
-            case self::STATUS_DRAFT:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_SENT:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_DELETED:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_CANCELED:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            case self::STATUS_INVALID:
-                $data['inquiry_status'] = $createcondition['inquiry_status'];
-                break;
-            default : $data['inquiry_status'] = self::STATUS_DRAFT;
-                break;
-        }
-
-        switch ($createcondition['quote_status']) {
-            case self::STATUS_NOT_QUOTED:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_ONGOING:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_APPROVED:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_APPROVING:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            case self::STATUS_WITHDREW:
-                $data['quote_status'] = $createcondition['quote_status'];
-                break;
-            default : $data['inquiry_status'] = self::STATUS_NOT_QUOTED;
-                break;
-        }
 
         try {
             return $this->where($where)->save($data);
