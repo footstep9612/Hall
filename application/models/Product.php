@@ -138,6 +138,28 @@ class ProductModel extends PublicModel {
     }
 
     /**
+     * 根据SPU获取物料分类
+     * @param string $spu
+     * @param $lang
+     * @return string
+     */
+    public function getMcatBySpu($spu='',$lang){
+        if(empty($spu))
+            return false;
+
+        $condition =array(
+            'spu'=>$spu,
+            'status'=>self::STATUS_NORMAL,
+            'lang'=>$lang
+        );
+        $result = $this->field('meterial_cat_no')->where($condition)->find();
+        if($result){
+            return $result['meterial_cat_no'];
+        }
+        return false;
+    }
+
+    /**
      * spu 详情
      * @param string $spu    spu编码
      * @param string $lang    语言
