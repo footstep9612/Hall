@@ -29,31 +29,17 @@ class ProductAttrModel extends PublicModel
         $field = 'lang,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
         $condition = array(
             'spu' => $spu,
+            'lang'=> $lang,
             'status' => self::STATUS_VALID
         );
-        if ($lang != '') {
-            $condition['lang'] = $lang;
-        }
 
         //缓存数据redis查询
-        $key_redis = md5(json_encode(array('spu' => $spu, 'status' => self::STATUS_VALID) . time()));
-        if (redisExist($key_redis)) {
+        $key_redis = md5(json_encode($condition));
+        if (redisHashExist('pattrs',$key_redis)) {
             $result = redisHashGet('pattrs',$key_redis);
-            //判断语言,返回对应语言集
-            $data = array();
-            if(''!=$lang){
-                foreach($result as $val) {
-                    if ($val['lang'] == $lang) {
-                        $data[$val['lang']] = $val;
-                    }
-                }
-                return $data ? $data : array();
-            } else{
-                return $result ? $result : array();
-            }
+            return $result ? $result : array();
         } else {
             $result = $this->field($field)->where($condition)->select();
-
             if ($result) {
                 //按语言树形结构
                 /**
