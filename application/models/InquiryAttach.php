@@ -100,6 +100,7 @@ class InquiryAttachModel extends PublicModel {
     public function update_data($createcondition = []) {
         $data = $this->create($createcondition);
         $where['id'] = $createcondition['id'];
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         try {
             return $this->where($where)->save($data);
@@ -116,6 +117,7 @@ class InquiryAttachModel extends PublicModel {
      */
     public function delete_data($createcondition = []) {
         $where['id'] = $createcondition['id'];
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         try {
             return $this->where($where)->delete();

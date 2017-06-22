@@ -38,12 +38,11 @@ class QuoteItemAttachModel extends PublicModel {
      * @param $condition array
      * @return array
      */
-    public function getAttach($condition = array()) {
-    	$field = 'attach_type,attach_name,attach_url';
+    public function getAttachList($condition = array()) {
     	
     	$where = $this->getAttachWhere($condition);
     	
-        return $this->where($where)->field($field)->select();
+        return $this->where($where)->select();
     }
 
 }

@@ -13,18 +13,18 @@ class QuoteModel extends PublicModel {
     }
     
 	/**
-     * @desc 获取报价单总体信息
+     * @desc 获取报价单详情
  	 * @author liujf 2017-06-17
-     * @param $inquiry_no string
+     * @param array $condition
      * @return array
      */
-    public function getInfo($inquiry_no = '') {
-    	$field = 'total_exw_price,total_exw_cur,total_logi_fee,total_logi_cur,total_bank_fee,
-    			  total_insurance_fee,total_quote_price,total_quote_cur,payment_mode,trade_terms,
-    			  trans_mode_brief_name,origin_place,destination,exw_delivery_period,est_transport_cycle,logi_notes';
+    public function getDetail($condition) {
     	
-    	$where = array('inquiry_no' => $inquiry_no);
-        return $this->where($where)->field($field)->find();
+    	if(isset($condition['inquiry_no'])) {
+    		$where['inquiry_no'] = $condition['inquiry_no'];
+    	}
+    	
+        return $this->where($where)->find();
     }   
 
 }
