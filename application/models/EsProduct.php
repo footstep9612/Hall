@@ -129,7 +129,7 @@ class EsProductModel extends PublicModel {
                 ]
             ];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => 'NORMAL'
             ]];
         }
 
@@ -177,6 +177,14 @@ class EsProductModel extends PublicModel {
             ];
         }
 
+          if (isset($condition['supplier_name'])) {
+            $supplier_id = $condition['supplier_name'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['supplier_name' => $supplier_name
+                ]
+            ];
+        }
+        
         if (isset($condition['created_by'])) {
             $created_by = $condition['created_by'];
 
@@ -199,8 +207,8 @@ class EsProductModel extends PublicModel {
                 ]
             ];
         }
-        if (isset($condition['show_name'])) {
-            $show_name = $condition['show_name'];
+        if (isset($condition['keyword'])) {
+            $show_name = $condition['keyword'];
 
             $body['query'] = ['multi_match' => [
                     "query" => $show_name,

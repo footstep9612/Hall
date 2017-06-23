@@ -124,59 +124,59 @@ class EsgoodsModel extends PublicModel {
                 ]
             ];
         }
-        if (isset($condition['checked_at_start']) && isset($condition['checked_at_end'])) {
-            $checked_at_start = $condition['checked_at_start'];
-            $checked_at_end = $condition['checked_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gte' => $checked_at_start,
-                        'gle' => $checked_at_end,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['checked_at_start'])) {
-            $checked_at_start = $condition['checked_at_start'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gte' => $checked_at_start,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['created_at_end'])) {
-            $checked_at_end = $condition['checked_at_end'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gle' => $checked_at_end,
-                    ]
-                ]
-            ];
-        }
-
-        if (isset($condition['updated_at_start']) && isset($condition['updated_at_end'])) {
-            $updated_at_start = $condition['updated_at_start'];
-            $updated_at_end = $condition['updated_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gte' => $updated_at_start,
-                        'gle' => $updated_at_end,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['updated_at_start'])) {
-            $updated_at_start = $condition['updated_at_start'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gte' => $updated_at_start,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['updated_at_end'])) {
-            $updated_at_end = $condition['updated_at_end'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gle' => $updated_at_end,
-                    ]
-                ]
-            ];
-        }
+//        if (isset($condition['checked_at_start']) && isset($condition['checked_at_end'])) {
+//            $checked_at_start = $condition['checked_at_start'];
+//            $checked_at_end = $condition['checked_at_end'];
+//            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
+//                    ['gte' => $checked_at_start,
+//                        'gle' => $checked_at_end,
+//                    ]
+//                ]
+//            ];
+//        } elseif (isset($condition['checked_at_start'])) {
+//            $checked_at_start = $condition['checked_at_start'];
+//
+//            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
+//                    ['gte' => $checked_at_start,
+//                    ]
+//                ]
+//            ];
+//        } elseif (isset($condition['created_at_end'])) {
+//            $checked_at_end = $condition['checked_at_end'];
+//
+//            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
+//                    ['gle' => $checked_at_end,
+//                    ]
+//                ]
+//            ];
+//        }
+//
+//        if (isset($condition['updated_at_start']) && isset($condition['updated_at_end'])) {
+//            $updated_at_start = $condition['updated_at_start'];
+//            $updated_at_end = $condition['updated_at_end'];
+//            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
+//                    ['gte' => $updated_at_start,
+//                        'gle' => $updated_at_end,
+//                    ]
+//                ]
+//            ];
+//        } elseif (isset($condition['updated_at_start'])) {
+//            $updated_at_start = $condition['updated_at_start'];
+//
+//            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
+//                    ['gte' => $updated_at_start,
+//                    ]
+//                ]
+//            ];
+//        } elseif (isset($condition['updated_at_end'])) {
+//            $updated_at_end = $condition['updated_at_end'];
+//
+//            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
+//                    ['gle' => $updated_at_end,
+//                    ]
+//                ]
+//            ];
+//        }
         if (isset($condition['status'])) {
             $status = $condition['status'];
             if (!in_array($updated_at_end, ['NORMAL', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
@@ -184,20 +184,24 @@ class EsgoodsModel extends PublicModel {
             }
             $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status]];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status]];
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => 'NORMAL']];
         }
 
         if (isset($condition['model'])) {
             $model = $condition['model'];
             $body['query']['bool']['must'][] = [ESClient::TERM => ['model' => $model]];
         }
+        if (isset($condition['pricing_flag'])) {
+            $model = $condition['pricing_flag'] == 'N' ? 'N' : 'Y';
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['pricing_flag' => $model]];
+        }
 
         if (isset($condition['created_by'])) {
             $created_by = $condition['created_by'];
             $body['query']['bool']['must'][] = [ESClient::TERM => ['created_by' => $created_by]];
         }
-        if (isset($condition['show_name'])) {
-            $show_name = $condition['show_name'];
+        if (isset($condition['keyword'])) {
+            $show_name = $condition['keyword'];
             $body['query'] = ['multi_match' => [
                     "query" => $show_name,
                     "type" => "most_fields",
@@ -226,7 +230,7 @@ class EsgoodsModel extends PublicModel {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
-            return [$es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize),$from,$pagesize];
+            return [$es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
