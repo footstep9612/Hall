@@ -1,12 +1,13 @@
 <?php
+
 /**
  * SKU
  * User: linkai
  * Date: 2017/6/15
  * Time: 21:04
  */
-class GoodsModel extends PublicModel
-{
+class GoodsModel extends PublicModel {
+
     //状态
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试；
@@ -14,11 +15,10 @@ class GoodsModel extends PublicModel
     const STATUS_INVALID = 'INVALID';  //无效
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
-    public function __construct()
-    {
+    public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
-        $config_obj=Yaf_Registry::get("config");
-        $config_db=$config_obj->database->config->goods->toArray();
+        $config_obj = Yaf_Registry::get("config");
+        $config_db = $config_obj->database->config->goods->toArray();
         $this->dbName = $config_db['name'];
         $this->tablePrefix = $config_db['tablePrefix'];
         $this->tableName = 'goods';
@@ -30,8 +30,7 @@ class GoodsModel extends PublicModel
      * pc-sku商品详情
      * klp
      */
-    public function getGoodsInfo($sku, $lang = '')
-    {
+    public function getGoodsInfo($sku, $lang = '') {
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $field = 'id,sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
@@ -40,10 +39,30 @@ class GoodsModel extends PublicModel
 
         try {
             //缓存数据redis
+<<<<<<< HEAD
             $key_redis = md5(json_encode($condition));
             if(redisHashExist('data',$key_redis)){
                 $result = redisHashGet('data',$key_redis);
                 return $result ? $result : array();
+=======
+            $key_redis = md5(json_encode($condition . time()));
+            if (redisExist($key_redis)) {
+                $result = redisHashGet('data', $key_redis);
+                //判断语言,返回对应语言集
+                $data = array();
+                if ('' != $lang) {
+                    foreach ($result as $val) {
+                        if ($val['lang'] == $lang) {
+                            $data[$val['lang']] = $val;
+                            $data['attachs'] = $attach ? $attach : array();
+                        }
+                    }
+                    return $data ? $data : array();
+                } else {
+                    $result['attachs'] = $attach ? $attach : array();
+                    return $result ? $result : array();
+                }
+>>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
             } else {
                 $result = $this->field($field)->where($condition)->select();
                 if ($result) {
@@ -55,6 +74,7 @@ class GoodsModel extends PublicModel
                         $data[$v['lang']] = $v;
                     }
 
+<<<<<<< HEAD
                     //查询商品附件(未分语言)
                     $skuAchModel = new GoodsAchModel();
                     $where['sku'] = $sku;
@@ -62,12 +82,15 @@ class GoodsModel extends PublicModel
                     $data['attachs'] = $attach ? $attach : array();
 
                     redisHashSet('data',$key_redis,$data);
+=======
+                    redisHashSet('data', $key_redis, $data);
+>>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
                     return $data;
                 } else {
                     return array();
                 }
             }
-        } catch(Exception $e){
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -75,20 +98,30 @@ class GoodsModel extends PublicModel
     /**
      * SKU基本信息
      */
+<<<<<<< HEAD
     public function getInfo($sku, $lang)
     {
         $field = 'id,sku,spu,lang,show_name,model,';
+=======
+    public function getInfo($sku, $lang) {
+        $field = 'sku,spu,lang,show_name,model';
+>>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
         $condition = array(
             'sku' => $sku,
             'lang' => $lang
         );
+<<<<<<< HEAD
         try{
+=======
+
+        try {
+>>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
             //缓存数据的判断读取
             $redis_key = md5(json_encode($condition));
-            if(redisExist($redis_key)){
+            if (redisExist($redis_key)) {
                 $result = redisGet($redis_key);
                 return $result ? $result : false;
-            }else {
+            } else {
                 $result = $this->field($field)->where($condition)->find();
                 if ($result) {
                     $data = array(
@@ -99,21 +132,29 @@ class GoodsModel extends PublicModel
                         $data[$v['lang']] = $v;
                     }
                     //查询属性
+<<<<<<< HEAD
 		            $skuAttrModel = new GoodsAttrModel();
 		            $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
 		            $result['attrs'] = $attrs;
             
                     redisSet($redis_key,$result);
+=======
+                    $skuAttrModel = new GoodsAttrModel();
+                    $where['sku'] = $sku;
+                    $attrs = $skuAttrModel->getAttrBySku($where, $lang);
+                    $result['attrs'] = $attrs;
+
+                    redisSet($redis_key, $result);
+>>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
                     return $result;
                 } else {
                     return array();
                 }
             }
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return false;
         }
     }
-
 
     /**
      * 根据spu获取sku数
@@ -121,7 +162,7 @@ class GoodsModel extends PublicModel
      * @param string $lang 语言
      * @retrun int
      */
-    public function getCountBySpu($spu='',$lang=''){
+    public function getCountBySpu($spu = '', $lang = '') {
         $condition = array(
             'status' => array('neq', self::STATUS_NORMAL)
         );
@@ -133,17 +174,17 @@ class GoodsModel extends PublicModel
         }
 
 
-        try{
+        try {
             //redis 操作
             $redis_key = md5(json_encode($condition));
-            if(redisExist($redis_key)){
+            if (redisExist($redis_key)) {
                 return redisGet($redis_key);
-            }else{
+            } else {
                 $count = $this->where($condition)->count('id');
-                redisSet($redis_key,$count);
-                return $count ? $count : 0 ;
+                redisSet($redis_key, $count);
+                return $count ? $count : 0;
             }
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return 0;
         }
     }
@@ -151,8 +192,7 @@ class GoodsModel extends PublicModel
     /**
      * sku 列表 （admin）
      */
-    public function getList($condition = [])
-    {
+    public function getList($condition = []) {
         //取product表名
         $productModel = new ProductModel();
         $ptable = $productModel->getTableName();
@@ -191,7 +231,7 @@ class GoodsModel extends PublicModel
 
         //按供应商
         if (isset($condition['supplier_name'])) {
-            $where["$ptable.supplier_name"] = array('like',$condition['supplier_name']);
+            $where["$ptable.supplier_name"] = array('like', $condition['supplier_name']);
         }
         //按品牌
         if (isset($condition['brand'])) {
@@ -199,8 +239,6 @@ class GoodsModel extends PublicModel
         }
 
         //按分类名称
-
-
         //是否已定价
         if (isset($condition['pricing_flag'])) {
             $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
@@ -208,7 +246,7 @@ class GoodsModel extends PublicModel
 
         //sku_name
         if (isset($condition['name'])) {
-            $where["$thistable.name"] = array('like',$condition['name']);
+            $where["$thistable.name"] = array('like', $condition['name']);
         }
 
         //sku id  这里用sku编号
@@ -216,8 +254,8 @@ class GoodsModel extends PublicModel
             $where["$thistable.sku"] = $condition['id'];
         }
 
-        $current_no = $condition['current_no']?$condition['current_no']:1;
-        $pagesize = $condition['pagesize']?$condition['pagesize']:10;
+        $current_no = $condition['current_no'] ? $condition['current_no'] : 1;
+        $pagesize = $condition['pagesize'] ? $condition['pagesize'] : 10;
 
         try {
             $count = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->count();
@@ -343,16 +381,19 @@ class GoodsModel extends PublicModel
      * @param string $sku sku编码
      * @return bool
      */
-    public function getSpubySku($sku='',$lang =''){
-        if(empty($sku) || empty($lang))
+    public function getSpubySku($sku = '', $lang = '') {
+        if (empty($sku) || empty($lang))
             return false;
 
-        $result =$this->field('spu')->where(array('sku'=>$sku,'lang'=>$lang,'status'=>self::STATUS_VALID))->find();
-        if($result){
+        $result = $this->field('spu')->where(array('sku' => $sku, 'lang' => $lang, 'status' => self::STATUS_VALID))->find();
+        if ($result) {
             return $result['spu'];
         }
         return false;
     }
 
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
