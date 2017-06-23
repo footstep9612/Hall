@@ -43,8 +43,8 @@ class ProductAttrModel extends PublicModel
 
         //缓存数据redis查询
         $key_redis = md5(json_encode($condition));
-        if (redisHashExist('pattrs',$key_redis)) {
-            $result = redisHashGet('pattrs',$key_redis);
+        if(redisExist($key_redis)){
+            $result = redisGet($key_redis);
             return $result ? $result : array();
         } else {
             $result = $this->field($field)->where($condition)->select();
@@ -82,7 +82,7 @@ class ProductAttrModel extends PublicModel
                         $attrs[$item['lang']][$group1][] = $item;
                     }
                 }
-                redisHashSet('pattrs', $key_redis, $attrs);
+                redisSet($key_redis, $attrs);
                 return $attrs;
             } else {
                 return array();

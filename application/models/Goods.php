@@ -41,8 +41,8 @@ class GoodsModel extends PublicModel
         try {
             //缓存数据redis
             $key_redis = md5(json_encode($condition));
-            if(redisHashExist('data',$key_redis)){
-                $result = redisHashGet('data',$key_redis);
+            if(redisExist($key_redis)){
+                $result = redisGet($key_redis);
                 return $result ? $result : array();
             } else {
                 $result = $this->field($field)->where($condition)->select();
@@ -61,7 +61,7 @@ class GoodsModel extends PublicModel
                     $attach = $skuAchModel->getInfoByAch($where);
                     $data['attachs'] = $attach ? $attach : array();
 
-                    redisHashSet('data',$key_redis,$data);
+                    redisSet($key_redis,$data);
                     return $data;
                 } else {
                     return array();
