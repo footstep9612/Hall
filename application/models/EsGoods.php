@@ -92,7 +92,7 @@ class EsgoodsModel extends PublicModel {
         }
         if (isset($condition['spu'])) {
             $spu = $condition['spu'];
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['spu' => $spu]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
         }
         if (isset($condition['show_cat_no'])) {
             $show_cat_no = $condition['show_cat_no'];
@@ -124,80 +124,32 @@ class EsgoodsModel extends PublicModel {
                 ]
             ];
         }
-        if (isset($condition['checked_at_start']) && isset($condition['checked_at_end'])) {
-            $checked_at_start = $condition['checked_at_start'];
-            $checked_at_end = $condition['checked_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gte' => $checked_at_start,
-                        'gle' => $checked_at_end,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['checked_at_start'])) {
-            $checked_at_start = $condition['checked_at_start'];
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gte' => $checked_at_start,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['created_at_end'])) {
-            $checked_at_end = $condition['checked_at_end'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gle' => $checked_at_end,
-                    ]
-                ]
-            ];
-        }
-
-        if (isset($condition['updated_at_start']) && isset($condition['updated_at_end'])) {
-            $updated_at_start = $condition['updated_at_start'];
-            $updated_at_end = $condition['updated_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gte' => $updated_at_start,
-                        'gle' => $updated_at_end,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['updated_at_start'])) {
-            $updated_at_start = $condition['updated_at_start'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gte' => $updated_at_start,
-                    ]
-                ]
-            ];
-        } elseif (isset($condition['updated_at_end'])) {
-            $updated_at_end = $condition['updated_at_end'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gle' => $updated_at_end,
-                    ]
-                ]
-            ];
-        }
         if (isset($condition['status'])) {
             $status = $condition['status'];
             if (!in_array($updated_at_end, ['NORMAL', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
                 $status = 'NORMAL';
             }
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'NORMAL']];
         }
 
         if (isset($condition['model'])) {
             $model = $condition['model'];
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['model' => $model]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['model' => $model]];
+        }
+        if (isset($condition['pricing_flag'])) {
+            $model = $condition['pricing_flag'] == 'N' ? 'N' : 'Y';
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['pricing_flag' => $model]];
         }
 
         if (isset($condition['created_by'])) {
             $created_by = $condition['created_by'];
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['created_by' => $created_by]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
         }
-        if (isset($condition['show_name'])) {
-            $show_name = $condition['show_name'];
+        if (isset($condition['keyword'])) {
+            $show_name = $condition['keyword'];
             $body['query'] = ['multi_match' => [
                     "query" => $show_name,
                     "type" => "most_fields",
@@ -209,10 +161,16 @@ class EsgoodsModel extends PublicModel {
     /* 通过搜索条件获取数据列表
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
+     * @param mix  $_source //需要输出的字段
      * @return mix  
      */
 
-    public function getgoods($condition, $lang = 'en') {
+    public function getgoods($condition, $_source = [], $lang = 'en') {
+
+        if (!$_source) {
+            $_source = ['sku', 'spu', 'name', 'show_name', 'attrs', 'specs', 'model'
+                , 'purchase_price1', 'purchase_price2', 'purchase_price_cur', 'purchase_unit', 'pricing_flag'];
+        }
         try {
             $body = $this->getCondition($condition);
             $pagesize = 10;
@@ -225,8 +183,13 @@ class EsgoodsModel extends PublicModel {
             }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
-
-            return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+            unset($condition['source']);
+            $newbody = $this->getCondition($condition);
+            $allcount = 0;
+            $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
+            return [$es->setbody($body)
+                        ->setfields($_source)
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -244,9 +207,17 @@ class EsgoodsModel extends PublicModel {
 
         try {
             $body = $this->getCondition($condition);
-
+            $pagesize = 10;
+            $current_no = 1;
+            if (isset($condition['current_no'])) {
+                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+            }
+            if (isset($condition['pagesize'])) {
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+            }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
+
 
             return $es->setbody($body)
                             ->setaggs('show_cats', 'chowcat', 'terms')
@@ -267,7 +238,7 @@ class EsgoodsModel extends PublicModel {
     public function getGoodsbysku($sku, $lang = 'en') {
         try {
             $es = new ESClient();
-            $es->setmust(['sku' => $sku], ESClient::TERM);
+            $es->setmust(['sku' => $sku], ESClient::MATCH_PHRASE);
             return $es->search($this->dbName, $this->tableName . '_' . $lang);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -285,7 +256,7 @@ class EsgoodsModel extends PublicModel {
     public function getGoodsbyspu($sku, $lang = 'en') {
         try {
             $es = new ESClient();
-            $es->setmust(['sku' => $sku], ESClient::TERM);
+            $es->setmust(['sku' => $sku], ESClient::MATCH_PHRASE);
             return $es->search($this->dbName, $this->tableName . '_' . $lang);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -303,7 +274,7 @@ class EsgoodsModel extends PublicModel {
     public function getgoods_attrbyskus($skus, $lang = 'en') {
 
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('*')
                     ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
@@ -328,7 +299,7 @@ class EsgoodsModel extends PublicModel {
 
     public function getgoods_specsbyskus($skus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('sku,attr_name,attr_value,attr_no')
                     ->where(['sku' => ['in', $skus],
                         'lang' => $lang,
