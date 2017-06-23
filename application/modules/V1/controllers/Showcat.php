@@ -14,7 +14,7 @@ class ShowcatController extends PublicController{
     /**
      * 展示分类列表
      */
-    public function listAction(){
+    public function getlistAction(){
         $condition = array();
         if($this->input['lang']){
             $condition['lang'] = $this->input['lang'];
