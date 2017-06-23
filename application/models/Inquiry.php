@@ -41,12 +41,6 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['inquiry_no'])) {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (!empty($condition['created_by'])) {
-            $where['created_by'] = $condition['created_by'];
-        }
-        if (!empty($condition['inquiry_status'])) {
-            $where['inquiry_status'] = $condition['inquiry_status'];
-        }
         if (!empty($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];
         }
@@ -55,6 +49,12 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['inquiry_country'])) {
             $where['inquiry_country'] = $condition['inquiry_country'];
+        }
+        if (!empty($condition['agent'])) {
+            $where['agent'] = $condition['agent'];
+        }
+        if (!empty($condition['customer_id'])) {
+            $where['customer_id'] = $condition['customer_id'];
         }
         if(!empty($condition['start_time']) && !empty($condition['end_time'])){
             $where['inquiry_time'] = array(
@@ -129,6 +129,28 @@ class InquiryModel extends PublicModel {
      */
     public function add_data($createcondition = []) {
         $data = $this->create($createcondition);
+
+        if(isset($createcondition['serial_no'])){
+            $data['serial_no'] = $createcondition['serial_no'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['inquiry_region'])){
+            $data['inquiry_region'] = $createcondition['inquiry_region'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['inquiry_country'])){
+            $data['inquiry_country'] = $createcondition['inquiry_country'];
+        }else{
+            return false;
+        }
+        $data['inquiry_no'] = isset($createcondition['inquiry_no'])?$createcondition['inquiry_no']:$createcondition['serial_no'];
+        $data['inquiry_time'] = isset($createcondition['inquiry_time'])?$createcondition['inquiry_time']:$this->getTime();
+        $data['inquiry_lang'] = isset($createcondition['inquiry_lang'])?$createcondition['inquiry_lang']:'en';
+        $data['kerui_flag'] = isset($createcondition['kerui_flag'])?$createcondition['kerui_flag']:'N';
+        $data['bid_flag'] = isset($createcondition['bid_flag'])?$createcondition['bid_flag']:'N';
+
         $data['inquiry_status'] = self::STATUS_DRAFT;
         $data['quote_status'] = self::STATUS_NOT_QUOTED;
         $data['biz_quote_status'] = self::STATUS_NOT_QUOTED;
