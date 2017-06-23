@@ -71,7 +71,7 @@ class EsgoodsController extends PublicController {
         if ($ret) {
             $list = [];
             $data = $ret[0];
-            $send['data']['count'] = intval($flag['hits']['total']);
+            $send['data']['count'] = intval($data['hits']['total']);
             $send['data']['current_no'] = intval($ret[1]);
             $send['data']['pagesize'] = intval($ret[2]);
 
@@ -79,8 +79,14 @@ class EsgoodsController extends PublicController {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
+            if (isset($ret[4]) && $ret[4] > 0) {
 
-            $send['data']['list'] = $list;
+                $send['allcount'] = $ret[4] > $send['count'] ? $ret[4] : $send['count'];
+            } else {
+                $send['allcount'] = $send['count'];
+            }
+
+            $send['list'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($send);
         } else {

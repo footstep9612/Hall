@@ -92,7 +92,7 @@ class EsgoodsModel extends PublicModel {
         }
         if (isset($condition['spu'])) {
             $spu = $condition['spu'];
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['spu' => $spu]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
         }
         if (isset($condition['show_cat_no'])) {
             $show_cat_no = $condition['show_cat_no'];
@@ -130,23 +130,23 @@ class EsgoodsModel extends PublicModel {
             if (!in_array($updated_at_end, ['NORMAL', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
                 $status = 'NORMAL';
             }
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => 'NORMAL']];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'NORMAL']];
         }
 
         if (isset($condition['model'])) {
             $model = $condition['model'];
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['model' => $model]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['model' => $model]];
         }
         if (isset($condition['pricing_flag'])) {
             $model = $condition['pricing_flag'] == 'N' ? 'N' : 'Y';
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['pricing_flag' => $model]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['pricing_flag' => $model]];
         }
 
         if (isset($condition['created_by'])) {
             $created_by = $condition['created_by'];
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['created_by' => $created_by]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
         }
         if (isset($condition['keyword'])) {
             $show_name = $condition['keyword'];
@@ -183,10 +183,13 @@ class EsgoodsModel extends PublicModel {
             }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
-
+            unset($condition['source']);
+            $newbody = $this->getCondition($condition);
+            $allcount = 0;
+            $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
             return [$es->setbody($body)
                         ->setfields($_source)
-                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize];
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

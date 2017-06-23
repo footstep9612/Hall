@@ -74,18 +74,21 @@ class EsproductController extends PublicController {
             $list = [];
 
             $data = $ret[0];
-            $send['count'] = intval($ret['hits']['total']);
+            $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
+            if (isset($ret[4]) && $ret[4] > 0) {
 
+                $send['allcount'] = $ret[4] > $send['count'] ? $ret[4] : $send['count'];
+            } else {
+                $send['allcount'] = $send['count'];
+            }
 
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
-
-
-            $send['data']['list'] = $list;
+            $send['list'] = $list;
 
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($send);
