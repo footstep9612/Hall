@@ -74,7 +74,7 @@ class EsproductController extends PublicController {
             $list = [];
 
             $data = $ret[0];
-            $send['count'] = intval($flag['hits']['total']);
+            $send['count'] = intval($ret['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
 
