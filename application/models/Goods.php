@@ -39,30 +39,10 @@ class GoodsModel extends PublicModel {
 
         try {
             //缓存数据redis
-<<<<<<< HEAD
             $key_redis = md5(json_encode($condition));
-            if(redisHashExist('data',$key_redis)){
-                $result = redisHashGet('data',$key_redis);
+            if(redisExist($key_redis)){
+                $result = redisGet($key_redis);
                 return $result ? $result : array();
-=======
-            $key_redis = md5(json_encode($condition . time()));
-            if (redisExist($key_redis)) {
-                $result = redisHashGet('data', $key_redis);
-                //判断语言,返回对应语言集
-                $data = array();
-                if ('' != $lang) {
-                    foreach ($result as $val) {
-                        if ($val['lang'] == $lang) {
-                            $data[$val['lang']] = $val;
-                            $data['attachs'] = $attach ? $attach : array();
-                        }
-                    }
-                    return $data ? $data : array();
-                } else {
-                    $result['attachs'] = $attach ? $attach : array();
-                    return $result ? $result : array();
-                }
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
             } else {
                 $result = $this->field($field)->where($condition)->select();
                 if ($result) {
@@ -74,17 +54,13 @@ class GoodsModel extends PublicModel {
                         $data[$v['lang']] = $v;
                     }
 
-<<<<<<< HEAD
                     //查询商品附件(未分语言)
                     $skuAchModel = new GoodsAchModel();
                     $where['sku'] = $sku;
                     $attach = $skuAchModel->getInfoByAch($where);
                     $data['attachs'] = $attach ? $attach : array();
 
-                    redisHashSet('data',$key_redis,$data);
-=======
-                    redisHashSet('data', $key_redis, $data);
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
+                    redisSet($key_redis,$data);
                     return $data;
                 } else {
                     return array();
@@ -98,24 +74,16 @@ class GoodsModel extends PublicModel {
     /**
      * SKU基本信息
      */
-<<<<<<< HEAD
+
     public function getInfo($sku, $lang)
     {
         $field = 'id,sku,spu,lang,show_name,model,';
-=======
-    public function getInfo($sku, $lang) {
-        $field = 'sku,spu,lang,show_name,model';
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
         $condition = array(
             'sku' => $sku,
             'lang' => $lang
         );
-<<<<<<< HEAD
-        try{
-=======
 
-        try {
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
+        try{
             //缓存数据的判断读取
             $redis_key = md5(json_encode($condition));
             if (redisExist($redis_key)) {
@@ -132,20 +100,11 @@ class GoodsModel extends PublicModel {
                         $data[$v['lang']] = $v;
                     }
                     //查询属性
-<<<<<<< HEAD
 		            $skuAttrModel = new GoodsAttrModel();
 		            $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
 		            $result['attrs'] = $attrs;
             
                     redisSet($redis_key,$result);
-=======
-                    $skuAttrModel = new GoodsAttrModel();
-                    $where['sku'] = $sku;
-                    $attrs = $skuAttrModel->getAttrBySku($where, $lang);
-                    $result['attrs'] = $attrs;
-
-                    redisSet($redis_key, $result);
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
                     return $result;
                 } else {
                     return array();
@@ -393,7 +352,4 @@ class GoodsModel extends PublicModel {
     }
 
 }
-<<<<<<< HEAD
 
-=======
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
