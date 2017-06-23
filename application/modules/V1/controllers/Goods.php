@@ -6,7 +6,6 @@ class GoodsController extends PublicController
     public function init()
     {
         $this->input = json_decode(file_get_contents("php://input"), true);
-
         $lang = $this->getRequest()->getPost("lang");
         $this->lang = empty($lang) ?  'en': strtolower($lang);
         if(!in_array($this->lang,array('en','ru','es','zh'))){
@@ -25,12 +24,11 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
-            exit();
+            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
         }
         $lang= !empty($data['lang'])? $data['lang'] : '';
         $goods = new GoodsAttrModel();
-        $result = $goods->getAttrBySku($sku,$lang);
+        $result = $goods->attrBySku($sku,$lang);
 
         if($result){
             $data = array(
@@ -45,24 +43,21 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-     * sku属性查询数据编辑p
+     * sku基本信息编辑p
      */
-    public function getInfoAction()
+    public function infoAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if(!empty($data['sku'])){
-            $where['sku'] = $data['sku'];
+            $sku = $data['sku'];
         } else{
-            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
-            exit();
+            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
         }
         //获取商品属性
-        $goods = new GoodsAttrModel();
-        $result = $goods->getAttrBySku($where,$this->lang);
-
+        $goods = new GoodsModel();
+        $result = $goods->getInfo($sku,$this->lang);
         if($result){
-
             $data = array(
                 'code' => 1,
                 'message' => '数据获取成功',
@@ -84,8 +79,7 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            echo json_encode(array("code" => "-101", "message" => "sku不可以都为空"));
-            exit();
+            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
         }
         $goods = new GoodsModel();
         $result = $goods->getGoodsInfo($sku,$this->lang);
@@ -118,6 +112,66 @@ class GoodsController extends PublicController
             jsonReturn('',400,'失败');
         }
         exit;
+    }
+    /**
+     * sku新建模板表(pc)
+     * @author  klp  2017/6/22
+     */
+    public function getTplAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!empty($data['spu'])){
+            $spu = $data['spu'];
+        } else{
+            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
+        }
+        $type = !empty($data['attr_type'])? $data['attr_type'] : '';
+        $goodsTplModel = new GoodsAttrTplModel();
+        $result = $goodsTplModel->getAttrTpl();
+    }
+
+    /**
+     * sku新建插入(pc)
+     * @author  klp  2017/6/22
+     */
+    public function createAction()
+    {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->create_data($this->create_data,$this->username);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '新增成功'
+            );
+        } else{
+            $data = array(
+                'code' => -1008,
+                'message' => '新增失败'
+            );
+        }
+        jsonReturn($data);
+    }
+
+    /**
+     * sku编辑更新(pc)
+     * @author  klp  2017/6/22
+     */
+    public function updateAction()
+    {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->create_data($this->create_data,$this->username);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '新增成功'
+            );
+        } else{
+            $data = array(
+                'code' => -1008,
+                'message' => '新增失败'
+            );
+        }
+        jsonReturn($data);
     }
 
 }

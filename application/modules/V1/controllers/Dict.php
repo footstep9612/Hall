@@ -172,7 +172,6 @@ class DictController extends Yaf_Controller_Abstract {
         jsonReturn($datajson);
     }
 
-
     public function marketAreaListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
@@ -219,7 +218,7 @@ class DictController extends Yaf_Controller_Abstract {
         }
         jsonReturn($datajson);
     }
-
+    
     public function marketAreaCountryListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
