@@ -10,17 +10,17 @@ class ProductModel extends PublicModel {
 
     protected $module = '';
 
-    //状态
+//状态
     const STATUS_NORMAL = 'NORMAL'; //发布
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
     const STATUS_CLOSED = 'CLOSED';  //关闭
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
-    //推荐状态
+//推荐状态
     const RECOMMEND_Y = 'Y';
     const RECOMMEND_N = 'N';
 
-    //定义校验规则
+//定义校验规则
     protected $field = array(
         'name' => array('required'),
         'meterial_cat_no' => array('required'),
@@ -28,9 +28,9 @@ class ProductModel extends PublicModel {
     );
 
     public function __construct() {
-        //动态读取配置中的数据库配置   便于后期维护
-        $config_obj=Yaf_Registry::get("config");
-        $config_db=$config_obj->database->config->goods->toArray();
+//动态读取配置中的数据库配置   便于后期维护
+        $config_obj = Yaf_Registry::get("config");
+        $config_db = $config_obj->database->config->goods->toArray();
         $this->dbName = $config_db['name'];
         $this->tablePrefix = $config_db['tablePrefix'];
         $this->tableName = 'product';
@@ -55,7 +55,7 @@ class ProductModel extends PublicModel {
         $field = "lang,spu,brand,name,created_by,created_at,meterial_cat_no";
 
         $where = "status <> '" . self::STATUS_DELETED . "'";
-        //语言 有传递取传递语言，没传递取浏览器，浏览器取不到取en英文
+//语言 有传递取传递语言，没传递取浏览器，浏览器取不到取en英文
         $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
         $where .= " AND lang='" . $condition['lang'] . "'";
 
@@ -75,7 +75,7 @@ class ProductModel extends PublicModel {
             $where .= " AND created_at <= '" . $condition['end_time'] . "'";
         }
 
-        //处理keyword
+//处理keyword
         if (isset($condition['keyword'])) {
             $where .= " AND (name like '%" . $condition['keyword'] . "%'
                             OR show_name like '%" . $condition['keyword'] . "%'
@@ -95,14 +95,14 @@ class ProductModel extends PublicModel {
             $result = $this->field($field)->where($where)->order('created_at DESC')->page($current_num, $pagesize)->select();
             $count = $this->field('spu')->where($where)->count();
             if ($result) {
-                //遍历获取分类　　与ｓｋｕ统计
+//遍历获取分类　　与ｓｋｕ统计
                 foreach ($result as $k => $r) {
-                    //分类
+//分类
                     $mcatModel = new MaterialcatModel();
                     $mcatInfo = $mcatModel->getMeterialCatByNo($r['meterial_cat_no'], $condition['lang']);
                     $result[$k]['meterial_cat'] = $mcatInfo ? $mcatInfo['name'] : '';
 
-                    //sku统计
+//sku统计
                     $goodsModel = new GoodsModel();
                     $result[$k]['sku_count'] = $goodsModel->getCountBySpu($r['spu'], $condition['lang']);
                 }
@@ -147,17 +147,17 @@ class ProductModel extends PublicModel {
      * @param $lang
      * @return string
      */
-    public function getMcatBySpu($spu='',$lang){
-        if(empty($spu))
+    public function getMcatBySpu($spu = '', $lang) {
+        if (empty($spu))
             return false;
 
-        $condition =array(
-            'spu'=>$spu,
-            'status'=>self::STATUS_NORMAL,
-            'lang'=>$lang
+        $condition = array(
+            'spu' => $spu,
+            'status' => self::STATUS_NORMAL,
+            'lang' => $lang
         );
         $result = $this->field('meterial_cat_no')->where($condition)->find();
-        if($result){
+        if ($result) {
             return $result['meterial_cat_no'];
         }
         return false;
@@ -173,7 +173,7 @@ class ProductModel extends PublicModel {
         if (empty($spu))
             jsonReturn('', '1000', 'spu不能为空');
 
-        //详情返回四种语言， 这里的lang作当前语言类型返回
+//详情返回四种语言， 这里的lang作当前语言类型返回
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $condition = array(
             'spu' => $spu,
@@ -187,15 +187,15 @@ class ProductModel extends PublicModel {
             );
             if ($result) {
                 foreach ($result as $item) {
-                    //查询品牌
+//查询品牌
                     $brand = $this->getBrandBySpu($spu, $item['lang']);
                     $item['brand'] = $brand;
 
-                    //语言分组
+//语言分组
                     $data[$item['lang']] = $item;
                 }
 
-                //附件不分语言，暂时放循环外
+//附件不分语言，暂时放循环外
                 $pattach = new ProductAttachModel();
                 $data['attachs'] = $pattach->getAttachBySpu($spu);
             }
@@ -213,11 +213,11 @@ class ProductModel extends PublicModel {
         if (empty($input))
             return false;
 
-        //获取当前模块地址
+//获取当前模块地址
         $config_obj = Yaf_Registry::get("config");
         $this_module = $config_obj->myhost . $this->module;
 
-        //获取当前用户信息
+//获取当前用户信息
         $userInfo = getLoinInfo();
 
 
@@ -226,7 +226,7 @@ class ProductModel extends PublicModel {
         try {
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    //字段校验
+//字段校验
                     $item = $this->checkParam($item, $this->field);
                     $data = array(
                         'lang' => $key,
@@ -242,7 +242,8 @@ class ProductModel extends PublicModel {
                         'status' => self::STATUS_CHECKING,
                     );
 
-                    //不存在添加，存在则为修改
+//不存在添加，存在则为修改
+
                     if (!isset($input['spu'])) {
                         $data['spu'] = $spu;
                         $data['qrcode'] = createQrcode($this_module . '/product/info/' . $spu);    //生成spu二维码    冗余字段这块还要看后期需求是否分语言
@@ -277,6 +278,7 @@ class ProductModel extends PublicModel {
                         }
                     }
                 } else {
+
                     break;
                 }
             }
