@@ -141,6 +141,7 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         }
     }
+
     //获取部门信息
     public function groupListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
