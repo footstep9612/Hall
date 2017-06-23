@@ -5,13 +5,9 @@
  *  @author  klp
  */
 
-<<<<<<< HEAD
-
 class GoodsAttrModel extends PublicModel
 {
 
-=======
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
     protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
