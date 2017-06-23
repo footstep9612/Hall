@@ -35,7 +35,7 @@ class GoodsAttrModel extends PublicModel
         $key_redis = md5(json_encode($where));
         if(redisExist($key_redis)){
             $result = redisGet($key_redis);
-            return $result ? $result : array();
+            return $result ? json_decode($result) : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
@@ -124,7 +124,7 @@ class GoodsAttrModel extends PublicModel
                 }
 
                 if ($attrs) {
-                    redisSet($key_redis, $attrs);
+                    redisSet($key_redis, json_encode($attrs));
                     return $attrs;
                 } else {
                     return array();
@@ -137,14 +137,8 @@ class GoodsAttrModel extends PublicModel
      * @param null $where string 条件
      * @return
      */
-    public function attrBySku($sku, $lang='')
+    public function attrBySku($sku, $lang)
     {
-        if($sku='') {
-            return false;
-        }
-        if($lang='') {
-            return false;
-        }
         $where = array(
             'sku' => $sku,
             'lang'=> $lang,
@@ -153,15 +147,15 @@ class GoodsAttrModel extends PublicModel
 
         //缓存数据redis查询
         $key_redis = md5(json_encode($where));
-        if(redisHashExist('attrs',$key_redis)){
-            $result = redisHashGet('attrs',$key_redis);
-            return $result ? $result : array();
+        if(redisExist($key_redis)){
+            $result = redisGet($key_redis);
+            return $result ? json_decode($result) : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
             $gattrs = $this->field($field)
-                ->where($where)
-                ->select();
+                           ->where($where)
+                           ->select();
 
             //查询产品对应属性
             $productAttr = new ProductAttrModel();
@@ -184,7 +178,7 @@ class GoodsAttrModel extends PublicModel
              *   Others - 其他　
              */
             $attrs = array();
-            foreach ($data as $item) {
+            foreach($data as $item) {
                 $group1 = '';
                 if ($item['goods_flag'] == 'Y') {
                     $group1 = 'goods_flag';
@@ -207,7 +201,7 @@ class GoodsAttrModel extends PublicModel
                     $attrs[$group1][] = $item;
                 }
                 if ($attrs) {
-                    redisHashSet('attrs', $key_redis, $attrs);
+                    redisSet($key_redis,json_encode($attrs));
                     return $attrs;
                 } else {
                     return array();

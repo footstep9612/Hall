@@ -6,7 +6,7 @@ class GoodsController extends PublicController
     public function init()
     {
         $this->input = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getRequest()->getPost("lang");
+        $lang = $this->input['lang'];
         $this->lang = empty($lang) ?  'en': strtolower($lang);
         if(!in_array($this->lang,array('en','ru','es','zh'))){
             $this->lang = 'en';
@@ -14,24 +14,28 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku属性详情a
+     * sku仅属性-详情-app
      */
     public function attrInfoAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
-
+        $data['sku'] = 'sku001';$data['lang'] = 'en';
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
             jsonReturn('','-1003','sku不可以为空');
         }
-        $lang= !empty($data['lang'])? $data['lang'] : 'en';
+        if(!empty($data['lang'])){
+            $lang = $data['lang'];
+        } else{
+            jsonReturn('','-1003','lang不可以为空');
+        }
         $goods = new GoodsAttrModel();
         $result = $goods->attrBySku($sku,$lang);
 
-        if($result){
+        if(!empty($result)){
             $data = array(
-                'code' => 1,
+                'code' => '1',
                 'message' => '数据获取成功',
                 'data' => $result
             );
@@ -42,7 +46,7 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-     * sku基本信息编辑p
+     * sku基本信息p
      */
     public function infoAction()
     {
@@ -56,7 +60,7 @@ class GoodsController extends PublicController
         //获取商品属性
         $goods = new GoodsModel();
         $result = $goods->getInfo($sku,$this->lang);
-        if($result){
+        if(!empty($result)){
             $data = array(
                 'code' => 1,
                 'message' => '数据获取成功',
@@ -109,21 +113,6 @@ class GoodsController extends PublicController
             jsonReturn($result);
         }else{
             jsonReturn('',400,'失败');
-        }
-        exit;
-    }
-    /**
-     * sku新建模板表(pc)
-     * @author  klp  2017/6/22
-     */
-    public function getTplAction()
-    {
-        $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getAttrTpl();
-        if ($result) {
-            jsonReturn($result);
-        } else {
-            jsonReturn('', ErrorMsg::FAILED);
         }
         exit;
     }

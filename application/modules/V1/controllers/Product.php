@@ -89,15 +89,15 @@ class ProductController extends PublicController {
 
             $goodsModel = new GoodsModel();
             $result = $goodsModel->getInfo($this->input['sku'], $lang);
-            if ($result) {
+            if (!empty($result)) {
                 $data = array(
-                    'code' => 0,
+                    'code' => 1,
                     'message' => '成功',
                     'data' => $result
                 );
                 jsonReturn($data);
             } else {
-                jsonReturn(array('code' => 400, 'message' => '失败'));
+                jsonReturn('','-1005','失败');
             }
             exit;
     }
@@ -118,7 +118,7 @@ class ProductController extends PublicController {
         $result = $goods->getAttrBySpu($spu, $this->lang);
 
 
-        if ($result) {
+        if (!empty($result)) {
             $data = array(
                 'code' => 1,
                 'message' => '数据获取成功',
@@ -147,7 +147,7 @@ class ProductController extends PublicController {
         $goods = new ProductAttrModel();
         $result = $goods->getAttrBySpu($spu, $lang);
 
-        if ($result) {
+        if (!empty($result)) {
             $data = array(
                 'code' => 1,
                 'message' => '数据获取成功',
