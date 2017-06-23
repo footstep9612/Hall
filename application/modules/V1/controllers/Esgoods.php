@@ -16,11 +16,10 @@ class EsgoodsController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
+    protected $version = '5';
 
     //put your code here
     public function init() {
-
-
         $this->es = new ESClient();
         //  parent::init();
     }
@@ -95,13 +94,18 @@ class EsgoodsController extends PublicController {
         }
     }
 
+
     public function goodsAction($lang = 'en') {
         if (!in_array($lang, $this->langs)) {
 
             $lang = 'en';
         }
-        $type = 'goods_' . $lang;
-        $id = 0;
+        $type_string = 'text';
+        $analyzer = 'ik_max_word';
+        if ($this->version != 5) {
+            $type_string = 'string';
+            $analyzer = 'ik';
+        }
 
         $body = ['properties' => [
                 'id' => [
@@ -109,281 +113,275 @@ class EsgoodsController extends PublicController {
                     "index" => "not_analyzed",
                 ],
                 'lang' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'spu' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'sku' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'qrcode' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'model' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'name' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 8
                 ],
                 'show_name' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 8
                 ],
                 'purchase_price1' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'purchase_price2' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'purchase_price_cur' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'purchase_unit' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'pricing_flag' => [
-                    'type' => 'text', "index" => "not_analyzed",
+                    'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'created_by' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'created_at' => [
                     'type' => 'date',
                     "index" => "not_analyzed",
-                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
                 ],
                 'meterial_cat' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
                 ],
                 'show_cats' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
                 ],
                 'attrs' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
                 ],
                 'specs' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
-                ],
-            ]
-        ];
+                ],]];
 
         return $body;
     }
 
     public function productAction($lang = 'en') {
 
-        if (!in_array($lang, $this->langs)) {
-            $lang = 'en';
+        $type_string = 'text';
+        $analyzer = 'ik_max_word';
+        if ($this->version != 5) {
+            $type_string = 'string';
+            $analyzer = 'ik';
         }
-        $id = 0;
         $body = ['properties' => [
                 'id' => [
                     'type' => 'integer',
                     "index" => "not_analyzed",
                 ],
                 'lang' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'meterial_cat_no' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'spu' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'skus' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 8
                 ],
                 'qrcode' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "no",
                 ],
                 'name' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 8
                 ],
                 'show_name' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 8
                 ],
                 'keywords' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'exe_standard' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'app_scope' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'tech_paras' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'advantages' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'profile' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'supplier_id' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'supplier_name' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'brand' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 2
                 ],
                 'source' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'source_detail' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 1
                 ],
                 'recommend_flag' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     'analyzer' => 'whitespace'
                 ],
                 'status' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'created_by' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ], 'created_at' => [
                     'type' => 'date',
                     "index" => "not_analyzed",
-                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
                 ], 'updated_by' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ], 'updated_at' => [
                     'type' => 'date',
                     "index" => "not_analyzed",
-                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
                 ], 'checked_by' => [
-                    'type' => 'text',
+                    'type' => $type_string,
                     "index" => "not_analyzed",
                 ], 'checked_at' => [
                     'type' => 'date',
                     "index" => "not_analyzed",
-                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+                    "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
                 ],
                 'meterial_cat' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
                 ],
                 'show_cats' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
                 ],
                 'attrs' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
                 ],
                 'specs' => [
-                    'type' => 'text',
-                    "analyzer" => "ik_max_word",
-                    "search_analyzer" => "ik_max_word",
+                    'type' => $type_string,
+                    "analyzer" => $analyzer,
+                    "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 4
-                ],
-            ]
-                ]
-        ;
-
-
+                ],]];
         return $body;
-        // $this->es->create_index($this->index,  $body);
     }
 
 }
