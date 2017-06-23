@@ -170,6 +170,55 @@ class DictController extends Yaf_Controller_Abstract {
         jsonReturn($datajson);
     }
 
+
+    public function marketAreaListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['page'])){
+            $limit['page'] = $data['page'];
+        }
+        if(!empty($data['countPerPage'])){
+            $limit['num'] = $data['countPerPage'];
+        }
+        $lang = '';
+        if(!empty($data['lang'])){
+            $lang = $data['lang'];
+        }
+
+        $market_area = new MarketAreaModel();
+        if(empty($where)&&empty($limit)){
+            if(!$lang){
+                $lang = 'zh';
+            }
+
+            $where['lang'] = $lang;
+            if(redisHashExist('MarketAreaist',$lang)){
+                $arr = json_decode(redisHashGet('MarketAreaist',$lang),true);
+            }else{
+                $arr = $market_area->getlist($where,$limit); //($this->put_data);
+
+                if($arr){
+                    redisHashSet('MarketAreaist', $lang, json_encode($arr));
+                }
+            }
+        }else{
+            if(!empty($data['lang'])){
+                $where['lang'] = $data['lang'];
+            }
+            $arr = $market_area->getlist($where,$limit); //($this->put_data);
+        }
+        if(!empty($arr)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        }else{
+            $datajson['code'] = -103;
+            $datajson['message'] = '数据为空!';
+        }
+
+        jsonReturn($datajson);
+    }
+
     public function marketAreaCountryListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
@@ -182,13 +231,13 @@ class DictController extends Yaf_Controller_Abstract {
         }
         $market_area_country = new MarketAreaCountryModel();
         if(empty($where)&&empty($limit)){
-            if(redisHashExist('marketAreaCountryList',$lang)){
-                $arr = json_decode(redisHashGet('marketAreaCountryList',$lang),true);
+            if(redisExist('marketAreaCountryList')){
+                $arr = json_decode(redisGet('marketAreaCountryList'),true);
             }else{
                 $arr = $market_area_country->getlist($where,$limit); //($this->put_data);
-
                 if($arr){
-                    redisHashSet('marketAreaCountryList', $lang, json_encode($arr));
+                    redisSet('marketAreaCountryList', json_encode($arr));
+                    //var_dump(redisGet('marketAreaCountryList'));
                 }
             }
         }else{
