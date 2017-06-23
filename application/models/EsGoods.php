@@ -148,10 +148,8 @@ class EsgoodsModel extends PublicModel {
             $created_by = $condition['created_by'];
             $body['query']['bool']['must'][] = [ESClient::TERM => ['created_by' => $created_by]];
         }
-
         if (isset($condition['keyword'])) {
             $show_name = $condition['keyword'];
-
             $body['query'] = ['multi_match' => [
                     "query" => $show_name,
                     "type" => "most_fields",

@@ -235,7 +235,6 @@ class EsProductModel extends PublicModel {
                 ]
             ];
         }
-
         if (isset($condition['keyword'])) {
             $show_name = $condition['keyword'];
             $body['query'] = ['multi_match' => [
@@ -395,7 +394,6 @@ class EsProductModel extends PublicModel {
         if (!$cat_nos) {
             return[];
         }
-        // $lang = 'zh';
         try {
             $cat3s = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name,parent_cat_no')
@@ -648,9 +646,11 @@ class EsProductModel extends PublicModel {
                     ->select();
             $cat1_nos = $cat2_nos = [];
 
+
             if (!$cat3s) {
                 return [];
             }
+
             foreach ($cat3s as $cat) {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
@@ -816,12 +816,6 @@ class EsProductModel extends PublicModel {
                     $show_cat = [];
                     if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {
                         $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
-                    }
-                    if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
-                        foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
-
-                            $show_cat[$show_cat_no] = $scats[$show_cat_no];
-                        }
                     }
                     if (isset($mcats[$item['meterial_cat_no']])) {
                         $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);

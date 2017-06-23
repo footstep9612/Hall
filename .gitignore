@@ -49,6 +49,9 @@ logs/
 application/ExcelFiles/
 .settings
 .project
+<<<<<<< HEAD
 /application/modules/V1/controllers/Test.php
 /application/models/Test.php
 /application/models/Test.php
+=======
+>>>>>>> dev
