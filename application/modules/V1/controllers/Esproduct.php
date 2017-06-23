@@ -66,8 +66,8 @@ class EsgoodsController extends PublicController {
 
     public function listAction() {
 
-        $model = new EsgoodsModel();
-        $ret = $model->getgoods($this->put_data, $this->getLang());
+        $model = new EsProductModel();
+        $ret = $model->getproducts($this->put_data, $this->getLang());
         if ($ret) {
             $list = [];
             $data = $ret[0];
