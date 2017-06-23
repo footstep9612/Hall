@@ -31,7 +31,7 @@ class ShowCatModel extends PublicModel
      * @param string $field     检索字段
      * @return array|bool
      */
-    public function getList($condition=[],$field=''){
+    public function getList($condition=[]){
         return array();die;
         $field = empty($field) ? 'cat_no,name' :$field ;
         if(empty($condition)){
