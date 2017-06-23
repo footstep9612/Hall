@@ -5,7 +5,7 @@
  * Date: 2017/6/15
  * Time: 11:09
  */
-class ShowcatController extends PublicController{
+class ShowCateController extends PublicController{
     private $input;
     public function init(){
         $this->input = json_decode(file_get_contents("php://input"), true);
@@ -14,7 +14,7 @@ class ShowcatController extends PublicController{
     /**
      * 展示分类列表
      */
-    public function getlistAction(){
+    public function listAction(){
         $condition = array();
         if($this->input['lang']){
             $condition['lang'] = $this->input['lang'];
@@ -26,7 +26,6 @@ class ShowcatController extends PublicController{
         $showcat = new ShowCatModel();
         $result  = $showcat->getList($condition);
         if($result){
-            echo 122;die;
             jsonReturn($result);
         }else{
             jsonReturn(array('code'=>'400','message'=>'失败'));

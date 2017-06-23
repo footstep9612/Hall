@@ -5,22 +5,20 @@
  * Date: 2017/6/15
  * Time: 15:52
  */
-class ShowCatModel extends PublicModel
-{
+class ShowCatModel extends PublicModel{
     //状态
     const STATUS_DRAFT = 'DRAFT'; //草稿
     const STATUS_APPROVING = 'APPROVING'; //审核；
     const STATUS_VALID = 'VALID'; //生效；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
-    public function __construct()
-    {
+    public function __construct(){
         //动态读取配置中的数据库配置   便于后期维护
-        $config_obj=Yaf_Registry::get("config");
-        $config_db=$config_obj->database->config->goods->toArray();
-        $this->dbName = $config_db['name'];
-        $this->tablePrefix = $config_db['tablePrefix'];
-        $this->tableName = 'show_cat';
+      //  $config_obj=Yaf_Registry::get("config");
+        //$config_db=$config_obj->database->config->goods->toArray();
+       // $this->dbName = $config_db['name'];
+       // $this->tablePrefix = $config_db['tablePrefix'];
+       // $this->tableName = 'show_cat';
 
         parent::__construct();
     }
@@ -31,8 +29,9 @@ class ShowCatModel extends PublicModel
      * @param string $field     检索字段
      * @return array|bool
      */
-    public function getList($condition=[],$field=''){
-        $field = empty($field) ? 'cat_no,name' :$field ;
+    public function getList($condition=[]){
+        return array();die;
+   /*     $field = empty($field) ? 'cat_no,name' :$field ;
         if(empty($condition)){
             $condition['parent_cat_no'] = '';
         }
@@ -57,7 +56,7 @@ class ShowCatModel extends PublicModel
             return $data;
         }catch (Exception $e){
             return false;
-        }
+        }*/
     }
 
 
