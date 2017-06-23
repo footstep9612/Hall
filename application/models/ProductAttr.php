@@ -7,14 +7,22 @@
  */
 class ProductAttrModel extends PublicModel
 {
-    //数据库 表映射
-    protected $dbName = 'erui_goods';
-    protected $tableName = 'product_attr';
-
     //状态
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
+
+    public function __construct()
+    {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj=Yaf_Registry::get("config");
+        $config_db=$config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'product_attr';
+
+        parent::__construct();
+    }
 
     /**
      * 根据spu获取属性

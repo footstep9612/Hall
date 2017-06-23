@@ -1269,6 +1269,7 @@ function freightage_insurance($data) {
 /**
  * 浏览器语言
  * 目前只处理中(zn)英(en)俄(ru)西班牙(es)语
+ * @author link
  * @return string
  */
 function browser_lang() {
@@ -1288,6 +1289,7 @@ function browser_lang() {
 
 /**
  * json输出
+ * @author link
  * @param array $data    返回值
  * @param int $code    错误编码
  * @param string $message    错误提示
@@ -1310,6 +1312,7 @@ function jsonReturn($data, $code = 1, $message = '', $type = 'JSON') {
 /**
  * 生成spu编码
  * 这里临时生成七位数字，后期根据具体需求改动
+ * @author link  2017-06-22
  */
 function createSpu() {
     $rand = rand(0, 9999999);
@@ -1319,6 +1322,7 @@ function createSpu() {
 /**
  * 生成二维码
  * 这里事先预留了个二维码扩展，方便后期使用与维护（待实现）
+ * @author link  2017-06-22
  * @param string $url
  * @param string $logo logo图地址
  * @param int $msize 二维码大小
@@ -1334,6 +1338,7 @@ function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
 
 /**
  * 获取当前用户信息
+ * @author link    2017-06-22
  * @return array|bool
  */
 function getLoinInfo() {
