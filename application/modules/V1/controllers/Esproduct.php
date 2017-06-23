@@ -42,13 +42,13 @@ class EsproductController extends PublicController {
             LOG::write($ex->getMessage(), LOG::ERR);
             $this->setCode(-2001);
             $this->setMessage('系统错误!');
-
             $this->jsonReturn();
         }
     }
 
     public function indexAction() {
 //        $this->es->delete('index');
+        // $this->es->delete($this->index);
         //$model = new EsgoodsModel();
 
         $body['mappings'] = [];
