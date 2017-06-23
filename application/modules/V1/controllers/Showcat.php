@@ -26,8 +26,6 @@ class ShowcatController extends PublicController{
         $showcat = new ShowCatModel();
         $result  = $showcat->getList($condition);
         if($result){
-            $result['code'] = 0;
-            $result['message'] = '成功';
             jsonReturn($result);
         }else{
             jsonReturn(array('code'=>'400','message'=>'失败'));
