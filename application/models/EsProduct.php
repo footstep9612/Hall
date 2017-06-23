@@ -154,6 +154,34 @@ class EsProductModel extends PublicModel {
                 ]
             ];
         }
+        if (isset($condition['exe_standard'])) {
+            $exe_standard = $condition['exe_standard'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['exe_standard' => $exe_standard
+                ]
+            ];
+        }
+        if (isset($condition['app_scope'])) {
+            $app_scope = $condition['app_scope'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['app_scope' => $app_scope
+                ]
+            ];
+        }
+        if (isset($condition['advantages'])) {
+            $advantages = $condition['advantages'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['advantages' => $advantages
+                ]
+            ];
+        }
+        if (isset($condition['tech_paras'])) {
+            $tech_paras = $condition['tech_paras'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['tech_paras' => $tech_paras
+                ]
+            ];
+        }
         if (isset($condition['source_detail'])) {
             $source_detail = $condition['source_detail'];
 
@@ -228,12 +256,17 @@ class EsProductModel extends PublicModel {
     /* 通过搜索条件获取数据列表
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
+     * @param mix  $_source //要搜索的字段
      * @return mix  
      */
 
-    public function getproducts($condition, $lang = 'en') {
+    public function getproducts($condition, $_source, $lang = 'en') {
 
         try {
+            if (!$_source) {
+                $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
+                    , 'profile', 'supplier_name', 'supplier_id', 'brand', 'recommend_flag'];
+            }
             $body = $this->getCondition($condition);
             $pagesize = 10;
             $current_no = 1;
@@ -368,7 +401,10 @@ class EsProductModel extends PublicModel {
                     ->field('id,cat_no,name,parent_cat_no')
                     ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
+            if (!$cat3s) {
 
+                return [];
+            }
 
             $cat1_nos = $cat2_nos = [];
             foreach ($cat3s as $cat) {
@@ -458,10 +494,11 @@ class EsProductModel extends PublicModel {
                         'status' => 'NORMAL'])
                     ->select();
             $ret = [];
+            if ($product_attrs) {
+                foreach ($product_attrs as $item) {
 
-            foreach ($product_attrs as $item) {
-
-                $ret[$item['spu']][] = $item;
+                    $ret[$item['spu']][] = $item;
+                }
             }
             return $ret;
         } catch (Exception $ex) {
@@ -485,12 +522,14 @@ class EsProductModel extends PublicModel {
                     ->where(['spu' => ['in', $spus], 'status' => 'VALID'])
                     ->select();
             $ret = [];
-            foreach ($specs as $spec) {
-                $spu = $spec['spu'];
-                $sku = $spec['sku'];
-                unset($spec['spu']);
-                unset($spec['sku']);
-                $ret[$spu][$sku] = $spec;
+            if ($specs) {
+                foreach ($specs as $spec) {
+                    $spu = $spec['spu'];
+                    $sku = $spec['sku'];
+                    unset($spec['spu']);
+                    unset($spec['sku']);
+                    $ret[$spu][$sku] = $spec;
+                }
             }
             return $ret;
         } catch (Exception $ex) {
@@ -547,10 +586,12 @@ class EsProductModel extends PublicModel {
                     ])
                     ->select();
             $ret = [];
-            foreach ($product_attrs as $item) {
-                $sku = $item['sku'];
-                unset($item['sku']);
-                $ret[$sku][] = $item;
+            if ($product_attrs) {
+                foreach ($product_attrs as $item) {
+                    $sku = $item['sku'];
+                    unset($item['sku']);
+                    $ret[$sku][] = $item;
+                }
             }
             return $ret;
         } catch (Exception $ex) {
@@ -576,9 +617,11 @@ class EsProductModel extends PublicModel {
                     ->select();
 
             $ret = [];
-            foreach ($show_material_cats as $item) {
+            if ($show_material_cats) {
+                foreach ($show_material_cats as $item) {
 
-                $ret[$item['material_cat_no']][$item['show_cat_no']] = $item['show_cat_no'];
+                    $ret[$item['material_cat_no']][$item['show_cat_no']] = $item['show_cat_no'];
+                }
             }
 
             return $ret;
@@ -605,6 +648,9 @@ class EsProductModel extends PublicModel {
                     ->select();
             $cat1_nos = $cat2_nos = [];
 
+            if (!$cat3s) {
+                return [];
+            }
             foreach ($cat3s as $cat) {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
@@ -764,9 +810,11 @@ class EsProductModel extends PublicModel {
 
                         $body['specs'] = json_encode($specs[$item['spu']], JSON_UNESCAPED_UNICODE);
                     } else {
-                        $body['specs'] = '';
+                        $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+                        ;
                     }
-                    if (isset($scats[$scats_no_spu[$item['spu']]])) {
+                    $show_cat = [];
+                    if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {
                         $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
                     }
                     if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
@@ -775,13 +823,20 @@ class EsProductModel extends PublicModel {
                             $show_cat[$show_cat_no] = $scats[$show_cat_no];
                         }
                     }
-                    $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
+                    if (isset($mcats[$item['meterial_cat_no']])) {
+                        $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
+                    } else {
+                        $body['meterial_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
+                    }
                     $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
-                    $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
-
+                    if (isset($product_attrs[$item['spu']])) {
+                        $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
+                    } else {
+                        $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+                    }
                     $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
-                    return $flag;
+                    //return $flag;
                 }
             } else {
                 return false;
