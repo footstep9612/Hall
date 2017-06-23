@@ -179,7 +179,7 @@ class ProductModel extends PublicModel {
             'spu' => $spu,
             'status' => array('neq', self::STATUS_DELETED),
         );
-        $field = 'spu,lang,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,profile';
+        $field = 'spu,lang,name,show_name,meterial_cat_no,brand,supplier_id,supplier_name,keywords,description,exe_standard,profile';
         try {
             $result = $this->field($field)->where($condition)->select();
             $data = array(
@@ -187,9 +187,10 @@ class ProductModel extends PublicModel {
             );
             if ($result) {
                 foreach ($result as $item) {
-                    //查询品牌
-                    $brand = $this->getBrandBySpu($spu, $item['lang']);
-                    $item['brand'] = $brand;
+                    /**
+                     * 1.这块还差展示分类   后期看怎么实现
+                     * 2.需不要产品属性
+                     */
 
                     //语言分组
                     $data[$item['lang']] = $item;
