@@ -1,8 +1,8 @@
 <?php
 class GoodsController extends PublicController
 {
-    protected $lang;
-    protected $input;
+    private $lang;
+    private $input;
     public function init()
     {
         $this->input = json_decode(file_get_contents("php://input"), true);
@@ -11,6 +11,7 @@ class GoodsController extends PublicController
         if(!in_array($this->lang,array('en','ru','es','zh'))){
             $this->lang = 'en';
         }
+
     }
 
     /**
@@ -41,7 +42,7 @@ class GoodsController extends PublicController
             );
             jsonReturn($data);
         }else{
-            jsonReturn('','-1001','获取失败');
+            jsonReturn(array('code' => -1001, 'message' => '获取失败'));
         }
         exit;
     }
@@ -55,7 +56,7 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            jsonReturn('','-1003','sku不可以为空');
+            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
         }
         //获取商品属性
         $goods = new GoodsModel();
@@ -68,7 +69,7 @@ class GoodsController extends PublicController
             );
             jsonReturn($data);
         }else{
-            jsonReturn('','-1002','获取失败');
+            jsonReturn(array('code' => -1003, 'message' => '获取失败'));
         }
         exit;
     }
@@ -82,20 +83,20 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            jsonReturn('','-1003','sku不可以为空');
+            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
         }
         $goods = new GoodsModel();
         $result = $goods->getGoodsInfo($sku,$this->lang);
 
-        if(!empty($result)){
-           $data = array(
-                'code' => '1',
+        if($result){
+            $data = array(
+                'code' => 1,
                 'message' => '数据获取成功',
                 'data' => $result
             );
             jsonReturn($data);
         }else{
-            jsonReturn('','-1004','获取失败');
+            jsonReturn(array('code' => -1002, 'message' => '获取失败'));
         }
         exit;
     }

@@ -5,8 +5,11 @@
  *  @author  klp
  */
 
+
+
 class GoodsAttrModel extends PublicModel
 {
+
 
     protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
@@ -136,6 +139,7 @@ class GoodsAttrModel extends PublicModel
      * @param null $where string 条件
      * @return
      */
+
     public function attrBySku($sku, $lang)
     {
         $where = array(

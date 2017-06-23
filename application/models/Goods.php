@@ -40,6 +40,7 @@ class GoodsModel extends PublicModel {
 
         try {
             //缓存数据redis
+
             $key_redis = md5(json_encode($condition));
             if(redisExist($key_redis)){
                 $result = redisGet($key_redis);
@@ -54,12 +55,6 @@ class GoodsModel extends PublicModel {
                     foreach ($result as $k => $v) {
                         $data[$v['lang']] = $v;
                     }
-
-                    //查询商品附件(未分语言)
-                    $skuAchModel = new GoodsAchModel();
-                    $where['sku'] = $sku;
-                    $attach = $skuAchModel->getInfoByAch($where);
-                    $data['attachs'] = $attach ? $attach : array();
 
                     redisSet($key_redis,json_encode($data));
                     return $data;
@@ -76,6 +71,7 @@ class GoodsModel extends PublicModel {
      * SKU基本信息
      */
 
+
     public function getInfo($sku, $lang)
     {
         $field = 'id,lang,sku,spu,name,show_name,model';
@@ -85,7 +81,7 @@ class GoodsModel extends PublicModel {
             'status'  => self::STATUS_VALID
         );
 
-        try{
+        try {
             //缓存数据的判断读取
             $redis_key = md5(json_encode($condition));
             if (redisExist($redis_key)) {
@@ -355,4 +351,3 @@ class GoodsModel extends PublicModel {
     }
 
 }
-

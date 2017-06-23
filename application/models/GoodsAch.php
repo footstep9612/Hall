@@ -23,6 +23,7 @@ class GoodsAchModel extends PublicModel
         $field = 'attach_type,attach_name,attach_url,sort_order,status';
         try {
             $key_redis = md5(json_encode($where));
+
             if(redisExist($key_redis)){
                 $result = redisGet($key_redis);
                 return $result ? json_decode($result) : array();
@@ -59,6 +60,7 @@ class GoodsAchModel extends PublicModel
                         }
                         $result[$group] = $val;
                     }
+
                     redisSet($key_redis,json_encode($result));
                     return $result;
                 } else {

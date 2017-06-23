@@ -41,12 +41,7 @@ class ProductAttrModel extends PublicModel {
         );
 
         //缓存数据redis查询
-<<<<<<< HEAD
-        $key_redis = md5(json_encode($condition));
-        if(redisExist($key_redis)){
-            $result = redisGet($key_redis);
-            return $result ? $result : array();
-=======
+
         $key_redis = md5(json_encode(array('spu' => $spu, 'status' => self::STATUS_VALID) . time()));
         if (redisExist($key_redis)) {
             $result = redisHashGet('pattrs', $key_redis);
@@ -62,7 +57,7 @@ class ProductAttrModel extends PublicModel {
             } else {
                 return $result ? $result : array();
             }
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
+
         } else {
             $result = $this->field($field)->where($condition)->select();
             if ($result) {
@@ -99,7 +94,7 @@ class ProductAttrModel extends PublicModel {
                         $attrs[$item['lang']][$group1][] = $item;
                     }
                 }
-                redisSet($key_redis, $attrs);
+                redisHashSet('pattrs', $key_redis, $attrs);
                 return $attrs;
             } else {
                 return array();
