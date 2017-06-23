@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsgoodsController extends PublicController {
+class EsproductController extends PublicController {
 
     protected $index = 'erui_goods';
     protected $es = '';
@@ -33,6 +33,7 @@ class EsgoodsController extends PublicController {
 
     public function importAction($lang = 'en') {
         try {
+            
             $espoductmodel = new EsProductModel();
             $espoductmodel->importproducts($lang);
             $this->setCode(1);
@@ -50,7 +51,7 @@ class EsgoodsController extends PublicController {
 
     public function indexAction() {
 //        $this->es->delete('index');
-        // $this->es->delete($this->index);
+    
         //$model = new EsgoodsModel();
 
         $body['mappings'] = [];

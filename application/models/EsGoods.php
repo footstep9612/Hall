@@ -303,7 +303,7 @@ class EsgoodsModel extends PublicModel {
     public function getgoods_attrbyskus($skus, $lang = 'en') {
 
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('*')
                     ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
@@ -328,7 +328,7 @@ class EsgoodsModel extends PublicModel {
 
     public function getgoods_specsbyskus($skus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('sku,attr_name,attr_value,attr_no')
                     ->where(['sku' => ['in', $skus],
                         'lang' => $lang,
