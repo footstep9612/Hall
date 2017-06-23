@@ -23,8 +23,9 @@ class ShowcatController extends PublicController{
             $condition['parent_cat_no'] = $this->input['parent_cat_no'];
         }
 
-        $showcat = new ShowCatModel();
-        $result  = $showcat->getList($condition);
+        //$showcat = new ShowCatModel();
+        //$result  = $showcat->getList($condition);
+        $result = array();
         if($result){
             jsonReturn($result);
         }else{
