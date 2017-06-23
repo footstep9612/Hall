@@ -7,11 +7,13 @@
 class GoodsAttrTplModel extends PublicModel
 {
 
+    protected $dbName = 'erui_goods'; //数据库名称
+    protected $tableName = 'goods_attr_tpl'; //数据表表名
+
     //状态
     const STATUS_VALID = 'VALID';    //有效的
     const STATUS_INVALID = 'INVALID';    //无效
     const STATUS_DELETED = 'DELETED';    //删除
-
 
     public function __construct()
     {
@@ -24,44 +26,76 @@ class GoodsAttrTplModel extends PublicModel
 
         parent::__construct();
     }
+
     /**
-     * 根据条件获取商品模板属性值
+     * 根据条件获取商品模板属性
      * @param null $where string 条件
-     * @return mixed
+     * @return
      */
-    public function WhereAttrlist($where)
+    public function getlist($type='',$cat_no,$spu,$sku)
     {
-        $result = $this->field('input_type, value_type, value_unit, options, input_hint')
-                       ->where($where)
-                       ->select();
-        return $result;
+        $where = array(
+            'attr_type' => ''
+        );
+        $field = "lang,attr_group,attr_no,attr_name,goods_flag,spec_flag,logi_flag,hs_flag";
+        $common = $this->field($field)->where($where)->select();
+       if($type == 'CATEGORY'){
+           $category = $this->field('attr_no')->where(array('cat_no' => $cat_no, 'attr_type' => 'CATEGORY'))->select();
+           $catModel = new AttrModel();
+           if($category){
+               $groups = $catModel->field($field)->where(array('attr_no' => $category))->select();
+               $cate = $groups? $groups : array();
+           }
+       } elseif($type == 'PRODUCT'){
+           $spuModel = new ProductAttrModel();
+           $products = $spuModel->field($field)->where(array('spu' => $spu))->select();
+           $product = $products ? $products : array();
+       } elseif($type == 'GOODS'){
+           $skuModel = new GoodsAttrModel();
+            $goods = $skuModel->field($field)->where(array('sku' => $sku))->select();
+           $good = $goods ? $goods : array();
+       }
+        $result = array_merge($common,$cate,$product,$good);
+        if ($result) {
+            //按语言树形结构
+            /**
+             * 属性分类:一级
+             *   goods_flag - 商品属性
+             *   spec_flag - 规格型号
+             *   logi_flag  - 物流属性
+             *   hs_flag  - 申报要素
+             *   Others - 其他　
+             */
+            $ListTpl = array();
+            foreach ($result as $item) {
+                $group1 = '';
+                if ($item['goods_flag'] == 'Y') {
+                    $group1 = 'goods_flag';
+                    $ListTpl[$item['lang']][$group1][] = $item;
+                }
+                if ($item['logi_flag'] == 'Y') {
+                    $group1 = 'logi_flag';
+                    $ListTpl[$item['lang']][$group1][] = $item;
+                }
+                if ($item['hs_flag'] == 'Y') {
+                    $group1 = 'hs_flag';
+                    $ListTpl[$item['lang']][$group1][] = $item;
+                }
+                if ($item['spec_flag'] == 'Y') {
+                    $group1 = 'spec_flag';
+                    $ListTpl[$item['lang']][$group1][] = $item;
+                }
+                if ($group1 == '') {
+                    $group1 = 'others';
+                    $ListTpl[$item['lang']][$group1][] = $item;
+                }
+            }
+            return $ListTpl;
+        } else {
+            return array();
+        }
     }
 
-    /**
-     * 根据条件查询商品属性 sku数据查询
-     * @param null $where 条件 sku lang语言(必) skuid  attr_group规格
-     * @return string json
-     */
-    public function AttrInfo($where)
-    {
-        $result = $this->field('id, spu, sku, attr_group, attr_name, sort_order, created_by, created_at')
-            ->where($where)
-            ->select();
-        return $result;
-    }
-
-    /**
-     * 根据条件查询商品总数
-     * @param null $where 条件  sku
-     * @return string json
-     */
-    public function GetCount($where)
-    {
-        $result = $this->where($where)
-                 /*->field('id, spu, sku, attr_group, sort_order, created_by, created_at')*/
-                ->count('id');
-        return $result;
-    }
 
     /**
      * 获取属性模板
@@ -132,8 +166,6 @@ class GoodsAttrTplModel extends PublicModel
      * @return array
      */
     public function getCommonAttrTpl($lang=''){
-        if(empty($lang))
-            return array();
 
         //判断redis缓存
         if(redisHashExist('AttrTpl','common_'.$lang)){
@@ -145,6 +177,18 @@ class GoodsAttrTplModel extends PublicModel
         $attrTable = $attrModel->getTableName();
         $thisTable = $this->getTableName();
 
+<<<<<<< HEAD
+        $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
+        $where = array(
+            "$thisTable.attr_type" => '',
+            "$thisTable.lang" =>$lang,
+            "$thisTable.status" => self::STATUS_VALID,
+            "$attrTable.status"=> $attrModel::STATUS_VALID,
+            "$attrTable.lang" => $lang,
+        );
+        $result = $this->field($field)->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no" , 'LEFT')->where($where)->select();
+        return $result ? $result : array();
+=======
         try{
             $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
             $where = array(
@@ -164,6 +208,7 @@ class GoodsAttrTplModel extends PublicModel
             return array();
         }
         return array();
+>>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
     }
 
     /**
@@ -300,5 +345,6 @@ class GoodsAttrTplModel extends PublicModel
         }
         return array();
     }
+
 
 }

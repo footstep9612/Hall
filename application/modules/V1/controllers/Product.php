@@ -32,7 +32,7 @@ class ProductController extends PublicController {
      * spu 详情
      */
     public function getInfoAction() {
-        $spu = sset($this->input['spu']) ? $this->input['spu'] : '';
+        $spu = isset($this->input['spu']) ? $this->input['spu'] : '';
         $lang = isset($this->input['lang']) ? $this->input['lang'] : '';
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu, $lang);
@@ -44,6 +44,9 @@ class ProductController extends PublicController {
         exit;
     }
 
+    /**
+     * 产品添加/编辑
+     */
     public function editAction() {
         $productModel = new ProductModel();
         $productModel->setModule(Yaf_Controller_Abstract::getModuleName());
@@ -91,19 +94,19 @@ class ProductController extends PublicController {
         }
         $lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-        $goodsModel = new GoodsModel();
-        $result = $goodsModel->getInfo($this->input['sku'], $lang);
-        if ($result) {
-            $data = array(
-                'code' => 0,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        } else {
-            jsonReturn(array('code' => 400, 'message' => '失败'));
-        }
-        exit;
+            $goodsModel = new GoodsModel();
+            $result = $goodsModel->getInfo($this->input['sku'], $lang);
+            if ($result) {
+                $data = array(
+                    'code' => 0,
+                    'message' => '成功',
+                    'data' => $result
+                );
+                jsonReturn($data);
+            } else {
+                jsonReturn(array('code' => 400, 'message' => '失败'));
+            }
+            exit;
     }
 
     /**
@@ -114,9 +117,8 @@ class ProductController extends PublicController {
 
         if (!empty($data['spu'])) {
             $spu = $data['spu'];
-        } else {
-            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
-            exit();
+        } else{
+            jsonReturn(array("code" => "-1002", "message" => "spu不可以为空"));
         }
         //获取产品属性
         $goods = new ProductAttrModel();
@@ -144,9 +146,8 @@ class ProductController extends PublicController {
 
         if (!empty($data['spu'])) {
             $spu = $data['spu'];
-        } else {
-            echo json_encode(array("code" => "-102", "message" => "sku不可以都为空"));
-            exit();
+        } else{
+            jsonReturn(array("code" => "-1002", "message" => "spu不可以为空"));
         }
         $lang = !empty($data['lang']) ? $data['lang'] : '';
         //获取产品属性
