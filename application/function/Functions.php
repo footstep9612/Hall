@@ -1295,17 +1295,19 @@ function browser_lang() {
  * @param string $message    错误提示
  * @param string $type
  */
-function jsonReturn($data, $code = 1, $message = '', $type = 'JSON') {
+function jsonReturn($data, $code = '', $message = '', $type = 'JSON', $lang='') {
     header('Content-Type:application/json; charset=utf-8');
+    $code = $code ? $code : MSG::MSG_SUCCESS;
+    $message = $message ? $message : MSG::getMessage($code, $lang);
     if ($data) {
         if (!is_array($data)) {
             $data = array('data' => $data);
         }
         $data['code'] = $code;
-        $data['message'] = ErrorMsg::getMessage($code, $message);
+        $data['message'] = $message;
         exit(json_encode($data));
     } else {
-        exit(json_encode(array('code' => $code, 'message' => ErrorMsg::getMessage($code, $message))));
+        exit(json_encode(array('code' => $code, 'message' =>$message)));
     }
 }
 
