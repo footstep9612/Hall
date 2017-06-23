@@ -25,7 +25,7 @@ class GoodsAchModel extends PublicModel
             $key_redis = md5(json_encode($where));
             if(redisExist($key_redis)){
                 $result = redisGet($key_redis);
-                return $result ? $result : array();
+                return $result ? json_decode($result) : array();
             } else {
                 $result = $this->field($field)
                     ->where($where)
@@ -59,7 +59,7 @@ class GoodsAchModel extends PublicModel
                         }
                         $result[$group] = $val;
                     }
-                    redisSet($key_redis,$result);
+                    redisSet($key_redis,json_encode($result));
                     return $result;
                 } else {
                     return array();

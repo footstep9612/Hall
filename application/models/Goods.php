@@ -34,7 +34,8 @@ class GoodsModel extends PublicModel {
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $field = 'id,sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku
+            'sku' => $sku,
+            'status'  => self::STATUS_VALID
         );
 
         try {
@@ -42,7 +43,7 @@ class GoodsModel extends PublicModel {
             $key_redis = md5(json_encode($condition));
             if(redisExist($key_redis)){
                 $result = redisGet($key_redis);
-                return $result ? $result : array();
+                return $result ? json_decode($result) : array();
             } else {
                 $result = $this->field($field)->where($condition)->select();
                 if ($result) {
@@ -60,7 +61,7 @@ class GoodsModel extends PublicModel {
                     $attach = $skuAchModel->getInfoByAch($where);
                     $data['attachs'] = $attach ? $attach : array();
 
-                    redisSet($key_redis,$data);
+                    redisSet($key_redis,json_encode($data));
                     return $data;
                 } else {
                     return array();
@@ -77,10 +78,11 @@ class GoodsModel extends PublicModel {
 
     public function getInfo($sku, $lang)
     {
-        $field = 'id,sku,spu,lang,show_name,model,';
+        $field = 'id,lang,sku,spu,name,show_name,model';
         $condition = array(
-            'sku' => $sku,
-            'lang' => $lang
+            'sku'     => $sku,
+            'lang'    => $lang,
+            'status'  => self::STATUS_VALID
         );
 
         try{
@@ -88,9 +90,10 @@ class GoodsModel extends PublicModel {
             $redis_key = md5(json_encode($condition));
             if (redisExist($redis_key)) {
                 $result = redisGet($redis_key);
-                return $result ? $result : false;
-            } else {
-                $result = $this->field($field)->where($condition)->find();
+                return $result ? json_decode($result) : false;
+            }else {
+                $result = $this->field($field)->where($condition)->select();
+
                 if ($result) {
                     $data = array(
                         'lang' => $lang
@@ -103,8 +106,8 @@ class GoodsModel extends PublicModel {
 		            $skuAttrModel = new GoodsAttrModel();
 		            $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
 		            $result['attrs'] = $attrs;
-            
-                    redisSet($redis_key,$result);
+
+                    redisSet($redis_key,json_encode($result));
                     return $result;
                 } else {
                     return array();
