@@ -62,6 +62,7 @@ class InquiryModel extends PublicModel {
                 array('lt',$condition['end_time'])
             );
         }
+        $where['inquiry_status'] = isset($condition['inquiry_status'])?$condition['inquiry_status']:self::STATUS_DRAFT;
         return $where;
     }
 
