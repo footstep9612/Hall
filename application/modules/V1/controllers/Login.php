@@ -160,16 +160,50 @@ class LoginController extends Yaf_Controller_Abstract {
         }
         $model_group = new GroupModel();
         $data = $model_group ->getlist($where,$limit); //($this->put_data);
+        $count = count($data) ;
+        $j = 0;
+        for($i = 0 ;$i < $count ; $i++){
+            if($data[$i]['parent_id'] == 0 ){
+                $data_arr[$j]['value'] = $data[$i]['id'];
+                $data_arr[$j]['label'] = $data[$i]['name'];
+                $j ++ ;
+            }
+        }
+        $count_arr = count($data_arr);
+        for($k =0 ; $k < $count_arr ;$k++){
+            $j = 0;
+            for($i = 0 ;$i < $count ; $i++){
+                if($data[$i]['parent_id'] == $data_arr[$k]['value'] ){
+                    $data_arr[$k]['children'][$j]['value'] = $data[$i]['id'];
+                    $data_arr[$k]['children'][$j]['label'] = $data[$i]['name'];
+                    $j++;
+                }
+            }
+        }
+        for($k =0 ; $k < $count_arr ;$k++){
+            if(isset($data_arr[$k]['children'])){
+                $count_arr_children =count($data_arr[$k]['children']);
+                for($z = 0 ; $z < $count_arr_children ; $z++){
+                    $j = 0;
+                    for($i = 0 ;$i < $count ; $i++){
+                        if($data[$i]['parent_id'] == $data_arr[$k]['children'][$z]['value'] ){
+                            $data_arr[$k]['children'][$z]['children'][$j]['value'] = $data[$i]['id'];
+                            $data_arr[$k]['children'][$z]['children'][$j]['label'] = $data[$i]['name'];
+                            $j++;
+                        }
+                    }
+                }
+            }
+        }
         if(!empty($data)){
             $datajson['code'] = 1;
-            $datajson['data'] = $data;
+            $datajson['data'] = $data_arr;
         }else{
             $datajson['code'] = -101;
-            $datajson['data'] = $data;
+            $datajson['data'] = $data_arr;
             $datajson['message'] = '数据为空!';
         }
-        echo json_encode($datajson);
-        exit();
+        jsonReturn($datajson);
     }
 
 }
