@@ -213,4 +213,40 @@ class GoodsAttrModel extends PublicModel
         }
     }
 
+
+    /**
+     * 获取sku的规格属性
+     * @author link 2017-06-23
+     * @param string $sku
+     * @param string $lang
+     * @return array|mixed
+     */
+    public function getSpecBySku($sku='',$lang =''){
+        if(empty($sku) || empty($lang))
+            return array();
+
+        //检查redis
+        if(redisHashExist('spec','spec_'.$sku.'_'.$lang)){
+            return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang));
+        }
+
+        $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit';
+        $condition = array(
+            'sku' => $sku,
+            'lang' =>$lang,
+            'spec_flag' =>'Y',
+            'status' =>self::STATUS_VALID
+        );
+        try{
+            $result = $this->field($field)->where($condition)->select();
+            if($result){
+                redisHashSet('spec','spec_'.$sku.'_'.$lang, json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
+    }
+
 }
