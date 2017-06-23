@@ -23,9 +23,8 @@ class ShowcatController extends PublicController{
             $condition['parent_cat_no'] = $this->input['parent_cat_no'];
         }
 
-        //$showcat = new ShowCatModel();
-        //$result  = $showcat->getList($condition);
-        $result=false;
+        $showcat = new ShowCatModel();
+        $result  = $showcat->getList($condition);
         if($result){
             $result['code'] = 0;
             $result['message'] = '成功';
