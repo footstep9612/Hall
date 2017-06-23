@@ -25,33 +25,31 @@ class EsproductController extends PublicController {
         //  parent::init();
     }
 
-    
-
     /*
      * product数据导入
      */
 
     public function importAction($lang = 'en') {
         try {
-            
+            set_time_limit(0);
+            $lang = 'ru';
             $espoductmodel = new EsProductModel();
             $espoductmodel->importproducts($lang);
             $this->setCode(1);
             $this->setMessage('成功!');
-
             $this->jsonReturn();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             $this->setCode(-2001);
             $this->setMessage('系统错误!');
-            $this->jsonReturn([]);
+            $this->jsonReturn();
         }
     }
 
     public function indexAction() {
 //        $this->es->delete('index');
-    
+        // $this->es->delete($this->index);
         //$model = new EsgoodsModel();
 
         $body['mappings'] = [];
@@ -65,26 +63,30 @@ class EsproductController extends PublicController {
         $this->es->create_index($this->index, $body);
         $this->setCode(1);
         $this->setMessage('成功!');
-        $this->jsonReturn($data);
+        $this->jsonReturn();
     }
 
-   
     public function listAction() {
 
         $model = new EsProductModel();
         $ret = $model->getproducts($this->put_data, $this->getLang());
         if ($ret) {
             $list = [];
-            $data = $ret[0];       
+
+            $data = $ret[0];
             $send['count'] = intval($flag['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
+
 
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
-            $send['data'] = $list;
+
+
+            $send['data']['list'] = $list;
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($send);
         } else {
@@ -92,6 +94,7 @@ class EsproductController extends PublicController {
             $this->jsonReturn();
         }
     }
+
     public function goodsAction($lang = 'en') {
         if (!in_array($lang, $this->langs)) {
 

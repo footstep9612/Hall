@@ -99,7 +99,7 @@ class ExcelOperationController extends PublicController {
             //输出excel07文件
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         }
-        //设置文件名
+
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         //禁止缓存
         header('Cache-Control: max-age=0');
@@ -115,6 +115,7 @@ class ExcelOperationController extends PublicController {
         $objPHPExcel = new PHPExcel();
 
         //2.创建sheet(内置表)
+
         $objSheet = $objPHPExcel->getActiveSheet(); //获取当前sheet
         $objSheet->setTitle('商务技术报价单'); //设置当前sheet标题
         //数据重组
@@ -133,6 +134,7 @@ class ExcelOperationController extends PublicController {
         ];
         /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
         $objSheet->setCellValue("A1", '易瑞国际电子商务有限公司商务技术部')->mergeCells("A1:R2");
+
         $objSheet->getStyle("A3:R5")->applyFromArray($styleArray);
 
 
@@ -161,6 +163,7 @@ class ExcelOperationController extends PublicController {
 
         //设置全局列宽度
         $small_cols = ["A", "G"];
+
         foreach ($small_cols as $small_col):
             $objSheet->getColumnDimension($small_col)->setWidth('6');
         endforeach;
@@ -315,6 +318,7 @@ class ExcelOperationController extends PublicController {
         $objSheet->setCellValue("K15", "");
 
 
+
         $objSheet->getStyle("A11:K15")->applyFromArray($styleArray);
 
         $total_rows = [
@@ -396,11 +400,13 @@ class ExcelOperationController extends PublicController {
         $objSheet->setTitle('询价单'); //设置当前sheet标题
         //设置列宽度
         $normal_cols = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('16');
         endforeach;
 
         //填充数据
+
         $objSheet->setCellValue("A1", "客户单号");
         $objSheet->setCellValue("B1", "中文品名");
         $objSheet->setCellValue("C1", "外文品名");
@@ -433,6 +439,7 @@ class ExcelOperationController extends PublicController {
         }
         //P($sku_items);die;
         $item = 2;
+
         foreach ($sku_items as $key => $value) {
             $objSheet->setCellValue("A" . $item, $value['quote_no'])
                     ->setCellValue("B" . $item, $value['name_cn'])
@@ -442,6 +449,7 @@ class ExcelOperationController extends PublicController {
                     ->setCellValue("F" . $item, $value['quote_quantity'])
                     ->setCellValue("G" . $item, $value['quote_unit'])
                     ->setCellValue("H" . $item, $value['quote_brand']);
+
             $item++;
         }
 

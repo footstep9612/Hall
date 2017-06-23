@@ -394,18 +394,15 @@ class EsProductModel extends PublicModel {
         if (!$cat_nos) {
             return[];
         }
-
         try {
             $cat3s = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name,parent_cat_no')
                     ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
-
             if (!$cat3s) {
 
                 return [];
             }
-
 
             $cat1_nos = $cat2_nos = [];
             foreach ($cat3s as $cat) {
@@ -415,7 +412,6 @@ class EsProductModel extends PublicModel {
                     ->field('id,cat_no,name,parent_cat_no')
                     ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
-
 
             foreach ($cat2s as $cat2) {
                 $cat1_nos[] = $cat2['parent_cat_no'];
@@ -821,8 +817,6 @@ class EsProductModel extends PublicModel {
                     if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {
                         $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
                     }
-
-
                     if (isset($mcats[$item['meterial_cat_no']])) {
                         $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
                     } else {

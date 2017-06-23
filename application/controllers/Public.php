@@ -40,6 +40,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
+
                     $tokeninfo = JwtInfo($token); //解析token
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
 
@@ -48,7 +49,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                         exit;
                     } else {
                         $this->user = array(
-                            "id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
@@ -145,7 +145,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             }
 
             $send['code'] = $this->getCode();
-
             if ($send['code'] == "1" && !$this->getMessage()) {
                 $send['message'] = '成功!';
             } elseif (!$this->getMessage()) {
@@ -168,7 +167,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     public function getPut($name, $default = null) {
         $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
-        // return array_walk_recursive($data, 'think_filter');
+// return array_walk_recursive($data, 'think_filter');
         return $data;
     }
 
@@ -286,8 +285,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     }
 
     function think_filter(&$value) {
-        // TODO 其他安全过滤
-        // 过滤查询特殊字符
+// TODO 其他安全过滤
+// 过滤查询特殊字符
         if (preg_match('/^(EXP|NEQ|GT|EGT|LT|ELT|OR|XOR|LIKE|NOTLIKE|NOT BETWEEN|NOTBETWEEN|BETWEEN|NOTIN|NOT IN|IN)$/i', $value)) {
             $value .= ' ';
         }
@@ -440,6 +439,32 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $pad = str_pad($step, 5, '0', STR_PAD_LEFT);
         $code = $prefix . $time . '_' . $pad;
         return $code;
+    }
+
+    /**
+     * 返回josn数据
+     * @author liujf 2017-06-20
+     * @param array $data 数据
+     * @param string $msg 错误消息
+     */
+    public function jsonOutput($data, $msg = '') {
+
+        if ($data) {
+            $this->code = '0';
+            $this->message = '成功';
+            $out = $data;
+        } else {
+            $this->code = '-1';
+            $this->message = '失败';
+            $out = '';
+        }
+
+        if ($msg != '') {
+            $this->code = '-1';
+            $this->message = $msg;
+        }
+
+        $this->jsonReturn($data);
     }
 
 }

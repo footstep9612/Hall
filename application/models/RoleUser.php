@@ -40,6 +40,7 @@ class RoleUserModel extends PublicModel {
         $sql .= ' LEFT JOIN  `t_url_perm` ON `t_url_perm`.`id` =`t_role_access_perm`.`url_perm_id`';
         $sql_where = '';
         if(!empty($where['user_id'])) {
+
             $sql_where .= ' WHERE `user_id`=' . $where['user_id'];
         }
         if ( $where ){

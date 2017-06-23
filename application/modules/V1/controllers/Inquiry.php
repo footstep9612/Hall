@@ -199,8 +199,6 @@ class InquiryController extends PublicController {
 
         $id = $Item->add_data($data);
 
-        //var_dump($id);die;
-
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');

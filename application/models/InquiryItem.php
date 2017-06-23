@@ -46,7 +46,7 @@ class InquiryItemModel extends PublicModel {
         if (!empty($condition['brand'])) {
             $where['brand'] = $condition['brand'];
         }
-        $where['status'] = isset($condition['status'])?$condition['status']:self::STATUS_INVALID;
+        $where['status'] = isset($condition['status']) ? $condition['status'] : self::STATUS_INVALID;
         return $where;
     }
 
@@ -70,17 +70,18 @@ class InquiryItemModel extends PublicModel {
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
 
-        $page = isset($condition['page']) ? $condition['page'] : 1;
-        $pagesize = isset($condition['countPerPage']) ? $condition['countPerPage'] : 10;
+        $page = $condition['page'] ? $condition['page'] : 1;
+        $pagesize = $condition['countPerPage'] ? $condition['countPerPage'] : 10;
 
 
         try {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
 
+
                 return $this->where($where)->select();
-                                //->page($page, $pagesize)
-                                //->select();
+//->page($page, $pagesize)
+//->select();
             } else {
                 return $this->where($where)->select();
             }
@@ -95,7 +96,8 @@ class InquiryItemModel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-        //$data = $this->create($createcondition);
+
+//$data = $this->create($createcondition);
         if (isset($createcondition['inquiry_no'])) {
             $data['inquiry_no'] = $createcondition['inquiry_no'];
         } else {
@@ -133,6 +135,7 @@ class InquiryItemModel extends PublicModel {
         if (isset($createcondition['description'])) {
             $data['description'] = $createcondition['description'];
         }
+
         $data = $this->create($createcondition);
 
         $data['status'] = self::STATUS_INVALID;
@@ -141,6 +144,8 @@ class InquiryItemModel extends PublicModel {
         try {
             return $this->add($data);
         } catch (Exception $e) {
+
+            echo $e->getMessage();
             return false;
         }
     }
