@@ -44,6 +44,9 @@ class ProductController extends PublicController {
         exit;
     }
 
+    /**
+     * 产品添加/编辑
+     */
     public function editAction() {
         $productModel = new ProductModel();
         $productModel->setModule(Yaf_Controller_Abstract::getModuleName());
