@@ -32,6 +32,7 @@ class ShowCatModel extends PublicModel
      * @return array|bool
      */
     public function getList($condition=[],$field=''){
+        return array();die;
         $field = empty($field) ? 'cat_no,name' :$field ;
         if(empty($condition)){
             $condition['parent_cat_no'] = '';
