@@ -9,9 +9,6 @@
 class ProductModel extends PublicModel {
 
     protected $module = '';
-    //数据库 表映射
-    protected $dbName = 'erui_goods';
-    protected $tableName = 'product';
 
     //状态
     const STATUS_NORMAL = 'NORMAL'; //发布
@@ -31,6 +28,13 @@ class ProductModel extends PublicModel {
     );
 
     public function __construct() {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj=Yaf_Registry::get("config");
+        $config_db=$config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'product';
+
         parent::__construct();
     }
 
@@ -135,6 +139,28 @@ class ProductModel extends PublicModel {
             return $result['brand'];
         }
         return '';
+    }
+
+    /**
+     * 根据SPU获取物料分类
+     * @param string $spu
+     * @param $lang
+     * @return string
+     */
+    public function getMcatBySpu($spu='',$lang){
+        if(empty($spu))
+            return false;
+
+        $condition =array(
+            'spu'=>$spu,
+            'status'=>self::STATUS_NORMAL,
+            'lang'=>$lang
+        );
+        $result = $this->field('meterial_cat_no')->where($condition)->find();
+        if($result){
+            return $result['meterial_cat_no'];
+        }
+        return false;
     }
 
     /**
