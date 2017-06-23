@@ -784,7 +784,7 @@ class ESClient {
      *  @param string $alis // 别名
      */
 
-    public function setaggs($field , $alis, $do = 'terms') {
+    public function setaggs($field, $alis, $do = 'terms') {
         $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
         return $this;
     }
@@ -794,7 +794,7 @@ class ESClient {
      */
 
     public function setfields($fields = []) {
-        $this->body['stored_fields'] = $fields;
+        $this->body['_source'] = $fields;
         return $this;
     }
 
