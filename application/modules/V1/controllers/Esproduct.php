@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsgoodsController extends PublicController {
+class EsproductController extends PublicController {
 
     protected $index = 'erui_goods';
     protected $es = '';
@@ -26,13 +26,14 @@ class EsgoodsController extends PublicController {
     }
 
     /*
-     * goods 数据导入
+     * product数据导入
      */
 
     public function importAction($lang = 'en') {
         try {
-            $espoductmodel = new EsgoodsModel();
-            $espoductmodel->importgoodss($lang);
+
+            $espoductmodel = new EsProductModel();
+            $espoductmodel->importproducts($lang);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -41,13 +42,13 @@ class EsgoodsController extends PublicController {
             LOG::write($ex->getMessage(), LOG::ERR);
             $this->setCode(-2001);
             $this->setMessage('系统错误!');
+
             $this->jsonReturn();
         }
     }
 
     public function indexAction() {
 //        $this->es->delete('index');
-        // $this->es->delete($this->index);
         //$model = new EsgoodsModel();
 
         $body['mappings'] = [];
@@ -70,17 +71,21 @@ class EsgoodsController extends PublicController {
         $ret = $model->getproducts($this->put_data, $this->getLang());
         if ($ret) {
             $list = [];
+
             $data = $ret[0];
-            $send['data']['count'] = intval($flag['hits']['total']);
-            $send['data']['current_no'] = intval($ret[1]);
-            $send['data']['pagesize'] = intval($ret[2]);
+            $send['count'] = intval($flag['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
+
 
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
 
+
             $send['data']['list'] = $list;
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($send);
         } else {

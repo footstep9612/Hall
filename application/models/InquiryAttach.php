@@ -8,7 +8,7 @@
  */
 class InquiryAttachModel extends PublicModel {
 
-    protected $dbName = 'erui_db_ddl_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_attach'; //数据表表名
 
     public function __construct() {
@@ -58,15 +58,15 @@ class InquiryAttachModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        $page = $condition['page']?$condition['page']:1;
-        $pagesize = $condition['countPerPage']?$condition['countPerPage']:10;
+        $page = isset($condition['page'])?$condition['page']:1;
+        $pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
 
         try {
             if (isset($page) && isset($pagesize)) {
                 $count = $this->getcount($condition);
-                return $this->where($where)
-                    ->page($page, $pagesize)
-                    ->select();
+                return $this->where($where)->select();
+                    //->page($page, $pagesize)
+                    //->select();
             } else {
                 return $this->where($where)->select();
             }
@@ -100,6 +100,7 @@ class InquiryAttachModel extends PublicModel {
     public function update_data($createcondition = []) {
         $data = $this->create($createcondition);
         $where['id'] = $createcondition['id'];
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         try {
             return $this->where($where)->save($data);
@@ -116,6 +117,7 @@ class InquiryAttachModel extends PublicModel {
      */
     public function delete_data($createcondition = []) {
         $where['id'] = $createcondition['id'];
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         try {
             return $this->where($where)->delete();

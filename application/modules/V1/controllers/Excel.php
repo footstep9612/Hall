@@ -1,12 +1,13 @@
 <?php
 
+
 /**
  * Excel操作类
- * Class ExcelOperationController
+ * Class ExcelController
  * @author maimaiti
  */
-class ExcelOperationController extends PublicController {
-
+class ExcelController extends PublicController
+{
     /**
      * 测试接口
      */
@@ -23,7 +24,8 @@ class ExcelOperationController extends PublicController {
      * 报价单Excel导出api接口
      * @author maimaiti
      */
-    public function exportAction() {
+    public function quoteAction() {
+
         //请求验证
         if (!$this->getRequest()->isPost()) {
             jsonReturn(null, -2101, ErrorMsg::getMessage('-2101'));
@@ -35,9 +37,8 @@ class ExcelOperationController extends PublicController {
             jsonReturn(null, -2103, ErrorMsg::getMessage('-2103'));
         }
 
-        //后期补上api身份验证相关的逻辑
-        $file = $this->data2excelAction($raw['quote_no']);
 
+        $file = $this->data2excelAction($raw['quote_no']);
         if (file_exists($file)) {
             $returnData = [
                 'code' => 1,
@@ -52,60 +53,6 @@ class ExcelOperationController extends PublicController {
     }
 
     /**
-     * 保存到服务器指定目录
-     * @param $obj  PHPExcel写入对象
-     * @param $path 保存目录
-     */
-    private function export_to_disc($obj, $path, $filename) {
-        //保存路径，不存在则创建
-        $savePath = APPLICATION_PATH . "/" . $path . "/";
-        if (!is_dir($savePath)) {
-            mkdir($savePath, 0775, true);
-        }
-        $obj->save($savePath . $filename);
-        return $savePath . $filename;
-    }
-
-    /**
-     * 获取数据库信息，并重组返回
-     * @author maimaiti
-     * @return array $data 返回数据
-     */
-    private function getData($quote_no) {
-        $obj = new QuoteModel();
-        $fields = [
-            'quoter', //商务报价人
-            'quoter_email', //商务报价人邮箱
-            'quote_at', //商务报价时间
-            'id', //编号
-                // ...
-        ];
-        $where = ['quote_no' => $quote_no];
-        $data = $obj->where($where)->field($fields, false)->find();
-        return $data;
-    }
-
-    /**
-     *
-     * 输出到浏览器下载
-     * @param $type 输出类型    可以为"Excel5" 或者 “Excel2007”
-     * @param $filename
-     */
-    private function export_to_browser_download($type, $filename) {
-        if ($type == "Excel5") {
-            //输出excel03文件
-            header('Content-Type: application/vnd.ms-excel');
-        } else {
-            //输出excel07文件
-            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        }
-
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        //禁止缓存
-        header('Cache-Control: max-age=0');
-    }
-
-    /**
      * 数据导出为Excel
      * @author maimaiti
      */
@@ -115,13 +62,13 @@ class ExcelOperationController extends PublicController {
         $objPHPExcel = new PHPExcel();
 
         //2.创建sheet(内置表)
-
         $objSheet = $objPHPExcel->getActiveSheet(); //获取当前sheet
         $objSheet->setTitle('商务技术报价单'); //设置当前sheet标题
-        //数据重组
 
+        //获取数据
         $quote = $this->getData($quote_no);
         //var_dump($quote);die;
+
         //3.填充数据
         //设置边框
         $styleArray = [
@@ -132,55 +79,52 @@ class ExcelOperationController extends PublicController {
                 ],
             ],
         ];
+
         /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
         $objSheet->setCellValue("A1", '易瑞国际电子商务有限公司商务技术部')->mergeCells("A1:R2");
-
         $objSheet->getStyle("A3:R5")->applyFromArray($styleArray);
 
 
         $objSheet->getStyle("A1:R2")
-                ->getFont()
-                ->setSize(18)
-                ->setBold(true);
+            ->getFont()
+            ->setSize(18)
+            ->setBold(true);
 
         /* 设置A1~R1的文字属性 */
         $objSheet->getCell("A1")
-                ->getStyle()
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            ->getStyle()
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
         //设置全局文字居中
         $objSheet->getDefaultStyle()
-                ->getFont()
-                ->setName("微软雅黑")
-                ->setSize(10);
+            ->getFont()
+            ->setName("微软雅黑")
+            ->setSize(10);
 
         $objSheet->getStyle()
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
-        //设置全局列宽度
+        //设置最小列宽度
         $small_cols = ["A", "G"];
-
         foreach ($small_cols as $small_col):
             $objSheet->getColumnDimension($small_col)->setWidth('6');
         endforeach;
 
+        //设置中等列宽度
         $normal_cols = ["I", "K", "L", "N", "O", "P", "Q"];
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('12');
         endforeach;
 
+        //设置最大列宽度
         $big_cols = ["B", "C", "D", "E", "F", "H", "J", "M", "R"];
         foreach ($big_cols as $big_col):
             $objSheet->getColumnDimension($big_col)->setWidth('18');
         endforeach;
-
-//        $objSheet->getColumnDimension("A")->setWidth('6');
-//        $objSheet->getColumnDimension("B")->setWidth('16');
-
 
         $objSheet->setCellValue("A3", "报价人 : " . $quote['quoter'])->mergeCells("A3:E3");
         $objSheet->setCellValue("A4", "电话 : ")->mergeCells("A4:E4");
@@ -192,17 +136,17 @@ class ExcelOperationController extends PublicController {
 
 
         $objSheet->setCellValue("A6", '易瑞国际电子商务有限公司商务技术部')
-                //单元格合并
-                ->mergeCells("A6:R6")
-                //设置高度
-                ->getRowDimension("6")
-                ->setRowHeight(26);
+            //单元格合并
+            ->mergeCells("A6:R6")
+            //设置高度
+            ->getRowDimension("6")
+            ->setRowHeight(26);
 
         $objSheet->getCell("A6")
-                ->getStyle()
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            ->getStyle()
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
         $objSheet->setCellValue("A7", "序号\nitem")->mergeCells("A7:A8");
         $objSheet->setCellValue("B7", "名称\nitem")->mergeCells("B7:B8");
@@ -225,10 +169,10 @@ class ExcelOperationController extends PublicController {
         $cols = ["A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7", "I7", "J7", "K7", "L7", "M7", "N7", "O7", "P7", "Q7"];
         foreach ($cols as $col) {
             $objSheet->getStyle($col)
-                    ->getAlignment()
-                    ->setWrapText(true)
-                    ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                ->getAlignment()
+                ->setWrapText(true)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
 
 
@@ -254,10 +198,10 @@ class ExcelOperationController extends PublicController {
         $cols = ["A9", "B9", "C9", "D9", "E9", "F9", "G9", "H9", "I9", "J9", "K9", "L9", "M9", "N9", "O9", "P9", "Q9"];
         foreach ($cols as $col) {
             $objSheet->getStyle($col)
-                    ->getAlignment()
-                    ->setWrapText(true)
-                    ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                ->getAlignment()
+                ->setWrapText(true)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
 
         $objSheet->setCellValue("A10", "")->mergeCells("A10:R10");
@@ -318,7 +262,6 @@ class ExcelOperationController extends PublicController {
         $objSheet->setCellValue("K15", "");
 
 
-
         $objSheet->getStyle("A11:K15")->applyFromArray($styleArray);
 
         $total_rows = [
@@ -331,41 +274,77 @@ class ExcelOperationController extends PublicController {
         ];
         foreach ($total_rows as $total_row) {
             $objSheet->getCell($total_row)->getStyle()
-                    ->getAlignment()
-                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
-                    ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                ->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $objSheet->getStyle($total_row)->applyFromArray($styleArray);
         }
 
         $objSheet->setCellValue("A16", '报价备注 : ')->mergeCells("A16:K17");
         $objSheet->getStyle("A16:K17")->applyFromArray($styleArray);
         $objSheet->getCell("A16")
-                ->getStyle()
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            ->getStyle()
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
         $objSheet->setCellValue("A18", '物流备注 : ')->mergeCells("A18:K19");
         $objSheet->getStyle("A18:K19")->applyFromArray($styleArray);
         $objSheet->getCell("A18")
-                ->getStyle()
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            ->getStyle()
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
         $objSheet->setCellValue("A20", "")->mergeCells("A20:K21");
         $objSheet->getStyle("A20:K21")->applyFromArray($styleArray);
 
         //添加logo
+
         //4.保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
 
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", "demo.xls");
 
-        //输出到浏览器
-        //$this->export_to_browser_download("Excel5","demo.xls");
-        //$objWriter->save("php://output");
+    }
+
+    /**
+     * 获取数据库信息，并重组返回
+     * @author maimaiti
+     * @return array $data 返回数据
+     */
+    private function getData($quote_no) {
+        $obj = new QuoteModel();
+        $fields = [
+            'quoter', //商务报价人
+            'quoter_email', //商务报价人邮箱
+            'quote_at', //商务报价时间
+            'id', //编号
+            // ...
+        ];
+        $where = ['quote_no' => $quote_no];
+        $data = $obj->where($where)->field($fields, false)->find();
+        if (!$data)
+        {
+            jsonReturn(null, -2102, ErrorMsg::getMessage('-2102'));
+        }
+        return $data;
+    }
+
+    /**
+     * 保存到服务器指定目录
+     * @param $obj  PHPExcel写入对象
+     * @param $path 保存目录
+     */
+    private function export_to_disc($obj, $path, $filename) {
+        //保存路径，不存在则创建
+        $savePath = APPLICATION_PATH . "/" . $path . "/";
+        if (!is_dir($savePath)) {
+            mkdir($savePath, 0775, true);
+        }
+        $obj->save($savePath . $filename);
+        return $savePath . $filename;
     }
 
     /**
@@ -373,7 +352,7 @@ class ExcelOperationController extends PublicController {
      * 操作表quote_item 只导出商品信息
      * @author maimaiti
      */
-    public function export_skuAction() {
+    public function quoteItemAction() {
         //后期添加api身份验证
         //请求验证
         if (!$this->getRequest()->isPost()) {
@@ -388,10 +367,13 @@ class ExcelOperationController extends PublicController {
                 'exported_at' => date('YmdHis')
             ]
         ];
-
         exit(json_encode($data));
     }
 
+    /**
+     * 导出询价单列表
+     * @return string 导出文件
+     */
     protected function export_sku_handler() {
         //创建表格
         $objPHPExcel = new PHPExcel();
@@ -400,13 +382,11 @@ class ExcelOperationController extends PublicController {
         $objSheet->setTitle('询价单'); //设置当前sheet标题
         //设置列宽度
         $normal_cols = ["A", "B", "C", "D", "E", "F", "G", "H"];
-
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('16');
         endforeach;
 
         //填充数据
-
         $objSheet->setCellValue("A1", "客户单号");
         $objSheet->setCellValue("B1", "中文品名");
         $objSheet->setCellValue("C1", "外文品名");
@@ -439,26 +419,24 @@ class ExcelOperationController extends PublicController {
         }
         //P($sku_items);die;
         $item = 2;
-
         foreach ($sku_items as $key => $value) {
             $objSheet->setCellValue("A" . $item, $value['quote_no'])
-                    ->setCellValue("B" . $item, $value['name_cn'])
-                    ->setCellValue("C" . $item, $value['name_en'])
-                    ->setCellValue("D" . $item, $value['quote_spec'])
-                    ->setCellValue("E" . $item, $value['inquiry_desc'])
-                    ->setCellValue("F" . $item, $value['quote_quantity'])
-                    ->setCellValue("G" . $item, $value['quote_unit'])
-                    ->setCellValue("H" . $item, $value['quote_brand']);
-
+                ->setCellValue("B" . $item, $value['name_cn'])
+                ->setCellValue("C" . $item, $value['name_en'])
+                ->setCellValue("D" . $item, $value['quote_spec'])
+                ->setCellValue("E" . $item, $value['inquiry_desc'])
+                ->setCellValue("F" . $item, $value['quote_quantity'])
+                ->setCellValue("G" . $item, $value['quote_unit'])
+                ->setCellValue("H" . $item, $value['quote_brand']);
             $item++;
         }
 
 
         //居中设置
         $objSheet->getDefaultStyle()
-                ->getAlignment()
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            ->getAlignment()
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');

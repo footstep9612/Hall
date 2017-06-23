@@ -32,13 +32,15 @@ class RoleUserModel extends PublicModel {
      * @author jhw
      */
     public function getRoleslist($where,$order='id desc') {
+
         $sql = 'SELECT `t_role_user`.`role_id`,`user_id`, `t_role`.`name`,`t_role_access_perm`.`url_perm_id`,`t_url_perm`.`url`, `t_url_perm`.`description` ';
         $sql .= ' FROM '.$this->table_name;
         $sql .= ' LEFT JOIN  `t_role` ON `t_role_user`.`role_id` =`t_role`.`id`';
         $sql .= ' LEFT JOIN  `t_role_access_perm` ON `t_role_access_perm`.`role_id` =`t_role`.`id`';
         $sql .= ' LEFT JOIN  `t_url_perm` ON `t_url_perm`.`id` =`t_role_access_perm`.`url_perm_id`';
         $sql_where = '';
-        if(empty($where['user_id'])) {
+        if(!empty($where['user_id'])) {
+
             $sql_where .= ' WHERE `user_id`=' . $where['user_id'];
         }
         if ( $where ){

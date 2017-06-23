@@ -11,11 +11,11 @@
  *
  * @author jhw
  */
-class CountryModel extends PublicModel {
+class TransModeModel extends PublicModel {
 
     //put your code here
     protected $dbName='erui_dict';
-    protected $tableName = 'country';
+    protected $tableName = 'trans_mode';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -28,13 +28,13 @@ class CountryModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            return $this->field('id,lang,bn,name,time_zone,region')
+            return $this->field('lang,bn,trans_mode,id')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,lang,bn,name,time_zone,region')
+            return $this->field('lang,bn,trans_mode,id')
                 ->where($data)
                 ->order($order)
                 ->select();

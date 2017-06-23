@@ -1,20 +1,28 @@
 <?php
+
 /**
  * Sｐu属性
  * User: linkai
  * Date: 2017/6/17
  * Time: 15:58
  */
-class ProductAttrModel extends PublicModel
-{
-    //数据库 表映射
-    protected $dbName = 'erui_db_ddl_goods';
-    protected $tableName = 'product_attr';
+class ProductAttrModel extends PublicModel {
 
     //状态
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
+
+    public function __construct() {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj = Yaf_Registry::get("config");
+        $config_db = $config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'product_attr';
+
+        parent::__construct();
+    }
 
     /**
      * 根据spu获取属性
@@ -22,8 +30,7 @@ class ProductAttrModel extends PublicModel
      * @param string $lang
      * @return array|bool|mixed
      */
-    public function getAttrBySpu($spu = '', $lang = '')
-    {
+    public function getAttrBySpu($spu = '', $lang = '') {
         if ($spu == '')
             return false;
         $field = 'lang,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
@@ -38,17 +45,17 @@ class ProductAttrModel extends PublicModel
         //缓存数据redis查询
         $key_redis = md5(json_encode(array('spu' => $spu, 'status' => self::STATUS_VALID) . time()));
         if (redisExist($key_redis)) {
-            $result = redisHashGet('pattrs',$key_redis);
+            $result = redisHashGet('pattrs', $key_redis);
             //判断语言,返回对应语言集
             $data = array();
-            if(''!=$lang){
-                foreach($result as $val) {
+            if ('' != $lang) {
+                foreach ($result as $val) {
                     if ($val['lang'] == $lang) {
                         $data[$val['lang']] = $val;
                     }
                 }
                 return $data ? $data : array();
-            } else{
+            } else {
                 return $result ? $result : array();
             }
         } else {
@@ -95,4 +102,5 @@ class ProductAttrModel extends PublicModel
             }
         }
     }
+
 }

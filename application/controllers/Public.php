@@ -40,21 +40,21 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
-					$tokeninfo = JwtInfo($token); //解析token
-                    $userinfo = json_decode(redisGet('user_info_'.$tokeninfo['id']) ,true);
+
+                    $tokeninfo = JwtInfo($token); //解析token
+                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
+
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
                     } else {
-
                         $this->user = array(
-							"id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
                     }
                 } catch (Exception $e) {
-                    // LOG::write($e->getMessage());
+                    LOG::write($e->getMessage());
                     $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                     exit;
                 }
@@ -167,7 +167,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     public function getPut($name, $default = null) {
         $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
-        // return array_walk_recursive($data, 'think_filter');
+// return array_walk_recursive($data, 'think_filter');
         return $data;
     }
 
@@ -285,8 +285,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     }
 
     function think_filter(&$value) {
-        // TODO 其他安全过滤
-        // 过滤查询特殊字符
+// TODO 其他安全过滤
+// 过滤查询特殊字符
         if (preg_match('/^(EXP|NEQ|GT|EGT|LT|ELT|OR|XOR|LIKE|NOTLIKE|NOT BETWEEN|NOTBETWEEN|BETWEEN|NOTIN|NOT IN|IN)$/i', $value)) {
             $value .= ' ';
         }

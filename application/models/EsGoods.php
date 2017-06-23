@@ -200,8 +200,10 @@ class EsgoodsModel extends PublicModel {
             $created_by = $condition['created_by'];
             $body['query']['bool']['must'][] = [ESClient::TERM => ['created_by' => $created_by]];
         }
+
         if (isset($condition['keyword'])) {
             $show_name = $condition['keyword'];
+
             $body['query'] = ['multi_match' => [
                     "query" => $show_name,
                     "type" => "most_fields",
@@ -315,7 +317,7 @@ class EsgoodsModel extends PublicModel {
     public function getgoods_attrbyskus($skus, $lang = 'en') {
 
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('*')
                     ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
@@ -340,7 +342,7 @@ class EsgoodsModel extends PublicModel {
 
     public function getgoods_specsbyskus($skus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('sku,attr_name,attr_value,attr_no')
                     ->where(['sku' => ['in', $skus],
                         'lang' => $lang,
