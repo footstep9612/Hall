@@ -24,7 +24,8 @@ class ShowcatController extends PublicController{
         }
 
         $showcat = new ShowCatModel();
-        $result  = $showcat->getList($condition);
+        //$result  = $showcat->getList($condition);
+        $result = array();
         if($result){
             echo 122;die;
             jsonReturn($result);
