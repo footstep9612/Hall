@@ -31,7 +31,7 @@ class ShowCatModel extends PublicModel{
      */
     public function getList($condition=[]){
         return array();die;
-        $field = empty($field) ? 'cat_no,name' :$field ;
+   /*     $field = empty($field) ? 'cat_no,name' :$field ;
         if(empty($condition)){
             $condition['parent_cat_no'] = '';
         }
@@ -56,7 +56,7 @@ class ShowCatModel extends PublicModel{
             return $data;
         }catch (Exception $e){
             return false;
-        }
+        }*/
     }
 
 

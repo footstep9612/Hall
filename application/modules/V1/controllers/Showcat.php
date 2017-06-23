@@ -14,7 +14,7 @@ class ShowcatController extends PublicController{
     /**
      * 展示分类列表
      */
-    public function listAction(){
+    public function getlistAction(){
         $condition = array();
         if($this->input['lang']){
             $condition['lang'] = $this->input['lang'];
@@ -26,6 +26,7 @@ class ShowcatController extends PublicController{
         $showcat = new ShowCatModel();
         $result  = $showcat->getList($condition);
         if($result){
+            echo 122;die;
             jsonReturn($result);
         }else{
             jsonReturn(array('code'=>'400','message'=>'失败'));
