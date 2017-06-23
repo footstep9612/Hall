@@ -29,11 +29,10 @@ class ShowCatModel extends PublicModel{
      * @param string $field     检索字段
      * @return array|bool
      */
-    public function getList($condition=[]){
-        return array();die;
-   /*     $field = empty($field) ? 'cat_no,name' :$field ;
+    public function getList($condition=[],$field=''){
+        $field = empty($field) ? 'cat_no,name' :$field ;
         if(empty($condition)){
-            $condition['parent_cat_no'] = '';
+            $condition['parent_cat_no'] = 0;
         }
 
         //语言默认取en 统一小写
@@ -56,7 +55,7 @@ class ShowCatModel extends PublicModel{
             return $data;
         }catch (Exception $e){
             return false;
-        }*/
+        }
     }
 
 
