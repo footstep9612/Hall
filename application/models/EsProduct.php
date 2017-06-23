@@ -88,7 +88,7 @@ class EsProductModel extends PublicModel {
             }
             $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'NORMAL']];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
         }
 
         if (isset($condition['recommend_flag'])) {
@@ -214,11 +214,13 @@ class EsProductModel extends PublicModel {
             $es = new ESClient();
             unset($condition['source']);
             $newbody = $this->getCondition($condition);
-            $allcount = 0;
+           
             $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
+     
+          
             return [$es->setbody($body)
                         ->setfields($_source)
-                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount];
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -665,20 +667,12 @@ class EsProductModel extends PublicModel {
             $show_cat_nos = array_unique($show_cat_nos);
             $scats = $this->getshow_cats($show_cat_nos, $lang);
 
-
-
             $ret = [];
             foreach ($products as $item) {
-
-
                 $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
-
-
                 foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
                     $show_cat[$show_cat_no] = $scats[$show_cat_no];
                 }
-
-
                 $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
                 $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
                 $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
@@ -703,14 +697,16 @@ class EsProductModel extends PublicModel {
         try {
             $products = $this->where(['lang' => $lang])
                     ->select();
+            ob_end_clean();
+            echo count($products), '<BR>';
+            flush();
+            ob_flush();
             $spus = $mcat_nos = [];
             if ($products) {
                 foreach ($products as $item) {
                     $mcat_nos[] = $item['meterial_cat_no'];
                     $spus[] = $item['spu'];
                 }
-
-
                 $spus = array_unique($spus);
                 $mcat_nos = array_unique($mcat_nos);
                 $mcats = $this->getmaterial_cats($mcat_nos, $lang);
@@ -734,7 +730,7 @@ class EsProductModel extends PublicModel {
                 $specs = $this->getgoods_specsbyskus($spus, $lang);
                 $es = new ESClient();
 
-                foreach ($products as $item) {
+                foreach ($products as $key => $item) {
                     $id = $item['spu'];
                     $body = $item;
                     if (isset($skus[$item['spu']])) {
@@ -769,6 +765,9 @@ class EsProductModel extends PublicModel {
                         $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
                     }
                     $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+                    echo $key, '<BR>';
+                    flush();
+                    ob_flush();
 
                     //return $flag;
                 }
