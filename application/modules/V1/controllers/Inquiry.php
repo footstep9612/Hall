@@ -12,16 +12,16 @@ class InquiryController extends PublicController {
         parent::__init();
     }
 
-    //返回询价单号
+    //返回询价单流水号
     public function getInquiryNoAction() {
-        $data['inquiryno'] = $this->getInquirySerialNo();
+        $data['serial_no'] = $this->getInquirySerialNo();
         if(!empty($data)){
             $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
         }else{
             $this->setCode('-101');
-            $this->setMessage('生成询单号错误!');
+            $this->setMessage('生成流水号错误!');
             $this->jsonReturn();
         }
     }
@@ -144,7 +144,7 @@ class InquiryController extends PublicController {
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
-            $this->jsonReturn($data);
+            $this->jsonReturn();
         }else{
             $this->setCode('-101');
             $this->setMessage('保存失败!');

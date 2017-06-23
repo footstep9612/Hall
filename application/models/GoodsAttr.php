@@ -5,13 +5,9 @@
  *  @author  klp
  */
 
-<<<<<<< HEAD
-
 class GoodsAttrModel extends PublicModel
 {
 
-=======
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
     protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
@@ -36,8 +32,8 @@ class GoodsAttrModel extends PublicModel
 
         //缓存数据redis查询
         $key_redis = md5(json_encode($where));
-        if(redisHashExist('attrs',$key_redis)){
-            $result = redisHashGet('attrs',$key_redis);
+        if(redisExist($key_redis)){
+            $result = redisGet($key_redis);
             return $result ? $result : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
@@ -127,7 +123,7 @@ class GoodsAttrModel extends PublicModel
                 }
 
                 if ($attrs) {
-                    redisHashSet('attrs', $key_redis, $attrs);
+                    redisSet($key_redis, $attrs);
                     return $attrs;
                 } else {
                     return array();
@@ -140,7 +136,8 @@ class GoodsAttrModel extends PublicModel
      * @param null $where string 条件
      * @return
      */
-    public function attrBySku($sku='', $lang = '') {
+    public function attrBySku($sku, $lang='')
+    {
         if($sku='') {
             return false;
         }
