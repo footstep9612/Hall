@@ -7,10 +7,6 @@
  */
 class GoodsModel extends PublicModel
 {
-    //数据库 表映射
-    protected $dbName = 'erui_goods';
-    protected $tableName = 'goods';
-
     //状态
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试；
@@ -20,6 +16,13 @@ class GoodsModel extends PublicModel
 
     public function __construct()
     {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj=Yaf_Registry::get("config");
+        $config_db=$config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'goods';
+
         parent::__construct();
     }
 
@@ -30,10 +33,9 @@ class GoodsModel extends PublicModel
     public function getGoodsInfo($sku, $lang = '')
     {
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
-        $field = 'sku,lang,spu,qrcode,name,show_name,model,description';
+        $field = 'id,sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku,
-            'lang'=> $lang
+            'sku' => $sku
         );
 
         try {
@@ -61,6 +63,8 @@ class GoodsModel extends PublicModel
 
                     redisHashSet('data',$key_redis,$data);
                     return $data;
+                } else {
+                    return array();
                 }
             }
         } catch(Exception $e){
@@ -69,16 +73,15 @@ class GoodsModel extends PublicModel
     }
 
     /**
-     * SKU详情
+     * SKU基本信息
      */
     public function getInfo($sku, $lang)
     {
-        $field = 'sku,spu,lang,show_name,model';
+        $field = 'id,sku,spu,lang,show_name,model,';
         $condition = array(
             'sku' => $sku,
             'lang' => $lang
         );
-
         try{
             //缓存数据的判断读取
             $redis_key = md5(json_encode($condition));
@@ -88,25 +91,27 @@ class GoodsModel extends PublicModel
             }else {
                 $result = $this->field($field)->where($condition)->find();
                 if ($result) {
-                    //查询品牌
-                    $productModel = new ProductModel();
-                    $brand = $productModel->getBrandBySpu($result['spu'], $lang);
-                    $result['brand'] = $brand;
-
+                    $data = array(
+                        'lang' => $lang
+                    );
+                    //语言分组
+                    foreach ($result as $k => $v) {
+                        $data[$v['lang']] = $v;
+                    }
                     //查询属性
 		            $skuAttrModel = new GoodsAttrModel();
-		            $where['sku'] = $sku;
-		            $attrs = $skuAttrModel->getAttrBySku($where, $lang);
+		            $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
 		            $result['attrs'] = $attrs;
             
                     redisSet($redis_key,$result);
                     return $result;
+                } else {
+                    return array();
                 }
             }
         }catch(Exception $e){
             return false;
         }
-        return false;
     }
 
 
@@ -235,6 +240,7 @@ class GoodsModel extends PublicModel
     }
 
     /**
+
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
@@ -329,6 +335,24 @@ class GoodsModel extends PublicModel
         }
 
     }
-}
 
+
+
+    /**
+     * 根据sku获取spu
+     * @param string $sku sku编码
+     * @return bool
+     */
+    public function getSpubySku($sku='',$lang =''){
+        if(empty($sku) || empty($lang))
+            return false;
+
+        $result =$this->field('spu')->where(array('sku'=>$sku,'lang'=>$lang,'status'=>self::STATUS_VALID))->find();
+        if($result){
+            return $result['spu'];
+        }
+        return false;
+    }
+
+}
 

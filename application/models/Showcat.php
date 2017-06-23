@@ -7,10 +7,6 @@
  */
 class ShowCatModel extends PublicModel
 {
-    //数据库 表映射
-    protected $dbName = 'erui_db_ddl_goods';
-    protected $tableName = 'show_cat';
-
     //状态
     const STATUS_DRAFT = 'DRAFT'; //草稿
     const STATUS_APPROVING = 'APPROVING'; //审核；
@@ -19,6 +15,13 @@ class ShowCatModel extends PublicModel
 
     public function __construct()
     {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj=Yaf_Registry::get("config");
+        $config_db=$config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'show_cat';
+
         parent::__construct();
     }
 

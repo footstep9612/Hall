@@ -16,9 +16,17 @@ use Elasticsearch\ClientBuilder;
  * @author zyg
  */
 class ESClient {
+    /* match 模糊查询
+     * 上面的查询匹配就会进行分词，比如"宝马多少马力"会被分词为"宝马 多少 马力", 
+     * 所有有关"宝马 多少 马力", 那么所有包含这三个词中的一个或多个的文档就会被搜索出来。
+     * 并且根据lucene的评分机制(TF/IDF)来进行评分
+     */
 
-    const MATCH = 'match'; //match : 相当于模糊查询
-    const TERM = 'term'; //term：代表完全匹配，即不进行分词器分析，文档中必须包含整个搜索的词汇
+    const MATCH = 'match';
+    /*
+     * term是代表完全匹配，即不进行分词器分析，文档中必须包含整个搜索的词汇
+     */
+    const TERM = 'term';
     /*
      * 正则匹配
      * 使用regexp查询能够让你写下更复杂的模式
@@ -37,6 +45,36 @@ class ESClient {
      * 开关就是使用nested query/filter去查询
      */
     const MISSING = 'missing';
+    /* 如果我们希望两个字段进行匹配，其中一个字段有这个文档就满足的话，使用multi_match
+     * 我们希望完全匹配的文档占的评分比较高，则需要使用best_fields
+     * 我们希望越多字段匹配的文档评分越高，就要使用most_fields
+     * 我们会希望这个词条的分词词汇是分配到不同字段中的，那么就使用cross_fields
+     * {
+     * "query": {
+     *     "multi_match": {
+     *       "query": "我的宝马发动机多少",
+     *       "type": "most_fields", //type  most_fields cross_fields best_fields
+     *       "fields": [
+     *         "tag",
+     *          "content"
+     *           ]
+     *     }  
+     *      }
+     * }    
+     */
+    const MULTI_MATCH = 'multi_match';
+    /* 完全匹配 match_phrase
+     * 完全匹配可能比较严，我们会希望有个可调节因子，
+     * 少匹配一个也满足，那就需要使用到slop。
+     * 类似
+     * { "query": {    
+     * "match_phrase": {        
+     * "content" : {            
+     * "query" : "我的宝马多少马力",            
+     * "slop" : 1        
+     * }}}}
+     */
+    const MATCH_PHRASE = 'match_phrase';
 
     /*
      * 主要根据fuzziniess和prefix_length进行匹配distance查询。
@@ -49,8 +87,17 @@ class ESClient {
      * 如果不指定prefix_lengh和fuzziniess参数，该查询负担较重。
      */
     const FUZZY = 'fuzzy';
+    /*
+     *  文档必须完全匹配条件
+     */
     const MUST = 'must';
+    /*
+     * 文档必须不匹配条件
+     */
     const MUST_NOT = 'must_not';
+    /*
+     * should下面会带一个以上的条件，至少满足一个条件，这个文档就符合should
+     */
     const SHOULD = 'should';
 
 //put your code here
@@ -102,13 +149,13 @@ class ESClient {
      * @return array     *
      */
 
-    public function create_index($index,  $body) {
+    public function create_index($index, $body) {
         $indexParams['index'] = $index;
-       // $indexParams['type'] = $type;
+        // $indexParams['type'] = $type;
         $indexParams['body'] = $body;
         $indexParams['body']['settings']['number_of_shards'] = 15;
-        $indexParams['body']['settings']['number_of_replicas'] = 0;      
-      
+        $indexParams['body']['settings']['number_of_replicas'] = 0;
+
         return $this->server->indices()->create($indexParams);
     }
 
@@ -185,7 +232,6 @@ class ESClient {
         //   var_dump($retDoc);
     }
 
-    
     /*
      * 删除类型
      */
@@ -453,6 +499,64 @@ class ESClient {
         }
     }
 
+    /* 如果我们希望两个字段进行匹配，其中一个字段有这个文档就满足的话，使用multi_match
+     * 我们希望完全匹配的文档占的评分比较高，则需要使用best_fields
+     * 我们希望越多字段匹配的文档评分越高，就要使用most_fields
+     * 我们会希望这个词条的分词词汇是分配到不同字段中的，那么就使用cross_fields
+     * {
+     * "query": {
+     *     "multi_match": {
+     *       "query": "我的宝马发动机多少",
+     *       "type": "most_fields", //type  most_fields cross_fields best_fields
+     *       "fields": [
+     *         "tag",
+     *          "content"
+     *           ]
+     *     }  
+     *      }
+     * }    
+     */
+
+    public function setmulti_match($query = '', $type = 'best_fields', $fields = []) {
+
+        if (!in_array($type, ['most_fields',
+                    'cross_fields',
+                    'best_fields',
+                ])) {
+
+            $type = 'best_fields';
+        }
+        $this->body['query'] = [
+            'multi_match' =>
+            [
+                "query" => $query,
+                "type" => $type,
+                "fields" => $fields
+            ]
+        ];
+        return $this;
+    }
+
+    /* 完全匹配 match_phrase
+     * 完全匹配可能比较严，我们会希望有个可调节因子，
+     * 少匹配一个也满足，那就需要使用到slop。
+     * 类似
+     * { "query": {    
+     * "match_phrase": {        
+     * "content" : {            
+     * "query" : "我的宝马多少马力",            
+     * "slop" : 1        
+     * }}}}
+     */
+
+    public function setmatch_phrase($query, $slop = 0, $field) {
+        $this->body['query']['match_phrase']['$field'] = [
+            "query" => $query,
+            "slop" => $slop,
+        ];
+        return $this;
+    }
+
     /*
      * must : 多个查询条件的完全匹配,相当于 and。
      * $bost 权重
@@ -673,6 +777,27 @@ class ESClient {
         return $this;
     }
 
+    /* 聚合查询 类似group by
+     *  @param string $field // 字段属性
+     *  @param string $do// 指标(Metrics) terms 总条数, stats 统计 avg 平均 min 最小，mean，max 最大以及sum 合计
+     *   
+     *  @param string $alis // 别名
+     */
+
+    public function setaggs($field , $alis, $do = 'terms') {
+        $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
+        return $this;
+    }
+
+    /*
+     * 查询的字段
+     */
+
+    public function setfields($fields = []) {
+        $this->body['stored_fields'] = $fields;
+        return $this;
+    }
+
     public function setbody($body = []) {
         $this->body = $body;
         return $this;
@@ -699,6 +824,7 @@ class ESClient {
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
 
+            print_r($ex->getMessage());
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }

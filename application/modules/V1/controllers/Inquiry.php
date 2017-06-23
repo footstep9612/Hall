@@ -16,9 +16,13 @@ class InquiryController extends PublicController {
     public function getInquiryNoAction() {
         $data['inquiryno'] = $this->getInquirySerialNo();
         if(!empty($data)){
-            $this->respon(0,$data);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
         }else{
-            $this->respon('-101','生成询单号错误！');
+            $this->setCode('-101');
+            $this->setMessage('生成询单号错误!');
+            $this->jsonReturn();
         }
     }
 
@@ -31,9 +35,13 @@ class InquiryController extends PublicController {
         $data = $inquiry->getlist($where);
         //var_dump($data);die;
         if(!empty($data)){
-            $this->respon(0,$data);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
         }else{
-            $this->respon('-101','没有找到相关信息！');
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
@@ -45,9 +53,13 @@ class InquiryController extends PublicController {
         $info = $inquiry->getinfo($where);
         //var_dump($info);die;
         if(!empty($info)){
-            $this->respon(0,$info);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($info);
         }else{
-            $this->respon('-101','没有找到相关信息！');
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
@@ -58,9 +70,13 @@ class InquiryController extends PublicController {
 
         $id = $inquiry->add_data($data);
         if(!empty($id)){
-            $this->respon(0,'添加成功！');
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
-            $this->respon('-101','添加失败！');
+            $this->setCode('-101');
+            $this->setMessage('添加失败!');
+            $this->jsonReturn();
         }
     }
 
@@ -71,9 +87,13 @@ class InquiryController extends PublicController {
 
         $id = $inquiry->update_data($data);
         if(!empty($id)){
-            $this->respon(0,"修改成功！");
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
-            $this->respon('-101','添加失败！');
+            $this->setCode('-101');
+            $this->setMessage('修改失败!');
+            $this->jsonReturn();
         }
     }
 
@@ -85,9 +105,13 @@ class InquiryController extends PublicController {
         $id = $inquiry->delete_data($where);
         //var_dump($id);die;
         if(!empty($id)){
-            $this->respon(0,'删除成功！');
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
-            $this->respon('-101','删除失败！');
+            $this->setCode('-101');
+            $this->setMessage('删除失败!');
+            $this->jsonReturn();
         }
 
     }
@@ -100,9 +124,13 @@ class InquiryController extends PublicController {
         $data = $attach->getlist($where);
         //var_dump($data);die;
         if(!empty($data)){
-            $this->respon(0,$data);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
         }else{
-            $this->respon('-101','没有找到相关信息！');
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
@@ -114,9 +142,13 @@ class InquiryController extends PublicController {
         $id = $attach->add_data($data);
         //var_dump($id);die;
         if(!empty($id)){
-            $this->respon(0,$data);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
         }else{
-            $this->respon(0,'保存失败！');
+            $this->setCode('-101');
+            $this->setMessage('保存失败!');
+            $this->jsonReturn();
         }
 
     }
@@ -128,66 +160,74 @@ class InquiryController extends PublicController {
 
         $id = $attach->delete_data($data);
         if(!empty($id)){
-            $this->respon(0,'删除成功！');
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
-            $this->respon('-101','删除失败！');
+            $this->setCode('-101');
+            $this->setMessage('删除失败!');
+            $this->jsonReturn();
         }
     }
 
     //明细列表
     public function getListItemAction() {
-        $Item = new InquiryItemodel();
+        $Item = new InquiryItemModel();
 
         $where = json_decode(file_get_contents("php://input"), true);
 
         $data = $Item->getlist($where);
         //var_dump($data);die;
         if(!empty($data)){
-            $this->respon(0,$data);
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
         }else{
-            $this->respon('-101','没有找到相关信息！');
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
         }
     }
 
     //添加明细
     public function addItemAction() {
-        $Item = new InquiryItemodel();
+        $Item = new InquiryItemModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
+        //$data['inquiry_no'] = 'INQ_20170607_00003';
+        //$data['quantity'] = 100;
+
         $id = $Item->add_data($data);
-        //var_dump($rs);die;
+
+        //var_dump($id);die;
+
         if(!empty($id)){
-            $this->respon(0,"添加成功！");
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
-            $this->respon('-101','保存失败！');
+            $this->setCode('-101');
+            $this->setMessage('保存失败!');
+            $this->jsonReturn();
         }
 
     }
 
     //删除附件
     public function delItemAction() {
-        $Item = new InquiryItemodel();
+        $Item = new InquiryItemModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
         $id = $Item->delete_data($data);
         if(!empty($id)){
-            $this->respon(0,'删除成功！');
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
         }else{
-            $this->respon('-101','删除失败！');
+            $this->setCode('-101');
+            $this->setMessage('删除失败!');
+            $this->jsonReturn();
         }
     }
 
-    //输出JSON格式
-    protected function respon($code=0, $data, $type = 'JSON') {
-
-        $result['code'] = $code;
-        if( $code == 0 ){
-            $result['data'] = $data;
-        }else{
-            $result['message'] = $data;
-        }
-        header('Content-Type:application/json; charset=utf-8');
-        exit(json_encode($result));
-
-    }
 }

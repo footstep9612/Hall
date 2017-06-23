@@ -28,7 +28,7 @@ class GoodsController extends PublicController
         }
         $lang= !empty($data['lang'])? $data['lang'] : '';
         $goods = new GoodsAttrModel();
-        $result = $goods->getAttrBySku($sku,$lang);
+        $result = $goods->attrBySku($sku,$lang);
 
         if($result){
             $data = array(
@@ -43,9 +43,9 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-     * sku属性查询数据编辑p
+     * sku基本信息编辑p
      */
-    public function getAttrInfoAction()
+    public function infoAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -54,11 +54,9 @@ class GoodsController extends PublicController
         } else{
             jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
         }
-        $lang= !empty($data['lang'])? $data['lang'] : '';
         //获取商品属性
-        $goods = new GoodsAttrModel();
-        $result = $goods->getAttrBySku($sku,$lang);
-
+        $goods = new GoodsModel();
+        $result = $goods->getInfo($sku,$this->lang);
         if($result){
             $data = array(
                 'code' => 1,
@@ -119,7 +117,7 @@ class GoodsController extends PublicController
      * sku新建模板表(pc)
      * @author  klp  2017/6/22
      */
-    public function getTplListAction()
+    public function getTplAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['spu'])){
@@ -129,7 +127,7 @@ class GoodsController extends PublicController
         }
         $type = !empty($data['attr_type'])? $data['attr_type'] : '';
         $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getList($type,$spu);
+        $result = $goodsTplModel->getAttrTpl();
     }
 
     /**
