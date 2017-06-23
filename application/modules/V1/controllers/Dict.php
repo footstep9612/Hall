@@ -54,7 +54,9 @@ class DictController extends Yaf_Controller_Abstract {
             }else{
                 $model_group = new CountryModel();
                 $arr = $model_group->getlist($where,$limit); //($this->put_data);
-                redisHashSet('CountryList', $lang, json_encode($arr));
+                if($arr){
+                    redisHashSet('CountryList', $lang, json_encode($arr));
+                }
             }
 
         }else{
@@ -215,7 +217,6 @@ class DictController extends Yaf_Controller_Abstract {
             $datajson['code'] = -103;
             $datajson['message'] = '数据为空!';
         }
-
         jsonReturn($datajson);
     }
 

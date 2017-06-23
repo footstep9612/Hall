@@ -27,6 +27,7 @@ class CountryModel extends PublicModel {
      * @author jhw
      */
     public function getlist($data,$limit,$order='id desc') {
+
         if(!empty($limit)){
             return $this->field('id,lang,bn,name,time_zone,region')
                             ->where($data)

@@ -159,7 +159,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $limit['num'] = $data['countPerPage'];
         }
         $model_group = new GroupModel();
-        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        $data = $model_group ->getlist($where,$limit); //($this->put_data);
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
