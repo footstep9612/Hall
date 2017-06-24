@@ -788,13 +788,12 @@ class ESClient {
         $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
         return $this;
     }
-
     /*
      * 查询的字段
      */
 
     public function setfields($fields = []) {
-        $this->body['stored_fields'] = $fields;
+        $this->body['_source'] = $fields;
         return $this;
     }
 
@@ -839,9 +838,7 @@ class ESClient {
         );
         if ($analyzer) {
             $searchParams ['analyzer'] = $analyzer;
-        }
-
-        
+        }        
 
         try {
 
