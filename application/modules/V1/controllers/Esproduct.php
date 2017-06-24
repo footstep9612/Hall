@@ -85,6 +85,10 @@ class EsproductController extends PublicController {
     }
 
     public function indexAction() {
+        
+  
+        die();
+        
 //        $this->es->delete('index');       
         //$model = new EsgoodsModel();
 

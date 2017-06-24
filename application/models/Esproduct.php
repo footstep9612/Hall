@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsProductModel extends PublicModel {
+class EsproductModel extends PublicModel {
 
 //put your code here
     protected $tableName = 'product';
@@ -216,8 +216,6 @@ class EsProductModel extends PublicModel {
             $newbody = $this->getCondition($condition);
 
             $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
-
-
             return [$es->setbody($body)
                         ->setfields($_source)
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
