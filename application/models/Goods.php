@@ -116,14 +116,15 @@ class GoodsModel extends PublicModel {
     }
 
     /**
-     * 根据spu获取sku数
+     * 根据spu获取sku数   (这里不包括删除的)
+     * @author link
      * @param string $spu spu编码
      * @param string $lang 语言
      * @retrun int
      */
     public function getCountBySpu($spu = '', $lang = '') {
         $condition = array(
-            'status' => array('neq', self::STATUS_NORMAL)
+            'status' => array('neq', self::STATUS_DELETED)
         );
         if ($spu != '') {
             $condition['spu'] = $spu;

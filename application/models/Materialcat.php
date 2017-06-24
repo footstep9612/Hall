@@ -327,4 +327,39 @@ class MaterialcatModel extends PublicModel {
         return $this->add($data);
     }
 
+
+    /**
+     * 根据编码获取分类信息
+     * @author link 2016-06-15
+     * @param string $catNo 分类编码
+     * @param string $lang 语言
+     * @return array
+     */
+    public function getMeterialCatByNo($catNo='',$lang=''){
+        if($catNo=='' || $lang=='')
+            return array();
+
+        //读取缓存
+        if(redisHashExist('MeterialCat', $catNo.'_'.$lang)){
+            return (array)json_decode(redisHashGet('MeterialCat', $catNo.'_'.$lang));
+        }
+
+        try{
+            $field = 'lang,cat_no,parent_cat_no,level_no,name,description,sort_order';
+            $condition = array(
+                'cat_no'=>$catNo,
+                'status'=>self::STATUS_VALID,
+                'lang'=>$lang
+            );
+            $result = $this->field($field)->where($condition)->find();
+            if($result) {
+                redisHashSet('MeterialCat', $catNo . '_' . $lang, json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
+    }
+
 }
