@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of Esproduct
+ * Description of Esgoods
  *
  * @author zhongyg
  */
@@ -16,7 +16,7 @@ class EsproductController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '1';
+    protected $version = '5';
 
     //put your code here
     public function init() {
@@ -69,9 +69,10 @@ class EsproductController extends PublicController {
     public function importAction($lang = 'en') {
         try {
             set_time_limit(0);
-            $lang = 'ru';
-            $espoductmodel = new EsProductModel();
-            $espoductmodel->importproducts($lang);
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsproductModel();
+                $espoductmodel->importproducts($lang);
+            }
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -113,9 +114,10 @@ class EsproductController extends PublicController {
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
-            if (isset($ret[4]) && $ret[4] > 0) {
 
-                $send['allcount'] = $ret[4] > $send['count'] ? $ret[4] : $send['count'];
+            if (isset($ret[3]) && $ret[3] > 0) {
+
+                $send['allcount'] = $ret[3] > $send['count'] ? $ret[3] : $send['count'];
             } else {
                 $send['allcount'] = $send['count'];
             }

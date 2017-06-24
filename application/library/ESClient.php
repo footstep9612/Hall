@@ -425,7 +425,7 @@ class ESClient {
         $updateParams['index'] = $index;
         $updateParams['type'] = $type;
         $updateParams['id'] = $id;
-        $updateParams['body'] = $body; //['doc']['testField'] = 'xxxx';
+        $updateParams['body']['doc'] = $body; //['doc']['testField'] = 'xxxx';
         try {
             return $this->server->update($updateParams);
         } catch (Exception $ex) {
@@ -784,7 +784,7 @@ class ESClient {
      *  @param string $alis // 别名
      */
 
-    public function setaggs($field , $alis, $do = 'terms') {
+    public function setaggs($field, $alis, $do = 'terms') {
         $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
         return $this;
     }
@@ -831,7 +831,7 @@ class ESClient {
         //   var_dump($retDoc);
     }
 
-    public function count($index, $type, $analyzer = '', $from = 0, $size = 100) {
+    public function count($index, $type, $analyzer = '') {
         $searchParams = array(
             'index' => $index,
             'type' => $type,
@@ -841,15 +841,14 @@ class ESClient {
             $searchParams ['analyzer'] = $analyzer;
         }
 
-        $searchParams['from'] = $from;
-        $searchParams['size'] = $size;
+        
 
         try {
 
             return $this->server->count($searchParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);
-            return 0;
+            return ['count'=>0];
         }
         //   var_dump($retDoc);
     }
