@@ -861,6 +861,27 @@ function redisHashSet($name, $key, $value) {
 }
 
 /*
+ * 缓存Hash存放
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+
+function redisHashDel($name, $key) {
+    $reids = new phpredis();
+    if (empty($name) && !is_string($name)) {
+        return false;
+    }
+    if (empty($key) && !is_string($name)) {
+        return false;
+    }
+    $reids->hashDel($name, $key);
+    return true;
+}
+/*
  * 缓存Hash获取
  *
  * @param str $name
@@ -929,7 +950,24 @@ function redisSet($name, $value, $second = 0) {
         return false;
     }
 }
+/*
+ *删除缓存
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
 
+function redisDel($name) {
+    $reids = new phpredis();
+    if (empty($name) && !is_string($name)) {
+        return false;
+    }
+    $reids->delete($name);
+    return true;
+}
 /*
  * 缓存获取
  *

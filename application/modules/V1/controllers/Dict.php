@@ -213,6 +213,7 @@ class DictController extends Yaf_Controller_Abstract {
         if(!empty($arr)){
             $datajson['code'] = 1;
             $datajson['data'] = $arr;
+            $datajson['message'] ='返回成功';
         }else{
             $datajson['code'] = -103;
             $datajson['message'] = '数据为空!';
