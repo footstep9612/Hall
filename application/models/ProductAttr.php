@@ -34,10 +34,12 @@ class ProductAttrModel extends PublicModel
     {
         if ($spu == '')
             return false;
-        $field = 'lang,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
+        if($lang != ''){
+            $condition['lang'] = $lang;
+        }
+        $field = 'lang,attr_group,attr_no,attr_name,attr_value_type,attr_value,value_unit,goods_flag,spec_flag,logi_flag,hs_flag';
         $condition = array(
             'spu' => $spu,
-            'lang'=> $lang,
             'status' => self::STATUS_VALID
         );
 
@@ -45,7 +47,7 @@ class ProductAttrModel extends PublicModel
         $key_redis = md5(json_encode($condition));
         if(redisExist($key_redis)){
             $result = redisGet($key_redis);
-            return $result ? $result : array();
+            return $result ? json_decode($result) : array();
         } else {
             $result = $this->field($field)->where($condition)->select();
             if ($result) {
@@ -82,7 +84,7 @@ class ProductAttrModel extends PublicModel
                         $attrs[$item['lang']][$group1][] = $item;
                     }
                 }
-                redisSet($key_redis, $attrs);
+                redisSet($key_redis, json_encode($attrs));
                 return $attrs;
             } else {
                 return array();

@@ -13,7 +13,6 @@ class GoodsAttrModel extends PublicModel
     protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
-
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
@@ -25,9 +24,11 @@ class GoodsAttrModel extends PublicModel
      */
 
     public function getAttrBySku($sku, $lang = '') {
+        if($lang!=''){
+            $where['lang'] = $lang;
+        }
         $where = array(
             'sku' => $sku,
-            'lang'=> $lang,
             'status' => self::STATUS_VALID
         );
 
@@ -37,7 +38,7 @@ class GoodsAttrModel extends PublicModel
             $result = redisGet($key_redis);
             return $result ? json_decode($result) : array();
         } else {
-            $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
+            $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,sort_order,goods_flag,logi_flag,hs_flag,spec_flag';
 
             $gattrs = $this->field($field)
                            ->where($where)
@@ -151,7 +152,7 @@ class GoodsAttrModel extends PublicModel
             $result = redisGet($key_redis);
             return $result ? json_decode($result) : array();
         } else {
-            $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
+            $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,sort_order,goods_flag,logi_flag,hs_flag,spec_flag';
 
             $gattrs = $this->field($field)
                            ->where($where)
