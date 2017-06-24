@@ -16,10 +16,16 @@ class EsgoodsController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '5';
 
     //put your code here
     public function init() {
+
+
+//        $espoductmodel = new EsgoodsModel();
+//        $flag = $espoductmodel->getproductattrsbyspus(['01']);
+//        echo '<pre>';
+//        var_dump($flag);
+//        die();
         $this->es = new ESClient();
         //  parent::init();
     }
@@ -28,7 +34,7 @@ class EsgoodsController extends PublicController {
      * goods 数据导入
      */
 
-    public function importAction($lang = 'en') {
+    public function importgoodsAction($lang = 'en') {
         try {
             $espoductmodel = new EsgoodsModel();
             $espoductmodel->importgoodss($lang);
@@ -41,6 +47,27 @@ class EsgoodsController extends PublicController {
             $this->setCode(-2001);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
+        }
+    }
+
+    /*
+     * product数据导入
+     */
+
+    public function importproductsAction($lang = 'en') {
+        try {
+            $espoductmodel = new EsProductModel();
+            $espoductmodel->importproducts($lang);
+            $this->setCode(1);
+            $this->setMessage('成功!');
+
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn([]);
         }
     }
 
@@ -63,48 +90,18 @@ class EsgoodsController extends PublicController {
         $this->jsonReturn($data);
     }
 
-    public function listAction() {
+    public function getGoodsAction() {
 
+        $name = 'CONDOR';
         $model = new EsgoodsModel();
-        $ret = $model->getgoods($this->put_data, $this->getLang());
-        if ($ret) {
-            $list = [];
-            $data = $ret[0];
-            $send['data']['count'] = intval($data['hits']['total']);
-            $send['data']['current_no'] = intval($ret[1]);
-            $send['data']['pagesize'] = intval($ret[2]);
+        $flag = $model->getGoodsbyname($name, 'S010102');
 
-            foreach ($data['hits']['hits'] as $key => $item) {
-                $list[$key] = $item["_source"];
-                $list[$key]['id'] = $item['_id'];
-            }
-            if (isset($ret[4]) && $ret[4] > 0) {
-
-                $send['allcount'] = $ret[4] > $send['count'] ? $ret[4] : $send['count'];
-            } else {
-                $send['allcount'] = $send['count'];
-            }
-
-            $send['list'] = $list;
-            $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($send);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->jsonReturn();
-        }
+        echo '<pre>';
+        var_dump($flag);
     }
 
     public function goodsAction($lang = 'en') {
-        if (!in_array($lang, $this->langs)) {
-
-            $lang = 'en';
-        }
-        $type_string = 'text';
-        $analyzer = 'ik_max_word';
-        if ($this->version != 5) {
-            $type_string = 'string';
-            $analyzer = 'ik';
-        }
+      
 
         $body = ['properties' => [
                 'id' => [
@@ -199,17 +196,12 @@ class EsgoodsController extends PublicController {
                     "boost" => 4
                 ],]];
 
+
         return $body;
     }
 
     public function productAction($lang = 'en') {
 
-        $type_string = 'text';
-        $analyzer = 'ik_max_word';
-        if ($this->version != 5) {
-            $type_string = 'string';
-            $analyzer = 'ik';
-        }
         $body = ['properties' => [
                 'id' => [
                     'type' => 'integer',
@@ -388,7 +380,9 @@ class EsgoodsController extends PublicController {
                     "include_in_all" => "true",
                     "boost" => 4
                 ],]];
+
         return $body;
+        // $this->es->create_index($this->index,  $body);
     }
 
 }

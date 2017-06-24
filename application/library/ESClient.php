@@ -816,7 +816,6 @@ class ESClient {
         );
 
 
-        echo json_encode($this->body, 256);
         $searchParams['from'] = $from;
         $searchParams['size'] = $size;
 

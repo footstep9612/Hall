@@ -11,56 +11,21 @@
  *
  * @author zhongyg
  */
-class EsproductController extends PublicController {
+class EsgoodsController extends PublicController {
 
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '1';
 
     //put your code here
     public function init() {
 
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
-        if ($this->getRequest()->getModuleName() == 'V1' &&
-                $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            
-        } else {
 
-            if (!empty($jsondata["token"])) {
-                $token = $jsondata["token"];
-            }
-            $model = new UserModel();
-            if (!empty($token)) {
-                try {
-                    $tks = explode('.', $token);
-                    $tokeninfo = JwtInfo($token); //解析token
-                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
-
-                    if (empty($userinfo)) {
-                        $this->put_data['source'] = 'ERUI';
-                    } else {
-                        $this->user = array(
-                            "id" => $userinfo["id"],
-                            "name" => $tokeninfo["name"],
-                            "token" => $token, //token
-                        );
-                    }
-                } catch (Exception $e) {
-                    $this->put_data['source'] = 'ERUI';
-                }
-            } else {
-                $this->put_data['source'] = 'ERUI';
-            }
-        }
         $this->es = new ESClient();
         //  parent::init();
     }
+
+    
 
     /*
      * product数据导入
@@ -68,24 +33,24 @@ class EsproductController extends PublicController {
 
     public function importAction($lang = 'en') {
         try {
-            set_time_limit(0);
-            $lang = 'ru';
             $espoductmodel = new EsProductModel();
             $espoductmodel->importproducts($lang);
             $this->setCode(1);
             $this->setMessage('成功!');
+
             $this->jsonReturn();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             $this->setCode(-2001);
             $this->setMessage('系统错误!');
-            $this->jsonReturn();
+            $this->jsonReturn([]);
         }
     }
 
     public function indexAction() {
-//        $this->es->delete('index');       
+//        $this->es->delete('index');
+        // $this->es->delete($this->index);
         //$model = new EsgoodsModel();
 
         $body['mappings'] = [];
@@ -99,34 +64,28 @@ class EsproductController extends PublicController {
         $this->es->create_index($this->index, $body);
         $this->setCode(1);
         $this->setMessage('成功!');
-        $this->jsonReturn();
+        $this->jsonReturn($data);
     }
 
+   
     public function listAction() {
 //        $this->put_data['keyword'] = 'MSFP Block';
         $model = new EsProductModel();
         $ret = $model->getproducts($this->put_data, '', $this->getLang());
+
         if ($ret) {
             $list = [];
-
-            $data = $ret[0];
-            $send['count'] = intval($data['hits']['total']);
+            $data = $ret[0];       
+            $send['count'] = intval($flag['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
-            if (isset($ret[4]) && $ret[4] > 0) {
-
-                $send['allcount'] = $ret[4] > $send['count'] ? $ret[4] : $send['count'];
-            } else {
-                $send['allcount'] = $send['count'];
-            }
 
             var_dump($data);
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
-            $send['list'] = $list;
-
+            $send['data'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($send);
         } else {
@@ -134,18 +93,8 @@ class EsproductController extends PublicController {
             $this->jsonReturn();
         }
     }
-
     public function goodsAction($lang = 'en') {
-        if (!in_array($lang, $this->langs)) {
-
-            $lang = 'en';
-        }
-        $type_string = 'text';
-        $analyzer = 'ik_max_word';
-        if ($this->version != 5) {
-            $type_string = 'string';
-            $analyzer = 'ik';
-        }
+      
 
         $body = ['properties' => [
                 'id' => [
@@ -245,12 +194,7 @@ class EsproductController extends PublicController {
 
     public function productAction($lang = 'en') {
 
-        $type_string = 'text';
-        $analyzer = 'ik_max_word';
-        if ($this->version != 5) {
-            $type_string = 'string';
-            $analyzer = 'ik';
-        }
+       
         $body = ['properties' => [
                 'id' => [
                     'type' => 'integer',
@@ -429,7 +373,9 @@ class EsproductController extends PublicController {
                     "include_in_all" => "true",
                     "boost" => 4
                 ],]];
+
         return $body;
+        // $this->es->create_index($this->index,  $body);
     }
 
 }
