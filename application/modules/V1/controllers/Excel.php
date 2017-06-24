@@ -7,6 +7,7 @@
  * @author maimaiti
  */
 class ExcelController extends PublicController
+//class ExcelController extends Yaf_Controller_Abstract
 {
     /**
      * 测试接口
@@ -443,5 +444,86 @@ class ExcelController extends PublicController
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", "sku.xls");
     }
+
+    /**
+     * 导入报价单明细数据接口
+     * @author maimaiti
+     */
+    public function importQuoteItemAction()
+    {
+        //1.接受Excel文件并核验
+        $post = json_decode(file_get_contents("php://input"),true);
+        $excel_file = $post['file'];
+        if(empty($excel_file))
+        {
+            jsonReturn(null,-2104,ErrorMsg::getMessage('-2104'));
+        }
+
+        //2.分析数据并进行导入
+        //$excel_file = APPLICATION_PATH."/ExcelFiles/sku_null.xls";
+        $this->importQuoteItemHandler($excel_file);
+
+        //3.响应(Response)
+        $response = ['code'=>-2105,'message'=>'导入成功','data'=>[]];
+        exit(json_encode($response));
+    }
+    /**
+     * 导入报价单明细数据处理
+     * @param $excel_file string  导入文件完整路径
+     * @author maimaiti
+     */
+    private function importQuoteItemHandler($excel_file)
+    {
+        //获取文件类型
+        $fileType = PHPExcel_IOFactory::identify($excel_file);
+        //创建PHPExcel读取对象
+        $objReader = PHPExcel_IOFactory::createReader($fileType);
+        //加载文件并读取
+        $excelData = $objReader->load($excel_file)->getSheet(0)->toArray();
+        //弹出数组第一个item
+        array_shift($excelData);
+
+        //判读有没有可导入的数据
+        if (empty($data))
+        {
+            $response = ['code'=>-2105,'message'=>ErrorMsg::getMessage('-2105'),'data'=>[]];
+            exit(json_encode($response));
+        }
+
+        //遍历重组
+        //TODO 这里后期优化为PHPExcel自动映射到数据库字段的类
+        foreach ($excelData as $k=>$v)
+        {
+            $data[$k]['quote_no'] = $v[0];//询单号
+            $data[$k]['name_cn'] = $v[1];//中文名
+            $data[$k]['name_en'] = $v[2];//外文名
+            $data[$k]['quote_spec'] = $v[3];//规格
+            $data[$k]['inquiry_desc'] = $v[4];//客户需求描述
+            $data[$k]['quote_quantity'] = $v[5];//数量
+            $data[$k]['quote_unit'] = $v[6];//单位
+            $data[$k]['quote_brand'] = $v[7];//品牌
+            $data[$k]['created_at'] = date('YmdHis');
+        }
+
+        //批量添加到数据库中
+        $this->data2base($data);
+
+    }
+
+    /**
+     * 数据添加到数据库当中
+     * @param $data 要添加的数据
+     */
+    private function data2base($data)
+    {
+        $model = new QuoteItemModel();
+        //TODO 这里后期改善为批量插入，代替当前的循环插入
+        foreach ($data as $k=>$v)
+        {
+            $model->add($v);
+        }
+        return true;
+    }
+
 
 }
