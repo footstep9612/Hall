@@ -62,6 +62,63 @@ class ProductAttachModel extends PublicModel{
     }
 
     /**
+     * 获取商品附件   注：此方法用去前台接口调用，因为有错误输出
+     * @param array $condition
+     * @return array|mixed
+     */
+    public function getAttach($condition=[])
+    {
+        $spu = isset($condition['spu']) ? $condition['spu'] : '';
+        if (empty($spu)) {
+            jsonReturn('', 1000);
+        }
+
+        $where = array(
+            'spu' => $spu,
+        );
+        $type = isset($condition['attach_type']) ? strtoupper($condition['attach_type']) : '';
+        if($type){
+            if(!in_array($type , array('SMALL_IMAGE','MIDDLE_IMAGE','BIG_IMAGE','DOC'))){
+                jsonReturn('',1000);
+            }
+            $where['attach_type'] = $type;
+        }
+        $status = isset($condition['status']) ? strtoupper($condition['status']) : '';
+        if($status){
+            if(!in_array($status , array('VALID','INVALID','DELETED'))){
+                jsonReturn('',1000);
+            }
+            $where['status'] = $status;
+        }
+
+        //读取redis缓存
+        if(redisHashExist('Attach',$spu.'_'.$type.'_'.$status)){
+            return (array)json_decode(redisHashGet('Attach',$spu.'_'.$type.'_'.$status));
+        }
+
+        try{
+            $field = 'attach_type,attach_name,attach_url,status,created_at';
+            $result = $this->field($field)->where($where)->select();
+            if($result){
+                $data = array();
+                //按类型分组
+                if(empty($type)){
+                    foreach($result as $item){
+                        $data[$item['attach_type']][] = $item;
+                    }
+                    $result = $data;
+                }
+                //添加到缓存
+                redisHashSet('Attach',$spu.'_'.$type.'_'.$status,json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
+    }
+
+    /**
      * 添加附件
      * @param array $data
      * @return bool|mixed
