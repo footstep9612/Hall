@@ -85,10 +85,10 @@ class EsproductController extends PublicController {
     }
 
     public function indexAction() {
-        
-  
-        die();
-        
+
+//        $this->es->delete($this->index);
+//        die();
+
 //        $this->es->delete('index');       
         //$model = new EsgoodsModel();
 
@@ -138,6 +138,35 @@ class EsproductController extends PublicController {
         }
     }
 
+    /*
+     * "fields": {
+      "all": {
+      "index": "not_analyzed",
+      "type": "string"
+      },
+      "standard": {
+      "analyzer": "standard",
+      "type": "string"
+      },
+      "ik": {
+      "analyzer": "ik",
+      "type": "string"
+      },
+      "cjk": {
+      "analyzer": "cjk",
+      "type": "string"
+      },
+      "suggest": {
+      "analyzer": "ngram_analyzer",
+      "type": "string"
+      },
+      "whitespace": {
+      "analyzer": "whitespace",
+      "type": "string"
+      }
+      }
+     */
+
     public function goodsAction($lang = 'en') {
         if (!in_array($lang, $this->langs)) {
 
@@ -175,18 +204,48 @@ class EsproductController extends PublicController {
                     'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'name' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 8
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'show_name' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 8
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'purchase_price1' => [
                     'type' => $type_string,
@@ -215,32 +274,92 @@ class EsproductController extends PublicController {
                     "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
                 ],
                 'meterial_cat' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'show_cats' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'attrs' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'specs' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],]];
 
         return $body;
@@ -276,103 +395,298 @@ class EsproductController extends PublicController {
                     "index" => "not_analyzed",
                 ],
                 'skus' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 8
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'qrcode' => [
                     'type' => $type_string,
                     "index" => "no",
                 ],
                 'name' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 8
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'show_name' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 8
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'keywords' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'exe_standard' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'app_scope' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'tech_paras' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'advantages' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'profile' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'supplier_id' => [
                     'type' => $type_string,
                     "index" => "not_analyzed",
                 ],
                 'supplier_name' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'brand' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 2
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'source' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'source_detail' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 1
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'recommend_flag' => [
                     'type' => $type_string,
@@ -405,32 +719,92 @@ class EsproductController extends PublicController {
                     "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
                 ],
                 'meterial_cat' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'show_cats' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'attrs' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],
                 'specs' => [
-                    'type' => $type_string,
-                    "analyzer" => $analyzer,
-                    "search_analyzer" => $analyzer,
-                    "include_in_all" => "true",
-                    "boost" => 4
+                    "index" => "no",
+                    "type" => $type_string,
+                    "fields" => [
+                        "all" => [
+                            "index" => "not_analyzed",
+                            "type" => $type_string
+                        ],
+                        "standard" => [
+                            "analyzer" => "standard",
+                            "type" => $type_string
+                        ],
+                        "ik" => [
+                            "analyzer" => $analyzer,
+                            "type" => $type_string
+                        ],
+                        "whitespace" => [
+                            "analyzer" => "whitespace",
+                            "type" => $type_string
+                        ]
+                    ],
                 ],]];
         return $body;
     }

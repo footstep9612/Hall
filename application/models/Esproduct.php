@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsproductModel extends PublicModel {
+ class EsproductModel extends PublicModel {
 
 //put your code here
     protected $tableName = 'product';
