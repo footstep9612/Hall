@@ -27,7 +27,7 @@ class InquiryController extends PublicController {
     }
 
     //查询询单号（项目代码）是否存在
-    public function checkInquiryNo() {
+    public function checkInquiryNoAction() {
         $inquiry = new InquiryModel();
         $where = json_decode(file_get_contents("php://input"), true);
 
