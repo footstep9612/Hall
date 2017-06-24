@@ -177,18 +177,7 @@ class GoodsAttrTplModel extends PublicModel
         $attrTable = $attrModel->getTableName();
         $thisTable = $this->getTableName();
 
-<<<<<<< HEAD
-        $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
-        $where = array(
-            "$thisTable.attr_type" => '',
-            "$thisTable.lang" =>$lang,
-            "$thisTable.status" => self::STATUS_VALID,
-            "$attrTable.status"=> $attrModel::STATUS_VALID,
-            "$attrTable.lang" => $lang,
-        );
-        $result = $this->field($field)->join("$attrTable ON $thisTable.attr_no = $attrTable.attr_no" , 'LEFT')->where($where)->select();
-        return $result ? $result : array();
-=======
+
         try{
             $field = "$thisTable.lang,$thisTable.attr_no,$thisTable.attr_name,$thisTable.goods_flag,$thisTable.spec_flag,$thisTable.logi_flag,$thisTable.hs_flag,$thisTable.required_flag,$thisTable.search_flag,$thisTable.attr_group,$attrTable.input_type,$attrTable.value_type,$attrTable.value_unit,$attrTable.options,$attrTable.input_hint";
             $where = array(
@@ -208,7 +197,7 @@ class GoodsAttrTplModel extends PublicModel
             return array();
         }
         return array();
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
+
     }
 
     /**

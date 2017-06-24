@@ -34,7 +34,7 @@ class EsProductModel extends PublicModel {
         }
         if (isset($condition['spu'])) {
             $spu = $condition['spu'];
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['spu' => $spu]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
         }
         if (isset($condition['show_cat_no'])) {
             $show_cat_no = $condition['show_cat_no'];
@@ -44,175 +44,145 @@ class EsProductModel extends PublicModel {
         if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
             $created_at_start = $condition['created_at_start'];
             $created_at_end = $condition['created_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' =>
-                    ['gte' => $created_at_start,
-                        'gle' => $created_at_end,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
         } elseif (isset($condition['created_at_start'])) {
             $created_at_start = $condition['created_at_start'];
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' =>
-                    ['gte' => $created_at_start,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start,]]];
         } elseif (isset($condition['created_at_end'])) {
             $created_at_end = $condition['created_at_end'];
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' =>
-                    ['gle' => $created_at_end,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gle' => $created_at_end,]]];
         }
         if (isset($condition['checked_at_start']) && isset($condition['checked_at_end'])) {
             $checked_at_start = $condition['checked_at_start'];
             $checked_at_end = $condition['checked_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gte' => $checked_at_start,
-                        'gle' => $checked_at_end,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start, 'gle' => $checked_at_end,]]];
         } elseif (isset($condition['checked_at_start'])) {
             $checked_at_start = $condition['checked_at_start'];
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gte' => $checked_at_start,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start,]]];
         } elseif (isset($condition['created_at_end'])) {
             $checked_at_end = $condition['checked_at_end'];
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' =>
-                    ['gle' => $checked_at_end,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gle' => $checked_at_end,]]];
         }
 
         if (isset($condition['updated_at_start']) && isset($condition['updated_at_end'])) {
             $updated_at_start = $condition['updated_at_start'];
             $updated_at_end = $condition['updated_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gte' => $updated_at_start,
-                        'gle' => $updated_at_end,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,
+                        'gle' => $updated_at_end,]]];
         } elseif (isset($condition['updated_at_start'])) {
             $updated_at_start = $condition['updated_at_start'];
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gte' => $updated_at_start,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,]]];
         } elseif (isset($condition['updated_at_end'])) {
             $updated_at_end = $condition['updated_at_end'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' =>
-                    ['gle' => $updated_at_end,
-                    ]
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gle' => $updated_at_end,]]];
         }
         if (isset($condition['status'])) {
             $status = $condition['status'];
             if (!in_array($updated_at_end, ['NORMAL', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
                 $status = 'NORMAL';
             }
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $status
-            ]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
         }
 
         if (isset($condition['recommend_flag'])) {
             $recommend_flag = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
-
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['status' => $recommend_flag
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $recommend_flag]];
         }
         if (isset($condition['brand'])) {
             $brand = $condition['brand'];
 
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand]];
         }
         if (isset($condition['source'])) {
             $source = $condition['source'];
 
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['source' => $source
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['source' => $source]];
+        }
+        if (isset($condition['exe_standard'])) {
+            $exe_standard = $condition['exe_standard'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['exe_standard' => $exe_standard]];
+        }
+        if (isset($condition['app_scope'])) {
+            $app_scope = $condition['app_scope'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['app_scope' => $app_scope]];
+        }
+        if (isset($condition['advantages'])) {
+            $advantages = $condition['advantages'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['advantages' => $advantages]];
+        }
+        if (isset($condition['tech_paras'])) {
+            $tech_paras = $condition['tech_paras'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['tech_paras' => $tech_paras]];
         }
         if (isset($condition['source_detail'])) {
             $source_detail = $condition['source_detail'];
 
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['source_detail' => $source_detail
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['source_detail' => $source_detail]];
         }
 
         if (isset($condition['keywords'])) {
             $keywords = $condition['keywords'];
 
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['keywords' => $keywords
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['keywords' => $keywords]];
         }
         if (isset($condition['supplier_id'])) {
             $supplier_id = $condition['supplier_id'];
 
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['supplier_id' => $supplier_id
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['supplier_id' => $supplier_id]];
+        }
+
+        if (isset($condition['supplier_name'])) {
+            $supplier_id = $condition['supplier_name'];
+
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['supplier_name' => $supplier_name]];
         }
 
         if (isset($condition['created_by'])) {
             $created_by = $condition['created_by'];
 
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['created_by' => $created_by
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
         }
 
         if (isset($condition['updated_by'])) {
             $updated_by = $condition['updated_by'];
 
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['updated_by' => $updated_by
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
         }
         if (isset($condition['checked_by'])) {
             $checked_by = $condition['checked_by'];
 
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['checked_by' => $checked_by
-                ]
-            ];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
         }
+
         if (isset($condition['show_name'])) {
             $show_name = $condition['show_name'];
-
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name' => $show_name]];
+        }
+        if (isset($condition['attrs'])) {
+            $attrs = $condition['attrs'];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs' => $attrs]];
+        } if (isset($condition['specs'])) {
+            $specs = $condition['specs'];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['specs' => $specs]];
+        }
+        if (isset($condition['keyword'])) {
+            $show_name = $condition['keyword'];
             $body['query'] = ['multi_match' => [
                     "query" => $show_name,
                     "type" => "most_fields",
                     "fields" => ["show_name", "attrs", 'specs']
             ]];
-//            $body['query']['bool']['must'][] = ['bool' => ['should' => [
-//                        [ESClient::MATCH => ['show_name' => $show_name]],
-//                        [ESClient::MATCH => ['attrs' => $show_name]],
-//                        [ESClient::MATCH => ['specs' => $show_name]],
-//                    ]
-//            ]];
         }
         return $body;
     }
@@ -220,12 +190,17 @@ class EsProductModel extends PublicModel {
     /* 通过搜索条件获取数据列表
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
+     * @param mix  $_source //要搜索的字段
      * @return mix  
      */
 
-    public function getproducts($condition, $lang = 'en') {
+    public function getproducts($condition, $_source, $lang = 'en') {
 
         try {
+            if (!$_source) {
+                $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
+                    , 'profile', 'supplier_name', 'supplier_id', 'attachs', 'brand', 'recommend_flag'];
+            }
             $body = $this->getCondition($condition);
             $pagesize = 10;
             $current_no = 1;
@@ -237,8 +212,15 @@ class EsProductModel extends PublicModel {
             }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
+            unset($condition['source']);
+            $newbody = $this->getCondition($condition);
 
-            return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+            $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
+
+
+            return [$es->setbody($body)
+                        ->setfields($_source)
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -256,9 +238,17 @@ class EsProductModel extends PublicModel {
 
         try {
             $body = $this->getCondition($condition);
-
+            $pagesize = 10;
+            $current_no = 1;
+            if (isset($condition['current_no'])) {
+                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+            }
+            if (isset($condition['pagesize'])) {
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+            }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
+
 
             return $es->setbody($body)
                             ->setaggs('show_cats', 'chowcat', 'terms')
@@ -297,7 +287,7 @@ class EsProductModel extends PublicModel {
     public function getproductsbyspu($spu, $lang = 'en') {
         try {
             $es = new ESClient();
-            $es->setmust(['spu' => $spu], ESClient::TERM);
+            $es->setmust(['spu' => $spu], ESClient::MATCH_PHRASE);
             return $es->search($this->dbName, $this->tableName . '_' . $lang);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -315,15 +305,15 @@ class EsProductModel extends PublicModel {
 
     public function getmaterial_cat($cat_no, $lang = 'en') {
         try {
-            $cat3 = $this->table('erui_db_ddl_goods.t_material_cat')
+            $cat3 = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                     ->find();
-            $cat2 = $this->table('erui_db_ddl_goods.t_material_cat')
+            $cat2 = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                     ->find();
-            $cat1 = $this->table('erui_db_ddl_goods.t_material_cat')
+            $cat1 = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                     ->find();
@@ -343,23 +333,33 @@ class EsProductModel extends PublicModel {
      */
 
     public function getmaterial_cats($cat_nos, $lang = 'en') {
+        if (!$cat_nos) {
+            return[];
+        }
         try {
-            $cat3s = $this->table('erui_db_ddl_goods.t_material_cat')
+            $cat3s = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name,parent_cat_no')
                     ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
+            if (!$cat3s) {
+
+                return [];
+            }
+
             $cat1_nos = $cat2_nos = [];
             foreach ($cat3s as $cat) {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
-            $cat2s = $this->table('erui_db_ddl_goods.t_material_cat')
+            $cat2s = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name,parent_cat_no')
                     ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
+
             foreach ($cat2s as $cat2) {
                 $cat1_nos[] = $cat2['parent_cat_no'];
             }
-            $cat1s = $this->table('erui_db_ddl_goods.t_material_cat')
+
+            $cat1s = $this->table('erui_goods.t_material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
@@ -397,7 +397,7 @@ class EsProductModel extends PublicModel {
 
     public function getgoods_specsbyspus($spus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('spu,attr_name,attr_value,attr_no')
                     ->where(['spu' => ['in', $spus],
                         'lang' => $lang,
@@ -428,16 +428,17 @@ class EsProductModel extends PublicModel {
 
     public function getproduct_attrbyspus($spus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_product_attr')
+            $product_attrs = $this->table('erui_goods.t_product_attr')
                     ->field('*')
                     ->where(['spu' => ['in', $spus], 'lang' => $lang,
                         'status' => 'NORMAL'])
                     ->select();
             $ret = [];
+            if ($product_attrs) {
+                foreach ($product_attrs as $item) {
 
-            foreach ($product_attrs as $item) {
-
-                $ret[$item['spu']][] = $item;
+                    $ret[$item['spu']][] = $item;
+                }
             }
             return $ret;
         } catch (Exception $ex) {
@@ -456,17 +457,19 @@ class EsProductModel extends PublicModel {
 
     public function getskusbyspus($spus, $lang = 'en') {
         try {
-            $specs = $this->table('erui_db_ddl_goods.t_goods')
+            $specs = $this->table('erui_goods.t_goods')
                     ->field('sku,spu,`name`,`model`,`show_name`')
                     ->where(['spu' => ['in', $spus], 'status' => 'VALID'])
                     ->select();
             $ret = [];
-            foreach ($specs as $spec) {
-                $spu = $spec['spu'];
-                $sku = $spec['sku'];
-                unset($spec['spu']);
-                unset($spec['sku']);
-                $ret[$spu][$sku] = $spec;
+            if ($specs) {
+                foreach ($specs as $spec) {
+                    $spu = $spec['spu'];
+                    $sku = $spec['sku'];
+                    unset($spec['spu']);
+                    unset($spec['sku']);
+                    $ret[$spu][$sku] = $spec;
+                }
             }
             return $ret;
         } catch (Exception $ex) {
@@ -486,8 +489,8 @@ class EsProductModel extends PublicModel {
     public function getshow_catsbyspus($spus, $lang = 'en') {
         try {
 
-            $show_cat_products = $this->table('erui_db_ddl_goods.t_show_cat_product')
-                    ->field('show_cat_no,spu')
+            $show_cat_products = $this->table('erui_goods.t_show_cat_product')
+                    ->field('cat_no,spu')
                     ->where(['spu' => ['in', $spus], 'status' => 'VALID'])
                     ->select();
             $ret = [];
@@ -495,7 +498,7 @@ class EsProductModel extends PublicModel {
 
             foreach ($show_cat_products as $item) {
 
-                $ret[$item['spu']] = $item['show_cat_no'];
+                $ret[$item['spu']] = $item['cat_no'];
             }
             return $ret;
         } catch (Exception $ex) {
@@ -514,19 +517,21 @@ class EsProductModel extends PublicModel {
 
     public function getgoods_specsbyskus($skus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
+            $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('sku,attr_name,attr_value,attr_no')
-                    ->where(['sku' => ['in', $spus],
+                    ->where(['sku' => ['in', $skus],
                         'lang' => $lang,
                         'spec_flag' => 'Y',
                         'status' => 'VALID'
                     ])
                     ->select();
             $ret = [];
-            foreach ($product_attrs as $item) {
-                $sku = $item['sku'];
-                unset($item['sku']);
-                $ret[$sku][] = $item;
+            if ($product_attrs) {
+                foreach ($product_attrs as $item) {
+                    $sku = $item['sku'];
+                    unset($item['sku']);
+                    $ret[$sku][] = $item;
+                }
             }
             return $ret;
         } catch (Exception $ex) {
@@ -546,15 +551,17 @@ class EsProductModel extends PublicModel {
     public function getshow_material_cats($cat_nos, $lang = 'en') {
 
         try {
-            $show_material_cats = $this->table('erui_db_ddl_goods.t_show_material_cat')
+            $show_material_cats = $this->table('erui_goods.t_show_material_cat')
                     ->field('show_cat_no,material_cat_no')
                     ->where(['material_cat_no' => ['in', $cat_nos], 'status' => 'VALID'])
                     ->select();
 
             $ret = [];
-            foreach ($show_material_cats as $item) {
+            if ($show_material_cats) {
+                foreach ($show_material_cats as $item) {
 
-                $ret[$item['material_cat_no']][$item['show_cat_no']] = $item['show_cat_no'];
+                    $ret[$item['material_cat_no']][$item['show_cat_no']] = $item['show_cat_no'];
+                }
             }
 
             return $ret;
@@ -573,23 +580,30 @@ class EsProductModel extends PublicModel {
      */
 
     public function getshow_cats($show_cat_nos, $lang = 'en') {
+
         try {
-            $cat3s = $this->table('erui_db_ddl_goods.t_show_cat')
+            $cat3s = $this->table('erui_goods.t_show_cat')
                     ->field('parent_cat_no,cat_no,name')
                     ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
             $cat1_nos = $cat2_nos = [];
+
+
+            if (!$cat3s) {
+                return [];
+            }
+
             foreach ($cat3s as $cat) {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
 
-            $cat2s = $this->table('erui_db_ddl_goods.t_show_cat')
+            $cat2s = $this->table('erui_goods.t_show_cat')
                             ->field('id,cat_no,name,parent_cat_no')
                             ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             foreach ($cat2s as $cat2) {
                 $cat1_nos[] = $cat2['parent_cat_no'];
             }
-            $cat1s = $this->table('erui_db_ddl_goods.t_show_cat')->field('id,cat_no,name')
+            $cat1s = $this->table('erui_goods.t_show_cat')->field('id,cat_no,name')
                             ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             $newcat1s = [];
             foreach ($cat1s as $val) {
@@ -610,6 +624,34 @@ class EsProductModel extends PublicModel {
             }
 
             return $newcat3s;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /* 通过SKU获取数据商品文件列表
+     * @param mix $skus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix  
+     */
+
+    public function getproduct_attachsbyspus($spus, $lang = 'en') {
+
+        try {
+            $product_attrs = $this->table('erui_goods.t_product_attach')
+                    ->field('id,attach_url,attach_name,attach_url,spu')
+                    ->where(['sku' => ['in', $spus],
+                        'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
+                        'status' => 'VALID'])
+                    ->select();
+            $ret = [];
+            foreach ($product_attrs as $item) {
+
+                $ret[$item['sku']][] = $item;
+            }
+            return $ret;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -653,20 +695,12 @@ class EsProductModel extends PublicModel {
             $show_cat_nos = array_unique($show_cat_nos);
             $scats = $this->getshow_cats($show_cat_nos, $lang);
 
-
-
             $ret = [];
             foreach ($products as $item) {
-
-
                 $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
-
-
                 foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
                     $show_cat[$show_cat_no] = $scats[$show_cat_no];
                 }
-
-
                 $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
                 $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
                 $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
@@ -691,20 +725,23 @@ class EsProductModel extends PublicModel {
         try {
             $products = $this->where(['lang' => $lang])
                     ->select();
+            ob_end_clean();
+            echo count($products), '<BR>';
+            flush();
+            ob_flush();
             $spus = $mcat_nos = [];
             if ($products) {
                 foreach ($products as $item) {
                     $mcat_nos[] = $item['meterial_cat_no'];
                     $spus[] = $item['spu'];
                 }
-
-
                 $spus = array_unique($spus);
                 $mcat_nos = array_unique($mcat_nos);
                 $mcats = $this->getmaterial_cats($mcat_nos, $lang);
                 $scats_no_spu = $this->getshow_catsbyspus($spus, $lang);
                 $scats_no_mcatsno = $this->getshow_material_cats($mcat_nos, $lang);
                 $product_attrs = $this->getproduct_attrbyspus($spus, $lang);
+                $attachs = $this->getproduct_attachsbyspus($spus, $lang);
                 $show_cat_nos = [];
                 foreach ($scats_no_spu as $show_cat_no) {
                     $show_cat_nos[] = $show_cat_no;
@@ -722,7 +759,7 @@ class EsProductModel extends PublicModel {
                 $specs = $this->getgoods_specsbyskus($spus, $lang);
                 $es = new ESClient();
 
-                foreach ($products as $item) {
+                foreach ($products as $key => $item) {
                     $id = $item['spu'];
                     $body = $item;
                     if (isset($skus[$item['spu']])) {
@@ -738,20 +775,36 @@ class EsProductModel extends PublicModel {
 
                         $body['specs'] = json_encode($specs[$item['spu']], JSON_UNESCAPED_UNICODE);
                     } else {
-                        $body['specs'] = '';
+                        $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+                        ;
                     }
-                    $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
-                    foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
 
-                        $show_cat[$show_cat_no] = $scats[$show_cat_no];
+                    if (isset($attachs[$item['spu']])) {
+                        $body['attachs'] = json_encode($attachs[$item['spu']], 256);
+                    } else {
+                        $body['attachs'] = '[]';
                     }
-                    $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
+                    $show_cat = [];
+                    if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {
+                        $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
+                    }
+                    if (isset($mcats[$item['meterial_cat_no']])) {
+                        $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
+                    } else {
+                        $body['meterial_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
+                    }
                     $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
-                    $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
-
+                    if (isset($product_attrs[$item['spu']])) {
+                        $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
+                    } else {
+                        $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+                    }
                     $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+                    echo $key, '<BR>';
+                    flush();
+                    ob_flush();
 
-                    return $flag;
+                    //return $flag;
                 }
             } else {
                 return false;

@@ -107,8 +107,7 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         }
         $model = new UserModel();
-        $check = true;
-        $check = $model->Exist($data);
+        $check = $model->Exist($data['email'],$data['mobile']);
         if($check){
             echo json_encode(array("code" => "-101", "message" => "手机或账号已存在"));
             exit();
@@ -142,7 +141,6 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         }
     }
-
     //获取部门信息
     public function groupListAction() {
         $data = json_decode(file_get_contents("php://input"), true);

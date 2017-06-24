@@ -794,7 +794,7 @@ class ESClient {
      */
 
     public function setfields($fields = []) {
-        $this->body['stored_fields'] = $fields;
+        $this->body['_source'] = $fields;
         return $this;
     }
 
