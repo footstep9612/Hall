@@ -14,7 +14,7 @@
 class ExchangeRateModel extends PublicModel {
 
     //put your code here
-    protected $dbName='erui_db_ddl_config';
+    protected $dbName='erui_config';
     protected $tableName = 'exchange_rate';
     public function __construct($str = '') {
         parent::__construct($str = '');
