@@ -49,3 +49,4 @@ logs/
 application/ExcelFiles/
 .settings
 .project
+nbproject/project.xml
