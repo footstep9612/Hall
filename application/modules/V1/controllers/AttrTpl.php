@@ -13,7 +13,7 @@ class AttrTplController extends PublicController{
     }
 
     /**
-     * 获取属性模板
+     * 获取属性模板sku
      * @param string lang  语言（可选，默认浏览器语言）
      * @param string spu  spu编码（可选）
      * @param string sku  sku编码（可续）
@@ -22,6 +22,9 @@ class AttrTplController extends PublicController{
     public function getAttrTplAction(){
         $atplModel = new GoodsAttrTplModel();
         $attrs = $atplModel ->getAttrTpl($this->input);
-        jsonReturn($attrs);
+        if(!empty($attrs)){
+            jsonReturn($attrs);
+        }
+        jsonReturn('','-1009','获取模板失败');
     }
 }
