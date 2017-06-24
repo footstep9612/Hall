@@ -211,9 +211,6 @@ class InquiryController extends PublicController {
         $Item = new InquiryItemModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
-        //$data['inquiry_no'] = 'INQ_20170607_00003';
-        //$data['quantity'] = 100;
-
         $id = $Item->add_data($data);
 
         //var_dump($id);die;
@@ -230,7 +227,7 @@ class InquiryController extends PublicController {
 
     }
 
-    //删除附件
+    //删除明细
     public function delItemAction() {
         $Item = new InquiryItemModel();
         $data = json_decode(file_get_contents("php://input"), true);
@@ -247,4 +244,59 @@ class InquiryController extends PublicController {
         }
     }
 
+    //明细附件列表
+    public function getListItemAttachAction()
+    {
+        $ItemAttach = new InquiryItemAttachModel();
+
+        $where = json_decode(file_get_contents("php://input"), true);
+
+        $data = $ItemAttach->getlist($where);
+        //var_dump($data);die;
+        if (!empty($data)) {
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn();
+        }
+    }
+
+    //添加明细附件
+    public function addItemAttachAction() {
+        $ItemAttach = new InquiryItemAttachModel();
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $id = $ItemAttach->add_data($data);
+
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('保存失败!');
+            $this->jsonReturn();
+        }
+
+    }
+
+    //删除明细附件
+    public function delItemAttachAction() {
+        $ItemAttach = new InquiryItemAttachModel();
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $id = $ItemAttach->delete_data($data);
+        if(!empty($id)){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('删除失败!');
+            $this->jsonReturn();
+        }
+    }
 }
