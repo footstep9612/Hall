@@ -185,11 +185,11 @@ class EsgoodsModel extends PublicModel {
             $es = new ESClient();
             unset($condition['source']);
             $newbody = $this->getCondition($condition);
-            $allcount = 0;
-            $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
+
+            $allcount = $es->setbody($newbody)->count($this->dbName, $this->tableName . '_' . $lang);
             return [$es->setbody($body)
                         ->setfields($_source)
-                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount];
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
