@@ -78,9 +78,9 @@ class EsgoodsController extends PublicController {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
-            if (isset($ret[4]) && $ret[4] > 0) {
+            if (isset($ret[3]) && $ret[3] > 0) {
 
-                $send['allcount'] = $ret[4] > $send['count'] ? $ret[4] : $send['count'];
+                $send['allcount'] = $ret[3] > $send['count'] ? $ret[3] : $send['count'];
             } else {
                 $send['allcount'] = $send['count'];
             }
@@ -240,7 +240,7 @@ class EsgoodsController extends PublicController {
                 ],
                 'qrcode' => [
                     'type' => $type_string,
-                    "index" => "no",
+                    "index" => "not_analyzed",
                 ],
                 'name' => [
                     'type' => $type_string,
