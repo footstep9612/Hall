@@ -93,7 +93,7 @@ class InquiryModel extends PublicModel {
 
         try {
             if (isset($page) && isset($pagesize)) {
-                //$count = $this->getcount($condition);
+                $count = $this->getcount($condition);
                 return $this->where($where)->field($filed)->select();
                     //->page($page, $pagesize)
                     //->field($filed)
@@ -174,16 +174,7 @@ class InquiryModel extends PublicModel {
      */
     public function update_data($createcondition = []) {
         $data = $this->create($createcondition);
-        if (isset($createcondition['serial_no'])) {
-            $where['serial_no'] = $createcondition['serial_no'];
-        } else {
-            return false;
-        }
-        if (isset($createcondition['inquiry_no'])) {
-            $where['inquiry_no'] = $createcondition['inquiry_no'];
-        } else {
-            return false;
-        }
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
 
         try {
             return $this->where($where)->save($data);
@@ -199,39 +190,9 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function delete_data($createcondition = []) {
-        if (isset($createcondition['serial_no'])) {
-            $where['serial_no'] = $createcondition['serial_no'];
-        } else {
-            return false;
-        }
-        if (isset($createcondition['inquiry_no'])) {
-            $where['inquiry_no'] = $createcondition['inquiry_no'];
-        } else {
-            return false;
-        }
-
+        $where['inquiry_no'] = $createcondition['inquiry_no'];
         try {
             return $this->where($where)->save(['inquiry_status' => 'DELETED']);
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * 查询询单号（项目代码）是否存在
-     * @param  int $inquiry_no 询单号
-     * @return bool
-     * @author zhangyuliang
-     */
-    public function checkInquiryNo($createcondition = []) {
-        if (isset($createcondition['inquiry_no'])) {
-            $where['inquiry_no'] = $createcondition['inquiry_no'];
-        } else {
-            return false;
-        }
-
-        try {
-            return $this->field('id')->where($where)->find();
         } catch (Exception $e) {
             return false;
         }

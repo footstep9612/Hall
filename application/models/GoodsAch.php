@@ -9,6 +9,11 @@ class GoodsAchModel extends PublicModel
     protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attach'; //数据表表名
 
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_INVALID = 'INVALID'; //无效；
+    const STATUS_DELETE = 'DELETE'; //删除；
+
     public function __construct()
     {
         parent::__construct();
@@ -18,17 +23,22 @@ class GoodsAchModel extends PublicModel
      * @param null $where string 条件
      * @return mixed
      */
-    public function getInfoByAch($where)
+    public function getInfoByAch($sku)
     {
-        $key_redis = md5(json_encode($where));
+        $condition = array(
+            'sku'     => $sku,
+            'status'  => self::STATUS_VALID
+        );
+        $field = 'attach_type,attach_name,attach_url,sort_order';
+
+        //根据缓存读取,没有则查找数据库并缓存
+        $key_redis = md5(json_encode($condition));
         if(redisExist($key_redis)) {
             $result = json_decode(redisGet($key_redis));
             return $result ? $result : array();
         }
-
-        $field = 'attach_type,attach_name,attach_url,sort_order,status';
         try {
-            $result = $this->field($field)->where($where)->select();
+            $result = $this->field($field)->where($condition)->select();
             if ($result) {
                 $data = array();
                 //附件分组
