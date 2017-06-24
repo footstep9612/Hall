@@ -327,4 +327,28 @@ class MaterialcatModel extends PublicModel {
         return $this->add($data);
     }
 
+    /**
+     * 根据cat_no获取所属分类name
+     * @param  string $code 编码
+     * klp
+     */
+    protected $data = array();
+    public function getNameByCat($code='')
+    {
+        if($code=='')
+            return '';
+        $condition = array(
+            'cat_no' => $code,
+            'status' => self::STATUS_VALID
+        );
+        $resultTr = $this->field('name,parent_cat_no')->where($condition)->select();
+
+        $this->data[] = $resultTr[0]['name'];
+        if($resultTr){
+            self::getNameByCat($resultTr[0]['parent_cat_no']);
+        }
+        $nameAll = $this->data[2].'/'.$this->data[1].'/'. $this->data[0];
+        return $nameAll;
+    }
+
 }
