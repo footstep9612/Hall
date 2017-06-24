@@ -26,31 +26,14 @@ class InquiryController extends PublicController {
         }
     }
 
-    //查询询单号（项目代码）是否存在
-    public function checkInquiryNoAction() {
-        $inquiry = new InquiryModel();
-        $where = json_decode(file_get_contents("php://input"), true);
-
-        $data = $inquiry->checkInquiryNo($where);
-
-        if(!empty($data)){
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            $this->jsonReturn($data);
-        }else{
-            $this->setCode('-101');
-            $this->setMessage('没有找到相关信息!');
-            $this->jsonReturn();
-        }
-    }
-
     //询价单列表
-    public function getListAction() {
+    public function getListAction(){
         $inquiry = new InquiryModel();
         $where = json_decode(file_get_contents("php://input"), true);
-
+        //var_dump($where);die;
+        //$where['created_by'] = 'zyl';
         $data = $inquiry->getlist($where);
-
+        //var_dump($data);die;
         if(!empty($data)){
             $this->setCode('1');
             $this->setMessage('成功!');
@@ -81,7 +64,7 @@ class InquiryController extends PublicController {
     }
 
     //添加询价单
-    public function addAction() {
+    public function addAction(){
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -98,7 +81,7 @@ class InquiryController extends PublicController {
     }
 
     //修改询价单
-    public function updateAction() {
+    public function updateAction(){
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
