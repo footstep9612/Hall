@@ -23,7 +23,6 @@ class EsgoodsController extends PublicController {
         $this->es = new ESClient();
         //  parent::init();
     }
-
     /*
      * goods 数据导入
      */
@@ -66,7 +65,7 @@ class EsgoodsController extends PublicController {
     public function listAction() {
 
         $model = new EsgoodsModel();
-        $ret = $model->getgoods($this->put_data, $this->getLang());
+        $ret = $model->getgoods($this->put_data,null, $this->getLang());
         if ($ret) {
             $list = [];
             $data = $ret[0];
