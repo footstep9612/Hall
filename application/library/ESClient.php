@@ -788,7 +788,6 @@ class ESClient {
         $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
         return $this;
     }
-
     /*
      * 查询的字段
      */
@@ -839,9 +838,7 @@ class ESClient {
         );
         if ($analyzer) {
             $searchParams ['analyzer'] = $analyzer;
-        }
-
-        
+        }        
 
         try {
 
