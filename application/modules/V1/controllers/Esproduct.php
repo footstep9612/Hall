@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of Esgoods
+ * Description of Esproduct
  *
  * @author zhongyg
  */
