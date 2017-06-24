@@ -36,27 +36,40 @@ class ShowCatProductModel extends PublicModel{
             return false;
 
         $goods = new GoodsModel();
-        $field = 'g.spu,g.show_name,g.sku,g.model';
+        $gtable = $goods->getTableName();
+        $field = "$gtable.spu,$gtable.show_name,$gtable.sku,$gtable.model";
         $condition = array(
-            'status'=>self::STATUS_VALID,
-            'show_cat_no'=>$show_cat_no,
+            $this->getTableName().'.status'=>self::STATUS_VALID,
+            $this->getTableName().'.cat_no'=>$show_cat_no,
+            $gtable.'.status'=>$goods::STATUS_VALID
         );
-        $condition['lang'] = $lang;
+        $condition["$gtable.lang"] = $lang;
         try {
             $return = array(
                 'count' => 0,
                 'current_no' => $current_no,
                 'pagesize' => $pagesize
             );
-            $obj = $this->field($field)->join($goods->getTableName() . ' g ON ' . $this->getTableName() . '.spu=g.spu', 'LEFT')->where($condition);
-            $result = $obj->page($current_no, $pagesize)->select();
+            $count = $this->field($field)->join($goods->getTableName() . ' ON ' . $this->getTableName() . ".spu=$gtable.spu", 'LEFT')->where($condition)->count();
+            $result =$this->field($field)->join($goods->getTableName() . ' ON ' . $this->getTableName() . ".spu=$gtable.spu", 'LEFT')->where($condition)->page($current_no, $pagesize)->select();
             if ($result) {
-                $return['count'] = $obj->count();
+                $return['count'] = $count;
+                $gach = new GoodsAchModel();
+                $gattr = new GoodsAttrModel();
+                foreach($result as $k =>$item){
+                    //查询附件图
+                    $attach = $gach->getInfoByAch( array('sku'=>$item['sku']));
+                    $result[$k]['attachs'] = $attach;
+
+                    //查询规格
+                    $attr = $gattr->getSpecBySku($item['sku'],$lang);
+                    $result[$k]['spec'] = $attr;
+                }
                 $return['data'] = $result;
             }
             return $return;
         }catch (Exception $e){
-                return false;
+            return false;
         }
 
     }
