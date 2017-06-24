@@ -32,22 +32,33 @@ class ProductAttachModel extends PublicModel{
      */
     public function getAttachBySpu($spu=''){
         if(empty($spu))
-            return false;
+            jsonReturn('','-1001','spu不可以为空');
 
-        $field = 'attach_type,attach_name,attach_url,status,created_at';
+        $field = 'attach_type,attach_name,attach_url,sort_order,created_at';
         $condition = array(
-            'spu'=>$spu
+            'spu'   => $spu,
+            'status'=> self::STATUS_VALID
         );
-        $result = $this->field($field)->where($condition)->order('sort_order DESC')->select();
-        if($result){
-            $data = array();
-            //按类型分组
-            foreach($result as $item){
-                $data[$item['attach_type']][] = $item;
+
+        //根据缓存读取,没有则查找数据库并缓存
+        $key_redis = md5(json_encode($condition));
+        if(redisExist($key_redis)){
+            $result = redisGet($key_redis);
+            return $result ? json_decode($result) : array();
+        } else {
+            $result = $this->field($field)->where($condition)->select();
+            if ($result) {
+                $data = array();
+                //按类型分组
+                foreach ($result as $item) {
+                    $data[$item['attach_type']][] = $item;
+                }
+
+                redisSet($key_redis, json_encode($data));
+                return $data;
             }
-            return $data;
+            return array();
         }
-        return array();
     }
 
     /**

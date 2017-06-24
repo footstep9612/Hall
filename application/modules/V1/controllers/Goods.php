@@ -20,16 +20,16 @@ class GoodsController extends PublicController
     public function attrInfoAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['sku'] = 'sku001';$data['lang'] = 'en';
+
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            jsonReturn('','-1003','sku不可以为空');
+            jsonReturn('','-1001','sku不可以为空');
         }
         if(!empty($data['lang'])){
             $lang = $data['lang'];
         } else{
-            jsonReturn('','-1003','lang不可以为空');
+            jsonReturn('','-1001','lang不可以为空');
         }
         $goods = new GoodsAttrModel();
         $result = $goods->attrBySku($sku,$lang);
@@ -42,12 +42,13 @@ class GoodsController extends PublicController
             );
             jsonReturn($data);
         }else{
-            jsonReturn(array('code' => -1001, 'message' => '获取失败'));
+            jsonReturn('','-1002','获取失败');
         }
         exit;
     }
     /**
      * sku基本信息p
+     * @param sku lang 需
      */
     public function infoAction()
     {
@@ -56,11 +57,12 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
+            jsonReturn('','-1001','sku不可以为空');
         }
+        $lang = isset($data['lang']) ? $data['lang'] : '';
         //获取商品属性
         $goods = new GoodsModel();
-        $result = $goods->getInfo($sku,$this->lang);
+        $result = $goods->getInfo($sku,$lang);
         if(!empty($result)){
             $data = array(
                 'code' => 1,
@@ -83,10 +85,11 @@ class GoodsController extends PublicController
         if(!empty($data['sku'])){
             $sku = $data['sku'];
         } else{
-            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
+            jsonReturn('','-1001','sku不可以为空');
         }
+        $lang = isset($data['lang']) ? $data['lang'] : '';
         $goods = new GoodsModel();
-        $result = $goods->getGoodsInfo($sku,$this->lang);
+        $result = $goods->getGoodsInfo($sku,$lang);
 
         if($result){
             $data = array(
@@ -96,7 +99,7 @@ class GoodsController extends PublicController
             );
             jsonReturn($data);
         }else{
-            jsonReturn(array('code' => -1002, 'message' => '获取失败'));
+            jsonReturn('','-1002','获取失败');
         }
         exit;
     }
@@ -113,7 +116,7 @@ class GoodsController extends PublicController
         if($result){
             jsonReturn($result);
         }else{
-            jsonReturn('',400,'失败');
+            jsonReturn('','-1002','失败');
         }
         exit;
     }
@@ -128,12 +131,12 @@ class GoodsController extends PublicController
         $result = $goodsModel->create_data($this->create_data,$this->username);
         if($result){
             $data = array(
-                'code' => 1,
+                'code' => '1',
                 'message' => '新增成功'
             );
         } else{
             $data = array(
-                'code' => -1008,
+                'code' => '-1008',
                 'message' => '新增失败'
             );
         }
@@ -150,16 +153,27 @@ class GoodsController extends PublicController
         $result = $goodsModel->create_data($this->create_data,$this->username);
         if($result){
             $data = array(
-                'code' => 1,
+                'code' => '1',
                 'message' => '新增成功'
             );
         } else{
             $data = array(
-                'code' => -1008,
+                'code' => '-1008',
                 'message' => '新增失败'
             );
         }
         jsonReturn($data);
     }
-
+    //测试
+    public function catAction()
+    {
+        $sku = 'sku002';
+        $goods = new GoodsModel();
+        $result = $goods->getInfo($sku,'');
+        var_dump($result);
+       /* $spu = 3303060000010000;
+        $ProductModel = new ProductModel();
+        $brand = $ProductModel->getBrandBySpu($spu,'en');*/
+        //var_dump($brand);
+    }
 }
