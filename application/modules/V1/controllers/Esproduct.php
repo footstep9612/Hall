@@ -103,9 +103,9 @@ class EsproductController extends PublicController {
     }
 
     public function listAction() {
-
+//        $this->put_data['keyword'] = 'MSFP Block';
         $model = new EsProductModel();
-        $ret = $model->getproducts($this->put_data, '',$this->getLang());
+        $ret = $model->getproducts($this->put_data, '', $this->getLang());
         if ($ret) {
             $list = [];
 
@@ -120,6 +120,7 @@ class EsproductController extends PublicController {
                 $send['allcount'] = $send['count'];
             }
 
+            var_dump($data);
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
@@ -159,6 +160,10 @@ class EsproductController extends PublicController {
                 ],
                 'sku' => [
                     'type' => $type_string, "index" => "not_analyzed",
+                ],
+                'attachs' => [
+                    'type' => $type_string,
+                    "index" => "not_analyzed",
                 ],
                 'qrcode' => [
                     'type' => $type_string, "index" => "not_analyzed",
@@ -260,6 +265,10 @@ class EsproductController extends PublicController {
                     "index" => "not_analyzed",
                 ],
                 'spu' => [
+                    'type' => $type_string,
+                    "index" => "not_analyzed",
+                ],
+                'attachs' => [
                     'type' => $type_string,
                     "index" => "not_analyzed",
                 ],

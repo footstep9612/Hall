@@ -34,29 +34,17 @@ class GoodsModel extends PublicModel {
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $field = 'id,sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku
+            'sku' => $sku,
+            'status'  => self::STATUS_VALID
         );
 
         try {
             //缓存数据redis
-            $key_redis = md5(json_encode($condition . time()));
-            if (redisExist($key_redis)) {
-                $result = redisHashGet('data', $key_redis);
-                //判断语言,返回对应语言集
-                $data = array();
-                if ('' != $lang) {
-                    foreach ($result as $val) {
-                        if ($val['lang'] == $lang) {
-                            $data[$val['lang']] = $val;
-                            $data['attachs'] = $attach ? $attach : array();
-                        }
-                    }
-                    return $data ? $data : array();
-                } else {
-                    $result['attachs'] = $attach ? $attach : array();
-                    return $result ? $result : array();
-                }
 
+            $key_redis = md5(json_encode($condition));
+            if(redisExist($key_redis)){
+                $result = redisGet($key_redis);
+                return $result ? json_decode($result) : array();
             } else {
                 $result = $this->field($field)->where($condition)->select();
                 if ($result) {
@@ -68,9 +56,7 @@ class GoodsModel extends PublicModel {
                         $data[$v['lang']] = $v;
                     }
 
-
-                    redisHashSet('data', $key_redis, $data);
-
+                    redisSet($key_redis,json_encode($data));
                     return $data;
                 } else {
                     return array();
@@ -85,22 +71,25 @@ class GoodsModel extends PublicModel {
      * SKU基本信息
      */
 
-    public function getInfo($sku, $lang) {
-        $field = 'sku,spu,lang,show_name,model';
-        $condition = array(
-            'sku' => $sku,
-            'lang' => $lang
-        );
 
+    public function getInfo($sku, $lang)
+    {
+        $field = 'id,lang,sku,spu,name,show_name,model';
+        $condition = array(
+            'sku'     => $sku,
+            'lang'    => $lang,
+            'status'  => self::STATUS_VALID
+        );
 
         try {
             //缓存数据的判断读取
             $redis_key = md5(json_encode($condition));
             if (redisExist($redis_key)) {
                 $result = redisGet($redis_key);
-                return $result ? $result : false;
-            } else {
-                $result = $this->field($field)->where($condition)->find();
+                return $result ? json_decode($result) : false;
+            }else {
+                $result = $this->field($field)->where($condition)->select();
+
                 if ($result) {
                     $data = array(
                         'lang' => $lang
@@ -110,13 +99,11 @@ class GoodsModel extends PublicModel {
                         $data[$v['lang']] = $v;
                     }
                     //查询属性
+		            $skuAttrModel = new GoodsAttrModel();
+		            $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
+		            $result['attrs'] = $attrs;
 
-                    $skuAttrModel = new GoodsAttrModel();
-                    $where['sku'] = $sku;
-                    $attrs = $skuAttrModel->getAttrBySku($where, $lang);
-                    $result['attrs'] = $attrs;
-
-                    redisSet($redis_key, $result);
+                    redisSet($redis_key,json_encode($result));
                     return $result;
                 } else {
                     return array();

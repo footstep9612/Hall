@@ -784,7 +784,7 @@ class ESClient {
      *  @param string $alis // 别名
      */
 
-    public function setaggs($field, $alis, $do = 'terms') {
+    public function setaggs($field , $alis, $do = 'terms') {
         $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
         return $this;
     }
@@ -816,8 +816,9 @@ class ESClient {
         );
 
 
-        $searchParams['body']['from'] = $from;
-        $searchParams['body']['size'] = $size;
+        echo json_encode($this->body, 256);
+        $searchParams['from'] = $from;
+        $searchParams['size'] = $size;
 
         try {
 
@@ -831,12 +832,19 @@ class ESClient {
         //   var_dump($retDoc);
     }
 
-    public function count($index, $type) {
+    public function count($index, $type, $analyzer = '', $from = 0, $size = 100) {
         $searchParams = array(
             'index' => $index,
             'type' => $type,
             'body' => $this->body,
         );
+        if ($analyzer) {
+            $searchParams ['analyzer'] = $analyzer;
+        }
+
+        $searchParams['from'] = $from;
+        $searchParams['size'] = $size;
+
         try {
 
             return $this->server->count($searchParams);

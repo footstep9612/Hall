@@ -185,11 +185,11 @@ class EsgoodsModel extends PublicModel {
             $es = new ESClient();
             unset($condition['source']);
             $newbody = $this->getCondition($condition);
-
-            $allcount = $es->setbody($newbody)->count($this->dbName, $this->tableName . '_' . $lang);
+            $allcount = 0;
+            $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
             return [$es->setbody($body)
                         ->setfields($_source)
-                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -277,6 +277,34 @@ class EsgoodsModel extends PublicModel {
             $product_attrs = $this->table('erui_goods.t_goods_attr')
                     ->field('*')
                     ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
+                    ->select();
+            $ret = [];
+            foreach ($product_attrs as $item) {
+
+                $ret[$item['sku']][] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /* 通过SKU获取数据商品文件列表
+     * @param mix $skus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix  
+     */
+
+    public function getgoods_attachsbyskus($skus, $lang = 'en') {
+
+        try {
+            $product_attrs = $this->table('erui_goods.t_goods_attach')
+                    ->field('id,attach_url,attach_name,attach_url,spu')
+                    ->where(['sku' => ['in', $skus],
+                        'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
+                        'status' => 'VALID'])
                     ->select();
             $ret = [];
             foreach ($product_attrs as $item) {
@@ -393,7 +421,7 @@ class EsgoodsModel extends PublicModel {
             $espoducmodel = new EsProductModel();
             $es = new ESClient();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-
+            $attachs = $this->getgoods_attachsbyskus($skus, $lang);
 
             $goods_attrs = $this->getgoods_attrbyskus($spus, $lang);
             $specs = $this->getgoods_specsbyskus($skus, $lang);
@@ -403,10 +431,16 @@ class EsgoodsModel extends PublicModel {
                 $body['meterial_cat'] = $productattrs[$item['spu']]['meterial_cat'];
                 $body['show_cats'] = $productattrs[$item['spu']]['show_cats'];
                 $product_attrs = json_decode($productattrs[$item['spu']]['attrs'], true);
-                if ($specs[$item['sku']]) {
+                if (isset($specs[$item['sku']])) {
                     $body['specs'] = $specs[$item['sku']];
                 } else {
                     $body['specs'] = '[]';
+                }
+
+                if (isset($attachs[$item['sku']])) {
+                    $body['attachs'] = json_encode($attachs[$item['sku']], 256);
+                } else {
+                    $body['attachs'] = '[]';
                 }
                 if (isset($goods_attrs[$item['sku']])) {
                     foreach ($goods_attrs[$item['sku']] as $attr) {

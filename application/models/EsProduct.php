@@ -214,10 +214,10 @@ class EsProductModel extends PublicModel {
             $es = new ESClient();
             unset($condition['source']);
             $newbody = $this->getCondition($condition);
-           
+
             $allcount = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang);
-     
-          
+
+
             return [$es->setbody($body)
                         ->setfields($_source)
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
@@ -631,6 +631,34 @@ class EsProductModel extends PublicModel {
         }
     }
 
+    /* 通过SKU获取数据商品文件列表
+     * @param mix $skus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix  
+     */
+
+    public function getproduct_attachsbyspus($spus, $lang = 'en') {
+
+        try {
+            $product_attrs = $this->table('erui_goods.t_product_attach')
+                    ->field('id,attach_url,attach_name,attach_url,spu')
+                    ->where(['sku' => ['in', $spus],
+                        'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
+                        'status' => 'VALID'])
+                    ->select();
+            $ret = [];
+            foreach ($product_attrs as $item) {
+
+                $ret[$item['sku']][] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
     /*
      * 根据SPU数组获取展示属性信息
      * @param mix $spus // 产品SPU数组
@@ -713,6 +741,7 @@ class EsProductModel extends PublicModel {
                 $scats_no_spu = $this->getshow_catsbyspus($spus, $lang);
                 $scats_no_mcatsno = $this->getshow_material_cats($mcat_nos, $lang);
                 $product_attrs = $this->getproduct_attrbyspus($spus, $lang);
+                $attachs = $this->getproduct_attachsbyspus($spus, $lang);
                 $show_cat_nos = [];
                 foreach ($scats_no_spu as $show_cat_no) {
                     $show_cat_nos[] = $show_cat_no;
@@ -748,6 +777,12 @@ class EsProductModel extends PublicModel {
                     } else {
                         $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
                         ;
+                    }
+
+                    if (isset($attachs[$item['spu']])) {
+                        $body['attachs'] = json_encode($attachs[$item['spu']], 256);
+                    } else {
+                        $body['attachs'] = '[]';
                     }
                     $show_cat = [];
                     if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {

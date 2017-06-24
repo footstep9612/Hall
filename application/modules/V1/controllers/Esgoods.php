@@ -94,7 +94,6 @@ class EsgoodsController extends PublicController {
         }
     }
 
-
     public function goodsAction($lang = 'en') {
         if (!in_array($lang, $this->langs)) {
 
@@ -123,6 +122,10 @@ class EsgoodsController extends PublicController {
                 ],
                 'qrcode' => [
                     'type' => $type_string, "index" => "not_analyzed",
+                ],
+                'attachs' => [
+                    'type' => $type_string,
+                    "index" => "not_analyzed",
                 ],
                 'model' => [
                     'type' => $type_string, "index" => "not_analyzed",
@@ -230,6 +233,10 @@ class EsgoodsController extends PublicController {
                     "search_analyzer" => $analyzer,
                     "include_in_all" => "true",
                     "boost" => 8
+                ],
+                'attachs' => [
+                    'type' => $type_string,
+                    "index" => "not_analyzed",
                 ],
                 'qrcode' => [
                     'type' => $type_string,

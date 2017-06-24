@@ -35,9 +35,9 @@ class GoodsAttrModel extends PublicModel
 
         //缓存数据redis查询
         $key_redis = md5(json_encode($where));
-        if(redisHashExist('attrs',$key_redis)){
-            $result = redisHashGet('attrs',$key_redis);
-            return $result ? $result : array();
+        if(redisExist($key_redis)){
+            $result = redisGet($key_redis);
+            return $result ? json_decode($result) : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
@@ -126,7 +126,7 @@ class GoodsAttrModel extends PublicModel
                 }
 
                 if ($attrs) {
-                    redisHashSet('attrs', $key_redis, $attrs);
+                    redisSet($key_redis, json_encode($attrs));
                     return $attrs;
                 } else {
                     return array();
@@ -139,13 +139,9 @@ class GoodsAttrModel extends PublicModel
      * @param null $where string 条件
      * @return
      */
-    public function attrBySku($sku='', $lang = '') {
-        if($sku='') {
-            return false;
-        }
-        if($lang='') {
-            return false;
-        }
+
+    public function attrBySku($sku, $lang)
+    {
         $where = array(
             'sku' => $sku,
             'lang'=> $lang,
@@ -154,15 +150,15 @@ class GoodsAttrModel extends PublicModel
 
         //缓存数据redis查询
         $key_redis = md5(json_encode($where));
-        if(redisHashExist('attrs',$key_redis)){
-            $result = redisHashGet('attrs',$key_redis);
-            return $result ? $result : array();
+        if(redisExist($key_redis)){
+            $result = redisGet($key_redis);
+            return $result ? json_decode($result) : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,goods_flag,logi_flag,hs_flag,spec_flag';
 
             $gattrs = $this->field($field)
-                ->where($where)
-                ->select();
+                           ->where($where)
+                           ->select();
 
             //查询产品对应属性
             $productAttr = new ProductAttrModel();
@@ -185,7 +181,7 @@ class GoodsAttrModel extends PublicModel
              *   Others - 其他　
              */
             $attrs = array();
-            foreach ($data as $item) {
+            foreach($data as $item) {
                 $group1 = '';
                 if ($item['goods_flag'] == 'Y') {
                     $group1 = 'goods_flag';
@@ -208,13 +204,49 @@ class GoodsAttrModel extends PublicModel
                     $attrs[$group1][] = $item;
                 }
                 if ($attrs) {
-                    redisHashSet('attrs', $key_redis, $attrs);
+                    redisSet($key_redis,json_encode($attrs));
                     return $attrs;
                 } else {
                     return array();
                 }
             }
         }
+    }
+
+
+    /**
+     * 获取sku的规格属性
+     * @author link 2017-06-23
+     * @param string $sku
+     * @param string $lang
+     * @return array|mixed
+     */
+    public function getSpecBySku($sku='',$lang =''){
+        if(empty($sku) || empty($lang))
+            return array();
+
+        //检查redis
+        if(redisHashExist('spec','spec_'.$sku.'_'.$lang)){
+            return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang));
+        }
+
+        $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit';
+        $condition = array(
+            'sku' => $sku,
+            'lang' =>$lang,
+            'spec_flag' =>'Y',
+            'status' =>self::STATUS_VALID
+        );
+        try{
+            $result = $this->field($field)->where($condition)->select();
+            if($result){
+                redisHashSet('spec','spec_'.$sku.'_'.$lang, json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
     }
 
 }
