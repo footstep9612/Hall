@@ -212,8 +212,12 @@ class EsgoodsModel extends PublicModel {
      * @return mix  
      */
 
-    public function getgoods($condition, $lang = 'en') {
+    public function getgoods($condition, $_source = null, $lang = 'en') {
         try {
+            if (!$_source) {
+                $_source = ['sku', 'spu', 'name', 'show_name', 'attrs', 'specs', 'model'
+                    , 'purchase_price1', 'purchase_price2', 'attachs', 'purchase_price_cur', 'purchase_unit', 'pricing_flag'];
+            }
             $body = $this->getCondition($condition);
             $pagesize = 10;
             $current_no = 1;
@@ -226,7 +230,7 @@ class EsgoodsModel extends PublicModel {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
-            return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+            return $es->setbody($body)->setfields($_source)->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
