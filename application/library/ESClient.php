@@ -785,7 +785,8 @@ class ESClient {
      */
 
     public function setaggs($field, $alis, $do = 'terms') {
-        $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
+        $this->body['aggs'][$alis] = [$do => ['field' => $field,
+        ]];
         return $this;
     }
 
@@ -794,7 +795,7 @@ class ESClient {
      */
 
     public function setfields($fields = []) {
-        $this->body['stored_fields'] = $fields;
+        $this->body['_source'] = $fields;
         return $this;
     }
 
@@ -818,7 +819,6 @@ class ESClient {
 
         $searchParams['from'] = $from;
         $searchParams['size'] = $size;
-
         try {
 
             return $this->server->search($searchParams);
@@ -841,14 +841,12 @@ class ESClient {
             $searchParams ['analyzer'] = $analyzer;
         }
 
-        
-
         try {
 
             return $this->server->count($searchParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);
-            return ['count'=>0];
+            return ['count' => 0];
         }
         //   var_dump($retDoc);
     }

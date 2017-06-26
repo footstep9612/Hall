@@ -58,20 +58,40 @@ class InquiryAttachModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        $page = isset($condition['page'])?$condition['page']:1;
-        $pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
+        //$page = isset($condition['page'])?$condition['page']:1;
+        //$pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
 
         try {
             if (isset($page) && isset($pagesize)) {
                 //$count = $this->getcount($condition);
-                return $this->where($where)->select();
+                $list = $this->where($where)->select();
                     //->page($page, $pagesize)
                     //->select();
+                if(isset($list)){
+                    $results['code'] = '1';
+                    $results['messaage'] = '成功！';
+                    $results['data'] = $list;
+                }else{
+                    $results['code'] = '-101';
+                    $results['messaage'] = '没有找到相关信息!';
+                }
+                return $results;
             } else {
-                return $this->where($where)->select();
+                $list = $this->where($where)->select();
+                if(isset($list)){
+                    $results['code'] = '1';
+                    $results['messaage'] = '成功！';
+                    $results['data'] = $list;
+                }else{
+                    $results['code'] = '-101';
+                    $results['messaage'] = '没有找到相关信息!';
+                }
+                return $results;
             }
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -94,9 +114,19 @@ class InquiryAttachModel extends PublicModel {
 
         $data = $this->create($createcondition);
         try {
-            return $this->add($data);
+            $id = $this->add($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '添加失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -121,9 +151,19 @@ class InquiryAttachModel extends PublicModel {
 
         $data = $this->create($createcondition);
         try {
-            return $this->where($where)->save($data);
+            $id = $this->where($where)->save($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '修改失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -146,9 +186,19 @@ class InquiryAttachModel extends PublicModel {
         }
 
         try {
-            return $this->where($where)->delete();
+            $id = $this->where($where)->delete();
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '删除失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 }

@@ -1,17 +1,35 @@
 <?php
 class GoodsController extends PublicController
 {
-    private $lang;
     private $input;
+
     public function init()
     {
         $this->input = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->input['lang'];
-        $this->lang = empty($lang) ?  'en': strtolower($lang);
+        $this->lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
         if(!in_array($this->lang,array('en','ru','es','zh'))){
             $this->lang = 'en';
         }
 
+    }
+
+    /**
+     * 商品（sku）基本信息  --- 公共接口
+     * @author link 2017-06-26
+     */
+    public function infoBaseAction(){
+        $this->input['sku'] = 'sku003';
+        if(empty($this->input['sku'])){
+            jsonReturn('','1000');
+        }
+
+        $goods = new GoodsModel();
+        $result = $goods->getInfoBase($this->input);
+        if($result){
+            jsonReturn(array('data'=>$result));
+        }else{
+            json_encode('',400,'');
+        }
     }
 
     /**
@@ -46,6 +64,7 @@ class GoodsController extends PublicController
         }
         exit;
     }
+
     /**
      * sku基本信息编辑p
      */
@@ -184,7 +203,7 @@ class GoodsController extends PublicController
      * sku新建插入(pc)
      * @author  klp  2017/6/22
      */
-    public function createAction()
+   /* public function createAction()
     {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->create_data($this->create_data,$this->username);
@@ -200,13 +219,13 @@ class GoodsController extends PublicController
             );
         }
         jsonReturn($data);
-    }
+    }*/
 
     /**
      * sku编辑更新(pc)
      * @author  klp  2017/6/22
      */
-    public function updateAction()
+   /* public function updateAction()
     {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->create_data($this->create_data,$this->username);
@@ -222,7 +241,7 @@ class GoodsController extends PublicController
             );
         }
         jsonReturn($data);
-    }
+    }*/
     //测试
     public function catAction()
     {
