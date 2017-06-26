@@ -35,28 +35,28 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (isset($condition['serial_no']) && trim($condition['serial_no']) != '') {
+        if (!empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];
         }
-        if (isset($condition['inquiry_no']) && trim($condition['inquiry_no']) != '') {
+        if (!empty($condition['inquiry_no'])) {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (isset($condition['inquiry_status']) && trim($condition['inquiry_status']) != '') {
+        if (!empty($condition['inquiry_status'])) {
             $where['inquiry_status'] = $condition['inquiry_status'];
         }
-        if (isset($condition['inquiry_region']) && trim($condition['inquiry_region']) != '') {
+        if (!empty($condition['inquiry_region'])) {
             $where['inquiry_region'] = $condition['inquiry_region'];
         }
-        if (isset($condition['inquiry_country']) && trim($condition['inquiry_country']) != '') {
+        if (!empty($condition['inquiry_country'])) {
             $where['inquiry_country'] = $condition['inquiry_country'];
         }
-        if (isset($condition['agent']) && trim($condition['agent']) != '') {
+        if (!empty($condition['agent'])) {
             $where['agent'] = $condition['agent'];
         }
-        if (isset($condition['customer_id']) && trim($condition['customer_id']) != '') {
+        if (!empty($condition['customer_id'])) {
             $where['customer_id'] = $condition['customer_id'];
         }
-        if(isset($condition['start_time']) && isset($condition['end_time']) && trim($condition['start_time']) != '' && trim($condition['end_time']) != ''){
+        if(!empty($condition['start_time']) && !empty($condition['end_time'])){
             $where['inquiry_time'] = array(
                 array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
                 array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
@@ -124,19 +124,20 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getinfo($condition = []) {
-        if(isset($createcondition['serial_no'])){
-            $where['serial_no'] = $createcondition['serial_no'];
+        if(isset($condition['serial_no'])){
+            $where['serial_no'] = $condition['serial_no'];
         }else{
             return false;
         }
-        if(isset($createcondition['inquiry_no'])){
-            $where['inquiry_no'] = $createcondition['inquiry_no'];
+        if(isset($condition['inquiry_no'])){
+            $where['inquiry_no'] = $condition['inquiry_no'];
         }else{
             return false;
         }
 
         try {
             $info = $this->where($where)->find();
+            return $info;die;
             if(isset($info)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
@@ -277,6 +278,11 @@ class InquiryModel extends PublicModel {
         }
     }
 
+    /**
+     * @param  int $inquiry_no 询单号
+     * 验证询单号是否存在
+     * @author zhangyuliang
+     */
     public function checkInquiryNo() {
         if(isset($createcondition['inquiry_no'])){
             $where['inquiry_no'] = $createcondition['inquiry_no'];
