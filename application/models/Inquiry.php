@@ -35,28 +35,28 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (!empty($condition['serial_no'])) {
+        if (!empty(trim($condition['serial_no']))) {
             $where['serial_no'] = $condition['serial_no'];
         }
-        if (!empty($condition['inquiry_no'])) {
+        if (!empty(trim($condition['inquiry_no']))) {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (!empty($condition['inquiry_status'])) {
+        if (!empty(trim($condition['inquiry_status']))) {
             $where['inquiry_status'] = $condition['inquiry_status'];
         }
-        if (!empty($condition['inquiry_region'])) {
+        if (!empty(trim($condition['inquiry_region']))) {
             $where['inquiry_region'] = $condition['inquiry_region'];
         }
-        if (!empty($condition['inquiry_country'])) {
+        if (!empty(trim($condition['inquiry_country']))) {
             $where['inquiry_country'] = $condition['inquiry_country'];
         }
-        if (!empty($condition['agent'])) {
+        if (!empty(trim($condition['agent']))) {
             $where['agent'] = $condition['agent'];
         }
-        if (!empty($condition['customer_id'])) {
+        if (!empty(trim($condition['customer_id']))) {
             $where['customer_id'] = $condition['customer_id'];
         }
-        if(!empty($condition['start_time']) && !empty($condition['end_time'])){
+        if(!empty(trim($condition['start_time'])) && !empty(trim($condition['end_time']))){
             $where['inquiry_time'] = array(
                 array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
                 array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
@@ -137,7 +137,7 @@ class InquiryModel extends PublicModel {
 
         try {
             $info = $this->where($where)->find();
-            return $info;die;
+
             if(isset($info)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
