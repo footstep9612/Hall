@@ -386,4 +386,29 @@ class MaterialcatModel extends PublicModel {
         return array();
     }
 
+    /**
+     * 根据分类名称获取分类编码
+     * 模糊查询
+     * @author link 2017-06-26
+     * @param string $cat_name 分类名称
+     * @return array
+     */
+    public function getCatNoByName($cat_name=''){
+        if(empty($cat_name))
+            return array();
+
+        if(redisHashExist('Material',md5($cat_name))){
+            return (array)json_decode(redisHashGet('Material',md5($cat_name)));
+        }
+        try{
+            $result = $this->field('cat_no')->where(array('name'=>array('like',$cat_name)))->select();
+            if($result)
+                redisHashSet('Material',md5($cat_name),json_encode($result));
+
+            return $result?$result:array();
+        }catch (Exception $e){
+            return array();
+        }
+    }
+
 }

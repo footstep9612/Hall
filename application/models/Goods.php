@@ -234,6 +234,8 @@ class GoodsModel extends PublicModel {
         $field = "$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
         $where = array();
+        $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
+        $pagesize = isset($condition['pagesize']) ? $condition['pagesize'] : 10;
         //spu 编码
         if (isset($condition['spu'])) {
             $where["$thistable.spu"] = $condition['spu'];
@@ -248,9 +250,10 @@ class GoodsModel extends PublicModel {
         $lang = '';
         if (isset($condition['lang'])) {
             $where["$thistable.lang"] = $lang = strtolower($condition['lang']);
+            $where["$ptable.lang"] = strtolower($condition['lang']);
         }
 
-        //规格型号
+        //型号
         if (isset($condition['model'])) {
             $where["$thistable.model"] = $condition['model'];
         }
@@ -270,6 +273,29 @@ class GoodsModel extends PublicModel {
         }
 
         //按分类名称
+        if(isset($condition['cat_name']) && !empty($condition['cat_name'])) {
+            $material = new MaterialcatModel();
+            $m_cats = $material->getCatNoByName($condition['cat_name']);
+            if ($m_cats) {
+                $mstr = '';
+                foreach($m_cats as $item){
+                    $item =(array)$item;
+                    $mstr.=','.$item['cat_no'];
+                }
+                $mstr = strlen($mstr)>1?substr($mstr,1):'';
+                $where["$ptable.meterial_cat_no"] = array('in', $mstr);
+            }else{
+                $data = array(
+                    'lang' => $lang,
+                    'count' => 0,
+                    'current_no' => $current_no,
+                    'pagesize' => $pagesize,
+                    'data' => array(),
+                );
+                return $data;
+            }
+        }
+
         //是否已定价
         if (isset($condition['pricing_flag'])) {
             $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
@@ -281,16 +307,13 @@ class GoodsModel extends PublicModel {
         }
 
         //sku id  这里用sku编号
-        if (isset($condition['id'])) {
-            $where["$thistable.sku"] = $condition['id'];
+        if (isset($condition['sku'])) {
+            $where["$thistable.sku"] = $condition['sku'];
         }
 
-        $current_no = $condition['current_no'] ? $condition['current_no'] : 1;
-        $pagesize = $condition['pagesize'] ? $condition['pagesize'] : 10;
-
-        try {
-            $count = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->count();
-            $result = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
+       // try {
+            $count = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu", 'LEFT')->where($where)->count();
+            $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
             $data = array(
                 'lang' => $lang,
                 'count' => 0,
@@ -303,9 +326,9 @@ class GoodsModel extends PublicModel {
                 $data['data'] = $result;
             }
             return $data;
-        } catch (Exception $e) {
-            return false;
-        }
+       // } catch (Exception $e) {
+        //    return false;
+       // }
     }
 
     /**
