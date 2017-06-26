@@ -152,24 +152,25 @@ class UserModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function Exist($name, $type = 'name') {
-        switch (strtolower($type)) {
-            case 'name':
-                $where['name'] = $name;
-                break;
-            case 'email':
-                $where['email'] = $name;
-                break;
-            default :
-                return false;
-                break;
+    public function Exist($data) {
+        $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`,`description`';
+        $sql .= ' FROM '.$this->g_table;
+        $where = '';
+        if ( !empty($data['email']) ){
+            $where .= " where email = '" .$data['email']."'";
         }
-        //$where['enc_password'] = md5($enc_password);
-        $row = $this->where($where)
-                ->field('id,user_id,name,email,mobile,status')
-                ->find();
+        if ( !empty($data['mobile']) ){
+            if($where){
+                $where .= " or mobile = '" .$data['mobile']."'";
+            }else{
+                $where .= " where mobile = '" .$data['mobile']."'";
+            }
 
-        var_dump();
+        }
+        if ( $where){
+            $sql .= $where;
+        }
+        $row = $this->query( $sql );
         return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
     }
 

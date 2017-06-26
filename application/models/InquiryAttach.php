@@ -27,8 +27,8 @@ class InquiryAttachModel extends PublicModel {
         if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
         }
-        if (!empty($condition['inquiry_no'])) {
-            $where['inquiry_no'] = $condition['inquiry_no'];
+        if (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];
         }
         if (!empty($condition['attach_type'])) {
             $where['attach_type'] = $condition['attach_type'];
@@ -63,7 +63,7 @@ class InquiryAttachModel extends PublicModel {
 
         try {
             if (isset($page) && isset($pagesize)) {
-                $count = $this->getcount($condition);
+                //$count = $this->getcount($condition);
                 return $this->where($where)->select();
                     //->page($page, $pagesize)
                     //->select();
@@ -81,8 +81,18 @@ class InquiryAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function add_data($createcondition = []) {
-        $data = $this->create($createcondition);
+        if(isset($createcondition['serial_no'])){
+            $data['serial_no'] = $createcondition['serial_no'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['attach_url'])){
+            $data['attach_url'] = $createcondition['attach_url'];
+        }else{
+            return false;
+        }
 
+        $data = $this->create($createcondition);
         try {
             return $this->add($data);
         } catch (Exception $e) {
@@ -98,10 +108,18 @@ class InquiryAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function update_data($createcondition = []) {
-        $data = $this->create($createcondition);
-        $where['id'] = $createcondition['id'];
-        $where['inquiry_no'] = $createcondition['inquiry_no'];
+        if(isset($createcondition['id'])){
+            $where['id'] = $createcondition['id'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['serial_no'])){
+            $where['serial_no'] = $createcondition['serial_no'];
+        }else{
+            return false;
+        }
 
+        $data = $this->create($createcondition);
         try {
             return $this->where($where)->save($data);
         } catch (Exception $e) {
@@ -116,8 +134,16 @@ class InquiryAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function delete_data($createcondition = []) {
-        $where['id'] = $createcondition['id'];
-        $where['inquiry_no'] = $createcondition['inquiry_no'];
+        if(isset($createcondition['id'])){
+            $where['id'] = $createcondition['id'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['serial_no'])){
+            $where['serial_no'] = $createcondition['serial_no'];
+        }else{
+            return false;
+        }
 
         try {
             return $this->where($where)->delete();

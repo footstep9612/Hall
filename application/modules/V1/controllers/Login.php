@@ -107,7 +107,9 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         }
         $model = new UserModel();
-        $check = $model->Exist($data['email'],$data['mobile']);
+        $login_arr['email'] = $data['email'];
+        $login_arr['mobile'] = $data['mobile'];
+        $check = $model->Exist($login_arr);
         if($check){
             echo json_encode(array("code" => "-101", "message" => "手机或账号已存在"));
             exit();

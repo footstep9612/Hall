@@ -47,8 +47,7 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-     * sku基本信息p
-     * @param sku lang 需
+     * sku基本信息编辑p
      */
     public function infoAction()
     {
@@ -119,6 +118,66 @@ class GoodsController extends PublicController
             jsonReturn('','-1002','失败');
         }
         exit;
+    }
+    /**
+     * sku新建模板表(pc)
+     * @author  klp  2017/6/22
+     */
+    public function getTplAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!empty($data['spu'])){
+            $spu = $data['spu'];
+        } else{
+            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
+        }
+        $type = !empty($data['attr_type'])? $data['attr_type'] : '';
+        $goodsTplModel = new GoodsAttrTplModel();
+        $result = $goodsTplModel->getAttrTpl();
+    }
+
+    /**
+     * sku新建插入(pc)
+     * @author  klp  2017/6/22
+     */
+    public function createAction()
+    {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->create_data($this->create_data,$this->username);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '新增成功'
+            );
+        } else{
+            $data = array(
+                'code' => -1008,
+                'message' => '新增失败'
+            );
+        }
+        jsonReturn($data);
+    }
+
+    /**
+     * sku编辑更新(pc)
+     * @author  klp  2017/6/22
+     */
+    public function updateAction()
+    {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->create_data($this->create_data,$this->username);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '新增成功'
+            );
+        } else{
+            $data = array(
+                'code' => -1008,
+                'message' => '新增失败'
+            );
+        }
+        jsonReturn($data);
     }
 
     /**
