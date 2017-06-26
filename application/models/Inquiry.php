@@ -89,16 +89,25 @@ class InquiryModel extends PublicModel {
         $filed = 'id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
         //$page = isset($condition['page'])?$condition['page']:1;
         //$pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
-return $where;die;
+
         try {
             if (isset($page) && isset($pagesize)) {
                 //$count = $this->getcount($condition);
-                return $this->where($where)->field($filed)->select();
+                $list = $this->where($where)->field($filed)->select();
                     //->page($page, $pagesize)
                     //->field($filed)
                     //->select();
+                if(isset($list)){
+                    $results['code'] = '1';
+                    $results['messaage'] = '成功！';
+                    $results['data'] = $list;
+                }else{
+                    $results['code'] = '-101';
+                    $results['messaage'] = '没有找到相关信息!';
+                }
+                return $results;
             } else {
-                $list = $this->where($where)->select();
+                $list = $this->where($where)->field($filed)->select();
                 if(isset($list)){
                     $results['code'] = '1';
                     $results['messaage'] = '成功！';
