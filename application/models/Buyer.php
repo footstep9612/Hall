@@ -20,7 +20,10 @@ class BuyerModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_INVALID = 'INVALID'; //无效；
+    const STATUS_DELETE = 'DELETE'; //删除；
 
     /**
      * 获取列表
@@ -131,34 +134,117 @@ class BuyerModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($create = []) {
-        $data['customer_id']=$create['customer_id'];
-        $data['serial_no']=$create['serial_no'];
-        $data['lang']=$create['lang'];
-        $data['name']=$create['name'];
-        $data['bn']=$create['bn'];
-        $data['profile']=$create['profile'];
-        $data['country']=$create['country'];
-        $data['province']=$create['province'];
-        $data['reg_date']=date('Y-m-d');
-        $data['logo']=$create['logo'];
-        $data['official_website']=$create['official_website'];
-        $data['brand']=$create['brand'];
-        $data['bank_name']=$create['bank_name'];
-        $data['swift_code']=$create['swift_code'];
-        $data['bank_address']=$create['bank_address'];
-        $data['bank_account']=$create['bank_account'];
-        $data['buyer_level']=$create['buyer_level'];
-        $data['credit_level']=$create['credit_level'];
-        $data['finance_level']=$create['finance_level'];
-        $data['logi_level']=$create['logi_level'];
-        $data['qa_level']=$create['qa_level'];
-        $data['steward_level']=$create['steward_level'];
-        $data['remarks']=$create['remarks'];
-        $data['apply_at']=date('Y-m-d H:i:s');
-        $data['approved_at']=$create['approved_at'];
+    public function create_data($create = [])
+    {
+        $data['customer_id'] = $create['customer_id'];
+        $data['serial_no'] = $create['serial_no'];
+        $data['lang'] = $create['lang'];
+        $data['name'] = $create['name'];
+        $data['bn'] = $create['bn'];
+        $data['profile'] = $create['profile'];
+        $data['country'] = $create['country'];
+        $data['province'] = $create['province'];
+        $data['reg_date'] = date('Y-m-d');
+        $data['logo'] = $create['logo'];
+        $data['official_website'] = $create['official_website'];
+        $data['brand'] = $create['brand'];
+        $data['bank_name'] = $create['bank_name'];
+        $data['swift_code'] = $create['swift_code'];
+        $data['bank_address'] = $create['bank_address'];
+        $data['bank_account'] = $create['bank_account'];
+        $data['buyer_level'] = $create['buyer_level'];
+        $data['credit_level'] = $create['credit_level'];
+        $data['finance_level'] = $create['finance_level'];
+        $data['logi_level'] = $create['logi_level'];
+        $data['qa_level'] = $create['qa_level'];
+        $data['steward_level'] = $create['steward_level'];
+        $data['remarks'] = $create['remarks'];
+        $data['apply_at'] = date('Y-m-d H:i:s');
+        $data['approved_at'] = $create['approved_at'];
         $datajson = $this->create($data);
         return $this->add($datajson);
+    }
+    /**
+     * 个人信息查询
+     * @param  $data 条件
+     * @return
+     * @author klp
+     */
+    public function getInfo($data)
+    {
+        $where=array();
+        if(!empty($data['id'])){
+            $where['id'] = $data['id'];
+        } else{
+            jsonReturn('','-1001','用户id不可以为空');
+        }
+        //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $buyerInfo = $this->where($where)
+                          ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                          ->find();
+        if($buyerInfo){
+            //通过顾客id查询用户信息
+            $buyerAccount = new BuyerAccountModel();
+            $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
+                ->where(array('customer_id' => $buyerInfo['customer_id']))
+                ->find();
+            //通过顾客id查询用户邮编
+            $buyerAddress = new BuyerAddressModel();
+            $zipCode = $buyerAddress->field('zipcode')->where(array('customer_id' => $buyerInfo['customer_id']))->find();
+            $info = array_merge($buyerInfo,$userInfo);
+            $info['zipCode'] = $zipCode;
+
+            return $info;
+        } else{
+            return false;
+        }
+    }
+
+    /**
+     * 采购商个人信息更新
+     * @author klp
+     */
+    public function update_data($condition){
+        if ($condition['customer_id']) {
+            $where['customer_id'] = $condition['customer_id'];
+        }
+        if ($condition['name']) {
+            $data['name'] = $condition['name'];
+        }
+        if ($condition['bn']) {
+            $data['bn'] = $condition['bn'];
+        }
+        if ($condition['country']) {
+            $data['country'] = $condition['country'];
+        }
+        if ($condition['official_website']) {
+            $data['official_website'] = $condition['official_website'];
+        }
+        if ($condition['buyer_level']) {
+            $data['buyer_level'] = $condition['buyer_level'];
+        }
+        if ($condition['province']) {
+            $data['province'] = $condition['province'];
+        }
+        if ($condition['city']) {
+            $data['city'] = $condition['city'];
+        }
+        if($condition['status']){
+            switch ($condition['status']) {
+                case self::STATUS_VALID:
+                    $data['status'] = $condition['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $data['status'] = $condition['status'];
+                    break;
+                case self::STATUS_DELETE:
+                    $data['status'] = $condition['status'];
+                    break;
+            }
+        }
+
+        return $this->where($where)->save($data);
+
     }
 
 }
