@@ -26,15 +26,15 @@ class InquiryController extends PublicController {
         }
     }
 
-    //询价单列表
-    public function getListAction(){
+    //查询询单号（项目代码）是否存在
+    public function checkInquiryNoAction() {
         $inquiry = new InquiryModel();
         $where = json_decode(file_get_contents("php://input"), true);
-        //var_dump($where);die;
-        //$where['created_by'] = 'zyl';
-        $data = $inquiry->getlist($where);
-        //var_dump($data);die;
-        if(!empty($data)){
+
+        $results = $inquiry->checkInquiryNo($where);
+
+        $this->jsonReturn($results);
+        /*if(!empty($data)){
             $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
@@ -42,25 +42,27 @@ class InquiryController extends PublicController {
             $this->setCode('-101');
             $this->setMessage('没有找到相关信息!');
             $this->jsonReturn();
-        }
+        }*/
+    }
+
+    //询价单列表
+    public function getListAction(){
+        $inquiry = new InquiryModel();
+        $where = json_decode(file_get_contents("php://input"), true);
+
+        $results = $inquiry->getlist($where);
+
+        $this->jsonReturn($results);
     }
 
     //询价单详情
     public function getInfoAction() {
         $inquiry = new InquiryModel();
         $where = json_decode(file_get_contents("php://input"), true);
-        //$where['inquiry_no'] = '10001';
-        $info = $inquiry->getinfo($where);
-        //var_dump($info);die;
-        if(!empty($info)){
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            $this->jsonReturn($info);
-        }else{
-            $this->setCode('-101');
-            $this->setMessage('没有找到相关信息!');
-            $this->jsonReturn();
-        }
+
+        $results = $inquiry->getinfo($where);
+
+        $this->jsonReturn($results);
     }
 
     //添加询价单
@@ -68,16 +70,8 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $id = $inquiry->add_data($data);
-        if(!empty($id)){
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            $this->jsonReturn();
-        }else{
-            $this->setCode('-101');
-            $this->setMessage('添加失败!');
-            $this->jsonReturn();
-        }
+        $results = $inquiry->add_data($data);
+        $this->jsonReturn($results);
     }
 
     //修改询价单
@@ -85,16 +79,8 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $id = $inquiry->update_data($data);
-        if(!empty($id)){
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            $this->jsonReturn();
-        }else{
-            $this->setCode('-101');
-            $this->setMessage('修改失败!');
-            $this->jsonReturn();
-        }
+        $results = $inquiry->update_data($data);
+        $this->jsonReturn($results);
     }
 
     //删除询价单
@@ -102,18 +88,8 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $where = json_decode(file_get_contents("php://input"), true);
         //$where['inquiry_no'] = '10001';
-        $id = $inquiry->delete_data($where);
-        //var_dump($id);die;
-        if(!empty($id)){
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            $this->jsonReturn();
-        }else{
-            $this->setCode('-101');
-            $this->setMessage('删除失败!');
-            $this->jsonReturn();
-        }
-
+        $results = $inquiry->delete_data($where);
+        $this->jsonReturn($results);
     }
 
     //附件列表
@@ -196,8 +172,6 @@ class InquiryController extends PublicController {
 
         $id = $Item->add_data($data);
 
-        //var_dump($id);die;
-
         if(!empty($id)){
             $this->setCode('1');
             $this->setMessage('成功!');
@@ -235,7 +209,7 @@ class InquiryController extends PublicController {
         $where = json_decode(file_get_contents("php://input"), true);
 
         $data = $ItemAttach->getlist($where);
-        //var_dump($data);die;
+
         if (!empty($data)) {
             $this->setCode('1');
             $this->setMessage('成功!');

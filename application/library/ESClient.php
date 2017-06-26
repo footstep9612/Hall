@@ -785,9 +785,11 @@ class ESClient {
      */
 
     public function setaggs($field, $alis, $do = 'terms') {
-        $this->body['aggs'][$alis] = [$do => ['field' => $field,]];
+        $this->body['aggs'][$alis] = [$do => ['field' => $field,
+        ]];
         return $this;
     }
+
     /*
      * 查询的字段
      */
@@ -817,7 +819,6 @@ class ESClient {
 
         $searchParams['from'] = $from;
         $searchParams['size'] = $size;
-
         try {
 
             return $this->server->search($searchParams);
@@ -838,14 +839,14 @@ class ESClient {
         );
         if ($analyzer) {
             $searchParams ['analyzer'] = $analyzer;
-        }        
+        }
 
         try {
 
             return $this->server->count($searchParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);
-            return ['count'=>0];
+            return ['count' => 0];
         }
         //   var_dump($retDoc);
     }

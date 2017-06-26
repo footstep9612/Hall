@@ -35,34 +35,33 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (!empty($condition['serial_no'])) {
+        if (isset($condition['serial_no']) && trim($condition['serial_no']) != '') {
             $where['serial_no'] = $condition['serial_no'];
         }
-        if (!empty($condition['inquiry_no'])) {
+        if (isset($condition['inquiry_no']) && trim($condition['inquiry_no']) != '') {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (!empty($condition['quote_status'])) {
-            $where['quote_status'] = $condition['quote_status'];
+        if (isset($condition['inquiry_status']) && trim($condition['inquiry_status']) != '') {
+            $where['inquiry_status'] = $condition['inquiry_status'];
         }
-        if (!empty($condition['inquiry_region'])) {
+        if (isset($condition['inquiry_region']) && trim($condition['inquiry_region']) != '') {
             $where['inquiry_region'] = $condition['inquiry_region'];
         }
-        if (!empty($condition['inquiry_country'])) {
+        if (isset($condition['inquiry_country']) && trim($condition['inquiry_country']) != '') {
             $where['inquiry_country'] = $condition['inquiry_country'];
         }
-        if (!empty($condition['agent'])) {
+        if (isset($condition['agent']) && trim($condition['agent']) != '') {
             $where['agent'] = $condition['agent'];
         }
-        if (!empty($condition['customer_id'])) {
+        if (isset($condition['customer_id']) && trim($condition['customer_id']) != '') {
             $where['customer_id'] = $condition['customer_id'];
         }
-        if(!empty($condition['start_time']) && !empty($condition['end_time'])){
+        if(isset($condition['start_time']) && isset($condition['end_time']) && trim($condition['start_time']) != '' && trim($condition['end_time']) != ''){
             $where['inquiry_time'] = array(
-                array('gt',$condition['start_time']),
-                array('lt',$condition['end_time'])
+                array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
+                array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
             );
         }
-        $where['inquiry_status'] = isset($condition['inquiry_status'])?$condition['inquiry_status']:self::STATUS_DRAFT;
         return $where;
     }
 
@@ -75,7 +74,7 @@ class InquiryModel extends PublicModel {
     public function getcount($condition = []) {
         $where = $this->getcondition($condition);
         return $this->where($where)
-                ->field('id,inquiry_no,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at')
+                ->field('id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at')
                 ->count('id');
     }
 
@@ -87,22 +86,33 @@ class InquiryModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        $filed = 'id,inquiry_no,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
-        $page = isset($condition['page'])?$condition['page']:1;
-        $pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
+        $filed = 'id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
+        //$page = isset($condition['page'])?$condition['page']:1;
+        //$pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
 
         try {
             if (isset($page) && isset($pagesize)) {
-                $count = $this->getcount($condition);
+                //$count = $this->getcount($condition);
                 return $this->where($where)->field($filed)->select();
                     //->page($page, $pagesize)
                     //->field($filed)
                     //->select();
             } else {
-                return $this->where($where)->select();
+                $list = $this->where($where)->select();
+                if(isset($list)){
+                    $results['code'] = '1';
+                    $results['messaage'] = '成功！';
+                    $results['data'] = $list;
+                }else{
+                    $results['code'] = '-101';
+                    $results['messaage'] = '没有找到相关信息!';
+                }
+                return $results;
             }
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
 
     }
@@ -114,11 +124,31 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getinfo($condition = []) {
-        $where = $this->getcondition($condition);
-        try {
-            return $this->where($where)->find();
-        } catch (Exception $e) {
+        if(isset($createcondition['serial_no'])){
+            $where['serial_no'] = $createcondition['serial_no'];
+        }else{
             return false;
+        }
+        if(isset($createcondition['inquiry_no'])){
+            $where['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
+        }
+
+        try {
+            $info = $this->where($where)->find();
+            if(isset($info)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+                $results['data'] = $info;
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '没有找到相关信息!';
+            }
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
 
     }
@@ -159,9 +189,19 @@ class InquiryModel extends PublicModel {
         $data['created_at'] = $this->getTime();
 
         try {
-            return $this->add($data);
+            $id = $this->add($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '添加失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -174,12 +214,31 @@ class InquiryModel extends PublicModel {
      */
     public function update_data($createcondition = []) {
         $data = $this->create($createcondition);
-        $where['inquiry_no'] = $createcondition['inquiry_no'];
+        if(isset($createcondition['serial_no'])){
+            $where['serial_no'] = $createcondition['serial_no'];
+        }else{
+            return false;
+        }
+        if(isset($createcondition['inquiry_no'])){
+            $where['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
+        }
 
         try {
-            return $this->where($where)->save($data);
+            $id = $this->where($where)->save($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '修改失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -190,11 +249,54 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function delete_data($createcondition = []) {
-        $where['inquiry_no'] = $createcondition['inquiry_no'];
-        try {
-            return $this->where($where)->save(['inquiry_status' => 'DELETED']);
-        } catch (Exception $e) {
+        if(isset($createcondition['serial_no'])){
+            $where['serial_no'] = $createcondition['serial_no'];
+        }else{
             return false;
+        }
+        if(isset($createcondition['inquiry_no'])){
+            $where['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
+        }
+
+        try {
+            $id = $this->where($where)->save(['inquiry_status' => 'DELETED']);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '删除失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    public function checkInquiryNo() {
+        if(isset($createcondition['inquiry_no'])){
+            $where['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
+            return false;
+        }
+
+        try {
+            $info = $this->field('id')->where($where)->find();
+            if(isset($info)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '没有找到相关信息!';
+            }
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 

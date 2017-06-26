@@ -76,6 +76,8 @@ class MSG {
     const MSG_HTTP_502 = -502; //错误网关 — 服务器接收到来自上游服务器的无效响应。  
     const MSG_HTTP_503 = -503; //无法获得服务 — 由于临时过载或维护，服务器无法处理请求。
 
+    const ERROR_PARAM = 1000;    //参数错误
+
     public static function getMessage($code, $lang = 'en') {
         $map = [
             self::MSG_SUCCESS => '更新或插入成功',
@@ -140,6 +142,7 @@ class MSG {
             self::MSG_USER_EMAIL_EMPTY => '邮箱不可以为空!',
             self::MSG_USER_NAME_EXIST => '手机或账号已存在!',
             self::MSG_USER_REGISTER_FAIL => '注册失败!',
+            self::ERROR_PARAM =>'参数有误',
         ];
         return isset($map[$code]) ? $map[$code] : $map[self::MSG_OTHER_ERR];
     }
