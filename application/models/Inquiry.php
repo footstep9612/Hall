@@ -35,28 +35,28 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (isset($condition['serial_no']) && $condition['serial_no'] != '') {
+        if (isset($condition['serial_no']) && trim($condition['serial_no']) != '') {
             $where['serial_no'] = $condition['serial_no'];
         }
-        if (isset($condition['inquiry_no']) && $condition['inquiry_no'] != '') {
+        if (isset($condition['inquiry_no']) && trim($condition['inquiry_no']) != '') {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (isset($condition['quote_status']) && $condition['quote_status'] != '') {
+        if (isset($condition['quote_status']) && trim($condition['quote_status']) != '') {
             $where['quote_status'] = $condition['quote_status'];
         }
-        if (isset($condition['inquiry_region']) && $condition['inquiry_region'] != '') {
+        if (isset($condition['inquiry_region']) && trim($condition['inquiry_region']) != '') {
             $where['inquiry_region'] = $condition['inquiry_region'];
         }
-        if (isset($condition['inquiry_country']) && $condition['inquiry_country'] != '') {
+        if (isset($condition['inquiry_country']) && trim($condition['inquiry_country']) != '') {
             $where['inquiry_country'] = $condition['inquiry_country'];
         }
-        if (isset($condition['agent']) && $condition['agent'] != '') {
+        if (isset($condition['agent']) && trim($condition['agent']) != '') {
             $where['agent'] = $condition['agent'];
         }
-        if (isset($condition['customer_id']) && $condition['customer_id'] != '') {
+        if (isset($condition['customer_id']) && trim($condition['customer_id']) != '') {
             $where['customer_id'] = $condition['customer_id'];
         }
-        if(isset($condition['start_time']) && isset($condition['end_time']) && $condition['start_time'] != '' && $condition['end_time'] != ''){
+        if(isset($condition['start_time']) && isset($condition['end_time']) && trim($condition['start_time']) != '' && trim($condition['end_time']) != ''){
             $where['inquiry_time'] = array(
                 array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
                 array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
