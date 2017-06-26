@@ -2,7 +2,6 @@
 class GoodsController extends PublicController
 {
     private $input;
-    public $lang = '';
 
     public function init()
     {
@@ -131,7 +130,6 @@ class GoodsController extends PublicController
      */
     public function listAction()
     {
-        echo 123;die;
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getList($this->input);
         if($result){
@@ -146,7 +144,7 @@ class GoodsController extends PublicController
      * sku新建插入(pc)
      * @author  klp  2017/6/22
      */
-    public function createAction()
+   /* public function createAction()
     {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->create_data($this->create_data,$this->username);
@@ -162,13 +160,13 @@ class GoodsController extends PublicController
             );
         }
         jsonReturn($data);
-    }
+    }*/
 
     /**
      * sku编辑更新(pc)
      * @author  klp  2017/6/22
      */
-    public function updateAction()
+   /* public function updateAction()
     {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->create_data($this->create_data,$this->username);
@@ -184,7 +182,7 @@ class GoodsController extends PublicController
             );
         }
         jsonReturn($data);
-    }
+    }*/
     //测试
     public function catAction()
     {
