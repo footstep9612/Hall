@@ -58,8 +58,8 @@ class InquiryModel extends PublicModel {
         }
         if(isset($condition['start_time']) && isset($condition['end_time']) && !empty($condition['start_time']) && !empty($condition['end_time'])){
             $where['inquiry_time'] = array(
-                array('gt',$condition['start_time']),
-                array('lt',$condition['end_time'])
+                array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
+                array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
             );
         }
         $where['inquiry_status'] = isset($condition['inquiry_status'])?$condition['inquiry_status']:self::STATUS_DRAFT;
