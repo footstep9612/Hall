@@ -27,6 +27,46 @@ class GoodsModel extends PublicModel {
     }
 
     /**
+     * 商品基本信息    -- 公共方法
+     * @author link 2017-06-26
+     * @param array $condition
+     * @return array
+     */
+    public function getInfoBase($condition=[]){
+        if(!isset($condition['sku']))
+            return array();
+
+        $where = array(
+            'sku' => trim($condition['sku']),
+        );
+        if(isset($condition['lang'])){
+            $where['lang'] = strtolower($condition['lang']);
+        }
+        if(isset($condition['status'])){
+            $where['status'] = trim($condition['status']);
+        }
+
+        if(redisHashExist('Sku',md5(json_encode($where)))){
+            //  return (array)json_decode(redisHashGet('Sku',md5(json_encode($where))));
+        }
+
+        $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
+        try{
+            $result = $this->field($field)->where($where)->select();
+            $data = array();
+            if($result){
+                foreach($result as $item){
+                    $data[$item['lang']] = $item;
+                }
+                redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
+            }
+            return $data;
+        }catch (Exception $e){
+            return array();
+        }
+    }
+
+    /**
      * pc-sku商品详情
      * klp
      */
@@ -34,60 +74,53 @@ class GoodsModel extends PublicModel {
         $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $field = 'id,sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
-            'sku' => $sku
+            'sku' => $sku,
+            'status' => self::STATUS_VALID
         );
 
         try {
             //缓存数据redis
-<<<<<<< HEAD
             $key_redis = md5(json_encode($condition));
-            if(redisHashExist('data',$key_redis)){
-                $result = redisHashGet('data',$key_redis);
-                return $result ? $result : array();
-=======
-            $key_redis = md5(json_encode($condition . time()));
             if (redisExist($key_redis)) {
-                $result = redisHashGet('data', $key_redis);
-                //判断语言,返回对应语言集
-                $data = array();
-                if ('' != $lang) {
-                    foreach ($result as $val) {
-                        if ($val['lang'] == $lang) {
-                            $data[$val['lang']] = $val;
-                            $data['attachs'] = $attach ? $attach : array();
+                $result = redisGet($key_redis);
+                return $result ? json_decode($result) : array();
+                $key_redis = md5(json_encode($condition . time()));
+                if (redisExist($key_redis)) {
+                    $result = redisHashGet('data', $key_redis);
+                    //判断语言,返回对应语言集
+                    $data = array();
+                    if ('' != $lang) {
+                        foreach ($result as $val) {
+                            if ($val['lang'] == $lang) {
+                                $data[$val['lang']] = $val;
+                                $data['attachs'] = $attach ? $attach : array();
+                            }
                         }
+                        return $data ? $data : array();
+                    } else {
+                        $result['attachs'] = $attach ? $attach : array();
+                        return $result ? $result : array();
                     }
-                    return $data ? $data : array();
                 } else {
-                    $result['attachs'] = $attach ? $attach : array();
-                    return $result ? $result : array();
-                }
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
-            } else {
-                $result = $this->field($field)->where($condition)->select();
-                if ($result) {
-                    $data = array(
-                        'lang' => $lang
-                    );
-                    //语言分组
-                    foreach ($result as $k => $v) {
-                        $data[$v['lang']] = $v;
+                    $result = $this->field($field)->where($condition)->select();
+                    if ($result) {
+                        $data = array(
+                            'lang' => $lang
+                        );
+                        //语言分组
+                        foreach ($result as $k => $v) {
+                            $data[$v['lang']] = $v;
+                        }
+                        //查询商品附件(未分语言)
+                        $skuAchModel = new GoodsAchModel();
+                        $attach = $skuAchModel->getInfoByAch($sku);
+                        $data['attachs'] = $attach ? $attach : array();
+
+                        redisSet($key_redis, json_encode($data));
+                        return $data;
+                    } else {
+                        return array();
                     }
-
-<<<<<<< HEAD
-                    //查询商品附件(未分语言)
-                    $skuAchModel = new GoodsAchModel();
-                    $where['sku'] = $sku;
-                    $attach = $skuAchModel->getInfoByAch($where);
-                    $data['attachs'] = $attach ? $attach : array();
-
-                    redisHashSet('data',$key_redis,$data);
-=======
-                    redisHashSet('data', $key_redis, $data);
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
-                    return $data;
-                } else {
-                    return array();
                 }
             }
         } catch (Exception $e) {
@@ -98,54 +131,53 @@ class GoodsModel extends PublicModel {
     /**
      * SKU基本信息
      */
-<<<<<<< HEAD
-    public function getInfo($sku, $lang)
-    {
-        $field = 'id,sku,spu,lang,show_name,model,';
-=======
-    public function getInfo($sku, $lang) {
-        $field = 'sku,spu,lang,show_name,model';
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
+    public function getInfo($sku, $lang = '') {
+        $ProductModel = new ProductModel();
+        $proTable = $ProductModel->getTableName();
+        $thisTable = $this->getTableName();
+        if ($lang != '') {
+            $condition["$thisTable.lang"] = $lang;
+            $condition["$proTable.lang"] = $lang;
+        }
+        $field = "$thisTable.id,$thisTable.lang,$thisTable.sku,$thisTable.spu,$thisTable.name,$thisTable.show_name,$thisTable.model,$proTable.brand,$proTable.meterial_cat_no,$proTable.supplier_name";
         $condition = array(
-            'sku' => $sku,
-            'lang' => $lang
+            "$thisTable.sku" => $sku,
+            "$thisTable.status" => self::STATUS_VALID,
+            "$proTable.status" => $ProductModel::STATUS_VALID
         );
-<<<<<<< HEAD
-        try{
-=======
-
         try {
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
             //缓存数据的判断读取
             $redis_key = md5(json_encode($condition));
             if (redisExist($redis_key)) {
                 $result = redisGet($redis_key);
-                return $result ? $result : false;
+                return $result ? json_decode($result) : false;
             } else {
                 $result = $this->field($field)->where($condition)->find();
                 if ($result) {
                     $data = array(
                         'lang' => $lang
                     );
+
+                    //查找所属分类
+                    $cat_no = $result[0]['meterial_cat_no'];
+                    $material = new MaterialcatModel();
+                    $nameAll = $material->getNameByCat($cat_no);
+                    //查找spu英文名称
+                    $spu = $result[0]['spu'];
+                    $nameEn = $ProductModel->getNameBySpu($spu, 'en');
+
                     //语言分组
                     foreach ($result as $k => $v) {
                         $data[$v['lang']] = $v;
+                        $data[$v['lang']]['cat_name'] = $nameAll;
+                        $data[$v['lang']]['en_name'] = $nameEn[0]['name'];
                     }
                     //查询属性
-<<<<<<< HEAD
-		            $skuAttrModel = new GoodsAttrModel();
-		            $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
-		            $result['attrs'] = $attrs;
-            
-                    redisSet($redis_key,$result);
-=======
                     $skuAttrModel = new GoodsAttrModel();
-                    $where['sku'] = $sku;
-                    $attrs = $skuAttrModel->getAttrBySku($where, $lang);
+                    $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
+                    $data['attrs'] = $attrs;
                     $result['attrs'] = $attrs;
-
                     redisSet($redis_key, $result);
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
                     return $result;
                 } else {
                     return array();
@@ -157,14 +189,15 @@ class GoodsModel extends PublicModel {
     }
 
     /**
-     * 根据spu获取sku数
+     * 根据spu获取sku数   (这里不包括删除的)
+     * @author link
      * @param string $spu spu编码
      * @param string $lang 语言
      * @retrun int
      */
     public function getCountBySpu($spu = '', $lang = '') {
         $condition = array(
-            'status' => array('neq', self::STATUS_NORMAL)
+            'status' => array('neq', self::STATUS_DELETED)
         );
         if ($spu != '') {
             $condition['spu'] = $spu;
@@ -172,8 +205,6 @@ class GoodsModel extends PublicModel {
         if ($lang != '') {
             $condition['lang'] = $lang;
         }
-
-
         try {
             //redis 操作
             $redis_key = md5(json_encode($condition));
@@ -284,17 +315,14 @@ class GoodsModel extends PublicModel {
      * @return bool
      * @author klp
      */
-    public function create_data($createcondition)
-    {
+    public function create_data($createcondition) {
         $where = [];
         $data = $this->condition($createcondition);
         return $this->where($where)->save($data);
     }
 
-
     //公共部分处理
-    public function condition($condition, $username = '')
-    {
+    public function condition($condition, $username = '') {
         if ($condition['id']) {
             $where['id'] = $condition['id'];
         }
@@ -335,46 +363,43 @@ class GoodsModel extends PublicModel {
 
         $attrs = array();
         if ($condition['goods_flag']) {
-            foreach($condition['goods_flag'] as $v){
+            foreach ($condition['goods_flag'] as $v) {
                 $v['goods_flag'] = 'Y';
                 $v['spec_flag'] = 'N';
                 $v['logi_flag'] = 'N';
                 $v['hs_flag'] = 'N';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
-        } elseif($condition['spec_flag']){
-            foreach($condition['spec_flag'] as $v){
+        } elseif ($condition['spec_flag']) {
+            foreach ($condition['spec_flag'] as $v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'Y';
                 $v['logi_flag'] = 'N';
                 $v['hs_flag'] = 'N';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
-        } elseif($condition['logi_flag']){
-            foreach($condition['logi_flag'] as $v){
+        } elseif ($condition['logi_flag']) {
+            foreach ($condition['logi_flag'] as $v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'N';
                 $v['logi_flag'] = 'Y';
                 $v['hs_flag'] = 'N';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
-        } elseif($condition['hs_flag']){
-            foreach($condition['hs_flag'] as $v){
+        } elseif ($condition['hs_flag']) {
+            foreach ($condition['hs_flag'] as $v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'N';
                 $v['logi_flag'] = 'N';
                 $v['hs_flag'] = 'Y';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
         }
-
     }
-
-
 
     /**
      * 根据sku获取spu
@@ -393,7 +418,3 @@ class GoodsModel extends PublicModel {
     }
 
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 262dd875e6973a78de322d9480ce4e1b44a791e8
