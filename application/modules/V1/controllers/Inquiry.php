@@ -51,7 +51,7 @@ class InquiryController extends PublicController {
         $where = json_decode(file_get_contents("php://input"), true);
 
         $results = $inquiry->getlist($where);
-
+var_dump($results);die;
         $this->jsonReturn($results);
     }
 

@@ -89,7 +89,7 @@ class InquiryModel extends PublicModel {
         $filed = 'id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
         //$page = isset($condition['page'])?$condition['page']:1;
         //$pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
-
+return $where;die;
         try {
             if (isset($page) && isset($pagesize)) {
                 //$count = $this->getcount($condition);
