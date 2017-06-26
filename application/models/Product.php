@@ -57,7 +57,6 @@ class ProductModel extends PublicModel {
         $field = "lang,spu,brand,name,created_by,created_at,meterial_cat_no";
 
         $where = "status <> '" . self::STATUS_DELETED . "'";
-
         //语言 有传递取传递语言，没传递取浏览器，浏览器取不到取en英文
         $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
         $where .= " AND lang='" . $condition['lang'] . "'";
@@ -78,7 +77,7 @@ class ProductModel extends PublicModel {
             $where .= " AND created_at <= '" . $condition['end_time'] . "'";
         }
 
-        //处理keyword
+//处理keyword
         if (isset($condition['keyword'])) {
             $where .= " AND (name like '%" . $condition['keyword'] . "%'
                             OR show_name like '%" . $condition['keyword'] . "%'
@@ -98,14 +97,14 @@ class ProductModel extends PublicModel {
             $result = $this->field($field)->where($where)->order('created_at DESC')->page($current_num, $pagesize)->select();
             $count = $this->field('spu')->where($where)->count();
             if ($result) {
-                //遍历获取分类　　与ｓｋｕ统计
+//遍历获取分类　　与ｓｋｕ统计
                 foreach ($result as $k => $r) {
-                    //分类
+//分类
                     $mcatModel = new MaterialcatModel();
                     $mcatInfo = $mcatModel->getMeterialCatByNo($r['meterial_cat_no'], $condition['lang']);
                     $result[$k]['meterial_cat'] = $mcatInfo ? $mcatInfo['name'] : '';
 
-                    //sku统计
+//sku统计
                     $goodsModel = new GoodsModel();
                     $result[$k]['sku_count'] = $goodsModel->getCountBySpu($r['spu'], $condition['lang']);
                 }
@@ -192,14 +191,12 @@ class ProductModel extends PublicModel {
      * @param string $lang    语言
      * return array
      */
-    public function getInfo($spu, $lang='')
-    {
-        if(empty($spu))
-            jsonReturn('','-1001','spu不可以为空');
-        //详情返回四种语言， 这里的lang作当前语言类型返回
-        if($lang!=''){
-            $condition['lang'] = $lang;
-        }
+    public function getInfo($spu = '', $lang = '') {
+        if (empty($spu))
+            jsonReturn('', '1000', 'spu不能为空');
+
+//详情返回四种语言， 这里的lang作当前语言类型返回
+        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
         $condition = array(
             'spu' => $spu,
             'status' => self::STATUS_VALID
@@ -229,6 +226,23 @@ class ProductModel extends PublicModel {
                     return $data;
                 }
                 return array();
+            $result = $this->field($field)->where($condition)->select();
+            $data = array(
+                'lang' => $lang
+            );
+            if ($result) {
+                foreach ($result as $item) {
+//查询品牌
+                    $brand = $this->getBrandBySpu($spu, $item['lang']);
+                    $item['brand'] = $brand;
+
+//语言分组
+                    $data[$item['lang']] = $item;
+                }
+
+//附件不分语言，暂时放循环外
+                $pattach = new ProductAttachModel();
+                $data['attachs'] = $pattach->getAttachBySpu($spu);
             }
         } catch (Exception $e) {
             return false;
