@@ -41,8 +41,8 @@ class InquiryModel extends PublicModel {
         if (isset($condition['inquiry_no']) && trim($condition['inquiry_no']) != '') {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (isset($condition['quote_status']) && trim($condition['quote_status']) != '') {
-            $where['quote_status'] = $condition['quote_status'];
+        if (isset($condition['inquiry_status']) && trim($condition['inquiry_status']) != '') {
+            $where['inquiry_status'] = $condition['inquiry_status'];
         }
         if (isset($condition['inquiry_region']) && trim($condition['inquiry_region']) != '') {
             $where['inquiry_region'] = $condition['inquiry_region'];
