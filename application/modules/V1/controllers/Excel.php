@@ -6,8 +6,8 @@
  * Class ExcelController
  * @author maimaiti
  */
-class ExcelController extends PublicController
-//class ExcelController extends Yaf_Controller_Abstract
+//class ExcelController extends PublicController
+class ExcelController extends Yaf_Controller_Abstract
 {
     /**
      * 测试接口
@@ -525,5 +525,31 @@ class ExcelController extends PublicController
         return true;
     }
 
+    /**
+     * 导出全部商品
+     * @author maimaiti
+     */
+    public function goodsListAction()
+    {
+        //验证请求类型
+        if (!$this->getRequest()->isPost())
+        {
+            $response = ['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101'),'data'=>[]];
+            exit(json_encode($response));
+        }
 
+        //判断语言参数
+        $request = json_decode(file_get_contents("php://input"),true);
+        $goodsModel = new GoodsModel();
+        if (!empty($request['lang']))
+        {
+            $goods = $goodsModel->where('lang','zh')->select();
+            echo "<pre>";
+            print_r($goods);
+        }else{
+            $goods = $goodsModel->select();
+            echo "<pre>";
+            print_r($goods);
+        }
+    }
 }
