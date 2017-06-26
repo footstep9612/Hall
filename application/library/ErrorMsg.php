@@ -1,9 +1,9 @@
 <?php
 
 /**
- * 错误信息        注：为了错误信息统一管理，已停止此错误信息维护，jsonReturn()方法已改为调取MSG中的信息了。
+ * Created by PhpStorm.
  * User: linkai
- * Date: 2017/6/13
+ * Date: 2017/6/16
  * Time: 18:50
  */
 class ErrorMsg {
@@ -14,8 +14,8 @@ class ErrorMsg {
 
     //错误信息映射
     private static $message = array(
-        self::FAILED => '失败',
-        self::SUCCESS => '成功',
+        '0' => '失败',
+        '1' => '成功',
         /**
          * 买买提定义
          */

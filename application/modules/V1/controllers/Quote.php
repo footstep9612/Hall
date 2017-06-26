@@ -9,9 +9,18 @@ class QuoteController extends PublicController {
 		parent::init();
 		$this->inquiryModel = new InquiryModel();
 		$this->inquiryItemModel = new InquiryItemModel();
+		$this->inquiryAttachModel = new InquiryAttachModel();
+		$this->inquiryItemAttachModel = new InquiryItemAttachModel();
         $this->quoteModel = new QuoteModel();
         $this->quoteItemModel = new QuoteItemModel();
+        $this->quoteAttachModel = new QuoteAttachModel();
+        $this->quoteItemAttachModel = new QuoteItemAttachModel();
+        $this->finalQuoteModel = new FinalQuoteModel();
+        $this->finalQuoteItemModel = new FinalQuoteItemModel();
+        $this->finalQuoteAttachModel = new FinalQuoteAttachModel();
+        $this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
         $this->exchangeRateModel = new ExchangeRateModel();
+        $this->userModel = new UserModel();
 	}
 	
 	/**
@@ -21,9 +30,9 @@ class QuoteController extends PublicController {
      */
     public function QuoteDetailAction() {
     	$condition = $this->put_data;
-        $res = $this->quoteModel->getInfo($condition['inquiry_no']);
+        $res = $this->quoteModel->getDetail($condition);
         
-    	$this->jsonOutput($res);
+    	$this->jsonReturn($res);
     }
     
 	/**
@@ -35,69 +44,198 @@ class QuoteController extends PublicController {
     	$condition = $this->put_data;
         $res = $this->quoteItemModel->getDetail($condition['inquiry_no']);
         
-    	$this->jsonOutput($res);
+    	$this->jsonReturn($res);
+    }
+    
+    /**
+     * @desc 开始报价
+     * @author liujf 2017-06-23
+     * @return json
+     */
+    public function startQuoteAction() {
+    	//var_dump($this->user);exit;
+    	//$data = $this->inquiryModel->getLastSql();
+    	//var_dump($data);exit;
+    	//$this->jsonReturn($res);
+    	
+    	$resq = $this->createQuote();
+
     }
     
 	/**
      * @desc 创建报价单
- 	 * @author liujf 2017-06-17
-     * @return json
+ 	 * @author liujf 2017-06-24
+     * @return mix
      */
-    public function createQuoteAction() {
+    private function createQuote() {
+    	
     	$condition = $this->put_data;
     	
-    	if (isset($condition['inquiry_no'])) {
-    		$inquiry = $this->inquiryModel->where(array('inquiry_no' => $condition['inquiry_no']))->find();
-    		
-    		$calculateQuoteInfo = $this->getCalculateQuoteInfo($condition);
-
-			$time = time();
-    		
-    		$quote['serial_no'] = $this->getQuoteSerialNo();
-    		$quote['quote_no'] = '';
-    		$quote['inquiry_no'] = $condition['inquiry_no'];
+    	$serial_no_arr = explode(',', $condition['serial_no']);
+    	
+    	$whereQuote = $where = array('serial_no' => array('in', $serial_no_arr));
+    	
+    	$whereQuote['quote_status'] = 'NOT_QUOTED';
+    	
+    	$inquiryList = $this->inquiryModel->where($where)->select();
+    	
+    	$quoteList = $correspond = array();
+    	
+    	$user = $this->userModel->where(array('id' => $this->user['id']))->field('name,email')->find();
+    	
+    	$time = time();
+    	
+    	foreach ($inquiryList as $inquiry) {
+    		$quote['serial_no'] = $this->getQuoteSerialNo(); // 报价单流水号
+    		$quote['quote_no'] = $this->getQuoteNo(); // 报价单号
+    		$quote['inquiry_no'] = $inquiry['inquiry_no'];
     		$quote['quote_lang'] = 'zh';
-    		$quote['package_volumn'] = $condition['package_volumn']; 
-    		$quote['size_unit'] = 'm^3'; 
-    		$quote['package_mode'] = $condition['package_mode'];
-    		$quote['origin_place'] = $condition['origin_place'];
-    		$quote['destination'] = $condition['destination'];
-    		$quote['gross_profit_rate'] = $condition['gross_profit_rate'];
-    		$quote['payment_received_days'] = strtotime($condition['payment_received_days']);
-    		$quote['exw_delivery_period'] = strtotime($condition['exw_delivery_period']);
-    		$quote['period_of_validity'] = strtotime($condition['period_of_validity']);
-    		$quote['purchase_cur'] = $condition['purchase_cur'];
-    		$quote['bank_interest'] = $condition['bank_interest'];
-    		$quote['fund_occupation_rate'] = $condition['fund_occupation_rate'];
-    		$quote['payment_mode'] = $condition['payment_mode'];
-    		$quote['total_weight'] = $calculateQuoteInfo['$totalWeight'];
-    		$quote['weight_unit'] = 'kg';
-			$quote['trade_terms'] = $inquiry['trade_terms'];
-			$quote['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
-			$quote['total_purchase_price'] = $calculateQuoteInfo['totalPurchasePrice'];
-			$quote['purchase_cur'] = $condition['purchase_cur'];
-			$exw = exw($calculateQuoteInfo['exwData'], $condition['gross_profit_rate']);
-			$quote['total_exw_price'] = $exw['total'];
-			$quote['total_exw_cur'] = 'USD';
-			$quote['total_quote_cur'] = 'USD';
-			$quote['total_logi_fee_cur'] = 'USD';
-			$quote['total_bank_fee_cur'] = 'USD';
-			$quote['total_insu_fee_cur'] = 'USD';
-			//$quote['logi_quote_status'] = 'ONGOING';
+    		$quote['trade_terms'] = $inquiry['trade_terms'];
+    		$quote['payment_received_days'] = '';
+    		$quote['exw_delivery_period'] = '';
+    		$quote['period_of_validity'] = '';
+    		$quote['logi_quote_status'] = 'ONGOING';
 			$quote['biz_quote_status'] = 'ONGOING';
 			$quote['quote_status'] = 'ONGOING';
-			$quote['quoter'] = $condition['quoter']; //获取当前用户信息
-			$quote['quoter_email'] = $condition['quoter_email']; //获取当前用户信息
+			$quote['quoter'] = $user['name']; //获取当前用户信息
+			$quote['quoter_email'] = $user['email']; //获取当前用户信息
 			$quote['quote_at'] = $time;
-			$quote['quote_notes'] = $condition['quote_notes'];
-			$quote['created_by'] = $inquiry['created_by'];
+			$quote['created_by'] = $user['name'];
 			$quote['created_at'] = $time;
 			
-			$res = $this->quoteModel->add($quote);
-    		
-    		$this->jsonOutput($res);
+			$correspond[$inquiry['serial_no']] = $quote['quote_no']; //询单流水号和报价单号的对应
+			
+			$quoteList[] = $quote;
     	}
     	
+    	//$inquiry = $this->inquiryModel->where(array('inquiry_no' => $condition['inquiry_no']))->find();
+    	
+    	//$calculateQuoteInfo = $this->getCalculateQuoteInfo($condition);
+
+		
+    	
+    	
+    	//$quote['package_volumn'] = $condition['package_volumn']; 
+    	//$quote['size_unit'] = 'm^3'; 
+    	//$quote['package_mode'] = $condition['package_mode'];
+    	//$quote['origin_place'] = $condition['origin_place'];
+    	//$quote['destination'] = $condition['destination'];
+    	//$quote['gross_profit_rate'] = $condition['gross_profit_rate'];
+    	//$quote['payment_received_days'] = strtotime($condition['payment_received_days']);
+    	//$quote['exw_delivery_period'] = strtotime($condition['exw_delivery_period']);
+    	//$quote['period_of_validity'] = strtotime($condition['period_of_validity']);
+    	//$quote['purchase_cur'] = $condition['purchase_cur'];
+    	//$quote['bank_interest'] = $condition['bank_interest'];
+    	//$quote['fund_occupation_rate'] = $condition['fund_occupation_rate'];
+    	//$quote['payment_mode'] = $condition['payment_mode'];
+    	//$quote['total_weight'] = $calculateQuoteInfo['$totalWeight'];
+    	//$quote['weight_unit'] = 'kg';
+		
+		//$quote['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
+		//$quote['total_purchase_price'] = $calculateQuoteInfo['totalPurchasePrice'];
+		//$quote['purchase_cur'] = $condition['purchase_cur'];
+		//$exw = exw($calculateQuoteInfo['exwData'], $condition['gross_profit_rate']);
+		//$quote['total_exw_price'] = $exw['total'];
+		//$quote['total_exw_cur'] = 'USD';
+		//$quote['total_quote_cur'] = 'USD';
+		//$quote['total_logi_fee_cur'] = 'USD';
+		//$quote['total_bank_fee_cur'] = 'USD';
+		//$quote['total_insu_fee_cur'] = 'USD';
+		//$quote['quote_notes'] = $condition['quote_notes'];
+		
+		if ($this->quoteModel->addAll($quoteList)) {
+			$this->createQuoteItem($where, $correspond);
+			$this->createQuoteAttach($where, $correspond);
+			$this->createQuoteItemAttach($where, $correspond);
+			
+			$this->jsonReturn(true);
+		} else {
+			$this->jsonReturn(false);
+		}
+    
+    }
+    
+	/**
+     * @desc 创建报价单项目
+ 	 * @author liujf 2017-06-24
+ 	 * @param array $where 报价单号查询条件
+ 	 * @param array $correspond 询单号和报价单号的对应
+     * @return json
+     */
+    private function createQuoteItem($where, $correspond) {
+    	
+    	$quoteItemList = $quoteItem = array();
+    	
+    	$inquiryItemList = $this->inquiryItemModel->where($where)->select();
+    	
+    	foreach ($inquiryItemList as $inquiryItem) {
+    		$quoteItem['quote_no'] = $correspond[$inquiryItem['serial_no']];
+    		$quoteItem['inquiry_sku'] = $inquiryItem['sku'];
+    		$quoteItem['buyer_sku'] = '';
+    		$quoteItem['quote_sku'] = $inquiryItem['sku'];
+    		$quoteItem['name_en'] = $inquiryItem['name_en'];
+    		$quoteItem['name_cn'] = $inquiryItem['name_cn'];
+    		$quoteItem['quote_model'] = $inquiryItem['model'];
+    		$quoteItem['quote_spec'] = $inquiryItem['spec'];
+    		$quoteItem['quote_brand'] = $inquiryItem['brand'];
+    		$quoteItem['quote_quantity'] = $inquiryItem['quantity'];
+    		$quoteItem['quote_unit'] = $inquiryItem['unit'];
+    		$quoteItem['inquiry_desc'] = $inquiryItem['description'];
+    		$quoteItem['status'] = 'ONGOING';
+    		$quoteItem['created_at'] = time();
+			
+			$quoteItemList[] = $quoteItem;
+    	
+    	}
+    	
+    	return $this->quoteItemModel->addAll($quoteItemList);
+    	
+    }
+    
+	/**
+     * @desc 创建报价单附件
+ 	 * @author liujf 2017-06-24
+     */
+    private function createQuoteAttach($where, $correspond) {
+    	
+    	$quoteAttachList = $quoteAttach = array();
+    	
+    	$inquiryAttachList = $this->inquiryAttachModel->where($where)->select();
+    	
+    	foreach ($inquiryAttachList as $inquiryAttach) {
+    		$quoteAttach['quote_no'] = $correspond[$inquiryAttach['serial_no']];
+    		$quoteAttach['attach_group'] = $inquiryAttach['attach_group'];
+    		$quoteAttach['attach_type'] = $inquiryAttach['attach_type'];
+    		$quoteAttach['attach_name'] = $inquiryAttach['attach_name'];
+    		$quoteAttach['attach_url'] = $inquiryAttach['attach_url'];
+    		
+    		$quoteAttachList[] = $quoteAttach;
+    	}
+    	
+    	return $this->quoteAttachModel->addAll($quoteAttachList);
+    }
+    
+	/**
+     * @desc 创建报价单项目附件
+ 	 * @author liujf 2017-06-24
+     */
+    private function createQuoteItemAttach($where, $correspond) {
+    	
+    	$quoteItemAttachList = $quoteItemAttach = array();
+    	
+    	$inquiryItemAttachList = $this->inquiryItemAttachModel->where($where)->select();
+    	
+    	foreach ($inquiryItemAttachList as $inquiryItemAttach) {
+    		$quoteItemAttach['quote_no'] = $correspond[$inquiryItemAttach['serial_no']];
+    		$quoteItemAttach['quote_sku'] = $inquiryItemAttach['sku'];
+    		$quoteItemAttach['attach_type'] = $inquiryItemAttach['attach_type'];
+    		$quoteItemAttach['attach_name'] = $inquiryItemAttach['attach_name'];
+    		$quoteItemAttach['attach_url'] = $inquiryItemAttach['attach_url'];
+    		
+    		$quoteItemAttachList[] = $quoteItemAttach;
+    	}
+    	
+    	return $this->quoteItemAttachModel->addAll($quoteItemAttachList);
     }
     
     /**
@@ -135,7 +273,31 @@ class QuoteController extends PublicController {
 			
 			$res = $this->quoteModel->save($quote);
     		
-    		$this->jsonOutput($res);
+    		$this->jsonReturn($res);
+    	}
+    	
+    }
+    
+	/**
+     * @desc 修改最终报价单
+ 	 * @author liujf 2017-06-21
+     * @return json
+     */
+    public function updateFinalQuoteAction() {
+    	$condition = $this->put_data;
+    	
+    	if (isset($condition['inquiry_no'])) {
+    		
+    		$inquiry = $this->inquiryModel->where(array('inquiry_no' => $condition['inquiry_no']))->find();
+    		
+			$finalQuote['quoter'] = $inquiry['agent'];
+			$finalQuote['quoter_email'] = $inquiry['agent_email'];
+			$finalQuote['quote_at'] = time();
+			$finalQuote['quote_notes'] = $condition['quote_notes'];
+			
+			$res = $this->finalQuoteModel->save($finalQuote);
+    		
+    		$this->jsonReturn($res);
     	}
     	
     }
@@ -150,7 +312,7 @@ class QuoteController extends PublicController {
     	
     	if (isset($condition['inquiry_no'])) {
     		
-    		$quote = $this->quoteModel->where(array('inquiry_no' => $condition['inquiry_no']))->find();
+    		$quote = $this->quoteModel->getDetail($condition);
     		
     		$logi['inspection_fee'] = $condition['inspection_fee'];
     		$logi['land_freight'] = $condition['land_freight'];
@@ -186,15 +348,16 @@ class QuoteController extends PublicController {
     		);
     		$logiData = logistics($data);
     		$logi['freightage_insu'] = $logiData['freightage_insu'];
-    		
     		$logi['dest_tariff'] = $logiData['dest_tariff'];
     		$logi['dest_va_tax'] = $logiData['dest_va_tax'];
     		$logi['total_insu_fee'] = $logiData['total_insu_fee'];
-    		
     		$logi['total_logi_fee'] = $logiData['total_logi_fee'];
     		$logi['total_quote_price'] = $logiData['total_quote_price'];
     		$logi['total_bank_fee'] = $logiData['total_bank_fee'];
     		
+    		$res = $this->quoteModel->save($logi);
+    		
+    		$this->jsonReturn($res);
     	}
     	
     }
@@ -212,49 +375,11 @@ class QuoteController extends PublicController {
     		
     		$res = $this->quoteModel->save($data);
     		
-    		$this->jsonOutput($res);
+    		$this->jsonReturn($res);
     	}
     }
     
-	/**
-     * @desc 创建报价单项目
- 	 * @author liujf 2017-06-20
-     * @return json
-     */
-    public function createQuoteItemAction() {
-    	$condition = $this->put_data;
-    	
-    	if (isset($condition['inquiry_no'])) {
-    		$inquiryItemList = $this->inquiryItemModel->where(array('inquiry_no' => $condition['inquiry_no']))->select();
-    		
-    		$quoteItemList = $quoteItem = array();
-    		foreach ($inquiryItemList as $inquiryItem) {
-    			$quoteItem['quote_no'] = $inquiryItem['inquiry_no'];
-    			$quoteItem['inquiry_sku'] = $inquiryItem['sku'];
-    			$quoteItem['inquiry_sku'] = $inquiryItem['sku'];
-    			$quoteItem['buyer_sku'] = '';
-    			$quoteItem['quote_sku'] = '';
-    			$quoteItem['name_en'] = $inquiryItem['name_en'];
-    			$quoteItem['name_cn'] = $inquiryItem['name_cn'];
-    			$quoteItem['quote_model'] = $inquiryItem['model'];
-    			$quoteItem['quote_spec'] = $inquiryItem['spec'];
-    			$quoteItem['quote_brand'] = $inquiryItem['brand'];
-    			$quoteItem['quote_quantity'] = $inquiryItem['quantity'];
-    			$quoteItem['quote_unit'] = $inquiryItem['unit'];
-    			$quoteItem['inquiry_desc'] = $inquiryItem['description'];
-    			$quoteItem['status'] = 'ONGOING';
-    			$quoteItem['created_at'] = time();
-				
-				$quoteItemList[] = $quoteItem;
-    		
-    		}
-    		
-    		$res = $this->quoteItemModel->addAll($quoteItemList);
-    		
-    		$this->jsonOutput($res);
-    	}
-    	
-    }
+	
     
     /**
      * @desc 修改报价单项目
@@ -264,6 +389,8 @@ class QuoteController extends PublicController {
     public function uptateQuoteItemAction() {
     	$condition = $this->put_data;
     	if (isset($condition['inquiry_no']) && isset($condition['inquiry_sku'])) {
+    		$quote = $this->quoteModel->getDetail($condition);
+    		
     		$quoteItem = $this->quoteItemModel->where(array('inquiry_no' => $condition['inquiry_no'], 'inquiry_sku' => $condition['inquiry_sku']))->find();
     		
     		$quoteItem['goods_from'] = $condition['goods_from'];
@@ -277,13 +404,23 @@ class QuoteController extends PublicController {
     		
     		$exchangeRate = $this->getRateUSD($condition['purchase_cur']);
     		
-    		exw(array(array('busyer_unit_price' => $condition['purchase_price'], 'num' => $condition['purchase_price'])), $exchangeRate);
+    		if ($quote['gross_profit_rate'] != '') {
+    			$quoteItem['exw_unit_price'] = round($condition['purchase_price'] * $quote['gross_profit_rate'] / $exchangeRate, 2); 
+    			$quoteItem['total_exw_price'] = $quoteItem['exw_unit_price'] * $quoteItem['quote_quantity'];
+    		}
     		
-    		//$quoteItem['exw_unit_price'] = ''; //调用公式
-    		//$quoteItem['total_exw_price'] = ''; //调用公式
     		$quoteItem['exw_cur'] = 'USD';
-    		//$quoteItem['quote_unit_price'] = ''; //调用公式
-    		//$quoteItem['total_quote_price'] = ''; //调用公式
+    		
+    		if ($quote['total_quote_price'] != '') {
+    			$data = array('total_quote_price' => $quote['total_quote_price'],
+			    		      'total_exw_price' => $quote['total_exw_price'],
+			    		      'exw_unit_price' => $quoteItem['exw_unit_price']
+    			);
+    			$quoteArr = quoteUnitPrice($data);
+    			$quoteItem['quote_unit_price'] = $quoteArr['quote_unit_price'];
+    			$quoteItem['total_quote_price'] = $quoteArr['quote_unit_price'] * $quoteItem['quote_quantity']; 
+    		}
+    		
     		$quoteItem['quote_cur'] = 'USD';
     		$quoteItem['unit_weight'] = $condition['unit_weight'];
     		$quoteItem['weight_unit'] = 'kg';
@@ -297,8 +434,19 @@ class QuoteController extends PublicController {
     		
     		$res = $this->quoteItemModel->where(array('inquiry_no' => $condition['inquiry_no'], 'inquiry_sku' => $condition['inquiry_sku']))->save($quoteItem);
     		
-    		$this->jsonOutput($res);
+    		$this->jsonReturn($res);
     	}
+    	
+    }
+    
+    
+	/**
+     * @desc 修改最终报价单项目
+ 	 * @author liujf 2017-06-21
+     * @return json
+     */
+    public function uptateFinalQuoteItemAction() {
+    	
     	
     }
     
@@ -356,10 +504,49 @@ class QuoteController extends PublicController {
 						   $data['checker_email'] = $condition['checker_email'];
 						   $data['check_at'] = time();
 						   $data['check_notes'] = $condition['check_notes'];
+						   
+						   $this->afterExamine($condition);
     	}
     	
     	return $data;
     	
+    }
+    
+	/**
+     * @desc 报价单审核通过后的操作
+ 	 * @author liujf 2017-06-21
+ 	 * @param array $condition 条件参数
+     * @return array
+     */
+    private function afterExamine($condition) {
+    	
+    	if ($condition['status'] == 'APPROVED') { // 审核通过
+    		$quote = $this->quoteModel->getDetail($condition);
+	    	$this->finalQuoteModel->add($quote);
+	    	
+	    	$quoteItemList = $this->quoteItemModel->getItemList($condition);
+	    	$this->finalQuoteItemModel->addAll($quoteItemList);
+	    	
+	    	$quoteAttachList = $this->quoteAttachModel->getAttachList($condition);
+	    	$this->finalQuoteAttachModel->addAll($quoteAttachList);
+	    	
+	    	$quoteItemAttachList = $this->quoteItemAttachModel->getAttachList($condition);
+	    	$this->finalQuoteItemModel->addAll($quoteItemAttachList);
+    	}
+    	
+    }
+    
+    // 重写jsonReturn方法
+    public function jsonReturn($data = array(), $type = 'JSON') {
+    	if ($data) {
+    		$this->setCode('1');
+            $this->setMessage('成功!');
+    		parent::jsonReturn($data, $type);
+    	} else {
+    		$this->setCode('-101');
+            $this->setMessage('失败!');
+            parent::jsonReturn();
+    	}
     }
 
 }

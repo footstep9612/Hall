@@ -12,9 +12,11 @@ class ProductModel extends PublicModel {
 
 //状态
     const STATUS_NORMAL = 'NORMAL'; //发布
+    const STATUS_CLOSED = 'CLOSED';  //关闭
+    const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
-    const STATUS_CLOSED = 'CLOSED';  //关闭
+    const STATUS_INVALID = 'INVALID';  //无效
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 //推荐状态
     const RECOMMEND_Y = 'Y';
@@ -121,27 +123,47 @@ class ProductModel extends PublicModel {
     }
 
     /**
-     * 根据SPU获取品牌
+     * 根据SPU获取品牌,供应商,分类
      * @param string $spu
      * @param $lang
      * @return string
      */
-    public function getBrandBySpu($spu = '', $lang) {
+    public function getBrandBySpu($spu,$lang) {
         if (empty($spu))
             return '';
-
         $condition = array(
             'spu' => $spu,
-            'status' => self::STATUS_NORMAL,
-            'lang' => $lang
+            'lang'=> $lang,
+            'status' => self::STATUS_VALID
         );
-        $result = $this->field('brand')->where($condition)->find();
+        $result = $this->field('lang,brand,meterial_cat_no,supplier_name')->where($condition)->select();
+
         if ($result) {
-            return $result['brand'];
+            return $result;
         }
         return '';
     }
+    /**
+     * 根据SPU获取品牌,供应商,分类
+     * @param string $spu
+     * @param $lang
+     * @return string
+     */
+    public function getNameBySpu($spu,$lang='') {
+        if (empty($spu))
+            return '';
+        $condition = array(
+            'spu' => $spu,
+            'lang'=> $lang,
+            'status' => self::STATUS_VALID
+        );
+        $result = $this->field('name')->where($condition)->select();
 
+        if ($result) {
+            return $result;
+        }
+        return '';
+    }
     /**
      * 根据SPU获取物料分类
      * @param string $spu
@@ -170,37 +192,44 @@ class ProductModel extends PublicModel {
      * @param string $lang    语言
      * return array
      */
-    public function getInfo($spu = '', $lang = '') {
-        if (empty($spu))
-            jsonReturn('', '1000', 'spu不能为空');
-
-//详情返回四种语言， 这里的lang作当前语言类型返回
-        $lang = $lang ? strtolower($lang) : (browser_lang() ? browser_lang() : 'en');
+    public function getInfo($spu, $lang='')
+    {
+        if(empty($spu))
+            jsonReturn('','-1001','spu不可以为空');
+        //详情返回四种语言， 这里的lang作当前语言类型返回
+        if($lang!=''){
+            $condition['lang'] = $lang;
+        }
         $condition = array(
             'spu' => $spu,
-            'status' => array('neq', self::STATUS_DELETED),
+            'status' => self::STATUS_VALID
         );
-        $field = 'spu,lang,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,profile';
+        $field = 'spu,lang,qrcode,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_name,recommend_flag';
         try {
-            $result = $this->field($field)->where($condition)->select();
-            $data = array(
-                'lang' => $lang
-            );
-            if ($result) {
-                foreach ($result as $item) {
-//查询品牌
-                    $brand = $this->getBrandBySpu($spu, $item['lang']);
-                    $item['brand'] = $brand;
+            $key_redis = md5(json_encode($condition));
+            if(redisExist($key_redis)){
+                $result = redisGet($key_redis);
+                return $result ? json_decode($result) : array();
+            } else {
+                $result = $this->field($field)->where($condition)->select();
+                $data = array(
+                    'lang' => $lang
+                );
+                if ($result) {
+                    foreach ($result as $item) {
+                        //语言分组
+                        $data[$item['lang']] = $item;
+                    }
 
-//语言分组
-                    $data[$item['lang']] = $item;
+                    //附件不分语言，暂时放循环外
+                    $pattach = new ProductAttachModel();
+                    $data['attachs'] = $pattach->getAttachBySpu($spu);
+
+                   // redisSet($key_redis, json_encode($data));
+                    return $data;
                 }
-
-//附件不分语言，暂时放循环外
-                $pattach = new ProductAttachModel();
-                $data['attachs'] = $pattach->getAttachBySpu($spu);
+                return array();
             }
-            return $data;
         } catch (Exception $e) {
             return false;
         }
