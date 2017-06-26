@@ -110,6 +110,46 @@ class ProductAttrModel extends PublicModel {
     }
 
     /**
+     * 返回处理完的产品属性  -- 公共
+     * @author link 2017-06-26
+     * @return array
+     */
+    public function getAttrOrder($condition=[]){
+        if(!isset($condition['spu']))
+            return array();
+
+        $result = $this->getAttr($condition['spu'],isset($condition['lang'])?$condition['lang']:'',isset($condition['attr_type'])?$condition['attr_type']:'',isset($condition['status'])?$condition['status']:'');
+        $data = array();
+        if($result){
+            foreach($result as $item){
+                $item = (array)$item;
+                $group1 = '';
+                if ($item['goods_flag'] == 'Y') {
+                    $group1 = 'goods_flag';
+                    $data[$item['lang']][$group1][] = $item;
+                }
+                if ($item['logi_flag'] == 'Y') {
+                    $group1 = 'logi_flag';
+                    $data[$item['lang']][$group1][] = $item;
+                }
+                if ($item['hs_flag'] == 'Y') {
+                    $group1 = 'hs_flag';
+                    $data[$item['lang']][$group1][] = $item;
+                }
+                if ($item['spec_flag'] == 'Y') {
+                    $group1 = 'spec_flag';
+                    $data[$item['lang']][$group1][] = $item;
+                }
+                if ($group1 == '') {
+                    $group1 = 'others';
+                    $data[$item['lang']][$group1][] = $item;
+                }
+            }
+        }
+        return $data;
+    }
+
+    /**
      * 获取产品属性数组（未处理的数据）　　－　公共
      * @author link  2017-06-26
      * @param string $spu
