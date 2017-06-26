@@ -16,9 +16,14 @@ class AttrController extends PublicController{
      * 包括产品属性的
      */
     public function bySkuAction(){
-        $this->input['sku'] = 'sku003';
         if (!isset($this->input['sku'])) {
             jsonReturn('', 1000);
+        }
+        if(isset($this->input['lang']) && !in_array($this->input['lang'],array('zh','en','es','ru'))){
+            jsonReturn('',1000);
+        }
+        if(isset($this->input['status']) && !in_array($this->input['status'],array('VALID','INVALID','DELETED'))){
+            jsonReturn('',1000);
         }
 
         $goods = new GoodsAttrModel();
