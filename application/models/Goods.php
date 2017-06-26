@@ -237,38 +237,38 @@ class GoodsModel extends PublicModel {
         $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
         $pagesize = isset($condition['pagesize']) ? $condition['pagesize'] : 10;
         //spu 编码
-        if (isset($condition['spu'])) {
+        if (isset($condition['spu']) && !empty($condition['spu'])) {
             $where["$thistable.spu"] = $condition['spu'];
         }
 
         //审核状态
-        if (isset($condition['status'])) {
+        if (isset($condition['status']) && !empty($condition['status'])) {
             $where["$thistable.status"] = $condition['status'];
         }
 
         //语言
         $lang = '';
-        if (isset($condition['lang'])) {
+        if (isset($condition['lang']) && !empty($condition['status'])) {
             $where["$thistable.lang"] = $lang = strtolower($condition['lang']);
             $where["$ptable.lang"] = strtolower($condition['lang']);
         }
 
         //型号
-        if (isset($condition['model'])) {
+        if (isset($condition['model']) && !empty($condition['model'])) {
             $where["$thistable.model"] = $condition['model'];
         }
 
         //来源
-        if (isset($condition['source'])) {
+        if (isset($condition['source']) && !empty($condition['source'])) {
             $where["$ptable.source"] = $condition['source'];
         }
 
         //按供应商
-        if (isset($condition['supplier_name'])) {
+        if (isset($condition['supplier_name']) && !empty($condition['supplier_name'])) {
             $where["$ptable.supplier_name"] = array('like', $condition['supplier_name']);
         }
         //按品牌
-        if (isset($condition['brand'])) {
+        if (isset($condition['brand']) && !empty($condition['brand'])) {
             $where["$ptable.brand"] = $condition['brand'];
         }
 
@@ -297,21 +297,21 @@ class GoodsModel extends PublicModel {
         }
 
         //是否已定价
-        if (isset($condition['pricing_flag'])) {
+        if (isset($condition['pricing_flag']) && !empty($condition['pricing_flag'])) {
             $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
         }
 
         //sku_name
-        if (isset($condition['name'])) {
+        if (isset($condition['name']) && !empty($condition['name'])) {
             $where["$thistable.name"] = array('like', $condition['name']);
         }
 
         //sku id  这里用sku编号
-        if (isset($condition['sku'])) {
+        if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where["$thistable.sku"] = $condition['sku'];
         }
 
-       // try {
+       try {
             $count = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu", 'LEFT')->where($where)->count();
             $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
             $data = array(
@@ -326,9 +326,9 @@ class GoodsModel extends PublicModel {
                 $data['data'] = $result;
             }
             return $data;
-       // } catch (Exception $e) {
-        //    return false;
-       // }
+       } catch (Exception $e) {
+            return false;
+       }
     }
 
     /**
