@@ -512,7 +512,7 @@ class EsProductModel extends PublicModel {
      * @return mix  规格信息
      */
 
-    public function getgoods_specsbyskus($skus, $lang = 'en') {
+    public function getgoods_specsbyskus($spus, $lang = 'en') {
         try {
             $product_attrs = $this->table('erui_db_ddl_goods.t_goods_attr')
                     ->field('sku,attr_name,attr_value,attr_no')
