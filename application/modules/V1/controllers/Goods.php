@@ -130,6 +130,7 @@ class GoodsController extends PublicController
      */
     public function listAction()
     {
+        echo 123;die;
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getList($this->input);
         if($result){
