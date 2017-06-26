@@ -91,4 +91,61 @@ class ProductAttrModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取产品属性数组（未处理的数据）　　－　公共
+     * @author link  2017-06-26
+     * @param string $spu
+     * @param string $lang
+     * @return array|bool|mixed
+     */
+    public function getAttr($spu = '', $lang = '',$attr_type='',$status='') {
+        if ($spu == '')
+            return array();
+
+        //组装条件
+        $where = array(
+            'spu' => $spu,
+        );
+        if(!empty($lang)){
+            $where['lang'] = $lang;
+        }
+        if(!empty($status) && in_array(strtoupper($status),array('VALID','INVALID','DELETED'))){
+            $where['status'] = strtoupper($status);
+        }
+        if(!empty($attr_type)){
+            switch($attr_type){
+                case 'goods_flag':
+                    $where['goods_flag'] = 'Y';
+                    break;
+                case 'spec_flag':
+                    $where['spec_flag'] = 'Y';
+                    break;
+                case 'logi_flag':
+                    $where['logi_flag'] = 'Y';
+                    break;
+                case 'hs_flag':
+                    $where['hs_flag'] = 'Y';
+                    break;
+            }
+        }
+
+        //redis读取
+        if(redisHashExist('Attr',md5(json_encode($where)))){
+            return (array)json_decode(redisHashGet('Attr',md5(json_encode($where))));
+        }
+
+        //读取
+        try{
+            $field = 'lang,attr_no,attr_name,attr_value_type,attr_value,value_unit,attr_group,sort_order,goods_flag,logi_flag,hs_flag,spec_flag,status';
+            $result = $this->field($field)->where($where)->order('sort_order')->select();
+            if($result){
+                redisHashSet('Attr',md5(json_encode($where)),json_encode($result));
+                return $result;
+            }
+            return array();
+        }catch (Exception $e){
+            return array();
+        }
+    }
+
 }

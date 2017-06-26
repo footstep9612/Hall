@@ -27,6 +27,46 @@ class GoodsModel extends PublicModel {
     }
 
     /**
+     * 商品基本信息    -- 公共方法
+     * @author link 2017-06-26
+     * @param array $condition
+     * @return array
+     */
+    public function getInfoBase($condition=[]){
+        if(!isset($condition['sku']))
+            return array();
+
+        $where = array(
+            'sku' => trim($condition['sku']),
+        );
+        if(isset($condition['lang'])){
+            $where['lang'] = strtolower($condition['lang']);
+        }
+        if(isset($condition['status'])){
+            $where['status'] = trim($condition['status']);
+        }
+
+        if(redisHashExist('Sku',md5(json_encode($where)))){
+          //  return (array)json_decode(redisHashGet('Sku',md5(json_encode($where))));
+        }
+
+        $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
+        try{
+            $result = $this->field($field)->where($where)->select();
+            $data = array();
+            if($result){
+                foreach($result as $item){
+                    $data[$item['lang']] = $item;
+                }
+                redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
+            }
+            return $data;
+        }catch (Exception $e){
+            return array();
+        }
+    }
+
+    /**
      * pc-sku商品详情
      * klp
      */

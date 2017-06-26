@@ -1,17 +1,36 @@
 <?php
 class GoodsController extends PublicController
 {
-    private $lang;
     private $input;
+    public $lang = '';
+
     public function init()
     {
         $this->input = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->input['lang'];
-        $this->lang = empty($lang) ?  'en': strtolower($lang);
+        $this->lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
         if(!in_array($this->lang,array('en','ru','es','zh'))){
             $this->lang = 'en';
         }
 
+    }
+
+    /**
+     * 商品（sku）基本信息  --- 公共接口
+     * @author link 2017-06-26
+     */
+    public function infoBaseAction(){
+        $this->input['sku'] = 'sku003';
+        if(empty($this->input['sku'])){
+            jsonReturn('','1000');
+        }
+
+        $goods = new GoodsModel();
+        $result = $goods->getInfoBase($this->input);
+        if($result){
+            jsonReturn(array('data'=>$result));
+        }else{
+            json_encode('',400,'');
+        }
     }
 
     /**
@@ -46,6 +65,7 @@ class GoodsController extends PublicController
         }
         exit;
     }
+
     /**
      * sku基本信息p
      * @param sku lang 需

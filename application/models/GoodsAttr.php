@@ -250,4 +250,94 @@ class GoodsAttrModel extends PublicModel
         return array();
     }
 
+
+    /**
+     * 商品属性 -- 公共
+     * @author link 2017-06-26
+     * @param array $condition
+     * @return array
+     */
+    public function getAttr($condition=[]){
+        if(!isset($condition['sku']))
+            return array();
+
+        //组装条件
+        $where = array(
+            'sku' => trim($condition['sku']),
+        );
+        if(isset($condition['lang']) && in_array(strtolower($condition['lang']),array('zh','en','es','ru'))){
+            $where['lang'] = strtolower($condition['lang']);
+        }
+        if(isset($condition['status']) && in_array(strtoupper($condition['status']),array('VALID','INVALID','DELETED'))){
+            $where['status'] = strtoupper($condition['status']);
+        }
+        if(isset($condition['attr_type'])){
+            switch($condition['attr_type']){
+                case 'goods_flag':
+                    $where['goods_flag'] = 'Y';
+                    break;
+                case 'spec_flag':
+                    $where['spec_flag'] = 'Y';
+                    break;
+                case 'logi_flag':
+                    $where['logi_flag'] = 'Y';
+                    break;
+                case 'hs_flag':
+                    $where['hs_flag'] = 'Y';
+                    break;
+            }
+        }
+
+        //redis获取
+        if(redisHashExist('Attr',md5(json_encode($where)))){
+            return (array)json_decode(redisHashGet('Attr',md5(json_encode($where))));
+        }
+
+        //查询
+        try{
+            $field = 'lang,attr_no,attr_name,attr_value_type,attr_value,value_unit,attr_group,sort_order,goods_flag,logi_flag,hs_flag,spec_flag,status';
+            $result = $this->field($field)->where($where)->order('sort_order')->select();
+
+            //根据sku获取spu
+            $gmodel = new GoodsModel();
+            $spu = $gmodel->getSpubySku(trim($condition['sku']));
+
+            //获取产品属性
+            $product = new ProductAttrModel();
+            $pattr = $product->getAttr($spu ? $spu : '',isset($condition['lang'])?$condition['lang']:'',isset($condition['attr_type'])?$condition['attr_type']:'',isset($condition['status'])?$condition['status']:'');
+
+            $data = $attrs = array();
+            $attrs = array_merge($result,$pattr);
+            if($attrs){
+                foreach($attrs as $item){
+                    $group1 = '';
+                    if ($item['goods_flag'] == 'Y') {
+                        $group1 = 'goods_flag';
+                        $data[$item['lang']][$group1][] = $item;
+                    }
+                    if ($item['logi_flag'] == 'Y') {
+                        $group1 = 'logi_flag';
+                        $data[$item['lang']][$group1][] = $item;
+                    }
+                    if ($item['hs_flag'] == 'Y') {
+                        $group1 = 'hs_flag';
+                        $data[$item['lang']][$group1][] = $item;
+                    }
+                    if ($item['spec_flag'] == 'Y') {
+                        $group1 = 'spec_flag';
+                        $data[$item['lang']][$group1][] = $item;
+                    }
+                    if ($group1 == '') {
+                        $group1 = 'others';
+                        $data[$item['lang']][$group1][] = $item;
+                    }
+                }
+            }
+            redisHashSet('Attr',md5(json_encode($where)),json_encode($data));
+            return $data;
+        }catch (Exception $e){
+            return array();
+        }
+    }
+
 }
