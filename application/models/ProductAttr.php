@@ -107,5 +107,6 @@ class ProductAttrModel extends PublicModel {
             }
         }
     }
+    }
 
 }

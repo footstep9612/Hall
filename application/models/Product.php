@@ -127,12 +127,12 @@ class ProductModel extends PublicModel {
      * @param $lang
      * @return string
      */
-    public function getBrandBySpu($spu,$lang) {
+    public function getBrandBySpu($spu, $lang) {
         if (empty($spu))
             return '';
         $condition = array(
             'spu' => $spu,
-            'lang'=> $lang,
+            'lang' => $lang,
             'status' => self::STATUS_VALID
         );
         $result = $this->field('lang,brand,meterial_cat_no,supplier_name')->where($condition)->select();
@@ -142,18 +142,19 @@ class ProductModel extends PublicModel {
         }
         return '';
     }
+
     /**
      * 根据SPU获取品牌,供应商,分类
      * @param string $spu
      * @param $lang
      * @return string
      */
-    public function getNameBySpu($spu,$lang='') {
+    public function getNameBySpu($spu, $lang = '') {
         if (empty($spu))
             return '';
         $condition = array(
             'spu' => $spu,
-            'lang'=> $lang,
+            'lang' => $lang,
             'status' => self::STATUS_VALID
         );
         $result = $this->field('name')->where($condition)->select();
@@ -163,6 +164,7 @@ class ProductModel extends PublicModel {
         }
         return '';
     }
+
     /**
      * 根据SPU获取物料分类
      * @param string $spu
@@ -204,7 +206,7 @@ class ProductModel extends PublicModel {
         $field = 'spu,lang,qrcode,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_name,recommend_flag';
         try {
             $key_redis = md5(json_encode($condition));
-            if(redisExist($key_redis)){
+            if (redisExist($key_redis)) {
                 $result = redisGet($key_redis);
                 return $result ? json_decode($result) : array();
             } else {
@@ -222,27 +224,10 @@ class ProductModel extends PublicModel {
                     $pattach = new ProductAttachModel();
                     $data['attachs'] = $pattach->getAttachBySpu($spu);
 
-                   // redisSet($key_redis, json_encode($data));
+                    // redisSet($key_redis, json_encode($data));
                     return $data;
                 }
                 return array();
-            $result = $this->field($field)->where($condition)->select();
-            $data = array(
-                'lang' => $lang
-            );
-            if ($result) {
-                foreach ($result as $item) {
-//查询品牌
-                    $brand = $this->getBrandBySpu($spu, $item['lang']);
-                    $item['brand'] = $brand;
-
-//语言分组
-                    $data[$item['lang']] = $item;
-                }
-
-//附件不分语言，暂时放循环外
-                $pattach = new ProductAttachModel();
-                $data['attachs'] = $pattach->getAttachBySpu($spu);
             }
         } catch (Exception $e) {
             return false;
