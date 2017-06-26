@@ -1,0 +1,143 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of User
+ *
+ * @author klp
+ */
+class MemberBizServiceModel extends PublicModel {
+
+    //put your code here
+    protected $dbName='erui_config';
+    protected $tableName = 'member_biz_service';
+    public function __construct($str = '') {
+        parent::__construct($str = '');
+    }
+
+    /**
+     * 获取列表
+     * @param data $data;
+     * @return array
+     * @author jhw
+     */
+    public function getVipService($data)
+    {
+        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'zh');
+        //通过buyer_level查找biz_service_bn
+        $biz_service_bn = $this->field('buyer_level,biz_service_bn')->select();
+
+        //按等级分组
+        /**
+         * Ordinary - 普通会员
+         * Bronze - 铜牌会员
+         * Silver - 银牌会员
+         * Gold - 金牌会员
+         */
+        $level =array();
+        foreach ($biz_service_bn as $value) {
+                $group1 = 'Other';
+                if ($value['buyer_level'] == 'Ordinary') {
+                    $group1 = 'Ordinary';
+                    $level[$group1][] = $value;
+                }
+                if ($value['buyer_level'] == 'Bronze') {
+                    $group1 = 'Bronze';
+                    $level[$group1][] = $value;
+                }
+                if ($value['buyer_level'] == 'Silver') {
+                    $group1 = 'Silver';
+                    $level[$group1][] = $value;
+                }
+                if ($value['buyer_level'] == 'Gold') {
+                    $group1 = 'Gold';
+                    $level[$group1][] = $value;
+                }
+        }
+
+        $data = array();
+        $bizService = new BizServiceModel();
+        foreach ($level as $vals) {
+            foreach ($vals as $v) {
+                $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $v['biz_service_bn'], 'lang' => $lang))->find();
+                $data[$v['buyer_level']][] = $info;
+            }
+        }// print_r($data);
+        //按类型分组
+        if ($data) {
+            //按服务树形结构
+            /**
+             * Financial Service -金融服务
+             * Logistics Service -物流服务
+             * QA -品质保障
+             * Steward Service -管家服务
+             * Other - 其他服务
+             */
+            $service = array();
+            if('zh' == $lang) {
+                foreach ($data as $key=>$item) {
+                    foreach($item as $r){
+                        $group = 'Other';
+                        if ($r['major_class'] == '金融服务') {
+                            $group = 'Financial';
+                            $service[$key][$group][] = $r;
+                        }
+                        if ($r['major_class'] == '物流服务') {
+                            $group = 'Logistics';
+                            $service[$key][$group][] = $r;
+                        }
+                        if ($r['major_class'] == '品质保障') {
+                            $group = 'QA';
+                            $service[$key][$group][] = $r;
+                        }
+                        if ($r['major_class'] == '管家服务') {
+                            $group = 'Steward';
+                            $service[$key][$group][] = $r;
+                        }
+                        if ($r['major_class'] == '其他服务') {
+                            $group = 'Other';
+                            $service[$key][$group][] = $r;
+                        }
+                    }
+
+                }
+            } elseif('en' == $lang){
+                foreach ($data as $item) {
+                    $group = 'Other';
+                    if ($item['major_class'] == 'Financial Service') {
+                        $group = 'Financial';
+                        $service[$v['buyer_level']][$group][] = $item;
+                    }
+                    if ($item['major_class'] == 'Logistics') {
+                        $group = 'Logistics';
+                        $service[$v['buyer_level']][$group][] = $item;
+                    }
+                    if ($item['major_class'] == 'QA') {
+                        $group = 'QA';
+                        $service[$v['buyer_level']][$group][] = $item;
+                    }
+                    if ($item['major_class'] == 'Steward') {
+                        $group = 'Steward';
+                        $service[$v['buyer_level']][$group][] = $item;
+                    }
+                    if ($item['major_class'] == 'Other') {
+                        $group = 'Other';
+                        $service[$v['buyer_level']][$group][] = $item;
+                    }
+                }
+            }
+            if($service){
+                return $service;
+            } else{
+                return false;
+            }
+        } else{
+            return false;
+        }
+    }
+}

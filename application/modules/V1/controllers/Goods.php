@@ -124,7 +124,7 @@ class GoodsController extends PublicController
      * sku新建插入(pc)
      * @author  klp  2017/6/22
      */
-    public function createAction()
+    public function createSkuAction()
     {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->create_data($this->create_data,$this->username);
@@ -146,7 +146,7 @@ class GoodsController extends PublicController
      * sku编辑更新(pc)
      * @author  klp  2017/6/22
      */
-    public function updateAction()
+    public function updateSkuAction()
     {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->create_data($this->create_data,$this->username);
