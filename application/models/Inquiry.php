@@ -155,6 +155,7 @@ class InquiryModel extends PublicModel {
                 $results['code'] = '-101';
                 $results['messaage'] = '没有找到相关信息!';
             }
+            return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['messaage'] = $e->getMessage();
