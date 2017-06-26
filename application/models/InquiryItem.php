@@ -31,8 +31,8 @@ class InquiryItemModel extends PublicModel {
         if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
         }
-        if (!empty($condition['inquiry_no'])) {
-            $where['inquiry_no'] = $condition['inquiry_no'];
+        if (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];
         }
         if (!empty($condition['sku'])) {
             $where['sku'] = $condition['sku'];
@@ -70,21 +70,40 @@ class InquiryItemModel extends PublicModel {
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
 
-        $page = isset($condition['page']) ? $condition['page'] : 1;
-        $pagesize = isset($condition['countPerPage']) ? $condition['countPerPage'] : 10;
-
+        //$page = isset($condition['page']) ? $condition['page'] : 1;
+        //$pagesize = isset($condition['countPerPage']) ? $condition['countPerPage'] : 10;
 
         try {
             if (isset($page) && isset($pagesize)) {
                 //$count = $this->getcount($condition);
-                return $this->where($where)->select();
+                $list = $this->where($where)->select();
                                 //->page($page, $pagesize)
                                 //->select();
+                if(isset($list)){
+                    $results['code'] = '1';
+                    $results['messaage'] = '成功！';
+                    $results['data'] = $list;
+                }else{
+                    $results['code'] = '-101';
+                    $results['messaage'] = '没有找到相关信息!';
+                }
+                return $results;
             } else {
-                return $this->where($where)->select();
+                $list = $this->where($where)->select();
+                if(isset($list)){
+                    $results['code'] = '1';
+                    $results['messaage'] = '成功！';
+                    $results['data'] = $list;
+                }else{
+                    $results['code'] = '-101';
+                    $results['messaage'] = '没有找到相关信息!';
+                }
+                return $results;
             }
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -111,9 +130,19 @@ class InquiryItemModel extends PublicModel {
         $data['created_at'] = $this->getTime();
 
         try {
-            return $this->add($data);
+            $id = $this->add($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '添加失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -140,9 +169,19 @@ class InquiryItemModel extends PublicModel {
         $data['status'] = isset($createcondition['status']) ? $createcondition['status'] : self::STATUS_INVALID;
 
         try {
-            return $this->where($where)->save($data);
+            $id = $this->where($where)->save($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '修改失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -165,9 +204,19 @@ class InquiryItemModel extends PublicModel {
         }
 
         try {
-            return $this->where($where)->save(['status' => 'DELETED']);
+            $id = $this->where($where)->save(['status' => 'DELETED']);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '删除失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
