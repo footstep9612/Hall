@@ -35,28 +35,28 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (!empty($condition['serial_no'])) {
+        if (isset($condition['serial_no']) && !empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];
         }
-        if (!empty($condition['inquiry_no'])) {
+        if (isset($condition['inquiry_no']) && !empty($condition['inquiry_no'])) {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (!empty($condition['quote_status'])) {
+        if (isset($condition['quote_status']) && !empty($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];
         }
-        if (!empty($condition['inquiry_region'])) {
+        if (isset($condition['inquiry_region']) && !empty($condition['inquiry_region'])) {
             $where['inquiry_region'] = $condition['inquiry_region'];
         }
-        if (!empty($condition['inquiry_country'])) {
+        if (isset($condition['inquiry_country']) && !empty($condition['inquiry_country'])) {
             $where['inquiry_country'] = $condition['inquiry_country'];
         }
-        if (!empty($condition['agent'])) {
+        if (isset($condition['agent']) && !empty($condition['agent'])) {
             $where['agent'] = $condition['agent'];
         }
-        if (!empty($condition['customer_id'])) {
+        if (isset($condition['customer_id']) && !empty($condition['customer_id'])) {
             $where['customer_id'] = $condition['customer_id'];
         }
-        if(!empty($condition['start_time']) && !empty($condition['end_time'])){
+        if(isset($condition['start_time']) && isset($condition['end_time']) && !empty($condition['start_time']) && !empty($condition['end_time'])){
             $where['inquiry_time'] = array(
                 array('gt',$condition['start_time']),
                 array('lt',$condition['end_time'])
