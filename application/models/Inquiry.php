@@ -35,28 +35,28 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (isset($condition['serial_no']) && !empty($condition['serial_no'])) {
+        if (isset($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];
         }
-        if (isset($condition['inquiry_no']) && !empty($condition['inquiry_no'])) {
+        if (isset($condition['inquiry_no'])) {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (isset($condition['quote_status']) && !empty($condition['quote_status'])) {
+        if (isset($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];
         }
-        if (isset($condition['inquiry_region']) && !empty($condition['inquiry_region'])) {
+        if (isset($condition['inquiry_region'])) {
             $where['inquiry_region'] = $condition['inquiry_region'];
         }
-        if (isset($condition['inquiry_country']) && !empty($condition['inquiry_country'])) {
+        if (isset($condition['inquiry_country'])) {
             $where['inquiry_country'] = $condition['inquiry_country'];
         }
-        if (isset($condition['agent']) && !empty($condition['agent'])) {
+        if (isset($condition['agent'])) {
             $where['agent'] = $condition['agent'];
         }
-        if (isset($condition['customer_id']) && !empty($condition['customer_id'])) {
+        if (isset($condition['customer_id'])) {
             $where['customer_id'] = $condition['customer_id'];
         }
-        if(isset($condition['start_time']) && isset($condition['end_time']) && !empty($condition['start_time']) && !empty($condition['end_time'])){
+        if(isset($condition['start_time']) && isset($condition['end_time'])){
             $where['inquiry_time'] = array(
                 array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
                 array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
@@ -88,8 +88,8 @@ class InquiryModel extends PublicModel {
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
         $filed = 'id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
-        $page = isset($condition['page'])?$condition['page']:1;
-        $pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
+        //$page = isset($condition['page'])?$condition['page']:1;
+        //$pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
 
         try {
             if (isset($page) && isset($pagesize)) {
@@ -99,10 +99,21 @@ class InquiryModel extends PublicModel {
                     //->field($filed)
                     //->select();
             } else {
-                return $this->where($where)->select();
+                $list = $this->where($where)->select();
+                if(isset($list)){
+                    $results['code'] = '1';
+                    $results['messaage'] = '成功！';
+                    $results['data'] = $list;
+                }else{
+                    $results['code'] = '-101';
+                    $results['messaage'] = '没有找到相关信息!';
+                }
+                return $results;
             }
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
 
     }
@@ -126,9 +137,19 @@ class InquiryModel extends PublicModel {
         }
 
         try {
-            return $this->where($where)->find();
+            $info = $this->where($where)->find();
+            if(isset($info)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+                $results['data'] = $info;
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '没有找到相关信息!';
+            }
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
 
     }
@@ -169,9 +190,19 @@ class InquiryModel extends PublicModel {
         $data['created_at'] = $this->getTime();
 
         try {
-            return $this->add($data);
+            $id = $this->add($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '添加失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -196,9 +227,19 @@ class InquiryModel extends PublicModel {
         }
 
         try {
-            return $this->where($where)->save($data);
+            $id = $this->where($where)->save($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '修改失败!';
+            }
+            return $results;
         } catch (Exception $e) {
-            return false;
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -221,9 +262,42 @@ class InquiryModel extends PublicModel {
         }
 
         try {
-            return $this->where($where)->save(['inquiry_status' => 'DELETED']);
+            $id = $this->where($where)->save(['inquiry_status' => 'DELETED']);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '删除失败!';
+            }
+            return $results;
         } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    public function checkInquiryNo() {
+        if(isset($createcondition['inquiry_no'])){
+            $where['inquiry_no'] = $createcondition['inquiry_no'];
+        }else{
             return false;
+        }
+
+        try {
+            $info = $this->field('id')->where($where)->find();
+            if(isset($info)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '没有找到相关信息!';
+            }
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
         }
     }
 
