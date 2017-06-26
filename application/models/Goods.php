@@ -312,8 +312,8 @@ class GoodsModel extends PublicModel {
         }
 
        try {
-            $count = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu", 'LEFT')->where($where)->count();
-            $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
+            $count = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
+            $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
             $data = array(
                 'lang' => $lang,
                 'count' => 0,
