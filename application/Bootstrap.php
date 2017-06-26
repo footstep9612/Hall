@@ -35,18 +35,22 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
         $dispatcher->disableView();
 
         $Request = $dispatcher->getRequest();
-
-        preg_match('/\/v1\/([a-zA-Z0-9\_\-]+)\/(.*?)/ie', $Request->getRequestUri(), $out);
-
-        $ControllerName = ucfirst($out[1]);
+        $config_obj = Yaf_Registry::get("config");
+        $modules = $config_obj->application->modules;
+        $modules = str_replace(',', '|', $modules);
+        
+     
+        preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
+      
+        $ControllerName = ucfirst($out[2]);
         $ControllerName = str_replace('_', '', $ControllerName);
         //创建一个路由协议实例
         if ($ControllerName) {
-            $route = new Yaf_Route_Rewrite('/v1/:Controller/:Action', ['module' => 'V1',
+            $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
                 'controller' => $ControllerName,
                 'action' => ':Action']);
         } else {
-            $route = new Yaf_Route_Rewrite('/v1/:Controller/:Action', ['module' => 'V1',
+            $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
                 'controller' => ':Controller',
                 'action' => ':Action']);
         }
