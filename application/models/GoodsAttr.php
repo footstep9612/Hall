@@ -5,11 +5,8 @@
  *  @author  klp
  */
 
-
-
 class GoodsAttrModel extends PublicModel
 {
-
 
     protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
@@ -31,6 +28,7 @@ class GoodsAttrModel extends PublicModel
         }
         $where = array(
             'sku' => $sku,
+            'lang'=> $lang,
             'status' => self::STATUS_VALID
         );
 
@@ -140,9 +138,13 @@ class GoodsAttrModel extends PublicModel
      * @param null $where string 条件
      * @return
      */
-
-    public function attrBySku($sku, $lang)
-    {
+    public function attrBySku($sku='', $lang = '') {
+        if($sku='') {
+            return false;
+        }
+        if($lang='') {
+            return false;
+        }
         $where = array(
             'sku' => $sku,
             'lang'=> $lang,
@@ -182,7 +184,7 @@ class GoodsAttrModel extends PublicModel
              *   Others - 其他　
              */
             $attrs = array();
-            foreach($data as $item) {
+            foreach ($data as $item) {
                 $group1 = '';
                 if ($item['goods_flag'] == 'Y') {
                     $group1 = 'goods_flag';

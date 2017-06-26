@@ -75,36 +75,52 @@ class GoodsModel extends PublicModel {
         $field = 'id,sku,lang,spu,qrcode,name,show_name,model,description';
         $condition = array(
             'sku' => $sku,
-            'status'  => self::STATUS_VALID
+            'status' => self::STATUS_VALID
         );
 
         try {
             //缓存数据redis
-
             $key_redis = md5(json_encode($condition));
-            if(redisExist($key_redis)){
+            if (redisExist($key_redis)) {
                 $result = redisGet($key_redis);
                 return $result ? json_decode($result) : array();
-            } else {
-                $result = $this->field($field)->where($condition)->select();
-                if ($result) {
-                    $data = array(
-                        'lang' => $lang
-                    );
-                    //语言分组
-                    foreach ($result as $k => $v) {
-                        $data[$v['lang']] = $v;
+                $key_redis = md5(json_encode($condition . time()));
+                if (redisExist($key_redis)) {
+                    $result = redisHashGet('data', $key_redis);
+                    //判断语言,返回对应语言集
+                    $data = array();
+                    if ('' != $lang) {
+                        foreach ($result as $val) {
+                            if ($val['lang'] == $lang) {
+                                $data[$val['lang']] = $val;
+                                $data['attachs'] = $attach ? $attach : array();
+                            }
+                        }
+                        return $data ? $data : array();
+                    } else {
+                        $result['attachs'] = $attach ? $attach : array();
+                        return $result ? $result : array();
                     }
-
-                    //查询商品附件(未分语言)
-                    $skuAchModel = new GoodsAchModel();
-                    $attach = $skuAchModel->getInfoByAch($sku);
-                    $data['attachs'] = $attach ? $attach : array();
-
-                    redisSet($key_redis,json_encode($data));
-                    return $data;
                 } else {
-                    return array();
+                    $result = $this->field($field)->where($condition)->select();
+                    if ($result) {
+                        $data = array(
+                            'lang' => $lang
+                        );
+                        //语言分组
+                        foreach ($result as $k => $v) {
+                            $data[$v['lang']] = $v;
+                        }
+                        //查询商品附件(未分语言)
+                        $skuAchModel = new GoodsAchModel();
+                        $attach = $skuAchModel->getInfoByAch($sku);
+                        $data['attachs'] = $attach ? $attach : array();
+
+                        redisSet($key_redis, json_encode($data));
+                        return $data;
+                    } else {
+                        return array();
+                    }
                 }
             }
         } catch (Exception $e) {
@@ -115,33 +131,28 @@ class GoodsModel extends PublicModel {
     /**
      * SKU基本信息
      */
-    public function getInfo($sku, $lang='')
-    {
+    public function getInfo($sku, $lang = '') {
         $ProductModel = new ProductModel();
         $proTable = $ProductModel->getTableName();
         $thisTable = $this->getTableName();
-        if($lang!=''){
+        if ($lang != '') {
             $condition["$thisTable.lang"] = $lang;
             $condition["$proTable.lang"] = $lang;
         }
         $field = "$thisTable.id,$thisTable.lang,$thisTable.sku,$thisTable.spu,$thisTable.name,$thisTable.show_name,$thisTable.model,$proTable.brand,$proTable.meterial_cat_no,$proTable.supplier_name";
         $condition = array(
-            "$thisTable.sku"     => $sku,
-            "$thisTable.status"  => self::STATUS_VALID,
-            "$proTable.status"   => $ProductModel::STATUS_VALID
+            "$thisTable.sku" => $sku,
+            "$thisTable.status" => self::STATUS_VALID,
+            "$proTable.status" => $ProductModel::STATUS_VALID
         );
-
-        try{
+        try {
             //缓存数据的判断读取
             $redis_key = md5(json_encode($condition));
             if (redisExist($redis_key)) {
                 $result = redisGet($redis_key);
                 return $result ? json_decode($result) : false;
-            }else {
-                $result = $this->field($field)
-                               ->join("$proTable ON $thisTable.spu = $proTable.spu AND $thisTable.lang = $proTable.lang" , 'LEFT')
-                               ->where($condition)
-                               ->select();
+            } else {
+                $result = $this->field($field)->where($condition)->find();
                 if ($result) {
                     $data = array(
                         'lang' => $lang
@@ -153,7 +164,7 @@ class GoodsModel extends PublicModel {
                     $nameAll = $material->getNameByCat($cat_no);
                     //查找spu英文名称
                     $spu = $result[0]['spu'];
-                    $nameEn = $ProductModel->getNameBySpu($spu,'en');
+                    $nameEn = $ProductModel->getNameBySpu($spu, 'en');
 
                     //语言分组
                     foreach ($result as $k => $v) {
@@ -162,12 +173,12 @@ class GoodsModel extends PublicModel {
                         $data[$v['lang']]['en_name'] = $nameEn[0]['name'];
                     }
                     //查询属性
-		            $skuAttrModel = new GoodsAttrModel();
-		            $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
+                    $skuAttrModel = new GoodsAttrModel();
+                    $attrs = $skuAttrModel->getAttrBySku($sku, $lang);
                     $data['attrs'] = $attrs;
-
-                    redisSet($redis_key,json_encode($data));
-                    return $data;
+                    $result['attrs'] = $attrs;
+                    redisSet($redis_key, $result);
+                    return $result;
                 } else {
                     return array();
                 }
@@ -194,8 +205,6 @@ class GoodsModel extends PublicModel {
         if ($lang != '') {
             $condition['lang'] = $lang;
         }
-
-
         try {
             //redis 操作
             $redis_key = md5(json_encode($condition));
@@ -306,17 +315,14 @@ class GoodsModel extends PublicModel {
      * @return bool
      * @author klp
      */
-    public function create_data($createcondition)
-    {
+    public function create_data($createcondition) {
         $where = [];
         $data = $this->condition($createcondition);
         return $this->where($where)->save($data);
     }
 
-
     //公共部分处理
-    public function condition($condition, $username = '')
-    {
+    public function condition($condition, $username = '') {
         if ($condition['id']) {
             $where['id'] = $condition['id'];
         }
@@ -357,46 +363,43 @@ class GoodsModel extends PublicModel {
 
         $attrs = array();
         if ($condition['goods_flag']) {
-            foreach($condition['goods_flag'] as $v){
+            foreach ($condition['goods_flag'] as $v) {
                 $v['goods_flag'] = 'Y';
                 $v['spec_flag'] = 'N';
                 $v['logi_flag'] = 'N';
                 $v['hs_flag'] = 'N';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
-        } elseif($condition['spec_flag']){
-            foreach($condition['spec_flag'] as $v){
+        } elseif ($condition['spec_flag']) {
+            foreach ($condition['spec_flag'] as $v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'Y';
                 $v['logi_flag'] = 'N';
                 $v['hs_flag'] = 'N';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
-        } elseif($condition['logi_flag']){
-            foreach($condition['logi_flag'] as $v){
+        } elseif ($condition['logi_flag']) {
+            foreach ($condition['logi_flag'] as $v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'N';
                 $v['logi_flag'] = 'Y';
                 $v['hs_flag'] = 'N';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
-        } elseif($condition['hs_flag']){
-            foreach($condition['hs_flag'] as $v){
+        } elseif ($condition['hs_flag']) {
+            foreach ($condition['hs_flag'] as $v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'N';
                 $v['logi_flag'] = 'N';
                 $v['hs_flag'] = 'Y';
-                $r = array_merge($data,$v);
+                $r = array_merge($data, $v);
                 $attrs[] = $r;
             }
         }
-
     }
-
-
 
     /**
      * 根据sku获取spu
