@@ -21,7 +21,10 @@ class BuyerModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_INVALID = 'INVALID'; //无效；
+    const STATUS_DELETE = 'DELETE'; //删除；
 
     /**
      * 获取列表
@@ -140,157 +143,155 @@ class BuyerModel extends PublicModel {
         return empty($row) ? false : $row;
     }
 
+
+    public function create_data($create = [])
+    {
+        $data['customer_id'] = $create['customer_id'];
+        $data['serial_no'] = $create['serial_no'];
+        $data['lang'] = $create['lang'];
+        $data['name'] = $create['name'];
+        $data['bn'] = $create['bn'];
+        $data['profile'] = $create['profile'];
+        $data['country'] = $create['country'];
+        $data['province'] = $create['province'];
+        $data['reg_date'] = date('Y-m-d');
+        $data['logo'] = $create['logo'];
+        $data['official_website'] = $create['official_website'];
+        $data['brand'] = $create['brand'];
+        $data['bank_name'] = $create['bank_name'];
+        $data['swift_code'] = $create['swift_code'];
+        $data['bank_address'] = $create['bank_address'];
+        $data['bank_account'] = $create['bank_account'];
+        $data['buyer_level'] = $create['buyer_level'];
+        $data['credit_level'] = $create['credit_level'];
+        $data['finance_level'] = $create['finance_level'];
+        $data['logi_level'] = $create['logi_level'];
+        $data['qa_level'] = $create['qa_level'];
+        $data['steward_level'] = $create['steward_level'];
+        $data['remarks'] = $create['remarks'];
+        $data['apply_at'] = date('Y-m-d H:i:s');
+        $data['approved_at'] = $create['approved_at'];
+        $datajson = $this->create($data);
+        return $this->add($datajson);
+    }
     /**
-     * 修改数据
-     * @param  int $id id
-     * @return bool
-     * @author jhw
+     * 个人信息查询
+     * @param  $data 条件
+     * @return
+     * @author klp
      */
-    public function update_data($create,$where) {
-        if(isset($data['lang'])){
-            $data['lang']=$create['lang'];
+    public function getInfo($data)
+    {
+        $where=array();
+        if(!empty($data['id'])){
+            $where['id'] = $data['id'];
+        } else{
+            jsonReturn('','-1001','用户id不可以为空');
         }
-        if(isset($create['bn'])){
-            $data['bn']=$create['bn'];
-        }
-        if(isset($create['name'])){
-            $data['name']=$create['name'];
-        }
-        if(isset($create['profile'])){
-            $data['profile']=$create['profile'];
-        }
-        if(isset($create['country'])){
-            $data['country']=$create['country'];
-        }
-        if(isset($create['province'])){
-            $data['province']=$create['province'];
-        }
-        if(isset($create['logo'])){
-            $data['logo']=$create['logo'];
-        }
-        if(isset($create['official_website'])){
-            $data['official_website']=$create['official_website'];
-        }
-        if(isset($create['brand'])){
-            $data['brand']=$create['brand'];
-        }
-        if(isset($create['bank_name'])){
-            $data['bank_name']=$create['bank_name'];
-        }
-        if(isset($create['swift_code'])){
-            $data['swift_code']=$create['swift_code'];
-        }
-        if(isset($create['bank_address'])){
-            $data['bank_address']=$create['bank_address'];
-        }
-        if(isset($create['bank_account'])){
-            $data['bank_account']=$create['bank_account'];
-        }
-        if(isset($create['buyer_level'])){
-            $data['buyer_level']=$create['buyer_level'];
-        }
-        if(isset($create['credit_level'])){
-            $data['credit_level']=$create['credit_level'];
-        }
-        if(isset($create['finance_level'])){
-            $data['finance_level']=$create['finance_level'];
-        }
-        if(isset($create['logi_level'])){
-            $data['logi_level']=$create['logi_level'];
-        }
-        if(isset($create['qa_level'])){
-            $data['qa_level']=$create['qa_level'];
-        }
-        if(isset($create['steward_level'])){
-            $data['steward_level']=$create['steward_level'];
-        }
-        if(isset($create['remarks'])){
-            $data['remarks']=$create['remarks'];
-        }
-        if(isset($create['status'])){
-            $data['status']=$create['status'];
-        }
-        if(!empty($where)){
-            return $this->where($where)->save($data);
-        }else{
+        //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $buyerInfo = $this->where($where)
+                          ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                          ->find();
+        if($buyerInfo){
+            //通过顾客id查询用户信息
+            $buyerAccount = new BuyerAccountModel();
+            $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
+                ->where(array('customer_id' => $buyerInfo['customer_id']))
+                ->find();
+            //通过顾客id查询用户邮编
+            $buyerAddress = new BuyerAddressModel();
+            $zipCode = $buyerAddress->field('zipcode')->where(array('customer_id' => $buyerInfo['customer_id']))->find();
+            $info = array_merge($buyerInfo,$userInfo);
+            $info['zipCode'] = $zipCode;
+
+            return $info;
+        } else{
             return false;
         }
     }
 
     /**
-     * 新增数据
-     * @param  mix $createcondition 新增条件
-     * @return bool
-     * @author zyg
+     * 采购商个人信息更新
+     * @author klp
      */
-    public function create_data($create = []) {
-        $data['customer_id']=$create['customer_id'];
-        $data['serial_no']=$create['serial_no'];
-        if(isset($data['lang'])){
-            $data['lang']=$create['lang'];
+    public function update_data($condition,$where){
+
+        if(isset($condition['lang'])){
+            $data['lang']=$condition['lang'];
         }
-        $data['name']=$create['name'];
-        if(isset($create['bn'])){
-            $data['bn']=$create['bn'];
+        if(isset($condition['bn'])){
+            $data['bn']=$condition['bn'];
         }
-        if(isset($create['profile'])){
-            $data['profile']=$create['profile'];
+        if(isset($condition['name'])){
+            $data['name']=$condition['name'];
         }
-        if(isset($create['country'])){
-            $data['country']=$create['country'];
+        if(isset($condition['profile'])){
+            $data['profile']=$condition['profile'];
         }
-        if(isset($create['province'])){
-            $data['province']=$create['province'];
+        if(isset($condition['country'])){
+            $data['country']=$condition['country'];
         }
-        $data['reg_date']=date('Y-m-d');
-        if(isset($create['logo'])){
-            $data['logo']=$create['logo'];
+        if(isset($condition['province'])){
+            $data['province']=$condition['province'];
         }
-        if(isset($create['official_website'])){
-            $data['official_website']=$create['official_website'];
+        if(isset($condition['logo'])){
+            $data['logo']=$condition['logo'];
         }
-        if(isset($create['brand'])){
-            $data['brand']=$create['brand'];
+        if(isset($condition['official_website'])){
+            $data['official_website']=$condition['official_website'];
         }
-        if(isset($create['bank_name'])){
-            $data['bank_name']=$create['bank_name'];
+        if(isset($condition['brand'])){
+            $data['brand']=$condition['brand'];
         }
-        if(isset($create['swift_code'])){
-            $data['swift_code']=$create['swift_code'];
+        if(isset($condition['bank_name'])){
+            $data['bank_name']=$condition['bank_name'];
         }
-        if(isset($create['bank_address'])){
-            $data['bank_address']=$create['bank_address'];
+        if(isset($condition['swift_code'])){
+            $data['swift_code']=$condition['swift_code'];
         }
-        if(isset($create['bank_account'])){
-            $data['bank_account']=$create['bank_account'];
+        if(isset($condition['bank_address'])){
+            $data['bank_address']=$condition['bank_address'];
         }
-        if(isset($create['buyer_level'])){
-            $data['buyer_level']=$create['buyer_level'];
+        if(isset($condition['bank_account'])){
+            $data['bank_account']=$condition['bank_account'];
         }
-        if(isset($create['credit_level'])){
-            $data['credit_level']=$create['credit_level'];
+        if(isset($condition['buyer_level'])){
+            $data['buyer_level']=$condition['buyer_level'];
         }
-        if(isset($create['finance_level'])){
-            $data['finance_level']=$create['finance_level'];
+        if(isset($condition['credit_level'])){
+            $data['credit_level']=$condition['credit_level'];
         }
-        if(isset($create['logi_level'])){
-            $data['logi_level']=$create['logi_level'];
+        if(isset($condition['finance_level'])){
+            $data['finance_level']=$condition['finance_level'];
         }
-        if(isset($create['qa_level'])){
-            $data['qa_level']=$create['qa_level'];
+        if(isset($condition['logi_level'])){
+            $data['logi_level']=$condition['logi_level'];
         }
-        if(isset($create['steward_level'])){
-            $data['steward_level']=$create['steward_level'];
+        if(isset($condition['qa_level'])){
+            $data['qa_level']=$condition['qa_level'];
         }
-        if(isset($create['remarks'])){
-            $data['remarks']=$create['remarks'];
+        if(isset($condition['steward_level'])){
+            $data['steward_level']=$condition['steward_level'];
         }
-        if(isset($create['approved_at'])){
-            $data['approved_at']=$create['approved_at'];
+        if(isset($condition['remarks'])){
+            $data['remarks']=$condition['remarks'];
         }
-        $data['apply_at']=date('Y-m-d H:i:s');
-        $datajson = $this->create($data);
-        return $this->add($datajson);
+        if($condition['status']){
+            switch ($condition['status']) {
+                case self::STATUS_VALID:
+                    $data['status'] = $condition['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $data['status'] = $condition['status'];
+                    break;
+                case self::STATUS_DELETE:
+                    $data['status'] = $condition['status'];
+                    break;
+            }
+        }
+
+        return $this->where($where)->save($data);
+
     }
 
 }

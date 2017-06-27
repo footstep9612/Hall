@@ -20,6 +20,11 @@ class BuyerAccountModel extends PublicModel {
         parent::__construct();
     }
 
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_INVALID = 'INVALID'; //无效；
+    const STATUS_DELETE = 'DELETE'; //删除；
+
     /**
      * 判断用户是否存在
      * @param  string $name 用户名
@@ -103,9 +108,6 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data,$where) {
-        if(isset($data['customer_id'])){
-            $arr['customer_id'] = $data['customer_id'];
-        }
         if(isset($data['status'])){
             $arr['status'] = $data['status'];
         }
@@ -133,17 +135,24 @@ class BuyerAccountModel extends PublicModel {
         if(isset($data['phone'])){
             $arr['phone'] = $data['phone'];
         }
-        if(isset($data['status'])){
-            $arr['status']=$data['status'];
+        if($data['status']){
+            switch ($data['status']) {
+                case self::STATUS_VALID:
+                    $data['status'] = $data['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $data['status'] = $data['status'];
+                    break;
+                case self::STATUS_DELETE:
+                    $data['status'] = $data['status'];
+                    break;
+            }
         }
-        if(!empty($where)){
+        if (!empty($where)) {
             return $this->where($where)->save($arr);
-        }else{
-            return false;
+        } else {
         }
     }
-
-
 
     /**
      * 新增数据
@@ -186,4 +195,47 @@ class BuyerAccountModel extends PublicModel {
         return $this->add($data);
     }
 
+
+
+    /**
+     * 密码校验
+     * @author klp
+     */
+    public function checkPassword($data){
+        if(!empty($data['id'])){
+            $where['id'] = $data['id'];
+        } else{
+            jsonReturn('','-1001','用户id不可以为空');
+        }
+        if(!empty($data['password'])){
+            $password = $data['password'];
+        }
+        $pwd = $this->where($where)->field('password_hash')->find();
+        if($pwd == $password){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 密码修改
+     * @author klp
+     * return bool
+     */
+    public function update_pwd($data){
+        if(!empty($data['id'])){
+            $where['id'] = $data['id'];
+        } else{
+            jsonReturn('','-1001','用户id不可以为空');
+        }
+        if(!empty($data['password'])){
+            $new['password'] = $data['password'];
+        } else {
+            jsonReturn('','-1001','新密码不可以为空');
+        }
+        return $this->where($where)->save($new);
+    }
+
 }
+

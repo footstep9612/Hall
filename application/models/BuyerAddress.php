@@ -9,15 +9,19 @@
 /**
  * Description of User
  *
+<<<<<<< HEAD
  * @author jhw
  */
-class BuyerAddressModel extends PublicModel {
+class BuyerAddressModel extends PublicModel
+{
 
+    //put your code here
+    protected $dbName = 'erui_buyer';
     protected $tableName = 'buyer_address';
-    protected $dbName = 'erui_buyer'; //数据库名称
-    public function __construct($str = '') {
 
-        parent::__construct();
+    public function __construct($str = '')
+    {
+        parent::__construct($str = '');
     }
 
     /**
@@ -46,7 +50,7 @@ class BuyerAddressModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-         if(isset($create['customer_id'])){
+        if(isset($create['customer_id'])){
             $arr['customer_id'] = $create['customer_id'];
         }
         if(isset($create['lang'])){
@@ -83,5 +87,33 @@ class BuyerAddressModel extends PublicModel {
         $data = $this->create($arr);
         return $this->add($data);
     }
+    /**
+     * 采购商个人信息更新
+     * @author klp
+     */
+    public function update_address($condition){
+        if ($condition['customer_id']) {
+            $where['customer_id'] = $condition['customer_id'];
+        }
+        if ($condition['address']) {
+            $data['address'] = $condition['address'];
+        }
+        if ($condition['zipcode']) {
+            $data['zipcode'] = $condition['zipcode'];
+        }
+        if ($condition['tel_country_code']) {
+            $data['tel_country_code'] = $condition['tel_country_code'];
+        }
+        if ($condition['tel_area_code']) {
+            $data['tel_area_code'] = $condition['tel_area_code'];
+        }
+        if ($condition['tel_ext_number']) {
+            $data['tel_ext_number'] = $condition['tel_ext_number'];
+        }
+        if ($condition['official_email']) {
+            $data['official_email'] = $condition['official_email'];
+        }
 
+        return $this->where($where)->save($data);
+    }
 }

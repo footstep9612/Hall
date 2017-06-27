@@ -2,7 +2,7 @@
 /**
 	上传Controller
 */
-class UploadfileController extends Yaf_Controller_Abstract{
+class UploadFileController extends Yaf_Controller_Abstract{
 	public function init() {
 
 	}
@@ -17,14 +17,16 @@ class UploadfileController extends Yaf_Controller_Abstract{
 		}
 		//上传到fastDFS
 		$fastdfs = new FastDFSclient();
-		$ret = $fastdfs->uploadAttach($file['image']);
+		$ret = $fastdfs->uploadAttach($file['upFile']);
+		var_dump($ret);
+		echo "<br >";
 		if(!empty($ret['fileId'])){
 			$retimgarr = pathinfo($ret['fileId']);
 			$retimgpre = Yaf_Application::app()->getConfig()->fastDFSUrl.$retimgarr['dirname'].'/'.$retimgarr['filename'];
 			$retimgext = $retimgarr['extension'];
 			$url = $retimgpre.'.'.$retimgext;
 			//存入附件表
-			$attData = array(
+			/*$attData = array(
 				'attachment_type' 	=> 	1,
 				'original_filename' =>	$file['image']['name'],
 				'attachment_state'	=> 	0,
@@ -37,7 +39,7 @@ class UploadfileController extends Yaf_Controller_Abstract{
 			);
 			PostData(Yaf_Application::app()->getConfig()->myhost."Attachment/AttCreate",$attData);//存库，scoket在这不能用了
 			//得到上传文件所对应的各个参数,数组结构
-			/*$result = array(
+			$result = array(
 				'code'	=> 0,
 				'msg'	=> '上传成功',
 				'data'	=> array(
@@ -48,13 +50,8 @@ class UploadfileController extends Yaf_Controller_Abstract{
 			$result = array(
 				"ok" => true,
 				"data" => $url,
-				//"index"=>$index
 			);
 		}else{
-			/*$result = array(
-				'code'	=> -1,
-				'msg'	=> '上传失败'
-			);*/
 			$result = array(
 				"ok" => true,
 				"data" => "error"
