@@ -445,7 +445,7 @@ class QuoteController extends PublicController {
     	$condition = $this->put_data;
     	
     	if (isset($condition['sku'])) {
-    		$sql = "SELECT IF(`quote_sku` <> '', `quote_sku`, `inquiry_sku`) AS `sku` FROM `t_final_quote_item` WHERE `sku` = " . mysql_escape_string($condition['sku']);
+    		$sql = "SELECT IF(`quote_sku` <> '', `quote_sku`, `inquiry_sku`) AS `sku` FROM `t_final_quote_item` WHERE `status` = 'APPROVED' AND `sku` = " . mysql_escape_string($condition['sku']);
     		$res = $this->finalQuoteItemModel->query($sql);
 			$this->jsonReturn($res);
     	} else {
