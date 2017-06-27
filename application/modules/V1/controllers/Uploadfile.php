@@ -2,9 +2,9 @@
 /**
 	上传Controller
 */
-class UploadfileController extends Yaf_Controller_Abstract{
+class UploadfileController extends PublicController{
 	public function init() {
-		parent::__init();
+
 	}
 	/*
 		上传地址
@@ -20,13 +20,13 @@ class UploadfileController extends Yaf_Controller_Abstract{
 
 		if(!empty($ret['fileId'])){
 			$result = array(
-				"ok" => '1',
-				"data" => $ret['fileId'],
+				"code" => '1',
+				"url" => $ret['fileId'],
 			);
 		}else{
 			$result = array(
-				"ok" => '-103',
-				"data" => "error"
+				"code" => '-103',
+				"message" => "error"
 			);
 		}
 		echo json_encode($result);

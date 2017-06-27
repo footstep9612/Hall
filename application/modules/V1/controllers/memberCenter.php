@@ -104,6 +104,28 @@ class MemberCenterController extends PublicController
     }
 
     /**
+     * 个人会员等级服务详情
+     * @author klp
+     */
+    public function getServiceAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $BuyerModel = new BuyerModel();
+        $result = $BuyerModel->getService($data);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','获取失败');
+        }
+        exit;
+    }
+
+    /**
      * 会员等级服务详情
      * @author klp
      */
