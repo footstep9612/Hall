@@ -57,7 +57,7 @@ class ShowmaterialcatModel extends PublicModel {
             $material_cat_nos = array_values($material_cat_nos);
         
             return $this->alias('ms')
-                            ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ')
+                            ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ','left')
                             ->where(['ms.material_cat_no' => ['in', $material_cat_nos]
                                 , 'ms.status' => 'VALID',
                                 's.status' => 'VALID',

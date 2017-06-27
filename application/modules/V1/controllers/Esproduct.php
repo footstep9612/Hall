@@ -133,7 +133,7 @@ class EsproductController extends PublicController {
             }
 
             $material_cat_nos = ksort($material_cat_nos);
-            $catno_key = 'show_cats_' . md5(implode(',', $material_cat_nos));
+            $catno_key = 'show_cats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang());
             $catlist = json_decode(redisGet($catno_key), true);
             if (!$catlist) {
                 $matshowcatmodel = new ShowmaterialcatModel();
