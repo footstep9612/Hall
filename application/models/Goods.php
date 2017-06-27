@@ -47,7 +47,7 @@ class GoodsModel extends PublicModel {
         }
 
         if(redisHashExist('Sku',md5(json_encode($where)))){
-          //  return (array)json_decode(redisHashGet('Sku',md5(json_encode($where))));
+            return (array)json_decode(redisHashGet('Sku',md5(json_encode($where))));
         }
 
         $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
@@ -56,6 +56,32 @@ class GoodsModel extends PublicModel {
             $data = array();
             if($result){
                 foreach($result as $item){
+                    //获取供应商与品牌
+                    $product = new ProductModel();
+                    $productInfo = $product->getInfo($item['spu'], $item['lang'] ,$product::STATUS_VALID);
+                    $item['brand'] = $item['spec'] = $item['supplier_id'] = $item['supplier_name'] = $item['meterial_cat_no'] = '';
+                    if($productInfo){
+                        if(isset($productInfo[$item['lang']])){
+                            $productInfo = (array)$productInfo[$item['lang']];
+                            $item['brand'] = $productInfo['brand'];
+                            $item['supplier_id'] = $productInfo['supplier_id'];
+                            $item['supplier_name'] = $productInfo['supplier_name'];
+                            $item['meterial_cat_no'] = $productInfo['meterial_cat_no'];
+                        }
+                    }
+
+                    //获取商品规格
+                    $gattr = new GoodsAttrModel();
+                    $spec = $gattr->getSpecBySku($item['sku'],$item['lang']);
+                    $spec_str = '';
+                    if($spec){
+                        foreach($spec as $r){
+                            $spec_str.= $r['attr_name'].':'.$r['attr_value'].$r['value_unit'].';';
+                        }
+                    }
+                    $item['spec'] = $spec_str;
+
+                    //按语言分组
                     $data[$item['lang']] = $item;
                 }
                 redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
@@ -234,63 +260,86 @@ class GoodsModel extends PublicModel {
         $field = "$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
         $where = array();
+        $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
+        $pagesize = isset($condition['pagesize']) ? $condition['pagesize'] : 10;
         //spu 编码
-        if (isset($condition['spu'])) {
+        if (isset($condition['spu']) && !empty($condition['spu'])) {
             $where["$thistable.spu"] = $condition['spu'];
         }
 
         //审核状态
-        if (isset($condition['status'])) {
+        if (isset($condition['status']) && !empty($condition['status'])) {
             $where["$thistable.status"] = $condition['status'];
         }
 
         //语言
         $lang = '';
-        if (isset($condition['lang'])) {
+        if (isset($condition['lang']) && !empty($condition['status'])) {
             $where["$thistable.lang"] = $lang = strtolower($condition['lang']);
+            $where["$ptable.lang"] = strtolower($condition['lang']);
         }
 
-        //规格型号
-        if (isset($condition['model'])) {
+        //型号
+        if (isset($condition['model']) && !empty($condition['model'])) {
             $where["$thistable.model"] = $condition['model'];
         }
 
         //来源
-        if (isset($condition['source'])) {
+        if (isset($condition['source']) && !empty($condition['source'])) {
             $where["$ptable.source"] = $condition['source'];
         }
 
         //按供应商
-        if (isset($condition['supplier_name'])) {
+        if (isset($condition['supplier_name']) && !empty($condition['supplier_name'])) {
             $where["$ptable.supplier_name"] = array('like', $condition['supplier_name']);
         }
         //按品牌
-        if (isset($condition['brand'])) {
+        if (isset($condition['brand']) && !empty($condition['brand'])) {
             $where["$ptable.brand"] = $condition['brand'];
         }
 
         //按分类名称
+        if(isset($condition['cat_name']) && !empty($condition['cat_name'])) {
+            $material = new MaterialcatModel();
+            $m_cats = $material->getCatNoByName($condition['cat_name']);
+            if ($m_cats) {
+                $mstr = '';
+                foreach($m_cats as $item){
+                    $item =(array)$item;
+                    $mstr.=','.$item['cat_no'];
+                }
+                $mstr = strlen($mstr)>1?substr($mstr,1):'';
+                $where["$ptable.meterial_cat_no"] = array('in', $mstr);
+            }else{
+                $data = array(
+                    'lang' => $lang,
+                    'count' => 0,
+                    'current_no' => $current_no,
+                    'pagesize' => $pagesize,
+                    'data' => array(),
+                );
+                return $data;
+            }
+        }
+
         //是否已定价
-        if (isset($condition['pricing_flag'])) {
+        if (isset($condition['pricing_flag']) && !empty($condition['pricing_flag'])) {
             $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
         }
 
         //sku_name
-        if (isset($condition['name'])) {
+        if (isset($condition['name']) && !empty($condition['name'])) {
             $where["$thistable.name"] = array('like', $condition['name']);
         }
 
         //sku id  这里用sku编号
-        if (isset($condition['id'])) {
-            $where["$thistable.sku"] = $condition['id'];
+        if (isset($condition['sku']) && !empty($condition['sku'])) {
+            $where["$thistable.sku"] = $condition['sku'];
         }
 
-        $current_no = $condition['current_no'] ? $condition['current_no'] : 1;
-        $pagesize = $condition['pagesize'] ? $condition['pagesize'] : 10;
-
-        try {
-            $count = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->count();
-            $result = $this->field($field)->join($ptable . " On $ptable.spu = $thistable.spu", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
+       try {
+            $count = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
+            $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
             $data = array(
                 'lang' => $lang,
                 'count' => 0,
@@ -303,9 +352,9 @@ class GoodsModel extends PublicModel {
                 $data['data'] = $result;
             }
             return $data;
-        } catch (Exception $e) {
+       } catch (Exception $e) {
             return false;
-        }
+       }
     }
 
     /**
@@ -415,6 +464,42 @@ class GoodsModel extends PublicModel {
             return $result['spu'];
         }
         return false;
+    }
+
+    /**
+     * 获取spu下的规格商品（用于门户产品详情页）
+     * @param string $spu
+     * @param string $lang
+     * @return array
+     */
+    public function getSpecGoodsBySpu($spu='',$lang=''){
+        if(empty($spu))
+            return array();
+
+        $field = "sku,lang,qrcode,name,show_name,model,package_quantity,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
+        $condition = array(
+            "spu"=>$spu,
+            "lang"=> $lang,
+            "status"=>array('neq',self::STATUS_VALID)
+        );
+        $result = $this->field($field)->where($condition)->select();
+        if($result){
+            foreach($result as $k => $item){
+                //获取商品规格
+                $gattr = new GoodsAttrModel();
+                $spec = $gattr->getSpecBySku($item['sku'],$item['lang']);
+                $spec_str = '';
+                if($spec){
+                    foreach($spec as $r){
+                        $spec_str.= $r['attr_name'].':'.$r['attr_value'].$r['value_unit'].';';
+                    }
+                }
+                $result[$k]['spec'] = $spec_str;
+
+            }
+        }
+
+
     }
 
 }

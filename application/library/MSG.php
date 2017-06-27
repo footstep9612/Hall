@@ -77,6 +77,7 @@ class MSG {
     const MSG_HTTP_503 = -503; //无法获得服务 — 由于临时过载或维护，服务器无法处理请求。
 
     const ERROR_PARAM = 1000;    //参数错误
+    const PARAM_LANG_ERROR = 1001;    //参数语言有误
 
     public static function getMessage($code, $lang = 'en') {
         $map = [

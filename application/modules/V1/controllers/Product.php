@@ -36,15 +36,21 @@ class ProductController extends PublicController {
         if(!empty($this->input['spu'])){
             $spu = $this->input['spu'];
         } else{
-            jsonReturn('','-1001','spu不可以为空');
+            jsonReturn('','1000','参数[spu]有误');
         }
         $lang = !empty($this->input['lang']) ? $this->input['lang'] : '';
+        if($lang != '' && !in_array($lang,array('zh','en','es','ru'))) {
+            jsonReturn('','1000','参数[语言]有误');
+        }
+        $status = isset($this->input['status'])?$this->input['status']:'';
+        if($status != '' && !in_array($status,array('NORMAL','CLOSED','VALID','TEST','CHECKING','INVALID','DELETED'))) {
+            jsonReturn('','1000','参数[状态]有误');
+        }
+
         $productModel = new ProductModel();
-        $result = $productModel->getInfo($spu, $lang);
+        $result = $productModel->getInfo($spu, $lang,$status);
         if (!empty($result)) {
             $data = array(
-                'code' => '1',
-                'message' => '数据获取成功',
                 'data' => $result
             );
             jsonReturn($data);
@@ -177,6 +183,19 @@ class ProductController extends PublicController {
             jsonReturn('','-1002', '获取失败');
         }
         exit;
+    }
+
+    public function getSpecGoodsBySpu(){
+        if(!isset($this->input['spu']) || empty($this->input['spu'])){
+            jsonReturn('','1000');
+        }
+        $gmodel = new GoodsModel();
+        $result = $gmodel->getSpecGoodsBySpu($this->input['spu']);
+        if($result){
+            jsonReturn(array('data'=>$result));
+        } else {
+            jsonReturn('','-1002', '获取失败');
+        }
     }
 
 }

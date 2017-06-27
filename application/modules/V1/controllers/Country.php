@@ -11,11 +11,67 @@
  *
  * @author zyg
  */
-class CountryController extends PublicController {
+class CountryController extends PublicController
+{
+
+    protected $tableName = 'country';
+    protected $dbName = 'erui_dict'; //数据库名称
 
     public function __init() {
-        //   parent::__init();
+
     }
+
+    /**
+     * 国家地区列表,按首字母分组排序
+     * @author klp
+     */
+    public function getListAllAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $countryModel = new CountryModel();
+        $result = $countryModel->getInfoSort($lang);
+        if(!empty($result)){
+            $data = array(
+                'code' => '1',
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','获取失败');
+        }
+        exit;
+    }
+    /**
+     * 根据IP自动获取国家(新浪接口)
+     * @author klp
+     */
+    public function getIpAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $IpModel = new CountryModel();
+        $ip = $IpModel->getRealIp();
+        if($ip != 'Unknown'){
+            $country = $IpModel->getIpAddress($ip);
+            if($lang=='zh'){
+                jsonReturn($country,1,'成功');
+            } else {
+                $countryModel = new CountryModel();
+                $result = $countryModel->getName($country);
+                if($result){
+                    jsonReturn($result,1,'成功');
+                } else{
+                    jsonReturn('','-1002','失败');
+                }
+            }
+        } else {
+            jsonReturn('','-1002','IP未知,获取失败');
+        }
+
+    }
+
 
     public function listAction() {
 //        $reids=new phpredis();
@@ -158,5 +214,7 @@ class CountryController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
+
 
 }

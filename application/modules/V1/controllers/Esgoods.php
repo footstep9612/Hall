@@ -20,7 +20,13 @@ class EsgoodsController extends PublicController {
 
     //put your code here
     public function init() {
+        ini_set("display_errors", "On");
+        error_reporting(E_ERROR | E_STRICT);
+        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $lang = $this->getPut('lang', 'en');
+        $this->setLang($lang);
         $this->es = new ESClient();
+
         //  parent::init();
     }
 
@@ -44,29 +50,10 @@ class EsgoodsController extends PublicController {
         }
     }
 
-    public function indexAction() {
-//        $this->es->delete('index');
-        // $this->es->delete($this->index);
-        //$model = new EsgoodsModel();
-
-        $body['mappings'] = [];
-
-        foreach ($this->langs as $lang) {
-            $body['mappings']['goods_' . $lang] = $this->goodsAction($lang);
-
-            $body['mappings']['product_' . $lang] = $this->productAction($lang);
-        }
-
-        $this->es->create_index($this->index, $body);
-        $this->setCode(1);
-        $this->setMessage('成功!');
-        $this->jsonReturn($data);
-    }
-
     public function listAction() {
 
         $model = new EsgoodsModel();
-        $ret = $model->getgoods($this->put_data, $this->getLang());
+        $ret = $model->getgoods($this->put_data, null, $this->getLang());
         if ($ret) {
             $list = [];
             $data = $ret[0];
@@ -78,12 +65,7 @@ class EsgoodsController extends PublicController {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
-            if (isset($ret[3]) && $ret[3] > 0) {
 
-                $send['allcount'] = $ret[3] > $send['count'] ? $ret[3] : $send['count'];
-            } else {
-                $send['allcount'] = $send['count'];
-            }
 
             $send['list'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
@@ -118,6 +100,12 @@ class EsgoodsController extends PublicController {
                     'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'sku' => [
+                    'type' => $type_string, "index" => "not_analyzed",
+                ],
+                'package_quantity' => [
+                    'type' => $type_string, "index" => "not_analyzed",
+                ],
+                'exw_day' => [
                     'type' => $type_string, "index" => "not_analyzed",
                 ],
                 'qrcode' => [
