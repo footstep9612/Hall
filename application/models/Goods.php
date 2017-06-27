@@ -256,7 +256,7 @@ class GoodsModel extends PublicModel {
         //获取当前表名
         $thistable = $this->getTableName();
 
-        $field = "$thistable.pricing_flag,$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
+        $field = "$thistable.pricing_flag,$ptable.meterial_cat_no,$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
         $where = array();
         $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
@@ -347,6 +347,9 @@ class GoodsModel extends PublicModel {
                 'data' => array(),
             );
             if ($result) {
+                //foreach($result as $k=> $item){
+                   // $result[$k]['cat_name']
+               // }
                 $data['count'] = $count;
                 $data['data'] = $result;
             }
