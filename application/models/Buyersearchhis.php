@@ -14,8 +14,8 @@
 class BuyersearchhisModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'erui_beavior';
-    protected $dbName = 'buyer_search_his';
+    protected $tableName = 'buyer_search_his';
+    protected $dbName = 'erui_beavior';
 
     public function __construct($str = '') {
         parent::__construct($str);
