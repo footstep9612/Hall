@@ -19,8 +19,8 @@ class FinalQuoteItemModel extends PublicModel {
      * @return array
      */
     public function getItemList($condition) {
-    	if(isset($condition['inquiry_no'])) {
-    		$where['inquiry_no'] = $condition['inquiry_no'];
+    	if(isset($condition['quote_no'])) {
+    		$where['quote_no'] = $condition['quote_no'];
     	}
     	
         return $this->where($where)->select();
