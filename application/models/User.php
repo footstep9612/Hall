@@ -71,7 +71,7 @@ class UserModel extends PublicModel {
                             ->field('id,user_id,name,email,mobile,status')
                             ->count('id');
         } catch (Exception $ex) {
-            Log::write($ex->getMessage(), $level);
+            Log::write($ex->getMessage());
             return false;
         }
     }

@@ -85,21 +85,35 @@ class BuyerAccountModel extends PublicModel {
 //        }
 //    }
 
-//    /**
-//     * 删除数据
-//     * @param  int  $id
-//     * @return bool
-//     * @author jhw
-//     */
-//    public function delete_data($user_id = '') {
-//        $where['user_id'] = $user_id;
-//        if(!empty($where['user_id'])){
-//            return $this->where($where)
-//                ->save(['status' => 'DELETED']);
-//        }else{
-//            return false;
-//        }
-//    }
+    /**
+     * 登录
+     * @param  string $name 用户名
+     * @param  string$enc_password 密码
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function login($data) {
+        $where=array();
+        if(!empty($data['email'])){
+            $where['email'] = $data['email'];
+        }
+        if(!empty($data['user_name'])){
+            $where['user_name'] = $data['user_name'];
+        }
+        if(empty($where['user_name'])&&empty($where['email'])){
+            echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
+            exit();
+        }
+        if(!empty($data['password'])){
+            $where['password_hash'] = md5($data['password']);
+        }
+        $where['status'] = 'VALID';
+        $row = $this->where($where)
+            ->field('id,customer_id,email,user_name,mobile,password_hash,role,first_name,last_name,phone,status,login_count,last_login_time,login_failure_count')
+            ->find();
+        return $row;
+    }
 
     /**
      * 修改数据
