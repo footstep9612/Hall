@@ -20,16 +20,9 @@ class EsgoodsController extends ShopMallController {
 
     //put your code here
     public function init() {
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
         $this->es = new ESClient();
-
-         parent::init();
+        parent::init();
     }
-
 
     public function listAction() {
         $this->setLang('zh');
@@ -53,6 +46,30 @@ class EsgoodsController extends ShopMallController {
             $this->jsonReturn($send);
         } else {
             $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * goods 数据导入
+     */
+
+    public function importAction($lang = 'en') {
+        try {
+            //$lang = 'zh';
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsgoodsModel();
+                $espoductmodel->importgoodss($lang);
+            }
+
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
             $this->jsonReturn();
         }
     }
