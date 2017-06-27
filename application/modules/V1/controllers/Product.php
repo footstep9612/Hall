@@ -185,4 +185,17 @@ class ProductController extends PublicController {
         exit;
     }
 
+    public function getSpecGoodsBySpu(){
+        if(!isset($this->input['spu']) || empty($this->input['spu'])){
+            jsonReturn('','1000');
+        }
+        $gmodel = new GoodsModel();
+        $result = $gmodel->getSpecGoodsBySpu($this->input['spu']);
+        if($result){
+            jsonReturn(array('data'=>$result));
+        } else {
+            jsonReturn('','-1002', '获取失败');
+        }
+    }
+
 }
