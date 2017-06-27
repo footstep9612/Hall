@@ -6,8 +6,8 @@
  * Class ExcelController
  * @author maimaiti
  */
-//class ExcelController extends PublicController
-class ExcelController extends Yaf_Controller_Abstract
+class ExcelController extends PublicController
+//class ExcelController extends Yaf_Controller_Abstract
 {
     /**
      * 测试接口
@@ -541,15 +541,178 @@ class ExcelController extends Yaf_Controller_Abstract
         //判断语言参数
         $request = json_decode(file_get_contents("php://input"),true);
         $goodsModel = new GoodsModel();
+        //条件
+        $condition = [];
+        //筛选字段
+        $field = [
+            //序号
+            'id',
+            //询价单号
+            'quote_no',
+            //询价单位
+            //所属地区
+            //客户名称
+            //中文名
+            'name_cn',
+            //外文名
+            'name_en',
+            //规格
+            'quote_spec',
+            //图号，数量
+            'quote_quantity',
+            //单位
+            'quote_unit',
+            //产品品牌
+            'quote_brand',
+            //报价单位
+
+            //供应商报价人
+            'supplier_contact',
+            //报价人联系方式
+            'supplier_contact_phone',
+            //厂家单价
+            //厂家总价
+            //利润率
+            //报价单价
+            'quote_unit_price',
+            //报价总价
+            'total_quote_price',
+            //报价总金额(美金)
+            //单重
+            //总重
+            //包装体积
+            //包装方式
+            //交货期
+            //有效期
+            //备注
+            //产品分类
+            //是否科瑞设备用配件
+            //是否投标
+            //转入日期
+            //需用日期
+            //报出日期
+            //报价用时
+            //市场负责人
+            //商务技术部报价人
+            //贸易术语
+        ];
         if (!empty($request['lang']))
         {
-            $goods = $goodsModel->where('lang','zh')->select();
-            echo "<pre>";
-            print_r($goods);
-        }else{
-            $goods = $goodsModel->select();
-            echo "<pre>";
-            print_r($goods);
+            $condition = ['lang'=>strtolower($request['lang'])];
         }
+        /*$goods = $goodsModel->where($condition)->select();
+        echo "<pre>";
+        print_r($goods);*/
+
+        if ($file = $this->goodsListHandler())
+        {
+            //文件名
+            $filename =str_replace(dirname($file).'/','',$file);
+
+            $response = [
+                'code'=>1,
+                'message'=>ErrorMsg::getMessage('1'),
+                'data'=>[
+                    'file'=>$file,
+                    //文件创建时间(文件创建时是指xls文件被导出的时间)
+                    'exported_at'=>strstr($filename,'_',true)
+                ]
+            ];
+        }else{
+            $response = [
+                'code'=>0,
+                'message'=>ErrorMsg::getMessage('0'),
+                'data'=>[]
+            ];
+        }
+        exit(json_encode($response));
+    }
+
+    /**
+     * 导出全部商品处理
+     * @return string
+     */
+    private function goodsListHandler()
+    {
+        //创建表格
+        $objPHPExcel = new PHPExcel();
+        //2.创建sheet(内置表)
+        $objSheet = $objPHPExcel->getActiveSheet(); //获取当前sheet
+        $objSheet->setTitle('商品列表'); //设置当前sheet标题
+        //设置列宽度
+        $normal_cols = [
+            "A", "B", "C", "D", "E", "F", "G", "H","I","J","K","L",
+            "M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
+            "AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ"
+        ];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('16');
+        endforeach;
+
+        //填充数据
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "询价单号");
+        $objSheet->setCellValue("C1", "询价单位");
+        $objSheet->setCellValue("D1", "所属地区");
+        $objSheet->setCellValue("E1", "客户名称");
+        $objSheet->setCellValue("F1", "品名中文");
+        $objSheet->setCellValue("G1", "品名外文");
+        $objSheet->setCellValue("H1", "图号 数量");
+        $objSheet->setCellValue("I1", "单位");
+        $objSheet->setCellValue("J1", "产品品牌");
+        $objSheet->setCellValue("K1", "报价单位");
+        $objSheet->setCellValue("L1", "供应商报价人");
+        $objSheet->setCellValue("M1", "供应商联系方式");
+        $objSheet->setCellValue("N1", "厂家单价");
+        $objSheet->setCellValue("O1", "厂家总价");
+        $objSheet->setCellValue("P1", "利润率");
+        $objSheet->setCellValue("Q1", "报价单价");
+        $objSheet->setCellValue("R1", "报价总价");
+        $objSheet->setCellValue("S1", "报价总金额(美金)");
+        $objSheet->setCellValue("T1", "单重");
+        $objSheet->setCellValue("U1", "总重");
+        $objSheet->setCellValue("V1", "包装体积");
+        $objSheet->setCellValue("W1", "包装方式");
+        $objSheet->setCellValue("X1", "交货期");
+        $objSheet->setCellValue("Y1", "有效期");
+        $objSheet->setCellValue("Z1", "备注");
+        $objSheet->setCellValue("AA1", "产品分类");
+        $objSheet->setCellValue("AB1", "是否科瑞设备用配件");
+        $objSheet->setCellValue("AC1", "是否投标");
+        $objSheet->setCellValue("AD1", "转入日期");
+        $objSheet->setCellValue("AE1", "需用日期");
+        $objSheet->setCellValue("AF1", "报出日期");
+        $objSheet->setCellValue("AG1", "报价用时");
+        $objSheet->setCellValue("AH1", "市场负责人");
+        $objSheet->setCellValue("AI1", "商务技术部报价人");
+        $objSheet->setCellValue("AJ1", "贸易术语");
+
+        //追加数据库数据
+
+        //P($sku_items);die;
+/*        $item = 2;
+        foreach ($sku_items as $key => $value) {
+            $objSheet->setCellValue("A" . $item, $value['quote_no'])
+                ->setCellValue("B" . $item, $value['name_cn'])
+                ->setCellValue("C" . $item, $value['name_en'])
+                ->setCellValue("D" . $item, $value['quote_spec'])
+                ->setCellValue("E" . $item, $value['inquiry_desc'])
+                ->setCellValue("F" . $item, $value['quote_quantity'])
+                ->setCellValue("G" . $item, $value['quote_unit'])
+                ->setCellValue("H" . $item, $value['quote_brand']);
+            $item++;
+        }*/
+
+
+        //居中设置
+        $objSheet->getDefaultStyle()
+            ->getAlignment()
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        //保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        //保存到服务器指定目录
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis',time())."_goodsList.xls");
     }
 }
