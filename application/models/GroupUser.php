@@ -15,6 +15,7 @@ class GroupUserModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'group_user';
+    protected $table = 't_group_user';
     Protected $autoCheckFields = true;
 
     public function __construct($str = '') {
@@ -29,12 +30,12 @@ class GroupUserModel extends PublicModel {
      * @author jhw
      */
     public function getlist($data,$limit,$order='ug.id desc') {
-        $sql  = 'SELECT ug.id,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name ';
-        $sql .= ' FROM '.$this->tableName.'as ug';
-        $sql .= ' LEFT JOIN t_group AS g ON t_group.`id` = ug.`group_id`';
+        $sql  = 'SELECT ug.id ,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name ';
+        $sql .= ' FROM '.$this->table.' as ug';
+        $sql .= ' LEFT JOIN t_group AS g ON g.`id` = ug.`group_id`';
         $sql .= ' LEFT JOIN t_user AS u ON u.`id` = ug.`user_id`';
         if(!empty($data['group_id'])){
-            $sql .= ' WHERE g.`group_id` = '.$data['group_id'];
+            $sql .= ' WHERE ug.`group_id` = '.$data['group_id'];
         }
         if(!empty($limit)){
             $sql .= ' LIMIT '.$limit['page'].','.$limit['num'];

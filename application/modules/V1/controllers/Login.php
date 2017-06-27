@@ -201,11 +201,6 @@ class LoginController extends Yaf_Controller_Abstract {
                 }
             }
         }
-
-        if($data['pople'] == 1){
-            $group_user =  new GroupUserModel();
-            $group_user ->getlist();
-        }
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data_arr;
