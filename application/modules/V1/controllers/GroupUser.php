@@ -30,6 +30,7 @@ class GroupUserController extends PublicController {
         if(!empty($data['countPerPage'])){
             $limit['num'] = $data['countPerPage'];
         }
+        var_dump($where);die;
         $model_group = new GroupUserModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
         if(!empty($data)){
