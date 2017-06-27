@@ -17,7 +17,7 @@ class UploadfileController extends PublicController{
 		//上传到fastDFS
 		$fastdfs = new FastDFSclient();
 		$ret = $fastdfs->uploadAttach($file['upFile']);
-		echo "<br >";
+
 		if(!empty($ret['fileId'])){
 			$result = array(
 				"ok" => '1',
