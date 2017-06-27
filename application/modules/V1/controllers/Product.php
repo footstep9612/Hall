@@ -33,7 +33,7 @@ class ProductController extends PublicController {
      */
     public function getInfoAction()
     {
-        if(!empty($this->input['spu'])){
+        if(isset($this->input['spu']) && !empty($this->input['spu'])){
             $spu = $this->input['spu'];
         } else{
             jsonReturn('','1000','参数[spu]有误');
