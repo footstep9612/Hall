@@ -50,13 +50,8 @@ class UploadfileController extends Yaf_Controller_Abstract{
 			$result = array(
 				"ok" => true,
 				"data" => $url,
-				//"index"=>$index
 			);
 		}else{
-			/*$result = array(
-				'code'	=> -1,
-				'msg'	=> '上传失败'
-			);*/
 			$result = array(
 				"ok" => true,
 				"data" => "error"
