@@ -861,24 +861,7 @@ function redisHashSet($name, $key, $value) {
 }
 
 
-/*
- * 删除hash缓存
- *
- * @param str $name
- * @param str $key
- * @param str $value
- * @return string
- * @author jhw
- */
 
-function redisHashDel($name, $key) {
-    $reids = new phpredis();
-    if ($reids->hashDel($name, $key)) {
-        return true;
-    } else {
-        return false;
-    }
-}
 /*
  * 删除缓存
  *
