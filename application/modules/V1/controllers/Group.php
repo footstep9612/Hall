@@ -47,6 +47,33 @@ class GroupController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    public function getgroupuserlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['group_id'])){
+            $where['group_id'] = $data['group_id'];
+        }
+        if(!empty($data['page'])){
+            $limit['page'] = $data['page'];
+        }
+        if(!empty($data['countPerPage'])){
+            $limit['num'] = $data['countPerPage'];
+        }
+        $model_group = new GroupUserModel();
+        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+
+        $this->jsonReturn($datajson);
+    }
+
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];
