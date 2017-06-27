@@ -47,7 +47,7 @@ class GoodsModel extends PublicModel {
         }
 
         if(redisHashExist('Sku',md5(json_encode($where)))){
-          //  return (array)json_decode(redisHashGet('Sku',md5(json_encode($where))));
+            return (array)json_decode(redisHashGet('Sku',md5(json_encode($where))));
         }
 
         $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
@@ -56,6 +56,20 @@ class GoodsModel extends PublicModel {
             $data = array();
             if($result){
                 foreach($result as $item){
+                    //获取供应商与品牌
+                    $product = new ProductModel();
+                    $productInfo = $product->getInfo($item['spu'], $item['lang'] ,$product::STATUS_VALID);
+                    $item['brand'] = $item['supplier_id'] = $item['supplier_name'] = '';
+                    if($productInfo){
+                        if(isset($productInfo[$item['lang']])){
+                            $productInfo = (array)$productInfo[$item['lang']];
+                            $item['brand'] = $productInfo['brand'];
+                            $item['supplier_id'] = $productInfo['supplier_id'];
+                            $item['supplier_name'] = $productInfo['supplier_name'];
+                        }
+                    }
+
+                    //按语言分组
                     $data[$item['lang']] = $item;
                 }
                 redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
@@ -438,6 +452,42 @@ class GoodsModel extends PublicModel {
             return $result['spu'];
         }
         return false;
+    }
+
+    /**
+     * 获取spu下的规格商品（用于门户产品详情页）
+     * @param string $spu
+     * @param string $lang
+     * @return array
+     */
+    public function getSpecGoodsBySpu($spu='',$lang=''){
+        if(empty($spu))
+            return array();
+
+        $field = "sku,lang,qrcode,name,show_name,model,package_quantity,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
+        $condition = array(
+            "spu"=>$spu,
+            "lang"=> $lang,
+            "status"=>array('neq',self::STATUS_VALID)
+        );
+        $result = $this->field($field)->where($condition)->select();
+        if($result){
+            foreach($result as $k => $item){
+                //获取商品规格
+                $gattr = new GoodsAttrModel();
+                $spec = $gattr->getSpecBySku($item['sku'],$item['lang']);
+                $spec_str = '';
+                if($spec){
+                    foreach($spec as $r){
+                        $spec_str.= $r['attr_name'].':'.$r['attr_value'].$r['value_unit'].';';
+                    }
+                }
+                $result[$k]['spec'] = $spec_str;
+
+            }
+        }
+
+
     }
 
 }
