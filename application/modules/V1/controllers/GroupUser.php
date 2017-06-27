@@ -11,13 +11,14 @@
  *
  * @author zyg
  */
-class GroupUserController extends PublicController {
+class GroupuserController extends PublicController {
 
     public function __init() {
-        //   parent::__init();
+           parent::__init();
     }
 
     public function getlistAction() {
+        var_dump(111);die;
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
