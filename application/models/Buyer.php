@@ -62,38 +62,7 @@ class BuyerModel extends PublicModel {
 //                        ->find();
 //    }
 
-    /**
-     * 登录
-     * @param  string $name 用户名
-     * @param  string$enc_password 密码
-     * @param  string $lang 语言
-     * @return mix
-     * @author zyg
-     */
-    public function login($data) {
-        $where=array();
-        if(!empty($data['email'])){
-            $where['email'] = $data['email'];
-        }
-        if(!empty($data['mobile'])){
-            $where['mobile'] = $data['mobile'];
-        }
-        if(empty($where['mobile'])&&empty($where['email'])){
-            echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
-            exit();
-        }
-        if(!empty($data['password'])){
-            $where['password_hash'] = md5($data['password']);
-        }
-        $where['status'] = 'NORMAL';
-        $this->where($where)
-            ->field('id,user_no,name,email,mobile,status')
-            ->find();
-        $row = $this->where($where)
-            ->field('id,user_no,name,email,mobile,status')
-            ->find();
-        return $row;
-    }
+
 
     /**
      * 判断用户是否存在

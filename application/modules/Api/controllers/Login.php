@@ -39,19 +39,27 @@ class LoginController extends Yaf_Controller_Abstract {
             echo json_encode(array("code" => "-101", "message" => "帐号不可以都为空"));
             exit();
         }
-        $model = new UserModel();
+        $model = new BuyerAccountModel();
         $info = $model->login($arr);
         if ($info) {
             $jwtclient = new JWTClient();
+<<<<<<< HEAD
             $jwt['id'] = $info['id'];
             $jwt['ext'] = time();
             $jwt['iat'] = time();
             $jwt['name'] = $info['name'];
             $datajson['mobile'] = $info['mobile'];
+=======
+            $jwt['account_id'] = $info['id'];
+            $jwt['ext'] = time();
+            $jwt['iat'] = time();
+            $jwt['user_name'] = $info['user_name'];
+            $jwt['email'] = $info['email'];
+>>>>>>> 3cd07638eb215de18a07d8053fd391f7e64838d3
             $datajson['email'] = $info['email'];
             $datajson['name'] = $info['name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('user_info_'.$info['id'],json_encode($info),18000);
+            redisSet('shopmall_user_info_'.$info['id'],json_encode($info),18000);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
