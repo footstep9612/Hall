@@ -59,15 +59,27 @@ class GoodsModel extends PublicModel {
                     //获取供应商与品牌
                     $product = new ProductModel();
                     $productInfo = $product->getInfo($item['spu'], $item['lang'] ,$product::STATUS_VALID);
-                    $item['brand'] = $item['supplier_id'] = $item['supplier_name'] = '';
+                    $item['brand'] = $item['spec'] = $item['supplier_id'] = $item['supplier_name'] = $item['meterial_cat_no'] = '';
                     if($productInfo){
                         if(isset($productInfo[$item['lang']])){
                             $productInfo = (array)$productInfo[$item['lang']];
                             $item['brand'] = $productInfo['brand'];
                             $item['supplier_id'] = $productInfo['supplier_id'];
                             $item['supplier_name'] = $productInfo['supplier_name'];
+                            $item['meterial_cat_no'] = $productInfo['meterial_cat_no'];
                         }
                     }
+
+                    //获取商品规格
+                    $gattr = new GoodsAttrModel();
+                    $spec = $gattr->getSpecBySku($item['sku'],$item['lang']);
+                    $spec_str = '';
+                    if($spec){
+                        foreach($spec as $r){
+                            $spec_str.= $r['attr_name'].':'.$r['attr_value'].$r['value_unit'].';';
+                        }
+                    }
+                    $item['spec'] = $spec_str;
 
                     //按语言分组
                     $data[$item['lang']] = $item;
