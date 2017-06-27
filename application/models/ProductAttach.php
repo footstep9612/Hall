@@ -85,7 +85,7 @@ class ProductAttachModel extends PublicModel{
         }
         $status = isset($condition['status']) ? strtoupper($condition['status']) : '';
         if($status){
-            if(!in_array($status , array('VALID','INVALID','DELETED'))){
+            if($status != '' && !in_array($status , array('VALID','INVALID','DELETED'))){
                 jsonReturn('',1000);
             }
             $where['status'] = $status;

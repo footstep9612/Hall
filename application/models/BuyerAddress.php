@@ -91,10 +91,7 @@ class BuyerAddressModel extends PublicModel
      * 采购商个人信息更新
      * @author klp
      */
-    public function update_address($condition){
-        if ($condition['customer_id']) {
-            $where['customer_id'] = $condition['customer_id'];
-        }
+    public function update_data($condition,$where){
         if ($condition['address']) {
             $data['address'] = $condition['address'];
         }

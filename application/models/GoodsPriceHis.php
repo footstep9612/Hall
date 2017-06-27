@@ -1,12 +1,12 @@
 <?php
 /**
- * @desc 报价单模型
- * @author liujf 2017-06-17
+ * @desc 商品历史报价模型
+ * @author liujf 2017-06-27
  */
-class QuoteModel extends PublicModel {
+class GoodsPriceHisModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
-    protected $tableName = 'quote';
+    protected $tableName = 'goods_price_his';
     
     public function __construct() {
         parent::__construct();
@@ -14,7 +14,7 @@ class QuoteModel extends PublicModel {
     
     /**
      * @desc 获取查询条件
- 	 * @author liujf 2017-06-17
+ 	 * @author liujf 2017-06-27
      * @param array $condition
      * @return array
      */
@@ -22,21 +22,12 @@ class QuoteModel extends PublicModel {
      	if(isset($condition['quote_no'])) {
     		$where['quote_no'] = $condition['quote_no'];
     	}
-    	
-     	if(isset($condition['biz_quote_status'])) {
-    		$where['biz_quote_status'] = $condition['biz_quote_status'];
-    	}
-    	
-     	if(isset($condition['logi_quote_status'])) {
-    		$where['logi_quote_status'] = $condition['logi_quote_status'];
-    	}
-    	
      }
     
     
     /**
-     * @desc 获取报价单列表
- 	 * @author liujf 2017-06-17
+     * @desc 获取商品历史报价列表
+ 	 * @author liujf 2017-06-27
      * @param array $condition
      * @return array
      */
@@ -48,8 +39,8 @@ class QuoteModel extends PublicModel {
     }   
     
 	/**
-     * @desc 获取报价单详情
- 	 * @author liujf 2017-06-17
+     * @desc 获取商品历史报价详情
+ 	 * @author liujf 2017-06-27
      * @param array $condition
      * @return array
      */

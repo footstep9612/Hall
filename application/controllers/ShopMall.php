@@ -15,7 +15,6 @@ abstract class ShopMallController extends Yaf_Controller_Abstract {
     /*
      * 初始化
      */
-
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
@@ -25,7 +24,6 @@ abstract class ShopMallController extends Yaf_Controller_Abstract {
         if ($this->getRequest()->getModuleName() == 'API' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            
         } else {
 
             if (!empty($jsondata["token"])) {
@@ -38,29 +36,22 @@ abstract class ShopMallController extends Yaf_Controller_Abstract {
             }
             $model = new UserModel();
             if (!empty($token)) {
-                try {
-                    $tks = explode('.', $token);
-                    $tokeninfo = JwtInfo($token); //解析token
-                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
-
-                    if (empty($userinfo)) {
-                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
-                        exit;
-                    } else {
-                        $this->user = array(
-                            "id" => $userinfo["id"],
-                            "name" => $tokeninfo["name"],
-                            "token" => $token, //token
-                        );
-                    }
-                } catch (Exception $e) {
-                    LOG::write($e->getMessage());
-                    $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
+                $tks = explode('.', $token);
+                $tokeninfo = JwtInfo($token); //解析token
+                $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['account_id']), true);
+                if (empty($userinfo)) {
+                    echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                     exit;
+                } else {
+                    $this->user = array(
+                        "account_id" => $userinfo["account_id"],
+                        "user_name" => $tokeninfo["user_name"],
+                        "email" => $tokeninfo["email"],
+                        "token" => $token, //token
+                    );
                 }
             } else {
-                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
-                exit;
+                echo json_encode(array("code" => "-104", "message" => "token不存在"));
             }
         }
     }

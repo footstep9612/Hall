@@ -42,12 +42,11 @@ class GoodsModel extends PublicModel {
         if(isset($condition['lang'])){
             $where['lang'] = strtolower($condition['lang']);
         }
-        if(isset($condition['status'])){
-            $where['status'] = trim($condition['status']);
+        if(!empty($condition['status']) && in_array(strtoupper($condition['status']),array('VALID','INVALID','DELETED'))){
+            $where['status'] = strtoupper($condition['status']);
         }
-
         if(redisHashExist('Sku',md5(json_encode($where)))){
-            return (array)json_decode(redisHashGet('Sku',md5(json_encode($where))));
+            return json_decode(redisHashGet('Sku',md5(json_encode($where))),true);
         }
 
         $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
@@ -257,7 +256,7 @@ class GoodsModel extends PublicModel {
         //获取当前表名
         $thistable = $this->getTableName();
 
-        $field = "$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
+        $field = "$thistable.pricing_flag,$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
         $where = array();
         $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
@@ -476,30 +475,37 @@ class GoodsModel extends PublicModel {
         if(empty($spu))
             return array();
 
-        $field = "sku,lang,qrcode,name,show_name,model,package_quantity,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
-        $condition = array(
-            "spu"=>$spu,
-            "lang"=> $lang,
-            "status"=>array('neq',self::STATUS_VALID)
-        );
-        $result = $this->field($field)->where($condition)->select();
-        if($result){
-            foreach($result as $k => $item){
-                //获取商品规格
-                $gattr = new GoodsAttrModel();
-                $spec = $gattr->getSpecBySku($item['sku'],$item['lang']);
-                $spec_str = '';
-                if($spec){
-                    foreach($spec as $r){
-                        $spec_str.= $r['attr_name'].':'.$r['attr_value'].$r['value_unit'].';';
-                    }
-                }
-                $result[$k]['spec'] = $spec_str;
-
-            }
+        if(redisHashExist('Sku',$spu.'_'.$lang)){
+            return json_decode(redisHashGet('Sku',$spu.'_'.$lang),true);
         }
-
-
+        try{
+            $field = "sku,lang,qrcode,name,show_name,model,package_quantity,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
+            $condition = array(
+                "spu"=>$spu,
+                "lang"=> $lang,
+                "status"=>self::STATUS_VALID
+            );
+            $result = $this->field($field)->where($condition)->select();
+            if($result){
+                foreach($result as $k => $item){
+                    //获取商品规格
+                    $gattr = new GoodsAttrModel();
+                    $spec = $gattr->getSpecBySku($item['sku'],$item['lang']);
+                    $spec_str = '';
+                    if($spec){
+                        foreach($spec as $r){
+                            $spec_str.= $r['attr_name'].':'.$r['attr_value'].$r['value_unit'].';';
+                        }
+                    }
+                    $result[$k]['spec'] = $spec_str;
+                }
+                redisHashSet('Sku',$spu.'_'.$lang,json_encode($result));
+                return $result;
+            }
+        }catch (Exception $e){
+            return array();
+        }
+        return array();
     }
 
 }

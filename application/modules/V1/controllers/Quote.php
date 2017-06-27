@@ -21,6 +21,7 @@ class QuoteController extends PublicController {
         $this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
         $this->exchangeRateModel = new ExchangeRateModel();
         $this->userModel = new UserModel();
+        $this->goodsPriceHisModel = new GoodsPriceHisModel();
 	}
 	
 	/**
@@ -205,6 +206,20 @@ class QuoteController extends PublicController {
     }
     
     /**
+     * @desc 商务技术获取报价列表接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function getQuoteListApiAction() {
+    	
+    	$condition['biz_quote_status'] = 'ONGOING';
+    	
+    	$res = $this->quoteModel->getList($condition);
+    	
+    	$this->jsonReturn($res);
+    }
+    
+    /**
      * @desc 商务技术修改报价接口
  	 * @author liujf 2017-06-26
      * @return json
@@ -247,7 +262,7 @@ class QuoteController extends PublicController {
 			$quote['quote_at'] = time();
 			$quote['quote_notes'] = $condition['quote_notes'];
 			
-			$res = $this->quoteModel->save($quote);
+			$res = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->save($quote);
     		
     		$this->jsonReturn($res);
     	} else {
@@ -261,7 +276,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-26
      * @return json
      */
-    public function getQuoteItemApiAction() {
+    public function getQuoteItemListApiAction() {
     	$condition = $this->put_data;
     	
     	if (isset($condition['quote_no'])) {
@@ -445,13 +460,27 @@ class QuoteController extends PublicController {
     	$condition = $this->put_data;
     	
     	if (isset($condition['sku'])) {
-    		$sql = "SELECT IF(`quote_sku` <> '', `quote_sku`, `inquiry_sku`) AS `sku` FROM `t_final_quote_item` WHERE `status` = 'APPROVED' AND `sku` = " . mysql_escape_string($condition['sku']);
+    		$sql = "SELECT * FROM (SELECT *, IF(`quote_sku` <> '', `quote_sku`, `inquiry_sku`) AS `sku` FROM `erui_rfq`.`t_final_quote_item` WHERE `status` = 'APPROVED') AS `t_tmp` WHERE `sku` = " . mysql_escape_string($condition['sku']);
     		$res = $this->finalQuoteItemModel->query($sql);
 			$this->jsonReturn($res);
     	} else {
     		$this->jsonReturn(false);
     	}
     	
+    }
+    
+    /**
+     * @desc 物流获取报价列表接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function getQuoteLogiListApiAction() {
+    	
+    	$condition['logi_quote_status'] = 'ONGOING';
+    	
+    	$res = $this->quoteModel->getList($condition);
+    	
+    	$this->jsonReturn($res);
     }
     
     /**
@@ -462,7 +491,7 @@ class QuoteController extends PublicController {
     public function updateQuoteLogiApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['inquiry_no'])) {
+    	if (isset($condition['quote_no'])) {
     		
     		$quote = $this->quoteModel->getDetail($condition);
     		
@@ -507,7 +536,7 @@ class QuoteController extends PublicController {
     		$logi['total_quote_price'] = $logiData['total_quote_price'];
     		$logi['total_bank_fee'] = $logiData['total_bank_fee'];
     		
-    		$res = $this->quoteModel->save($logi);
+    		$res = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->save($logi);
     		
     		$this->jsonReturn($res);
     	} else {
@@ -516,57 +545,82 @@ class QuoteController extends PublicController {
     	
     }
     
-    /**
-     * @desc 处理报价相关审核
- 	 * @author liujf 2017-06-20
+	/**
+     * @desc 获取市场可修改报价列表接口
+ 	 * @author liujf 2017-06-27
      * @return json
      */
-    public function examineAction() {
-    	$condition = $this->put_data;
+    public function getFinalQuoteListApiAction() {
     	
-    	if (isset($condition['inquiry_no'])) {
-    		$data = $this->getExamine($condition);
-    		
-    		$res = $this->quoteModel->save($data);
-    		
-    		$this->jsonReturn($res);
-    	}
+    	$condition['quote_status'] = 'APPROVING';
+    	
+    	$res = $this->finalQuoteModel->getList($condition);
+    	
+    	$this->jsonReturn($res);
     }
-    
 	
 	/**
-     * @desc 修改最终报价单
- 	 * @author liujf 2017-06-21
+     * @desc 市场修改报价接口
+ 	 * @author liujf 2017-06-27
      * @return json
      */
-    public function updateFinalQuoteAction() {
+    public function updateFinalQuoteApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['inquiry_no'])) {
+    	if (isset($condition['quote_no'])) {
     		
-    		$inquiry = $this->inquiryModel->where(array('inquiry_no' => $condition['inquiry_no']))->find();
+    		$user = $this->getUserInfo();
     		
+    		$quote = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->find();
+    		
+    		$inquiry = $this->inquiryModel->where(array('inquiry_no' => $quote['inquiry_no']))->find();
+    		
+    		$calculateQuoteInfo = $this->getCalculateQuoteInfo($condition);
+    		
+    		$finalQuote['package_volumn'] = $condition['package_volumn'];
+    		$finalQuote['size_unit'] = 'm^3';
+    		$finalQuote['package_mode'] = $condition['package_mode'];
+    		$finalQuote['origin_place'] = $condition['origin_place'];
+    		$finalQuote['destination'] = $condition['destination'];
+    		$finalQuote['gross_profit_rate'] = $condition['gross_profit_rate'];
+    		$finalQuote['payment_received_days'] = strtotime($condition['payment_received_days']);
+    		$finalQuote['exw_delivery_period'] = strtotime($condition['exw_delivery_period']);
+    		$finalQuote['period_of_validity'] = strtotime($condition['period_of_validity']);
+    		$finalQuote['purchase_cur'] = $condition['purchase_cur'];
+    		$finalQuote['bank_interest'] = $condition['bank_interest'];
+    		$finalQuote['fund_occupation_rate'] = $condition['fund_occupation_rate'];
+    		$finalQuote['payment_mode'] = $condition['payment_mode'];
+    		$finalQuote['total_weight'] = $calculateQuoteInfo['$totalWeight'];
+    		$finalQuote['weight_unit'] = 'kg';
+    		$finalQuote['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
+			$finalQuote['total_purchase_price'] = $calculateQuoteInfo['totalPurchasePrice'];
+			$exw = exw($calculateQuoteInfo['exwData'], $condition['gross_profit_rate']);
+			$finalQuote['total_exw_price'] = $exw['total'];
+			$finalQuote['total_exw_cur'] = 'USD';
+			$finalQuote['total_quote_cur'] = 'USD';
+			$finalQuote['total_logi_fee_cur'] = 'USD';
+			$finalQuote['total_bank_fee_cur'] = 'USD';
+			$finalQuote['total_insu_fee_cur'] = 'USD';
 			$finalQuote['quoter'] = $inquiry['agent'];
 			$finalQuote['quoter_email'] = $inquiry['agent_email'];
 			$finalQuote['quote_at'] = time();
 			$finalQuote['quote_notes'] = $condition['quote_notes'];
 			
-			$res = $this->finalQuoteModel->save($finalQuote);
+			$res = $this->finalQuoteModel->where(array('quote_no' => $condition['quote_no']))->save($finalQuote);
     		
     		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
     	}
     	
     }
     
-    
-    
-    
 	/**
-     * @desc 修改最终报价单项目
- 	 * @author liujf 2017-06-21
+     * @desc 市场修改报价SKU接口
+ 	 * @author liujf 2017-06-27
      * @return json
      */
-    public function uptateFinalQuoteItemAction() {
+    public function uptateFinalQuoteItemApiAction() {
     	
     	
     }
@@ -607,6 +661,25 @@ class QuoteController extends PublicController {
     }
     
 	/**
+     * @desc 处理报价相关审核接口
+ 	 * @author liujf 2017-06-20
+     * @return json
+     */
+    public function examineApiAction() {
+    	$condition = $this->put_data;
+    	
+    	if (isset($condition['quote_no'])) {
+    		$data = $this->getExamine($condition);
+    		
+    		$res = $this->finalQuoteModel->where(array('quote_no' => $condition['quote_no']))->save($data);
+    		
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
      * @desc 获取审核数据
  	 * @author liujf 2017-06-21
  	 * @param array $condition 条件参数
@@ -616,32 +689,42 @@ class QuoteController extends PublicController {
     	$data = array();
     	
     	switch ($condition['examine_type']) { // 审核类型： logi(物流) 、biz(商务) 、quote(报价)
-    		case 'logi' : $data['logi_quote_status'] = $condition['status'];
-    					  break;
-    		case 'biz' : $data['biz_quote_status'] = $condition['status'];
-    					  break;
-    		case 'quote' : $data['quote_status'] = $condition['status'];
-    					   $data['checker'] = $condition['checker'];
-						   $data['checker_email'] = $condition['checker_email'];
+    		case 'logi'  : $data['logi_quote_status'] = $condition['status'];
+    					   break;
+    		case 'biz'   : $data['biz_quote_status'] = $condition['status'];
+    					   break;
+    		case 'quote' : $user = $this->getUserInfo();
+    					   $data['quote_status'] = $condition['status'];
+    					   $data['checker'] = $user['name'];
+						   $data['checker_email'] = $user['email'];
 						   $data['check_at'] = time();
 						   $data['check_notes'] = $condition['check_notes'];
 						   
-						   $this->afterExamine($condition);
     	}
     	
     	return $data;
     	
     }
     
+    /**
+     * @desc 提交报价接口
+ 	 * @author liujf 2017-06-27
+ 	 * @param array $condition 条件参数
+     * @return array
+     */
+    public function submitQuoteApi($condition) {
+    	$this->afterSubmit($condition);
+    }
+    
 	/**
-     * @desc 报价单审核通过后的操作
+     * @desc 商务提交后的操作
  	 * @author liujf 2017-06-21
  	 * @param array $condition 条件参数
      * @return array
      */
-    private function afterExamine($condition) {
+    private function afterSubmit($condition) {
     	
-    	if ($condition['status'] == 'APPROVED') { // 审核通过
+    	if ($condition['status'] == 'APPROVED') { // 报价完成
     		$quote = $this->quoteModel->getDetail($condition);
 	    	$this->finalQuoteModel->add($quote);
 	    	
@@ -662,7 +745,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-26
  	 * @return array
      */
-    public function getUserInfo() {
+    private function getUserInfo() {
     	return $this->userModel->where(array('id' => $this->user['id']))->field('name,email')->find();
     }
     
@@ -670,7 +753,7 @@ class QuoteController extends PublicController {
      * @desc 重写jsonReturn方法
  	 * @author liujf 2017-06-24
      */
-    public function jsonReturn($data = array(), $type = 'JSON') {
+    private function jsonReturn($data = array(), $type = 'JSON') {
     	if ($data) {
     		$this->setCode('1');
             $this->setMessage('成功!');
