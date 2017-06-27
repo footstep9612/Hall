@@ -36,7 +36,7 @@ class GoodsAttrModel extends PublicModel
         $key_redis = md5(json_encode($where));
         if(redisExist($key_redis)){
             $result = redisGet($key_redis);
-            return $result ? json_decode($result) : array();
+            return $result ? json_decode($result,true) : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,sort_order,goods_flag,logi_flag,hs_flag,spec_flag';
 
@@ -155,7 +155,7 @@ class GoodsAttrModel extends PublicModel
         $key_redis = md5(json_encode($where));
         if(redisExist($key_redis)){
             $result = redisGet($key_redis);
-            return $result ? json_decode($result) : array();
+            return $result ? json_decode($result,true) : array();
         } else {
             $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,sort_order,goods_flag,logi_flag,hs_flag,spec_flag';
 
@@ -230,7 +230,7 @@ class GoodsAttrModel extends PublicModel
 
         //检查redis
         if(redisHashExist('spec','spec_'.$sku.'_'.$lang)){
-            return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang));
+            return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang),true);
         }
 
         $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit';
@@ -292,7 +292,7 @@ class GoodsAttrModel extends PublicModel
 
         //redis获取
         if(redisHashExist('Attr',md5(json_encode($where)))){
-            return (array)json_decode(redisHashGet('Attr',md5(json_encode($where))));
+            return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
         }
 
         //查询

@@ -185,12 +185,21 @@ class ProductController extends PublicController {
         exit;
     }
 
-    public function getSpecGoodsBySpu(){
+    /**
+     * 获取产品（spu）下的商品（sku）,包括规格 -- 门户产品详页在使用
+     * @author link 2017-06-27
+     */
+    public function getSpecGoodsAction(){
         if(!isset($this->input['spu']) || empty($this->input['spu'])){
             jsonReturn('','1000');
         }
+        if(isset($this->input['lang']) && !in_array($this->input['lang'],array('zh','en','es','ru'))){
+            jsonReturn('','1000');
+        }elseif(!isset($this->input['lang'])){
+            $this->input['lang'] = browser_lang() ? browser_lang() : 'en';
+        }
         $gmodel = new GoodsModel();
-        $result = $gmodel->getSpecGoodsBySpu($this->input['spu']);
+        $result = $gmodel->getSpecGoodsBySpu($this->input['spu'],$this->input['lang']);
         if($result){
             jsonReturn(array('data'=>$result));
         } else {
