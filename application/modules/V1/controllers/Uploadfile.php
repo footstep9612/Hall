@@ -2,9 +2,9 @@
 /**
 	上传Controller
 */
-class UploadfileController extends Yaf_Controller_Abstract{
+class UploadfileController extends PublicController{
 	public function init() {
-		//parent::__init();
+
 	}
 	/*
 		上传地址
