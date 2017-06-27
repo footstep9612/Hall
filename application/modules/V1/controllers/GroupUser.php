@@ -17,7 +17,7 @@ class GroupUserController extends PublicController {
         //   parent::__init();
     }
 
-    public function listAction() {
+    public function getlistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
