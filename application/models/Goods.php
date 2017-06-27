@@ -42,10 +42,9 @@ class GoodsModel extends PublicModel {
         if(isset($condition['lang'])){
             $where['lang'] = strtolower($condition['lang']);
         }
-        if(isset($condition['status'])){
-            $where['status'] = trim($condition['status']);
+        if(!empty($condition['status']) && in_array(strtoupper($condition['status']),array('VALID','INVALID','DELETED'))){
+            $where['status'] = strtoupper($condition['status']);
         }
-
         if(redisHashExist('Sku',md5(json_encode($where)))){
             return json_decode(redisHashGet('Sku',md5(json_encode($where))),true);
         }
