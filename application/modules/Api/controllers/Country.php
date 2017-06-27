@@ -11,7 +11,7 @@
  *
  * @author zyg
  */
-class CountryController extends PublicController
+class CountryController extends ShopMallController
 {
 
     protected $tableName = 'country';
@@ -39,7 +39,7 @@ class CountryController extends PublicController
             );
             jsonReturn($data);
         }else{
-            jsonReturn('','-1002','获取失败');
+            jsonReturn('','-1002','数据获取失败');
         }
         exit;
     }

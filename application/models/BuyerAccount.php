@@ -104,23 +104,6 @@ class BuyerAccountModel extends PublicModel {
 //    }
 
     /**
-     * 修改数据
-     * @param  int $id id
-     * @return bool
-     * @author jhw
-     */
-    public function update_data($data,$where)
-    {
-        if (isset($data['group_id'])) {
-            $arr['group_id'] = $data['group_id'];
-        }
-        if (!empty($where)) {
-            return $this->where($where)->save($arr);
-        } else {
-        }
-    }
-
-    /**
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
@@ -162,10 +145,7 @@ class BuyerAccountModel extends PublicModel {
      * 采购商个人信息更新
      * @author klp
      */
-    public function update_account($condition){
-        if ($condition['customer_id']) {
-            $where['customer_id'] = $condition['customer_id'];
-        }
+    public function update_data($condition,$where){
         if ($condition['email']) {
             $data['email'] = $condition['email'];
         }

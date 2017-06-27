@@ -204,10 +204,8 @@ class BuyerModel extends PublicModel {
      * 采购商个人信息更新
      * @author klp
      */
-    public function update_data($condition){
-        if ($condition['customer_id']) {
-            $where['customer_id'] = $condition['customer_id'];
-        }
+    public function update_data($condition,$where)
+    {
         if ($condition['name']) {
             $data['name'] = $condition['name'];
         }

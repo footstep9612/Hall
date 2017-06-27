@@ -25,7 +25,7 @@ class AttachController extends PublicController{
     }
 
     /**
-     * 获取商品附件
+     * 获取产品附件
      */
     public function bySpuAction(){
         $pAttach = new ProductAttachModel();
