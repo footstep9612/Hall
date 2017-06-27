@@ -20,14 +20,15 @@ class EsgoodsController extends ShopMallController {
 
     //put your code here
     public function init() {
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
-        $this->es = new ESClient();
+//        ini_set("display_errors", "On");
+//        error_reporting(E_ERROR | E_STRICT);
+//        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+//        $lang = $this->getPut('lang', 'en');
+//        $this->setLang($lang);
+//        $this->es = new ESClient();
         parent::init();
     }
+
     public function listAction() {
         $this->setLang('zh');
         $model = new EsgoodsModel();
@@ -43,8 +44,6 @@ class EsgoodsController extends ShopMallController {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
-
-
             $send['list'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($send);
