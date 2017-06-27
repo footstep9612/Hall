@@ -92,7 +92,7 @@ class SupplycapabilityModel extends PublicModel {
             if ($rows) {
                 $data = [];
                 foreach ($rows as $key => $val) {
-                    $data['cat_no'][] = $val;
+                    $data[$val['cat_no']][] = $val;
                 }
                 return $data;
             } else {

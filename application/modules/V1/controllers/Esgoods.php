@@ -36,8 +36,12 @@ class EsgoodsController extends PublicController {
 
     public function importAction($lang = 'en') {
         try {
-            $espoductmodel = new EsgoodsModel();
-            $espoductmodel->importgoodss($lang);
+            //$lang = 'zh';
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsgoodsModel();
+                $espoductmodel->importgoodss($lang);
+            }
+
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -51,7 +55,7 @@ class EsgoodsController extends PublicController {
     }
 
     public function listAction() {
-
+        $this->setLang('zh');
         $model = new EsgoodsModel();
         $ret = $model->getgoods($this->put_data, null, $this->getLang());
         if ($ret) {
