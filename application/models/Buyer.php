@@ -15,7 +15,8 @@ class BuyerModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer';
     protected $dbName = 'erui_buyer'; //数据库名称
-    protected $g_table = 'erui_buyer.t_buyer_account';
+    protected $g_table = 'erui_buyer.t_buyer';
+    Protected $autoCheckFields = true;
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -102,38 +103,47 @@ class BuyerModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-//    public function Exist($data) {
-//        $sql =  'SELECT `id`,`serial_no`,`customer_id`,`lang`,`name`,`bn`,`profile`,`country`,`province`,`city`,`reg_date`,';
-//        $sql .=  '`logo`,`official_website`,`brand`,`bank_name`,`swift_code`,`bank_address`,`bank_account`,`buyer_level`,`credit_level`,';
-//        $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`status`,`remarks`,`apply_at`,`approved_at`';
-//        $sql .= ' FROM '.$this->g_table;
-//        $where = '';
-//        if ( !empty($data['email']) ){
-//            $where .= " where email = '" .$data['email']."'";
-//        }
-//        if ( !empty($data['mobile']) ){
-//            if($where){
-//                $where .= " or mobile = '" .$data['mobile']."'";
-//            }else{
-//                $where .= " where mobile = '" .$data['mobile']."'";
-//            }
-//
-//        }
-//        if ( $where){
-//            $sql .= $where;
-//        }
-//        $row = $this->query( $sql );
-//        return empty($row) ? false : (isset($row['customer_id']) ? $row['customer_id'] : true);
-//    }
+    public function Exist($data) {
+        $sql =  'SELECT `id`,`serial_no`,`customer_id`,`lang`,`name`,`bn`,`profile`,`country`,`province`,`city`,`reg_date`,';
+        $sql .=  '`logo`,`official_website`,`brand`,`bank_name`,`swift_code`,`bank_address`,`bank_account`,`buyer_level`,`credit_level`,';
+        $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`status`,`remarks`,`apply_at`,`approved_at`';
+        $sql .= ' FROM '.$this->g_table;
+        $where = '';
+        if ( !empty($data['email']) ){
+            $where .= " where email = '" .$data['email']."'";
+        }
+        if ( !empty($data['mobile']) ){
+            if($where){
+                $where .= " or mobile = '" .$data['mobile']."'";
+            }else{
+                $where .= " where mobile = '" .$data['mobile']."'";
+            }
+
+        }
+        if ( !empty($data['id']) ){
+            if($where){
+                $where .= " and id = '" .$data['id']."'";
+            }else{
+                $where .= " where id = '" .$data['id']."'";
+            }
+
+        }
+        if ( !empty($data['customer_id']) ){
+            if($where){
+                $where .= " and customer_id = '" .$data['customer_id']."'";
+            }else{
+                $where .= " where customer_id = '" .$data['customer_id']."'";
+            }
+
+        }
+        if ( $where){
+            $sql .= $where;
+        }
+        $row = $this->query( $sql );
+        return empty($row) ? false : $row;
+    }
 
 
-
-    /**
-     * 新增数据
-     * @param  mix $createcondition 新增条件
-     * @return bool
-     * @author zyg
-     */
     public function create_data($create = [])
     {
         $data['customer_id'] = $create['customer_id'];
@@ -204,28 +214,67 @@ class BuyerModel extends PublicModel {
      * 采购商个人信息更新
      * @author klp
      */
-    public function update_data($condition,$where)
-    {
-        if ($condition['name']) {
-            $data['name'] = $condition['name'];
+    public function update_data($condition,$where){
+
+        if(isset($condition['lang'])){
+            $data['lang']=$condition['lang'];
         }
-        if ($condition['bn']) {
-            $data['bn'] = $condition['bn'];
+        if(isset($condition['bn'])){
+            $data['bn']=$condition['bn'];
         }
-        if ($condition['country']) {
-            $data['country'] = $condition['country'];
+        if(isset($condition['name'])){
+            $data['name']=$condition['name'];
         }
-        if ($condition['official_website']) {
-            $data['official_website'] = $condition['official_website'];
+        if(isset($condition['profile'])){
+            $data['profile']=$condition['profile'];
         }
-        if ($condition['buyer_level']) {
-            $data['buyer_level'] = $condition['buyer_level'];
+        if(isset($condition['country'])){
+            $data['country']=$condition['country'];
         }
-        if ($condition['province']) {
-            $data['province'] = $condition['province'];
+        if(isset($condition['province'])){
+            $data['province']=$condition['province'];
         }
-        if ($condition['city']) {
-            $data['city'] = $condition['city'];
+        if(isset($condition['logo'])){
+            $data['logo']=$condition['logo'];
+        }
+        if(isset($condition['official_website'])){
+            $data['official_website']=$condition['official_website'];
+        }
+        if(isset($condition['brand'])){
+            $data['brand']=$condition['brand'];
+        }
+        if(isset($condition['bank_name'])){
+            $data['bank_name']=$condition['bank_name'];
+        }
+        if(isset($condition['swift_code'])){
+            $data['swift_code']=$condition['swift_code'];
+        }
+        if(isset($condition['bank_address'])){
+            $data['bank_address']=$condition['bank_address'];
+        }
+        if(isset($condition['bank_account'])){
+            $data['bank_account']=$condition['bank_account'];
+        }
+        if(isset($condition['buyer_level'])){
+            $data['buyer_level']=$condition['buyer_level'];
+        }
+        if(isset($condition['credit_level'])){
+            $data['credit_level']=$condition['credit_level'];
+        }
+        if(isset($condition['finance_level'])){
+            $data['finance_level']=$condition['finance_level'];
+        }
+        if(isset($condition['logi_level'])){
+            $data['logi_level']=$condition['logi_level'];
+        }
+        if(isset($condition['qa_level'])){
+            $data['qa_level']=$condition['qa_level'];
+        }
+        if(isset($condition['steward_level'])){
+            $data['steward_level']=$condition['steward_level'];
+        }
+        if(isset($condition['remarks'])){
+            $data['remarks']=$condition['remarks'];
         }
         if($condition['status']){
             switch ($condition['status']) {
