@@ -102,15 +102,13 @@ class BuyerAccountModel extends PublicModel {
 //    }
 
     /**
-     * 修改数据
+     * 修改数据(更新)
      * @param  int $id id
      * @return bool
      * @author jhw
      */
     public function update_data($data,$where) {
-        if(isset($data['status'])){
-            $arr['status'] = $data['status'];
-        }
+
         if(isset($data['email'])){
             $arr['email'] = $data['email'];
         }
@@ -138,13 +136,13 @@ class BuyerAccountModel extends PublicModel {
         if($data['status']){
             switch ($data['status']) {
                 case self::STATUS_VALID:
-                    $data['status'] = $data['status'];
+                    $arr['status'] = $data['status'];
                     break;
                 case self::STATUS_INVALID:
-                    $data['status'] = $data['status'];
+                    $arr['status'] = $data['status'];
                     break;
                 case self::STATUS_DELETE:
-                    $data['status'] = $data['status'];
+                    $arr['status'] = $data['status'];
                     break;
             }
         }
@@ -194,8 +192,6 @@ class BuyerAccountModel extends PublicModel {
         $data = $this->create($arr);
         return $this->add($data);
     }
-
-
 
     /**
      * 密码校验
