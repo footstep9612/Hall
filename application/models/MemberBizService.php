@@ -30,10 +30,10 @@ class MemberBizServiceModel extends PublicModel {
     {
         $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-        if(redisHashExist('services',md5(json_encode($lang)))){
+        /*if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
             return $result ? $result : array();
-        } else {
+        } else {*/
             //通过buyer_level查找biz_service_bn
             $biz_service_bn = $this->field('buyer_level,biz_service_bn')->select();
 
@@ -138,7 +138,7 @@ class MemberBizServiceModel extends PublicModel {
                         }
                     }
                 }
-                redisHashSet('services', md5(json_encode($lang)), json_encode($service));
+               // redisHashSet('services', md5(json_encode($lang)), json_encode($service));
                 if ($service) {
                     return $service;
                 } else {
@@ -147,7 +147,7 @@ class MemberBizServiceModel extends PublicModel {
             } else {
                 return false;
             }
-        }
+       // }
     }
 
     /**
@@ -161,10 +161,10 @@ class MemberBizServiceModel extends PublicModel {
         if(!empty($buyerLevel)){
             $where['buyer_level'] = ucfirst($buyerLevel);
         }
-        if(redisHashExist('service',md5(json_encode($where)))){
+        /*if(redisHashExist('service',md5(json_encode($where)))){
             $result = json_decode(redisHashGet('service',md5(json_encode($lang))),true);
             return $result ? $result : array();
-        } else {
+        } else {*/
             //通过buyer_level查找biz_service_bn
             $biz_service_bn = $this->field('biz_service_bn')->select();
             $data = array();
@@ -233,7 +233,7 @@ class MemberBizServiceModel extends PublicModel {
                         }
                     }
                 }
-                redisHashSet('service',md5(json_encode($where)),json_encode($service));
+                //redisHashSet('service',md5(json_encode($where)),json_encode($service));
                 if ($service) {
                     return $service;
                 } else {
@@ -242,6 +242,6 @@ class MemberBizServiceModel extends PublicModel {
             } else {
                 return false;
             }
-        }
+        //}
     }
 }
