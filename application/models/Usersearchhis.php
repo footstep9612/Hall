@@ -93,7 +93,7 @@ class UsersearchhisModel extends PublicModel {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
-            return $this->where($data)->limit($current_no, $pagesize)->order('search_count desc,search_time desc')->select();
+            return $this->where($data)->limit($current_no-1, $pagesize)->order('search_count desc,search_time desc')->select();
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
