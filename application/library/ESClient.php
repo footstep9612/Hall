@@ -818,7 +818,7 @@ class ESClient {
 
 
         $searchParams['from'] = $from;
-        $searchParams['size'] = $size;z
+        $searchParams['size'] = $size;
         try {
 
             return $this->server->search($searchParams);
