@@ -24,8 +24,7 @@ Yaf_Dispatcher::getInstance()->catchException(TRUE);
 
 error_reporting(E_ERROR & E_STRICT);
 
-    $response = $application
-            ->bootstrap()/* bootstrap是可选的调用 */
-            ->run()/* 执行 */;
-
+$response = $application
+        ->bootstrap()/* bootstrap是可选的调用 */
+        ->run()/* 执行 */;
 ?>
