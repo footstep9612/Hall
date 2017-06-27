@@ -20,13 +20,13 @@ class UploadfileController extends PublicController{
 
 		if(!empty($ret['fileId'])){
 			$result = array(
-				"ok" => '1',
-				"data" => $ret['fileId'],
+				"code" => '1',
+				"url" => $ret['fileId'],
 			);
 		}else{
 			$result = array(
-				"ok" => '-103',
-				"data" => "error"
+				"code" => '-103',
+				"message" => "error"
 			);
 		}
 		echo json_encode($result);
