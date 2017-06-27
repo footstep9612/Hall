@@ -4,7 +4,7 @@
 */
 class UploadfileController extends Yaf_Controller_Abstract{
 	public function init() {
-		parent::__init();
+		//parent::__init();
 	}
 	/*
 		上传地址
