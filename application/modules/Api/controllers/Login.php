@@ -40,19 +40,19 @@ class LoginController extends Yaf_Controller_Abstract {
             echo json_encode(array("code" => "-101", "message" => "帐号不可以都为空"));
             exit();
         }
-        $model = new UserModel();
+        $model = new BuyerAccountModel();
         $info = $model->login($arr);
         if ($info) {
             $jwtclient = new JWTClient();
-            $jwt['id'] = $info['id'];
+            $jwt['account_id'] = $info['id'];
             $jwt['ext'] = time();
             $jwt['iat'] = time();
-            $jwt['name'] = $info['name'];
-            $datajson['mobile'] = $info['mobile'];
+            $jwt['user_name'] = $info['user_name'];
+            $jwt['email'] = $info['email'];
             $datajson['email'] = $info['email'];
             $datajson['name'] = $info['name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('user_info_' . $info['id'], json_encode($info), 18000);
+            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), 18000);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
@@ -68,7 +68,7 @@ class LoginController extends Yaf_Controller_Abstract {
      * @author jhw
      */
     public function registerAction() {
-        $data = json_decode('{"user_name":"123","phone":"85262323","first_name":"洪伟","last_name":"姜","country":"12","name":"123","description":"2","group_id":"48","password":"123","mobile":"15120043861","email":"377812705@qq.com"}', true); // json_decode(file_get_contents("php://input"), true);
+        $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
         } else {
@@ -132,7 +132,6 @@ class LoginController extends Yaf_Controller_Abstract {
         $login_arr['email'] = $data['email'];
         $login_arr['user_name'] = $data['user_name'];
         $check = $buyer_account_model->Exist($login_arr);
-        var_dump($check);
         if ($check) {
             jsonReturn('', -101, '手机或账号已存在!');
         }

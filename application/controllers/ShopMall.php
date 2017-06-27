@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Class PublicController
+ * Class ShopMallController
  * 全局方法
  */
-abstract class ApipublicController extends Yaf_Controller_Abstract {
+abstract class ShopMallController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
@@ -15,47 +15,44 @@ abstract class ApipublicController extends Yaf_Controller_Abstract {
     /*
      * 初始化
      */
-
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
+        if ($this->getRequest()->getModuleName() == 'API' &&
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+        } else {
 
+            if (!empty($jsondata["token"])) {
+                $token = $jsondata["token"];
+            }
+            $data = $this->getRequest()->getPost();
 
-        if (!empty($jsondata["token"])) {
-            $token = $jsondata["token"];
-        }
-        $data = $this->getRequest()->getPost();
-
-        if (!empty($data["token"])) {
-            $token = $data["token"];
-        }
-        $model = new BuyerAccountModel();
-        if (!empty($token)) {
-            try {
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            $model = new UserModel();
+            if (!empty($token)) {
                 $tks = explode('.', $token);
                 $tokeninfo = JwtInfo($token); //解析token
-                $userinfo = json_decode(redisGet('BuyerAccount_' . $tokeninfo['id']), true);
+                $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['account_id']), true);
                 if (empty($userinfo)) {
                     echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                     exit;
                 } else {
                     $this->user = array(
-                        "id" => $userinfo["id"],
-                        "name" => $tokeninfo["name"],
+                        "account_id" => $userinfo["account_id"],
+                        "user_name" => $tokeninfo["user_name"],
+                        "email" => $tokeninfo["email"],
                         "token" => $token, //token
                     );
                 }
-            } catch (Exception $e) {
-                LOG::write($e->getMessage());
-                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
-                exit;
+            } else {
+                echo json_encode(array("code" => "-104", "message" => "token不存在"));
             }
-        } else {
-            $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
-            exit;
         }
     }
 
@@ -396,8 +393,8 @@ abstract class ApipublicController extends Yaf_Controller_Abstract {
 
         return $quoteSerialNo;
     }
-
-    /**
+    
+	/**
      * 获取生成的报价单号
      * @author liujf 2017-06-24
      * @return string $quoteNo 报价单号
