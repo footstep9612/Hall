@@ -19,6 +19,8 @@ class QuoteModel extends PublicModel {
      * @return array
      */
      public function getWhere($condition) {
+     	$where = array();
+     	
      	if(isset($condition['quote_no'])) {
     		$where['quote_no'] = $condition['quote_no'];
     	}
@@ -31,8 +33,23 @@ class QuoteModel extends PublicModel {
     		$where['logi_quote_status'] = $condition['logi_quote_status'];
     	}
     	
+    	return $where;
+    	
      }
-    
+     
+	/**
+     * @desc 获取记录总数
+ 	 * @author liujf 2017-06-27
+     * @param array $condition 
+     * @return int $count
+     */
+    public function getCount($condition) {
+    	$where = $this->getWhere($condition);
+    	
+    	$count = $this->where($where)->count('id');
+    	
+    	return $count > 0 ? $count : 0;
+    }
     
     /**
      * @desc 获取报价单列表
@@ -44,7 +61,11 @@ class QuoteModel extends PublicModel {
     	
     	$where = $this->getWhere($condition);
     	
-        return $this->where($where)->select();
+    	if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
+    		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
+    	} else {
+    		return $this->where($where)->select();
+    	}
     }   
     
 	/**
