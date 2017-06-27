@@ -19,7 +19,7 @@ class BuyersearchhisModel extends PublicModel {
 
     public function __construct($str = '') {
         parent::__construct($str);
-    }    
+    }
 
     /**
      * 根据条件获取查询条件
@@ -93,11 +93,12 @@ class BuyersearchhisModel extends PublicModel {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
-            return $this->where($data)->limit($current_no, $pagesize)->select();
+            return $this->where($data)->limit($current_no, $pagesize)
+                            ->order('search_count desc,search_time desc')->select();
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return [];
         }
     }
 
@@ -117,7 +118,7 @@ class BuyersearchhisModel extends PublicModel {
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return [];
         }
     }
 
@@ -129,7 +130,7 @@ class BuyersearchhisModel extends PublicModel {
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return false;
         }
     }
 
@@ -148,7 +149,7 @@ class BuyersearchhisModel extends PublicModel {
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return false;
         }
     }
 
