@@ -715,4 +715,29 @@ class ExcelController extends PublicController
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis',time())."_goodsList.xls");
     }
+
+    /**
+     * 导出询价单模板接口
+     */
+    public function getTemplateAction()
+    {
+        //验证请求
+        if (!$this->getRequest()->isPost())
+        {
+            exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101'),'data'=>[]]));
+        }
+        //TODO 模板文件路径(放在项目public/resource目录,后期可以放到文件服务器里面)
+        //$templateFile = $_SERVER['HTTP_HOST']."/public/resource/template.xls";
+        $templateFile = APPLICATION_PATH."/ExcelFiles/template.xls";
+        //var_dump($templateFile);die;
+        if ( is_file($templateFile) && file_exists($templateFile))
+        {
+            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$templateFile]] ;
+            exit(json_encode($response));
+        }else{
+            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
+            exit(json_encode($response));
+        }
+
+    }
 }
