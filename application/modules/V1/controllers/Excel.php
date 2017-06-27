@@ -740,4 +740,36 @@ class ExcelController extends PublicController
         }
 
     }
+
+    /**
+     * 导出询价单模板接口(市场询报价)
+     */
+    public function getInquiryTemplateAction()
+    {
+        //请求验证
+        $this->requestValidator();
+
+        //导出询价单模板
+        $inquiryTemplateFile = APPLICATION_PATH."/ExcelFiles/inquiryTemplate.xls";
+        //判断文件的真实性和是否存在
+        if ( is_file($inquiryTemplateFile) && file_exists($inquiryTemplateFile))
+        {
+            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
+        }else{
+            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
+        }
+        exit(json_encode($response));
+    }
+
+    /**
+     * 请求类型验证
+     * @return bool
+     */
+    protected function requestValidator()
+    {
+        //请求类型为POST或者PUT均可通过
+        if ( $this->getRequest()->isPost() || $this->getRequest()->isPut()) return true;
+        exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101')]));
+    }
+
 }
