@@ -9,7 +9,6 @@
 /**
  * Description of User
  *
-<<<<<<< HEAD
  * @author jhw
  */
 class BuyerAccountModel extends PublicModel {
@@ -39,12 +38,11 @@ class BuyerAccountModel extends PublicModel {
             $map1['user_name']=$data['user_name'];
             $map1['_logic'] = 'or';
             $map['_complex'] = $map1;
-            var_dump($data);
             $row = $this->table('erui_buyer.t_buyer_account')->where($map)->select();
         }else{
             $row = $this->table('erui_buyer.t_buyer_account')->where($data)->select();
         }
-        return empty($row) ? false : (isset($row['customer_id']) ? $row['customer_id'] : true);
+        return empty($row) ? false : $row ;
     }
 
 //    /**
@@ -109,10 +107,46 @@ class BuyerAccountModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($data,$where)
-    {
-        if (isset($data['group_id'])) {
-            $arr['group_id'] = $data['group_id'];
+    public function update_data($data,$where) {
+        if(isset($data['status'])){
+            $arr['status'] = $data['status'];
+        }
+        if(isset($data['email'])){
+            $arr['email'] = $data['email'];
+        }
+        if(isset($data['user_name'])){
+            $arr['user_name'] = $data['user_name'];
+        }
+        if(isset($data['mobile'])){
+            $arr['mobile'] = $data['mobile'];
+        }
+        if(isset($data['password_hash'])){
+            $arr['password_hash'] = md5($data['password_hash']);
+        }
+        if(isset($data['role'])){
+            $arr['role'] = $data['role'];
+        }
+        if(isset($data['first_name'])){
+            $arr['first_name'] = $data['first_name'];
+        }
+        if(isset($data['last_name'])){
+            $arr['last_name'] = $data['last_name'];
+        }
+        if(isset($data['phone'])){
+            $arr['phone'] = $data['phone'];
+        }
+        if($data['status']){
+            switch ($data['status']) {
+                case self::STATUS_VALID:
+                    $data['status'] = $data['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $data['status'] = $data['status'];
+                    break;
+                case self::STATUS_DELETE:
+                    $data['status'] = $data['status'];
+                    break;
+            }
         }
         if (!empty($where)) {
             return $this->where($where)->save($arr);
@@ -133,6 +167,9 @@ class BuyerAccountModel extends PublicModel {
         if(isset($create['email'])){
             $arr['email'] = $create['email'];
         }
+        if(isset($create['user_name'])){
+            $arr['user_name'] = $create['user_name'];
+        }
         if(isset($create['mobile'])){
             $arr['mobile'] = $create['mobile'];
         }
@@ -140,63 +177,25 @@ class BuyerAccountModel extends PublicModel {
             $arr['password_hash'] = md5($create['password_hash']);
         }
         if(isset($create['role'])){
-            $arr['role'] = md5($create['role']);
+            $arr['role'] = $create['role'];
         }
         if(isset($create['first_name'])){
-            $arr['first_name'] = md5($create['first_name']);
+            $arr['first_name'] = $create['first_name'];
         }
         if(isset($create['last_name'])){
-            $arr['last_name'] = md5($create['last_name']);
+            $arr['last_name'] = $create['last_name'];
         }
         if(isset($create['phone'])){
-            $arr['phone'] = md5($create['phone']);
+            $arr['phone'] = $create['phone'];
         }
         if(isset($create['phone'])){
-            $arr['created_at'] = Data;
+            $arr['created_at'] = Date("Y-m-d H:i:s");
         }
         $data = $this->create($arr);
         return $this->add($data);
     }
 
-    /**
-     * 采购商个人信息更新
-     * @author klp
-     */
-    public function update_account($condition){
-        if ($condition['customer_id']) {
-            $where['customer_id'] = $condition['customer_id'];
-        }
-        if ($condition['email']) {
-            $data['email'] = $condition['email'];
-        }
-        if ($condition['phone']) {
-            $data['phone'] = $condition['phone'];
-        }
-        if ($condition['first_name']) {
-            $data['first_name'] = $condition['first_name'];
-        }
-        if ($condition['last_name']) {
-            $data['last_name'] = $condition['last_name'];
-        }
-        if ($condition['user_name']) {
-            $data['user_name'] = $condition['user_name'];
-        }
-        if($condition['status']){
-            switch ($condition['status']) {
-                case self::STATUS_VALID:
-                    $data['status'] = $condition['status'];
-                    break;
-                case self::STATUS_INVALID:
-                    $data['status'] = $condition['status'];
-                    break;
-                case self::STATUS_DELETE:
-                    $data['status'] = $condition['status'];
-                    break;
-            }
-        }
 
-        return $this->where($where)->save($data);
-    }
 
     /**
      * 密码校验
