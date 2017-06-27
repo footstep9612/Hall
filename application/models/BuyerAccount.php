@@ -33,12 +33,11 @@ class BuyerAccountModel extends PublicModel {
             $map1['user_name']=$data['user_name'];
             $map1['_logic'] = 'or';
             $map['_complex'] = $map1;
-            var_dump($data);
             $row = $this->table('erui_buyer.t_buyer_account')->where($map)->select();
         }else{
             $row = $this->table('erui_buyer.t_buyer_account')->where($data)->select();
         }
-        return empty($row) ? false : (isset($row['customer_id']) ? $row['customer_id'] : true);
+        return empty($row) ? false : $row ;
     }
 
 //    /**
@@ -104,8 +103,38 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data,$where) {
-        if(isset($data['group_id'])){
-            $arr['group_id'] = $data['group_id'];
+        if(isset($data['customer_id'])){
+            $arr['customer_id'] = $data['customer_id'];
+        }
+        if(isset($data['status'])){
+            $arr['status'] = $data['status'];
+        }
+        if(isset($data['email'])){
+            $arr['email'] = $data['email'];
+        }
+        if(isset($data['user_name'])){
+            $arr['user_name'] = $data['user_name'];
+        }
+        if(isset($data['mobile'])){
+            $arr['mobile'] = $data['mobile'];
+        }
+        if(isset($data['password_hash'])){
+            $arr['password_hash'] = md5($data['password_hash']);
+        }
+        if(isset($data['role'])){
+            $arr['role'] = $data['role'];
+        }
+        if(isset($data['first_name'])){
+            $arr['first_name'] = $data['first_name'];
+        }
+        if(isset($data['last_name'])){
+            $arr['last_name'] = $data['last_name'];
+        }
+        if(isset($data['phone'])){
+            $arr['phone'] = $data['phone'];
+        }
+        if(isset($data['status'])){
+            $arr['status']=$data['status'];
         }
         if(!empty($where)){
             return $this->where($where)->save($arr);
@@ -129,6 +158,9 @@ class BuyerAccountModel extends PublicModel {
         if(isset($create['email'])){
             $arr['email'] = $create['email'];
         }
+        if(isset($create['user_name'])){
+            $arr['user_name'] = $create['user_name'];
+        }
         if(isset($create['mobile'])){
             $arr['mobile'] = $create['mobile'];
         }
@@ -136,19 +168,19 @@ class BuyerAccountModel extends PublicModel {
             $arr['password_hash'] = md5($create['password_hash']);
         }
         if(isset($create['role'])){
-            $arr['role'] = md5($create['role']);
+            $arr['role'] = $create['role'];
         }
         if(isset($create['first_name'])){
-            $arr['first_name'] = md5($create['first_name']);
+            $arr['first_name'] = $create['first_name'];
         }
         if(isset($create['last_name'])){
-            $arr['last_name'] = md5($create['last_name']);
+            $arr['last_name'] = $create['last_name'];
         }
         if(isset($create['phone'])){
-            $arr['phone'] = md5($create['phone']);
+            $arr['phone'] = $create['phone'];
         }
         if(isset($create['phone'])){
-            $arr['created_at'] = Data;
+            $arr['created_at'] = Date("Y-m-d H:i:s");
         }
         $data = $this->create($arr);
         return $this->add($data);
