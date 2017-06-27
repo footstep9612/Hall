@@ -21,46 +21,48 @@ class EsproductController extends ShopMallController {
     //put your code here
     public function init() {
 
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
-        if ($this->getRequest()->getModuleName() == 'V1' &&
-                $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            
-        } else {
-
-            if (!empty($jsondata["token"])) {
-                $token = $jsondata["token"];
-            }
-            $model = new UserModel();
-            if (!empty($token)) {
-                try {
-                    $tks = explode('.', $token);
-                    $tokeninfo = JwtInfo($token); //解析token
-                    $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
-
-                    if (empty($userinfo)) {
-                        $this->put_data['source'] = 'ERUI';
-                    } else {
-                        $this->user = array(
-                            "id" => $userinfo["id"],
-                            "name" => $tokeninfo["name"],
-                            'email' => $tokeninfo["email"],
-                            "token" => $token, //token
-                        );
-                    }
-                } catch (Exception $e) {
-                    $this->put_data['source'] = 'ERUI';
-                }
-            } else {
-                $this->put_data['source'] = 'ERUI';
-            }
-        }
         $this->es = new ESClient();
-        //  parent::init();
+        parent::init();
+    }
+
+    /*
+     * product数据导入
+     */
+
+    public function importAction($lang = 'en') {
+        try {
+            set_time_limit(0);
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsproductModel();
+                $espoductmodel->importproducts($lang);
+            }
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    public function indexAction() {
+
+        $body['mappings'] = [];
+
+
+        foreach ($this->langs as $lang) {
+            $body['mappings']['goods_' . $lang] = $this->goodsAction($lang);
+
+            $body['mappings']['product_' . $lang] = $this->productAction($lang);
+        }
+
+        $this->es->create_index($this->index, $body);
+        $this->setCode(1);
+        $this->setMessage('成功!');
+        $this->jsonReturn();
     }
 
     public function listAction() {
