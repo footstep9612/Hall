@@ -33,6 +33,7 @@ class ProductController extends PublicController {
      */
     public function getInfoAction()
     {
+        echo $this->input['spu'].'hi';
         if(isset($this->input['spu']) && !empty($this->input['spu'])){
             $spu = $this->input['spu'];
         } else{
