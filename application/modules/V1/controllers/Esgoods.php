@@ -61,9 +61,9 @@ class EsgoodsController extends PublicController {
         if ($ret) {
             $list = [];
             $data = $ret[0];
-            $send['data']['count'] = intval($data['hits']['total']);
-            $send['data']['current_no'] = intval($ret[1]);
-            $send['data']['pagesize'] = intval($ret[2]);
+            $send['count'] = intval($data['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
 
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
