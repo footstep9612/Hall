@@ -38,20 +38,21 @@ class ShowCatProductModel extends PublicModel{
         $goods = new GoodsModel();
         $field = 'g.spu,g.show_name,g.sku,g.model';
         $condition = array(
-            'status'=>self::STATUS_VALID,
-            'show_cat_no'=>$show_cat_no,
+            $this->getTableName().'.status'=>self::STATUS_VALID,
+            $this->getTableName().'.cat_no'=>$show_cat_no,
+            'g.status'=>$goods::STATUS_VALID,
         );
-        $condition['lang'] = $lang;
+        $condition['g.lang'] = $lang;
         try {
             $return = array(
                 'count' => 0,
                 'current_no' => $current_no,
                 'pagesize' => $pagesize
             );
-            $obj = $this->field($field)->join($goods->getTableName() . ' g ON ' . $this->getTableName() . '.spu=g.spu', 'LEFT')->where($condition);
-            $result = $obj->page($current_no, $pagesize)->select();
+            $count = $this->field($field)->join($goods->getTableName() . ' g ON ' . $this->getTableName() . '.spu=g.spu', 'LEFT')->where($condition)->count();
+            $result = $this->field($field)->join($goods->getTableName() . ' g ON ' . $this->getTableName() . '.spu=g.spu', 'LEFT')->where($condition)->page($current_no, $pagesize)->select();
             if ($result) {
-                $return['count'] = $obj->count();
+                $return['count'] =$count;
                 $return['data'] = $result;
             }
             return $return;

@@ -402,8 +402,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         return $quoteSerialNo;
     }
-    
-	/**
+
+    /**
      * 获取生成的报价单号
      * @author liujf 2017-06-24
      * @return string $quoteNo 报价单号
