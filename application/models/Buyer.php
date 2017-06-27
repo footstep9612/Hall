@@ -165,11 +165,13 @@ class BuyerModel extends PublicModel {
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
             $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
-                ->where(array('customer_id' => $buyerInfo['customer_id']))
-                ->find();
+                                     ->where(array('customer_id' => $buyerInfo['customer_id']))
+                                     ->find();
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
-            $zipCode = $buyerAddress->field('zipcode')->where(array('customer_id' => $buyerInfo['customer_id']))->find();
+            $zipCode = $buyerAddress->field('zipcode')
+                                    ->where(array('customer_id' => $buyerInfo['customer_id']))
+                                    ->find();
             $info = array_merge($buyerInfo,$userInfo);
             $info['zipCode'] = $zipCode;
 
@@ -261,6 +263,32 @@ class BuyerModel extends PublicModel {
 
         return $this->where($where)->save($data);
 
+    }
+
+    /**
+     * 通过顾客id获取会员等级
+     * @author klp
+     */
+    public function getService($condition=[])
+    {
+        if(!empty($condition['customer_id'])){
+            $where['customer_id'] = $condition['customer_id'];
+        } else{
+            jsonReturn('','-1001','用户[id]不可以为空');
+        }
+        $lang = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
+        //获取会员等级
+        $buyerLevel = $this->where($where)
+                          ->field('buyer_level')
+                          ->find();
+        //获取服务
+        $MemberBizService = new MemberBizServiceModel();
+        $result = $MemberBizService->getService($buyerLevel,$lang);
+        if($result){
+            return $result;
+        } else{
+            return array();
+        }
     }
 
 }
