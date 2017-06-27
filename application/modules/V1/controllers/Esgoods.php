@@ -52,5 +52,7 @@ class EsgoodsController extends ShopMallController {
             $this->jsonReturn();
         }
     }
+    
+    
 
 }

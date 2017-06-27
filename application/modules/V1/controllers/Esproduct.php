@@ -150,11 +150,13 @@ class EsproductController extends ShopMallController {
             $this->setCode(MSG::MSG_SUCCESS);
             if ($this->put_data['keyword']) {
                 $search = [];
-                $search['keyword'] = $this->put_data['keyword'];
+                $search['keywords'] = $this->put_data['keyword'];
                 $search['user_email'] = $this->user['email'];
                 $search['search_time'] = date('Y-m-d H:i:s');
-                $usersearchmodel = new UsersearchhisModel();
-                if ($row = $usersearchmodel->exist($condition)) {
+                $usersearchmodel = new BuyersearchhisModel();
+                $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
+                $row = $usersearchmodel->exist($condition);
+                if ($row) {
                     $search['search_count'] = intval($row['search_count']) + 1;
                     $usersearchmodel->update_data($search);
                 }
