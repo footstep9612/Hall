@@ -11,11 +11,11 @@
  *
  * @author zhongyg
  */
-class BuyersearchhisContoller extends ShopMallController {
+class BuyersearchhisController extends ShopMallController {
 
     //put your code here
     public function init() {
-        parent::init();
+       parent::init();
     }
 
     public function listAction() {
@@ -34,7 +34,9 @@ class BuyersearchhisContoller extends ShopMallController {
                 $this->setCode(1);
                 $this->jsonReturn($data);
             } else {
-                $this->setCode(-1);
+              
+                      $this->setCode(-1);
+                $this->setMessage('空数据!');
                 $this->jsonReturn();
             }
         }

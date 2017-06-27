@@ -11,12 +11,12 @@
  *
  * @author zhongyg
  */
-class UsersearchhisContoller extends PublicController {
+class UsersearchhisController extends PublicController {
 
     //put your code here
     //put your code here
     public function init() {
-        parent::init();
+//        parent::init();
     }
 
     public function listAction() {
@@ -36,6 +36,7 @@ class UsersearchhisContoller extends PublicController {
                 $this->jsonReturn($data);
             } else {
                 $this->setCode(-1);
+                $this->setMessage('空数据!');
                 $this->jsonReturn();
             }
         }
