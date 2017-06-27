@@ -192,7 +192,7 @@ class ProductModel extends PublicModel {
      * @param string $lang    语言
      * return array
      */
-    public function getInfo($spu = '', $lang = '',$status='') {
+    public function getInfo($spu = '', $lang = '',$status = '') {
         if (empty($spu))
             return array();
 

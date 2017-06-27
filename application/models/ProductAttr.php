@@ -44,26 +44,10 @@ class ProductAttrModel extends PublicModel {
         );
 
         //缓存数据redis查询
-
         $key_redis = md5(json_encode($condition));
         if(redisExist($key_redis)){
             $result = redisGet($key_redis);
             return $result ? json_decode($result) : array();
-        $key_redis = md5(json_encode(array('spu' => $spu, 'status' => self::STATUS_VALID) . time()));
-        if (redisExist($key_redis)) {
-            $result = redisHashGet('pattrs', $key_redis);
-            //判断语言,返回对应语言集
-            $data = array();
-            if ('' != $lang) {
-                foreach ($result as $val) {
-                    if ($val['lang'] == $lang) {
-                        $data[$val['lang']] = $val;
-                    }
-                }
-                return $data ? $data : array();
-            } else {
-                return $result ? $result : array();
-            }
         } else {
             $result = $this->field($field)->where($condition)->select();
             if ($result) {
@@ -106,7 +90,7 @@ class ProductAttrModel extends PublicModel {
                 return array();
             }
         }
-    }
+
     }
 
     /**

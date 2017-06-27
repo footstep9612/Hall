@@ -42,7 +42,7 @@ class ProductController extends PublicController {
         if($lang != '' && !in_array($lang,array('zh','en','es','ru'))) {
             jsonReturn('','1000','参数[语言]有误');
         }
-        $status = isset($this->input['status'])?$this->input['status']:'';
+        $status = isset($this->input['status'])?strtoupper($this->input['status']):'';
         if($status != '' && !in_array($status,array('NORMAL','CLOSED','VALID','TEST','CHECKING','INVALID','DELETED'))) {
             jsonReturn('','1000','参数[状态]有误');
         }
