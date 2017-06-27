@@ -11,17 +11,17 @@
  *
  * @author zhongyg
  */
-class BuyersearchhisContoller extends ShopMallController {
+class BuyersearchhisController extends ShopMallController {
 
     //put your code here
     public function init() {
-        parent::init();
+       parent::init();
     }
 
     public function listAction() {
         $model = new BuyersearchhisModel();
         $email = $this->user['email'];
-        $condition['email'] = $email;
+        $condition['user_email'] = $email;
         $data = json_decode(redisGet('Buyersearchhis_' . $email), true);
         if ($data) {
             $this->setCode(1);
@@ -34,7 +34,9 @@ class BuyersearchhisContoller extends ShopMallController {
                 $this->setCode(1);
                 $this->jsonReturn($data);
             } else {
-                $this->setCode(-1);
+              
+                      $this->setCode(-1);
+                $this->setMessage('空数据!');
                 $this->jsonReturn();
             }
         }

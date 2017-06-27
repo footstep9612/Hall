@@ -19,7 +19,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $this->put_data = $jsondata = $data = [
+            'token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjI3NiIsImV4dCI6MTQ5ODExMjI2NCwiaWF0IjoxNDk4MTEyMjY0LCJuYW1lIjoiXHU5NDlmXHU5NGY2XHU2ODQyIn0.GQF50uD3at0jpyWp4VgvtlrgPMyizPssVMdcHD3aQxc',
+            //   'spu'=>'3303060000010000',
+            'pagesize' => 10,
+            'current_no' => 1,
+            'lang' => 'en'
+        ];// json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
         if ($this->getRequest()->getModuleName() == 'V1' &&
