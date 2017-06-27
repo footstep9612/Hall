@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsproductController extends PublicController {
+class EsproductController extends ShopMallController {
 
     protected $index = 'erui_goods';
     protected $es = '';
@@ -60,7 +60,6 @@ class EsproductController extends PublicController {
             }
         }
         $this->es = new ESClient();
-//        parent::init();
     }
 
     public function listAction() {

@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsproductController extends ShopMallController {
+class EsproductController extends PublicController {
 
     protected $index = 'erui_goods';
     protected $es = '';
@@ -49,9 +49,10 @@ class EsproductController extends ShopMallController {
     }
 
     public function indexAction() {
+        // $this->es->delete($this->index);
+        //$model = new EsgoodsModel();
 
         $body['mappings'] = [];
-
 
         foreach ($this->langs as $lang) {
             $body['mappings']['goods_' . $lang] = $this->goodsAction($lang);
@@ -164,6 +165,47 @@ class EsproductController extends ShopMallController {
             }
 
 
+            $this->jsonReturn($send);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    public function getcatsAction() {
+
+        $model = new EsproductModel();
+        $ret = $model->getshow_catlist($this->put_data, $this->getLang());
+        if ($ret) {
+            $list = [];
+
+            $data = $ret[0];
+            $send['count'] = intval($data['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
+            if (isset($ret[3]) && $ret[3] > 0) {
+
+                $send['allcount'] = $ret[3] > $send['count'] ? $ret[3] : $send['count'];
+            } else {
+                $send['allcount'] = $send['count'];
+            }
+            foreach ($data['hits']['hits'] as $key => $item) {
+                $list[$key] = $item["_source"];
+                $list[$key]['id'] = $item['_id'];
+            }
+            $send['list'] = $list;
+            $this->setCode(MSG::MSG_SUCCESS);
+            if ($this->put_data['keyword']) {
+                $search = [];
+                $search['keyword'] = $this->put_data['keyword'];
+                $search['user_email'] = $this->user['email'];
+                $search['search_time'] = date('Y-m-d H:i:s');
+                $usersearchmodel = new UsersearchhisModel();
+                if ($row = $usersearchmodel->exist($condition)) {
+                    $search['search_count'] = intval($row['search_count']) + 1;
+                    $usersearchmodel->update_data($search);
+                }
+            }
             $this->jsonReturn($send);
         } else {
             $this->setCode(MSG::MSG_FAILED);
