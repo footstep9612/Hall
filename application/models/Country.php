@@ -147,8 +147,8 @@ class CountryModel extends PublicModel {
         );
 
         if(redisExist(md5(json_encode($condition)))){
-            $result = redisGet(md5(json_encode($condition)));
-            return $result ? json_decode($result) : array();
+            $result = json_decode(redisGet(md5(json_encode($condition))),true);
+            return $result ? $result : array();
         } else {
             $result = $this->field('name')->where($condition)->select();
             if ($result) {

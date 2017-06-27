@@ -109,24 +109,7 @@ class GoodsModel extends PublicModel {
             if (redisExist($key_redis)) {
                 $result = redisGet($key_redis);
                 return $result ? json_decode($result) : array();
-                $key_redis = md5(json_encode($condition . time()));
-                if (redisExist($key_redis)) {
-                    $result = redisHashGet('data', $key_redis);
-                    //判断语言,返回对应语言集
-                    $data = array();
-                    if ('' != $lang) {
-                        foreach ($result as $val) {
-                            if ($val['lang'] == $lang) {
-                                $data[$val['lang']] = $val;
-                                $data['attachs'] = $attach ? $attach : array();
-                            }
-                        }
-                        return $data ? $data : array();
-                    } else {
-                        $result['attachs'] = $attach ? $attach : array();
-                        return $result ? $result : array();
-                    }
-                } else {
+            } else {
                     $result = $this->field($field)->where($condition)->select();
                     if ($result) {
                         $data = array(
@@ -147,7 +130,7 @@ class GoodsModel extends PublicModel {
                         return array();
                     }
                 }
-            }
+
         } catch (Exception $e) {
             return false;
         }
