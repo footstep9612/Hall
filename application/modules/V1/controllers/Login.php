@@ -164,8 +164,12 @@ class LoginController extends Yaf_Controller_Abstract {
         $data = $model_group ->getlist($where,$limit); //($this->put_data);
         $count = count($data) ;
         $j = 0;
+        $parent_id = 0;
+        if(isset($where['parent_id'])){
+            $parent_id = $where['parent_id'];
+        }
         for($i = 0 ;$i < $count ; $i++){
-            if($data[$i]['parent_id'] == 0 ){
+            if($data[$i]['parent_id'] == $parent_id ){
                 $data_arr[$j]['value'] = $data[$i]['id'];
                 $data_arr[$j]['label'] = $data[$i]['name'];
                 $j ++ ;
@@ -196,6 +200,11 @@ class LoginController extends Yaf_Controller_Abstract {
                     }
                 }
             }
+        }
+
+        if($data['pople'] == 1){
+            $group_user =  new GroupUserModel();
+            $group_user ->getlist();
         }
         if(!empty($data)){
             $datajson['code'] = 1;
