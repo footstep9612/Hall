@@ -26,7 +26,7 @@ class QuoteModel extends PublicModel {
     	}
     	
      	if(isset($condition['biz_quote_status'])) {
-    		$where['biz_quote_status'] = $condition['biz_quote_status'];
+    		$where['biz_quote_status'] = array('in', $condition['biz_quote_status']);
     	}
     	
      	if(isset($condition['logi_quote_status'])) {
