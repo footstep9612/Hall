@@ -3,7 +3,6 @@ header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
 header('Access-Control-Allow-Methods:POST,PUT,GET');
 
-echo phpinfo();die;
 /* INI配置文件支持常量替换 */
 define("APPLICATION_PATH", dirname(__FILE__) . "/application");
 define("MYPATH", dirname(__FILE__));
