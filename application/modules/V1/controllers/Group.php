@@ -68,7 +68,9 @@ class GroupController extends PublicController {
         $group_user_model = new GroupUserModel();
         for($i=0 ; $i< $count; $i++){
             if($data[$i]['id']){
-               $user_list = $group_user_model->getlist(['group_id' => $data[$i]['id'] ],$limit);
+                $user_list = $group_user_model->getlist(['group_id' => $data[$i]['id'] ],$limit);
+                $data[$i]['label'] = $data[$i]['name'];
+                $data[$i]['value'] = $data[$i]['id'];
                 $data[$i]['children']=$user_list;
             }
         }
