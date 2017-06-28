@@ -2,7 +2,7 @@
 /**
 	上传Controller
 */
-class UploadfileController extends Yaf_Controller_Abstract{
+class UploadfileController extends PublicController{
 	public function init() {
 
 	}
@@ -14,7 +14,6 @@ class UploadfileController extends Yaf_Controller_Abstract{
 		if(empty($file)){
 			return false;
 		}
-		var_dump($file);die;
 		//上传到fastDFS
 		$fastdfs = new FastDFSclient();
 		$ret = $fastdfs->uploadAttach($file['upFile']);
