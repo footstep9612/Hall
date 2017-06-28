@@ -82,6 +82,12 @@ class EsproductController extends ShopMallController {
             }
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
+                $attachs = json_decode($item["_source"]['attachs'], true);
+                if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+                    $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
+                } else {
+                    $list[$key]['img'] = null;
+                }
                 $list[$key]['id'] = $item['_id'];
             }
             $material_cat_nos = [];
@@ -90,18 +96,16 @@ class EsproductController extends ShopMallController {
                 $material_cat_nos[] = $item['key'];
             }
 
-            $material_cat_nos = ksort($material_cat_nos);
+            ksort($material_cat_nos);
             $catno_key = 'show_cats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang());
             $catlist = json_decode(redisGet($catno_key), true);
+
             if (!$catlist) {
                 $matshowcatmodel = new ShowmaterialcatModel();
-
                 $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
-
                 $new_showcats1 = $new_showcats2 = $new_showcats3 = [];
                 $new_showcat2_nos = [];
                 $new_showcat1_nos = [];
-
                 foreach ($showcats as $showcat) {
                     $material_cat_no = $showcat['material_cat_no'];
                     unset($showcat['material_cat_no']);
@@ -141,26 +145,48 @@ class EsproductController extends ShopMallController {
                         $new_showcats1[$showcat1['cat_no']]['childs'] = $new_showcats2[$showcat1['cat_no']];
                     }
                 }
+                $new_showcats = [];
+                if ($new_showcats1) {
 
-                $catlist = $new_showcats1;
+                    foreach ($new_showcats1 as $cat1) {
+
+                        $newcat1 = $cat1;
+                        unset($newcat1['childs']);
+                        foreach ($cat1['childs'] as $cat2) {
+                            $newcat2 = $cat2;
+                            unset($newcat2['childs']);
+                            foreach ($cat2['childs'] as $cat3) {
+                                $newcat2['childs'][] = $cat3;
+                            }
+                            $newcat1['childs'] = $newcat2;
+                        }
+
+
+                        $new_showcats[] = $newcat1;
+                    }
+                }
+                $catlist = $new_showcats;
                 redisSet($catno_key, json_encode($catlist), 86400);
             }
-            $send['catlist'] = $new_showcats1;
-            $send['list'] = $list;
+            $send['catlist'] = $catlist;
+            $send['data'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             if ($this->put_data['keyword']) {
                 $search = [];
-                $search['keyword'] = $this->put_data['keyword'];
+                $search['keywords'] = $this->put_data['keyword'];
                 $search['user_email'] = $this->user['email'];
                 $search['search_time'] = date('Y-m-d H:i:s');
-                $usersearchmodel = new UsersearchhisModel();
-                if ($row = $usersearchmodel->exist($condition)) {
+                $usersearchmodel = new BuyersearchhisModel();
+                $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
+                $row = $usersearchmodel->exist($condition);
+                if ($row) {
                     $search['search_count'] = intval($row['search_count']) + 1;
                     $usersearchmodel->update_data($search);
                 }
             }
 
-
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
             $this->jsonReturn($send);
         } else {
             $this->setCode(MSG::MSG_FAILED);

@@ -216,6 +216,8 @@ class QuoteController extends PublicController {
     	
     	$res = $this->quoteModel->getList($condition);
     	
+    	if ($res) $res['count'] = $this->quoteModel->getCount($condition);
+    	
     	$this->jsonReturn($res);
     }
     
@@ -280,7 +282,22 @@ class QuoteController extends PublicController {
     	$condition = $this->put_data;
     	
     	if (isset($condition['quote_no'])) {
-    		$res = $this->quoteItemModel->getItemList($condition);
+    		if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
+    			$res = $this->quoteItemModel
+	    					->alias('a')
+	    					->join("final_quote_item b ON a.id = b.id", 'LEFT')
+	    					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
+	    					->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
+    		} else {
+    			$res = $this->quoteItemModel
+	    					->alias('a')
+	    					->join("final_quote_item b ON a.id = b.id", 'LEFT')
+	    					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
+	    					->where(array('a.quote_no' => $condition['quote_no']))->select();
+    		}
+    		
+    		if ($res) $res['count'] = $this->quoteItemModel->getCount($condition);
+    		
 			$this->jsonReturn($res);
     	} else {
     		$this->jsonReturn(false);
@@ -373,7 +390,6 @@ class QuoteController extends PublicController {
     	if (isset($condition['id'])) {
     		$quote = $this->quoteModel->getDetail($condition);
     		
-    		$quoteItem['quote_no'] = $condition['quote_no'];
     		$quoteItem['buyer_sku'] = '';
     		$quoteItem['quote_sku'] = $condition['sku'];
     		$quoteItem['name_en'] = $condition['name_en'];
@@ -451,32 +467,12 @@ class QuoteController extends PublicController {
     	
     }
     
-	/**
-     * @desc 获取SKU历史报价接口
- 	 * @author liujf 2017-06-26
-     * @return json
-     */
-    public function getQuoteItemHistoryApiAction() {
-    	$condition = $this->put_data;
-    	
-    	if (isset($condition['sku'])) {
-    		$sql = "SELECT * FROM (SELECT *, IF(`quote_sku` <> '', `quote_sku`, `inquiry_sku`) AS `sku` FROM `erui_rfq`.`t_final_quote_item` WHERE `status` = 'APPROVED') AS `t_tmp` WHERE `sku` = " . mysql_escape_string($condition['sku']);
-    		$res = $this->finalQuoteItemModel->query($sql);
-			$this->jsonReturn($res);
-    	} else {
-    		$this->jsonReturn(false);
-    	}
-    	
-    }
-    
     /**
      * @desc 物流获取报价列表接口
  	 * @author liujf 2017-06-27
      * @return json
      */
     public function getQuoteLogiListApiAction() {
-    	
-    	$condition['logi_quote_status'] = 'ONGOING';
     	
     	$res = $this->quoteModel->getList($condition);
     	
@@ -546,7 +542,7 @@ class QuoteController extends PublicController {
     }
     
 	/**
-     * @desc 获取市场可修改报价列表接口
+     * @desc 市场获取可修改报价列表接口
  	 * @author liujf 2017-06-27
      * @return json
      */
@@ -557,6 +553,38 @@ class QuoteController extends PublicController {
     	$res = $this->finalQuoteModel->getList($condition);
     	
     	$this->jsonReturn($res);
+    }
+    
+	/**
+     * @desc 市场获取报价SKU列表接口
+ 	 * @author liujf 2017-06-26
+     * @return json
+     */
+    public function getFinalQuoteItemListApiAction() {
+    	$condition = $this->put_data;
+    	
+    	if (isset($condition['quote_no'])) {
+    		if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
+    			$res = $this->finalQuoteItemModel
+    					->alias('a')
+    					->join("quote_item b ON a.id = b.id", 'LEFT')
+    					->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
+    					->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
+    		} else {
+    			$res = $this->finalQuoteItemModel
+    					->alias('a')
+    					->join("quote_item b ON a.id = b.id", 'LEFT')
+    					->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
+    					->where(array('a.quote_no' => $condition['quote_no']))->select();
+    		}
+    		
+    		if ($res) $res['count'] = $this->finalQuoteItemModel->getCount($condition);
+    		
+			$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    	
     }
 	
 	/**
@@ -621,7 +649,369 @@ class QuoteController extends PublicController {
      * @return json
      */
     public function uptateFinalQuoteItemApiAction() {
+    	$condition = $this->put_data;
     	
+    	if (isset($condition['id'])) {
+    		$finalQuote = $this->finalQuoteModel->getDetail($condition);
+    		
+    		$finalQuoteItem['quote_no'] = $condition['quote_no'];
+    		$finalQuoteItem['buyer_sku'] = '';
+    		$finalQuoteItem['quote_sku'] = $condition['sku'];
+    		$finalQuoteItem['name_en'] = $condition['name_en'];
+    		$finalQuoteItem['name_cn'] = $condition['name_cn'];
+    		$finalQuoteItem['quote_model'] = $condition['quote_model'];
+    		$finalQuoteItem['quote_spec'] = $condition['quote_spec'];
+    		$finalQuoteItem['quote_brand'] = $condition['quote_brand'];
+    		$finalQuoteItem['quote_quantity'] = $condition['quote_quantity'];
+    		$finalQuoteItem['quote_unit'] = $condition['quote_unit'];
+    		$finalQuoteItem['inquiry_desc'] = $condition['description'];
+    		
+    		$finalQuoteItem['quote_sku'] = $condition['quote_sku'];
+    		$finalQuoteItem['goods_from'] = $condition['goods_from'];
+    		$finalQuoteItem['supplier_id'] = $condition['supplier_id'];
+    		$finalQuoteItem['supplier_contact'] = $condition['supplier_contact'];
+    		$finalQuoteItem['supplier_contact_email'] = $condition['supplier_contact_email'];
+    		$finalQuoteItem['supplier_contact_phone'] = $condition['supplier_contact_phone'];
+    		$finalQuoteItem['purchase_price'] = $condition['purchase_price'];
+    		$finalQuoteItem['total_purchase_price'] = round($condition['purchase_price'] * $finalQuoteItem['quote_quantity'], 8);
+    		$finalQuoteItem['purchase_cur'] = $condition['purchase_cur'];
+    		
+    		$exchangeRate = $this->getRateUSD($condition['purchase_cur']);
+    		
+    		if ($finalQuote['gross_profit_rate'] != '') {
+    			$finalQuoteItem['exw_unit_price'] = round($condition['purchase_price'] * $finalQuote['gross_profit_rate'] / $exchangeRate, 8); 
+    			$finalQuoteItem['total_exw_price'] = $finalQuoteItem['exw_unit_price'] * $finalQuoteItem['quote_quantity'];
+    		}
+    		
+    		$finalQuoteItem['exw_cur'] = 'USD';
+    		
+    		if ($finalQuote['total_quote_price'] != '') {
+    			$data = array('total_quote_price' => $finalQuote['total_quote_price'],
+			    		      'total_exw_price' => $finalQuote['total_exw_price'],
+			    		      'exw_unit_price' => $finalQuoteItem['exw_unit_price']
+    			);
+    			$quoteArr = quoteUnitPrice($data);
+    			$finalQuoteItem['quote_unit_price'] = $quoteArr['quote_unit_price'];
+    			$finalQuoteItem['total_quote_price'] = $quoteArr['quote_unit_price'] * $finalQuoteItem['quote_quantity']; 
+    		}
+    		
+    		$finalQuoteItem['quote_cur'] = 'USD';
+    		$finalQuoteItem['unit_weight'] = $condition['unit_weight'];
+    		$finalQuoteItem['weight_unit'] = 'kg';
+    		$finalQuoteItem['package_size'] = $condition['package_size'];
+    		$finalQuoteItem['size_unit'] = 'm^3';
+    		$finalQuoteItem['delivery_period'] = $condition['delivery_period'];
+    		$finalQuoteItem['reason_for_no_quote'] = $condition['reason_for_no_quote'];
+    		$finalQuoteItem['rebate_rate'] = $condition['rebate_rate'];
+    		$finalQuoteItem['quote_notes'] = $condition['quote_notes'];
+    		$finalQuoteItem['period_of_validity'] = $condition['period_of_validity'];
+    		
+    		$res = $this->finalQuoteItemModel->where(array('id' => $condition['id']))->save($finalQuoteItem);
+    		
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 商务技术获取报价附件列表接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function getQuoteAttachListApiAction() {
+        $condition = $this->put_data;
+
+        $res = $this->quoteAttachModel->getAttachList($condition);
+        
+        $this->jsonReturn($res);
+    }
+    
+	/**
+     * @desc 商务技术添加报价附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function addQuoteAttachApiAction() {
+        $condition = $this->put_data;
+        
+        if (isset($condition['quote_no'])) {
+        	$data['quote_no'] = $condition['quote_no'];
+        	$data['attach_group'] = $condition['attach_group'];
+        	$data['attach_type'] = $condition['attach_type'];
+        	$data['attach_name'] = $condition['attach_name'];
+        	$data['attach_url'] = $condition['attach_url'];
+        	
+        	$res = $this->quoteAttachModel->add($data);
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+         
+    }
+
+    /**
+     * @desc 商务技术删除报价附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function deleteQuoteAttachApiAction() {
+    	$condition = $this->put_data;
+        
+        if (isset($condition['id'])) {
+        	
+        	$res = $this->quoteAttachModel->where(array('id' => $condition['id']))->delete();
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 商务技术获取报价SKU附件列表接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function getQuoteItemAttachListApiAction() {
+        $condition = $this->put_data;
+
+        $res = $this->quoteItemAttachModel->getAttachList($condition);
+        
+        $this->jsonReturn($res);
+    }
+    
+	/**
+     * @desc 商务技术添加报价SKU附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function addQuoteItemAttachApiAction() {
+        $condition = $this->put_data;
+        
+        if (isset($condition['quote_no'])) {
+        	$data['quote_no'] = $condition['quote_no'];
+        	$data['attach_group'] = $condition['attach_group'];
+        	$data['attach_type'] = $condition['attach_type'];
+        	$data['attach_name'] = $condition['attach_name'];
+        	$data['attach_url'] = $condition['attach_url'];
+        	
+        	$res = $this->quoteItemAttachModel->add($data);
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+         
+    }
+
+    /**
+     * @desc 商务技术删除报价SKU附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function deleteQuoteItemAttachApiAction() {
+    	$condition = $this->put_data;
+        
+        if (isset($condition['id'])) {
+        	
+        	$res = $this->quoteItemAttachModel->where(array('id' => $condition['id']))->delete();
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 市场获取报价附件列表接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function getFinalQuoteAttachListApiAction() {
+        $condition = $this->put_data;
+
+        $res = $this->finalQuoteAttachModel->getAttachList($condition);
+        
+        $this->jsonReturn($res);
+    }
+    
+	/**
+     * @desc 市场添加报价附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function addFinalQuoteAttachApiAction() {
+        $condition = $this->put_data;
+        
+        if (isset($condition['quote_no'])) {
+        	$data['quote_no'] = $condition['quote_no'];
+        	$data['attach_group'] = $condition['attach_group'];
+        	$data['attach_type'] = $condition['attach_type'];
+        	$data['attach_name'] = $condition['attach_name'];
+        	$data['attach_url'] = $condition['attach_url'];
+        	
+        	$res = $this->finalQuoteAttachModel->add($data);
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+         
+    }
+
+    /**
+     * @desc 市场删除报价附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function deleteFinalQuoteAttachApiAction() {
+    	$condition = $this->put_data;
+        
+        if (isset($condition['id'])) {
+        	
+        	$res = $this->finalQuoteAttachModel->where(array('id' => $condition['id']))->delete();
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 市场获取报价SKU附件列表接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function getFinalQuoteItemAttachListApiAction() {
+        $condition = $this->put_data;
+
+        $res = $this->finalQuoteItemAttachModel->getAttachList($condition);
+        
+        $this->jsonReturn($res);
+    }
+    
+	/**
+     * @desc 市场添加报价SKU附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function addFinalQuoteItemAttachApiAction() {
+        $condition = $this->put_data;
+        
+        if (isset($condition['quote_no'])) {
+        	$data['quote_no'] = $condition['quote_no'];
+        	$data['attach_group'] = $condition['attach_group'];
+        	$data['attach_type'] = $condition['attach_type'];
+        	$data['attach_name'] = $condition['attach_name'];
+        	$data['attach_url'] = $condition['attach_url'];
+        	
+        	$res = $this->finalQuoteItemAttachModel->add($data);
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+         
+    }
+
+    /**
+     * @desc 市场删除报价SKU附件接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function deleteFinalQuoteItemAttachApiAction() {
+    	$condition = $this->put_data;
+        
+        if (isset($condition['id'])) {
+        	
+        	$res = $this->finalQuoteItemAttachModel->where(array('id' => $condition['id']))->delete();
+        	
+        	$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 获取SKU历史报价接口
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    public function getGoodsPriceHisApiAction() {
+    	$condition = $this->put_data;
+    	
+    	if (isset($condition['sku'])) {
+    		
+    		$res = $this->goodsPriceHisModel->getList($condition);
+    		
+			$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    	
+    }
+    
+	/**
+     * @desc 创建SKU历史报价
+ 	 * @author liujf 2017-06-27
+     * @return json
+     */
+    private function createGoodsPriceHis() {
+    	$condition = $this->put_data;
+    	
+    	
+    	$finalQuote = $this->finalQuoteModel->where(array('quote_no' => $condition['quote_no']))->find();
+    	
+    	$finalQuoteItemList = $this->finalQuoteItemModel->where(array('quote_no' => $condition['quote_no']))->select();
+    	
+    	$goodsPriceHisList = $goodsPriceHis = array();
+    	
+    	$time = time();
+    	
+    	foreach ($finalQuoteItemList as $finalQuoteItem) {
+    		$goodsPriceHis['quoter'] = $finalQuote['quoter'];
+	    	$goodsPriceHis['quoter_email'] = $finalQuote['quoter'];
+	    	$goodsPriceHis['inquiry_no'] = $finalQuote['quoter'];
+	    	$goodsPriceHis['spu'] = '';
+	    	$goodsPriceHis['sku'] = empty($finalQuoteItem['quote_sku']) ? $finalQuoteItem['inquiry_sku'] : $finalQuoteItem['quote_sku'];
+	    	$goodsPriceHis['name_en'] = $finalQuoteItem['name_en'];
+	    	$goodsPriceHis['name_zh'] = $finalQuoteItem['name_zh'];
+	    	$goodsPriceHis['model'] = $finalQuoteItem['quote_model'];
+	    	$goodsPriceHis['spec'] = $finalQuoteItem['quote_spec'];
+	    	$goodsPriceHis['brand'] = $finalQuoteItem['quote_brand'];
+	    	$goodsPriceHis['quantity'] = $finalQuoteItem['quote_quantity'];
+	    	$goodsPriceHis['unit'] = $finalQuoteItem['quote_unit'];
+	    	$goodsPriceHis['inquiry_desc'] = $finalQuoteItem['inquiry_desc'];
+	    	$goodsPriceHis['quote_desc'] = $finalQuoteItem['quote_desc'];
+	    	$goodsPriceHis['supplier_id'] = $finalQuoteItem['supplier_id'];
+	    	$goodsPriceHis['supplier_contact'] = $finalQuoteItem['supplier_contact'];
+	    	$goodsPriceHis['supplier_contact_email'] = $finalQuoteItem['supplier_contact_email'];
+	    	$goodsPriceHis['supplier_contact_phone'] = $finalQuoteItem['supplier_contact_phone'];
+	    	$goodsPriceHis['purchase_unit_price'] = $finalQuoteItem['purchase_price'];
+	    	$goodsPriceHis['purchase_cur'] = $finalQuoteItem['purchase_cur'];
+	    	$goodsPriceHis['exw_unit_price'] = $finalQuoteItem['exw_unit_price'];
+	    	$goodsPriceHis['exw_cur'] = $finalQuoteItem['exw_cur'];
+	    	$goodsPriceHis['quote_unit_price'] = $finalQuoteItem['quote_unit_price'];
+	    	$goodsPriceHis['quote_cur'] = $finalQuoteItem['quote_cur'];
+	    	$goodsPriceHis['unit_weight'] = $finalQuoteItem['unit_weight'];
+	    	$goodsPriceHis['weight_unit'] = $finalQuoteItem['weight_unit'];
+	    	$goodsPriceHis['package_size'] = $finalQuoteItem['package_size'];
+	    	$goodsPriceHis['size_unit'] = $finalQuoteItem['size_unit'];
+	    	$goodsPriceHis['delivery_period'] = $finalQuoteItem['delivery_period'];
+	    	$goodsPriceHis['period_of_validity'] = $finalQuoteItem['period_of_validity'];
+	    	$goodsPriceHis['rebate_rate'] = $finalQuoteItem['rebate_rate'];
+	    	$goodsPriceHis['quote_notes'] = $finalQuoteItem['quote_notes'];
+	    	$goodsPriceHis['reason_for_no_quote'] = $finalQuoteItem['reason_for_no_quote'];
+	    	$goodsPriceHis['goods_from'] = $finalQuoteItem['goods_from'];
+	    	$goodsPriceHis['status'] = $finalQuoteItem['status'];
+	    	$goodsPriceHis['created_at'] = $time;
+	    	
+	    	$goodsPriceHisList[] = $goodsPriceHis;
+    	}
+    		
+    	return $this->goodsPriceHisModel->addAll($goodsPriceHisList);
     	
     }
     
@@ -671,7 +1061,9 @@ class QuoteController extends PublicController {
     	if (isset($condition['quote_no'])) {
     		$data = $this->getExamine($condition);
     		
-    		$res = $this->finalQuoteModel->where(array('quote_no' => $condition['quote_no']))->save($data);
+    		$res = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->save($data);
+    		
+    		if ($condition['examine_type'] == 'quote') $this->afterExamine($condition);
     		
     		$this->jsonReturn($res);
     	} else {
@@ -699,30 +1091,19 @@ class QuoteController extends PublicController {
 						   $data['checker_email'] = $user['email'];
 						   $data['check_at'] = time();
 						   $data['check_notes'] = $condition['check_notes'];
-						   
     	}
     	
     	return $data;
     	
     }
     
-    /**
-     * @desc 提交报价接口
- 	 * @author liujf 2017-06-27
- 	 * @param array $condition 条件参数
-     * @return array
-     */
-    public function submitQuoteApi($condition) {
-    	$this->afterSubmit($condition);
-    }
-    
 	/**
-     * @desc 商务提交后的操作
+     * @desc 审核通过后的操作
  	 * @author liujf 2017-06-21
  	 * @param array $condition 条件参数
      * @return array
      */
-    private function afterSubmit($condition) {
+    private function afterExamine($condition) {
     	
     	if ($condition['status'] == 'APPROVED') { // 报价完成
     		$quote = $this->quoteModel->getDetail($condition);
@@ -736,6 +1117,8 @@ class QuoteController extends PublicController {
 	    	
 	    	$quoteItemAttachList = $this->quoteItemAttachModel->getAttachList($condition);
 	    	$this->finalQuoteItemModel->addAll($quoteItemAttachList);
+	    	
+	    	$this->createGoodsPriceHis($condition);
     	}
     	
     }
@@ -753,7 +1136,7 @@ class QuoteController extends PublicController {
      * @desc 重写jsonReturn方法
  	 * @author liujf 2017-06-24
      */
-    private function jsonReturn($data = array(), $type = 'JSON') {
+    public function jsonReturn($data = array(), $type = 'JSON') {
     	if ($data) {
     		$this->setCode('1');
             $this->setMessage('成功!');

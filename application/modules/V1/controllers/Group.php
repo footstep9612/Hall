@@ -47,6 +47,44 @@ class GroupController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    public function getgroupuserlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if (empty($data)) {
+            return array();
+        }
+        if(!empty($data['parent_id'])){
+            $where['parent_id'] = $data['parent_id'];
+        }
+        $limit = [] ;
+        if(!empty($data['page'])){
+            $limit['page'] = $data['page'];
+        }
+        if(!empty($data['countPerPage'])){
+            $limit['num'] = $data['countPerPage'];
+        }
+        $model_group = new GroupModel();
+        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        $count = count($data);
+        $group_user_model = new GroupUserModel();
+        for($i=0 ; $i< $count; $i++){
+            if($data[$i]['id']){
+                $user_list = $group_user_model->getlist(['group_id' => $data[$i]['id'] ],$limit);
+                $data[$i]['label'] = $data[$i]['name'];
+                $data[$i]['value'] = $data[$i]['id'];
+                $data[$i]['children']=$user_list;
+            }
+        }
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];
