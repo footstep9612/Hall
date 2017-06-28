@@ -405,7 +405,7 @@ class ESClient {
         $getParams['index'] = $index;
         $getParams['type'] = $type;
 
-        $getParams[] = [];
+        $getParams['body'] = $body;
 
         try {
             $retDoc = $this->server->mget($getParams);
@@ -824,7 +824,6 @@ class ESClient {
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
 
-            print_r($ex->getMessage());
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
@@ -840,9 +839,7 @@ class ESClient {
         if ($analyzer) {
             $searchParams ['analyzer'] = $analyzer;
         }
-
         try {
-
             return $this->server->count($searchParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);

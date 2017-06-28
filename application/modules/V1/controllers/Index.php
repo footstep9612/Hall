@@ -15,7 +15,8 @@ class IndexController extends ShopMallController {
 
     //put your code here
     public function init() {
-       parent::init();
+        $this->setLang('en');
+        //parent::init();
     }
 
     /**
@@ -37,7 +38,7 @@ class IndexController extends ShopMallController {
 
         $bn = $this->getIp();
         $condition['market_area_bn'] = $bn;
-        $json = redisGet('MarketareaproductModel_' . $bn);
+        $json =null; redisGet('MarketareaproductModel_' . $bn);
         if (!$json) {
             $model = new MarketareaproductModel();
             $data = $model->getlist($condition);
@@ -60,6 +61,7 @@ class IndexController extends ShopMallController {
             $this->jsonReturn($send);
         } else {
             $this->setCode(-1);
+            $this->setMessage('空数据');
             // $send['data'] = $data;
             $this->jsonReturn();
         }

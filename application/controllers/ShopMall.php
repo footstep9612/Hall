@@ -52,6 +52,7 @@ abstract class ShopMallController extends Yaf_Controller_Abstract {
                 }
             } else {
                 echo json_encode(array("code" => "-104", "message" => "token不存在"));
+                exit;
             }
         }
     }
