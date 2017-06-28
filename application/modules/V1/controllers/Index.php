@@ -50,6 +50,7 @@ class IndexController extends ShopMallController {
         } else {
             $data = json_decode($json, true);
         }
+     
         $spus = [];
         if ($data) {
             foreach ($data as $item) {
