@@ -134,7 +134,7 @@ class MemberCenterController extends ShopMallController
      * 会员等级服务详情列表
      * @author klp
      */
-    public function ServiceInfoAction(){
+    public function listServiceAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $MemberBizServiceModel = new MemberBizServiceModel();
         $result = $MemberBizServiceModel->getVipService($data);

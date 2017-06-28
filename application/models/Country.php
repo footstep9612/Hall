@@ -227,7 +227,7 @@ class CountryModel extends PublicModel {
 
     //新浪通过IP地址获取当前地理位置（省份,城市等）的接口   klp
     public function getIpAddress($ip){
-        if($ip=="127.0.0.1") jsonReturn('','-1003','当前为本机地址');;
+        if($ip=="127.0.0.1") jsonReturn('','-1003','当前为本机地址');
         $ipContent   = file_get_contents("http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json&ip=$ip");
         $arr = json_decode($ipContent,true);//解析json
         $country = $arr['country']; //取得国家
