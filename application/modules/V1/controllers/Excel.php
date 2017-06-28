@@ -6,8 +6,8 @@
  * Class ExcelController
  * @author maimaiti
  */
-class ExcelController extends PublicController
-//class ExcelController extends Yaf_Controller_Abstract
+//class ExcelController extends PublicController
+class ExcelController extends Yaf_Controller_Abstract
 {
     /**
      * 测试接口
@@ -306,7 +306,7 @@ class ExcelController extends PublicController
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
 
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", "demo.xls");
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_QD.xls");
 
     }
 
@@ -442,7 +442,7 @@ class ExcelController extends PublicController
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", "sku.xls");
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_QI.xls");
     }
 
     /**
@@ -770,6 +770,137 @@ class ExcelController extends PublicController
         //请求类型为POST或者PUT均可通过
         if ( $this->getRequest()->isPost() || $this->getRequest()->isPut()) return true;
         exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101')]));
+    }
+
+
+    /**
+     * 导出询单明细接口
+     * url：http://xx.com/V1/Excel/inquiryDetail
+     * @author maimaiti
+     */
+    public function inquiryDetailAction()
+    {
+        //验证请求
+        $this->requestValidator();
+
+        //获取参数
+        $request = json_decode(file_get_contents("php://input"),true);
+        //流水号
+        $serial_no = $request['serial_no'];
+
+        //查找数据
+        $inquiryModel = new InquiryModel();
+        $where = [ 'serial_no' =>  $serial_no ];
+        $field = [
+            'id',//序号
+            //商品ID
+            'inquiry_no',//客户询单号
+            //商品数据来源
+            //商品名称
+            //外文品名
+            //规格
+            //客户需求描述
+            //报价产品描述
+            //数量
+            //单位
+            //品牌
+            //产品分类
+            //供应商单位
+            //供应商联系方式
+            //采购单价
+            //EXW单价
+            //报出单价
+            //贸易单价
+            //单重
+            //包装尺寸
+            //交货期(天)
+            //未报价分析
+            //产品来源
+            //退税率
+            //商务技术备注
+            //报价有效期
+        ];
+        $inquiryDetail = $inquiryModel->where($where)->field($field)->find();
+        if (!$inquiryDetail)
+        {
+            $response = ['code'=>-2102,'message'=>ErrorMsg::getMessage('-2102'),'data'=>[]];
+        }else{
+            //创建表格并填充数据
+            $file = $this->createInquiryDetailExcel($inquiryDetail);
+            $file =str_replace(dirname($file).'/','',$file);
+            $response = [
+                'code'=>1,
+                'message'=>ErrorMsg::getMessage('1'),
+                'data'=>[
+                    'file'=>$file,
+                    'exported_at'=>strstr($file,'_',true)
+                ]
+            ];
+        }
+        exit(json_encode($response));
+    }
+
+    /**
+     * 创建询单明细表格并填充数据
+     * @param $item array 当前询单明细数据
+     */
+    private function createInquiryDetailExcel($item)
+    {
+        //创建表格
+        $objPHPExcel = new PHPExcel();
+        //2.创建sheet(内置表)
+        $objSheet = $objPHPExcel->getActiveSheet(); //获取当前sheet
+        $objSheet->setTitle('询单明细'); //设置当前sheet标题
+        //设置列宽度
+        $normal_cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
+                        "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
+                        "Y", "Z","AA"
+        ];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('16');
+        endforeach;
+
+        //填充数据
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "商品ID");
+        $objSheet->setCellValue("C1", "客户询单号");
+        $objSheet->setCellValue("D1", "商品数据来源");
+        $objSheet->setCellValue("E1", "商品名称");
+        $objSheet->setCellValue("F1", "外文品名");
+        $objSheet->setCellValue("G1", "规格");
+        $objSheet->setCellValue("H1", "客户需求描述");
+        $objSheet->setCellValue("I1", "报价产品描述");
+        $objSheet->setCellValue("J1", "数量");
+        $objSheet->setCellValue("K1", "单位");
+        $objSheet->setCellValue("L1", "品牌");
+        $objSheet->setCellValue("M1", "产品分类");
+        $objSheet->setCellValue("N1", "供应商单位");
+        $objSheet->setCellValue("O1", "供应商联系方式");
+        $objSheet->setCellValue("P1", "采购单价");
+        $objSheet->setCellValue("Q1", "EXW单价");
+        $objSheet->setCellValue("R1", "报出单价");
+        $objSheet->setCellValue("S1", "贸易单价");
+        $objSheet->setCellValue("T1", "单重");
+        $objSheet->setCellValue("U1", "包装尺寸");
+        $objSheet->setCellValue("V1", "交货期(天)");
+        $objSheet->setCellValue("W1", "未报价分析");
+        $objSheet->setCellValue("X1", "产品来源");
+        $objSheet->setCellValue("Y1", "退税率");
+        $objSheet->setCellValue("Z1", "商务技术备注");
+        $objSheet->setCellValue("AA1", "报价有效期");
+
+        //TODO 待完善数据库字段对应
+
+        //居中设置
+        $objSheet->getDefaultStyle()
+            ->getAlignment()
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        //保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        //保存到服务器指定目录
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_IQD.xls");
     }
 
 }
