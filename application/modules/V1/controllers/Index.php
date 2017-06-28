@@ -11,10 +11,11 @@
  *
  * @author zhongyg
  */
-class MarketareaproductController extends ShopMallController {
+class IndexController extends ShopMallController {
 
     //put your code here
     public function init() {
+        $this->setLang('en');
         //parent::init();
     }
 
@@ -33,11 +34,12 @@ class MarketareaproductController extends ShopMallController {
         }
     }
 
-    public function listAction() {
+    public function getProductsAction() {
 
         $bn = $this->getIp();
         $condition['market_area_bn'] = $bn;
-        $json = redisGet('MarketareaproductModel_' . $bn);
+        $json = null;
+        redisGet('MarketareaproductModel_' . $bn);
         if (!$json) {
             $model = new MarketareaproductModel();
             $data = $model->getlist($condition);
@@ -54,12 +56,34 @@ class MarketareaproductController extends ShopMallController {
         if ($spus) {
             $condition['spus'] = $spus;
             $spumodel = new EsproductModel();
-            $data = $spumodel->getproducts($condition, null, $this->getLang());
+            $ret = $spumodel->getproducts($condition, null, $this->getLang());
+
+
+            if ($ret) {
+                $send = [];
+
+                $data = $ret[0];
+
+                foreach ($data['hits']['hits'] as $key => $item) {
+                    $send[$key] = $item["_source"];
+                    $attachs = json_decode($item["_source"]['attachs'],true);
+                    if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+                        $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
+                    } else {
+                        $send[$key]['img'] = null;
+                    }
+                    $send[$key]['id'] = $item['_id'];
+                }
+            
             $this->setCode(1);
-            $send['data'] = $data;
             $this->jsonReturn($send);
         } else {
             $this->setCode(-1);
+            $this->setMessage('空数据');
+        }
+        } else {
+            $this->setCode(-1);
+            $this->setMessage('空数据');
             // $send['data'] = $data;
             $this->jsonReturn();
         }
