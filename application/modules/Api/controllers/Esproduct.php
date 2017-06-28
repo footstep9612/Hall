@@ -16,7 +16,7 @@ class EsproductController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '1';
+    protected $version = '5';
 
     //put your code here
     public function init() {
@@ -32,6 +32,7 @@ class EsproductController extends PublicController {
     public function importAction($lang = 'en') {
         try {
             set_time_limit(0);
+            ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsproductModel();
                 $espoductmodel->importproducts($lang);
@@ -165,7 +166,7 @@ class EsproductController extends PublicController {
                             $newcat1['childs'] = $newcat2;
                         }
 
-                      
+
                         $new_showcats[] = $newcat1;
                     }
                 }
