@@ -83,6 +83,15 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    //批量修改询价单状态
+    public function updateStatusAction(){
+        $inquiry = new InquiryModel();
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $results = $inquiry->update_all($data);
+        $this->jsonReturn($results);
+    }
+
     //删除询价单
     public function deleteAction() {
         $inquiry = new InquiryModel();
