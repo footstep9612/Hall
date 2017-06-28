@@ -107,7 +107,7 @@ class MarketareaproductModel extends PublicModel {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
-            return $this->where($data)->limit($current_no, $pagesize)
+            return $this->where($data)->limit($current_no-1, $pagesize)
                             ->order('created_at desc')->select();
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);

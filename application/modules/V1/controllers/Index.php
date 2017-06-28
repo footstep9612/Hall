@@ -11,10 +11,11 @@
  *
  * @author zhongyg
  */
-class MarketareaproductController extends ShopMallController {
+class IndexController extends ShopMallController {
 
     //put your code here
     public function init() {
+        $this->setLang('en');
         //parent::init();
     }
 
@@ -33,11 +34,12 @@ class MarketareaproductController extends ShopMallController {
         }
     }
 
-    public function listAction() {
+    public function getProductsAction() {
 
         $bn = $this->getIp();
         $condition['market_area_bn'] = $bn;
-        $json = redisGet('MarketareaproductModel_' . $bn);
+        $json = null;
+        redisGet('MarketareaproductModel_' . $bn);
         if (!$json) {
             $model = new MarketareaproductModel();
             $data = $model->getlist($condition);
@@ -54,12 +56,28 @@ class MarketareaproductController extends ShopMallController {
         if ($spus) {
             $condition['spus'] = $spus;
             $spumodel = new EsproductModel();
-            $data = $spumodel->getproducts($condition, null, $this->getLang());
-            $this->setCode(1);
-            $send['data'] = $data;
-            $this->jsonReturn($send);
+            $ret = $spumodel->getproducts($condition, null, $this->getLang());
+
+
+            if ($ret) {
+                $send = [];
+
+                $data = $ret[0];
+                $send[0] = $data['hits']['hits'][0]["_source"];
+                $send[0]['id'] = $data['hits']['hits'][0]['_id'];
+//                foreach ($data['hits']['hits'] as $key => $item) {
+//                    $send[$key] = $item["_source"];
+//                    $send[$key]['id'] = $item['_id'];
+//                }
+                $this->setCode(1);
+                $this->jsonReturn($send);
+            } else {
+                $this->setCode(-1);
+                $this->setMessage('空数据');
+            }
         } else {
             $this->setCode(-1);
+            $this->setMessage('空数据');
             // $send['data'] = $data;
             $this->jsonReturn();
         }
