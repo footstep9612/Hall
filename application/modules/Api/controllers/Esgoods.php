@@ -24,7 +24,7 @@ class EsgoodsController extends PublicController {
         parent::init();
     }
 
-    public function listAction() {
+   public function listAction() {
         $this->setLang('zh');
         $model = new EsgoodsModel();
         $ret = $model->getgoods($this->put_data, null, $this->getLang());
@@ -39,10 +39,10 @@ class EsgoodsController extends PublicController {
                 $list[$key] = $item["_source"];
                 $list[$key]['id'] = $item['_id'];
             }
-
-
-            $send['list'] = $list;
+            $send['data'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
             $this->jsonReturn($send);
         } else {
             $this->setCode(MSG::MSG_FAILED);
