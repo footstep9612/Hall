@@ -82,6 +82,12 @@ class EsproductController extends ShopMallController {
             }
             foreach ($data['hits']['hits'] as $key => $item) {
                 $list[$key] = $item["_source"];
+                $attachs = json_decode($item["_source"]['attachs'], true);
+                if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+                    $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
+                } else {
+                    $send[$key]['img'] = null;
+                }
                 $list[$key]['id'] = $item['_id'];
             }
             $material_cat_nos = [];
