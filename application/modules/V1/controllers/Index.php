@@ -20,7 +20,6 @@ class IndexController extends ShopMallController {
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
-        //   parent::init();
     }
 
     /**
@@ -51,6 +50,7 @@ class IndexController extends ShopMallController {
         } else {
             $data = json_decode($json, true);
         }
+
         $spus = [];
         if ($data) {
             foreach ($data as $item) {
@@ -60,6 +60,7 @@ class IndexController extends ShopMallController {
         if ($spus) {
             $condition['spus'] = $spus;
             $spumodel = new EsproductModel();
+            //  $_source = ['meterial_cat_no', 'spu', 'show_name', 'profile', 'supplier_name', 'attachs', 'brand',];
             $ret = $spumodel->getproducts($condition, null, $this->getLang());
 
 
@@ -78,7 +79,6 @@ class IndexController extends ShopMallController {
                     }
                     $send[$key]['id'] = $item['_id'];
                 }
-
                 $this->setCode(1);
                 $this->jsonReturn($send);
             } else {
