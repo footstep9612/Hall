@@ -15,8 +15,12 @@ class IndexController extends ShopMallController {
 
     //put your code here
     public function init() {
-        $this->setLang('en');
-        //parent::init();
+        ini_set("display_errors", "On");
+        error_reporting(E_ERROR | E_STRICT);
+        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $lang = $this->getPut('lang', 'en');
+        $this->setLang($lang);
+        //   parent::init();
     }
 
     /**
@@ -66,7 +70,7 @@ class IndexController extends ShopMallController {
 
                 foreach ($data['hits']['hits'] as $key => $item) {
                     $send[$key] = $item["_source"];
-                    $attachs = json_decode($item["_source"]['attachs'],true);
+                    $attachs = json_decode($item["_source"]['attachs'], true);
                     if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                         $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
                     } else {
@@ -74,13 +78,13 @@ class IndexController extends ShopMallController {
                     }
                     $send[$key]['id'] = $item['_id'];
                 }
-            
-            $this->setCode(1);
-            $this->jsonReturn($send);
-        } else {
-            $this->setCode(-1);
-            $this->setMessage('空数据');
-        }
+
+                $this->setCode(1);
+                $this->jsonReturn($send);
+            } else {
+                $this->setCode(-1);
+                $this->setMessage('空数据');
+            }
         } else {
             $this->setCode(-1);
             $this->setMessage('空数据');
