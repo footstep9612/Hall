@@ -56,10 +56,25 @@ class IndexController extends ShopMallController {
         if ($spus) {
             $condition['spus'] = $spus;
             $spumodel = new EsproductModel();
-            $data = $spumodel->getproducts($condition, null, $this->getLang());
-            $this->setCode(1);
-            $send['data'] = $data;
-            $this->jsonReturn($send);
+            $ret = $spumodel->getproducts($condition, null, $this->getLang());
+
+
+            if ($ret) {
+                $send = [];
+
+                $data = $ret[0];
+                $send[0] = $data['hits']['hits'][0]["_source"];
+                $send[0]['id'] = $data['hits']['hits'][0]['_id'];
+//                foreach ($data['hits']['hits'] as $key => $item) {
+//                    $send[$key] = $item["_source"];
+//                    $send[$key]['id'] = $item['_id'];
+//                }
+                $this->setCode(1);
+                $this->jsonReturn($send);
+            } else {
+                $this->setCode(-1);
+                $this->setMessage('空数据');
+            }
         } else {
             $this->setCode(-1);
             $this->setMessage('空数据');
