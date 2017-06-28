@@ -36,9 +36,9 @@ class CountryModel extends PublicModel {
                             ->select();
         }else{
             return $this->field('id,lang,bn,name,time_zone,region')
-                ->where($data)
-                ->order($order)
-                ->select();
+                         ->where($data)
+                         ->order($order)
+                         ->select();
         }
 
     }
@@ -146,10 +146,10 @@ class CountryModel extends PublicModel {
             'lang' => $lang
         );
 
-        if(redisExist(md5(json_encode($condition)))){
-            $result = redisGet(md5(json_encode($condition)));
-            return $result ? json_decode($result) : array();
-        } else {
+        /*if(redisExist(md5(json_encode($condition)))){
+            $result = json_decode(redisGet(md5(json_encode($condition))),true);
+            return $result ? $result : array();
+        } else {*/
             $result = $this->field('name')->where($condition)->select();
             if ($result) {
                 $data = array();
@@ -160,12 +160,12 @@ class CountryModel extends PublicModel {
                 }
                 ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
 
-                redisSet(md5(json_encode($condition)), $data);
+                //redisSet(md5(json_encode($condition)), $data);
                 return $data;
             } else {
                 return array();
             }
-        }
+        //}
     }
     /**
      * 取汉字的第一个字的首字母
@@ -245,6 +245,32 @@ class CountryModel extends PublicModel {
             'lang' => 'en'
         );
         $nameEn =  $this->field('name')->where($condition)->find();
-        return $nameEn['name'];
+        if($nameEn){
+            return $nameEn;
+        } else{
+            return false;
+        }
+    }
+
+    /**
+     * 获取国家对应营销区域
+     * @author klp
+     */
+    public function getMarketArea($country,$lang)
+    {
+        $where = array(
+            'name' => $country
+        );
+        $country_bn = $this->field('bn')->where($where)->find();
+
+        $MarketAreaCountry = new MarketAreaCountryModel();//对应表的营销区域简写bn
+        $market_area_bn = $MarketAreaCountry->field('market_area_bn')->where(array('country_bn'=>$country_bn['bn']))->find();
+        $MarketArea = new MarketAreaModel();
+        $market_area = $MarketArea->field('name')->where(array('bn'=>$market_area_bn['market_area_bn'],'lang'=>$lang))->find();
+        if($market_area){
+            return $market_area;
+        } else{
+            return false;
+        }
     }
 }

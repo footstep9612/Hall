@@ -19,9 +19,13 @@ class GoodsPriceHisModel extends PublicModel {
      * @return array
      */
      public function getWhere($condition) {
-     	if(isset($condition['quote_no'])) {
-    		$where['quote_no'] = $condition['quote_no'];
+     	$where = array();
+     	
+     	if(isset($condition['sku'])) {
+    		$where['sku'] = $condition['sku'];
     	}
+    	
+    	return $where;
      }
     
     

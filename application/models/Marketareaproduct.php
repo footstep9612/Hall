@@ -7,15 +7,15 @@
  */
 
 /**
- * Description of Usersearchhis
+ * Description of Marketareaproduct
  *
  * @author zhongyg
  */
-class UsersearchhisModel extends PublicModel {
+class MarketareaproductModel extends PublicModel {
 
-//put your code here
-    protected $tableName = 'user_search_his';
-    protected $dbName = 'erui_beavior';
+    //put your code here
+    protected $tableName = 'market_area_product';
+    protected $dbName = 'erui_dict';
 
     public function __construct($str = '') {
         parent::__construct($str);
@@ -29,33 +29,47 @@ class UsersearchhisModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $data = [];
-        if (isset($condition['keywords'])) {
-            $data['keywords'] = $condition['keywords'];
+        if (isset($condition['market_area_bn'])) {
+            $data['market_area_bn'] = $condition['market_area_bn'];
         }
-        if (isset($condition['user_email'])) {
-            $data['user_email'] = $condition['user_email'];
+        if (isset($condition['spu'])) {
+            $data['spu'] = $condition['spu'];
         }
-
-        if (isset($condition['search_time_start']) && isset($condition['search_time_end'])) {
-            $data['search_time'] = ['between', $condition['search_time_start'], $condition['search_time_end']];
-        } elseif (isset($condition['search_time_start'])) {
-
-            $data['search_time'] = ['egt', $condition['search_time_start']];
-        } elseif (isset($condition['search_time_end'])) {
-
-            $data['search_time'] = ['elt', $condition['search_time_end']];
+        if (isset($condition['status'])) {
+            $data['status'] = $condition['status'];
+        } else {
+            $data['status'] = 'VALID';
         }
-        if (isset($condition['search_count_start']) && isset($condition['search_count_end'])) {
-            $data['search_count'] = ['between', $condition['search_count_start'],
-                $condition['search_count_end']];
-        } elseif (isset($condition['search_count_start'])) {
-
-            $data['search_count'] = ['egt', $condition['search_count_start']];
-        } elseif (isset($condition['search_count_end'])) {
-
-            $data['search_count'] = ['elt', $condition['search_count_end']];
+        if (isset($condition['created_by'])) {
+            $data['created_by'] = $condition['created_by'];
         }
         return $data;
+    }
+
+    /**
+     * 获取列表
+     * @param string $name 国家名称;
+     * @param string $lang 语言
+     * @return array
+     * @author jhw
+     */
+    public function getbnbynameandlang($name, $lang = 'zh') {
+
+        try {
+            $data = ['name' => $name, 'lang' => $lang];
+            $row = $this->table('erui_dict.country')->field('bn')
+                    ->where($data)
+                    ->find();
+            if ($row) {
+                return $row['bn'];
+            } else {
+                return 'China';
+            }
+        } catch (Exception $ex) {
+            Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
+            Log::write($ex->getMessage());
+            return 'China';
+        }
     }
 
     /**
@@ -93,11 +107,12 @@ class UsersearchhisModel extends PublicModel {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
-            return $this->where($data)->limit($current_no-1, $pagesize)->order('search_count desc,search_time desc')->select();
+            return $this->where($data)->limit($current_no, $pagesize)
+                            ->order('created_at desc')->select();
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return [];
         }
     }
 
@@ -113,11 +128,11 @@ class UsersearchhisModel extends PublicModel {
 
 
         try {
-            return $this->where(['id' => $id])->limit($current_no, $pagesize)->find();
+            return $this->where(['id' => $id])->find();
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return [];
         }
     }
 
@@ -125,11 +140,11 @@ class UsersearchhisModel extends PublicModel {
         try {
             $data = $this->create($data);
             $row = $this->where($data)->find();
-            return empty($row) ? false : $row;
+            return empty($row) ? false : $row['id'];
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return false;
         }
     }
 
@@ -148,7 +163,7 @@ class UsersearchhisModel extends PublicModel {
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 0;
+            return false;
         }
     }
 

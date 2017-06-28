@@ -110,7 +110,7 @@ class BuyerAccountModel extends PublicModel {
         }
         $where['status'] = 'VALID';
         $row = $this->where($where)
-            ->field('id,customer_id,email,user_name,mobile,password_hash,role,first_name,last_name,phone,status,login_count,last_login_time,login_failure_count')
+            ->field('id,customer_id,email,user_name,mobile,role,first_name,last_name,phone,status,login_count,last_login_time,login_failure_count')
             ->find();
         return $row;
     }

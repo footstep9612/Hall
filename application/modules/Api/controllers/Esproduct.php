@@ -159,6 +159,7 @@ class EsproductController extends PublicController {
                 $search['search_time'] = date('Y-m-d H:i:s');
                 $usersearchmodel = new UsersearchhisModel();
                 if ($row = $usersearchmodel->exist($condition)) {
+
                     $search['search_count'] = intval($row['search_count']) + 1;
                     $usersearchmodel->update_data($search);
                 }
