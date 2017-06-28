@@ -216,6 +216,8 @@ class QuoteController extends PublicController {
     	
     	$res = $this->quoteModel->getList($condition);
     	
+    	if ($res) $res['count'] = $this->quoteModel->getCount($condition);
+    	
     	$this->jsonReturn($res);
     }
     
@@ -293,6 +295,8 @@ class QuoteController extends PublicController {
 	    					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
 	    					->where(array('a.quote_no' => $condition['quote_no']))->select();
     		}
+    		
+    		if ($res) $res['count'] = $this->quoteItemModel->getCount($condition);
     		
 			$this->jsonReturn($res);
     	} else {
@@ -386,7 +390,6 @@ class QuoteController extends PublicController {
     	if (isset($condition['id'])) {
     		$quote = $this->quoteModel->getDetail($condition);
     		
-    		$quoteItem['quote_no'] = $condition['quote_no'];
     		$quoteItem['buyer_sku'] = '';
     		$quoteItem['quote_sku'] = $condition['sku'];
     		$quoteItem['name_en'] = $condition['name_en'];
@@ -574,6 +577,8 @@ class QuoteController extends PublicController {
     					->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
     					->where(array('a.quote_no' => $condition['quote_no']))->select();
     		}
+    		
+    		if ($res) $res['count'] = $this->finalQuoteItemModel->getCount($condition);
     		
 			$this->jsonReturn($res);
     	} else {
@@ -1131,7 +1136,7 @@ class QuoteController extends PublicController {
      * @desc 重写jsonReturn方法
  	 * @author liujf 2017-06-24
      */
-    private function jsonReturn($data = array(), $type = 'JSON') {
+    public function jsonReturn($data = array(), $type = 'JSON') {
     	if ($data) {
     		$this->setCode('1');
             $this->setMessage('成功!');
