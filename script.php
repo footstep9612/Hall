@@ -1,5 +1,6 @@
 <?php
 
+
 header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
 header('Access-Control-Allow-Methods:POST,PUT,GET');
@@ -16,7 +17,7 @@ Yaf_Dispatcher::getInstance()->catchException(TRUE);
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端
  * 而不会写入Response对象
  */
-$application->getDispatcher()->autoRender(false);
+$application->getDispatcher()->dispatch(new \Yaf\Request\Simple());
 
 /* 如果没有关闭自动response(通过Yaf_Dispatcher::getInstance()->returnResponse(TRUE)),
  * 则$response会被自动输出, 此处也不需要再次输出Response

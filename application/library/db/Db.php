@@ -113,7 +113,7 @@ class db_Db {
      */
     private function parseConfig($db_config='') {
     	$config_obj=Yaf_Registry::get("config");
-        $config_db=$config_obj->database->config->toArray();
+        $config_db=(array)$config_obj->database->config->toArray();
         if ( !empty($db_config) && is_string($db_config)) {
             // 如果DSN字符串则进行解析
             $db_config = $this->parseDSN($db_config);

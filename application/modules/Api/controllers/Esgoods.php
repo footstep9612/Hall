@@ -60,8 +60,8 @@ class EsgoodsController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsgoodsModel();
-                $espoductmodel->importgoodss($lang);
+            $espoductmodel = new EsgoodsModel();
+            $espoductmodel->importgoodss($lang);
             }
 
             $this->setCode(1);
