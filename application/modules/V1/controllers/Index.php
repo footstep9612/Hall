@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class MarketareaproductController extends ShopMallController {
+class IndexController extends ShopMallController {
 
     //put your code here
     public function init() {
