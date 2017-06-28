@@ -34,11 +34,12 @@ class IndexController extends ShopMallController {
         }
     }
 
-    public function listAction() {
+    public function getProductsAction() {
 
         $bn = $this->getIp();
         $condition['market_area_bn'] = $bn;
-        $json =null; redisGet('MarketareaproductModel_' . $bn);
+        $json = null;
+        redisGet('MarketareaproductModel_' . $bn);
         if (!$json) {
             $model = new MarketareaproductModel();
             $data = $model->getlist($condition);
