@@ -57,6 +57,9 @@ class EsgoodsController extends PublicController {
     public function importAction($lang = 'en') {
         try {
             //$lang = 'zh';
+            
+            set_time_limit(0);
+            ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsgoodsModel();
                 $espoductmodel->importgoodss($lang);
