@@ -13,6 +13,8 @@
  */
 class CountryModel extends PublicModel {
 
+    const STATUS_VALID = 'VALID';    //有效的
+
     //put your code here
     protected $dbName='erui_dict';
     protected $tableName = 'country';
@@ -246,5 +248,35 @@ class CountryModel extends PublicModel {
         );
         $nameEn =  $this->field('name')->where($condition)->find();
         return $nameEn['name'];
+    }
+
+    /**
+     * 根据简称与语言获取国家名称
+     * @param string $bn 简称
+     * @param string $lang 语言
+     * @param string
+     */
+    public function getCountryByBn($bn='',$lang=''){
+        if(empty($bn) || empty($lang))
+            return '';
+
+        if(redisHashExist('Country',$bn.'_'.$lang)){
+            return redisHashGet('Country',$bn.'_'.$lang);
+        }
+        try{
+            $condition = array(
+                'bn' =>$bn,
+                'lang'=>$lang,
+               // 'status'=>self::STATUS_VALID
+            );
+            $field = 'name';
+            $result = $this->field($field)->where($condition)->find();
+            if($result){
+                redisHashSet('Country',$bn.'_'.$lang,$result['name']);
+            }
+            return $result['name'];
+        }catch (Exception $e){
+            return '';
+        }
     }
 }
