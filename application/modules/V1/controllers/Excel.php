@@ -717,40 +717,35 @@ class ExcelController extends PublicController
     }
 
     /**
-     * 导出询价单模板接口
-     */
-    public function getTemplateAction()
-    {
-        //验证请求
-        if (!$this->getRequest()->isPost())
-        {
-            exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101'),'data'=>[]]));
-        }
-        //TODO 模板文件路径(放在项目public/resource目录,后期可以放到文件服务器里面)
-        //$templateFile = $_SERVER['HTTP_HOST']."/public/resource/template.xls";
-        $templateFile = APPLICATION_PATH."/ExcelFiles/template.xls";
-        //var_dump($templateFile);die;
-        if ( is_file($templateFile) && file_exists($templateFile))
-        {
-            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$templateFile]] ;
-            exit(json_encode($response));
-        }else{
-            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
-            exit(json_encode($response));
-        }
-
-    }
-
-    /**
      * 导出询价单模板接口(市场询报价)
      */
-    public function getInquiryTemplateAction()
+    public function getMarketInquiryTemplateAction()
     {
         //请求验证
         $this->requestValidator();
 
         //导出询价单模板
-        $inquiryTemplateFile = APPLICATION_PATH."/ExcelFiles/inquiryTemplate.xls";
+        $inquiryTemplateFile = APPLICATION_PATH."/ExcelFiles/marketInquiryTemplate.xls";
+        //判断文件的真实性和是否存在
+        if ( is_file($inquiryTemplateFile) && file_exists($inquiryTemplateFile))
+        {
+            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
+        }else{
+            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
+        }
+        exit(json_encode($response));
+    }
+
+    /**
+     * 导出询价单模板接口(市场询报价)
+     */
+    public function getBusinessInquiryTemplateAction()
+    {
+        //请求验证
+        $this->requestValidator();
+
+        //导出询价单模板
+        $inquiryTemplateFile = APPLICATION_PATH."/ExcelFiles/businessInquiryTemplate.xls";
         //判断文件的真实性和是否存在
         if ( is_file($inquiryTemplateFile) && file_exists($inquiryTemplateFile))
         {
