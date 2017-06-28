@@ -214,11 +214,17 @@ class QuoteController extends PublicController {
     	
     	$condition['biz_quote_status'] = 'ONGOING';
     	
-    	$res = $this->quoteModel->getList($condition);
+    	$data = $this->quoteModel->getList($condition);
     	
-    	if ($res) $res['count'] = $this->quoteModel->getCount($condition);
-    	
-    	$this->jsonReturn($res);
+    	if ($data) {
+    		$res['code'] = 1;
+    		$res['message'] = '成功!';
+    		$res['data'] = $data;
+    		$res['count'] = $this->quoteModel->getCount($condition);
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
     }
     
     /**
@@ -283,22 +289,28 @@ class QuoteController extends PublicController {
     	
     	if (isset($condition['quote_no'])) {
     		if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
-    			$res = $this->quoteItemModel
+    			$data = $this->quoteItemModel
 	    					->alias('a')
 	    					->join("final_quote_item b ON a.id = b.id", 'LEFT')
 	    					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
 	    					->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
     		} else {
-    			$res = $this->quoteItemModel
+    			$data = $this->quoteItemModel
 	    					->alias('a')
 	    					->join("final_quote_item b ON a.id = b.id", 'LEFT')
 	    					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
 	    					->where(array('a.quote_no' => $condition['quote_no']))->select();
     		}
     		
-    		if ($res) $res['count'] = $this->quoteItemModel->getCount($condition);
-    		
-			$this->jsonReturn($res);
+    		if ($data) {
+	    		$res['code'] = 1;
+	    		$res['message'] = '成功!';
+	    		$res['data'] = $data;
+	    		$res['count'] = $this->quoteItemModel->getCount($condition);
+	    		$this->jsonReturn($res);
+	    	} else {
+	    		$this->jsonReturn(false);
+	    	}
     	} else {
     		$this->jsonReturn(false);
     	}
@@ -473,10 +485,19 @@ class QuoteController extends PublicController {
      * @return json
      */
     public function getQuoteLogiListApiAction() {
+    	$condition = $this->put_data;
     	
-    	$res = $this->quoteModel->getList($condition);
+    	$data = $this->quoteModel->getList($condition);
     	
-    	$this->jsonReturn($res);
+    	if ($data) {
+    		$res['code'] = 1;
+    		$res['message'] = '成功!';
+    		$res['data'] = $data;
+    		$res['count'] = $this->quoteModel->getCount($condition);
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
     }
     
     /**
@@ -550,9 +571,17 @@ class QuoteController extends PublicController {
     	
     	$condition['quote_status'] = 'APPROVING';
     	
-    	$res = $this->finalQuoteModel->getList($condition);
+    	$data = $this->finalQuoteModel->getList($condition);
     	
-    	$this->jsonReturn($res);
+    	if ($data) {
+    		$res['code'] = 1;
+    		$res['message'] = '成功!';
+    		$res['data'] = $data;
+    		$res['count'] = $this->finalQuoteModel->getCount($condition);
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
     }
     
 	/**
@@ -565,22 +594,28 @@ class QuoteController extends PublicController {
     	
     	if (isset($condition['quote_no'])) {
     		if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
-    			$res = $this->finalQuoteItemModel
+    			$data = $this->finalQuoteItemModel
     					->alias('a')
     					->join("quote_item b ON a.id = b.id", 'LEFT')
     					->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
     					->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
     		} else {
-    			$res = $this->finalQuoteItemModel
+    			$data = $this->finalQuoteItemModel
     					->alias('a')
     					->join("quote_item b ON a.id = b.id", 'LEFT')
     					->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
     					->where(array('a.quote_no' => $condition['quote_no']))->select();
     		}
     		
-    		if ($res) $res['count'] = $this->finalQuoteItemModel->getCount($condition);
-    		
-			$this->jsonReturn($res);
+	    	if ($data) {
+	    		$res['code'] = 1;
+	    		$res['message'] = '成功!';
+	    		$res['data'] = $data;
+	    		$res['count'] = $this->finalQuoteItemModel->getCount($condition);
+	    		$this->jsonReturn($res);
+	    	} else {
+	    		$this->jsonReturn(false);
+	    	}
     	} else {
     		$this->jsonReturn(false);
     	}
