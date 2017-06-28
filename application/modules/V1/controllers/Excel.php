@@ -6,8 +6,8 @@
  * Class ExcelController
  * @author maimaiti
  */
-//class ExcelController extends PublicController
-class ExcelController extends Yaf_Controller_Abstract
+class ExcelController extends PublicController
+//class ExcelController extends Yaf_Controller_Abstract
 {
     /**
      * 测试接口
