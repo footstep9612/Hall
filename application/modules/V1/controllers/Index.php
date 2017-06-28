@@ -56,6 +56,7 @@ class IndexController extends ShopMallController {
         if ($spus) {
             $condition['spus'] = $spus;
             $spumodel = new EsproductModel();
+          //  $_source = ['meterial_cat_no', 'spu', 'show_name', 'profile', 'supplier_name', 'attachs', 'brand',];
             $ret = $spumodel->getproducts($condition, null, $this->getLang());
 
 
@@ -63,12 +64,17 @@ class IndexController extends ShopMallController {
                 $send = [];
 
                 $data = $ret[0];
-                $send[0] = $data['hits']['hits'][0]["_source"];
-                $send[0]['id'] = $data['hits']['hits'][0]['_id'];
-//                foreach ($data['hits']['hits'] as $key => $item) {
-//                    $send[$key] = $item["_source"];
-//                    $send[$key]['id'] = $item['_id'];
-//                }
+
+                foreach ($data['hits']['hits'] as $key => $item) {
+                    $send[$key] = $item["_source"];
+                    $attachs = json_decode($item["_source"]['attachs'],true);
+                    if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+                        $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
+                    } else {
+                        $send[$key]['img'] = null;
+                    }
+                    $send[$key]['id'] = $item['_id'];
+                }
                 $this->setCode(1);
                 $this->jsonReturn($send);
             } else {
