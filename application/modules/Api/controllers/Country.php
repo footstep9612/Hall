@@ -25,7 +25,7 @@ class CountryController extends ShopMallController
      * 国家地区列表,按首字母分组排序
      * @author klp
      */
-    public function getListAllAction()
+    public function listCountryAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
@@ -47,13 +47,13 @@ class CountryController extends ShopMallController
      * 根据IP自动获取国家(新浪接口)
      * @author klp
      */
-    public function getIpAction()
+    public function getCountryByIpAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
         $IpModel = new CountryModel();
         $ip = $IpModel->getRealIp();
-        if($ip != 'Unknown'){
+        if('Unknown' != $ip){
             $country = $IpModel->getIpAddress($ip);
             if($lang=='zh'){
                 jsonReturn($country,1,'成功');
@@ -61,7 +61,12 @@ class CountryController extends ShopMallController
                 $countryModel = new CountryModel();
                 $result = $countryModel->getName($country);
                 if($result){
-                    jsonReturn($result,1,'成功');
+                    $data = array(
+                        'code' => '1',
+                        'message' => '数据获取成功',
+                        'data' => $result
+                    );
+                    jsonReturn($data);
                 } else{
                     jsonReturn('','-1002','失败');
                 }
@@ -76,7 +81,7 @@ class CountryController extends ShopMallController
      * 获取国家对应营销区域
      * @author klp
      */
-    public function getMarketAction()
+    public function getMarketAreaAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');

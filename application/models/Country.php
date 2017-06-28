@@ -13,6 +13,8 @@
  */
 class CountryModel extends PublicModel {
 
+    const STATUS_VALID = 'VALID';    //有效的
+
     //put your code here
     protected $dbName='erui_dict';
     protected $tableName = 'country';
@@ -227,7 +229,7 @@ class CountryModel extends PublicModel {
 
     //新浪通过IP地址获取当前地理位置（省份,城市等）的接口   klp
     public function getIpAddress($ip){
-        if($ip=="127.0.0.1") jsonReturn('','-1003','当前为本机地址');;
+        if($ip=="127.0.0.1") jsonReturn('','-1003','当前为本机地址');
         $ipContent   = file_get_contents("http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=json&ip=$ip");
         $arr = json_decode($ipContent,true);//解析json
         $country = $arr['country']; //取得国家
@@ -271,6 +273,36 @@ class CountryModel extends PublicModel {
             return $market_area;
         } else{
             return false;
+        }
+    }
+
+    /**
+     * 根据简称与语言获取国家名称
+     * @param string $bn 简称
+     * @param string $lang 语言
+     * @param string
+     */
+    public function getCountryByBn($bn='',$lang=''){
+        if(empty($bn) || empty($lang))
+            return '';
+
+        if(redisHashExist('Country',$bn.'_'.$lang)){
+            return redisHashGet('Country',$bn.'_'.$lang);
+        }
+        try{
+            $condition = array(
+                'bn' =>$bn,
+                'lang'=>$lang,
+               // 'status'=>self::STATUS_VALID
+            );
+            $field = 'name';
+            $result = $this->field($field)->where($condition)->find();
+            if($result){
+                redisHashSet('Country',$bn.'_'.$lang,$result['name']);
+            }
+            return $result['name'];
+        }catch (Exception $e){
+            return '';
         }
     }
 }
