@@ -52,16 +52,35 @@ class GroupController extends PublicController {
         if (empty($data)) {
             return array();
         }
-            $arr = array();
-            foreach ($data as $v) {
-                if ($v[$fieldPid] == $pid) {
-                    $arr[$v[$fieldPri]] = $v;
-                    $arr[$v[$fieldPri]]['level'] = $level;
-                    $arr[$v[$fieldPri]]['_html'] = str_repeat($html, $level - 1);
-                    $arr[$v[$fieldPri]]["child"] = channelLevel($data, $v[$fieldPri], $html, $fieldPri, $fieldPid, $level + 1);
-                }
+        if(!empty($data['parent_id'])){
+            $where['parent_id'] = $data['parent_id'];
+        }
+        $limit = [] ;
+        if(!empty($data['page'])){
+            $limit['page'] = $data['page'];
+        }
+        if(!empty($data['countPerPage'])){
+            $limit['num'] = $data['countPerPage'];
+        }
+        $model_group = new GroupModel();
+        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        $count = count($data);
+        $group_user_model = new GroupUserModel();
+        for($i=0 ; $i< $count; $i++){
+            if($data[$i]['id']){
+               $user_list = $group_user_model->getlist(['group_id' => $data[$i]['id'] ],$limit);
+                $data[$i]['children']=$user_list;
             }
-            return $arr;
+        }
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
     }
 
     public function infoAction() {
