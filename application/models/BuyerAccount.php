@@ -163,6 +163,7 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($where)) {
             return $this->where($where)->save($arr);
         } else {
+            return false;
         }
     }
 
@@ -234,13 +235,13 @@ class BuyerAccountModel extends PublicModel {
      * return bool
      */
     public function update_pwd($data){
-        if(!empty($data['id'])){
-            $where['id'] = $data['id'];
+        if(!empty($data['customer_id'])){
+            $where['customer_id'] = $data['customer_id'];
         } else{
             jsonReturn('','-1001','用户id不可以为空');
         }
-        if(!empty($data['password'])){
-            $new['password'] = $data['password'];
+        if(!empty($data['password_hash'])){
+            $new['password_hash'] = $data['password_hash'];
         } else {
             jsonReturn('','-1001','新密码不可以为空');
         }

@@ -45,13 +45,18 @@ class MemberCenterController extends PublicController
      */
     public function upUserInfoAction(){
         $data = json_decode(file_get_contents("php://input"), true);
+        if (!empty($data['customer_id'])) {
+            $where['customer_id'] = $data['customer_id'];
+        } else {
+            jsonReturn('','-1001','参数[customer_id]不能为空');
+        }
         $buyerAccount = new BuyerAccountModel();
-        $result1 = $buyerAccount->update_account($data);
+        $result1 = $buyerAccount->update_data($data,$where);
         $buyer = new BuyerModel();
-        $result2 = $buyer->update_data($data);
+        $result2 = $buyer->update_data($data,$where);
         $buyerAddress = new BuyerAddressModel();
-        $result3 = $buyerAddress->update_address($data);
-        if($result1 && $result2 && $result3){
+        $result3 = $buyerAddress->update_data($data,$where);
+        if($result1){
             jsonReturn('',1,'保存成功');
         }else{
             jsonReturn('','-1002','保存失败');
