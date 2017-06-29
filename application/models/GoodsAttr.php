@@ -229,9 +229,9 @@ class GoodsAttrModel extends PublicModel
             return array();
 
         //检查redis
-        if(redisHashExist('spec','spec_'.$sku.'_'.$lang)){
+        /*if(redisHashExist('spec','spec_'.$sku.'_'.$lang)){
             return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang),true);
-        }
+        }*/
 
         $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit';
         $condition = array(
@@ -243,7 +243,7 @@ class GoodsAttrModel extends PublicModel
         try{
             $result = $this->field($field)->where($condition)->select();
             if($result){
-                redisHashSet('spec','spec_'.$sku.'_'.$lang, json_encode($result));
+                //redisHashSet('spec','spec_'.$sku.'_'.$lang, json_encode($result));
                 return $result;
             }
         }catch (Exception $e){

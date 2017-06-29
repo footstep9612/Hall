@@ -21,11 +21,11 @@ class FinalQuoteModel extends PublicModel {
      public function getWhere($condition) {
      	$where = array();
      	
-     	if(isset($condition['quote_no'])) {
+     	if(!empty($condition['quote_no'])) {
     		$where['quote_no'] = $condition['quote_no'];
     	}
     	
-     	if(isset($condition['quote_status'])) {
+     	if(!empty($condition['quote_status'])) {
     		$where['quote_status'] = $condition['quote_status'];
     	}
     	
@@ -56,7 +56,7 @@ class FinalQuoteModel extends PublicModel {
     	
     	$where = $this->getWhere($condition);
     	
-    	if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
+    	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
     	} else {
     		return $this->where($where)->select();

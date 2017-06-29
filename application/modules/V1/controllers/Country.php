@@ -25,7 +25,7 @@ class CountryController extends PublicController
      * 国家地区列表,按首字母分组排序
      * @author klp
      */
-    public function getListAllAction()
+    public function listCountryAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
@@ -70,6 +70,33 @@ class CountryController extends PublicController
             jsonReturn('','-1002','IP未知,获取失败');
         }
 
+    }
+    /**
+     * 获取国家对应营销区域
+     * @author klp
+     */
+    public function getMarketAreaAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        if(!empty($data['name'])){
+            $country = ucwords($data['name']);
+        } else {
+            jsonReturn('','-1001','参数[name]不能为空');
+        }
+        $countryModel = new CountryModel();
+        $result = $countryModel->getMarketArea($country,$lang);
+        if($result){
+            $data = array(
+                'code' => '1',
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
+        }
+        exit;
     }
 
 

@@ -95,9 +95,9 @@ class QuoteController extends PublicController {
     		$quote['payment_received_days'] = '';
     		$quote['exw_delivery_period'] = '';
     		$quote['period_of_validity'] = '';
-    		$quote['logi_quote_status'] = 'ONGOING';
-			$quote['biz_quote_status'] = 'ONGOING';
-			$quote['quote_status'] = 'ONGOING';
+    		$quote['logi_quote_status'] = 'NOT_QUOTED';
+			$quote['biz_quote_status'] = 'NOT_QUOTED';
+			$quote['quote_status'] = 'NOT_QUOTED';
 			$quote['quoter'] = $user['name']; //获取当前用户信息
 			$quote['quoter_email'] = $user['email']; //获取当前用户信息
 			$quote['quote_at'] = $time;
@@ -214,10 +214,29 @@ class QuoteController extends PublicController {
     	
     	$condition['biz_quote_status'] = 'ONGOING';
     	
-    	$res = $this->quoteModel->getList($condition);
+    	$data = $this->quoteModel->getList($condition);
     	
-    	if ($res) $res['count'] = $this->quoteModel->getCount($condition);
+    	if ($data) {
+    		$res['code'] = 1;
+    		$res['message'] = '成功!';
+    		$res['data'] = $data;
+    		$res['count'] = $this->quoteModel->getCount($condition);
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 商务技术获取报价详情接口
+ 	 * @author liujf 2017-06-28
+     * @return json
+     */
+    public function getQuoteDetailApiAction() {
+    	$condition = $this->put_data;
     	
+    	$res = $this->quoteModel->getDetail($condition);
+        
     	$this->jsonReturn($res);
     }
     
@@ -229,7 +248,7 @@ class QuoteController extends PublicController {
     public function updateQuoteApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['quote_no'])) {
+    	if (!empty($condition['quote_no'])) {
     		
     		$user = $this->getUserInfo();
     		
@@ -281,28 +300,53 @@ class QuoteController extends PublicController {
     public function getQuoteItemListApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['quote_no'])) {
-    		if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
-    			$res = $this->quoteItemModel
+    	if (!empty($condition['quote_no'])) {
+    		if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
+    			$data = $this->quoteItemModel
 	    					->alias('a')
 	    					->join("final_quote_item b ON a.id = b.id", 'LEFT')
 	    					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
 	    					->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
     		} else {
-    			$res = $this->quoteItemModel
+    			$data = $this->quoteItemModel
 	    					->alias('a')
 	    					->join("final_quote_item b ON a.id = b.id", 'LEFT')
 	    					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
 	    					->where(array('a.quote_no' => $condition['quote_no']))->select();
     		}
     		
-    		if ($res) $res['count'] = $this->quoteItemModel->getCount($condition);
-    		
-			$this->jsonReturn($res);
+    		if ($data) {
+	    		$res['code'] = 1;
+	    		$res['message'] = '成功!';
+	    		$res['data'] = $data;
+	    		$res['count'] = $this->quoteItemModel->getCount($condition);
+	    		$this->jsonReturn($res);
+	    	} else {
+	    		$this->jsonReturn(false);
+	    	}
     	} else {
     		$this->jsonReturn(false);
     	}
     	
+    }
+    
+	/**
+     * @desc 商务技术获取报价SKU详情接口
+ 	 * @author liujf 2017-06-28
+     * @return json
+     */
+    public function getQuoteItemDetailApiAction() {
+    	$condition = $this->put_data;
+    	
+    	if (!empty($condition['id'])) {
+    		$res = $this->quoteItemModel
+	    				->alias('a')
+	    				->join("final_quote_item b ON a.id = b.id", 'LEFT')
+	    				->field("a.*,b.quote_unit_price AS final_quote_unit_price")
+	    				->where(array('a.quote_no' => $condition['id']))->find();
+    				    
+    		$this->jsonReturn($res);
+    	}
     }
     
 	/**
@@ -313,7 +357,7 @@ class QuoteController extends PublicController {
     public function addQuoteItemApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['quote_no'])) {
+    	if (!empty($condition['quote_no'])) {
     		$quote = $this->quoteModel->getDetail($condition);
     		
     		$quoteItem['quote_no'] = $condition['quote_no'];
@@ -387,7 +431,7 @@ class QuoteController extends PublicController {
     public function uptateQuoteItemApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['id'])) {
+    	if (!empty($condition['id'])) {
     		$quote = $this->quoteModel->getDetail($condition);
     		
     		$quoteItem['buyer_sku'] = '';
@@ -458,7 +502,7 @@ class QuoteController extends PublicController {
     public function deleteQuoteItemApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['id'])) {
+    	if (!empty($condition['id'])) {
     		$res = $this->quoteItemModel->where(array('id' => $condition['id']))->save(array('status' => 'DELETED'));
     		$this->jsonReturn($res);
     	} else {
@@ -473,10 +517,28 @@ class QuoteController extends PublicController {
      * @return json
      */
     public function getQuoteLogiListApiAction() {
+    	$condition = $this->put_data;
     	
-    	$res = $this->quoteModel->getList($condition);
+    	$data = $this->quoteModel->al
     	
-    	$this->jsonReturn($res);
+    	if ($data) {
+    		$res['code'] = 1;
+    		$res['message'] = '成功!';
+    		$res['data'] = $data;
+    		$res['count'] = $this->quoteModel->getCount($condition);
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 物流获取报价详情接口
+ 	 * @author liujf 2017-06-28
+     * @return json
+     */
+    public function getQuoteLogiDetailApiAction() {
+    	$this->getQuoteDetailApiAction();
     }
     
     /**
@@ -487,7 +549,7 @@ class QuoteController extends PublicController {
     public function updateQuoteLogiApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['quote_no'])) {
+    	if (!empty($condition['quote_no'])) {
     		
     		$quote = $this->quoteModel->getDetail($condition);
     		
@@ -550,8 +612,29 @@ class QuoteController extends PublicController {
     	
     	$condition['quote_status'] = 'APPROVING';
     	
-    	$res = $this->finalQuoteModel->getList($condition);
+    	$data = $this->finalQuoteModel->getList($condition);
     	
+    	if ($data) {
+    		$res['code'] = 1;
+    		$res['message'] = '成功!';
+    		$res['data'] = $data;
+    		$res['count'] = $this->finalQuoteModel->getCount($condition);
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    }
+    
+	/**
+     * @desc 市场获取报价详情接口
+ 	 * @author liujf 2017-06-28
+     * @return json
+     */
+    public function getFinalQuoteDetailApiAction() {
+    	$condition = $this->put_data;
+    	
+    	$res = $this->finalQuoteModel->getDetail($condition);
+        
     	$this->jsonReturn($res);
     }
     
@@ -563,28 +646,54 @@ class QuoteController extends PublicController {
     public function getFinalQuoteItemListApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['quote_no'])) {
-    		if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
-    			$res = $this->finalQuoteItemModel
+    	if (!empty($condition['quote_no'])) {
+    		if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
+    			$data = $this->finalQuoteItemModel
     					->alias('a')
     					->join("quote_item b ON a.id = b.id", 'LEFT')
     					->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
     					->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
     		} else {
-    			$res = $this->finalQuoteItemModel
+    			$data = $this->finalQuoteItemModel
     					->alias('a')
     					->join("quote_item b ON a.id = b.id", 'LEFT')
     					->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
     					->where(array('a.quote_no' => $condition['quote_no']))->select();
     		}
     		
-    		if ($res) $res['count'] = $this->finalQuoteItemModel->getCount($condition);
-    		
-			$this->jsonReturn($res);
+	    	if ($data) {
+	    		$res['code'] = 1;
+	    		$res['message'] = '成功!';
+	    		$res['data'] = $data;
+	    		$res['count'] = $this->finalQuoteItemModel->getCount($condition);
+	    		$this->jsonReturn($res);
+	    	} else {
+	    		$this->jsonReturn(false);
+	    	}
     	} else {
     		$this->jsonReturn(false);
     	}
     	
+    }
+    
+    /**
+     * @desc 市场获取报价SKU详情接口
+ 	 * @author liujf 2017-06-28
+     * @return json
+     */
+    public function getFinalQuoteItemDetailApiAction() {
+    	$condition = $this->put_data;
+    	
+    	if (!empty($condition['id'])) {
+    		
+    		$res = $this->finalQuoteItemModel
+    			        ->alias('a')
+    				    ->join("quote_item b ON a.id = b.id", 'LEFT')
+    				    ->field("a.*,b.exw_unit_price AS quote_exw_unit_price,b.exw_unit_price AS q_exw_unit_price,b.quote_unit_price AS q_quote_unit_price")
+    				    ->where(array('a.id' => $condition['id']))->find();
+    				    
+    		$this->jsonReturn($res);
+    	}
     }
 	
 	/**
@@ -595,7 +704,7 @@ class QuoteController extends PublicController {
     public function updateFinalQuoteApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['quote_no'])) {
+    	if (!empty($condition['quote_no'])) {
     		
     		$user = $this->getUserInfo();
     		
@@ -651,7 +760,7 @@ class QuoteController extends PublicController {
     public function uptateFinalQuoteItemApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['id'])) {
+    	if (!empty($condition['id'])) {
     		$finalQuote = $this->finalQuoteModel->getDetail($condition);
     		
     		$finalQuoteItem['quote_no'] = $condition['quote_no'];
@@ -735,7 +844,7 @@ class QuoteController extends PublicController {
     public function addQuoteAttachApiAction() {
         $condition = $this->put_data;
         
-        if (isset($condition['quote_no'])) {
+        if (!empty($condition['quote_no'])) {
         	$data['quote_no'] = $condition['quote_no'];
         	$data['attach_group'] = $condition['attach_group'];
         	$data['attach_type'] = $condition['attach_type'];
@@ -759,7 +868,7 @@ class QuoteController extends PublicController {
     public function deleteQuoteAttachApiAction() {
     	$condition = $this->put_data;
         
-        if (isset($condition['id'])) {
+        if (!empty($condition['id'])) {
         	
         	$res = $this->quoteAttachModel->where(array('id' => $condition['id']))->delete();
         	
@@ -790,7 +899,7 @@ class QuoteController extends PublicController {
     public function addQuoteItemAttachApiAction() {
         $condition = $this->put_data;
         
-        if (isset($condition['quote_no'])) {
+        if (!empty($condition['quote_no'])) {
         	$data['quote_no'] = $condition['quote_no'];
         	$data['attach_group'] = $condition['attach_group'];
         	$data['attach_type'] = $condition['attach_type'];
@@ -814,7 +923,7 @@ class QuoteController extends PublicController {
     public function deleteQuoteItemAttachApiAction() {
     	$condition = $this->put_data;
         
-        if (isset($condition['id'])) {
+        if (!empty($condition['id'])) {
         	
         	$res = $this->quoteItemAttachModel->where(array('id' => $condition['id']))->delete();
         	
@@ -845,7 +954,7 @@ class QuoteController extends PublicController {
     public function addFinalQuoteAttachApiAction() {
         $condition = $this->put_data;
         
-        if (isset($condition['quote_no'])) {
+        if (!empty($condition['quote_no'])) {
         	$data['quote_no'] = $condition['quote_no'];
         	$data['attach_group'] = $condition['attach_group'];
         	$data['attach_type'] = $condition['attach_type'];
@@ -869,7 +978,7 @@ class QuoteController extends PublicController {
     public function deleteFinalQuoteAttachApiAction() {
     	$condition = $this->put_data;
         
-        if (isset($condition['id'])) {
+        if (!empty($condition['id'])) {
         	
         	$res = $this->finalQuoteAttachModel->where(array('id' => $condition['id']))->delete();
         	
@@ -900,7 +1009,7 @@ class QuoteController extends PublicController {
     public function addFinalQuoteItemAttachApiAction() {
         $condition = $this->put_data;
         
-        if (isset($condition['quote_no'])) {
+        if (!empty($condition['quote_no'])) {
         	$data['quote_no'] = $condition['quote_no'];
         	$data['attach_group'] = $condition['attach_group'];
         	$data['attach_type'] = $condition['attach_type'];
@@ -924,7 +1033,7 @@ class QuoteController extends PublicController {
     public function deleteFinalQuoteItemAttachApiAction() {
     	$condition = $this->put_data;
         
-        if (isset($condition['id'])) {
+        if (!empty($condition['id'])) {
         	
         	$res = $this->finalQuoteItemAttachModel->where(array('id' => $condition['id']))->delete();
         	
@@ -942,7 +1051,7 @@ class QuoteController extends PublicController {
     public function getGoodsPriceHisApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['sku'])) {
+    	if (!empty($condition['sku'])) {
     		
     		$res = $this->goodsPriceHisModel->getList($condition);
     		
@@ -1058,7 +1167,7 @@ class QuoteController extends PublicController {
     public function examineApiAction() {
     	$condition = $this->put_data;
     	
-    	if (isset($condition['quote_no'])) {
+    	if (!empty($condition['quote_no'])) {
     		$data = $this->getExamine($condition);
     		
     		$res = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->save($data);

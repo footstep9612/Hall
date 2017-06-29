@@ -21,11 +21,11 @@ class QuoteItemAttachModel extends PublicModel {
     public function getWhere($condition = array()) {
     	$where = array();
     	
-    	if (isset($condition['quote_no'])) {
+    	if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
         }
     	
-    	if (isset($condition['attach_type'])) {
+    	if (!empty($condition['attach_type'])) {
             $where['attach_type'] = $condition['attach_type'];
         }
     	
@@ -56,7 +56,7 @@ class QuoteItemAttachModel extends PublicModel {
     	
     	$where = $this->getWhere($condition);
     	
-    	if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
+    	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
     	} else {
     		return $this->where($where)->select();

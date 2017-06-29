@@ -1,12 +1,11 @@
 <?php
 /**
- * name: Inquiry.php
- * desc: 询价单控制器
  * User: zhangyuliang
- * Date: 2017/6/16
- * Time: 14:51
+ * desc: 询价单控制器
+ * Date: 2017/6/27
+ * Time: 15:30
  */
-class InquiryController extends PublicController {
+class InquiryController extends ShopMallController {
 
     public function __init() {
         parent::__init();
@@ -26,31 +25,30 @@ class InquiryController extends PublicController {
         }
     }
 
-    //查询询单号（项目代码）是否存在
-    public function checkInquiryNoAction() {
+    //添加询价单
+    public function addAction(){
         $inquiry = new InquiryModel();
-        $where = json_decode(file_get_contents("php://input"), true);
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['customer_id'] = $this->user['customer_id'];
+        $data['inquirer'] = $this->user['user_name'];
+        $data['inquirer_email'] = $this->user['email'];
 
-        $results = $inquiry->checkInquiryNo($where);
-
+        $results = $inquiry->add_data($data);
         $this->jsonReturn($results);
-        /*if(!empty($data)){
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            $this->jsonReturn($data);
-        }else{
-            $this->setCode('-101');
-            $this->setMessage('没有找到相关信息!');
-            $this->jsonReturn();
-        }*/
     }
 
     //询价单列表
     public function getListAction(){
         $inquiry = new InquiryModel();
+        $item = new InquiryItemModel();
         $where = json_decode(file_get_contents("php://input"), true);
 
         $results = $inquiry->getlist($where);
+
+        foreach($results as $key=>$val){
+            $test['serial_no'] = $val['serial_no'];
+            $results[$key]['quantity'] = $item->getcount($test);
+        }
 
         $this->jsonReturn($results);
     }
@@ -65,30 +63,12 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //添加询价单
-    public function addAction(){
-        $inquiry = new InquiryModel();
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        $results = $inquiry->add_data($data);
-        $this->jsonReturn($results);
-    }
-
     //修改询价单
     public function updateAction(){
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
         $results = $inquiry->update_data($data);
-        $this->jsonReturn($results);
-    }
-
-    //批量修改询价单状态
-    public function updateStatusAction(){
-        $inquiry = new InquiryModel();
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        $results = $inquiry->update_all($data);
         $this->jsonReturn($results);
     }
 

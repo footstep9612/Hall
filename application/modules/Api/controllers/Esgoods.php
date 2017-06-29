@@ -24,7 +24,7 @@ class EsgoodsController extends PublicController {
         parent::init();
     }
 
-   public function listAction() {
+    public function listAction() {
         $this->setLang('zh');
         $model = new EsgoodsModel();
         $ret = $model->getgoods($this->put_data, null, $this->getLang());
@@ -57,9 +57,11 @@ class EsgoodsController extends PublicController {
     public function importAction($lang = 'en') {
         try {
             //$lang = 'zh';
+            set_time_limit(0);
+            ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsgoodsModel();
-                $espoductmodel->importgoodss($lang);
+            $espoductmodel = new EsgoodsModel();
+            $espoductmodel->importgoodss($lang);
             }
 
             $this->setCode(1);
