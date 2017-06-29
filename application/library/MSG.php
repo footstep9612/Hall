@@ -81,8 +81,8 @@ class MSG {
 
     public static function getMessage($code, $lang = 'en') {
         $map = [
-            self::MSG_SUCCESS => '更新或插入成功',
-            self::MSG_FAILED => '更新或插入错误',
+            self::MSG_SUCCESS => '成功!',
+            self::MSG_FAILED => '错误!',
             self::MSG_MODULE_NOT_EXIST => '模块不存在',
             self::MSG_CONTROLLER_NOT_EXIST => '控制器不存在',
             self::MSG_ERROR_ACTION => '方法不存',

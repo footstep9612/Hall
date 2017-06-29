@@ -27,7 +27,7 @@ class GoodsController extends PublicController
         if($result){
             jsonReturn(array('data'=>$result));
         }else{
-            json_encode('',400,'');
+            jsonReturn('',400,'');
         }
     }
 

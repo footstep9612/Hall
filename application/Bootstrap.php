@@ -30,26 +30,61 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
 
     public function _initRoute(Yaf_Dispatcher $dispatcher) {
 
+
         $router = Yaf_Dispatcher::getInstance()->getRouter();
 
         $dispatcher->disableView();
 
         $Request = $dispatcher->getRequest();
-        preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
+        if (!$Request->isCli()) {
+            $config_obj = Yaf_Registry::get("config");
+            $modules = $config_obj->application->modules;
+            $modules = str_replace(',', '|', $modules);
 
-        $ControllerName = ucfirst($out[2]);
-        $ControllerName = str_replace('_', '', $ControllerName);
-        //创建一个路由协议实例
-        if ($ControllerName) {
-            $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
-                'controller' => $ControllerName,
-                'action' => ':Action']);
+
+            preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
+
+            $ControllerName = ucfirst($out[2]);
+            $ControllerName = str_replace('_', '', $ControllerName);
+            //创建一个路由协议实例
+            if ($ControllerName) {
+                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
+                    'controller' => $ControllerName,
+                    'action' => ':Action']);
+            } else {
+                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
+                    'controller' => ':Controller',
+                    'action' => ':Action']);
+            }
+
+            //使用路由器装载路由协议
+            $router->addRoute('Materialcat', $route);
         } else {
-            $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
-                'controller' => ':Controller',
-                'action' => ':Action']);
+            $config_obj = Yaf_Registry::get("config");
+            $modules = $config_obj->application->modules;
+            $modules = str_replace(',', '|', $modules);
+
+            global $argc, $argv;
+            $uri = $argv [1];
+            $Request->setRequestUri($uri);
+            preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
+
+            $ControllerName = ucfirst($out[2]);
+            $ControllerName = str_replace('_', '', $ControllerName);
+            //创建一个路由协议实例
+            if ($ControllerName) {
+                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
+                    'controller' => $ControllerName,
+                    'action' => ':Action']);
+            } else {
+                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
+                    'controller' => ':Controller',
+                    'action' => ':Action']);
+            }
+
+            //使用路由器装载路由协议
+            $router->addRoute('Materialcat', $route);
         }
-        $router->addRoute('api', $route);
     }
 
 }

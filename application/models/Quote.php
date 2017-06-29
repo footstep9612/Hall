@@ -21,15 +21,15 @@ class QuoteModel extends PublicModel {
      public function getWhere($condition) {
      	$where = array();
      	
-     	if(isset($condition['quote_no'])) {
+     	if(!empty($condition['quote_no'])) {
     		$where['quote_no'] = $condition['quote_no'];
     	}
     	
-     	if(isset($condition['biz_quote_status'])) {
-    		$where['biz_quote_status'] = $condition['biz_quote_status'];
+     	if(!empty($condition['biz_quote_status'])) {
+    		$where['biz_quote_status'] = array('in', $condition['biz_quote_status']);
     	}
     	
-     	if(isset($condition['logi_quote_status'])) {
+     	if(!empty($condition['logi_quote_status'])) {
     		$where['logi_quote_status'] = $condition['logi_quote_status'];
     	}
     	
@@ -61,7 +61,7 @@ class QuoteModel extends PublicModel {
     	
     	$where = $this->getWhere($condition);
     	
-    	if (isset($condition['currentPage']) && isset($condition['pageSize'])) {
+    	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
     	} else {
     		return $this->where($where)->select();

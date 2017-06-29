@@ -128,7 +128,7 @@ class InquiryModel extends PublicModel {
 
     /**
      * 获取详情信息
-     * @param  int $inquiry_no 询单号
+     * @param  int $serial_no 询单号
      * @return mix
      * @author zhangyuliang
      */
@@ -218,8 +218,8 @@ class InquiryModel extends PublicModel {
 
     /**
      * 更新数据
-     * @param  mix $data 更新数据
-     * @param  int $inquiry_no 询单号
+     * @param  mix $createcondition 更新数据
+     * @param  int $serial_no 询单号
      * @return bool
      * @author zhangyuliang
      */
@@ -253,9 +253,44 @@ class InquiryModel extends PublicModel {
         }
     }
 
+    /*
+     * 批量更新状态
+     * @param  mix $createcondition 更新数据
+     * @param  int $serial_no 询单号
+     * @return bool
+     */
+    public function update_all($createcondition = []) {
+        if(isset($createcondition['serial_no'])){
+            $where['serial_no'] = array('in',explode(',',$createcondition['serial_no']));
+        }else{
+            return false;
+        }
+        if(isset($createcondition['inquiry_status'])){
+            $inquiry_status = $createcondition['inquiry_status'];
+        }else{
+            return false;
+        }
+
+        try {
+            $id = $this->where($where)->save(['inquiry_status' => $inquiry_status]);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '修改失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
+        }
+    }
+
     /**
      * 删除数据
-     * @param  int $inquiry_no 询单号
+     * @param  int $serial_no 询单号
      * @return bool
      * @author zhangyuliang
      */
