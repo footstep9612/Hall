@@ -40,9 +40,15 @@ class InquiryController extends ShopMallController {
     //询价单列表
     public function getListAction(){
         $inquiry = new InquiryModel();
+        $item = new InquiryItemModel();
         $where = json_decode(file_get_contents("php://input"), true);
 
         $results = $inquiry->getlist($where);
+
+        foreach($results as $key=>$val){
+            $test['serial_no'] = $val['serial_no'];
+            $results[$key]['quantity'] = $item->getcount($test);
+        }
 
         $this->jsonReturn($results);
     }

@@ -35,32 +35,41 @@ class InquiryModel extends PublicModel {
      */
     protected function getcondition($condition = []) {
         $where = [];
-        if (!empty(trim($condition['serial_no']))) {
+        if (!empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];
         }
-        if (!empty(trim($condition['inquiry_no']))) {
+        if (!empty($condition['inquiry_no'])) {
             $where['inquiry_no'] = $condition['inquiry_no'];
         }
-        if (!empty(trim($condition['inquiry_status']))) {
+        if (!empty($condition['inquiry_status'])) {
             $where['inquiry_status'] = $condition['inquiry_status'];
         }
-        if (!empty(trim($condition['inquiry_region']))) {
+        if (!empty($condition['inquiry_region'])) {
             $where['inquiry_region'] = $condition['inquiry_region'];
         }
-        if (!empty(trim($condition['inquiry_country']))) {
+        if (!empty($condition['inquiry_country'])) {
             $where['inquiry_country'] = $condition['inquiry_country'];
         }
-        if (!empty(trim($condition['agent']))) {
+        if (!empty($condition['agent'])) {
             $where['agent'] = $condition['agent'];
         }
-        if (!empty(trim($condition['customer_id']))) {
+        if (!empty($condition['customer_id'])) {
             $where['customer_id'] = $condition['customer_id'];
         }
-        if(!empty(trim($condition['start_time'])) && !empty(trim($condition['end_time']))){
+        if(!empty($condition['start_time']) && !empty($condition['end_time'])){
             $where['inquiry_time'] = array(
                 array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
                 array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
             );
+        }
+        if (!empty($condition['inquirer_email'])) {
+            $where['inquirer_email'] = $condition['inquirer_email'];
+        }
+        if (!empty($condition['quote_status'])) {
+            $where['quote_status'] = $condition['quote_status'];
+        }
+        if (!empty($condition['trade_terms'])) {
+            $where['trade_terms'] = $condition['trade_terms'];
         }
         return $where;
     }
@@ -73,9 +82,7 @@ class InquiryModel extends PublicModel {
      */
     public function getcount($condition = []) {
         $where = $this->getcondition($condition);
-        return $this->where($where)
-                ->field('id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at')
-                ->count('id');
+        return $this->where($where)->count('id');
     }
 
     /**
@@ -86,14 +93,14 @@ class InquiryModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        $filed = 'id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
+        //$filed = 'id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
         //$page = isset($condition['page'])?$condition['page']:1;
         //$pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
 
         try {
             if (isset($page) && isset($pagesize)) {
                 //$count = $this->getcount($condition);
-                $list = $this->where($where)->field($filed)->select();
+                $list = $this->where($where)->select();
                     //->page($page, $pagesize)
                     //->field($filed)
                     //->select();
@@ -107,7 +114,7 @@ class InquiryModel extends PublicModel {
                 }
                 return $results;
             } else {
-                $list = $this->where($where)->field($filed)->select();
+                $list = $this->where($where)->select();
                 if(isset($list)){
                     $results['code'] = '1';
                     $results['messaage'] = '成功！';
@@ -204,6 +211,7 @@ class InquiryModel extends PublicModel {
             if(isset($id)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
+                $results['data'] = $data;
             }else{
                 $results['code'] = '-101';
                 $results['messaage'] = '添加失败!';
