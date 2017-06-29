@@ -78,6 +78,19 @@ class CountryController extends ShopMallController
     }
 
     /**
+     * 获取国家,session存储
+     * @author klp
+     */
+    public function setCountry() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $session=Yaf_Session::getInstance();
+        $session->country=$$data['country'];
+    }
+    public function getCountry() {
+        $session=Yaf_Session::getInstance();
+        return $session->country;
+    }
+    /**
      * 获取国家对应营销区域
      * @author klp
      */

@@ -36,9 +36,9 @@ class QuoteItemModel extends PublicModel {
      */
     public function getCount($condition) {
     	$where = $this->getWhere($condition);
-    	
+
     	$count = $this->where($where)->count('id');
-    	
+
     	return $count > 0 ? $count : 0;
     }
 
@@ -58,4 +58,63 @@ class QuoteItemModel extends PublicModel {
     	}
     }
 
+	/**
+	 * @desc 添加报价单SKU详情
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function addItem($condition) {
+		$data = $this->create($condition);
+		$data['status'] = !empty($condition['status'])?$condition['status']:'ONGOING';
+
+		return $this->add($data);
+	}
+
+	/**
+	 * @desc 获取报价单SKU详情
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function getDetail($condition) {
+
+		$where = $this->getWhere($condition);
+
+		return $this->where($where)->find();
+	}
+
+	/**
+	 * @desc 修改报价单SKU
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $where , $condition
+	 * @return array
+	 */
+	public function updateItem($where = [], $condition = []) {
+
+		if(empty($where['quote_no'])){
+			return false;
+		}
+
+		$data = $this->create($condition);
+
+		return $this->where($where)->save($data);
+	}
+
+	/**
+	 * @desc 删除报价单SKU
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function delItem($condition = []) {
+
+		if(!empty($condition['quote_no'])) {
+			$where['where'] = $condition['quote_no'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->save(['status' => 'DELETED']);
+	}
 }

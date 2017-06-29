@@ -16,7 +16,7 @@ class BuyerModel extends PublicModel {
     protected $tableName = 'buyer';
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $g_table = 'erui_buyer.t_buyer';
-    Protected $autoCheckFields = true;
+    Protected $autoCheckFields = false;
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -115,33 +115,91 @@ class BuyerModel extends PublicModel {
 
     public function create_data($create = [])
     {
-        $data['customer_id'] = $create['customer_id'];
-        $data['serial_no'] = $create['serial_no'];
-        $data['lang'] = $create['lang'];
-        $data['name'] = $create['name'];
-        $data['bn'] = $create['bn'];
-        $data['profile'] = $create['profile'];
-        $data['country'] = $create['country'];
-        $data['province'] = $create['province'];
-        $data['reg_date'] = date('Y-m-d');
-        $data['logo'] = $create['logo'];
-        $data['official_website'] = $create['official_website'];
-        $data['brand'] = $create['brand'];
-        $data['bank_name'] = $create['bank_name'];
-        $data['swift_code'] = $create['swift_code'];
-        $data['bank_address'] = $create['bank_address'];
-        $data['bank_account'] = $create['bank_account'];
-        $data['buyer_level'] = $create['buyer_level'];
-        $data['credit_level'] = $create['credit_level'];
-        $data['finance_level'] = $create['finance_level'];
-        $data['logi_level'] = $create['logi_level'];
-        $data['qa_level'] = $create['qa_level'];
-        $data['steward_level'] = $create['steward_level'];
-        $data['remarks'] = $create['remarks'];
+        if(isset($create['customer_id'])){
+            $data['customer_id'] = $create['customer_id'];
+        }
+        if(isset($create['serial_no'])){
+            $data['serial_no'] = $create['serial_no'];
+        }
+        if(isset($create['lang'])){
+            $data['lang'] = $create['lang'];
+        }else{
+            $data['lang'] = 'en';
+        }
+        if(isset($create['name'])){
+            $data['name'] = $create['name'];
+        }
+        if(isset($create['bn'])){
+            $data['bn'] = $create['bn'];
+        }
+        if(isset($create['profile'])){
+            $data['profile'] = $create['profile'];
+        }
+        if(isset($create['country'])){
+            $data['country'] = $create['country'];
+        }
+        if(isset($create['province'])){
+            $data['province'] = $create['province'];
+        }
+        if(isset($create['reg_date'])){
+            $data['reg_date'] = date('Y-m-d');
+        }
+        if(isset($create['logo'])){
+            $data['logo'] = $create['logo'];
+        }
+        if(isset($create['official_website'])){
+            $data['official_website'] = $create['official_website'];
+        }
+        if(isset($create['brand'])){
+            $data['brand'] = $create['brand'];
+        }
+        if(isset($create['bank_name'])){
+            $data['bank_name'] = $create['bank_name'];
+        }
+        if(isset($create['swift_code'])){
+            $data['swift_code'] = $create['swift_code'];
+        }
+        if(isset($create['bank_address'])){
+            $data['bank_address'] = $create['bank_address'];
+        }
+        if(isset($create['bank_account'])){
+            $data['bank_account'] = $create['bank_account'];
+        }
+        if(isset($create['buyer_level'])){
+            $data['buyer_level'] = $create['buyer_level'];
+        }
+        if(isset($create['credit_level'])){
+            $data['credit_level'] = $create['credit_level'];
+        }
+        if(isset($create['finance_level'])){
+            $data['finance_level'] = $create['finance_level'];
+        }
+        if(isset($create['logi_level'])){
+            $data['logi_level'] = $create['logi_level'];
+        }
+        if(isset($create['qa_level'])){
+            $data['qa_level'] = $create['qa_level'];
+        }
+        if(isset($create['steward_level'])){
+            $data['steward_level'] = $create['steward_level'];
+        }
+        if(isset($create['remarks'])){
+            $data['remarks'] = $create['remarks'];
+        }
         $data['apply_at'] = date('Y-m-d H:i:s');
-        $data['approved_at'] = $create['approved_at'];
-        $datajson = $this->create($data);
-        return $this->add($datajson);
+        if(isset($create['approved_at'])){
+            $data['approved_at'] = $create['approved_at'];
+        }
+        try{
+            $datajson = $this->create($data);
+            $res = $this->add($datajson);
+            return $res;
+        } catch (Exception $ex) {
+                print_r($ex);
+                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+                LOG::write($ex->getMessage(), LOG::ERR);
+                return [];
+        }
     }
     /**
      * 个人信息查询
@@ -152,30 +210,42 @@ class BuyerModel extends PublicModel {
     public function getInfo($data)
     {
         $where=array();
-        if(!empty($data['id'])){
-            $where['id'] = $data['id'];
+        if(empty($data['customer_id'])) {
+            if (!empty($data['id'])) {
+                $where['id'] = $data['id'];
+            } else {
+                jsonReturn('', '-1001', '用户id不可以为空');
+            }
+            //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+            $buyerInfo = $this->where($where)
+                ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                ->find();
         } else{
-            jsonReturn('','-1001','用户id不可以为空');
+            $buyerInfo['customer_id'] = $data['customer_id'];
         }
-        //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
-        $buyerInfo = $this->where($where)
-                          ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
-                          ->find();
+
         if($buyerInfo){
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
             $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
                                      ->where(array('customer_id' => $buyerInfo['customer_id']))
                                      ->find();
+
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
             $zipCode = $buyerAddress->field('zipcode')
                                     ->where(array('customer_id' => $buyerInfo['customer_id']))
                                     ->find();
-            $info = array_merge($buyerInfo,$userInfo);
-            $info['zipCode'] = $zipCode;
 
-            return $info;
+            $buyerInfo['email'] = $userInfo['email'];
+            $buyerInfo['user_name'] = $userInfo['user_name'];
+            $buyerInfo['phone'] = $userInfo['phone'];
+            $buyerInfo['first_name'] = $userInfo['first_name'];
+            $buyerInfo['last_name'] = $userInfo['last_name'];
+            $buyerInfo['status'] = $userInfo['status'];
+            $buyerInfo['zipcode'] = $zipCode['zipcode'];
+
+            return $buyerInfo;
         } else{
             return false;
         }
