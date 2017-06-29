@@ -7,21 +7,7 @@ class LogisticsController extends PublicController {
 
 	public function init() {
 		parent::init();
-		$this->inquiryModel = new InquiryModel();
-		$this->inquiryItemModel = new InquiryItemModel();
-		$this->inquiryAttachModel = new InquiryAttachModel();
-		$this->inquiryItemAttachModel = new InquiryItemAttachModel();
         $this->quoteModel = new QuoteModel();
-        $this->quoteItemModel = new QuoteItemModel();
-        $this->quoteAttachModel = new QuoteAttachModel();
-        $this->quoteItemAttachModel = new QuoteItemAttachModel();
-        $this->finalQuoteModel = new FinalQuoteModel();
-        $this->finalQuoteItemModel = new FinalQuoteItemModel();
-        $this->finalQuoteAttachModel = new FinalQuoteAttachModel();
-        $this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
-        $this->exchangeRateModel = new ExchangeRateModel();
-        $this->userModel = new UserModel();
-        $this->goodsPriceHisModel = new GoodsPriceHisModel();
 	}
     
 	/**
@@ -29,7 +15,7 @@ class LogisticsController extends PublicController {
  	 * @author liujf 2017-06-29
      * @return json
      */
-    public function getQuoteLogiListApiAction() {
+    public function getQuoteLogiListAction() {
     	$condition = $this->put_data;
     	
     	$data = $this->quoteModel->getJoinList($condition);
@@ -47,19 +33,23 @@ class LogisticsController extends PublicController {
     
 	/**
      * @desc 物流获取报价详情接口
- 	 * @author liujf 2017-06-28
+ 	 * @author liujf 2017-06-29
      * @return json
      */
-    public function getQuoteLogiDetailApiAction() {
-    	$this->getQuoteDetailApiAction();
+    public function getQuoteLogiDetailAction() {
+    	$condition = $this->put_data;
+    	
+    	$res = $this->quoteModel->getJoinDetail($condition);
+    	
+    	$this->jsonReturn($res);
     }
     
     /**
      * @desc 物流报价修改接口
- 	 * @author liujf 2017-06-20
+ 	 * @author liujf 2017-06-29
      * @return json
      */
-    public function updateQuoteLogiApiAction() {
+    public function updateQuoteLogiAction() {
     	$condition = $this->put_data;
     	
     	if (!empty($condition['quote_no'])) {
@@ -107,27 +97,14 @@ class LogisticsController extends PublicController {
     		$logi['total_quote_price'] = $logiData['total_quote_price'];
     		$logi['total_bank_fee'] = $logiData['total_bank_fee'];
     		
-    		$res = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->save($logi);
+    		$res = $this->quoteModel->updateQuote($condition['quote_no'], $logi);
     		
     		$this->jsonReturn($res);
     	} else {
     		$this->jsonReturn(false);
     	}
     	
-    }
-	
-    /**
-     * @desc 获取报价单详情
- 	 * @author liujf 2017-06-17
-     * @param array $condition
-     * @return array
-     */
-    public function getDetail($condition) {
-    	
-    	$where = $this->getWhere($condition);
-    	
-        return $this->where($where)->find();
-    }   
+    } 
     
 	/**
      * @desc 重写jsonReturn方法

@@ -149,6 +149,23 @@ class QuoteModel extends PublicModel {
     	
         return $this->where($where)->find();
     }
+    
+	/**
+     * @desc 获取关联询价单详情
+ 	 * @author liujf 2017-06-17
+     * @param array $condition
+     * @return array
+     */
+    public function getJoinDetail($condition) {
+    	
+    	$where = $this->getJoinWhere($condition);
+    	
+    	return $this->alias('a')
+    					->join($this->joinInquiry, 'LEFT')
+    					->field($this->fieldJoin)
+    					->where($where)
+    					->find();
+    }
 
 	/**
 	 * @desc 修改报价单
