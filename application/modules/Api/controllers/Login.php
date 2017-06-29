@@ -39,7 +39,7 @@ class LoginController extends Yaf_Controller_Abstract {
             echo json_encode(array("code" => "-101", "message" => "帐号不可以都为空"));
             exit();
         }
-        $model = new UserModel();
+        $model = new BuyerAccountModel();
         $info = $model->login($arr);
         if ($info) {
             $jwtclient = new JWTClient();
@@ -74,7 +74,7 @@ class LoginController extends Yaf_Controller_Abstract {
             jsonReturn('',-101,'用户名不可以为空!');
         }
         if(!empty($data['password'])) {
-            $buyer_account_data['password_hash'] = md5($data['password']);
+            $buyer_account_data['password_hash'] = md5(trim($data['password']));
         }else{
             jsonReturn('',-101,'密码不可以都为空!');
         }
@@ -155,7 +155,7 @@ class LoginController extends Yaf_Controller_Abstract {
         $id=$model->create_data($arr);
         if($id){
             $account_id = $buyer_account_model -> create_data($buyer_account_data);
-            if(!empty($buyer_address_data['customer_id'])){
+            if(!empty($buyer_address_data)){
                 $buyer_address_model = new BuyerAddressModel();
                 $buyer_address_model -> create_data($buyer_address_data);
             }

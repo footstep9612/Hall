@@ -187,7 +187,7 @@ class BuyerAccountModel extends PublicModel {
             $arr['mobile'] = $create['mobile'];
         }
         if(isset($create['password_hash'])){
-            $arr['password_hash'] = md5($create['password_hash']);
+            $arr['password_hash'] = $create['password_hash'];
         }
         if(isset($create['role'])){
             $arr['role'] = $create['role'];
