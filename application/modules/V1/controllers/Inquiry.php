@@ -71,6 +71,7 @@ class InquiryController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         $results = $inquiry->add_data($data);
+        var_dump($results);die;
         $this->jsonReturn($results);
     }
 
