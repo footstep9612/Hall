@@ -118,7 +118,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $buyer_account_data['mobile'] = $data['mobile'];
         }
         if (!empty($data['country'])) {
-            $data['country'] = $data['country'];
+            $arr['country'] = $data['country'];
         } else {
             jsonReturn('', -101, '国家不能为空!');
         }
@@ -135,7 +135,7 @@ class LoginController extends Yaf_Controller_Abstract {
         $login_arr['user_name'] = $data['user_name'];
         $check = $buyer_account_model->Exist($login_arr);
         if ($check) {
-            jsonReturn('', -101, '手机或账号已存在!');
+            jsonReturn('', -101, '帐号已存在!');
         }
 
         // 生成用户编码
@@ -152,16 +152,21 @@ class LoginController extends Yaf_Controller_Abstract {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 3); //即截取掉最前面的“1”
         $arr['customer_id'] = $real_num;
-        $buyer_address_data['customer_id'] = $arr['customer_id'];
+        $buyer_account_data['customer_id'] = $arr['customer_id'];
+        if(!empty($buyer_address_data)){
+            $buyer_address_data['customer_id'] = $arr['customer_id'];
+        }
         if (empty($arr['serial_no'])) {
             $arr['serial_no'] = $arr['customer_id'];
         }
-        $id = $model->create_data($arr);
-        var_dump($id);
-        die;
-        if ($id) {
 
-            $group_user_model->create_data($buyer_address_data);
+        $id = $model->create_data($arr);
+        if ($id) {
+            $buyer_account_model->create_data($buyer_account_data);
+            if(!empty($buyer_address_data)){
+                $buyer_address_model = new BuyerAddressModel();
+                $buyer_address_model->create_data($buyer_address_data);
+            }
             jsonReturn('', 1, '提交成功');
         } else {
             jsonReturn('', -105, '数据添加失败');
