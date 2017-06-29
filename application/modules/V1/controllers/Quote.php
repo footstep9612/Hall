@@ -25,11 +25,11 @@ class QuoteController extends PublicController {
 	}
 
 	/**
-	 * @desc 创建报价单
+	 * @desc 新增报价单
 	 * @author liujf 2017-06-24
 	 * @return mix
 	 */
-	private function createQuote() {
+	public function addQuoteAction() {
 		$condition = $this->put_data;
 
 		$serial_no_arr = explode(',', $condition['serial_no']);
