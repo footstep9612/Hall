@@ -25,25 +25,6 @@ class BuyerAddressModel extends PublicModel
     }
 
     /**
-     * 修改数据
-     * @param  int $id id
-     * @return bool
-     * @author jhw
-     */
-    public function update_data($data,$where) {
-        if(isset($data['group_id'])){
-            $arr['group_id'] = $data['group_id'];
-        }
-        if(!empty($where)){
-            return $this->where($where)->save($arr);
-        }else{
-            return false;
-        }
-    }
-
-
-
-    /**
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
