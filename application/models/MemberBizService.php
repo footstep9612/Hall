@@ -119,7 +119,7 @@ class MemberBizServiceModel extends PublicModel {
                                 $group = 'Financial';
                                 $service[$key][$group][] = $r;
                             }
-                            if ($r['major_class'] == 'Logistics') {
+                            if ($r['major_class'] == 'Logistics Service') {
                                 $group = 'Logistics';
                                 $service[$key][$group][] = $r;
                             }
@@ -127,7 +127,7 @@ class MemberBizServiceModel extends PublicModel {
                                 $group = 'QA';
                                 $service[$key][$group][] = $r;
                             }
-                            if ($r['major_class'] == 'Steward') {
+                            if ($r['major_class'] == 'Steward Service') {
                                 $group = 'Steward';
                                 $service[$key][$group][] = $r;
                             }

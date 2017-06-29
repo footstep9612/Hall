@@ -26,7 +26,7 @@ class QuoteModel extends PublicModel {
      */
      public function getWhere($condition) {
      	$where = array();
-     	
+
      	if(!empty($condition['quote_no'])) {
     		$where['quote_no'] = $condition['quote_no'];
     	}
@@ -148,6 +148,39 @@ class QuoteModel extends PublicModel {
     	$where = $this->getWhere($condition);
     	
         return $this->where($where)->find();
-    }   
+    }
 
+	/**
+	 * @desc 修改报价单
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $where , $condition
+	 * @return array
+	 */
+	public function updateQuote($where = [], $condition = []) {
+
+		if(empty($where['quote_no'])){
+			return false;
+		}
+
+		$data = $this->create($condition);
+
+		return $this->where($where)->save($data);
+	}
+
+	/**
+	 * @desc 删除报价单
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function delQuote($condition = []) {
+
+		if(!empty($condition['quote_no'])) {
+			$where['where'] = $condition['quote_no'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->save(['quote_status' => 'DELETED']);
+	}
 }

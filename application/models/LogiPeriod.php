@@ -29,7 +29,7 @@ class LogiPeriodModel extends Model{
         //库中中国状态暂为无效
         $from_country = $from_country ? $from_country : $countryModel->getCountryByBn('China',$lang);
         //city库中暂无东营,暂时写死以为效果
-        $warehouse = '东营';$warehouse ? $warehouse : $cityModel->getCityByBn('Dongying',$lang);
+        $warehouse = $warehouse ? $warehouse : $cityModel->getCityByBn('Dongying',$lang);
 
         $condition = array(
             'status' => self::STATUS_VALID,

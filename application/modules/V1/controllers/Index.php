@@ -41,6 +41,11 @@ class IndexController extends ShopMallController {
 
         $bn = $this->getIp();
         $condition['market_area_bn'] = $bn;
+       
+        if(isset($this->put_data['market_area_bn'])){
+          $condition['market_area_bn'] =$this->put_data['market_area_bn'];
+       
+        }
         $json = null;
         redisGet('MarketareaproductModel_' . $bn);
         if (!$json) {

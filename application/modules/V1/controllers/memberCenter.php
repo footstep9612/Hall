@@ -27,7 +27,7 @@ class MemberCenterController extends PublicController
         $data = json_decode(file_get_contents("php://input"), true);
         $buyerModel = new BuyerModel();
         $result = $buyerModel->getInfo($data);
-        if(!empty($result)){
+        if($result){
             $data = array(
                 'code' => 1,
                 'message' => '数据获取成功',
@@ -129,7 +129,7 @@ class MemberCenterController extends PublicController
      * 会员等级服务详情
      * @author klp
      */
-    public function ServiceInfoAction(){
+    public function listServiceAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $MemberBizServiceModel = new MemberBizServiceModel();
         $result = $MemberBizServiceModel->getVipService($data);

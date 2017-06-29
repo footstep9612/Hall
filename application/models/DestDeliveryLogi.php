@@ -7,7 +7,7 @@
  */
 class DestDeliveryLogiModel extends Model{
     protected $dbName = 'erui_dict'; //数据库名称
-    protected $tableName = 't_logi_period';
+    protected $tableName = 't_dest_delivery_logi';
 
     const STATUS_VALID = 'VALID';    //有效的
 
@@ -22,7 +22,7 @@ class DestDeliveryLogiModel extends Model{
             return array();
 
         if(redisHashExist('DDL',md5($country.'_'.$lang))){
-            return json_decode(redisHashGet('DDL',md5($country.'_'.$lang)),true);
+            //return json_decode(redisHashGet('DDL',md5($country.'_'.$lang)),true);
         }
         try{
             $condition = array(
@@ -30,8 +30,8 @@ class DestDeliveryLogiModel extends Model{
                 'lang'=>$lang,
                 'status'=>self::STATUS_VALID
             );
-            $field = 'lang,logi_no,trans_mode,country,from_loc,to_loc,period_min,period_max,logi_notes,description,';
-            $result = $this->field($field)->where($condition)->find();
+            $field = 'lang,logi_no,trans_mode,country,from_loc,to_loc,period_min,period_max,logi_notes,description';
+            $result = $this->field($field)->where($condition)->select();
             if($result){
                 redisHashSet('DDL',md5($country.'_'.$lang),json_encode($result));
             }
