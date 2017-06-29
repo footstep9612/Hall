@@ -47,7 +47,7 @@ class QuoteAttachModel extends PublicModel {
     }
 
 	/**
-     * @desc 获取报价单附件
+     * @desc 获取报价单附件列表
  	 * @author liujf 2017-06-17
      * @param $condition array
      * @return array
@@ -63,4 +63,32 @@ class QuoteAttachModel extends PublicModel {
     	}
     }
 
+	/**
+	 * @desc 添加报价单附件详情
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function addAttach($condition) {
+		$data = $this->create($condition);
+
+		return $this->add($data);
+	}
+
+	/**
+	 * @desc 删除报价单附件
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function delAttach($condition = []) {
+
+		if(!empty($condition['quote_no'])) {
+			$where['where'] = $condition['quote_no'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->delete();
+	}
 }
