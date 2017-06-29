@@ -5,7 +5,7 @@
  * Date: 2017/6/28
  * Time: 9:39
  */
-class DestDeliveryLogiController extends Yaf_Controller_Abstract{
+class DestdeliverylogiController extends Yaf_Controller_Abstract{
     private $input;
     public function init(){
         $this->input = json_decode(file_get_contents("php://input"), true);
