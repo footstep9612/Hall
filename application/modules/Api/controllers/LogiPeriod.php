@@ -6,13 +6,27 @@
  * Time: 9:02
  */
 
-class LogiPeriodController extends ShopMallController{
+class LogiPeriodController extends Yaf_Controller_Abstract{
+    private $input;
+    public function init(){
+        $this->input = json_decode(file_get_contents("php://input"), true);
+    }
+
+    /**
+     * 物流时效借口
+     */
     public function listAction(){
-        $this->put_data['to_country'] =  $this->put_data['to_country']? $this->put_data['to_country']:'巴西';
-        $this->setLang('zh');
+        if(!isset($this->input['to_country'])){
+            jsonReturn('','1000');
+        }
+        $this->input['lang'] = isset($this->input['lang'])?$this->input['lang']:(browser_lang()?browser_lang():'en');
 
         $logiModel = new LogiPeriodModel();
-        $logis = $logiModel->getList($this->lang, $this->put_data['to_country']);
-        var_dump($logis);
+        $logis = $logiModel->getList($this->input['lang'], $this->input['to_country']);
+        if($logis){
+            jsonReturn(array('data'=>$logis));
+        }else{
+            jsonReturn('','400','失败');
+        }
     }
 }
