@@ -95,9 +95,9 @@ class QuoteController extends PublicController {
     		$quote['payment_received_days'] = '';
     		$quote['exw_delivery_period'] = '';
     		$quote['period_of_validity'] = '';
-    		$quote['logi_quote_status'] = 'ONGOING';
-			$quote['biz_quote_status'] = 'ONGOING';
-			$quote['quote_status'] = 'ONGOING';
+    		$quote['logi_quote_status'] = 'NOT_QUOTED';
+			$quote['biz_quote_status'] = 'NOT_QUOTED';
+			$quote['quote_status'] = 'NOT_QUOTED';
 			$quote['quoter'] = $user['name']; //获取当前用户信息
 			$quote['quoter_email'] = $user['email']; //获取当前用户信息
 			$quote['quote_at'] = $time;
@@ -519,7 +519,7 @@ class QuoteController extends PublicController {
     public function getQuoteLogiListApiAction() {
     	$condition = $this->put_data;
     	
-    	$data = $this->quoteModel->getList($condition);
+    	$data = $this->quoteModel->al
     	
     	if ($data) {
     		$res['code'] = 1;
