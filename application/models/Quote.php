@@ -48,12 +48,12 @@ class QuoteModel extends PublicModel {
      public function getJoinWhere($condition) {
      	$where = array();
      	
-     if(!empty($condition['quote_no'])) {
+     	if(!empty($condition['quote_no'])) {
     		$where['a.quote_no'] = $condition['quote_no'];
     	}
     	
-     	if(!empty($condition['biz_quote_status'])) {
-    		$where['a.biz_quote_status'] = array('in', $condition['biz_quote_status']);
+     	if(!empty($condition['logi_quote_status'])) {
+    		$where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
     	}
     	
     	return $where;
