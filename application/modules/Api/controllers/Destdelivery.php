@@ -15,7 +15,6 @@ class DestdeliveryController extends Yaf_Controller_Abstract{
      * 落地配
      */
     public function listAction(){
-        echo 123;die;
         $this->input['country'] = '巴西';
         $this->input['lang'] = 'zh';
         if(!isset($this->input['country'])){

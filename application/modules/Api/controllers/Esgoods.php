@@ -210,6 +210,8 @@ class EsgoodsController extends PublicController {
                 'meterial_cat_no' => [
                     'type' => $type_string,
                     "index" => "not_analyzed",
+                   
+                "fielddata" => true
                 ],
                 'spu' => [
                     'type' => $type_string,
