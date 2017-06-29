@@ -22,7 +22,12 @@ class EsproductController extends PublicController {
     public function init() {
 
         $this->es = new ESClient();
-        parent::init();
+        if ($this->getRequest()->isCli()) {
+            ini_set("display_errors", "On");
+            error_reporting(E_ERROR | E_STRICT);
+        } else {
+            parent::init();
+        }
     }
 
     /*

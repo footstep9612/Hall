@@ -21,11 +21,16 @@ class EsgoodsController extends PublicController {
     //put your code here
     public function init() {
         $this->es = new ESClient();
-        parent::init();
+        if ($this->getRequest()->isCli()) {
+            ini_set("display_errors", "On");
+            error_reporting(E_ERROR | E_STRICT);
+        } else {
+            parent::init();
+        }
     }
 
     public function listAction() {
-        $this->setLang('zh');
+       // $this->setLang('zh');
         $model = new EsgoodsModel();
         $ret = $model->getgoods($this->put_data, null, $this->getLang());
         if ($ret) {
@@ -56,13 +61,13 @@ class EsgoodsController extends PublicController {
 
     public function importAction($lang = 'en') {
         try {
-            //$lang = 'zh';
+            $lang = 'en';
             set_time_limit(0);
             ini_set('memory_limi', '1G');
-            foreach ($this->langs as $lang) {
+//            foreach ($this->langs as $lang) {
             $espoductmodel = new EsgoodsModel();
             $espoductmodel->importgoodss($lang);
-            }
+//            }
 
             $this->setCode(1);
             $this->setMessage('成功!');
