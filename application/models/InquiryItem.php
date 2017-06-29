@@ -108,6 +108,44 @@ class InquiryItemModel extends PublicModel {
     }
 
     /**
+     * 获取详情信息
+     * @param  int $serial_no 询单号
+     * @return mix
+     * @author zhangyuliang
+     */
+    public function getinfo($condition = []) {
+        if(isset($condition['id'])){
+            $where['id'] = $condition['id'];
+        }else{
+            return false;
+        }
+        if(isset($condition['inquiry_no'])){
+            $where['inquiry_no'] = $condition['inquiry_no'];
+        }else{
+            return false;
+        }
+
+        try {
+            $info = $this->where($where)->find();
+
+            if(isset($info)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+                $results['data'] = $info;
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '没有找到相关信息!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
+        }
+
+    }
+
+    /**
      * 添加数据
      * @return mix
      * @author zhangyuliang

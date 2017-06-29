@@ -36,9 +36,9 @@ class QuoteItemModel extends PublicModel {
      */
     public function getCount($condition) {
     	$where = $this->getWhere($condition);
-    	
+
     	$count = $this->where($where)->count('id');
-    	
+
     	return $count > 0 ? $count : 0;
     }
 
