@@ -22,7 +22,7 @@ class DestDeliveryLogiModel extends Model{
             return array();
 
         if(redisHashExist('DDL',md5($country.'_'.$lang))){
-            return json_decode(redisHashGet('DDL',md5($country.'_'.$lang)),true);
+            //return json_decode(redisHashGet('DDL',md5($country.'_'.$lang)),true);
         }
         try{
             $condition = array(
