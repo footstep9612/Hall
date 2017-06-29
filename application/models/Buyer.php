@@ -152,30 +152,42 @@ class BuyerModel extends PublicModel {
     public function getInfo($data)
     {
         $where=array();
-        if(!empty($data['id'])){
-            $where['id'] = $data['id'];
+        if(empty($data['customer_id'])) {
+            if (!empty($data['id'])) {
+                $where['id'] = $data['id'];
+            } else {
+                jsonReturn('', '-1001', '用户id不可以为空');
+            }
+            //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+            $buyerInfo = $this->where($where)
+                ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                ->find();
         } else{
-            jsonReturn('','-1001','用户id不可以为空');
+            $buyerInfo['customer_id'] = $data['customer_id'];
         }
-        //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
-        $buyerInfo = $this->where($where)
-                          ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
-                          ->find();
+
         if($buyerInfo){
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
             $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
                                      ->where(array('customer_id' => $buyerInfo['customer_id']))
                                      ->find();
+
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
             $zipCode = $buyerAddress->field('zipcode')
                                     ->where(array('customer_id' => $buyerInfo['customer_id']))
                                     ->find();
-            $info = array_merge($buyerInfo,$userInfo);
-            $info['zipCode'] = $zipCode;
 
-            return $info;
+            $buyerInfo['email'] = $userInfo['email'];
+            $buyerInfo['user_name'] = $userInfo['user_name'];
+            $buyerInfo['phone'] = $userInfo['phone'];
+            $buyerInfo['first_name'] = $userInfo['first_name'];
+            $buyerInfo['last_name'] = $userInfo['last_name'];
+            $buyerInfo['status'] = $userInfo['status'];
+            $buyerInfo['zipcode'] = $zipCode['zipcode'];
+
+            return $buyerInfo;
         } else{
             return false;
         }
