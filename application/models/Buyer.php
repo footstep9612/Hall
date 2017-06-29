@@ -354,6 +354,7 @@ class BuyerModel extends PublicModel {
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
         $result = $MemberBizService->getService($buyerLevel,$lang);
+        $result['buyer_level'] = $buyerLevel;
         if($result){
             return $result;
         } else{
