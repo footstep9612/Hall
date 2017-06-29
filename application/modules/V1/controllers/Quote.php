@@ -30,7 +30,6 @@ class QuoteController extends PublicController {
      * @return mix
      */
     private function createQuote() {
-    	
     	$condition = $this->put_data;
     	
     	$serial_no_arr = explode(',', $condition['serial_no']);
@@ -66,7 +65,6 @@ class QuoteController extends PublicController {
 			$quote['created_at'] = $time;
 			
 			$correspond[$inquiry['serial_no']] = $quote['quote_no']; //询单流水号和报价单号的对应
-			
 			$quoteList[] = $quote;
     	}
 		
