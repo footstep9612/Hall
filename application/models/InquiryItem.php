@@ -119,8 +119,8 @@ class InquiryItemModel extends PublicModel {
         }else{
             return false;
         }
-        if(isset($condition['inquiry_no'])){
-            $where['inquiry_no'] = $condition['inquiry_no'];
+        if(isset($condition['serial_no'])){
+            $where['serial_no'] = $condition['serial_no'];
         }else{
             return false;
         }
