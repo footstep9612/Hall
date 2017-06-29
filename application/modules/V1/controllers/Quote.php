@@ -263,7 +263,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-28
      * @return json
      */
-    public function getQuoteItemDetailApiAction() {
+    public function getQuoteItemInfoAction() {
     	$condition = $this->put_data;
     	
     	if (!empty($condition['quote_no'])) {
@@ -315,7 +315,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-26
      * @return json
      */
-    public function uptateQuoteItemApiAction() {
+    public function uptateQuoteItemAction() {
 		$quoteItem = $condition = $this->put_data;
     	
     	if (!empty($condition['quote_no'])) {
@@ -354,7 +354,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-26
      * @return json
      */
-    public function deleteQuoteItemApiAction() {
+    public function delQuoteItemAction() {
     	$condition = $this->put_data;
     	
     	if (!empty($condition['quote_no'])) {
@@ -383,7 +383,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-27
      * @return json
      */
-    public function addQuoteAttachApiAction() {
+    public function addQuoteAttachAction() {
         $condition = $this->put_data;
         
         if (!empty($condition['quote_no'])) {
@@ -402,7 +402,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-27
      * @return json
      */
-    public function deleteQuoteAttachApiAction() {
+    public function delQuoteAttachAction() {
     	$condition = $this->put_data;
         
         if (!empty($condition['quote_no'])) {
@@ -420,7 +420,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-27
      * @return json
      */
-    public function getQuoteAttachItemListAction() {
+    public function getQuoteItemAttachListAction() {
         $condition = $this->put_data;
 
         $res = $this->quoteItemAttachModel->getAttachItemList($condition);
@@ -433,7 +433,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-27
      * @return json
      */
-    public function addQuoteAttachItemAction() {
+    public function addQuoteItemAttachAction() {
         $condition = $this->put_data;
         
         if (!empty($condition['quote_no'])) {
@@ -452,7 +452,7 @@ class QuoteController extends PublicController {
  	 * @author liujf 2017-06-27
      * @return json
      */
-    public function deleteQuoteAttachItemAction() {
+    public function delQuoteItemAttachAction() {
     	$condition = $this->put_data;
         
         if (!empty($condition['quote_no'])) {
