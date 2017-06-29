@@ -31,7 +31,7 @@ class DestDeliveryLogiModel extends Model{
                 'status'=>self::STATUS_VALID
             );
             $field = 'lang,logi_no,trans_mode,country,from_loc,to_loc,period_min,period_max,logi_notes,description';
-            $result = $this->field($field)->where($condition)->find();
+            $result = $this->field($field)->where($condition)->select();
             if($result){
                 redisHashSet('DDL',md5($country.'_'.$lang),json_encode($result));
             }
