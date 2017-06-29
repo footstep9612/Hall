@@ -67,6 +67,7 @@ class QuoteItemModel extends PublicModel {
 	public function addItem($condition) {
 		$data = $this->create($condition);
 		$data['status'] = !empty($condition['status'])?$condition['status']:'ONGOING';
+		$data['created_at'] = time();
 
 		return $this->add($data);
 	}
