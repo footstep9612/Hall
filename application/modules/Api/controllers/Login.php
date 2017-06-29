@@ -108,12 +108,7 @@ class LoginController extends Yaf_Controller_Abstract {
         } else {
             jsonReturn('', -101, '名字不能为空!');
         }
-
-        if (!empty($data['last_name'])) {
-            $buyer_account_data['last_name'] = $data['last_name'];
-        } else {
-            jsonReturn('', -101, '姓不能为空!');
-        }
+        
         if (!empty($data['mobile'])) {
             $buyer_account_data['mobile'] = $data['mobile'];
         }
