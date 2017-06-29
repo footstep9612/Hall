@@ -306,7 +306,7 @@ class QuoteController extends PublicController {
 			$condition['weight_unit'] = 'kg';
 			$condition['size_unit'] = 'm^3';
 
-			$res = $this->quoteItemModel->addItem($quoteItem);
+			$res = $this->quoteItemModel->addItem($condition);
 
 			$this->jsonReturn($res);
 		} else {
