@@ -13,7 +13,7 @@
  */
 class IndexController extends ShopMallController {
 
-  //put your code here
+//put your code here
   public function init() {
     ini_set("display_errors", "On");
     error_reporting(E_ERROR | E_STRICT);
@@ -38,17 +38,14 @@ class IndexController extends ShopMallController {
   }
 
   public function getProductsAction() {
-
-
     if (isset($this->put_data['market_area_bn'])) {
       $bn = $condition['market_area_bn'] = $this->put_data['market_area_bn'];
     } else {
       $bn = $this->getIp();
       $condition['market_area_bn'] = $bn;
     }
+    $json = redisGet('MarketareaproductModel_' . $bn);
 
-    $json = null;
-    redisGet('MarketareaproductModel_' . $bn);
     if (!$json) {
       $model = new MarketareaproductModel();
       $data = $model->getlist($condition);
@@ -56,7 +53,6 @@ class IndexController extends ShopMallController {
     } else {
       $data = json_decode($json, true);
     }
-
     $spus = [];
     if ($data) {
       foreach ($data as $item) {
@@ -65,25 +61,17 @@ class IndexController extends ShopMallController {
     }
     if ($spus) {
       $condition['spus'] = $spus;
-
       $goods_model = new GoodsModel();
       $goodscounts = $goods_model->getCountBySpus($spus, $this->getLang());
       $spugoodscount = [];
-      foreach ($goodscount as $count) {
-
+      foreach ($goodscounts as $count) {
         $spugoodscount[$count['spu']] = $count['skunum'];
       }
       $spumodel = new EsproductModel();
-      //  $_source = ['meterial_cat_no', 'spu', 'show_name', 'profile', 'supplier_name', 'attachs', 'brand',];
       $ret = $spumodel->getproducts($condition, null, $this->getLang());
-
-
-
       if ($ret) {
         $send = [];
-
         $data = $ret[0];
-
         foreach ($data['hits']['hits'] as $key => $item) {
           $send[$key] = $item["_source"];
           $attachs = json_decode($item["_source"]['attachs'], true);
@@ -108,7 +96,7 @@ class IndexController extends ShopMallController {
     } else {
       $this->setCode(-1);
       $this->setMessage('空数据');
-      // $send['data'] = $data;
+// $send['data'] = $data;
       $this->jsonReturn();
     }
   }

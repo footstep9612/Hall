@@ -132,18 +132,17 @@ class GoodsModel extends PublicModel {
     try {
       //redis 操作
       $redis_key = md5(json_encode($condition));
-      if (redisExist($redis_key)) {
-        return json_decode(redisGet($redis_key),true);
-      } else {
-      $count = $this->field('count(id) as skunum,spu')->where($condition)
-                      ->group(' spu')->select();
-      
 
-      redisSet($redis_key, json_encode($count),1800);
-      return $count ? $count : [];
+      if (redisExist($redis_key)) {
+        return json_decode(redisGet($redis_key), true);
+      } else {
+        $count = $this->field('count(id) as skunum,spu')->where($condition)
+                        ->group('spu')->select();
+        redisSet($redis_key, json_encode($count), 1800);
+        return $count ? $count : [];
       }
     } catch (Exception $e) {
-  
+      print_r($e);
       return [];
     }
   }
