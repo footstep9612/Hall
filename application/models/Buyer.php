@@ -216,16 +216,15 @@ class BuyerModel extends PublicModel {
             } else {
                 jsonReturn('', '-1001', '用户email不可以为空');
             }
-            $buyerInfo = $this->where($where)
+            $buyerInfo = $this->where("email='".$data['email']."'")
                               ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
                               ->find();
         } else{
-            $buyerInfo = $this->where(array('customer_id' => $data['customer_id']))
+            $buyerInfo = $this->where("customer_id='".$data['customer_id']."'")
                               ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
                               ->find();
-            var_dump($buyerInfo);
-        }
 
+        }
         if($buyerInfo){
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
