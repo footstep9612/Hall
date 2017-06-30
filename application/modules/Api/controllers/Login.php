@@ -155,7 +155,6 @@ class LoginController extends Yaf_Controller_Abstract {
                 $buyer_address_model = new BuyerAddressModel();
                 $buyer_address_model -> create_data($buyer_address_data);
             }
-
             //生成邮件验证码
             $data_key['key'] =md5(uniqid());
             $data_key['email'] = $data['email'];
