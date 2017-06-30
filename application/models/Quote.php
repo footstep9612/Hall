@@ -187,6 +187,28 @@ class QuoteModel extends PublicModel {
 	}
 
 	/**
+	 * @desc 批量修改状态
+	 * @author zhangyuliang 2017-06-30
+	 * @param array $condition
+	 * @return array
+	 */
+	public function updateQuoteStatus($condition = []) {
+
+		if(isset($createcondition['quote_no'])){
+			$where['quote_no'] = array('in',explode(',',$createcondition['quote_no']));
+		}else{
+			return false;
+		}
+		if(isset($createcondition['quote_status'])){
+			$quote_status = $createcondition['quote_status'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->save(['quote_status' => $quote_status]);
+	}
+
+	/**
 	 * @desc 删除报价单
 	 * @author zhangyuliang 2017-06-29
 	 * @param array $condition
