@@ -210,7 +210,7 @@ class BuyerModel extends PublicModel {
     public function getInfo($data)
     {
         $where=array();
-        if(empty($data['email'])) {
+        if(empty($data['customer_id'])) {
             if (!empty($data['id'])) {
                 $where['id'] = $data['id'];
             } else {
@@ -221,22 +221,23 @@ class BuyerModel extends PublicModel {
                 ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
                 ->find();
         } else{
-            $buyerInfo['email'] = $data['email'];
+            $buyerInfo['customer_id'] = $data['customer_id'];
         }
 
         if($buyerInfo){
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
-            $userInfo = $buyerAccount->field('user_name,phone,first_name,last_name,status')
-                                     ->where(array('email' => $buyerInfo['email']))
+            $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
+                                     ->where(array('customer_id' => $buyerInfo['customer_id']))
                                      ->find();
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
             $zipCode = $buyerAddress->field('zipcode')
-                                    ->where(array('email' => $buyerInfo['email']))
+                                    ->where(array('customer_id' => $buyerInfo['customer_id']))
                                     ->find();
 
+            $buyerInfo['email'] = $userInfo['email'];
             $buyerInfo['user_name'] = $userInfo['user_name'];
             $buyerInfo['phone'] = $userInfo['phone'];
             $buyerInfo['first_name'] = $userInfo['first_name'];
