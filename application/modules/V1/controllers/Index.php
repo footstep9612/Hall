@@ -31,10 +31,30 @@ class IndexController extends ShopMallController {
     $ip = get_client_ip();
     if ($ip != 'Unknown') {
       $country = getIpAddress($ip);
-      return $IpModel->getbnbynameandlang($country, 'zh');
+      $this->setCode(1);
+      $send = $IpModel->getbnbynameandlang($country, $this->getLang());
     } else {
-      return 'China';
+      $this->setCode(1);
+      $send = 'China';
+      $this->jsonReturn($send);
     }
+  }
+
+  /**
+   * 根据IP自动获取国家(新浪接口)
+   * @author klp
+   */
+  public function getCounryAction() {
+    $IpModel = new MarketareaproductModel();
+    $ip = get_client_ip();
+    if ($ip != 'Unknown') {
+      $country = getIpAddress($ip);
+      $send = $IpModel->getbnbynameandlang($country, $this->getLang());
+    } else {
+      $send = 'China';
+    }
+    $this->setCode(1);
+    $this->jsonReturn($send);
   }
 
   public function getProductsAction() {
