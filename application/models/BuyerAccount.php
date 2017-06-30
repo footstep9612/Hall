@@ -201,11 +201,17 @@ class BuyerAccountModel extends PublicModel {
         if(isset($create['phone'])){
             $arr['phone'] = $create['phone'];
         }
-        if(isset($create['phone'])){
+        if(isset($create['created_at'])){
             $arr['created_at'] = Date("Y-m-d H:i:s");
         }
-        $data = $this->create($arr);
-        return $this->add($data);
+        try{
+            $data = $this->create($arr);
+            return $this->add($data);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
     }
 
     /**
