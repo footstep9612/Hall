@@ -37,6 +37,23 @@ class IndexController extends ShopMallController {
     }
   }
 
+  /**
+   * 根据IP自动获取国家(新浪接口)
+   * @author klp
+   */
+  public function getCounryAction() {
+    $IpModel = new MarketareaproductModel();
+    $ip = get_client_ip();
+    if ($ip != 'Unknown') {
+      $country = getIpAddress($ip);
+      $send = $IpModel->getbnbynameandlang($country, $this->getLang());
+    } else {
+      $send = 'China';
+    }
+    $this->setCode(1);
+    $this->jsonReturn($send);
+  }
+
   public function getProductsAction() {
     if (isset($this->put_data['market_area_bn'])) {
       $bn = $condition['market_area_bn'] = $this->put_data['market_area_bn'];
