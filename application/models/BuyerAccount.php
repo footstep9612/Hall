@@ -174,8 +174,8 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['customer_id'])){
-            $arr['customer_id'] = $create['customer_id'];
+        if(isset($create['email'])){
+            $arr['email'] = $create['email'];
         }
         if(isset($create['email'])){
             $arr['email'] = $create['email'];
@@ -218,10 +218,10 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      */
     public function checkPassword($data){
-        if(!empty($data['id'])){
-            $where['id'] = $data['id'];
+        if(!empty($data['email'])){
+            $where['email'] = $data['email'];
         } else{
-            jsonReturn('','-1001','用户id不可以为空');
+            jsonReturn('','-1001','用户email不可以为空');
         }
         if(!empty($data['password'])){
             $password = $data['password'];
@@ -240,10 +240,10 @@ class BuyerAccountModel extends PublicModel {
      * return bool
      */
     public function update_pwd($data){
-        if(!empty($data['customer_id'])){
-            $where['customer_id'] = $data['customer_id'];
+        if(!empty($data['email'])){
+            $where['email'] = $data['email'];
         } else{
-            jsonReturn('','-1001','用户id不可以为空');
+            jsonReturn('','-1001','用户email不可以为空');
         }
         if(!empty($data['password_hash'])){
             $new['password_hash'] = $data['password_hash'];
