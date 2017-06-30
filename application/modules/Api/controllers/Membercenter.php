@@ -14,19 +14,14 @@
 class MemberCenterController extends ShopMallController
 {
 
-    public function __init()
-    {
-
-    }
-
     /**
- * 采购商个人信息中心查询
+ * 采购商个人信息查询
  * @author klp
  */
     public function getUserInfoAction(){
+
         $buyerModel = new BuyerModel();
         $result = $buyerModel->getInfo($this->user);
-
         if(!empty($result)){
             $data = array(
                 'code' => 1,
@@ -44,19 +39,18 @@ class MemberCenterController extends ShopMallController
      * @author klp
      */
     public function upUserInfoAction(){
-
         if (!empty($this->user['customer_id'])) {
             $where['customer_id'] = $this->user['customer_id'];
         } else {
             jsonReturn('','-1001','参数[customer_id]不能为空');
         }
         $buyerAccount = new BuyerAccountModel();
-        $result1 = $buyerAccount->update_data($this->user,$where);
+        $result1 = $buyerAccount->update_data($this->put_data,$where);
         $buyer = new BuyerModel();
-        $result2 = $buyer->update_data($this->user,$where);
+        $result2 = $buyer->update_data($this->put_data,$where);
         $buyerAddress = new BuyerAddressModel();
-        $result3 = $buyerAddress->update_data($this->user,$where);
-        if($result1 && $result2 && $result3){
+        $result3 = $buyerAddress->update_data($this->put_data,$where);
+        if($result1 || $result2 || $result3){
             jsonReturn('',1,'保存成功');
         }else{
             jsonReturn('','-1002','保存失败');
@@ -97,9 +91,8 @@ class MemberCenterController extends ShopMallController
      * @author klp
      */
     public function upPasswordAction(){
-
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->update_pwd($this->user);
+        $result = $buyerAccount->update_pwd($this->put_data,$this->user);
         if($result){
             jsonReturn('',1,'修改密码成功');
         }else{
@@ -169,4 +162,25 @@ class MemberCenterController extends ShopMallController
         }
         exit;
     }
+
+    /**
+     * 询单信息国家简称,地区简称
+     * @author klp
+     */
+    public function getInquiryBnAction(){
+        $BuyerModel = new BuyerModel();
+        $result = $BuyerModel->getInquiryInfo($this->user);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1003','失败');
+        }
+        exit;
+    }
+
 }

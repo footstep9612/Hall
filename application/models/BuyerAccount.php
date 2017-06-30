@@ -234,9 +234,10 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data){
-        if(!empty($data['customer_id'])){
-            $where['customer_id'] = $data['customer_id'];
+    public function update_pwd($data,$token){
+
+        if(!empty($token['customer_id'])){
+            $where['customer_id'] = $token['customer_id'];
         } else{
             jsonReturn('','-1001','用户id不可以为空');
         }

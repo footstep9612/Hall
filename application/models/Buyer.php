@@ -364,4 +364,25 @@ class BuyerModel extends PublicModel {
         }
     }
 
+    /**
+     * 通过顾客id获取国家地区简称
+     * @author klp
+     */
+    public function getInquiryInfo($data)
+    {
+        if(!empty($data['customer_id'])){
+            $where['customer_id'] = $data['customer_id'];
+        } else{
+            jsonReturn('','-1001','用户[customer_id]不可以为空');
+        }
+        $country = $this->field('country')->where($where)->find();
+        //获取国家简称
+        $CountryModel = new CountryModel();
+        $country_bn = $CountryModel->field('bn')->where(array('name'=>$country['country']))->find();
+        //获取地区简称
+        $MarketAreaCountryModel = new MarketAreaCountryModel();
+        $marketArea_bn = $MarketAreaCountryModel->field('market_area_bn')->where(array('country_bn'=>$country_bn['bn']))->find();
+
+
+    }
 }
