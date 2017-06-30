@@ -201,9 +201,7 @@ class BuyerAccountModel extends PublicModel {
         if(isset($create['phone'])){
             $arr['phone'] = $create['phone'];
         }
-        if(isset($create['created_at'])){
-            $arr['created_at'] = Date("Y-m-d H:i:s");
-        }
+        $arr['created_at'] = Date("Y-m-d H:i:s");
         try{
             $data = $this->create($arr);
             return $this->add($data);
