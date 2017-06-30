@@ -152,7 +152,7 @@ class QuoteModel extends PublicModel {
     
 	/**
      * @desc 获取关联询价单详情
- 	 * @author liujf 2017-06-17
+ 	 * @author liujf 2017-06-29
      * @param array $condition
      * @return array
      */
@@ -160,11 +160,13 @@ class QuoteModel extends PublicModel {
     	
     	$where = $this->getJoinWhere($condition);
     	
+    	if (empty($where)) return false;
+    	
     	return $this->alias('a')
-    					->join($this->joinInquiry, 'LEFT')
-    					->field($this->fieldJoin)
-    					->where($where)
-    					->find();
+    				->join($this->joinInquiry, 'LEFT')
+    				->field($this->fieldJoin)
+    				->where($where)
+    				->find();
     }
 
 	/**
