@@ -195,7 +195,7 @@ class LoginController extends Yaf_Controller_Abstract {
         $email_arr['url'] = $config_shop['url'];
         $email_arr['key'] = $arr['key'];
         $body = $this->getView()->render('login/email.html',$email_arr);
-        send_Mail($arr['email'],'注册认证邮件',$body,$arr['name']);
+        $res =send_Mail($arr['email'],'注册认证邮件',$body,$arr['name']);
         if($res['code'] == 1){
             jsonReturn('',1,'发送成功');
         }else{
