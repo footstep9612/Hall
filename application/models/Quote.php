@@ -194,13 +194,13 @@ class QuoteModel extends PublicModel {
 	 */
 	public function updateQuoteStatus($condition = []) {
 
-		if(isset($createcondition['quote_no'])){
-			$where['quote_no'] = array('in',explode(',',$createcondition['quote_no']));
+		if(isset($condition['quote_no'])){
+			$where['quote_no'] = array('in',explode(',',$condition['quote_no']));
 		}else{
 			return false;
 		}
-		if(isset($createcondition['quote_status'])){
-			$quote_status = $createcondition['quote_status'];
+		if(isset($condition['quote_status'])){
+			$quote_status = $condition['quote_status'];
 		}else{
 			return false;
 		}
@@ -217,7 +217,7 @@ class QuoteModel extends PublicModel {
 	public function delQuote($condition = []) {
 
 		if(!empty($condition['quote_no'])) {
-			$where['where'] = $condition['quote_no'];
+			$where['quote_no'] = $condition['quote_no'];
 		}else{
 			return false;
 		}

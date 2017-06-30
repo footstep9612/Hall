@@ -255,6 +255,19 @@ class QuoteController extends PublicController {
 	}
 
 	/**
+	 * @desc 商务技术删除报价接口
+	 * @author zhangyuliang 2017-06-30
+	 * @return json
+	 */
+	public function updateQuoteStatusAction() {
+		$condition = $this->put_data;
+
+		$res = $this->quoteModel->updateQuoteStatus($condition);
+
+		$this->jsonReturn($res);
+	}
+
+	/**
 	 * @desc 商务技术获取报价SKU列表接口
 	 * @author liujf 2017-06-26
 	 * @return json
