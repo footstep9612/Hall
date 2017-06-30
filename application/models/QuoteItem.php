@@ -7,7 +7,7 @@ class QuoteItemModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
     protected $tableName = 'quote_item';
-    protected $joinFinal = 'erui_rfq.final_quote_item b ON a.id = b.id';
+    protected $joinFinal = 'erui_rfq.t_final_quote_item b ON a.id = b.id';
     protected $fieldJoin = 'a.*, b.quote_unit_price AS final_quote_unit_price';
     
     public function __construct() {
@@ -72,7 +72,7 @@ class QuoteItemModel extends PublicModel {
     	$where = $this->getJoinWhere($condition);
     	
     	$count = $this->alias('a')
-    				  ->join($this->$joinFinal, 'LEFT')
+    				  ->join($this->joinFinal, 'LEFT')
     				  ->field($this->fieldJoin)
     				  ->where($where)
     				  ->count('a.id');
@@ -109,14 +109,14 @@ class QuoteItemModel extends PublicModel {
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		
     		return $this->alias('a')
-	    				 ->join($this->$joinFinal, 'LEFT')
+	    				 ->join($this->joinFinal, 'LEFT')
 	    				 ->field($this->fieldJoin)
 	    				 ->where($where)
 	    				 ->page($condition['currentPage'], $condition['pageSize'])
 	    				 ->select();
     	} else {
     		return $this->alias('a')
-    					->join($this->$joinFinal, 'LEFT')
+    					->join($this->joinFinal, 'LEFT')
     					->field($this->fieldJoin)
     					->where($where)
     					->select();
@@ -163,7 +163,7 @@ class QuoteItemModel extends PublicModel {
     	if (empty($where)) return false;
     	
     	return $this->alias('a')
-    				->join($this->$joinFinal, 'LEFT')
+    				->join($this->joinFinal, 'LEFT')
     				->field($this->fieldJoin)
     				->where($where)
     				->find();
