@@ -15,7 +15,7 @@ class CurrencyModel extends PublicModel
      * @param string $lang 语言
      * @return string
      */
-    public function getPayMethod(){
+   public function getPayMethod(){
 
         $key_redis = md5(json_encode('payMethod'));
         if(redisExist($key_redis)){
@@ -29,6 +29,29 @@ class CurrencyModel extends PublicModel
                 redisSet($key_redis,$result);
             }
             return $result;
+        }catch (Exception $e){
+            return array();
+        }
+    }
+
+
+    /**
+     * 获取港口
+     * @param string $lang
+     * @param string $country
+     * @return array|mixed
+     */
+    public function getCurrency(){
+        if(redisHashExist('Currency','currency')){
+            return json_decode(redisHashGet('Currency','currency'),true);
+        }
+        try{
+            $field = 'bn,dollar_symbol,name';
+            $result = $this->field($field)->order('bn')->select();
+            if($result){
+                redisHashSet('Currency','currency',json_encode($result));
+                return $result;
+            }
         }catch (Exception $e){
             return array();
         }
