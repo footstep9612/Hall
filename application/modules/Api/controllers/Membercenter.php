@@ -11,12 +11,12 @@
  * 2017/6/26
  * @author klp
  */
-class MembercenterController extends ShopMallController
+class MemberCenterController extends ShopMallController
 {
 
     public function __init()
     {
-        $this->data = $this->user;
+
     }
 
     /**
@@ -24,9 +24,8 @@ class MembercenterController extends ShopMallController
  * @author klp
  */
     public function getUserInfoAction(){
-
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getInfo($this->data);
+        $result = $buyerModel->getInfo($this->user);
         if(!empty($result)){
             $data = array(
                 'code' => 1,
@@ -45,17 +44,17 @@ class MembercenterController extends ShopMallController
      */
     public function upUserInfoAction(){
 
-        if (!empty($this->data['customer_id'])) {
-            $where['customer_id'] = $this->data['customer_id'];
+        if (!empty($this->user['customer_id'])) {
+            $where['customer_id'] = $this->user['customer_id'];
         } else {
             jsonReturn('','-1001','参数[customer_id]不能为空');
         }
         $buyerAccount = new BuyerAccountModel();
-        $result1 = $buyerAccount->update_data($this->data,$where);
+        $result1 = $buyerAccount->update_data($this->user,$where);
         $buyer = new BuyerModel();
-        $result2 = $buyer->update_data($this->data,$where);
+        $result2 = $buyer->update_data($this->user,$where);
         $buyerAddress = new BuyerAddressModel();
-        $result3 = $buyerAddress->update_data($this->data,$where);
+        $result3 = $buyerAddress->update_data($this->user,$where);
         if($result1 && $result2 && $result3){
             jsonReturn('',1,'保存成功');
         }else{
@@ -70,7 +69,7 @@ class MembercenterController extends ShopMallController
     public function checkOldPwdAction(){
 
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->data);
+        $result = $buyerAccount->checkPassword($this->user);
         if($result){
             jsonReturn('',1,'原密码输入正确');
         }else{
@@ -84,7 +83,7 @@ class MembercenterController extends ShopMallController
      */
     public function checkNewPwdAction(){
 
-        $result = preg_match("/(?![^a-zA-Z0-9]+$)(?![^a-zA-Z/D]+$)(?![^0-9/D]+$).{8,12}$/",$this->data['password']);
+        $result = preg_match("/(?![^a-zA-Z0-9]+$)(?![^a-zA-Z/D]+$)(?![^0-9/D]+$).{8,12}$/",$this->user['password']);
         if($result){
             jsonReturn('',1,'密码格式正确');
         }else{
@@ -99,7 +98,7 @@ class MembercenterController extends ShopMallController
     public function upPasswordAction(){
 
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->update_pwd($this->data);
+        $result = $buyerAccount->update_pwd($this->user);
         if($result){
             jsonReturn('',1,'修改密码成功');
         }else{
@@ -115,7 +114,7 @@ class MembercenterController extends ShopMallController
     public function getServiceAction()
     {
         $BuyerModel = new BuyerModel();
-        $result = $BuyerModel->getService($this->data);
+        $result = $BuyerModel->getService($this->user);
         if($result){
             $data = array(
                 'code' => 1,
@@ -136,7 +135,7 @@ class MembercenterController extends ShopMallController
     public function listServiceAction(){
 
         $MemberBizServiceModel = new MemberBizServiceModel();
-        $result = $MemberBizServiceModel->getVipService($this->data);
+        $result = $MemberBizServiceModel->getVipService($this->user);
         if($result){
             $data = array(
                 'code' => 1,

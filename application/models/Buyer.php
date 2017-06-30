@@ -211,17 +211,20 @@ class BuyerModel extends PublicModel {
     {
         $where=array();
         if(empty($data['customer_id'])) {
-            if (!empty($data['id'])) {
-                $where['id'] = $data['id'];
+            if (!empty($data['email'])) {
+                $where['email'] = $data['email'];
             } else {
-                jsonReturn('', '-1001', '用户id不可以为空');
+                jsonReturn('', '-1001', '用户email不可以为空');
             }
-            //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
             $buyerInfo = $this->where($where)
-                ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
-                ->find();
+                              ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                              ->find();
         } else{
+            $buyer_level = $this->where(array('customer_id' => $data['customer_id']))
+                                ->field('buyer_level')
+                                ->find();
             $buyerInfo['customer_id'] = $data['customer_id'];
+            $buyerInfo['buyer_level'] = $buyer_level['buyer_level'];
         }
 
         if($buyerInfo){
