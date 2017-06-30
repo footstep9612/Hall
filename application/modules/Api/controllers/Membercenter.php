@@ -45,10 +45,10 @@ class MembercenterController extends ShopMallController
      */
     public function upUserInfoAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if (!empty($data['customer_id'])) {
-            $where['customer_id'] = $data['customer_id'];
+        if (!empty($data['email'])) {
+            $where['email'] = $data['email'];
         } else {
-            jsonReturn('','-1001','参数[customer_id]不能为空');
+            jsonReturn('','-1001','参数[email]不能为空');
         }
         $buyerAccount = new BuyerAccountModel();
         $result1 = $buyerAccount->update_data($data,$where);
