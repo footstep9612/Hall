@@ -150,4 +150,19 @@ class MembercenterController extends ShopMallController
         }
         exit;
     }
+
+    /**
+     * 获取付款方式
+     * @author klp
+     */
+    public function payMethodAction(){
+        $CurrencyModel = new CurrencyModel();
+        $result = $CurrencyModel->getPayMethod();
+        if($result){
+            jsonReturn('',1,'成功');
+        }else{
+            jsonReturn('','-1003','失败');
+        }
+        exit;
+    }
 }
