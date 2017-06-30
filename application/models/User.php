@@ -68,7 +68,7 @@ class UserModel extends PublicModel {
         $where = $this->getcondition($condition);
         try {
             return $this->where($where)
-                            ->field('id,user_id,name,email,mobile,status')
+                            ->field('id,user_no,name,email,mobile,status')
                             ->count('id');
         } catch (Exception $ex) {
             Log::write($ex->getMessage());
@@ -107,7 +107,7 @@ class UserModel extends PublicModel {
     public function info($id = '') {
         $where['id'] = $id;
         return $this->where($where)
-                        ->field('id,user_id,name,email,mobile,status')
+                        ->field('id,user_no,name,email,mobile,status')
                         ->find();
     }
 
