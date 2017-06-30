@@ -25,6 +25,23 @@ class InquiryController extends ShopMallController {
         }
     }
 
+    //获取询单总数
+    public function getInquiryCountAction(){
+        $inquiry = new InquiryModel();
+        $where['inquirer_email'] = $this->user['email'];
+        $data['count'] = $inquiry->getcount($where);
+
+        if($data['count']>0){
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        }else{
+            $this->setCode('-101');
+            $this->setMessage('没有找到相关信息!');
+            $this->jsonReturn($data);
+        }
+    }
+
     //添加询价单
     public function addAction(){
         $inquiry = new InquiryModel();

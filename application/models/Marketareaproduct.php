@@ -57,13 +57,13 @@ class MarketareaproductModel extends PublicModel {
 
         try {
             $data = ['name' => $name, 'lang' => $lang];
-            $row = $this->table('erui_dict.country')->field('bn')
+            $row = $this->table('erui_dict.country')->field('region')
                     ->where($data)
                     ->find();
             if ($row) {
-                return $row['bn'];
+                return $row['region'];
             } else {
-                return 'China';
+                return 'Asia';
             }
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);

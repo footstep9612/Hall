@@ -29,7 +29,7 @@ class QuoteController extends PublicController {
 	 * @author liujf 2017-06-24
 	 * @return mix
 	 */
-	public function addQuoteAction() {
+	public function createQuoteAction() {
 		$condition = $this->put_data;
 
 		$serial_no_arr = explode(',', $condition['serial_no']);
@@ -277,29 +277,36 @@ class QuoteController extends PublicController {
 	 * @return json
 	 */
 	public function addQuoteItemAction() {
-		$quoteItem = $condition = $this->put_data;
+		$condition = $this->put_data;
 
 		if (!empty($condition['quote_no'])) {
 			$quote = $this->quoteModel->getDetail($condition);
 
+			$condition['total_purchase_price'] = round($condition['purchase_price'] * $quoteItem['quote_quantity'], 8);
 			$exchangeRate = $this->getRateUSD($condition['purchase_cur']);
 
 			if ($quote['gross_profit_rate'] != '') {
-				$quoteItem['exw_unit_price'] = round($condition['purchase_price'] * $quote['gross_profit_rate'] / $exchangeRate, 8);
-				$quoteItem['total_exw_price'] = $quoteItem['exw_unit_price'] * $quoteItem['quote_quantity'];
+				$condition['exw_unit_price'] = round($condition['purchase_price'] * $quote['gross_profit_rate'] / $exchangeRate, 8);
+				$condition['total_exw_price'] = $condition['exw_unit_price'] * $condition['quote_quantity'];
 			}
+			
+			$condition['exw_cur'] = 'USD';
 
 			if ($quote['total_quote_price'] != '') {
 				$data = array('total_quote_price' => $quote['total_quote_price'],
-						'total_exw_price' => $quote['total_exw_price'],
-						'exw_unit_price' => $quoteItem['exw_unit_price']
+							  'total_exw_price' => $quote['total_exw_price'],
+							  'exw_unit_price' => $condition['exw_unit_price']
 				);
 				$quoteArr = quoteUnitPrice($data);
-				$quoteItem['quote_unit_price'] = $quoteArr['quote_unit_price'];
-				$quoteItem['total_quote_price'] = $quoteArr['quote_unit_price'] * $quoteItem['quote_quantity'];
+				$condition['quote_unit_price'] = $quoteArr['quote_unit_price'];
+				$condition['total_quote_price'] = $quoteArr['quote_unit_price'] * $condition['quote_quantity'];
 			}
+			
+			$condition['quote_cur'] = 'USD';
+			$condition['weight_unit'] = 'kg';
+			$condition['size_unit'] = 'm^3';
 
-			$res = $this->quoteItemModel->addItem($quoteItem);
+			$res = $this->quoteItemModel->addItem($condition);
 
 			$this->jsonReturn($res);
 		} else {
