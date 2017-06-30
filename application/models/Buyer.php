@@ -223,6 +223,7 @@ class BuyerModel extends PublicModel {
             $buyerInfo = $this->where(array('customer_id' => $data['customer_id']))
                               ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
                               ->find();
+            var_dump($buyerInfo);
         }
 
         if($buyerInfo){
