@@ -220,10 +220,9 @@ class BuyerModel extends PublicModel {
                               ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
                               ->find();
         } else{
-            $buyer = $this->where(array('customer_id' => $data['customer_id']))
-                                ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
-                                ->find();
-            $buyerInfo['customer_id'] = $buyer['customer_id'];
+            $buyerInfo = $this->where(array('customer_id' => $data['customer_id']))
+                              ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                              ->find();
         }
 
         if($buyerInfo){
@@ -240,15 +239,15 @@ class BuyerModel extends PublicModel {
                                     ->where(array('customer_id' => $buyerInfo['customer_id']))
                                     ->find();
 
-            $buyer['email'] = $userInfo['email'];
-            $buyer['user_name'] = $userInfo['user_name'];
-            $buyer['phone'] = $userInfo['phone'];
-            $buyer['first_name'] = $userInfo['first_name'];
-            $buyer['last_name'] = $userInfo['last_name'];
-            $buyer['status'] = $userInfo['status'];
-            $buyer['zipcode'] = $zipCode['zipcode'];
+            $buyerInfo['email'] = $userInfo['email'];
+            $buyerInfo['user_name'] = $userInfo['user_name'];
+            $buyerInfo['phone'] = $userInfo['phone'];
+            $buyerInfo['first_name'] = $userInfo['first_name'];
+            $buyerInfo['last_name'] = $userInfo['last_name'];
+            $buyerInfo['status'] = $userInfo['status'];
+            $buyerInfo['zipcode'] = $zipCode['zipcode'];
 
-            return $buyer;
+            return $buyerInfo;
         } else{
             return false;
         }
