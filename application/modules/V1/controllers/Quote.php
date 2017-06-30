@@ -255,7 +255,7 @@ class QuoteController extends PublicController {
 	}
 
 	/**
-	 * @desc 商务技术删除报价接口
+	 * @desc 商务技术修改报价状态接口
 	 * @author zhangyuliang 2017-06-30
 	 * @return json
 	 */
