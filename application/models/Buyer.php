@@ -195,10 +195,10 @@ class BuyerModel extends PublicModel {
             $res = $this->add($datajson);
             return $res;
         } catch (Exception $ex) {
-                print_r($ex);
-                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-                LOG::write($ex->getMessage(), LOG::ERR);
-                return [];
+            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
     /**
@@ -230,6 +230,7 @@ class BuyerModel extends PublicModel {
             $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
                                      ->where(array('customer_id' => $buyerInfo['customer_id']))
                                      ->find();
+
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
@@ -349,8 +350,8 @@ class BuyerModel extends PublicModel {
         $lang = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
         $buyerLevel = $this->where($where)
-                          ->field('buyer_level')
-                          ->find();
+            ->field('buyer_level')
+            ->find();
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
         $result = $MemberBizService->getService($buyerLevel,$lang);

@@ -34,6 +34,13 @@ class MemberBizServiceModel extends PublicModel {
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
             return $result ? $result : array();
         } else {*/
+        if(empty($data['email'])){
+            jsonReturn('','-1001','email不能为空');
+        }
+        $condition = array(
+            'email'=> $data['email'],
+        );
+        $buyer_level = $this->field('buyer_level')->where($condition)->find();
             //通过buyer_level查找biz_service_bn
             $biz_service_bn = $this->field('buyer_level,biz_service_bn')->select();
 
@@ -139,6 +146,7 @@ class MemberBizServiceModel extends PublicModel {
                     }
                 }
                // redisHashSet('services', md5(json_encode($lang)), json_encode($service));
+                $service['$buyer_level'] = $buyer_level['$buyer_level'];
                 if ($service) {
                     return $service;
                 } else {

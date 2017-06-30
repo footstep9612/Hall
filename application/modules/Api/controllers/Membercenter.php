@@ -16,7 +16,7 @@ class MembercenterController extends ShopMallController
 
     public function __init()
     {
-        //   parent::__init();
+        $this->data = $this->user;
     }
 
     /**
@@ -24,9 +24,9 @@ class MembercenterController extends ShopMallController
  * @author klp
  */
     public function getUserInfoAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
+
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getInfo($data);
+        $result = $buyerModel->getInfo($this->data);
         if(!empty($result)){
             $data = array(
                 'code' => 1,
@@ -44,18 +44,18 @@ class MembercenterController extends ShopMallController
      * @author klp
      */
     public function upUserInfoAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
-        if (!empty($data['customer_id'])) {
-            $where['customer_id'] = $data['customer_id'];
+
+        if (!empty($this->data['customer_id'])) {
+            $where['customer_id'] = $this->data['customer_id'];
         } else {
             jsonReturn('','-1001','参数[customer_id]不能为空');
         }
         $buyerAccount = new BuyerAccountModel();
-        $result1 = $buyerAccount->update_data($data,$where);
+        $result1 = $buyerAccount->update_data($this->data,$where);
         $buyer = new BuyerModel();
-        $result2 = $buyer->update_data($data,$where);
+        $result2 = $buyer->update_data($this->data,$where);
         $buyerAddress = new BuyerAddressModel();
-        $result3 = $buyerAddress->update_data($data,$where);
+        $result3 = $buyerAddress->update_data($this->data,$where);
         if($result1 && $result2 && $result3){
             jsonReturn('',1,'保存成功');
         }else{
@@ -68,9 +68,9 @@ class MembercenterController extends ShopMallController
      * @author klp
      */
     public function checkOldPwdAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
+
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($data);
+        $result = $buyerAccount->checkPassword($this->data);
         if($result){
             jsonReturn('',1,'原密码输入正确');
         }else{
@@ -83,8 +83,8 @@ class MembercenterController extends ShopMallController
      * @author klp
      */
     public function checkNewPwdAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
-        $result = preg_match("/(?![^a-zA-Z0-9]+$)(?![^a-zA-Z/D]+$)(?![^0-9/D]+$).{8,12}$/",$data['password']);
+
+        $result = preg_match("/(?![^a-zA-Z0-9]+$)(?![^a-zA-Z/D]+$)(?![^0-9/D]+$).{8,12}$/",$this->data['password']);
         if($result){
             jsonReturn('',1,'密码格式正确');
         }else{
@@ -97,9 +97,9 @@ class MembercenterController extends ShopMallController
      * @author klp
      */
     public function upPasswordAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
+
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->update_pwd($data);
+        $result = $buyerAccount->update_pwd($this->data);
         if($result){
             jsonReturn('',1,'修改密码成功');
         }else{
@@ -114,9 +114,8 @@ class MembercenterController extends ShopMallController
      */
     public function getServiceAction()
     {
-        $data = json_decode(file_get_contents("php://input"), true);
         $BuyerModel = new BuyerModel();
-        $result = $BuyerModel->getService($data);
+        $result = $BuyerModel->getService($this->data);
         if($result){
             $data = array(
                 'code' => 1,
@@ -135,9 +134,9 @@ class MembercenterController extends ShopMallController
      * @author klp
      */
     public function listServiceAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
+
         $MemberBizServiceModel = new MemberBizServiceModel();
-        $result = $MemberBizServiceModel->getVipService($data);
+        $result = $MemberBizServiceModel->getVipService($this->data);
         if($result){
             $data = array(
                 'code' => 1,
@@ -159,7 +158,12 @@ class MembercenterController extends ShopMallController
         $CurrencyModel = new CurrencyModel();
         $result = $CurrencyModel->getPayMethod();
         if($result){
-            jsonReturn('',1,'成功');
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         }else{
             jsonReturn('','-1003','失败');
         }
