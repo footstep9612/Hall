@@ -8,6 +8,7 @@ class LogisticsController extends PublicController {
 	public function init() {
 		parent::init();
         $this->quoteModel = new QuoteModel();
+        $this->quoteItemModel = new QuoteItemModel();
 	}
     
 	/**
