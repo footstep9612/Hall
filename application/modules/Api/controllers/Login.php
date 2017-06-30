@@ -51,7 +51,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $datajson['email'] = $info['email'];
             $datajson['user_name'] = $info['user_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('user_info_'.$info['id'],json_encode($info),18000);
+            redisSet('shopmall_user_info_'.$info['id'],json_encode($info),18000);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
@@ -88,10 +88,7 @@ class LoginController extends Yaf_Controller_Abstract {
         }
         if(!empty($data['phone'])) {
             $buyer_account_data['phone'] = $data['phone'];
-        }else{
-            jsonReturn('',-101,'固话不可以都为空!');
         }
-
         if(!empty($data['email'])) {
             $buyer_account_data['email'] = $data['email'];
             if(!isEmail($buyer_account_data['email'])){
@@ -105,7 +102,6 @@ class LoginController extends Yaf_Controller_Abstract {
         }else{
             jsonReturn('',-101,'名字不能为空!');
         }
-
         if(!empty($data['mobile'])) {
             $buyer_account_data['mobile'] = $data['mobile'];
         }
@@ -164,7 +160,12 @@ class LoginController extends Yaf_Controller_Abstract {
             $data_key['email'] = $data['email'];
             $data_key['name'] = $data['first_name'].$data['last_name'];
             redisHashSet('login_reg_key',$data_key['key'],$account_id);
-            send_Mail($data_key['email'],'注册认证邮件',$data_key['key'],$data['first_name'].$data['last_name']);
+            $config_obj = Yaf_Registry::get("config");
+            $config_shop = $config_obj->shop->toArray();
+            $email_arr['url'] = $config_shop['url'];
+            $email_arr['key'] = $data_key['key'];
+            $body = $this->getView()->render('login/email.html',$email_arr);
+            send_Mail($data_key['email'],'注册认证邮件',$body,$data['first_name'].$data['last_name']);
             jsonReturn($data_key,1,'提交成功');
         }else{
             jsonReturn('',-105,'数据添加失败');
@@ -188,7 +189,12 @@ class LoginController extends Yaf_Controller_Abstract {
         }else{
             jsonReturn('',-101,'收件人姓名不可以为空!');
         }
-        $res = send_Mail($arr['email'],'注册认证邮件',$arr['key'],$arr['name']);
+        $config_obj = Yaf_Registry::get("config");
+        $config_shop = $config_obj->shop->toArray();
+        $email_arr['url'] = $config_shop['url'];
+        $email_arr['key'] = $arr['key'];
+        $body = $this->getView()->render('login/email.html',$email_arr);
+        $res =send_Mail($arr['email'],'注册认证邮件',$body,$arr['name']);
         if($res['code'] == 1){
             jsonReturn('',1,'发送成功');
         }else{
