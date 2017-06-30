@@ -44,19 +44,6 @@ class LogisticsController extends PublicController {
     	$this->jsonReturn($res);
     }
     
-	/**
-     * @desc 物流获取报价详情接口
- 	 * @author liujf 2017-06-29
-     * @return json
-     */
-    public function getQuoteLogiDetailAction() {
-    	$condition = $this->put_data;
-    	
-    	$res = $this->quoteModel->getJoinDetail($condition);
-    	
-    	$this->jsonReturn($res);
-    }
-    
     /**
      * @desc 物流报价修改接口
  	 * @author liujf 2017-06-29
