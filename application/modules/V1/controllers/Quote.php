@@ -25,7 +25,7 @@ class QuoteController extends PublicController {
 	}
 
 	/**
-	 * @desc 新增报价单
+	 * @desc 创建报价单
 	 * @author liujf 2017-06-24
 	 * @return mix
 	 */
@@ -170,13 +170,13 @@ class QuoteController extends PublicController {
 	public function getQuoteListAction() {
 		$condition = $this->put_data;
 
-		$data = $this->quoteModel->getList($condition);
+		$data = $this->quoteModel->getJoinList($condition);
 
 		if ($data) {
 			$res['code'] = 1;
 			$res['message'] = '成功!';
 			$res['data'] = $data;
-			$res['count'] = $this->quoteModel->getCount($condition);
+			$res['count'] = $this->quoteModel->getJoinCount($condition);
 			$this->jsonReturn($res);
 		} else {
 			$this->jsonReturn(false);
@@ -191,14 +191,14 @@ class QuoteController extends PublicController {
 	public function getQuoteInfoAction() {
 		$condition = $this->put_data;
 
-		$res = $this->quoteModel->getDetail($condition);
+		$res = $this->quoteModel->getJoinDetail($condition);
 
 		$this->jsonReturn($res);
 	}
 
 	/**
 	 * @desc 商务技术修改报价接口
-	 * @author liujf 2017-06-26
+	 * @author liujf 2017-06-30
 	 * @return json
 	 */
 	public function updateQuoteAction() {
@@ -209,25 +209,62 @@ class QuoteController extends PublicController {
 			$user = $this->getUserInfo();
 
 			$calculateQuoteInfo = $this->getCalculateQuoteInfo($condition);
+			
+			$condition['size_unit'] = 'm^3';
+			$condition['weight_unit'] = 'kg';
+			$condition['total_exw_cur'] = 'USD';
+			$condition['total_quote_cur'] = 'USD';
+			$condition['total_logi_fee_cur'] = 'USD';
+			$condition['total_bank_fee_cur'] = 'USD';
+			$condition['total_insu_fee_cur'] = 'USD';
+			$condition['payment_received_days'] = strtotime($condition['payment_received_days']);
+    		$condition['exw_delivery_period'] = strtotime($condition['exw_delivery_period']);
+    		$condition['period_of_validity'] = strtotime($condition['period_of_validity']);
 
-			$quote['total_weight'] = $calculateQuoteInfo['$totalWeight'];
-			$quote['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
-			$quote['total_purchase_price'] = $calculateQuoteInfo['totalPurchasePrice'];
+			$condition['total_weight'] = $calculateQuoteInfo['$totalWeight'];
+			$condition['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
+			$condition['total_purchase_price'] = $calculateQuoteInfo['totalPurchasePrice'];
 			$exw = exw($calculateQuoteInfo['exwData'], $condition['gross_profit_rate']);
-			$quote['total_exw_price'] = $exw['total'];
-			$quote['quoter'] = $user['name'];
-			$quote['quoter_email'] = $user['email'];
-			$quote['quote_at'] = time();
-			$quote['quote_notes'] = $condition['quote_notes'];
+			$condition['total_exw_price'] = $exw['total'];
+			$condition['quoter'] = $user['name'];
+			$condition['quoter_email'] = $user['email'];
+			$condition['quote_at'] = time();
 
 			$where['quote_no'] = $condition['quote_no'];
-			$res = $this->quoteModel->updateQuote($where,$quote);
+			
+			$res = $this->quoteModel->updateQuote($where, $condition);
 
 			$this->jsonReturn($res);
 		} else {
 			$this->jsonReturn(false);
 		}
 
+	}
+
+	/**
+	 * @desc 商务技术删除报价接口
+	 * @author zhangyuliang 2017-06-30
+	 * @return json
+	 */
+	public function delQuoteAction() {
+		$condition = $this->put_data;
+
+		$res = $this->quoteModel->delQuote($condition);
+
+		$this->jsonReturn($res);
+	}
+
+	/**
+	 * @desc 商务技术修改报价状态接口
+	 * @author zhangyuliang 2017-06-30
+	 * @return json
+	 */
+	public function updateQuoteStatusAction() {
+		$condition = $this->put_data;
+
+		$res = $this->quoteModel->updateQuoteStatus($condition);
+
+		$this->jsonReturn($res);
 	}
 
 	/**
@@ -239,13 +276,13 @@ class QuoteController extends PublicController {
 		$condition = $this->put_data;
 
 		if (!empty($condition['quote_no'])) {
-			$data = $this->quoteItemModel->getItemList($condition);
+			$data = $this->quoteItemModel->getJoinList($condition);
 
 			if ($data) {
 				$res['code'] = 1;
 				$res['message'] = '成功!';
 				$res['data'] = $data;
-				$res['count'] = $this->quoteItemModel->getCount($condition);
+				$res['count'] = $this->quoteItemModel->getJoinCount($condition);
 				$this->jsonReturn($res);
 			} else {
 				$this->jsonReturn(false);
@@ -261,11 +298,11 @@ class QuoteController extends PublicController {
 	 * @author liujf 2017-06-28
 	 * @return json
 	 */
-	public function getQuoteItemInfoAction() {
+	public function getQuoteItemDetailAction() {
 		$condition = $this->put_data;
 
 		if (!empty($condition['quote_no'])) {
-			$res = $this->quoteItemModel->getDetail($condition);
+			$res = $this->quoteItemModel->getJoinDetail($condition);
 
 			$this->jsonReturn($res);
 		}
@@ -584,7 +621,7 @@ class QuoteController extends PublicController {
 	 * @return array
 	 */
 	private function getUserInfo() {
-		return $this->userModel->where(array('id' => $this->user['id']))->field('name,email')->find();
+		return $this->userModel->info($this->user['id']);
 	}
 
 	/**

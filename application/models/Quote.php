@@ -152,7 +152,7 @@ class QuoteModel extends PublicModel {
     
 	/**
      * @desc 获取关联询价单详情
- 	 * @author liujf 2017-06-17
+ 	 * @author liujf 2017-06-29
      * @param array $condition
      * @return array
      */
@@ -160,11 +160,13 @@ class QuoteModel extends PublicModel {
     	
     	$where = $this->getJoinWhere($condition);
     	
+    	if (empty($where)) return false;
+    	
     	return $this->alias('a')
-    					->join($this->joinInquiry, 'LEFT')
-    					->field($this->fieldJoin)
-    					->where($where)
-    					->find();
+    				->join($this->joinInquiry, 'LEFT')
+    				->field($this->fieldJoin)
+    				->where($where)
+    				->find();
     }
 
 	/**
@@ -185,6 +187,28 @@ class QuoteModel extends PublicModel {
 	}
 
 	/**
+	 * @desc 批量修改状态
+	 * @author zhangyuliang 2017-06-30
+	 * @param array $condition
+	 * @return array
+	 */
+	public function updateQuoteStatus($condition = []) {
+
+		if(isset($condition['quote_no'])){
+			$where['quote_no'] = array('in',explode(',',$condition['quote_no']));
+		}else{
+			return false;
+		}
+		if(isset($condition['quote_status'])){
+			$quote_status = $condition['quote_status'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->save(['quote_status' => $quote_status]);
+	}
+
+	/**
 	 * @desc 删除报价单
 	 * @author zhangyuliang 2017-06-29
 	 * @param array $condition
@@ -193,7 +217,7 @@ class QuoteModel extends PublicModel {
 	public function delQuote($condition = []) {
 
 		if(!empty($condition['quote_no'])) {
-			$where['where'] = $condition['quote_no'];
+			$where['quote_no'] = $condition['quote_no'];
 		}else{
 			return false;
 		}

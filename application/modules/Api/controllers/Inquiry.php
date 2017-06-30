@@ -62,9 +62,9 @@ class InquiryController extends ShopMallController {
 
         $results = $inquiry->getlist($where);
 
-        foreach($results as $key=>$val){
+        foreach($results['data'] as $key=>$val){
             $test['serial_no'] = $val['serial_no'];
-            $results[$key]['quantity'] = $item->getcount($test);
+            $results['data'][$key]['quantity'] = $item->getcount($test);
         }
 
         $this->jsonReturn($results);
@@ -134,6 +134,16 @@ class InquiryController extends ShopMallController {
         $where = json_decode(file_get_contents("php://input"), true);
 
         $results = $Item->getlist($where);
+        $this->jsonReturn($results);
+    }
+
+    //明细列表
+    public function getInfoItemAction() {
+        $Item = new InquiryItemModel();
+
+        $where = json_decode(file_get_contents("php://input"), true);
+
+        $results = $Item->getinfo($where);
         $this->jsonReturn($results);
     }
 
