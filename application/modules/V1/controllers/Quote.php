@@ -29,7 +29,7 @@ class QuoteController extends PublicController {
 	 * @author liujf 2017-06-24
 	 * @return mix
 	 */
-	public function addQuoteAction() {
+	public function createQuoteAction() {
 		$condition = $this->put_data;
 
 		$serial_no_arr = explode(',', $condition['serial_no']);

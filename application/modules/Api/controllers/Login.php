@@ -51,7 +51,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $datajson['email'] = $info['email'];
             $datajson['user_name'] = $info['user_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('user_info_'.$info['id'],json_encode($info),18000);
+            redisSet('shopmall_user_info_'.$info['id'],json_encode($info),18000);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
@@ -88,10 +88,7 @@ class LoginController extends Yaf_Controller_Abstract {
         }
         if(!empty($data['phone'])) {
             $buyer_account_data['phone'] = $data['phone'];
-        }else{
-            jsonReturn('',-101,'固话不可以都为空!');
         }
-
         if(!empty($data['email'])) {
             $buyer_account_data['email'] = $data['email'];
             if(!isEmail($buyer_account_data['email'])){
