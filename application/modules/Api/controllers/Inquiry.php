@@ -62,9 +62,9 @@ class InquiryController extends ShopMallController {
 
         $results = $inquiry->getlist($where);
 
-        foreach($results as $key=>$val){
+        foreach($results['data'] as $key=>$val){
             $test['serial_no'] = $val['serial_no'];
-            $results[$key]['quantity'] = $item->getcount($test);
+            $results['data'][$key]['quantity'] = $item->getcount($test);
         }
 
         $this->jsonReturn($results);
