@@ -25,7 +25,7 @@ class QuoteController extends PublicController {
 	}
 
 	/**
-	 * @desc 新增报价单
+	 * @desc 创建报价单
 	 * @author liujf 2017-06-24
 	 * @return mix
 	 */
