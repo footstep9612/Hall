@@ -33,7 +33,7 @@ class IndexController extends ShopMallController {
       $country = getIpAddress($ip);
       return $IpModel->getbnbynameandlang($country, 'zh');
     } else {
-      return 'China';
+      return 'Asia';
     }
   }
 
