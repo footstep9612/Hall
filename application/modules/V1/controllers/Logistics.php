@@ -155,7 +155,10 @@ class LogisticsController extends PublicController {
 			
 			$quote = $this->quoteModel->getDetail($condition['quote_no']);
 			
+			$status = $condition['status'] == 'Y' ? 'APPROVED' : 'NOT_APPROVED';
+			
 			$logiCheck = array(
+				'logi_quote_status' => $status,
 				'logi_checker' => $user['name'],
 				'logi_checker_email' => $user['email'],
 				'logi_check_at' => $time,
