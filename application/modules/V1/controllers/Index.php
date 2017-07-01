@@ -64,7 +64,7 @@ class IndexController extends ShopMallController {
 
   public function getProductsAction() {
 
-
+      
     if (isset($this->put_data['country'])) {
 
       $bn = $condition['country'] = $this->getMarketAreaBnByCountry();

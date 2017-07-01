@@ -53,7 +53,7 @@ class MarketareaproductModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getbnbynameandlang($name, $lang = 'zh') {
+    public function getbnbynameandlang($name, $lang = 'en') {
 
         try {
             $data = ['name' => $name, 'lang' => $lang];
