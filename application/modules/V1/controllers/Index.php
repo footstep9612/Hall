@@ -17,7 +17,7 @@ class IndexController extends ShopMallController {
   public function init() {
     ini_set("display_errors", "On");
     error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+    $this->put_data = $jsondata = array('lang' => 'en', 'token' => '', 'country' => 'America',); //json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
   }
@@ -35,7 +35,7 @@ class IndexController extends ShopMallController {
       $send = $IpModel->getbnbynameandlang($country, $this->getLang());
     } else {
       $this->setCode(1);
-      $send = 'China';
+      $send = 'Asia-Paific Region';
       $this->jsonReturn($send);
     }
   }
@@ -57,9 +57,22 @@ class IndexController extends ShopMallController {
     $this->jsonReturn($send);
   }
 
+  private function getMarketAreaBnByCountry() {
+    $country = $this->put_data['country'];
+
+    $lang = $this->getLang();
+    $IpModel = new MarketareaproductModel();
+
+    $market_area_bn = $IpModel->getbnbynameandlang($country, $lang);   
+    return $market_area_bn;
+  }
+
   public function getProductsAction() {
-    if (isset($this->put_data['market_area_bn'])) {
-      $bn = $condition['market_area_bn'] = $this->put_data['market_area_bn'];
+
+
+    if (isset($this->put_data['country'])) {
+
+      $bn = $condition['market_area_bn'] = $this->getMarketAreaBnByCountry();
     } else {
       $bn = $this->getIp();
       $condition['market_area_bn'] = $bn;
@@ -73,6 +86,7 @@ class IndexController extends ShopMallController {
     } else {
       $data = json_decode($json, true);
     }
+
     $spus = [];
     if ($data) {
       foreach ($data as $item) {
