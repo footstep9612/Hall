@@ -58,7 +58,26 @@ class LogiPeriodModel extends Model{
     }
 
     /**
-     *
+     * 根据条件获取物流时效信息
      */
+    public function getInfo($field,$where){
+        if(empty($field) || empty($where))
+            return array();
+
+        if(redisHashExist('LogiPeriod',md5(json_encode($where)))){
+            return json_decode(redisHashGet('LogiPeriod',md5(json_encode($where))),true);
+        }
+        try{
+            $result = $this->field($field)->where($where)->select();
+            $data = array();
+            if($result){
+                $data = $result;
+                redisHashSet('LogiPeriod',md5(json_encode($where)),json_encode($data));
+            }
+            return $data;
+        }catch (Exception $e){
+            return array();
+        }
+    }
 
 }

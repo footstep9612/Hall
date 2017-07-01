@@ -31,9 +31,9 @@ class LogiperiodController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * 根据贸易术语查询物流时效国
+     * 根据贸易术语查询物流时效国　　－　预留接口
      */
- /*   public function countryAction(){
+    public function countryAction(){
         if(!isset($this->input['trade_terms'])){
             jsonReturn('','1000');
         }
@@ -52,7 +52,60 @@ class LogiperiodController extends Yaf_Controller_Abstract{
         }else{
             jsonReturn('','400','失败');
         }
-    }*/
+    }
+
+    /**
+     * 根据贸易术语与国家获取港口城市　　－　预留接口
+     */
+    public function portAction(){
+        if(!isset($this->input['trade_terms']) || !isset($this->input['from_country'])){
+            jsonReturn('','1000');
+        }
+        $this->input['lang'] = isset($this->input['lang'])?$this->input['lang']:'en';
+        $field = 'from_port';
+        $where = array(
+            'lang' =>$this->input['lang'],
+            'trade_terms' =>$this->input['trade_terms'],
+            'from_country'=>$this->input['from_country'],
+            'status' =>'VALID'
+        );
+        $logiModel = new LogiPeriodModel();
+        $logis = $logiModel->getInfo($field,$where);
+        if($logis){
+            jsonReturn(array('data'=>$logis));
+        }else{
+            jsonReturn('','400','失败');
+        }
+
+    }
+
+
+    /**
+     * 根据贸易术语与国家 港口城市 目地国获取目的港口信息　　－　预留接口
+     */
+    public function toportAction(){
+        if(!isset($this->input['trade_terms']) || !isset($this->input['from_country'])){
+            jsonReturn('','1000');
+        }
+        $this->input['lang'] = isset($this->input['lang'])?$this->input['lang']:'en';
+        $field = 'clearance_loc,to_port,packing_period_min,packing_period_max,collecting_period_min,collecting_period_max,declare_period_min';
+        $where = array(
+            'lang' =>$this->input['lang'],
+            'trade_terms' =>$this->input['trade_terms'],
+            'from_country'=>$this->input['from_country'],
+            'from_port' =>$this->input['from_port'],
+            'to_country'=>$this->input['from_port'],
+            'status' =>'VALID'
+        );
+        $logiModel = new LogiPeriodModel();
+        $logis = $logiModel->getInfo($field,$where);
+        if($logis){
+            jsonReturn(array('data'=>$logis));
+        }else{
+            jsonReturn('','400','失败');
+        }
+
+    }
 
 
 }
