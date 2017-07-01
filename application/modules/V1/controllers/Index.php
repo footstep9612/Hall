@@ -54,9 +54,20 @@ class IndexController extends ShopMallController {
     $this->jsonReturn($send);
   }
 
+  private function getMarketAreaBnByCountry() {
+    $country = $this->put_data['country'];
+    $lang = $this->getLang();
+    $IpModel = new MarketareaproductModel();
+    $market_area_bn = $IpModel->getbnbynameandlang($country, $lang);
+    return $market_area_bn;
+  }
+
   public function getProductsAction() {
-    if (isset($this->put_data['market_area_bn'])) {
-      $bn = $condition['market_area_bn'] = $this->put_data['market_area_bn'];
+
+
+    if (isset($this->put_data['country'])) {
+
+      $bn = $condition['country'] = $this->getMarketAreaBnByCountry();
     } else {
       $bn = $this->getIp();
       $condition['market_area_bn'] = $bn;

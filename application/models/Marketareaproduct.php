@@ -63,12 +63,12 @@ class MarketareaproductModel extends PublicModel {
             if ($row) {
                 return $row['region'];
             } else {
-                return 'Asia';
+                return 'Asia-Paific Region';
             }
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
-            return 'China';
+            return 'Asia-Paific Region';
         }
     }
 
