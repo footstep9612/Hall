@@ -30,10 +30,10 @@ class MemberBizServiceModel extends PublicModel {
     {
         $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-        /*if(redisHashExist('services',md5(json_encode($lang)))){
+        if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
             return $result ? $result : array();
-        } else {*/
+        }
         //查找会员等级
         if(empty($data['customer_id'])){
             jsonReturn('','-1001','[customer_id不能为空');
@@ -81,7 +81,7 @@ class MemberBizServiceModel extends PublicModel {
                     $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $v['biz_service_bn'], 'lang' => $lang))->find();
                     $data[$v['buyer_level']][] = $info;
                 }
-            }// print_r($data);
+            }
             //按类型分组
             if ($data) {
                 //按服务树形结构
@@ -147,7 +147,7 @@ class MemberBizServiceModel extends PublicModel {
                         }
                     }
                 }
-               // redisHashSet('services', md5(json_encode($lang)), json_encode($service));
+                redisHashSet('services', md5(json_encode($lang)), json_encode($service));
                 $service['buyer_level'] = $buyer_level['buyer_level'];
                 if ($service) {
                     return $service;
@@ -157,7 +157,7 @@ class MemberBizServiceModel extends PublicModel {
             } else {
                 return false;
             }
-       // }
+
     }
 
     /**
@@ -171,10 +171,10 @@ class MemberBizServiceModel extends PublicModel {
         if(!empty($buyerLevel)){
             $where['buyer_level'] = ucfirst($buyerLevel);
         }
-        /*if(redisHashExist('service',md5(json_encode($where)))){
+        if(redisHashExist('service',md5(json_encode($where)))){
             $result = json_decode(redisHashGet('service',md5(json_encode($lang))),true);
             return $result ? $result : array();
-        } else {*/
+        }
             //通过buyer_level查找biz_service_bn
             $biz_service_bn = $this->field('biz_service_bn')->select();
             $data = array();
@@ -243,7 +243,7 @@ class MemberBizServiceModel extends PublicModel {
                         }
                     }
                 }
-                //redisHashSet('service',md5(json_encode($where)),json_encode($service));
+                redisHashSet('service',md5(json_encode($where)),json_encode($service));
                 if ($service) {
                     return $service;
                 } else {
@@ -252,6 +252,5 @@ class MemberBizServiceModel extends PublicModel {
             } else {
                 return false;
             }
-        //}
     }
 }
