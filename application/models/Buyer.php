@@ -368,7 +368,7 @@ class BuyerModel extends PublicModel {
      * 通过顾客id获取国家地区简称
      * @author klp
      */
-    public function getInquiryInfo($data)
+    /*public function getInquiryInfo($data)
     {
         if(!empty($data['customer_id'])){
             $where['customer_id'] = $data['customer_id'];
@@ -384,5 +384,5 @@ class BuyerModel extends PublicModel {
         $marketArea_bn = $MarketAreaCountryModel->field('market_area_bn')->where(array('country_bn'=>$country_bn['bn']))->find();
 
 
-    }
+    }*/
 }
