@@ -344,6 +344,12 @@ class QuoteController extends PublicController {
 			$condition['quote_cur'] = 'USD';
 			$condition['weight_unit'] = 'kg';
 			$condition['size_unit'] = 'm^3';
+			$condition['purchase_price'] = $condition['purchase_price'] ? : 0;
+			$condition['quote_unit_price'] = $condition['quote_unit_price'] ? : 0;
+			$condition['unit_weight'] = $condition['unit_weight'] ? : 0;
+			$condition['package_size'] = $condition['package_size'] ? : 0;
+			$condition['rebate_rate'] = $condition['rebate_rate'] ? : 0;
+			$condition['total_quote_price'] = $condition['total_quote_price'] ? : 0;
 			
 			$res = $this->quoteItemModel->addItem($condition);
 
@@ -383,6 +389,14 @@ class QuoteController extends PublicController {
 				$condition['quote_unit_price'] = $quoteArr['quote_unit_price'];
 				$condition['total_quote_price'] = $quoteArr['quote_unit_price'] * $condition['quote_quantity'];
 			}
+			$condition['purchase_price'] = $condition['purchase_price'] ? : 0;
+			$condition['quote_unit_price'] = $condition['quote_unit_price'] ? : 0;
+			$condition['unit_weight'] = $condition['unit_weight'] ? : 0;
+			$condition['package_size'] = $condition['package_size'] ? : 0;
+			$condition['rebate_rate'] = $condition['rebate_rate'] ? : 0;
+			$condition['total_quote_price'] = $condition['total_quote_price'] ? : 0;
+			$condition['exw_unit_price'] = $condition['total_quote_price'] ? : 0;
+			$condition['total_exw_price'] = $condition['total_quote_price'] ? : 0;
 			
 			$where['id'] = $condition['item_id'];
     		unset($condition['item_id']);
