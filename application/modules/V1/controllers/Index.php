@@ -62,7 +62,11 @@ class IndexController extends ShopMallController {
     $lang = $this->getLang();
     $IpModel = new MarketareaproductModel();
     $market_area_bn = $IpModel->getbnbynameandlang($country, $lang);
-    return $market_area_bn;
+    if ($market_area_bn) {
+      return $market_area_bn;
+    } else {
+      return 'Asia-Paific Region';
+    }
   }
 
   public function getProductsAction() {
