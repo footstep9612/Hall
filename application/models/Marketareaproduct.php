@@ -57,7 +57,7 @@ class MarketareaproductModel extends PublicModel {
 
         try {
             $data = ['name' => $name, 'lang' => $lang];
-            $row = $this->table('erui_dict.country')->field('region')
+            $row = $this->table('erui_dict.t_country')->field('region')
                     ->where($data)
                     ->find();
             if ($row) {
