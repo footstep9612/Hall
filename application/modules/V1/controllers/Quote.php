@@ -322,7 +322,9 @@ class QuoteController extends PublicController {
 
 			$condition['total_purchase_price'] = round($condition['purchase_price'] * $condition['quote_quantity'], 8);
 			$exchangeRate = $this->getRateUSD($condition['purchase_cur']);
-
+			
+			$exchangeRate = $exchangeRate > 0 ? $exchangeRate : 1;
+		
 			if ($quote['gross_profit_rate'] != '') {
 				$condition['exw_unit_price'] = round($condition['purchase_price'] * $quote['gross_profit_rate'] / $exchangeRate, 8);
 				$condition['total_exw_price'] = $condition['exw_unit_price'] * $condition['quote_quantity'];
