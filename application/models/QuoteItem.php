@@ -136,7 +136,7 @@ class QuoteItemModel extends PublicModel {
 	public function addItem($condition) {
 		$data = $this->create($condition);
 		$data['status'] = !empty($condition['status'])?$condition['status']:'ONGOING';
-		$data['created_at'] = time();
+		$data['created_at'] = date('Y-m-d H:i:s');
 
 		return $this->add($data);
 	}
@@ -200,11 +200,6 @@ class QuoteItemModel extends PublicModel {
 
 		if(!empty($condition['id'])) {
 			$where['id'] = $condition['id'];
-		}else{
-			return false;
-		}
-		if(!empty($condition['quote_no'])) {
-			$where['where'] = $condition['quote_no'];
 		}else{
 			return false;
 		}

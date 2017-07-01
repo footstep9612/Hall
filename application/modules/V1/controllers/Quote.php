@@ -43,7 +43,7 @@ class QuoteController extends PublicController {
 
 		$user = $this->getUserInfo();
 
-		$time = time();
+		$time = date('Y-m-d H:i:s');
 
 		foreach ($inquiryList as $inquiry) {
 			$quote['serial_no'] = $this->getQuoteSerialNo(); // 报价单流水号
@@ -106,7 +106,7 @@ class QuoteController extends PublicController {
 			$quoteItem['quote_unit'] = $inquiryItem['unit'];
 			$quoteItem['inquiry_desc'] = $inquiryItem['description'];
 			$quoteItem['status'] = 'NOT_QUOTED';
-			$quoteItem['created_at'] = time();
+			$quoteItem['created_at'] = date('Y-m-d H:i:s');
 
 			$quoteItemList[] = $quoteItem;
 
@@ -227,7 +227,7 @@ class QuoteController extends PublicController {
 			$condition['total_exw_price'] = $exw['total'];
 			$condition['quoter'] = $user['name'];
 			$condition['quoter_email'] = $user['email'];
-			$condition['quote_at'] = time();
+			$condition['quote_at'] = date('Y-m-d H:i:s');
 
 			$where['quote_no'] = $condition['quote_no'];
 			
@@ -268,26 +268,14 @@ class QuoteController extends PublicController {
 
 	/**
 	 * @desc 商务技术获取报价SKU列表接口
-	 * @author liujf 2017-06-26
+	 * @author liujf 2017-07-01
 	 * @return json
 	 */
 	public function getQuoteItemListAction() {
 		$condition = $this->put_data;
 
 		if (!empty($condition['quote_no'])) {
-			if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-				$data = $this->quoteItemModel
-						->alias('a')
-						->join("final_quote_item b ON a.id = b.id", 'LEFT')
-						->field("a.*,b.quote_unit_price AS final_quote_unit_price")
-						->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
-			} else {
-				$data = $this->quoteItemModel
-						->alias('a')
-						->join("final_quote_item b ON a.id = b.id", 'LEFT')
-						->field("a.*,b.quote_unit_price AS final_quote_unit_price")
-						->where(array('a.quote_no' => $condition['quote_no']))->select();
-			}
+			$data = $this->quoteItemModel->getJoinList($condition);
 
 			if ($data) {
 				$res['code'] = 1;
@@ -313,13 +301,11 @@ class QuoteController extends PublicController {
 		$condition = $this->put_data;
 
 		if (!empty($condition['quote_no'])) {
-			$res = $this->quoteItemModel
-					->alias('a')
-					->join("final_quote_item b ON a.id = b.id", 'LEFT')
-					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
-					->where(array('a.quote_no' => $condition['id']))->find();
+			$res = $this->quoteItemModel->getJoinDetail($condition);
 
 			$this->jsonReturn($res);
+		} else {
+			$this->jsonReturn(false);
 		}
 	}
 
@@ -356,9 +342,7 @@ class QuoteController extends PublicController {
 			$condition['quote_cur'] = 'USD';
 			$condition['weight_unit'] = 'kg';
 			$condition['size_unit'] = 'm^3';
-			$condition['status'] = 'ONGOING';
-			$condition['created_at'] = time();
-
+			
 			$res = $this->quoteItemModel->addItem($condition);
 
 			$this->jsonReturn($res);
@@ -374,31 +358,34 @@ class QuoteController extends PublicController {
 	 * @return json
 	 */
 	public function uptateQuoteItemAction() {
-		$quoteItem = $condition = $this->put_data;
+		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no'])) {
+		if (!empty($condition['item_id'])) {
 			$quote = $this->quoteModel->getDetail($condition);
 
-			$quoteItem['total_purchase_price'] = round($condition['purchase_price'] * $quoteItem['quote_quantity'], 8);
+			$condition['total_purchase_price'] = round($condition['purchase_price'] * $condition['quote_quantity'], 8);
 
 			$exchangeRate = $this->getRateUSD($condition['purchase_cur']);
 
 			if ($quote['gross_profit_rate'] != '') {
-				$quoteItem['exw_unit_price'] = round($condition['purchase_price'] * $quote['gross_profit_rate'] / $exchangeRate, 8);
-				$quoteItem['total_exw_price'] = $quoteItem['exw_unit_price'] * $quoteItem['quote_quantity'];
+				$condition['exw_unit_price'] = round($condition['purchase_price'] * $quote['gross_profit_rate'] / $exchangeRate, 8);
+				$condition['total_exw_price'] = $condition['exw_unit_price'] * $condition['quote_quantity'];
 			}
 
 			if ($quote['total_quote_price'] != '') {
 				$data = array('total_quote_price' => $quote['total_quote_price'],
 						'total_exw_price' => $quote['total_exw_price'],
-						'exw_unit_price' => $quoteItem['exw_unit_price']
+						'exw_unit_price' => $condition['exw_unit_price']
 				);
 				$quoteArr = quoteUnitPrice($data);
-				$quoteItem['quote_unit_price'] = $quoteArr['quote_unit_price'];
-				$quoteItem['total_quote_price'] = $quoteArr['quote_unit_price'] * $quoteItem['quote_quantity'];
+				$condition['quote_unit_price'] = $quoteArr['quote_unit_price'];
+				$condition['total_quote_price'] = $quoteArr['quote_unit_price'] * $condition['quote_quantity'];
 			}
+			
+			$where['id'] = $condition['item_id'];
+    		unset($condition['item_id']);
 
-			$res = $this->quoteItemModel->updateItem($quoteItem);
+			$res = $this->quoteItemModel->updateItem($where, $condition);
 
 			$this->jsonReturn($res);
 		} else {
@@ -415,7 +402,10 @@ class QuoteController extends PublicController {
 	public function delQuoteItemAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['id'])) {
+		if (!empty($condition['item_id'])) {
+			$condition['id'] = $condition['item_id'];
+    		unset($condition['item_id']);
+			
 			$res = $this->quoteItemModel->delItem($condition);
 			$this->jsonReturn($res);
 		} else {
@@ -463,7 +453,9 @@ class QuoteController extends PublicController {
 	public function delQuoteAttachAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no'])) {
+		if (!empty($condition['attach_id'])) {
+			$condition['id'] = $condition['attach_id'];
+    		unset($condition['attach_id']);
 
 			$res = $this->quoteAttachModel->delAttach($condition);
 
@@ -513,9 +505,11 @@ class QuoteController extends PublicController {
 	public function delQuoteItemAttachAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no'])) {
+		if (!empty($condition['attach_id'])) {
+			$condition['id'] = $condition['attach_id'];
+    		unset($condition['attach_id']);
 
-			$res = $this->quoteItemAttachModel->delete($condition);
+			$res = $this->quoteItemAttachModel->delAttach($condition);
 
 			$this->jsonReturn($res);
 		} else {
@@ -559,75 +553,24 @@ class QuoteController extends PublicController {
 	}
 
 	/**
-	 * @desc 处理报价相关审核接口
-	 * @author liujf 2017-06-20
-	 * @return json
-	 */
-	public function examineApiAction() {
-		$condition = $this->put_data;
-
-		if (!empty($condition['quote_no'])) {
-			$data = $this->getExamine($condition);
-
-			$res = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->save($data);
-
-			if ($condition['examine_type'] == 'quote') $this->afterExamine($condition);
-
-			$this->jsonReturn($res);
-		} else {
-			$this->jsonReturn(false);
-		}
-	}
-
-	/**
-	 * @desc 获取审核数据
-	 * @author liujf 2017-06-21
+	 * @desc 创建市场报价单
+	 * @author liujf 2017-07-01
 	 * @param array $condition 条件参数
 	 * @return array
 	 */
-	private function getExamine($condition) {
-		$data = array();
+	private function createFinalQuote($condition) {
 
-		switch ($condition['examine_type']) { // 审核类型： logi(物流) 、biz(商务) 、quote(报价)
-			case 'logi'  : $data['logi_quote_status'] = $condition['status'];
-				break;
-			case 'biz'   : $data['biz_quote_status'] = $condition['status'];
-				break;
-			case 'quote' : $user = $this->getUserInfo();
-				$data['quote_status'] = $condition['status'];
-				$data['checker'] = $user['name'];
-				$data['checker_email'] = $user['email'];
-				$data['check_at'] = time();
-				$data['check_notes'] = $condition['check_notes'];
-		}
+		$quote = $this->quoteModel->getDetail($condition);
+		$this->finalQuoteModel->add($quote);
 
-		return $data;
+		$quoteItemList = $this->quoteItemModel->getItemList($condition);
+		$this->finalQuoteItemModel->addAll($quoteItemList);
 
-	}
+		$quoteAttachList = $this->quoteAttachModel->getAttachList($condition);
+		$this->finalQuoteAttachModel->addAll($quoteAttachList);
 
-	/**
-	 * @desc 审核通过后的操作
-	 * @author liujf 2017-06-21
-	 * @param array $condition 条件参数
-	 * @return array
-	 */
-	private function afterExamine($condition) {
-
-		if ($condition['status'] == 'APPROVED') { // 报价完成
-			$quote = $this->quoteModel->getDetail($condition);
-			$this->finalQuoteModel->add($quote);
-
-			$quoteItemList = $this->quoteItemModel->getItemList($condition);
-			$this->finalQuoteItemModel->addAll($quoteItemList);
-
-			$quoteAttachList = $this->quoteAttachModel->getAttachList($condition);
-			$this->finalQuoteAttachModel->addAll($quoteAttachList);
-
-			$quoteItemAttachList = $this->quoteItemAttachModel->getAttachList($condition);
-			$this->finalQuoteItemModel->addAll($quoteItemAttachList);
-
-			$this->createGoodsPriceHis($condition);
-		}
+		$quoteItemAttachList = $this->quoteItemAttachModel->getAttachList($condition);
+		$this->finalQuoteItemModel->addAll($quoteItemAttachList);
 
 	}
 
