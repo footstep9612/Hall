@@ -187,12 +187,12 @@ class QuoteController extends PublicController {
 	 * @author liujf 2017-06-28
 	 * @return json
 	 */
-	public function getQuoteInfoAction() {
+	public function getQuoteDetailAction() {
 		$condition = $this->put_data;
-
+		
 		$res = $this->quoteModel->getJoinDetail($condition);
-
-		$this->jsonReturn($res);
+    	
+    	$this->jsonReturn($res);
 	}
 
 	/**
@@ -216,9 +216,6 @@ class QuoteController extends PublicController {
 			$condition['total_logi_fee_cur'] = 'USD';
 			$condition['total_bank_fee_cur'] = 'USD';
 			$condition['total_insu_fee_cur'] = 'USD';
-			$condition['payment_received_days'] = strtotime($condition['payment_received_days']);
-    		$condition['exw_delivery_period'] = strtotime($condition['exw_delivery_period']);
-    		$condition['period_of_validity'] = strtotime($condition['period_of_validity']);
 
 			$condition['total_weight'] = $calculateQuoteInfo['$totalWeight'];
 			$condition['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
@@ -300,7 +297,10 @@ class QuoteController extends PublicController {
 	public function getQuoteItemDetailAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no'])) {
+		if (!empty($condition['item_id'])) {
+			$condition['id'] = $condition['item_id'];
+    		unset($condition['item_id']);
+    		
 			$res = $this->quoteItemModel->getJoinDetail($condition);
 
 			$this->jsonReturn($res);
