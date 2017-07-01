@@ -17,7 +17,7 @@ class IndexController extends ShopMallController {
   public function init() {
     ini_set("display_errors", "On");
     error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = array('lang' => 'en', 'token' => '', 'country' => 'America',); //json_decode(file_get_contents("php://input"), true);
+    $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
   }
@@ -59,11 +59,9 @@ class IndexController extends ShopMallController {
 
   private function getMarketAreaBnByCountry() {
     $country = $this->put_data['country'];
-
     $lang = $this->getLang();
     $IpModel = new MarketareaproductModel();
-
-    $market_area_bn = $IpModel->getbnbynameandlang($country, $lang);   
+    $market_area_bn = $IpModel->getbnbynameandlang($country, $lang);
     return $market_area_bn;
   }
 
@@ -75,13 +73,19 @@ class IndexController extends ShopMallController {
       $bn = $condition['market_area_bn'] = $this->getMarketAreaBnByCountry();
     } else {
       $bn = $this->getIp();
-      $condition['market_area_bn'] = $bn;
+      if ($bn) {
+        $condition['market_area_bn'] = $bn;
+      } else {
+        $bn = 'Asia-Paific Region';
+        $condition['market_area_bn'] = $bn;
+      }
     }
     $json = redisGet('MarketareaproductModel_' . $bn);
 
     if (!$json) {
       $model = new MarketareaproductModel();
       $data = $model->getlist($condition);
+      var_dump($data);
       redisSet('MarketareaproductModel_' . $bn, json_encode($data), 3600);
     } else {
       $data = json_decode($json, true);
@@ -121,6 +125,8 @@ class IndexController extends ShopMallController {
           }
           $send[$key]['id'] = $item['_id'];
         }
+
+        var_dump($send);
         $this->setCode(1);
         $this->jsonReturn($send);
       } else {
