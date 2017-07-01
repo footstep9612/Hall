@@ -225,6 +225,15 @@ class QuoteController extends PublicController {
 			$condition['quoter'] = $user['name'];
 			$condition['quoter_email'] = $user['email'];
 			$condition['quote_at'] = date('Y-m-d H:i:s');
+			
+			$condition['package_volumn'] = $condition['package_volumn'] ? : 0;
+			$condition['exchange_rate'] = $condition['exchange_rate'] ? : 0;
+			$condition['gross_profit_rate'] = $condition['gross_profit_rate'] ? : 0;
+			$condition['total_purchase_price'] = $condition['total_purchase_price'] ? : 0;
+			$condition['total_exw_price'] = $condition['total_exw_price'] ? : 0;
+			$condition['bank_interest'] = $condition['bank_interest'] ? : 0;
+			$condition['fund_occupation_rate'] = $condition['fund_occupation_rate'] ? : 0;
+			$condition['inspection_fee'] = $condition['inspection_fee'] ? : 0;
 
 			$where['quote_no'] = $condition['quote_no'];
 			
