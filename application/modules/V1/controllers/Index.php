@@ -82,15 +82,15 @@ class IndexController extends ShopMallController {
       }
     }
 
-//    $json = redisGet('MarketareaproductModel_' . md5($bn));
-//
-//    if (!$json) {
-    $model = new MarketareaproductModel();
-    $data = $model->getlist($condition);
-//      redisSet('MarketareaproductModel_' . md5($bn), json_encode($data), 3600);
-//    } else {
-//      $data = json_decode($json, true);
-//    }
+    $json = redisGet('MarketareaproductModel_' . md5($bn));
+
+    if (!$json) {
+      $model = new MarketareaproductModel();
+      $data = $model->getlist($condition);
+      redisSet('MarketareaproductModel_' . md5($bn), json_encode($data), 3600);
+    } else {
+      $data = json_decode($json, true);
+    }
 
     $spus = [];
     if ($data) {
@@ -126,8 +126,6 @@ class IndexController extends ShopMallController {
           }
           $send[$key]['id'] = $item['_id'];
         }
-
-        var_dump($send);
         $this->setCode(1);
         $this->jsonReturn($send);
       } else {

@@ -275,7 +275,19 @@ class QuoteController extends PublicController {
 		$condition = $this->put_data;
 
 		if (!empty($condition['quote_no'])) {
-			$data = $this->quoteItemModel->getJoinList($condition);
+			if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
+				$data = $this->quoteItemModel
+						->alias('a')
+						->join("final_quote_item b ON a.id = b.id", 'LEFT')
+						->field("a.*,b.quote_unit_price AS final_quote_unit_price")
+						->where(array('a.quote_no' => $condition['quote_no']))->page($condition['currentPage'], $condition['pageSize'])->select();
+			} else {
+				$data = $this->quoteItemModel
+						->alias('a')
+						->join("final_quote_item b ON a.id = b.id", 'LEFT')
+						->field("a.*,b.quote_unit_price AS final_quote_unit_price")
+						->where(array('a.quote_no' => $condition['quote_no']))->select();
+			}
 
 			if ($data) {
 				$res['code'] = 1;
@@ -301,7 +313,11 @@ class QuoteController extends PublicController {
 		$condition = $this->put_data;
 
 		if (!empty($condition['quote_no'])) {
-			$res = $this->quoteItemModel->getJoinDetail($condition);
+			$res = $this->quoteItemModel
+					->alias('a')
+					->join("final_quote_item b ON a.id = b.id", 'LEFT')
+					->field("a.*,b.quote_unit_price AS final_quote_unit_price")
+					->where(array('a.quote_no' => $condition['id']))->find();
 
 			$this->jsonReturn($res);
 		}
@@ -318,15 +334,13 @@ class QuoteController extends PublicController {
 		if (!empty($condition['quote_no'])) {
 			$quote = $this->quoteModel->getDetail($condition);
 
-			$condition['total_purchase_price'] = round($condition['purchase_price'] * $quoteItem['quote_quantity'], 8);
+			$condition['total_purchase_price'] = round($condition['purchase_price'] * $condition['quote_quantity'], 8);
 			$exchangeRate = $this->getRateUSD($condition['purchase_cur']);
 
 			if ($quote['gross_profit_rate'] != '') {
 				$condition['exw_unit_price'] = round($condition['purchase_price'] * $quote['gross_profit_rate'] / $exchangeRate, 8);
 				$condition['total_exw_price'] = $condition['exw_unit_price'] * $condition['quote_quantity'];
 			}
-			
-			$condition['exw_cur'] = 'USD';
 
 			if ($quote['total_quote_price'] != '') {
 				$data = array('total_quote_price' => $quote['total_quote_price'],
@@ -337,10 +351,13 @@ class QuoteController extends PublicController {
 				$condition['quote_unit_price'] = $quoteArr['quote_unit_price'];
 				$condition['total_quote_price'] = $quoteArr['quote_unit_price'] * $condition['quote_quantity'];
 			}
-			
+
+			$condition['exw_cur'] = 'USD';
 			$condition['quote_cur'] = 'USD';
 			$condition['weight_unit'] = 'kg';
 			$condition['size_unit'] = 'm^3';
+			$condition['status'] = 'ONGOING';
+			$condition['created_at'] = time();
 
 			$res = $this->quoteItemModel->addItem($condition);
 
@@ -398,7 +415,7 @@ class QuoteController extends PublicController {
 	public function delQuoteItemAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no'])) {
+		if (!empty($condition['id'])) {
 			$res = $this->quoteItemModel->delItem($condition);
 			$this->jsonReturn($res);
 		} else {
