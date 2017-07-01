@@ -16,7 +16,7 @@ class EsgoodsController extends PublicController {
   protected $index = 'erui_goods';
   protected $es = '';
   protected $langs = ['en', 'es', 'ru', 'zh'];
-  protected $version = '5';
+  protected $version = '1';
 
   //put your code here
   public function init() {
@@ -215,7 +215,7 @@ class EsgoodsController extends PublicController {
             'meterial_cat_no' => [
                 'type' => $type_string,
                 "index" => "not_analyzed",
-                "fielddata" => true
+              
             ],
             'spu' => [
                 'type' => $type_string,
