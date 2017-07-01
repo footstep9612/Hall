@@ -453,5 +453,15 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $code = $prefix . $time . '_' . $pad;
         return $code;
     }
+    
+	/**
+	 * @desc 获取当前用户信息
+	 * @author liujf 2017-07-01
+	 * @return array
+	 */
+	public function getUserInfo() {
+		$userModel = new UserModel();
+		return $userModel->info($this->user['id']);
+	}
 
 }

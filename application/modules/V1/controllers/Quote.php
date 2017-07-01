@@ -20,7 +20,6 @@ class QuoteController extends PublicController {
 		$this->finalQuoteAttachModel = new FinalQuoteAttachModel();
 		$this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
-		$this->userModel = new UserModel();
 		$this->goodsPriceHisModel = new GoodsPriceHisModel();
 	}
 
@@ -106,7 +105,7 @@ class QuoteController extends PublicController {
 			$quoteItem['quote_quantity'] = $inquiryItem['quantity'];
 			$quoteItem['quote_unit'] = $inquiryItem['unit'];
 			$quoteItem['inquiry_desc'] = $inquiryItem['description'];
-			$quoteItem['status'] = 'ONGOING';
+			$quoteItem['status'] = 'NOT_QUOTED';
 			$quoteItem['created_at'] = time();
 
 			$quoteItemList[] = $quoteItem;
@@ -613,15 +612,6 @@ class QuoteController extends PublicController {
 			$this->createGoodsPriceHis($condition);
 		}
 
-	}
-
-	/**
-	 * @desc 获取当前用户信息
-	 * @author liujf 2017-06-26
-	 * @return array
-	 */
-	private function getUserInfo() {
-		return $this->userModel->info($this->user['id']);
 	}
 
 	/**
