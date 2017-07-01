@@ -81,16 +81,16 @@ class IndexController extends ShopMallController {
         $condition['market_area_bn'] = $bn;
       }
     }
-    $json = redisGet('MarketareaproductModel_' . $bn);
 
-    if (!$json) {
-      $model = new MarketareaproductModel();
-      $data = $model->getlist($condition);
-      var_dump($data);
-      redisSet('MarketareaproductModel_' . $bn, json_encode($data), 3600);
-    } else {
-      $data = json_decode($json, true);
-    }
+//    $json = redisGet('MarketareaproductModel_' . md5($bn));
+//
+//    if (!$json) {
+    $model = new MarketareaproductModel();
+    $data = $model->getlist($condition);
+//      redisSet('MarketareaproductModel_' . md5($bn), json_encode($data), 3600);
+//    } else {
+//      $data = json_decode($json, true);
+//    }
 
     $spus = [];
     if ($data) {

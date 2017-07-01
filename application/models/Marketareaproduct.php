@@ -31,6 +31,8 @@ class MarketareaproductModel extends PublicModel {
     $data = [];
     if (isset($condition['market_area_bn'])) {
       $data['market_area_bn'] = $condition['market_area_bn'];
+    }else{
+      $data['market_area_bn'] ='Asia-Paific Region';
     }
     if (isset($condition['spu'])) {
       $data['spu'] = $condition['spu'];
