@@ -463,5 +463,26 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 		$userModel = new UserModel();
 		return $userModel->info($this->user['id']);
 	}
+	
+	/**
+	 * @desc 记录审核日志
+	 * @author liujf 2017-07-01
+	 * @param array $data 插入数据
+	 * @return array
+	 */
+	public function addApproveLog($data) {
+		$approveLogModel = new ApproveLogModel();
+		$user = $this->getUserInfo();
+		$approveLog = array (
+			'inquiry_no' => $data['inquiry_no'],
+			'type' => $data['type'],
+			'approver_id' => $user['id'],
+			'approver' => $user['name'],
+			'status' => $data['status'],
+			'notes' => $data['notes']
+		);
+		
+		return $approveLogModel->addData($approveLog);
+	}
 
 }

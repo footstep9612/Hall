@@ -151,14 +151,29 @@ class LogisticsController extends PublicController {
 			
 			$user = $this->getUserInfo();
 			
-			$data = array(
+			$time = date('Y-m-d H:i:s');
+			
+			$quote = $this->quoteModel->getDetail($condition['quote_no']);
+			
+			$logiCheck = array(
 				'logi_checker' => $user['name'],
 				'logi_checker_email' => $user['email'],
-				'logi_check_at' => time(),
-				'logi_check_notes' => $condition['logi_check_notes']
+				'logi_check_at' => $time,
+				'logi_check_notes' => $condition['notes']
 			);
 			
-			$res = $this->quoteModel->where($where)->save($data);
+			$approveLog = array (
+				'inquiry_no' => $quote['inquiry_no'],
+				'type' => $condition['type'],
+				'approver_id' => $user['id'],
+				'approver' => $user['name'],
+				'status' => $condition['status'],
+				'notes' => $condition['notes']
+			);
+			
+			$this->quoteModel->where($where)->save($logiCheck);
+			
+			$res = $this->addApproveLog($approveLog);
 			
 			$this->jsonReturn($res);
 		} else {
