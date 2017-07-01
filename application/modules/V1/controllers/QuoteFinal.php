@@ -149,7 +149,7 @@ class QuoteFinalController extends PublicController {
      * @author liujf 2017-06-28
      * @return json
      */
-    public function getFinalQuoteDetailApiAction() {
+    public function getFinalQuoteDetailAction() {
         $condition = $this->put_data;
 
         $res = $this->finalQuoteModel->getDetail($condition);
