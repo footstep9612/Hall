@@ -17,7 +17,11 @@ class IndexController extends ShopMallController {
   public function init() {
     ini_set("display_errors", "On");
     error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+    $this->put_data = $jsondata = $data = [
+        'token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjYzIiwiY3VzdG9tZXJfaWQiOiJDMjAxNzA2MzAwMDAwMDciLCJleHQiOjE0OTg4NzgzMDMsImlhdCI6MTQ5ODg3ODMwMywidXNlcl9uYW1lIjoiYXpob25nMTk4MjA1MDQifQ.K3Na1FJpYRvCfus9KLElcakenHlDIMoZP4kZdNwgaY4',
+        'country' => 'China',
+        'lang' => 'en'
+    ]; // json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
   }
@@ -62,7 +66,11 @@ class IndexController extends ShopMallController {
     $lang = $this->getLang();
     $IpModel = new MarketareaproductModel();
     $market_area_bn = $IpModel->getbnbynameandlang($country, $lang);
-    return $market_area_bn;
+    if ($market_area_bn) {
+      return $market_area_bn;
+    } else {
+      return 'Asia-Paific Region';
+    }
   }
 
   public function getProductsAction() {
@@ -80,16 +88,17 @@ class IndexController extends ShopMallController {
         $condition['market_area_bn'] = $bn;
       }
     }
-    $json = redisGet('MarketareaproductModel_' . $bn);
 
-    if (!$json) {
+//    $json = redisGet('MarketareaproductModel_' . $bn);
+//
+//    if (!$json) {
       $model = new MarketareaproductModel();
       $data = $model->getlist($condition);
-      var_dump($data);
-      redisSet('MarketareaproductModel_' . $bn, json_encode($data), 3600);
-    } else {
-      $data = json_decode($json, true);
-    }
+ 
+//      redisSet('MarketareaproductModel_' . $bn, json_encode($data), 3600);
+//    } else {
+//      $data = json_decode($json, true);
+//    }
 
     $spus = [];
     if ($data) {
