@@ -354,7 +354,7 @@ class GoodsModel extends PublicModel {
     }
 
     try {
-      $count = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
+     // $count = $this->field("$thistable.id")->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
       $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
       $data = array(
           'lang' => $lang,
@@ -367,7 +367,7 @@ class GoodsModel extends PublicModel {
         //foreach($result as $k=> $item){
         // $result[$k]['cat_name']
         // }
-        $data['count'] = $count;
+        $data['count'] = count($result);//$count;
         $data['data'] = $result;
       }
       return $data;
