@@ -22,6 +22,10 @@ class QuoteItemModel extends PublicModel {
      */
     public function getWhere($condition) {
     	$where = array();
+
+		if (!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}
     	
     	if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
@@ -177,7 +181,7 @@ class QuoteItemModel extends PublicModel {
 	 */
 	public function updateItem($where = [], $condition = []) {
 
-		if(empty($where['quote_no'])){
+		if(empty($where['id'])){
 			return false;
 		}
 
@@ -194,6 +198,11 @@ class QuoteItemModel extends PublicModel {
 	 */
 	public function delItem($condition = []) {
 
+		if(!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}else{
+			return false;
+		}
 		if(!empty($condition['quote_no'])) {
 			$where['where'] = $condition['quote_no'];
 		}else{

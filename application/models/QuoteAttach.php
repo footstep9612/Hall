@@ -20,7 +20,11 @@ class QuoteAttachModel extends PublicModel {
      */
     public function getWhere($condition = array()) {
     	$where = array();
-    	
+
+		if (!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}
+
     	if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
         }
@@ -83,8 +87,13 @@ class QuoteAttachModel extends PublicModel {
 	 */
 	public function delAttach($condition = []) {
 
+		if(!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}else{
+			return false;
+		}
 		if(!empty($condition['quote_no'])) {
-			$where['where'] = $condition['quote_no'];
+			$where['quote_no'] = $condition['quote_no'];
 		}else{
 			return false;
 		}

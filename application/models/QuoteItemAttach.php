@@ -24,6 +24,10 @@ class QuoteItemAttachModel extends PublicModel {
     	if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
         }
+
+		if (!empty($condition['quote_item_id'])) {
+			$where['quote_item_id'] = $condition['quote_item_id'];
+		}
     	
     	if (!empty($condition['attach_type'])) {
             $where['attach_type'] = $condition['attach_type'];
@@ -63,4 +67,37 @@ class QuoteItemAttachModel extends PublicModel {
     	}
     }
 
+	/**
+	 * @desc 添加报价单附件详情
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function addAttach($condition) {
+		$data = $this->create($condition);
+
+		return $this->add($data);
+	}
+
+	/**
+	 * @desc 删除报价单附件
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function delAttach($condition = []) {
+
+		if(!empty($condition['quote_no'])) {
+			$where['quote_no'] = $condition['quote_no'];
+		}else{
+			return false;
+		}
+		if(!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->delete();
+	}
 }

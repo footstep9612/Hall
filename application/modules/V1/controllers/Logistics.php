@@ -117,6 +117,55 @@ class LogisticsController extends PublicController {
 		}
 
 	}
+	
+	/**
+	 * @desc 物流修改报价SKU接口
+	 * @author liujf 2017-06-26
+	 * @return json
+	 */
+	public function uptateQuoteItemLogiAction() {
+		$condition = $this->put_data;
+    	
+    	if (!empty($condition['id'])) {
+    		
+    		$res = $this->quoteItemModel->save($condition);
+    		
+    		$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+
+	}
+	
+	/**
+	 * @desc 物流报价审核接口
+	 * @author liujf 2017-06-30
+	 * @return json
+	 */
+	public function logiQuoteExamineAction() {
+		$condition = $this->put_data;
+		
+
+		if (!empty($condition['quote_no'])) {
+			$where['quote_no'] = array('in', explode(',', $condition['quote_no']));
+			
+			$user = $this->getUserInfo();
+			
+			$data = array(
+				'logi_checker' => $user['name'],
+				'logi_checker_email' => $user['email'],
+				'logi_check_at' => time(),
+				'logi_check_notes' => $condition['logi_check_notes']
+			);
+			
+			$res = $this->quoteModel->where($where)->save($data);
+			
+			$this->jsonReturn($res);
+		} else {
+			$this->jsonReturn(false);
+		}
+
+	}
     
 	/**
      * @desc 重写jsonReturn方法

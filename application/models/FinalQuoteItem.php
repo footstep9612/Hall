@@ -20,10 +20,14 @@ class FinalQuoteItemModel extends PublicModel {
      */
     public function getWhere($condition) {
     	$where = array();
-    	
+
+		if (!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}
+
     	if (!empty($condition['quote_no'])) {
-            $where['quote_no'] = $condition['quote_no'];
-        }
+			$where['quote_no'] = $condition['quote_no'];
+		}
     	
     	return $where;
     }
@@ -58,4 +62,83 @@ class FinalQuoteItemModel extends PublicModel {
     	}
     }
 
+	/**
+	 * @desc 添加报价单SKU详情
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function addItem($condition) {
+		$data = $this->create($condition);
+		$data['status'] = !empty($condition['status'])?$condition['status']:'ONGOING';
+		$data['created_at'] = time();
+
+		return $this->add($data);
+	}
+
+	/**
+	 * @desc 获取报价单SKU详情
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function getDetail($condition) {
+
+		$where = $this->getWhere($condition);
+
+		return $this->where($where)->find();
+	}
+
+	/**
+	 * @desc 获取关联询价SKU详情
+	 * @author liujf 2017-06-30
+	 * @param array $condition
+	 * @return array
+	 */
+	public function getJoinDetail($condition) {
+
+		$where = $this->getWhere($condition);
+
+		if (empty($where)) return false;
+
+		return $this->where($where)->find();
+	}
+
+	/**
+	 * @desc 修改报价单SKU
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $where , $condition
+	 * @return array
+	 */
+	public function updateItem($where = [], $condition = []) {
+
+		if(empty($where['quote_no'])){
+			return false;
+		}
+
+		$data = $this->create($condition);
+
+		return $this->where($where)->save($data);
+	}
+
+	/**
+	 * @desc 删除报价单SKU
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function delItem($condition = []) {
+		if(!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}else{
+			return false;
+		}
+		if(!empty($condition['quote_no'])) {
+			$where['quote_no'] = $condition['quote_no'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->save(['status' => 'DELETED']);
+	}
 }
