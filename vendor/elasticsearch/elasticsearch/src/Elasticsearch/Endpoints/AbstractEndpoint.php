@@ -70,7 +70,7 @@ abstract class AbstractEndpoint
         if (is_object($params) === true) {
             $params = (array) $params;
         }
-
+        
         $this->checkUserParams($params);
         $params = $this->convertCustom($params);
         $this->extractOptions($params);

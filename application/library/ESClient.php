@@ -133,8 +133,7 @@ class ESClient {
 
   public function __construct() {
     $server = Yaf_Application::app()->getConfig()->esapi;
-    $source_hosts = explode(',', $server);
-    //$source_hosts = [$server];
+    $source_hosts = [$server];
     $this->server = ClientBuilder::create()
                     ->setHosts($source_hosts)->build();
   }
@@ -949,7 +948,7 @@ class ESClient {
 
 
     $results = $this->server->search($params);
-    var_dump($results);
+    return $results;
   }
 
 }

@@ -910,7 +910,7 @@ class Client
                  ->setType($type)
                  ->setBody($body);
         $endpoint->setParams($params);
-
+        
         return $this->performRequest($endpoint);
     }
 
