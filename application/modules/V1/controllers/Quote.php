@@ -223,6 +223,7 @@ class QuoteController extends PublicController {
 			$condition['quoter'] = $user['name'];
 			$condition['quoter_email'] = $user['email'];
 			$condition['quote_at'] = date('Y-m-d H:i:s');
+			$condition['period_of_validity'] = date('Y-m-d H:i:s', strtotime($condition['period_of_validity']));
 			
 			$condition['package_volumn'] = $condition['package_volumn'] ? : 0;
 			$condition['exchange_rate'] = $condition['exchange_rate'] ? : 0;
