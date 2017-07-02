@@ -30,7 +30,7 @@ class GroupUserModel extends PublicModel {
      * @author jhw
      */
     public function getlist($data,$limit,$order='ug.id desc') {
-        $sql  = 'SELECT ug.id ,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name ';
+        $sql  = 'SELECT ug.id ,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name,ug.user_id as value ,u.name as label';
         $sql .= ' FROM '.$this->table.' as ug';
         $sql .= ' LEFT JOIN t_group AS g ON g.`id` = ug.`group_id`';
         $sql .= ' LEFT JOIN t_user AS u ON u.`id` = ug.`user_id`';

@@ -168,7 +168,7 @@ class LoginController extends Yaf_Controller_Abstract {
             send_Mail($data_key['email'],'注册认证邮件',$body,$data['first_name'].$data['last_name']);
             jsonReturn($data_key,1,'提交成功');
         }else{
-            jsonReturn('',-105,'数据添加失败');
+            jsonReturn('',-105,'注册失败');
         }
     }
     // 发送邮件
