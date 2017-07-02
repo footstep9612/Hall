@@ -23,7 +23,6 @@ class QuoteFinalController extends PublicController {
         $this->finalQuoteAttachModel = new FinalQuoteAttachModel();
         $this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
         $this->exchangeRateModel = new ExchangeRateModel();
-        $this->userModel = new UserModel();
         $this->goodsPriceHisModel = new GoodsPriceHisModel();
     }
 
@@ -486,4 +485,20 @@ class QuoteFinalController extends PublicController {
     	}
     	
     }
+    
+	/**
+	 * @desc 重写jsonReturn方法
+	 * @author liujf 2017-06-24
+	 */
+	public function jsonReturn($data = array(), $type = 'JSON') {
+		if ($data) {
+			$this->setCode('1');
+			$this->setMessage('成功!');
+			parent::jsonReturn($data, $type);
+		} else {
+			$this->setCode('-101');
+			$this->setMessage('失败!');
+			parent::jsonReturn();
+		}
+	}
 }
