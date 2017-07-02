@@ -101,20 +101,20 @@ class InquiryModel extends PublicModel {
 
         try {
             $count = $this->getcount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('created_at asc')->select();
+            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
                 $results['count'] = $count;
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['message'] = '没有找到相关信息!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
 
@@ -143,16 +143,16 @@ class InquiryModel extends PublicModel {
 
             if(isset($info)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
                 $results['data'] = $info;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['message'] = '没有找到相关信息!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
 
@@ -197,16 +197,16 @@ class InquiryModel extends PublicModel {
             $id = $this->add($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
                 $results['data'] = $data;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '添加失败!';
+                $results['message'] = '添加失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -235,15 +235,15 @@ class InquiryModel extends PublicModel {
             $id = $this->where($where)->save($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '修改失败!';
+                $results['message'] = '修改失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -254,31 +254,38 @@ class InquiryModel extends PublicModel {
      * @param  int $serial_no 询单号
      * @return bool
      */
-    public function update_all($createcondition = []) {
-        if(isset($createcondition['serial_no'])){
-            $where['serial_no'] = array('in',explode(',',$createcondition['serial_no']));
+    public function update_status($createcondition = []) {
+        if(isset($createcondition['inquiry_no'])){
+            $where['inquiry_no'] = array('in',explode(',',$createcondition['inquiry_no']));
         }else{
             return false;
         }
         if(isset($createcondition['inquiry_status'])){
-            $inquiry_status = $createcondition['inquiry_status'];
-        }else{
-            return false;
+            $status['inquiry_status'] = $createcondition['inquiry_status'];
+        }
+        if(isset($createcondition['quote_status'])){
+            $status['quote_status'] = $createcondition['quote_status'];
+        }
+        if(isset($createcondition['biz_quote_status'])){
+            $status['biz_quote_status'] = $createcondition['biz_quote_status'];
+        }
+        if(isset($createcondition['logi_quote_status'])){
+            $status['logi_quote_status'] = $createcondition['logi_quote_status'];
         }
 
         try {
-            $id = $this->where($where)->save(['inquiry_status' => $inquiry_status]);
+            $id = $this->where($where)->save(['inquiry_status' => $status]);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '修改失败!';
+                $results['message'] = '修改失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -305,15 +312,15 @@ class InquiryModel extends PublicModel {
             $id = $this->where($where)->save(['inquiry_status' => 'DELETED']);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '删除失败!';
+                $results['message'] = '删除失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -334,14 +341,14 @@ class InquiryModel extends PublicModel {
             $info = $this->field('id')->where($where)->find();
             if(isset($info)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['message'] = '没有找到相关信息!';
             }
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
