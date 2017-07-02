@@ -85,9 +85,9 @@ class QuoteModel extends PublicModel {
     	$where = $this->getWhere($condition);
     	
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-    		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
+    		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->order('id DESC')->select();
     	} else {
-    		return $this->where($where)->page(1, 10)->select();
+    		return $this->where($where)->page(1, 10)->order('id DESC')->select();
     	}
     }   
     
@@ -127,6 +127,7 @@ class QuoteModel extends PublicModel {
 	    				 ->field($this->fieldJoin)
 	    				 ->where($where)
 	    				 ->page($condition['currentPage'], $condition['pageSize'])
+	    				 ->order('a.id DESC')
 	    				 ->select();
     	} else {
     		return $this->alias('a')
@@ -134,6 +135,7 @@ class QuoteModel extends PublicModel {
     					->field($this->fieldJoin)
     					->where($where)
     					->page(1, 10)
+    					->order('a.id DESC')
     					->select();
     	}
     }

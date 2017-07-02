@@ -33,9 +33,7 @@ class QuoteController extends PublicController {
 
 		$serial_no_arr = explode(',', $condition['serial_no']);
 
-		$whereQuote = $where = array('serial_no' => array('in', $serial_no_arr));
-
-		$whereQuote['quote_status'] = 'NOT_QUOTED';
+		$where = array('serial_no' => array('in', $serial_no_arr));
 
 		$inquiryList = $this->inquiryModel->where($where)->select();
 
@@ -582,8 +580,6 @@ class QuoteController extends PublicController {
 					$quoteCheck['quote_status'] = $status;
 				}
 			}
-			
-			
 			
 			$this->quoteModel->where($where)->save($quoteCheck);
 			
