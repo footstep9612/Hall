@@ -42,7 +42,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
             $modules = str_replace(',', '|', $modules);
 
 
-            preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
+             preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
 
             $ControllerName = ucfirst($out[2]);
             $ControllerName = str_replace('_', '', $ControllerName);

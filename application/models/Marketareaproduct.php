@@ -53,25 +53,58 @@ class MarketareaproductModel extends PublicModel {
    * @return array
    * @author jhw
    */
-  public function getbnbynameandlang($name, $lang = 'en') {
+  public function getbnbynameandlang($name, $lang = 'zh') {
 
     try {
-      $data = ['name' => $name, 'lang' => $lang];
-      $row = $this->table('erui_dict.t_country')->field('region')
+      $data = ['country.name' => $name, 'country.lang' => $lang];
+      $row = $this->table('erui_dict.t_country country')
+              ->join('erui_dict.t_market_area_country mac on country.bn=mac.country_bn')
+              
+              ->field('mac.market_area_bn')
               ->where($data)
               ->find();
       if ($row) {
-        return $row['region'];
+        return $row['market_area_bn'];
       } else {
-        return 'Asia-Paific Region';
+        return 'Asia';
       }
     } catch (Exception $ex) {
       Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
       Log::write($ex->getMessage());
-      return 'Asia-Paific Region';
+      return 'Asia';
     }
   }
+/**
+   * 获取列表
+   * @param string $name 国家名称;
+   * @param string $lang 语言
+   * @return array
+   * @author jhw
+   */
+  public function getCountrybynameandlang($name, $lang = 'en') {
 
+    try {
+      $data = ['country.name' => $name, 'country.lang' => 'zh'
+          
+          , 'c.lang' => $lang
+          ];
+      $row = $this->table('erui_dict.t_country country')
+              ->join('erui_dict.t_country c on country.bn=c.bn')
+              
+              ->field('c.name')
+              ->where($data)
+              ->find();
+      if ($row) {
+        return $row['name'];
+      } else {
+        return 'China';
+      }
+    } catch (Exception $ex) {
+      Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
+      Log::write($ex->getMessage());
+      return 'China';
+    }
+  }
   /**
    * 获取数据条数
    * @param mix $condition

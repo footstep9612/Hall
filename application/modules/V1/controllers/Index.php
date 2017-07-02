@@ -17,11 +17,7 @@ class IndexController extends ShopMallController {
   public function init() {
     ini_set("display_errors", "On");
     error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = $data = [
-        'token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjYzIiwiY3VzdG9tZXJfaWQiOiJDMjAxNzA2MzAwMDAwMDciLCJleHQiOjE0OTg4NzgzMDMsImlhdCI6MTQ5ODg3ODMwMywidXNlcl9uYW1lIjoiYXpob25nMTk4MjA1MDQifQ.K3Na1FJpYRvCfus9KLElcakenHlDIMoZP4kZdNwgaY4',
-        'country' => 'China',
-        'lang' => 'en'
-    ]; // json_decode(file_get_contents("php://input"), true);
+    $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
   }
@@ -33,13 +29,14 @@ class IndexController extends ShopMallController {
   public function getIp() {
     $IpModel = new MarketareaproductModel();
     $ip = get_client_ip();
+    $iplocation = new IpLocation();
     if ($ip != 'Unknown') {
-      $country = getIpAddress($ip);
+      $country = $iplocation->getlocation($ip);
       $this->setCode(1);
-      $send = $IpModel->getbnbynameandlang($country, $this->getLang());
+      $send = $IpModel->getbnbynameandlang($country['country'], 'zh');
     } else {
       $this->setCode(1);
-      $send = 'Asia-Paific Region';
+      $send = 'Asia';
       $this->jsonReturn($send);
     }
   }
@@ -50,10 +47,14 @@ class IndexController extends ShopMallController {
    */
   public function getCounryAction() {
     $IpModel = new MarketareaproductModel();
+
     $ip = get_client_ip();
+    $iplocation = new IpLocation();
     if ($ip != 'Unknown') {
-      $country = getIpAddress($ip);
-      $send = $IpModel->getbnbynameandlang($country, $this->getLang());
+      $country = $iplocation->getlocation($ip);
+  
+      $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
+     
     } else {
       $send = 'China';
     }
@@ -69,7 +70,7 @@ class IndexController extends ShopMallController {
     if ($market_area_bn) {
       return $market_area_bn;
     } else {
-      return 'Asia-Paific Region';
+      return 'Asia';
     }
   }
 
@@ -115,6 +116,7 @@ class IndexController extends ShopMallController {
       } else {
         $this->setCode(-1);
         $this->setMessage('空数据');
+        $this->jsonReturn();
       }
     } else {
       $send = $this->getproducts($condition);
@@ -124,6 +126,7 @@ class IndexController extends ShopMallController {
       } else {
         $this->setCode(-1);
         $this->setMessage('空数据');
+        $this->jsonReturn();
       }
     }
   }
@@ -132,14 +135,16 @@ class IndexController extends ShopMallController {
 
     $spumodel = new EsproductModel();
     $condition['pagesize'] = 12;
-
+    if (!$spus) {
+      $condition['source'] = 'ERUI';
+    }
     $ret = $spumodel->getproducts($condition, null, $this->getLang());
+
     if ($ret) {
       $send = [];
       $data = $ret[0];
       if (!$spus) {
         foreach ($data['hits']['hits'] as $key => $item) {
-
           $spus[] = $item["_source"]['spu'];
         }
       }
