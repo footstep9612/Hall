@@ -22,7 +22,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
-        /*if ($this->getRequest()->getModuleName() == 'V1' &&
+        if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             
@@ -62,7 +62,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                 exit;
             }
-        }*/
+        }
     }
 
     public function __call($method, $args) {
@@ -453,5 +453,37 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $code = $prefix . $time . '_' . $pad;
         return $code;
     }
+    
+	/**
+	 * @desc 获取当前用户信息
+	 * @author liujf 2017-07-01
+	 * @return array
+	 */
+	public function getUserInfo() {
+		$userModel = new UserModel();
+		return $userModel->info($this->user['id']);
+	}
+	
+	/**
+	 * @desc 记录审核日志
+	 * @author liujf 2017-07-01
+	 * @param array $data 插入数据
+	 * @return array
+	 */
+	public function addApproveLog($data) {
+		$approveLogModel = new ApproveLogModel();
+		$user = $this->getUserInfo();
+		$approveLog = array (
+			'inquiry_no' => $data['inquiry_no'],
+			'type' => $data['type'],
+			'belong' => $data['belong'],
+			'approver_id' => $user['id'],
+			'approver' => $user['name'],
+			'status' => $data['status'],
+			'notes' => $data['notes']
+		);
+		
+		return $approveLogModel->addData($approveLog);
+	}
 
 }

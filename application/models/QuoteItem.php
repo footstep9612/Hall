@@ -7,6 +7,8 @@ class QuoteItemModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
     protected $tableName = 'quote_item';
+    protected $joinFinal = 'erui_rfq.t_final_quote_item b ON a.id = b.id';
+    protected $fieldJoin = 'a.*, b.quote_unit_price AS final_quote_unit_price';
     
     public function __construct() {
         parent::__construct();
@@ -20,6 +22,10 @@ class QuoteItemModel extends PublicModel {
      */
     public function getWhere($condition) {
     	$where = array();
+
+		if (!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}
     	
     	if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
@@ -27,6 +33,23 @@ class QuoteItemModel extends PublicModel {
     	
     	return $where;
     }
+    
+	/**
+     * @desc 获取关联查询条件
+ 	 * @author liujf 2017-06-30
+     * @param array $condition
+     * @return array
+     */
+     public function getJoinWhere($condition) {
+     	$where = array();
+     	
+     	if(!empty($condition['quote_no'])) {
+    		$where['a.quote_no'] = $condition['quote_no'];
+    	}
+    	
+    	return $where;
+    	
+     }
     
 	/**
      * @desc 获取记录总数
@@ -39,6 +62,25 @@ class QuoteItemModel extends PublicModel {
 
     	$count = $this->where($where)->count('id');
 
+    	return $count > 0 ? $count : 0;
+    }
+    
+	/**
+     * @desc 获取关联记录总数
+ 	 * @author liujf 2017-06-30
+     * @param array $condition 
+     * @return int $count
+     */
+    public function getJoinCount($condition) {
+    	
+    	$where = $this->getJoinWhere($condition);
+    	
+    	$count = $this->alias('a')
+    				  ->join($this->joinFinal, 'LEFT')
+    				  ->field($this->fieldJoin)
+    				  ->where($where)
+    				  ->count('a.id');
+    	
     	return $count > 0 ? $count : 0;
     }
 
@@ -54,7 +96,35 @@ class QuoteItemModel extends PublicModel {
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
     	} else {
-    		return $this->where($where)->select();
+    		return $this->where($where)->page(1, 10)->select();
+    	}
+    }
+    
+	/**
+     * @desc 获取关联询价SKU列表
+ 	 * @author liujf 2017-06-30
+     * @param array $condition
+     * @return array
+     */
+    public function getJoinList($condition) {
+    	
+    	$where = $this->getJoinWhere($condition);
+    	
+    	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
+    		
+    		return $this->alias('a')
+	    				 ->join($this->joinFinal, 'LEFT')
+	    				 ->field($this->fieldJoin)
+	    				 ->where($where)
+	    				 ->page($condition['currentPage'], $condition['pageSize'])
+	    				 ->select();
+    	} else {
+    		return $this->alias('a')
+    					->join($this->joinFinal, 'LEFT')
+    					->field($this->fieldJoin)
+    					->where($where)
+    					->page(1, 10)
+    					->select();
     	}
     }
 
@@ -67,6 +137,7 @@ class QuoteItemModel extends PublicModel {
 	public function addItem($condition) {
 		$data = $this->create($condition);
 		$data['status'] = !empty($condition['status'])?$condition['status']:'ONGOING';
+		$data['created_at'] = date('Y-m-d H:i:s');
 
 		return $this->add($data);
 	}
@@ -83,6 +154,25 @@ class QuoteItemModel extends PublicModel {
 
 		return $this->where($where)->find();
 	}
+	
+	/**
+     * @desc 获取关联询价SKU详情
+ 	 * @author liujf 2017-06-30
+     * @param array $condition
+     * @return array
+     */
+    public function getJoinDetail($condition) {
+    	
+    	$where = $this->getJoinWhere($condition);
+    	
+    	if (empty($where)) return false;
+    	
+    	return $this->alias('a')
+    				->join($this->joinFinal, 'LEFT')
+    				->field($this->fieldJoin)
+    				->where($where)
+    				->find();
+    }
 
 	/**
 	 * @desc 修改报价单SKU
@@ -92,7 +182,7 @@ class QuoteItemModel extends PublicModel {
 	 */
 	public function updateItem($where = [], $condition = []) {
 
-		if(empty($where['quote_no'])){
+		if(empty($where['id'])){
 			return false;
 		}
 
@@ -109,8 +199,8 @@ class QuoteItemModel extends PublicModel {
 	 */
 	public function delItem($condition = []) {
 
-		if(!empty($condition['quote_no'])) {
-			$where['where'] = $condition['quote_no'];
+		if(!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
 		}else{
 			return false;
 		}

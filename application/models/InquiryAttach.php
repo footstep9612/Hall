@@ -30,6 +30,9 @@ class InquiryAttachModel extends PublicModel {
         if (!empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];
         }
+        if (!empty($condition['attach_group'])) {
+            $where['attach_group'] = $condition['attach_group'];
+        }
         if (!empty($condition['attach_type'])) {
             $where['attach_type'] = $condition['attach_type'];
         }

@@ -45,9 +45,9 @@ class GoodsModel extends PublicModel {
     if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
       $where['status'] = strtoupper($condition['status']);
     }
-    /* if(redisHashExist('Sku',md5(json_encode($where)))){
+    if(redisHashExist('Sku',md5(json_encode($where)))){
       return json_decode(redisHashGet('Sku',md5(json_encode($where))),true);
-      } */
+    }
 
     $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
     try {
@@ -83,7 +83,7 @@ class GoodsModel extends PublicModel {
           //按语言分组
           $data[$item['lang']] = $item;
         }
-        //redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
+        redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
       }
       return $data;
     } catch (Exception $e) {

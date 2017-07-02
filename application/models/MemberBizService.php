@@ -26,21 +26,30 @@ class MemberBizServiceModel extends PublicModel {
      * @return array
      * @author klp
      */
-    public function getVipService($data)
+    public function getVipService($info,$data)
     {
-        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $lang = $info['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-        /*if(redisHashExist('services',md5(json_encode($lang)))){
+        if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
             return $result ? $result : array();
-        } else {*/
+        }
+        //查找会员等级
+        if(empty($data['customer_id'])){
+            jsonReturn('','-1001','[customer_id不能为空');
+        }
+        $condition = array(
+            'customer_id'=> $data['customer_id'],
+        );
+        $levelMode = new BuyerModel();
+        $buyer_level = $levelMode->field('buyer_level')->where($condition)->find();
             //通过buyer_level查找biz_service_bn
             $biz_service_bn = $this->field('buyer_level,biz_service_bn')->select();
 
             //按等级分组
             /**
              * Ordinary - 普通会员
-             * Bronze - 铜牌会员
+             * Diamond - 钻石会员
              * Silver - 银牌会员
              * Gold - 金牌会员
              */
@@ -51,16 +60,16 @@ class MemberBizServiceModel extends PublicModel {
                     $group1 = 'Ordinary';
                     $level[$group1][] = $value;
                 }
-                if ($value['buyer_level'] == 'Bronze') {
-                    $group1 = 'Bronze';
-                    $level[$group1][] = $value;
-                }
                 if ($value['buyer_level'] == 'Silver') {
                     $group1 = 'Silver';
                     $level[$group1][] = $value;
                 }
                 if ($value['buyer_level'] == 'Gold') {
                     $group1 = 'Gold';
+                    $level[$group1][] = $value;
+                }
+                if ($value['buyer_level'] == 'Diamond') {
+                    $group1 = 'Diamond';
                     $level[$group1][] = $value;
                 }
             }
@@ -72,14 +81,14 @@ class MemberBizServiceModel extends PublicModel {
                     $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $v['biz_service_bn'], 'lang' => $lang))->find();
                     $data[$v['buyer_level']][] = $info;
                 }
-            }// print_r($data);
+            }
             //按类型分组
             if ($data) {
                 //按服务树形结构
                 /**
                  * Financial Service -金融服务
                  * Logistics Service -物流服务
-                 * QA -品质保障
+                 * Quality Assurance -品质保障
                  * Steward Service -管家服务
                  * Other - 其他服务
                  */
@@ -97,7 +106,7 @@ class MemberBizServiceModel extends PublicModel {
                                 $service[$key][$group][] = $r;
                             }
                             if ($r['major_class'] == '品质保障') {
-                                $group = 'QA';
+                                $group = 'Quality';
                                 $service[$key][$group][] = $r;
                             }
                             if ($r['major_class'] == '管家服务') {
@@ -123,8 +132,8 @@ class MemberBizServiceModel extends PublicModel {
                                 $group = 'Logistics';
                                 $service[$key][$group][] = $r;
                             }
-                            if ($r['major_class'] == 'QA') {
-                                $group = 'QA';
+                            if ($r['major_class'] == 'Quality Assurance') {
+                                $group = 'Quality';
                                 $service[$key][$group][] = $r;
                             }
                             if ($r['major_class'] == 'Steward Service') {
@@ -138,7 +147,8 @@ class MemberBizServiceModel extends PublicModel {
                         }
                     }
                 }
-               // redisHashSet('services', md5(json_encode($lang)), json_encode($service));
+                $service['buyer_level'] = $buyer_level['buyer_level'];
+                redisHashSet('services', md5(json_encode($lang)), json_encode($service));
                 if ($service) {
                     return $service;
                 } else {
@@ -147,7 +157,7 @@ class MemberBizServiceModel extends PublicModel {
             } else {
                 return false;
             }
-       // }
+
     }
 
     /**
@@ -161,10 +171,10 @@ class MemberBizServiceModel extends PublicModel {
         if(!empty($buyerLevel)){
             $where['buyer_level'] = ucfirst($buyerLevel);
         }
-        /*if(redisHashExist('service',md5(json_encode($where)))){
+        if(redisHashExist('service',md5(json_encode($where)))){
             $result = json_decode(redisHashGet('service',md5(json_encode($lang))),true);
             return $result ? $result : array();
-        } else {*/
+        }
             //通过buyer_level查找biz_service_bn
             $biz_service_bn = $this->field('biz_service_bn')->select();
             $data = array();
@@ -179,7 +189,7 @@ class MemberBizServiceModel extends PublicModel {
                 /**
                  * Financial Service -金融服务
                  * Logistics Service -物流服务
-                 * QA -品质保障
+                 * Quality  Assurance-品质保障
                  * Steward Service -管家服务
                  * Other - 其他服务
                  */
@@ -196,7 +206,7 @@ class MemberBizServiceModel extends PublicModel {
                             $service[$group][] = $item;
                         }
                         if ($item['major_class'] == '品质保障') {
-                            $group = 'QA';
+                            $group = 'Quality';
                             $service[$group][] = $item;
                         }
                         if ($item['major_class'] == '管家服务') {
@@ -219,8 +229,8 @@ class MemberBizServiceModel extends PublicModel {
                             $group = 'Logistics';
                             $service[$group][] = $item;
                         }
-                        if ($item['major_class'] == 'QA') {
-                            $group = 'QA';
+                        if ($item['major_class'] == 'Quality Assurance') {
+                            $group = 'Quality';
                             $service[$group][] = $item;
                         }
                         if ($item['major_class'] == 'Steward Service') {
@@ -233,7 +243,7 @@ class MemberBizServiceModel extends PublicModel {
                         }
                     }
                 }
-                //redisHashSet('service',md5(json_encode($where)),json_encode($service));
+                redisHashSet('service',md5(json_encode($where)),json_encode($service));
                 if ($service) {
                     return $service;
                 } else {
@@ -242,6 +252,5 @@ class MemberBizServiceModel extends PublicModel {
             } else {
                 return false;
             }
-        //}
     }
 }

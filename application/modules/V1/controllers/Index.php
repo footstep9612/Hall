@@ -17,7 +17,7 @@ class IndexController extends ShopMallController {
   public function init() {
     ini_set("display_errors", "On");
     error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+    $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
   }
@@ -29,23 +29,69 @@ class IndexController extends ShopMallController {
   public function getIp() {
     $IpModel = new MarketareaproductModel();
     $ip = get_client_ip();
+    $iplocation = new IpLocation();
     if ($ip != 'Unknown') {
-      $country = getIpAddress($ip);
-      return $IpModel->getbnbynameandlang($country, 'zh');
+      $country = $iplocation->getlocation($ip);
+      $this->setCode(1);
+      $send = $IpModel->getbnbynameandlang($country['country'], 'zh');
     } else {
-      return 'China';
+      $this->setCode(1);
+      $send = 'Asia';
+      $this->jsonReturn($send);
     }
   }
 
+  /**
+   * 根据IP自动获取国家(新浪接口)
+   * @author klp
+   */
+  public function getCounryAction() {
+    $IpModel = new MarketareaproductModel();
+
+    $ip = get_client_ip();
+    $iplocation = new IpLocation();
+    if ($ip != 'Unknown') {
+      $country = $iplocation->getlocation($ip);
+  
+      $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
+     
+    } else {
+      $send = 'China';
+    }
+    $this->setCode(1);
+    $this->jsonReturn($send);
+  }
+
+  private function getMarketAreaBnByCountry() {
+    $country = $this->put_data['country'];
+    $lang = $this->getLang();
+    $IpModel = new MarketareaproductModel();
+    $market_area_bn = $IpModel->getbnbynameandlang($country, $lang);
+    if ($market_area_bn) {
+      return $market_area_bn;
+    } else {
+      return 'Asia';
+    }
+  }
+
+  /*
+   * 按区域获取首页推荐产品
+   */
+
   public function getProductsAction() {
-    if (isset($this->put_data['market_area_bn'])) {
-      $bn = $condition['market_area_bn'] = $this->put_data['market_area_bn'];
+    if (isset($this->put_data['country'])) {
+      $bn = $condition['market_area_bn'] = $this->getMarketAreaBnByCountry();
     } else {
       $bn = $this->getIp();
-      $condition['market_area_bn'] = $bn;
+      if ($bn) {
+        $condition['market_area_bn'] = $bn;
+      } else {
+        $bn = 'Asia-Paific Region';
+        $condition['market_area_bn'] = $bn;
+      }
     }
-    $json = redisGet('MarketareaproductModel_' . $bn);
 
+    $json = redisGet('MarketareaproductModel_' . $bn);
     if (!$json) {
       $model = new MarketareaproductModel();
       $data = $model->getlist($condition);
@@ -53,6 +99,7 @@ class IndexController extends ShopMallController {
     } else {
       $data = json_decode($json, true);
     }
+
     $spus = [];
     if ($data) {
       foreach ($data as $item) {
@@ -61,43 +108,71 @@ class IndexController extends ShopMallController {
     }
     if ($spus) {
       $condition['spus'] = $spus;
-      $goods_model = new GoodsModel();
-      $goodscounts = $goods_model->getCountBySpus($spus, $this->getLang());
-      $spugoodscount = [];
-      foreach ($goodscounts as $count) {
-        $spugoodscount[$count['spu']] = $count['skunum'];
-      }
-      $spumodel = new EsproductModel();
-      $ret = $spumodel->getproducts($condition, null, $this->getLang());
-      if ($ret) {
-        $send = [];
-        $data = $ret[0];
-        foreach ($data['hits']['hits'] as $key => $item) {
-          $send[$key] = $item["_source"];
-          $attachs = json_decode($item["_source"]['attachs'], true);
-          if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
-            $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
-          } else {
-            $send[$key]['img'] = null;
-          }
-          if (isset($spugoodscount[$item["_source"]['spu']])) {
-            $send[$key]['skunum'] = $spugoodscount[$item["_source"]['spu']];
-          } else {
-            $send[$key]['skunum'] = 0;
-          }
-          $send[$key]['id'] = $item['_id'];
-        }
+
+      $send = $this->getproducts($condition, $spus);
+      if ($send) {
         $this->setCode(1);
         $this->jsonReturn($send);
       } else {
         $this->setCode(-1);
         $this->setMessage('空数据');
+        $this->jsonReturn();
       }
     } else {
-      $this->setCode(-1);
-      $this->setMessage('空数据');
-// $send['data'] = $data;
-      $this->jsonReturn();
+      $send = $this->getproducts($condition);
+      if ($send) {
+        $this->setCode(1);
+        $this->jsonReturn($send);
+      } else {
+        $this->setCode(-1);
+        $this->setMessage('空数据');
+        $this->jsonReturn();
+      }
+    }
+  }
+
+  private function getproducts($condition, $spus = []) {
+
+    $spumodel = new EsproductModel();
+    $condition['pagesize'] = 12;
+    if (!$spus) {
+      $condition['source'] = 'ERUI';
+    }
+    $ret = $spumodel->getproducts($condition, null, $this->getLang());
+
+    if ($ret) {
+      $send = [];
+      $data = $ret[0];
+      if (!$spus) {
+        foreach ($data['hits']['hits'] as $key => $item) {
+          $spus[] = $item["_source"]['spu'];
+        }
+      }
+      $goods_model = new GoodsModel();
+      $goodscounts = $goods_model->getCountBySpus($spus, $this->getLang());
+
+      $spugoodscount = [];
+      foreach ($goodscounts as $count) {
+        $spugoodscount[$count['spu']] = $count['skunum'];
+      }
+      foreach ($data['hits']['hits'] as $key => $item) {
+        $send[$key] = $item["_source"];
+        $attachs = json_decode($item["_source"]['attachs'], true);
+        if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+          $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
+        } else {
+          $send[$key]['img'] = null;
+        }
+        if (isset($spugoodscount[$item["_source"]['spu']])) {
+          $send[$key]['skunum'] = $spugoodscount[$item["_source"]['spu']];
+        } else {
+          $send[$key]['skunum'] = 0;
+        }
+        $send[$key]['id'] = $item['_id'];
+      }
+      return $send;
+    } else {
+      return [];
     }
   }
 

@@ -21,8 +21,13 @@ class EsproductController extends PublicController {
   //put your code here
   public function init() {
 
-    $this->es = new ESClient();
-    parent::init();
+     $this->es = new ESClient();
+    if ($this->getRequest()->isCli()) {
+      ini_set("display_errors", "On");
+      error_reporting(E_ERROR | E_STRICT);
+    } else {
+       parent::init();
+    }
   }
 
   /*
@@ -374,7 +379,6 @@ class EsproductController extends PublicController {
             'meterial_cat_no' => [
                 'type' => $type_string,
                 "index" => "not_analyzed",
-                "fielddata" => true
             ],
             'spu' => [
                 'type' => $type_string,

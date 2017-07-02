@@ -159,6 +159,15 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    //添加明细
+    public function updateItemAction() {
+        $Item = new InquiryItemModel();
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $results = $Item->update_data($data);
+        $this->jsonReturn($results);
+    }
+
     //删除明细
     public function delItemAction() {
         $Item = new InquiryItemModel();

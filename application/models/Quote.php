@@ -48,12 +48,12 @@ class QuoteModel extends PublicModel {
      public function getJoinWhere($condition) {
      	$where = array();
      	
-     if(!empty($condition['quote_no'])) {
+     	if(!empty($condition['quote_no'])) {
     		$where['a.quote_no'] = $condition['quote_no'];
     	}
     	
-     	if(!empty($condition['biz_quote_status'])) {
-    		$where['a.biz_quote_status'] = array('in', $condition['biz_quote_status']);
+     	if(!empty($condition['logi_quote_status'])) {
+    		$where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
     	}
     	
     	return $where;
@@ -87,7 +87,7 @@ class QuoteModel extends PublicModel {
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
     	} else {
-    		return $this->where($where)->select();
+    		return $this->where($where)->page(1, 10)->select();
     	}
     }   
     
@@ -133,6 +133,7 @@ class QuoteModel extends PublicModel {
     					->join($this->joinInquiry, 'LEFT')
     					->field($this->fieldJoin)
     					->where($where)
+    					->page(1, 10)
     					->select();
     	}
     }
@@ -152,7 +153,7 @@ class QuoteModel extends PublicModel {
     
 	/**
      * @desc 获取关联询价单详情
- 	 * @author liujf 2017-06-17
+ 	 * @author liujf 2017-06-29
      * @param array $condition
      * @return array
      */
@@ -160,11 +161,13 @@ class QuoteModel extends PublicModel {
     	
     	$where = $this->getJoinWhere($condition);
     	
+    	if (empty($where)) return false;
+    	
     	return $this->alias('a')
-    					->join($this->joinInquiry, 'LEFT')
-    					->field($this->fieldJoin)
-    					->where($where)
-    					->find();
+    				->join($this->joinInquiry, 'LEFT')
+    				->field($this->fieldJoin)
+    				->where($where)
+    				->find();
     }
 
 	/**
@@ -185,6 +188,28 @@ class QuoteModel extends PublicModel {
 	}
 
 	/**
+	 * @desc 批量修改状态
+	 * @author zhangyuliang 2017-06-30
+	 * @param array $condition
+	 * @return array
+	 */
+	public function updateQuoteStatus($condition = []) {
+
+		if(isset($condition['quote_no'])){
+			$where['quote_no'] = array('in',explode(',',$condition['quote_no']));
+		}else{
+			return false;
+		}
+		if(isset($condition['quote_status'])){
+			$quote_status = $condition['quote_status'];
+		}else{
+			return false;
+		}
+
+		return $this->where($where)->save(['quote_status' => $quote_status]);
+	}
+
+	/**
 	 * @desc 删除报价单
 	 * @author zhangyuliang 2017-06-29
 	 * @param array $condition
@@ -193,7 +218,7 @@ class QuoteModel extends PublicModel {
 	public function delQuote($condition = []) {
 
 		if(!empty($condition['quote_no'])) {
-			$where['where'] = $condition['quote_no'];
+			$where['quote_no'] = $condition['quote_no'];
 		}else{
 			return false;
 		}

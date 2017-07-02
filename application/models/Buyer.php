@@ -195,10 +195,10 @@ class BuyerModel extends PublicModel {
             $res = $this->add($datajson);
             return $res;
         } catch (Exception $ex) {
-                print_r($ex);
-                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-                LOG::write($ex->getMessage(), LOG::ERR);
-                return [];
+            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
     /**
@@ -211,25 +211,27 @@ class BuyerModel extends PublicModel {
     {
         $where=array();
         if(empty($data['customer_id'])) {
-            if (!empty($data['id'])) {
-                $where['id'] = $data['id'];
+            if (!empty($data['email'])) {
+                $where['email'] = $data['email'];
             } else {
-                jsonReturn('', '-1001', '用户id不可以为空');
+                jsonReturn('', '-1001', '用户email不可以为空');
             }
-            //$lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
-            $buyerInfo = $this->where($where)
-                ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
-                ->find();
+            $buyerInfo = $this->where("email='".$data['email']."'")
+                              ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                              ->find();
         } else{
-            $buyerInfo['customer_id'] = $data['customer_id'];
-        }
+            $buyerInfo = $this->where("customer_id='".$data['customer_id']."'")
+                              ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                              ->find();
 
+        }
         if($buyerInfo){
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
             $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
                                      ->where(array('customer_id' => $buyerInfo['customer_id']))
                                      ->find();
+
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
@@ -339,22 +341,23 @@ class BuyerModel extends PublicModel {
      * 通过顾客id获取会员等级
      * @author klp
      */
-    public function getService($condition=[])
-    {
-        if(!empty($condition['customer_id'])){
-            $where['customer_id'] = $condition['customer_id'];
+    public function getService($info,$token)
+    {      $token['customer_id']= 'C20170630000002';
+        if(!empty($token['customer_id'])){
+            $where['customer_id'] = $token['customer_id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }
-        $lang = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
-        $buyerLevel = $this->where($where)
-                          ->field('buyer_level')
-                          ->find();
+        $buyerLevel =  $this->field('buyer_level')
+                            ->where($where)
+                            ->find();jsonReturn($buyerLevel,'1821','wer');
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
         $result = $MemberBizService->getService($buyerLevel,$lang);
         if($result){
+            //$result['buyer_level'] = $buyerLevel;
             return $result;
         } else{
             return array();

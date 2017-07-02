@@ -21,12 +21,32 @@ class FinalQuoteItemAttachModel extends PublicModel {
     public function getWhere($condition = array()) {
     	$where = array();
     	
+    	if (!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}
+    	
     	if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
         }
+
+		if (!empty($condition['quote_item_id'])) {
+			$where['quote_item_id'] = $condition['quote_item_id'];
+		}
     	
+    	if (!empty($condition['quote_sku'])) {
+            $where['quote_sku'] = $condition['quote_sku'];
+        }
+        
     	if (!empty($condition['attach_type'])) {
             $where['attach_type'] = $condition['attach_type'];
+        }
+    	
+    	if (!empty($condition['attach_name'])) {
+            $where['attach_name'] = $condition['attach_name'];
+        }
+    
+    	if (!empty($condition['attach_url'])) {
+            $where['attach_url'] = $condition['attach_url'];
         }
     	
     	return $where;
@@ -63,4 +83,27 @@ class FinalQuoteItemAttachModel extends PublicModel {
     	}
     }
 
+	/**
+	 * @desc 添加报价单附件详情
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function addAttach($condition) {
+		$data = $this->create($condition);
+
+		return $this->add($data);
+	}
+
+	/**
+	 * @desc 删除报价单附件
+	 * @author zhangyuliang 2017-06-29
+	 * @param array $condition
+	 * @return array
+	 */
+	public function delAttach($condition = []) {
+		$where = $this->getWhere($condition);
+
+		return $this->where($where)->delete();
+	}
 }

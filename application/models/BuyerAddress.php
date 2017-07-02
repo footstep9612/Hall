@@ -65,8 +65,16 @@ class BuyerAddressModel extends PublicModel
             $arr['official_email'] =$create['official_email'];
         }
         $arr['created_at'] =date("Y-m-d H:i:s");
-        $data = $this->create($arr);
-        return $this->add($data);
+        try{
+            $data = $this->create($arr);
+            return $this->add($data);
+        } catch (Exception $ex) {
+            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+
     }
     /**
      * 采购商个人信息更新
