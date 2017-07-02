@@ -58,7 +58,7 @@ class FinalQuoteItemModel extends PublicModel {
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
     	} else {
-    		return $this->where($where)->select();
+    		return $this->where($where)->page(1, 10)->select();
     	}
     }
 
