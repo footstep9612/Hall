@@ -476,6 +476,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 		$approveLog = array (
 			'inquiry_no' => $data['inquiry_no'],
 			'type' => $data['type'],
+			'belong' => $data['belong'],
 			'approver_id' => $user['id'],
 			'approver' => $user['name'],
 			'status' => $data['status'],

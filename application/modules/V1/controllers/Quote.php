@@ -541,6 +541,75 @@ class QuoteController extends PublicController {
 			$this->jsonReturn(false);
 		}
 	}
+	
+	/**
+	 * @desc 商务技术报价审核接口
+	 * @author liujf 2017-07-02
+	 * @return json
+	 */
+	public function quoteApproveAction() {
+		$condition = $this->put_data;
+
+		if (!empty($condition['quote_no']) && !empty($condition['level']) && !empty($condition['status'])) {
+			$where['quote_no'] = $condition['quote_no'];
+			
+			$user = $this->getUserInfo();
+			
+			$time = date('Y-m-d H:i:s');
+			
+			$quote = $this->quoteModel->getDetail($condition['quote_no']);
+			
+			$status = $condition['status'] == 'Y' ? 'APPROVED' : 'NOT_APPROVED';
+			
+			if ($condition['level'] == 1) {
+				$quoteCheck['checker'] = $user['name'];
+				$quoteCheck['checker_email'] = $user['email'];
+				$quoteCheck['check_at'] = $time;
+				$quoteCheck['check_notes'] = $condition['notes'];
+				
+				if ($condition['status'] == 'N') $quoteCheck['biz_quote_status'] = $quoteCheck['quote_status'] = $status;
+			} elseif ($condition['level'] == 2) {
+				$quoteCheck['checker2'] = $user['name'];
+				$quoteCheck['checker2_email'] = $user['email'];
+				$quoteCheck['check2_at'] = $time;
+				$quoteCheck['check2_notes'] = $condition['notes'];
+				
+				$quoteCheck['biz_quote_status'] = $status;
+				
+				if ($condition['status'] == 'Y') {
+					if ($quote['logi_quote_status'] == 'APPROVED') $quoteCheck['quote_status'] = $status;
+				} else {
+					$quoteCheck['quote_status'] = $status;
+				}
+			}
+			
+			
+			
+			$this->quoteModel->where($where)->save($quoteCheck);
+			
+			$res = $this->addApproveLog($approveLog);
+			
+			$this->jsonReturn($res);
+		} else {
+			$this->jsonReturn(false);
+		}
+	}
+	
+	/**
+	 * @desc 商务技术报价审核列表接口
+	 * @author liujf 2017-07-02
+	 * @return json
+	 */
+	public function quoteApproveListAction() {
+		$condition = $this->put_data;
+    	
+		$condition['belong'] = 'BUSSINESS';
+		
+    	$res = $this->approveLogModel->getList($condition);
+    		
+		$this->jsonReturn($res);
+	}
+    
 
 	/**
 	 * @desc 获取报价计算后的数据

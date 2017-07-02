@@ -9,6 +9,7 @@ class LogisticsController extends PublicController {
 		parent::init();
         $this->quoteModel = new QuoteModel();
         $this->quoteItemModel = new QuoteItemModel();
+        $this->approveLogModel = new ApproveLogModel();
 	}
     
 	/**
@@ -146,11 +147,11 @@ class LogisticsController extends PublicController {
 	 * @author liujf 2017-06-30
 	 * @return json
 	 */
-	public function logiQuoteExamineAction() {
+	public function logiQuoteApproveAction() {
 		$condition = $this->put_data;
 		
 
-		if (!empty($condition['quote_no'])) {
+		if (!empty($condition['quote_no']) && !empty($condition['status'])) {
 			$where['quote_no'] = $condition['quote_no'];
 			
 			$user = $this->getUserInfo();
@@ -169,11 +170,16 @@ class LogisticsController extends PublicController {
 				'logi_check_notes' => $condition['notes']
 			);
 			
+			if ($condition['status'] == 'Y') {
+				if ($quote['biz_quote_status'] == 'APPROVED') $logiCheck['quote_status'] = $status;
+			} else {
+				$logiCheck['quote_status'] = $status;
+			}
+			
 			$approveLog = array (
 				'inquiry_no' => $quote['inquiry_no'],
 				'type' => $condition['type'],
-				'approver_id' => $user['id'],
-				'approver' => $user['name'],
+				'belong' => 'LOGISTICS',
 				'status' => $condition['status'],
 				'notes' => $condition['notes']
 			);
@@ -187,6 +193,21 @@ class LogisticsController extends PublicController {
 			$this->jsonReturn(false);
 		}
 
+	}
+	
+	/**
+	 * @desc 物流报价审核列表接口
+	 * @author liujf 2017-07-02
+	 * @return json
+	 */
+	public function logiQuoteApproveListAction() {
+		$condition = $this->put_data;
+    	
+		$condition['belong'] = 'LOGISTICS';
+		
+    	$res = $this->approveLogModel->getList($condition);
+    		
+		$this->jsonReturn($res);
 	}
     
 	/**
