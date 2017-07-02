@@ -156,7 +156,7 @@ class CountryModel extends PublicModel {
       $result = json_decode(redisGet(md5(json_encode($condition))),true);
       return $result ? $result : array();
       }
-      $result = $this->field('name')->where($condition)->select();
+      $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
       if ($result) {
         $data = array();
         foreach ($result as $val) {
