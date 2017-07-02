@@ -26,9 +26,9 @@ class MemberBizServiceModel extends PublicModel {
      * @return array
      * @author klp
      */
-    public function getVipService($data)
+    public function getVipService($info,$data)
     {
-        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $lang = $info['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
 
         if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
@@ -147,8 +147,8 @@ class MemberBizServiceModel extends PublicModel {
                         }
                     }
                 }
-                redisHashSet('services', md5(json_encode($lang)), json_encode($service));
                 $service['buyer_level'] = $buyer_level['buyer_level'];
+                redisHashSet('services', md5(json_encode($lang)), json_encode($service));
                 if ($service) {
                     return $service;
                 } else {

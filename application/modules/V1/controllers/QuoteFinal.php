@@ -23,7 +23,6 @@ class QuoteFinalController extends PublicController {
         $this->finalQuoteAttachModel = new FinalQuoteAttachModel();
         $this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
         $this->exchangeRateModel = new ExchangeRateModel();
-        $this->userModel = new UserModel();
         $this->goodsPriceHisModel = new GoodsPriceHisModel();
     }
 
@@ -467,4 +466,39 @@ class QuoteFinalController extends PublicController {
             $this->jsonReturn(false);
         }
     }
+    
+	/**
+     * @desc 获取SKU历史报价接口
+ 	 * @author liujf 2017-07-02
+     * @return json
+     */
+    public function getGoodsPriceHisAction() {
+    	$condition = $this->put_data;
+    	
+    	if (!empty($condition['sku'])) {
+    		
+    		$res = $this->goodsPriceHisModel->getList($condition);
+    		
+			$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    	
+    }
+    
+	/**
+	 * @desc 重写jsonReturn方法
+	 * @author liujf 2017-06-24
+	 */
+	public function jsonReturn($data = array(), $type = 'JSON') {
+		if ($data) {
+			$this->setCode('1');
+			$this->setMessage('成功!');
+			parent::jsonReturn($data, $type);
+		} else {
+			$this->setCode('-101');
+			$this->setMessage('失败!');
+			parent::jsonReturn();
+		}
+	}
 }

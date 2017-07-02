@@ -108,7 +108,7 @@ class MemberCenterController extends ShopMallController
     public function getServiceAction()
     {
         $BuyerModel = new BuyerModel();
-        $result = $BuyerModel->getService($this->user);
+        $result = $BuyerModel->getService($this->put_data,$this->user);
         if($result){
             $data = array(
                 'code' => 1,
@@ -129,7 +129,7 @@ class MemberCenterController extends ShopMallController
     public function listServiceAction(){
 
         $MemberBizServiceModel = new MemberBizServiceModel();
-        $result = $MemberBizServiceModel->getVipService($this->user);
+        $result = $MemberBizServiceModel->getVipService($this->put_data,$this->user);
         if($result){
             $data = array(
                 'code' => 1,

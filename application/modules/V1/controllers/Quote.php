@@ -598,6 +598,25 @@ class QuoteController extends PublicController {
 		$this->finalQuoteItemModel->addAll($quoteItemAttachList);
 
 	}
+	
+	/**
+     * @desc 获取SKU历史报价接口
+ 	 * @author liujf 2017-07-02
+     * @return json
+     */
+    public function getGoodsPriceHisAction() {
+    	$condition = $this->put_data;
+    	
+    	if (!empty($condition['sku'])) {
+    		
+    		$res = $this->goodsPriceHisModel->getList($condition);
+    		
+			$this->jsonReturn($res);
+    	} else {
+    		$this->jsonReturn(false);
+    	}
+    	
+    }
 
 	/**
 	 * @desc 重写jsonReturn方法
