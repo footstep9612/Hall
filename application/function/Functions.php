@@ -1460,7 +1460,7 @@ function send_Mail($to,$title,$body,$name = null){
         $mail->Host       = $config_db['host']; // SMTP server
         $mail->SMTPDebug  = 1;                     // 启用SMTP调试 1 = errors  2 =  messages
         $mail->SMTPAuth   = true;                  // 服务器需要验证
-        $mail->Port       = 25;					//默认端口
+        $mail->Port       = $config_db['port'];				//默认端口
         $mail->Username   = $config_db['username']; //SMTP服务器的用户帐号
         $mail->Password   = $config_db['password'];        //SMTP服务器的用户密码
         $mail->AddAddress($to, $name); //收件人如果多人发送循环执行AddAddress()方法即可 还有一个方法时清除收件人邮箱ClearAddresses()
@@ -1473,8 +1473,6 @@ function send_Mail($to,$title,$body,$name = null){
 
         //$body = file_get_contents('tpl.html'); //获取html网页内容
         //$mail->MsgHTML(str_replace('\\','',$body));
-
-
         $mail->Send();
         return ['code' => 1] ;
     } catch (phpmailerException $e) {

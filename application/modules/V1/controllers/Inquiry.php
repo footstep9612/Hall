@@ -106,7 +106,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $results = $inquiry->update_all($data);
+        $results = $inquiry->update_status($data);
         $this->jsonReturn($results);
     }
 

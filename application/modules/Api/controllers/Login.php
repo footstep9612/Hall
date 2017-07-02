@@ -66,7 +66,6 @@ class LoginController extends Yaf_Controller_Abstract {
      * @author jhw
      */
     public function registerAction(){
-
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
@@ -123,7 +122,7 @@ class LoginController extends Yaf_Controller_Abstract {
         $login_arr['user_name'] = $data['user_name'];
         $check = $buyer_account_model->Exist($login_arr);
         if($check){
-            jsonReturn('',-101,'手机或账号已存在!');
+            jsonReturn('',-101,'The cellphone number or user name already exists.');
         }
 
         // 生成用户编码
@@ -168,11 +167,12 @@ class LoginController extends Yaf_Controller_Abstract {
             send_Mail($data_key['email'],'注册认证邮件',$body,$data['first_name'].$data['last_name']);
             jsonReturn($data_key,1,'提交成功');
         }else{
-            jsonReturn('',-105,'注册失败');
+            jsonReturn('',-105,'Failed to register your account.');
         }
     }
     // 发送邮件
     public function sendEmailAction(){
+
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['email'])) {
             $arr['email'] = $data['email'];
