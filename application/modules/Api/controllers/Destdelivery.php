@@ -15,13 +15,13 @@ class DestdeliveryController extends Yaf_Controller_Abstract{
      * 落地配
      */
     public function listAction(){
-        $this->input['country'] = '巴西';
-        $this->input['lang'] = 'zh';
+       // $this->input['country'] = '巴西';
+       // $this->input['lang'] = 'zh';
         if(!isset($this->input['country'])){
             jsonReturn('','1000');
         }
 
-        $this->input['lang'] = isset($this->input['lang'])? $this->input['lang']:(browser_lang()?browser_lang():'en');
+        $this->input['lang'] = isset($this->input['lang'])? $this->input['lang']:'en';
         $ddlModel = new DestDeliveryLogiModel();
         $data = $ddlModel->getList( $this->input['country'],$this->input['lang']);
         if($data){
