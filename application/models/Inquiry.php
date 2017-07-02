@@ -93,38 +93,23 @@ class InquiryModel extends PublicModel {
      */
     public function getlist($condition = []) {
         $where = $this->getcondition($condition);
-        //$filed = 'id,serial_no,inquiry_no,agent,customer_id,inquiry_name,inquirer,inquiry_time,inquiry_region,inquiry_country,inquiry_lang,project_name,inquiry_status,quote_status,biz_quote_status,logi_quote_status,created_at';
-        //$page = isset($condition['page'])?$condition['page']:1;
-        //$pagesize = isset($condition['countPerPage'])?$condition['countPerPage']:10;
+
+        $page = isset($condition['currentPage'])?$condition['currentPage']:1;
+        $pagesize = isset($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            if (isset($page) && isset($pagesize)) {
-                //$count = $this->getcount($condition);
-                $list = $this->where($where)->select();
-                    //->page($page, $pagesize)
-                    //->field($filed)
-                    //->select();
-                if(isset($list)){
-                    $results['code'] = '1';
-                    $results['messaage'] = '成功！';
-                    $results['data'] = $list;
-                }else{
-                    $results['code'] = '-101';
-                    $results['messaage'] = '没有找到相关信息!';
-                }
-                return $results;
-            } else {
-                $list = $this->where($where)->select();
-                if(isset($list)){
-                    $results['code'] = '1';
-                    $results['messaage'] = '成功！';
-                    $results['data'] = $list;
-                }else{
-                    $results['code'] = '-101';
-                    $results['messaage'] = '没有找到相关信息!';
-                }
-                return $results;
+            $count = $this->getcount($where);
+            $list = $this->where($where)->page($page, $pagesize)->order('created_at asc')->select();
+            if(isset($list)){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+                $results['count'] = $count;
+                $results['data'] = $list;
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '没有找到相关信息!';
             }
+            return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['messaage'] = $e->getMessage();
