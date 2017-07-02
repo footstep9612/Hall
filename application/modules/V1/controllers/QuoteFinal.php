@@ -35,46 +35,27 @@ class QuoteFinalController extends PublicController {
     public function createFinalQuoteAction() {
         $condition = $this->put_data;
 
-        $serial_no_arr = explode(',', $condition['quote_no']);
+        $quotel_no_arr = explode(',', $condition['quote_no']);
 
-        $whereQuote = $where = array('serial_no' => array('in', $serial_no_arr));
+        $where = array('quote_no' => array('in', $quotel_no_arr));
 
-        $whereQuote['quote_status'] = 'NOT_QUOTED';
+        $quoteList = $this->quoteModel->where($where)->select();
 
-        $inquiryList = $this->inquiryModel->where($where)->select();
-
-        $quoteList = $correspond = array();
+        $quoteFinalList = $correspond = array();
 
         $user = $this->getUserInfo();
 
-        $time = time();
+        $time = date('Y-m-d H:i:s',time());
 
-        foreach ($inquiryList as $inquiry) {
-            $quote['serial_no'] = $this->getQuoteSerialNo(); // 报价单流水号
-            $quote['quote_no'] = $this->getQuoteNo(); // 报价单号
-            $quote['inquiry_no'] = $inquiry['inquiry_no'];
-            $quote['quote_lang'] = 'zh';
-            $quote['trade_terms'] = $inquiry['trade_terms'];
-            $quote['payment_received_days'] = '';
-            $quote['exw_delivery_period'] = '';
-            $quote['period_of_validity'] = '';
-            $quote['logi_quote_status'] = 'NOT_QUOTED';
-            $quote['biz_quote_status'] = 'NOT_QUOTED';
-            $quote['quote_status'] = 'NOT_QUOTED';
-            $quote['quoter'] = $user['name']; //获取当前用户信息
-            $quote['quoter_email'] = $user['email']; //获取当前用户信息
-            $quote['quote_at'] = $time;
-            $quote['created_by'] = $user['name'];
-            $quote['created_at'] = $time;
-
-            $correspond[$inquiry['serial_no']] = $quote['quote_no']; //询单流水号和报价单号的对应
-            $quoteList[] = $quote;
+        foreach ($quoteList as $quotel) {
+            $quoteFinalList = $quotel;
+            $quoteFinalList['created_at'] = $time;
         }
 
-        if ($this->quoteModel->addAll($quoteList)) {
-            $this->createQuoteItem($where, $correspond);
-            $this->createQuoteAttach($where, $correspond);
-            $this->createQuoteItemAttach($where, $correspond);
+        if ($this->quoteModel->addAll($quoteFinalList)) {
+            $this->createQuoteItem($where);
+            $this->createQuoteAttach($where);
+            $this->createQuoteItemAttach($where);
 
             $this->jsonReturn(true);
         } else {
@@ -89,80 +70,56 @@ class QuoteFinalController extends PublicController {
      * @param array $correspond 询单号和报价单号的对应
      * @return json
      */
-    private function createQuoteItem($where, $correspond) {
+    private function createQuoteItem($where) {
 
-        $quoteItemList = $quoteItem = array();
+        $finalItemList = $finalItem = array();
 
-        $inquiryItemList = $this->inquiryItemModel->where($where)->select();
+        $quoteItemList = $this->quoteItemModel->where($where)->select();
 
-        foreach ($inquiryItemList as $inquiryItem) {
-            $quoteItem['quote_no'] = $correspond[$inquiryItem['serial_no']];
-            $quoteItem['inquiry_sku'] = $inquiryItem['sku'];
-            $quoteItem['inquiry_item_id'] = $inquiryItem['id'];
-            $quoteItem['buyer_sku'] = '';
-            $quoteItem['quote_sku'] = '';
-            $quoteItem['name_en'] = $inquiryItem['name_en'];
-            $quoteItem['name_cn'] = $inquiryItem['name_cn'];
-            $quoteItem['quote_model'] = $inquiryItem['model'];
-            $quoteItem['quote_spec'] = $inquiryItem['spec'];
-            $quoteItem['quote_brand'] = $inquiryItem['brand'];
-            $quoteItem['quote_quantity'] = $inquiryItem['quantity'];
-            $quoteItem['quote_unit'] = $inquiryItem['unit'];
-            $quoteItem['inquiry_desc'] = $inquiryItem['description'];
-            $quoteItem['status'] = 'ONGOING';
-            $quoteItem['created_at'] = time();
+        foreach ($quoteItemList as $quoteItem) {
+            $finalItem = $quoteItem;
+            $finalItem['quote_unit_price'] = '';
+            $finalItem['created_at'] = time();
 
-            $quoteItemList[] = $quoteItem;
+            $finalItemList[] = $finalItem;
 
         }
 
-        return $this->quoteItemModel->addAll($quoteItemList);
+        return $this->finalQuoteItemModel->addAll($finalItemList);
     }
 
     /**
      * @desc 创建报价单附件
      * @author liujf 2017-06-24
      */
-    private function createQuoteAttach($where, $correspond) {
+    private function createQuoteAttach($where) {
 
-        $quoteAttachList = $quoteAttach = array();
+        $finalAttachList = array();
 
-        $inquiryAttachList = $this->inquiryAttachModel->where($where)->select();
+        $quoteAttachList = $this->quoteAttachModel->where($where)->select();
 
-        foreach ($inquiryAttachList as $inquiryAttach) {
-            $quoteAttach['quote_no'] = $correspond[$inquiryAttach['serial_no']];
-            $quoteAttach['attach_group'] = $inquiryAttach['attach_group'];
-            $quoteAttach['attach_type'] = $inquiryAttach['attach_type'];
-            $quoteAttach['attach_name'] = $inquiryAttach['attach_name'];
-            $quoteAttach['attach_url'] = $inquiryAttach['attach_url'];
-
-            $quoteAttachList[] = $quoteAttach;
+        foreach ($quoteAttachList as $quoteAttach) {
+            $finalAttachList[] = $quoteAttach;
         }
 
-        return $this->quoteAttachModel->addAll($quoteAttachList);
+        return $this->finalQuoteAttachModel->addAll($finalAttachList);
     }
 
     /**
      * @desc 创建报价单项目附件
      * @author liujf 2017-06-24
      */
-    private function createQuoteItemAttach($where, $correspond) {
+    private function createQuoteItemAttach($where) {
 
-        $quoteItemAttachList = $quoteItemAttach = array();
+        $finalItemAttachList = array();
 
-        $inquiryItemAttachList = $this->inquiryItemAttachModel->where($where)->select();
+        $quoteItemAttachList = $this->quoteItemAttachModel->where($where)->select();
 
-        foreach ($inquiryItemAttachList as $inquiryItemAttach) {
-            $quoteItemAttach['quote_no'] = $correspond[$inquiryItemAttach['serial_no']];
-            $quoteItemAttach['quote_sku'] = $inquiryItemAttach['sku'];
-            $quoteItemAttach['attach_type'] = $inquiryItemAttach['attach_type'];
-            $quoteItemAttach['attach_name'] = $inquiryItemAttach['attach_name'];
-            $quoteItemAttach['attach_url'] = $inquiryItemAttach['attach_url'];
-
-            $quoteItemAttachList[] = $quoteItemAttach;
+        foreach ($quoteItemAttachList as $quoteItemAttach) {
+            $finalItemAttachList[] = $quoteItemAttach;
         }
 
-        return $this->quoteItemAttachModel->addAll($quoteItemAttachList);
+        return $this->finalQuoteItemAttachModel->addAll($finalItemAttachList);
     }
 
     /**
@@ -192,7 +149,7 @@ class QuoteFinalController extends PublicController {
      * @author liujf 2017-06-28
      * @return json
      */
-    public function getFinalQuoteDetailApiAction() {
+    public function getFinalQuoteDetailAction() {
         $condition = $this->put_data;
 
         $res = $this->finalQuoteModel->getDetail($condition);

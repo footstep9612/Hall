@@ -49,6 +49,10 @@ class FinalQuoteModel extends PublicModel {
 	{
 		$where = array();
 
+		if (!empty($condition['inquiry_no'])) {
+			$where['a.inquiry_no'] = $condition['inquiry_no'];
+		}
+
 		if (!empty($condition['quote_no'])) {
 			$where['a.quote_no'] = $condition['quote_no'];
 		}

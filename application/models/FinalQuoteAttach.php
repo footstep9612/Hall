@@ -21,12 +21,28 @@ class FinalQuoteAttachModel extends PublicModel {
     public function getWhere($condition = array()) {
     	$where = array();
     	
+    	if (!empty($condition['id'])) {
+			$where['id'] = $condition['id'];
+		}
+    	
     	if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
         }
     	
+    	if (!empty($condition['attach_group'])) {
+            $where['attach_group'] = $condition['attach_group'];
+        }
+        
     	if (!empty($condition['attach_type'])) {
             $where['attach_type'] = $condition['attach_type'];
+        }
+    	
+    	if (!empty($condition['attach_name'])) {
+            $where['attach_name'] = $condition['attach_name'];
+        }
+    
+    	if (!empty($condition['attach_url'])) {
+            $where['attach_url'] = $condition['attach_url'];
         }
     	
     	return $where;
@@ -82,18 +98,7 @@ class FinalQuoteAttachModel extends PublicModel {
 	 * @return array
 	 */
 	public function delAttach($condition = []) {
-
-		if(!empty($condition['id'])) {
-			$where['id'] = $condition['id'];
-		}else{
-			return false;
-		}
-
-		if(!empty($condition['quote_no'])) {
-			$where['quote_no'] = $condition['quote_no'];
-		}else{
-			return false;
-		}
+		$where = $this->getWhere($condition);
 
 		return $this->where($where)->delete();
 	}

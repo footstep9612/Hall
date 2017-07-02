@@ -156,11 +156,11 @@ class InquiryItemModel extends PublicModel {
         } else {
             return false;
         }
-        if (isset($createcondition['quantity'])) {
+        /*if (isset($createcondition['quantity'])) {
             $data['quantity'] = $createcondition['quantity'];
         } else {
             return false;
-        }
+        }*/
 
         $data = $this->create($createcondition);
 

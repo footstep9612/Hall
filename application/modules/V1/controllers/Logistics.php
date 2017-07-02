@@ -57,9 +57,10 @@ class LogisticsController extends PublicController {
     		
     		$quote = $this->quoteModel->getDetail($condition);
     		
-    		$condition['logi_submit_at'] = time();
+    		$condition['logi_submit_at'] = date('Y-m-d H:i:s');
     		$condition['overland_insu_rate'] = round($quote['total_exw_price'] * 0.0002, 8);
-    		$condition['inland_marine_insu'] = inlandMarineInsurance(array('total_exw_price' => $quote['total_exw_price'], $condition['overland_insu_rate']));
+    		$inlandMarineInsurance = inlandMarineInsurance(array('total_exw_price' => $quote['total_exw_price'], $condition['overland_insu_rate']));
+    		$condition['inland_marine_insu'] = isset($inlandMarineInsurance['code']) ? 0 : $inlandMarineInsurance;
     		$data = array('trade_terms' => $quote['trade_terms'],
     					  'total_exw_price' => $quote['total_exw_price'],
 				    	  'inspection_fee' => $condition['inspection_fee'],
@@ -83,7 +84,8 @@ class LogisticsController extends PublicController {
     		$condition['total_quote_price'] = $logiData['total_quote_price'];
     		$condition['total_bank_fee'] = $logiData['total_bank_fee'];
     		
-    		$res = $this->quoteModel->updateQuote($condition['quote_no'], $condition);
+    		$where['quote_no'] = $condition['quote_no'];
+    		$res = $this->quoteModel->updateQuote($where, $condition);
     		
     		$this->jsonReturn($res);
     	} else {
@@ -123,12 +125,14 @@ class LogisticsController extends PublicController {
 	 * @author liujf 2017-06-26
 	 * @return json
 	 */
-	public function uptateQuoteItemLogiAction() {
+	public function updateQuoteItemLogiAction() {
 		$condition = $this->put_data;
     	
-    	if (!empty($condition['id'])) {
+    	if (!empty($condition['item_id'])) {
+    		$where['id'] = $condition['item_id'];
+    		unset($condition['item_id']);
     		
-    		$res = $this->quoteItemModel->save($condition);
+    		$res = $this->quoteItemModel->updateItem($where, $condition);
     		
     		$this->jsonReturn($res);
     	} else {
@@ -147,7 +151,7 @@ class LogisticsController extends PublicController {
 		
 
 		if (!empty($condition['quote_no'])) {
-			$where['quote_no'] = array('in', explode(',', $condition['quote_no']));
+			$where['quote_no'] = $condition['quote_no'];
 			
 			$user = $this->getUserInfo();
 			
