@@ -32,7 +32,7 @@ class MemberBizServiceModel extends PublicModel {
 
         if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
-            return $result ? $result : array();
+            //return $result ? $result : array();
         }
         //查找会员等级
         if(empty($data['customer_id'])){
@@ -49,7 +49,7 @@ class MemberBizServiceModel extends PublicModel {
             //按等级分组
             /**
              * Ordinary - 普通会员
-             * Bronze - 铜牌会员
+             * Diamond - 钻石会员
              * Silver - 银牌会员
              * Gold - 金牌会员
              */
@@ -60,16 +60,16 @@ class MemberBizServiceModel extends PublicModel {
                     $group1 = 'Ordinary';
                     $level[$group1][] = $value;
                 }
-                if ($value['buyer_level'] == 'Bronze') {
-                    $group1 = 'Bronze';
-                    $level[$group1][] = $value;
-                }
                 if ($value['buyer_level'] == 'Silver') {
                     $group1 = 'Silver';
                     $level[$group1][] = $value;
                 }
                 if ($value['buyer_level'] == 'Gold') {
                     $group1 = 'Gold';
+                    $level[$group1][] = $value;
+                }
+                if ($value['buyer_level'] == 'Diamond') {
+                    $group1 = 'Diamond';
                     $level[$group1][] = $value;
                 }
             }
@@ -88,7 +88,7 @@ class MemberBizServiceModel extends PublicModel {
                 /**
                  * Financial Service -金融服务
                  * Logistics Service -物流服务
-                 * QA -品质保障
+                 * Quality Assurance -品质保障
                  * Steward Service -管家服务
                  * Other - 其他服务
                  */
@@ -106,7 +106,7 @@ class MemberBizServiceModel extends PublicModel {
                                 $service[$key][$group][] = $r;
                             }
                             if ($r['major_class'] == '品质保障') {
-                                $group = 'QA';
+                                $group = 'Quality';
                                 $service[$key][$group][] = $r;
                             }
                             if ($r['major_class'] == '管家服务') {
@@ -132,8 +132,8 @@ class MemberBizServiceModel extends PublicModel {
                                 $group = 'Logistics';
                                 $service[$key][$group][] = $r;
                             }
-                            if ($r['major_class'] == 'QA') {
-                                $group = 'QA';
+                            if ($r['major_class'] == 'Quality Assurance') {
+                                $group = 'Quality';
                                 $service[$key][$group][] = $r;
                             }
                             if ($r['major_class'] == 'Steward Service') {
@@ -189,7 +189,7 @@ class MemberBizServiceModel extends PublicModel {
                 /**
                  * Financial Service -金融服务
                  * Logistics Service -物流服务
-                 * QA -品质保障
+                 * Quality  Assurance-品质保障
                  * Steward Service -管家服务
                  * Other - 其他服务
                  */
@@ -206,7 +206,7 @@ class MemberBizServiceModel extends PublicModel {
                             $service[$group][] = $item;
                         }
                         if ($item['major_class'] == '品质保障') {
-                            $group = 'QA';
+                            $group = 'Quality';
                             $service[$group][] = $item;
                         }
                         if ($item['major_class'] == '管家服务') {
@@ -229,8 +229,8 @@ class MemberBizServiceModel extends PublicModel {
                             $group = 'Logistics';
                             $service[$group][] = $item;
                         }
-                        if ($item['major_class'] == 'QA') {
-                            $group = 'QA';
+                        if ($item['major_class'] == 'Quality Assurance') {
+                            $group = 'Quality';
                             $service[$group][] = $item;
                         }
                         if ($item['major_class'] == 'Steward Service') {
