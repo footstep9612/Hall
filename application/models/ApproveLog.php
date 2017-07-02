@@ -25,8 +25,35 @@ class ApproveLogModel extends PublicModel {
 			$where['id'] = $condition['id'];
 		}
     	
-    	if (!empty($condition['quote_no'])) {
-            $where['quote_no'] = $condition['quote_no'];
+    	if (!empty($condition['inquiry_no'])) {
+            $where['inquiry_no'] = $condition['inquiry_no'];
+        }
+        
+    	if (!empty($condition['type'])) {
+            $where['type'] = $condition['type'];
+        }
+        
+    	if (!empty($condition['belong'])) {
+            $where['belong'] = $condition['belong'];
+        }
+        
+    	if (!empty($condition['approver_id'])) {
+            $where['approver_id'] = $condition['approver_id'];
+        }
+        
+    	if (!empty($condition['approver'])) {
+            $where['approver'] = $condition['approver'];
+        }
+        
+    	if (!empty($condition['status'])) {
+            $where['status'] = $condition['status'];
+        }
+        
+    	if(!empty($condition['start_time']) && !empty($condition['end_time'])){
+            $where['created_at'] = array(
+                array('egt', date('Y-m-d H:i:s', strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d H:i:s', strtotime($condition['end_time'])))
+            );
         }
     	
     	return $where;
@@ -58,7 +85,7 @@ class ApproveLogModel extends PublicModel {
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
     	} else {
-    		return $this->where($where)->select();
+    		return $this->where($where)->page(1, 10)->select();
     	}
     }
     

@@ -342,7 +342,8 @@ class BuyerModel extends PublicModel {
      * @author klp
      */
     public function getService($info,$token)
-    {      $token['customer_id']= 'C20170630000002';
+    {
+        $where=array();
         if(!empty($token['customer_id'])){
             $where['customer_id'] = $token['customer_id'];
         } else{
@@ -351,13 +352,12 @@ class BuyerModel extends PublicModel {
         $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
         $buyerLevel =  $this->field('buyer_level')
-                            ->where($where)
-                            ->find();jsonReturn($buyerLevel,'1821','wer');
+                            ->where("customer_id='".$where['customer_id']."'")
+                            ->find();
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
         $result = $MemberBizService->getService($buyerLevel,$lang);
         if($result){
-            //$result['buyer_level'] = $buyerLevel;
             return $result;
         } else{
             return array();

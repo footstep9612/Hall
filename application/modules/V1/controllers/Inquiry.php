@@ -48,10 +48,28 @@ class InquiryController extends PublicController {
     //询价单列表
     public function getListAction(){
         $inquiry = new InquiryModel();
+        $user = new UserModel();
+        $area = new MarketAreaModel();
+        $country = new MarketAreaCountryModel();
+
         $where = json_decode(file_get_contents("php://input"), true);
 
         $results = $inquiry->getlist($where);
-
+        foreach($results['data'] as $key=>$val){
+            if(isset($val['agent'])){
+                $userId = json_decode($val['agent']);
+                $userInfo = $user->where('id='.$userId['1'])->find();
+                $results['data'][$key]['agent'] = $userInfo['name'];
+            }
+            if(isset($val['inquiry_region'])){
+                $areaInfo = $area->where('id='.$val['inquiry_region'])->find();
+                $results['data'][$key]['inquiry_region'] = $areaInfo['bn'];
+            }
+            if(isset($val['inquiry_country'])){
+                $areaInfo = $country->where('id='.$val['inquiry_country'])->find();
+                $results['data'][$key]['inquiry_country'] = $areaInfo['country_bn'];
+            }
+        }
         $this->jsonReturn($results);
     }
 
