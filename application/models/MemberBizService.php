@@ -32,7 +32,7 @@ class MemberBizServiceModel extends PublicModel {
 
         if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
-            //return $result ? $result : array();
+            return $result ? $result : array();
         }
         //查找会员等级
         if(empty($data['customer_id'])){
