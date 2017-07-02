@@ -125,12 +125,14 @@ class LogisticsController extends PublicController {
 	 * @author liujf 2017-06-26
 	 * @return json
 	 */
-	public function uptateQuoteItemLogiAction() {
+	public function updateQuoteItemLogiAction() {
 		$condition = $this->put_data;
     	
-    	if (!empty($condition['id'])) {
+    	if (!empty($condition['item_id'])) {
+    		$where['id'] = $condition['item_id'];
+    		unset($condition['item_id']);
     		
-    		$res = $this->quoteItemModel->save($condition);
+    		$res = $this->quoteItemModel->updateItem($where, $condition);
     		
     		$this->jsonReturn($res);
     	} else {
