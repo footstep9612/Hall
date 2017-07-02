@@ -195,20 +195,15 @@ class QuoteModel extends PublicModel {
 	 * @param array $condition
 	 * @return array
 	 */
-	public function updateQuoteStatus($condition = []) {
+	public function updateQuoteStatus($condition = [], $data = []) {
 
 		if(isset($condition['quote_no'])){
 			$where['quote_no'] = array('in',explode(',',$condition['quote_no']));
 		}else{
 			return false;
 		}
-		if(isset($condition['quote_status'])){
-			$quote_status = $condition['quote_status'];
-		}else{
-			return false;
-		}
 
-		return $this->where($where)->save(['quote_status' => $quote_status]);
+		return $this->where($where)->save($data);
 	}
 
 	/**

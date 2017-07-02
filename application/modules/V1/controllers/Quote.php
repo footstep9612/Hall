@@ -266,7 +266,28 @@ class QuoteController extends PublicController {
 	public function updateQuoteStatusAction() {
 		$condition = $this->put_data;
 
-		$res = $this->quoteModel->updateQuoteStatus($condition);
+		$user = $this->getUserInfo();
+		if(!empty($condition['quote_no'])){
+			$where['quote_no'] = $condition['quote_no'];
+
+			if(!empty($condition['biz_quote_status'])) {
+				$data['biz_quote_status'] = $condition['biz_quote_status'];
+				$data['quoter_agent'] = $user['name'];
+				$data['quoter_email'] = $user['email'];
+				$data['quoter_at'] = data('Y-m-d H:i:s',time());
+			}
+			if(!empty($condition['logi_quote_status'])) {
+				$data['logi_quote_status'] = $condition['logi_quote_status'];
+				$data['logi_agent'] = $user['name'];
+				$data['logi_agent_email'] = $user['email'];
+				$data['logi_submit_at'] = data('Y-m-d H:i:s',time());
+			}
+			if(!empty($condition['quote_status'])) {
+				$data['quote_status'] =$condition['quote_status'];
+			}
+			$res = $this->quoteModel->updateQuoteStatus($where,$data);
+		}
+
 
 		$this->jsonReturn($res);
 	}
@@ -549,32 +570,32 @@ class QuoteController extends PublicController {
 	public function quoteApproveAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no']) && !empty($condition['level']) && !empty($condition['status'])) {
+		if (!empty($condition['quote_no'])) {
 			$where['quote_no'] = $condition['quote_no'];
 			
 			$user = $this->getUserInfo();
 			
 			$time = date('Y-m-d H:i:s');
-			
+
 			$quote = $this->quoteModel->getDetail($condition['quote_no']);
-			
+
 			$status = $condition['status'] == 'Y' ? 'APPROVED' : 'NOT_APPROVED';
-			
+
 			if ($condition['level'] == 1) {
 				$quoteCheck['checker'] = $user['name'];
 				$quoteCheck['checker_email'] = $user['email'];
 				$quoteCheck['check_at'] = $time;
 				$quoteCheck['check_notes'] = $condition['notes'];
-				
+
 				if ($condition['status'] == 'N') $quoteCheck['biz_quote_status'] = $quoteCheck['quote_status'] = $status;
 			} elseif ($condition['level'] == 2) {
 				$quoteCheck['checker2'] = $user['name'];
 				$quoteCheck['checker2_email'] = $user['email'];
 				$quoteCheck['check2_at'] = $time;
 				$quoteCheck['check2_notes'] = $condition['notes'];
-				
+
 				$quoteCheck['biz_quote_status'] = $status;
-				
+
 				if ($condition['status'] == 'Y') {
 					if ($quote['logi_quote_status'] == 'APPROVED') $quoteCheck['quote_status'] = $status;
 				} else {

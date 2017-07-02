@@ -274,7 +274,7 @@ class InquiryModel extends PublicModel {
         }
 
         try {
-            $id = $this->where($where)->save(['inquiry_status' => $status]);
+            $id = $this->where($where)->save($status);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
