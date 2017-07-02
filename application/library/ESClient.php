@@ -133,6 +133,7 @@ class ESClient {
 
   public function __construct() {
     $server = Yaf_Application::app()->getConfig()->esapi;
+//    $server_arr= explode(',', $server);
     $source_hosts = [$server];
     $this->server = ClientBuilder::create()
                     ->setHosts($source_hosts)->build();
@@ -155,7 +156,7 @@ class ESClient {
     $indexParams['body'] = $body;
     $indexParams['body']['settings']['number_of_shards'] = 15;
     $indexParams['body']['settings']['number_of_replicas'] = 0;
-
+    echo json_encode($indexParams, 256);die();
     return $this->server->indices()->create($indexParams);
   }
 

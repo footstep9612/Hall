@@ -61,7 +61,7 @@ class EsgoodsController extends PublicController {
 
   public function importAction($lang = 'en') {
     try {
-      $lang = 'en';
+      $lang = 'ru';
       set_time_limit(0);
       ini_set('memory_limi', '1G');
 //            foreach ($this->langs as $lang) {

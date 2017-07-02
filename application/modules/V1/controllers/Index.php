@@ -73,11 +73,12 @@ class IndexController extends ShopMallController {
     }
   }
 
+  /*
+   * 按区域获取首页推荐产品
+   */
+
   public function getProductsAction() {
-
-
     if (isset($this->put_data['country'])) {
-
       $bn = $condition['market_area_bn'] = $this->getMarketAreaBnByCountry();
     } else {
       $bn = $this->getIp();
@@ -89,16 +90,14 @@ class IndexController extends ShopMallController {
       }
     }
 
-//    $json = redisGet('MarketareaproductModel_' . $bn);
-//
-//    if (!$json) {
+    $json = redisGet('MarketareaproductModel_' . $bn);
+    if (!$json) {
       $model = new MarketareaproductModel();
       $data = $model->getlist($condition);
- 
-//      redisSet('MarketareaproductModel_' . $bn, json_encode($data), 3600);
-//    } else {
-//      $data = json_decode($json, true);
-//    }
+      redisSet('MarketareaproductModel_' . $bn, json_encode($data), 3600);
+    } else {
+      $data = json_decode($json, true);
+    }
 
     $spus = [];
     if ($data) {
@@ -108,34 +107,9 @@ class IndexController extends ShopMallController {
     }
     if ($spus) {
       $condition['spus'] = $spus;
-      $goods_model = new GoodsModel();
-      $goodscounts = $goods_model->getCountBySpus($spus, $this->getLang());
-      $spugoodscount = [];
-      foreach ($goodscounts as $count) {
-        $spugoodscount[$count['spu']] = $count['skunum'];
-      }
-      $spumodel = new EsproductModel();
-      $ret = $spumodel->getproducts($condition, null, $this->getLang());
-      if ($ret) {
-        $send = [];
-        $data = $ret[0];
-        foreach ($data['hits']['hits'] as $key => $item) {
-          $send[$key] = $item["_source"];
-          $attachs = json_decode($item["_source"]['attachs'], true);
-          if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
-            $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
-          } else {
-            $send[$key]['img'] = null;
-          }
-          if (isset($spugoodscount[$item["_source"]['spu']])) {
-            $send[$key]['skunum'] = $spugoodscount[$item["_source"]['spu']];
-          } else {
-            $send[$key]['skunum'] = 0;
-          }
-          $send[$key]['id'] = $item['_id'];
-        }
 
-        var_dump($send);
+      $send = $this->getproducts($condition, $spus);
+      if ($send) {
         $this->setCode(1);
         $this->jsonReturn($send);
       } else {
@@ -143,10 +117,57 @@ class IndexController extends ShopMallController {
         $this->setMessage('空数据');
       }
     } else {
-      $this->setCode(-1);
-      $this->setMessage('空数据');
-// $send['data'] = $data;
-      $this->jsonReturn();
+      $send = $this->getproducts($condition);
+      if ($send) {
+        $this->setCode(1);
+        $this->jsonReturn($send);
+      } else {
+        $this->setCode(-1);
+        $this->setMessage('空数据');
+      }
+    }
+  }
+
+  private function getproducts($condition, $spus = []) {
+
+    $spumodel = new EsproductModel();
+    $condition['pagesize'] = 12;
+
+    $ret = $spumodel->getproducts($condition, null, $this->getLang());
+    if ($ret) {
+      $send = [];
+      $data = $ret[0];
+      if (!$spus) {
+        foreach ($data['hits']['hits'] as $key => $item) {
+
+          $spus[] = $item["_source"]['spu'];
+        }
+      }
+      $goods_model = new GoodsModel();
+      $goodscounts = $goods_model->getCountBySpus($spus, $this->getLang());
+
+      $spugoodscount = [];
+      foreach ($goodscounts as $count) {
+        $spugoodscount[$count['spu']] = $count['skunum'];
+      }
+      foreach ($data['hits']['hits'] as $key => $item) {
+        $send[$key] = $item["_source"];
+        $attachs = json_decode($item["_source"]['attachs'], true);
+        if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+          $send[$key]['img'] = $attachs['BIG_IMAGE'][0];
+        } else {
+          $send[$key]['img'] = null;
+        }
+        if (isset($spugoodscount[$item["_source"]['spu']])) {
+          $send[$key]['skunum'] = $spugoodscount[$item["_source"]['spu']];
+        } else {
+          $send[$key]['skunum'] = 0;
+        }
+        $send[$key]['id'] = $item['_id'];
+      }
+      return $send;
+    } else {
+      return [];
     }
   }
 
