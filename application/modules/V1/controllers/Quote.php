@@ -180,11 +180,11 @@ class QuoteController extends PublicController {
 			}
 			if(isset($val['inquiry_region'])){
 				$areaInfo = $area->where('id='.$val['inquiry_region'])->find();
-				$$data[$key]['inquiry_region'] = $areaInfo['bn'];
+				$data[$key]['inquiry_region'] = $areaInfo['bn'];
 			}
 			if(isset($val['inquiry_country'])){
 				$areaInfo = $country->where('id='.$val['inquiry_country'])->find();
-				$$data[$key]['inquiry_country'] = $areaInfo['country_bn'];
+				$data[$key]['inquiry_country'] = $areaInfo['country_bn'];
 			}
 		}
 
