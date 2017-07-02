@@ -343,6 +343,7 @@ class BuyerModel extends PublicModel {
      */
     public function getService($info,$token)
     {
+        $where=array();
         if(!empty($token['customer_id'])){
             $where['customer_id'] = $token['customer_id'];
         } else{
@@ -351,7 +352,7 @@ class BuyerModel extends PublicModel {
         $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
         $buyerLevel =  $this->field('buyer_level')
-                            ->where($where)
+                            ->where("customer_id='".$where['customer_id']."'")
                             ->find();
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
