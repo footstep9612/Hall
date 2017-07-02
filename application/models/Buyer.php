@@ -341,48 +341,27 @@ class BuyerModel extends PublicModel {
      * 通过顾客id获取会员等级
      * @author klp
      */
-    public function getService($condition=[])
-    {
-        if(!empty($condition['customer_id'])){
-            $where['customer_id'] = $condition['customer_id'];
+    public function getService($info,$token)
+    {      $token['customer_id']= 'C20170630000002';
+        if(!empty($token['customer_id'])){
+            $where['customer_id'] = $token['customer_id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }
-        $lang = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
-        $buyerLevel = $this->where($where)
-            ->field('buyer_level')
-            ->find();
+        $buyerLevel =  $this->field('buyer_level')
+                            ->where($where)
+                            ->find();jsonReturn($buyerLevel,'1821','wer');
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
         $result = $MemberBizService->getService($buyerLevel,$lang);
-        $result['buyer_level'] = $buyerLevel;
         if($result){
+            //$result['buyer_level'] = $buyerLevel;
             return $result;
         } else{
             return array();
         }
     }
 
-    /**
-     * 通过顾客id获取国家地区简称
-     * @author klp
-     */
-    /*public function getInquiryInfo($data)
-    {
-        if(!empty($data['customer_id'])){
-            $where['customer_id'] = $data['customer_id'];
-        } else{
-            jsonReturn('','-1001','用户[customer_id]不可以为空');
-        }
-        $country = $this->field('country')->where($where)->find();
-        //获取国家简称
-        $CountryModel = new CountryModel();
-        $country_bn = $CountryModel->field('bn')->where(array('name'=>$country['country']))->find();
-        //获取地区简称
-        $MarketAreaCountryModel = new MarketAreaCountryModel();
-        $marketArea_bn = $MarketAreaCountryModel->field('market_area_bn')->where(array('country_bn'=>$country_bn['bn']))->find();
-
-
-    }*/
 }
