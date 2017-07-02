@@ -266,26 +266,9 @@ class QuoteController extends PublicController {
 	public function updateQuoteStatusAction() {
 		$condition = $this->put_data;
 
-		$user = $this->getUserInfo();
 		if(!empty($condition['quote_no'])){
-			$where['quote_no'] = $condition['quote_no'];
 
-			if(!empty($condition['biz_quote_status'])) {
-				$data['biz_quote_status'] = $condition['biz_quote_status'];
-				$data['quoter_agent'] = $user['name'];
-				$data['quoter_email'] = $user['email'];
-				$data['quoter_at'] = data('Y-m-d H:i:s',time());
-			}
-			if(!empty($condition['logi_quote_status'])) {
-				$data['logi_quote_status'] = $condition['logi_quote_status'];
-				$data['logi_agent'] = $user['name'];
-				$data['logi_agent_email'] = $user['email'];
-				$data['logi_submit_at'] = data('Y-m-d H:i:s',time());
-			}
-			if(!empty($condition['quote_status'])) {
-				$data['quote_status'] =$condition['quote_status'];
-			}
-			$res = $this->quoteModel->updateQuoteStatus($where,$data);
+			$res = $this->quoteModel->updateQuoteStatus($condition);
 		}
 
 

@@ -202,8 +202,16 @@ class QuoteModel extends PublicModel {
 		}else{
 			return false;
 		}
-
-		return $this->where($where)->save($data);
+		if(isset($condition['quote_status'])){
+			$status['quote_status'] = $condition['quote_status'];
+		}
+		if(isset($condition['biz_quote_status'])){
+			$status['biz_quote_status'] = $condition['biz_quote_status'];
+		}
+		if(isset($condition['logi_quote_status'])){
+			$status['logi_quote_status'] = $condition['logi_quote_status'];
+		}
+		return $this->where($where)->save($status);
 	}
 
 	/**
