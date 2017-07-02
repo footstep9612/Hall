@@ -10,27 +10,13 @@ class ExcelController extends PublicController
 //class ExcelController extends Yaf_Controller_Abstract
 {
     /**
-     * 测试接口
-     */
-    public function testAction() {
-        if (!$this->getRequest()->isPost()) {
-            $response = ['code' => 400, 'message' => 'BadRequest...', 'data' => []];
-            exit(json_encode($response));
-        }
-        $response = ['code' => 200, 'message' => 'Response successfuly...', 'data' => []];
-        exit(json_encode($response));
-    }
-
-    /**
      * 报价单Excel导出api接口
      * @author maimaiti
      */
     public function quoteAction() {
 
         //请求验证
-        if (!$this->getRequest()->isPost()) {
-            jsonReturn(null, -2101, ErrorMsg::getMessage('-2101'));
-        }
+        $this->requestValidator();
 
         //获取post
         $raw = json_decode(file_get_contents("php://input"), true);
@@ -40,7 +26,8 @@ class ExcelController extends PublicController
 
 
         $file = $this->data2excelAction($raw['quote_no']);
-        if (file_exists($file)) {
+        if ($this->check_remote_file_exists($file))
+        {
             $returnData = [
                 'code' => 1,
                 'message' => ErrorMsg::getMessage('1'),
@@ -48,6 +35,12 @@ class ExcelController extends PublicController
                     'file' => $file,
                     'exported_at' => date('YmdHis')
                 ]
+            ];
+        }else{
+            $returnData = [
+                'code' => 0,
+                'message' => '导出文件路径有错误~',
+                'data' => []
             ];
         }
         exit(json_encode($returnData));
@@ -57,7 +50,7 @@ class ExcelController extends PublicController
      * 数据导出为Excel
      * @author maimaiti
      */
-    public function data2excelAction($quote_no) {
+    private function data2excelAction($quote_no) {
 
         //加载PHPExcel类,新建Excel表格
         $objPHPExcel = new PHPExcel();
@@ -340,7 +333,7 @@ class ExcelController extends PublicController
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-        $savePath = APPLICATION_PATH . "/" . $path . "/";
+        $savePath = $_SERVER['HTTP_HOST'] . "/application/" . $path . "/";
         if (!is_dir($savePath)) {
             mkdir($savePath, 0775, true);
         }
@@ -354,20 +347,28 @@ class ExcelController extends PublicController
      * @author maimaiti
      */
     public function quoteItemAction() {
-        //后期添加api身份验证
         //请求验证
-        if (!$this->getRequest()->isPost()) {
-            jsonReturn(null, -2101, ErrorMsg::getMessage('-2101'));
+        $this->requestValidator();
+        $file = $this->export_sku_handler();
+
+        if ($this->check_remote_file_exists($file))
+        {
+            //成功导出
+            $data = [
+                'code' => 1,
+                'message' => ErrorMsg::getMessage('1'),
+                'data' => [
+                    'file' => $file,
+                    'exported_at' => date('YmdHis')
+                ]
+            ];
+        }else{
+            $data = [
+                'code' => 0,
+                'message' => ErrorMsg::getMessage('0'),
+                'data' => []
+            ];
         }
-        //成功导出
-        $data = [
-            'code' => 1,
-            'message' => ErrorMsg::getMessage('1'),
-            'data' => [
-                'file' => $this->export_sku_handler(),
-                'exported_at' => date('YmdHis')
-            ]
-        ];
         exit(json_encode($data));
     }
 
@@ -454,7 +455,7 @@ class ExcelController extends PublicController
         //1.接受Excel文件并核验
         $post = json_decode(file_get_contents("php://input"),true);
         $excel_file = $post['file'];
-        if(empty($excel_file))
+        if(!$this->check_remote_file_exists($excel_file))
         {
             jsonReturn(null,-2104,ErrorMsg::getMessage('-2104'));
         }
@@ -532,11 +533,7 @@ class ExcelController extends PublicController
     public function goodsListAction()
     {
         //验证请求类型
-        if (!$this->getRequest()->isPost())
-        {
-            $response = ['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101'),'data'=>[]];
-            exit(json_encode($response));
-        }
+        $this->requestValidator();
 
         //判断语言参数
         $request = json_decode(file_get_contents("php://input"),true);
@@ -603,8 +600,9 @@ class ExcelController extends PublicController
         /*$goods = $goodsModel->where($condition)->select();
         echo "<pre>";
         print_r($goods);*/
+        $file = $this->goodsListHandler();
 
-        if ($file = $this->goodsListHandler())
+        if ($this->check_remote_file_exists($file))
         {
             //文件名
             $filename =str_replace(dirname($file).'/','',$file);
@@ -725,9 +723,10 @@ class ExcelController extends PublicController
         $this->requestValidator();
 
         //导出询价单模板
-        $inquiryTemplateFile = APPLICATION_PATH."/ExcelFiles/marketInquiryTemplate.xls";
+        $inquiryTemplateFile = $_SERVER['HTTP_HOST']."/application/ExcelFiles/marketInquiryTemplate.xls";
+
         //判断文件的真实性和是否存在
-        if ( is_file($inquiryTemplateFile) && file_exists($inquiryTemplateFile))
+        if ( $this->check_remote_file_exists($inquiryTemplateFile) )
         {
             $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
         }else{
@@ -735,7 +734,6 @@ class ExcelController extends PublicController
         }
         exit(json_encode($response));
     }
-
     /**
      * 导出询价单模板接口(市场询报价)
      */
@@ -745,9 +743,9 @@ class ExcelController extends PublicController
         $this->requestValidator();
 
         //导出询价单模板
-        $inquiryTemplateFile = APPLICATION_PATH."/ExcelFiles/businessInquiryTemplate.xls";
+        $inquiryTemplateFile = $_SERVER['HTTP_HOST']."/ExcelFiles/businessInquiryTemplate.xls";
         //判断文件的真实性和是否存在
-        if ( is_file($inquiryTemplateFile) && file_exists($inquiryTemplateFile))
+        if (  $this->check_remote_file_exists($inquiryTemplateFile) )
         {
             $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
         }else{
@@ -755,18 +753,6 @@ class ExcelController extends PublicController
         }
         exit(json_encode($response));
     }
-
-    /**
-     * 请求类型验证
-     * @return bool
-     */
-    protected function requestValidator()
-    {
-        //请求类型为POST或者PUT均可通过
-        if ( $this->getRequest()->isPost() || $this->getRequest()->isPut()) return true;
-        exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101')]));
-    }
-
 
     /**
      * 导出询单明细接口
@@ -822,15 +808,25 @@ class ExcelController extends PublicController
         }else{
             //创建表格并填充数据
             $file = $this->createInquiryDetailExcel($inquiryDetail);
-            $file =str_replace(dirname($file).'/','',$file);
-            $response = [
-                'code'=>1,
-                'message'=>ErrorMsg::getMessage('1'),
-                'data'=>[
-                    'file'=>$file,
-                    'exported_at'=>strstr($file,'_',true)
-                ]
-            ];
+
+            if ($this->check_remote_file_exists($file))
+            {
+                $file =str_replace(dirname($file).'/','',$file);
+                $response = [
+                    'code'=>1,
+                    'message'=>ErrorMsg::getMessage('1'),
+                    'data'=>[
+                        'file'=>$file,
+                        'exported_at'=>strstr($file,'_',true)
+                    ]
+                ];
+            }else{
+                $response = [
+                    'code'=>0,
+                    'message'=>'读取导出文件路径失败~',
+                    'data'=>[]
+                ];
+            }
         }
         exit(json_encode($response));
     }
@@ -898,4 +894,37 @@ class ExcelController extends PublicController
         return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_IQD.xls");
     }
 
+    /**
+     * 检查远程文件是否为存在
+     * @param $url 远程文件
+     * @return bool 返回结果 1为存在 0为不存在
+     */
+    private function check_remote_file_exists($url) {
+        $curl = curl_init($url); // 不取回数据
+        curl_setopt($curl, CURLOPT_NOBODY, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // 发送请求
+        $result = curl_exec($curl);
+        $found = false; // 如果请求没有发送失败
+        if ($result !== false)
+        {
+            /** 再检查http响应码是否为200 */
+            $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            if ($statusCode == 200)
+            {
+                $found = true;
+            }
+        }
+        curl_close($curl);
+        return $found;
+    }
+    /**
+     * 请求类型验证
+     * @return bool
+     */
+    protected function requestValidator()
+    {
+        //请求类型为POST或者PUT均可通过
+        if ( $this->getRequest()->isPost() || $this->getRequest()->isPut()) return true;
+        exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101')]));
+    }
 }
