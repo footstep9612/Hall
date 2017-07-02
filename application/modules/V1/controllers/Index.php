@@ -110,6 +110,7 @@ class IndexController extends ShopMallController {
       $condition['spus'] = $spus;
 
       $send = $this->getproducts($condition, $spus);
+      
       if ($send) {
         $this->setCode(1);
         $this->jsonReturn($send);
@@ -134,12 +135,12 @@ class IndexController extends ShopMallController {
   private function getproducts($condition, $spus = []) {
 
     $spumodel = new EsproductModel();
-    $condition['pagesize'] = 12;
+    $condition['pagesize'] = 7;
     if (!$spus) {
       $condition['source'] = 'ERUI';
     }
     $ret = $spumodel->getproducts($condition, null, $this->getLang());
-
+var_dump($ret);
     if ($ret) {
       $send = [];
       $data = $ret[0];

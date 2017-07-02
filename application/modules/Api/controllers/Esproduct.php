@@ -26,7 +26,7 @@ class EsproductController extends PublicController {
       ini_set("display_errors", "On");
       error_reporting(E_ERROR | E_STRICT);
     } else {
-     // parent::init();
+      // parent::init();
     }
   }
 
@@ -55,7 +55,8 @@ class EsproductController extends PublicController {
   }
 
   public function indexAction() {
-    // $this->es->delete($this->index);
+   // $this->es->delete($this->index);
+
     //$model = new EsgoodsModel();
 
     $body['mappings'] = [];
@@ -65,7 +66,7 @@ class EsproductController extends PublicController {
 
       $body['mappings']['product_' . $lang] = $this->productAction($lang);
     }
-   
+
     $this->es->create_index($this->index, $body);
     $this->setCode(1);
     $this->setMessage('成功!');
@@ -379,7 +380,6 @@ class EsproductController extends PublicController {
             'meterial_cat_no' => [
                 'type' => $type_string,
                 "index" => "not_analyzed",
-               
             ],
             'spu' => [
                 'type' => $type_string,

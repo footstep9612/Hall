@@ -156,8 +156,7 @@ class ESClient {
     $indexParams['body'] = $body;
     $indexParams['body']['settings']['number_of_shards'] = 15;
     $indexParams['body']['settings']['number_of_replicas'] = 0;
-    echo json_encode($indexParams, 256);
-    die();
+   
     return $this->server->indices()->create($indexParams);
   }
 
@@ -818,7 +817,6 @@ class ESClient {
         'body' => $this->body,
     );
 
-    echo json_encode($this->body, 256);
     $searchParams['from'] = $from;
     $searchParams['size'] = $size;
     try {
