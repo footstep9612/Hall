@@ -43,6 +43,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['inquiry_status'])) {
             $where['inquiry_status'] = $condition['inquiry_status'];
+        }else{
+            $where['inquiry_status'] = array('neq','DELETED');
         }
         if (!empty($condition['inquiry_region'])) {
             $where['inquiry_region'] = $condition['inquiry_region'];
