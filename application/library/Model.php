@@ -959,7 +959,7 @@ class Model {
             foreach ($data as $key => $val) {
                 if (!in_array($key, $fields)) {
                     unset($data[$key]);
-                } elseif (MAGIC_QUOTES_GPC && is_string($val)) {
+                } elseif (false && is_string($val)) {
                     $data[$key] = stripslashes($val);
                 }
             }

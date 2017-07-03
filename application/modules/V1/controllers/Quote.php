@@ -33,9 +33,7 @@ class QuoteController extends PublicController {
 
 		$serial_no_arr = explode(',', $condition['serial_no']);
 
-		$whereQuote = $where = array('serial_no' => array('in', $serial_no_arr));
-
-		$whereQuote['quote_status'] = 'NOT_QUOTED';
+		$where = array('serial_no' => array('in', $serial_no_arr));
 
 		$inquiryList = $this->inquiryModel->where($where)->select();
 
@@ -168,8 +166,27 @@ class QuoteController extends PublicController {
 	 */
 	public function getQuoteListAction() {
 		$condition = $this->put_data;
+		$user = new UserModel();
+		$area = new MarketAreaModel();
+		$country = new MarketAreaCountryModel();
 
 		$data = $this->quoteModel->getJoinList($condition);
+
+		foreach($data as $key=>$val){
+			if(isset($val['agent'])){
+				$userId = json_decode($val['agent']);
+				$userInfo = $user->where('id='.$userId['1'])->find();
+				$data[$key]['agent'] = $userInfo['name'];
+			}
+			if(isset($val['inquiry_region'])){
+				$areaInfo = $area->where('id='.$val['inquiry_region'])->find();
+				$data[$key]['inquiry_region'] = $areaInfo['bn'];
+			}
+			if(isset($val['inquiry_country'])){
+				$areaInfo = $country->where('id='.$val['inquiry_country'])->find();
+				$data[$key]['inquiry_country'] = $areaInfo['country_bn'];
+			}
+		}
 
 		if ($data) {
 			$res['code'] = 1;
@@ -225,6 +242,7 @@ class QuoteController extends PublicController {
 			$condition['quoter'] = $user['name'];
 			$condition['quoter_email'] = $user['email'];
 			$condition['quote_at'] = date('Y-m-d H:i:s');
+			$condition['period_of_validity'] = date('Y-m-d H:i:s', strtotime($condition['period_of_validity']));
 			
 			$condition['package_volumn'] = $condition['package_volumn'] ? : 0;
 			$condition['exchange_rate'] = $condition['exchange_rate'] ? : 0;
@@ -267,7 +285,11 @@ class QuoteController extends PublicController {
 	public function updateQuoteStatusAction() {
 		$condition = $this->put_data;
 
-		$res = $this->quoteModel->updateQuoteStatus($condition);
+		if(!empty($condition['quote_no'])){
+
+			$res = $this->quoteModel->updateQuoteStatus($condition);
+		}
+
 
 		$this->jsonReturn($res);
 	}
@@ -550,40 +572,38 @@ class QuoteController extends PublicController {
 	public function quoteApproveAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no']) && !empty($condition['level']) && !empty($condition['status'])) {
+		if (!empty($condition['quote_no'])) {
 			$where['quote_no'] = $condition['quote_no'];
 			
 			$user = $this->getUserInfo();
 			
 			$time = date('Y-m-d H:i:s');
-			
+
 			$quote = $this->quoteModel->getDetail($condition['quote_no']);
-			
+
 			$status = $condition['status'] == 'Y' ? 'APPROVED' : 'NOT_APPROVED';
-			
+
 			if ($condition['level'] == 1) {
 				$quoteCheck['checker'] = $user['name'];
 				$quoteCheck['checker_email'] = $user['email'];
 				$quoteCheck['check_at'] = $time;
 				$quoteCheck['check_notes'] = $condition['notes'];
-				
+
 				if ($condition['status'] == 'N') $quoteCheck['biz_quote_status'] = $quoteCheck['quote_status'] = $status;
 			} elseif ($condition['level'] == 2) {
 				$quoteCheck['checker2'] = $user['name'];
 				$quoteCheck['checker2_email'] = $user['email'];
 				$quoteCheck['check2_at'] = $time;
 				$quoteCheck['check2_notes'] = $condition['notes'];
-				
+
 				$quoteCheck['biz_quote_status'] = $status;
-				
+
 				if ($condition['status'] == 'Y') {
 					if ($quote['logi_quote_status'] == 'APPROVED') $quoteCheck['quote_status'] = $status;
 				} else {
 					$quoteCheck['quote_status'] = $status;
 				}
 			}
-			
-			
 			
 			$this->quoteModel->where($where)->save($quoteCheck);
 			

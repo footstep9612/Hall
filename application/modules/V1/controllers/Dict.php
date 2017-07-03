@@ -27,6 +27,11 @@ class DictController extends Yaf_Controller_Abstract {
     if (!empty($data['name'])) {
       $where['name'] = $data['name'];
     }
+    if (!empty($data['status'])) {
+      $where['status'] = $data['status'];
+    } else {
+      $where['status'] = 'VALID';
+    }
     if (!empty($data['time_zone'])) {
       $where['time_zone'] = $data['time_zone'];
     }

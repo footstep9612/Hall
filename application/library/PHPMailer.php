@@ -27,6 +27,7 @@
 '---------------------------------------------------------------------------'
 */
 
+
 /**
  * PHPMailer - PHP email transport class
  * NOTE: Requires PHP version 5 or later

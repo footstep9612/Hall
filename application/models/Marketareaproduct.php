@@ -56,10 +56,14 @@ class MarketareaproductModel extends PublicModel {
   public function getbnbynameandlang($name, $lang = 'zh') {
 
     try {
-      $data = ['country.name' => $name, 'country.lang' => $lang];
+      $data = ['country.name' => $name,
+          'country.lang' => $lang,
+          'mac.status' => 'VALID',
+          'country.status' => 'VALID',
+          'c.lang' => $lang
+      ];
       $row = $this->table('erui_dict.t_country country')
               ->join('erui_dict.t_market_area_country mac on country.bn=mac.country_bn')
-              
               ->field('mac.market_area_bn')
               ->where($data)
               ->find();
@@ -74,7 +78,8 @@ class MarketareaproductModel extends PublicModel {
       return 'Asia';
     }
   }
-/**
+
+  /**
    * 获取列表
    * @param string $name 国家名称;
    * @param string $lang 语言
@@ -84,13 +89,14 @@ class MarketareaproductModel extends PublicModel {
   public function getCountrybynameandlang($name, $lang = 'en') {
 
     try {
-      $data = ['country.name' => $name, 'country.lang' => 'zh'
-          
-          , 'c.lang' => $lang
-          ];
+      $data = ['country.name' => $name,
+          'country.lang' => 'zh',
+          'c.status' => 'VALID',
+          'country.status' => 'VALID',
+          'c.lang' => $lang
+      ];
       $row = $this->table('erui_dict.t_country country')
               ->join('erui_dict.t_country c on country.bn=c.bn')
-              
               ->field('c.name')
               ->where($data)
               ->find();
@@ -105,6 +111,7 @@ class MarketareaproductModel extends PublicModel {
       return 'China';
     }
   }
+
   /**
    * 获取数据条数
    * @param mix $condition
