@@ -28,11 +28,11 @@ class MemberBizServiceModel extends PublicModel {
      */
     public function getVipService($info,$data)
     {
-        $lang = $info['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
 
         if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
-            return $result ? $result : array();
+            //return $result ? $result : array();
         }
         //查找会员等级
         if(empty($data['customer_id'])){
@@ -93,58 +93,9 @@ class MemberBizServiceModel extends PublicModel {
                  * Other - 其他服务
                  */
                 $service = array();
-                if ('zh' == $lang) {
-                    foreach ($data as $key => $item) {
-                        foreach ($item as $r) {
-                            $group = 'Other';
-                            if ($r['major_class'] == '金融服务') {
-                                $group = 'Financial';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == '物流服务') {
-                                $group = 'Logistics';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == '品质保障') {
-                                $group = 'Quality';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == '管家服务') {
-                                $group = 'Steward';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == '其他服务') {
-                                $group = 'Other';
-                                $service[$key][$group][] = $r;
-                            }
-                        }
-
-                    }
-                } elseif ('en' == $lang) {
-                    foreach ($data as $key => $item) {
-                        foreach ($item as $r) {
-                            $group = 'Other';
-                            if ($r['major_class'] == 'Financial Service') {
-                                $group = 'Financial';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == 'Logistics Service') {
-                                $group = 'Logistics';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == 'Quality Assurance') {
-                                $group = 'Quality';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == 'Steward Service') {
-                                $group = 'Steward';
-                                $service[$key][$group][] = $r;
-                            }
-                            if ($r['major_class'] == 'Other') {
-                                $group = 'Other';
-                                $service[$key][$group][] = $r;
-                            }
-                        }
+                foreach ($data as $key => $item) {
+                    foreach($item as $v){
+                        $service[$key][$v['major_class']][] = $v;
                     }
                 }
                 $service['buyer_level'] = $buyer_level['buyer_level'];
@@ -168,19 +119,20 @@ class MemberBizServiceModel extends PublicModel {
      */
     public function getService($buyerLevel,$lang)
     {
+        $where = array();
         if(!empty($buyerLevel)){
-            $where['buyer_level'] = ucfirst($buyerLevel);
+            $where['buyer_level'] = ucwords($buyerLevel['buyer_level']);
         }
         if(redisHashExist('service',md5(json_encode($where)))){
             $result = json_decode(redisHashGet('service',md5(json_encode($lang))),true);
-            return $result ? $result : array();
+           // return $result ? $result : array();
         }
             //通过buyer_level查找biz_service_bn
-            $biz_service_bn = $this->field('biz_service_bn')->select();
+            $biz_service_bn = $this->field('biz_service_bn')->where($where)->select();
             $data = array();
             $bizService = new BizServiceModel();
             foreach ($biz_service_bn as $vals) {
-                $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $vals['biz_service_bn'], 'lang' => $lang))->find();
+                $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $vals['biz_service_bn'], 'lang' => 'zh'))->find();
                 $data[] = $info;
             }
             //按类型分组
@@ -194,54 +146,8 @@ class MemberBizServiceModel extends PublicModel {
                  * Other - 其他服务
                  */
                 $service = array();
-                if ('zh' == $lang) {
-                    foreach ($data as $key => $item) {
-                        $group = 'Other';
-                        if ($item['major_class'] == '金融服务') {
-                            $group = 'Financial';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == '物流服务') {
-                            $group = 'Logistics';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == '品质保障') {
-                            $group = 'Quality';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == '管家服务') {
-                            $group = 'Steward';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == '其他服务') {
-                            $group = 'Other';
-                            $service[$group][] = $item;
-                        }
-                    }
-                } elseif ('en' == $lang) {
-                    foreach ($data as $key => $item) {
-                        $group = 'Other';
-                        if ($item['major_class'] == 'Financial Service') {
-                            $group = 'Financial';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == 'Logistics Service') {
-                            $group = 'Logistics';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == 'Quality Assurance') {
-                            $group = 'Quality';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == 'Steward Service') {
-                            $group = 'Steward';
-                            $service[$group][] = $item;
-                        }
-                        if ($item['major_class'] == 'Other') {
-                            $group = 'Other';
-                            $service[$group][] = $item;
-                        }
-                    }
+                foreach ($data as $key => $item) {
+                    $service[$item['major_class']][] = $item;
                 }
                 redisHashSet('service',md5(json_encode($where)),json_encode($service));
                 if ($service) {
