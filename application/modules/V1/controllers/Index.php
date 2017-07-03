@@ -134,7 +134,7 @@ class IndexController extends ShopMallController {
   private function getproducts($condition, $spus = []) {
 
     $spumodel = new EsproductModel();
-    $condition['pagesize'] = 12;
+    $condition['pagesize'] = 4;
     if (!$spus) {
       $condition['source'] = 'ERUI';
     }
