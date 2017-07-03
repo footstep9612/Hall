@@ -860,6 +860,44 @@ function redisHashSet($name, $key, $value) {
     }
 }
 
+
+
+/*
+ * 删除缓存
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+
+function redisDel($name) {
+    $reids = new phpredis();
+    if ($reids->delete($name)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+/*
+ * 缓存Hash存放
+ *
+ * @param str $name
+ * @param str $key
+ * @param str $value
+ * @return string
+ * @author jhw
+ */
+
+function redisHashDel($name, $key) {
+    $reids = new phpredis();
+    if ($reids->hashDel($name, $key)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 /*
  * 缓存Hash获取
  *
@@ -1399,4 +1437,50 @@ function getIpAddress($ip) {
     $arr = json_decode($ipContent, true); //解析json
 
     return $arr['country'];
+}
+
+
+
+
+/*
+ * 发送邮件
+ *
+ * @param float $data[ total_price ] 报价合计 -- 必填
+ * @param float $data[ cargo_insurance_rate ] 货物运输险率
+ * @author jhw
+ *
+ */
+function send_Mail($to,$title,$body,$name = null){
+    $mail = new PHPMailer(true);
+    $mail->IsSMTP(); // 使用SMTP
+    $config_obj = Yaf_Registry::get("config");
+    $config_db = $config_obj->mail->toArray();
+    try {
+        $mail->CharSet ="UTF-8";//设定邮件编码
+        $mail->Host       = $config_db['host']; // SMTP server
+        $mail->SMTPDebug  = 1;                     // 启用SMTP调试 1 = errors  2 =  messages
+        $mail->SMTPAuth   = true;     
+        $mail->Mailer   = 'smtp';    // 服务器需要验证
+        $mail->Port       = 25;					//默认端口
+        $mail->Username   = $config_db['username']; //SMTP服务器的用户帐号
+        $mail->Password   = $config_db['password'];        //SMTP服务器的用户密码
+        $mail->AddAddress($to, $name); //收件人如果多人发送循环执行AddAddress()方法即可 还有一个方法时清除收件人邮箱ClearAddresses()
+        $mail->SetFrom($config_db['setfrom'], '发件人');//发件人的邮箱
+        //$mail->AddAttachment('./img/bloglogo.png');      // 添加附件,如果有多个附件则重复执行该方法
+        $mail->Subject = $title;
+        //以下是邮件内容
+        $mail->Body =$body;
+        $mail->IsHTML(true);
+
+        //$body = file_get_contents('tpl.html'); //获取html网页内容
+        //$mail->MsgHTML(str_replace('\\','',$body));
+
+
+        $mail->Send();
+        return ['code' => 1] ;
+    } catch (phpmailerException $e) {
+        return ['code' => -1,'msg' => $e->errorMessage()] ;
+    } catch (Exception $e) {
+        return ['code' => -1,'msg' => $e->errorMessage()] ;
+    }
 }
