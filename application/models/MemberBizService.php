@@ -32,7 +32,7 @@ class MemberBizServiceModel extends PublicModel {
 
         if(redisHashExist('services',md5(json_encode($lang)))){
             $result = json_decode(redisHashGet('services',md5(json_encode($lang))),true);
-            //return $result ? $result : array();
+            return $result ? $result : array();
         }
         //查找会员等级
         if(empty($data['customer_id'])){
@@ -55,25 +55,8 @@ class MemberBizServiceModel extends PublicModel {
              */
             $level = array();
             foreach ($biz_service_bn as $value) {
-                $group1 = 'Other';
-                if ($value['buyer_level'] == 'Ordinary') {
-                    $group1 = 'Ordinary';
-                    $level[$group1][] = $value;
-                }
-                if ($value['buyer_level'] == 'Silver') {
-                    $group1 = 'Silver';
-                    $level[$group1][] = $value;
-                }
-                if ($value['buyer_level'] == 'Gold') {
-                    $group1 = 'Gold';
-                    $level[$group1][] = $value;
-                }
-                if ($value['buyer_level'] == 'Diamond') {
-                    $group1 = 'Diamond';
-                    $level[$group1][] = $value;
-                }
+                    $level[$value['buyer_level']][] = $value;
             }
-
             $data = array();
             $bizService = new BizServiceModel();
             foreach ($level as $vals) {
@@ -125,7 +108,7 @@ class MemberBizServiceModel extends PublicModel {
         }
         if(redisHashExist('service',md5(json_encode($where)))){
             $result = json_decode(redisHashGet('service',md5(json_encode($lang))),true);
-           // return $result ? $result : array();
+            return $result ? $result : array();
         }
             //通过buyer_level查找biz_service_bn
             $biz_service_bn = $this->field('biz_service_bn')->where($where)->select();
