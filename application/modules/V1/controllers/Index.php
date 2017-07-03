@@ -48,13 +48,14 @@ class IndexController extends ShopMallController {
   public function getCounryAction() {
     $IpModel = new MarketareaproductModel();
 
-    $ip = get_client_ip();
-    $iplocation = new IpLocation();
+    $ip = '206.220.42.25'; //get_client_ip();
+    $iplocation = new IpLocation();   
+   
     if ($ip != 'Unknown') {
       $country = $iplocation->getlocation($ip);
-  
+    
+
       $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
-     
     } else {
       $send = 'China';
     }
@@ -110,7 +111,7 @@ class IndexController extends ShopMallController {
       $condition['spus'] = $spus;
 
       $send = $this->getproducts($condition, $spus);
-      
+
       if ($send) {
         $this->setCode(1);
         $this->jsonReturn($send);
@@ -140,7 +141,7 @@ class IndexController extends ShopMallController {
       $condition['source'] = 'ERUI';
     }
     $ret = $spumodel->getproducts($condition, null, $this->getLang());
-var_dump($ret);
+    var_dump($ret);
     if ($ret) {
       $send = [];
       $data = $ret[0];

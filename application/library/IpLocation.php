@@ -57,9 +57,7 @@ class IpLocation {
   public function __construct($filename = "UTFWry.dat") {
     $this->fp = 0;
     if (($this->fp = fopen(MYPATH . '/conf/' . $filename, 'rb')) !== false) {
-
       $this->firstip = $this->getlong();
-
       $this->lastip = $this->getlong();
       $this->totalip = ($this->lastip - $this->firstip) / 7;
     }
@@ -114,12 +112,14 @@ class IpLocation {
     while (ord($char) > 0) {        // 字符串按照C格式保存，以\0结束
       $data .= $char;             // 将读取的字符连接到给定字符串之后
       $char = fread($this->fp, 1);
-    }
-    if (strpos( $data,'市') || strpos( $data,'省') || strpos( $data,'自治区') || $data='本机地址') {
+    }   
+   
+    if (strpos($data, '市') || strpos($data, '省') || strpos($data, '自治区') || $data == '本机地址') {
       return '中国';
     } else {
       return $data;
     }
+    return $data;
   }
 
   /**
@@ -143,7 +143,6 @@ class IpLocation {
         $area = $this->getstring($byte);
         break;
     }
-    
     return $area;
   }
 
@@ -226,8 +225,9 @@ class IpLocation {
       $location['country'] = '中国';
     }
     if (trim($location['area']) == 'CZ88.NET') {
-      $location['area'] = '中国';
+      $location['area'] = '山东省';
     }
+   
     return $location;
   }
 
