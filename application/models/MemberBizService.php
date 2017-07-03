@@ -61,7 +61,8 @@ class MemberBizServiceModel extends PublicModel {
             $bizService = new BizServiceModel();
             foreach ($level as $vals) {
                 foreach ($vals as $v) {
-                    $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $v['biz_service_bn'], 'lang' => $lang))->find();
+                    $info = $bizService->field('*')->where(array('service_code' => $v['biz_service_bn'], 'lang' => $lang))->find();
+                    if(empty($info)) continue;
                     $data[$v['buyer_level']][] = $info;
                 }
             }
@@ -116,6 +117,7 @@ class MemberBizServiceModel extends PublicModel {
             $bizService = new BizServiceModel();
             foreach ($biz_service_bn as $vals) {
                 $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $vals['biz_service_bn'], 'lang' => 'zh'))->find();
+                if(empty($info)) continue;
                 $data[] = $info;
             }
             //按类型分组
@@ -132,6 +134,7 @@ class MemberBizServiceModel extends PublicModel {
                 foreach ($data as $key => $item) {
                     $service[$item['major_class']][] = $item;
                 }
+
                 redisHashSet('service',md5(json_encode($where)),json_encode($service));
                 if ($service) {
                     return $service;
