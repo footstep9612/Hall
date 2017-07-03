@@ -157,14 +157,14 @@ class LoginController extends Yaf_Controller_Abstract {
             //生成邮件验证码
             $data_key['key'] =md5(uniqid());
             $data_key['email'] = $data['email'];
-            $data_key['name'] = $data['first_name'].$data['last_name'];
+            $data_key['name'] = $data['first_name'];
             redisHashSet('login_reg_key',$data_key['key'],$account_id);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
             $email_arr['url'] = $config_shop['url'];
             $email_arr['key'] = $data_key['key'];
             $body = $this->getView()->render('login/email.html',$email_arr);
-            send_Mail($data_key['email'],'注册认证邮件',$body,$data['first_name'].$data['last_name']);
+            send_Mail($data_key['email'],'注册认证邮件',$body,$data['first_name']);
             jsonReturn($data_key,1,'提交成功');
         }else{
             jsonReturn('',-105,'Failed to register your account.');
