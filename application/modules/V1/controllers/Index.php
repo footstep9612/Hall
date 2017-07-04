@@ -92,6 +92,7 @@ class IndexController extends ShopMallController {
       }
     }
 
+
     $json = redisGet('MarketareaproductModel_' . $bn);
     if (!$json) {
       $model = new MarketareaproductModel();
