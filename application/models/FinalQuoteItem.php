@@ -112,7 +112,7 @@ class FinalQuoteItemModel extends PublicModel {
 	 */
 	public function updateItem($where = [], $condition = []) {
 
-		if(empty($where['quote_no'])){
+		if(empty($where['id'])){
 			return false;
 		}
 
