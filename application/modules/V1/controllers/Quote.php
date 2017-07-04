@@ -21,6 +21,7 @@ class QuoteController extends PublicController {
 		$this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
 		$this->goodsPriceHisModel = new GoodsPriceHisModel();
+		$this->approveLogModel = new ApproveLogModel();
 	}
 
 	/**
@@ -583,7 +584,7 @@ class QuoteController extends PublicController {
 
 			$status = $condition['status'] == 'Y' ? 'APPROVED' : 'NOT_APPROVED';
 
-			if ($condition['level'] == 1) {
+			/*if ($condition['level'] == 1) {
 				$quoteCheck['checker'] = $user['name'];
 				$quoteCheck['checker_email'] = $user['email'];
 				$quoteCheck['check_at'] = $time;
@@ -603,9 +604,27 @@ class QuoteController extends PublicController {
 				} else {
 					$quoteCheck['quote_status'] = $status;
 				}
+			}*/
+			
+			$quoteCheck['checker'] = $user['name'];
+			$quoteCheck['checker_email'] = $user['email'];
+			$quoteCheck['check_at'] = $time;
+			$quoteCheck['check_notes'] = $condition['notes'];
+	        if ($condition['status'] == 'Y') {
+				if ($quote['logi_quote_status'] == 'APPROVED') $quoteCheck['quote_status'] = $status;
+			} else {
+				$quoteCheck['quote_status'] = $status;
 			}
 			
 			$this->quoteModel->where($where)->save($quoteCheck);
+			
+			$approveLog = array (
+			    'inquiry_no' => $quote['inquiry_no'],
+			    'type' => '商务报价审核',
+			    'belong' => 'BUSSINESS',
+			    'status' => $condition['status'],
+			    'notes' => $condition['notes']
+			);
 			
 			$res = $this->addApproveLog($approveLog);
 			
@@ -616,20 +635,17 @@ class QuoteController extends PublicController {
 	}
 	
 	/**
-	 * @desc 商务技术报价审核列表接口
+	 * @desc 询报价跟踪日志列表接口
 	 * @author liujf 2017-07-02
 	 * @return json
 	 */
 	public function quoteApproveListAction() {
 		$condition = $this->put_data;
-    	
-		$condition['belong'] = 'BUSSINESS';
-		
+    			
     	$res = $this->approveLogModel->getList($condition);
     		
 		$this->jsonReturn($res);
 	}
-    
 
 	/**
 	 * @desc 获取报价计算后的数据
