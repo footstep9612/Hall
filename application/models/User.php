@@ -238,12 +238,24 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function create_data($create = []) {
-        $data['user_no']=$create['user_no'];
-        $data['name']=$create['name'];
-        $data['email']=$create['email'];
-        $data['mobile']=$create['mobile'];
-        $data['password_hash']=$create['password_hash'];
-        $data['description']=$create['description'];
+        if($create['user_no']){
+            $data['user_no']=$create['user_no'];
+        }
+        if($create['name']){
+            $data['name']=$create['name'];
+        }
+        if($create['email']){
+            $data['email']=$create['email'];
+        }
+        if($create['mobile']){
+            $data['mobile']=$create['mobile'];
+        }
+        if($create['password_hash']){
+            $data['password_hash']=$create['password_hash'];
+        }
+        if($create['description']){
+            $data['description']=$create['description'];
+        }
         $datajson = $this->create($data);
         return $this->add($datajson);
     }
