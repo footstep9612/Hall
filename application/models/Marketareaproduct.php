@@ -58,9 +58,9 @@ class MarketareaproductModel extends PublicModel {
     try {
       $data = ['country.name' => $name,
           'country.lang' => $lang,
-          'mac.status' => 'VALID',
+        
           'country.status' => 'VALID',
-          'c.lang' => $lang
+        
       ];
       $row = $this->table('erui_dict.t_country country')
               ->join('erui_dict.t_market_area_country mac on country.bn=mac.country_bn')

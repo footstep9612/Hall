@@ -83,7 +83,7 @@ class FinalQuoteModel extends PublicModel {
      */
     public function getList($condition) {
     	
-    	$where = $this->getWhere($condition);
+    	$where = $this->getJoinWhere($condition);
     	
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();

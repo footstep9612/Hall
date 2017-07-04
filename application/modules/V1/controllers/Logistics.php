@@ -185,8 +185,7 @@ class LogisticsController extends PublicController {
 			
 			$approveLog = array (
 				'inquiry_no' => $quote['inquiry_no'],
-				'type' => $condition['type'],
-				'belong' => 'LOGISTICS',
+				'type' => '物流报价审核',
 				'status' => $condition['status'],
 				'notes' => $condition['notes']
 			);
@@ -207,15 +206,15 @@ class LogisticsController extends PublicController {
 	 * @author liujf 2017-07-02
 	 * @return json
 	 */
-	public function logiQuoteApproveListAction() {
-		$condition = $this->put_data;
+// 	public function logiQuoteApproveListAction() {
+// 		$condition = $this->put_data;
     	
-		$condition['belong'] = 'LOGISTICS';
+// 		$condition['belong'] = 'LOGISTICS';
 		
-    	$res = $this->approveLogModel->getList($condition);
+//     	$res = $this->approveLogModel->getList($condition);
     		
-		$this->jsonReturn($res);
-	}
+// 		$this->jsonReturn($res);
+// 	}
     
 	/**
      * @desc 重写jsonReturn方法

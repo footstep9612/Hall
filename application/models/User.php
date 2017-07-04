@@ -215,7 +215,6 @@ class UserModel extends PublicModel {
             $data['enc_password'] = md5($condition['enc_password']);
         }
         switch ($condition['status']) {
-
             case self::STATUS_DELETED:
                 $data['status'] = $condition['status'];
                 break;
@@ -238,12 +237,24 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function create_data($create = []) {
-        $data['user_no']=$create['user_no'];
-        $data['name']=$create['name'];
-        $data['email']=$create['email'];
-        $data['mobile']=$create['mobile'];
-        $data['password_hash']=$create['password_hash'];
-        $data['description']=$create['description'];
+        if(isset($create['user_no'])){
+            $data['user_no']=$create['user_no'];
+        }
+        if(isset($create['name'])){
+            $data['name']=$create['name'];
+        }
+        if(isset($create['email'])){
+            $data['email']=$create['email'];
+        }
+        if(isset($create['mobile'])){
+            $data['mobile']=$create['mobile'];
+        }
+        if(isset($create['password_hash'])){
+            $data['password_hash']=$create['password_hash'];
+        }
+        if(isset($create['description'])){
+            $data['description']=$create['description'];
+        }
         $datajson = $this->create($data);
         return $this->add($datajson);
     }
