@@ -210,17 +210,18 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data){
-        if(!empty($data['id'])){
-            $where['id'] = $data['id'];
+    public function checkPassword($info,$data){
+        $where = array();
+        if(!empty($data['customer_id'])){
+            $where['customer_id'] = $data['customer_id'];
         } else{
-            jsonReturn('','-1001','用户id不可以为空');
+            jsonReturn('','-1001','用户[customer_id]不可以为空');
         }
-        if(!empty($data['password'])){
-            $password = $data['password'];
+        if(!empty($info['password_hash'])){
+            $password = $info['password_hash'];
         }
         $pwd = $this->where($where)->field('password_hash')->find();
-        if($pwd == $password){
+        if($pwd['password_hash'] == $password){
             return true;
         } else {
             return false;
@@ -233,18 +234,24 @@ class BuyerAccountModel extends PublicModel {
      * return bool
      */
     public function update_pwd($data,$token){
-
+        $where = array();
         if(!empty($token['customer_id'])){
             $where['customer_id'] = $token['customer_id'];
         } else{
-            jsonReturn('','-1001','用户id不可以为空');
+            jsonReturn('','-1001','用户[customer_id]不可以为空');
         }
         if(!empty($data['password_hash'])){
-            $new['password_hash'] = $data['password_hash'];
+            $newpwd['password_hash'] = $data['password_hash'];
         } else {
             jsonReturn('','-1001','新密码不可以为空');
         }
-        return $this->where($where)->save($new);
+
+         $ret = $this->where($where)->save($newpwd);
+        if($ret){
+            return true;
+        } else{
+            return false;
+        }
     }
 
 }

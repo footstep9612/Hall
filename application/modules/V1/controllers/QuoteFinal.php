@@ -88,6 +88,7 @@ class QuoteFinalController extends PublicController {
         foreach ($quoteItemList as $quoteItem) {
             $finalItem = $quoteItem;
             unset($finalItem['id']);
+            $finalItem['exw_unit_price'] = '';
             $finalItem['quote_unit_price'] = '';
             $finalItem['created_at'] = date('Y-m-d H:i:s');
             $finalItemList[] = $finalItem;
@@ -142,9 +143,29 @@ class QuoteFinalController extends PublicController {
     public function getFinalQuoteListAction() {
 
         $condition = $this->put_data;
+        $user = new UserModel();
+        $area = new MarketAreaModel();
+        $country = new MarketAreaCountryModel();
 
         $data = $this->finalQuoteModel->getList($condition);
 
+        if($data) {
+            foreach ($data as $key => $val) {
+                if (!empty($val['agent'])) {
+                    $userId = json_decode($val['agent']);
+                    $userInfo = $user->where('id=' . $userId['1'])->find();
+                    $data[$key]['agent'] = $userInfo['name'];
+                }
+                if (!empty($val['inquiry_region'])) {
+                    $areaInfo = $area->where('id=' . $val['inquiry_region'])->find();
+                    $data[$key]['inquiry_region'] = $areaInfo['bn'];
+                }
+                if (!empty($val['inquiry_country'])) {
+                    $areaInfo = $country->where('id=' . $val['inquiry_country'])->find();
+                    $data[$key]['inquiry_country'] = $areaInfo['country_bn'];
+                }
+            }
+        }
         if ($data) {
             $res['code'] = 1;
             $res['message'] = '成功!';
@@ -330,33 +351,12 @@ class QuoteFinalController extends PublicController {
 			$condition['id'] = $condition['item_id'];
     		unset($condition['item_id']);
             $finalQuote = $this->finalQuoteModel->getDetail($condition);
+            $where['id'] = $condition['id'];
+            $where['quote_no'] = $condition['quote_no'];
+            $finalQuoteItem['exw_unit_price'] = $condition['exw_unit_price'];
+            $finalQuoteItem['quote_unit_price'] = $finalQuote['total_quote_price']*($finalQuoteItem['exw_unit_price']/$finalQuote['total_exw_price']);
 
-            $finalQuoteItem['quote_quantity'] = $condition['quote_quantity'];
-            $finalQuoteItem['total_purchase_price'] = round($condition['purchase_price'] * $finalQuoteItem['quote_quantity'], 8);
-
-            $exchangeRate = $this->getRateUSD($condition['purchase_cur']);
-
-            if ($finalQuote['gross_profit_rate'] != '') {
-                $finalQuoteItem['exw_unit_price'] = round($condition['purchase_price'] * $finalQuote['gross_profit_rate'] / $exchangeRate, 8);
-                $finalQuoteItem['total_exw_price'] = $finalQuoteItem['exw_unit_price'] * $finalQuoteItem['quote_quantity'];
-            }
-            $finalQuoteItem['exw_cur'] = 'USD';
-
-            if ($finalQuote['total_quote_price'] != '') {
-                $data = array('total_quote_price' => $finalQuote['total_quote_price'],
-                    'total_exw_price' => $finalQuote['total_exw_price'],
-                    'exw_unit_price' => $finalQuoteItem['exw_unit_price']
-                );
-                $quoteArr = quoteUnitPrice($data);
-                $finalQuoteItem['quote_unit_price'] = $quoteArr['quote_unit_price'];
-                $finalQuoteItem['total_quote_price'] = $quoteArr['quote_unit_price'] * $finalQuoteItem['quote_quantity'];
-            }
-
-            $finalQuoteItem['quote_cur'] = 'USD';
-            $finalQuoteItem['weight_unit'] = 'kg';
-            $finalQuoteItem['size_unit'] = 'm^3';
-
-            $res = $this->finalQuoteItemModel->updateItem($finalQuoteItem);
+            $res = $this->finalQuoteItemModel->updateItem($where, $finalQuoteItem);
 
             $this->jsonReturn($res);
         } else {

@@ -1415,14 +1415,14 @@ function get_client_ip($type = 0, $adv = true) {
       $ip = $_SERVER['HTTP_CLIENT_IP'];
     } elseif (isset($_SERVER['HTTP_IP'])) {
       $ip = $_SERVER['HTTP_IP'];
-    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-      $ip = $_SERVER['REMOTE_ADDR'];
     } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
       $arr = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
       $pos = array_search('unknown', $arr);
       if (false !== $pos)
         unset($arr[$pos]);
       $ip = trim($arr[0]);
+    }elseif (isset($_SERVER['REMOTE_ADDR'])) {
+      $ip = $_SERVER['REMOTE_ADDR'];
     }
   } elseif (isset($_SERVER['REMOTE_ADDR'])) {
     $ip = $_SERVER['REMOTE_ADDR'];

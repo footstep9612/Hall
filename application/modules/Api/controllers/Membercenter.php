@@ -64,7 +64,7 @@ class MemberCenterController extends ShopMallController
     public function checkOldPwdAction(){
 
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->user);
+        $result = $buyerAccount->checkPassword($this->put_data,$this->user);
         if($result){
             jsonReturn('',1,'原密码输入正确');
         }else{
