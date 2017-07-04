@@ -172,20 +172,21 @@ class QuoteController extends PublicController {
 		$country = new MarketAreaCountryModel();
 
 		$data = $this->quoteModel->getJoinList($condition);
-
-		foreach($data as $key=>$val){
-			if(isset($val['agent'])){
-				$userId = json_decode($val['agent']);
-				$userInfo = $user->where('id='.$userId['1'])->find();
-				$data[$key]['agent'] = $userInfo['name'];
-			}
-			if(isset($val['inquiry_region'])){
-				$areaInfo = $area->where('id='.$val['inquiry_region'])->find();
-				$data[$key]['inquiry_region'] = $areaInfo['bn'];
-			}
-			if(isset($val['inquiry_country'])){
-				$areaInfo = $country->where('id='.$val['inquiry_country'])->find();
-				$data[$key]['inquiry_country'] = $areaInfo['country_bn'];
+		if($data) {
+			foreach ($data as $key => $val) {
+				if (!empty($val['agent'])) {
+					$userId = json_decode($val['agent']);
+					$userInfo = $user->where('id=' . $userId['1'])->find();
+					$data[$key]['agent'] = $userInfo['name'];
+				}
+				if (!empty($val['inquiry_region'])) {
+					$areaInfo = $area->where('id=' . $val['inquiry_region'])->find();
+					$data[$key]['inquiry_region'] = $areaInfo['bn'];
+				}
+				if (!empty($val['inquiry_country'])) {
+					$areaInfo = $country->where('id=' . $val['inquiry_country'])->find();
+					$data[$key]['inquiry_country'] = $areaInfo['country_bn'];
+				}
 			}
 		}
 
