@@ -1,7 +1,7 @@
 <?php
 header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
-header('Access-Control-Allow-Methods:POST,PUT,GET');
+header('Access-Control-Allow-Methods GET,POST,PUT,DELETE,OPTIONS;');
 
 /* INI配置文件支持常量替换 */
 define("APPLICATION_PATH", dirname(__FILE__) . "/application");
