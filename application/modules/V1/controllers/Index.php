@@ -30,14 +30,14 @@ class IndexController extends ShopMallController {
     $IpModel = new MarketareaproductModel();
     $ip = get_client_ip();
     $iplocation = new IpLocation();
-    if ($ip != 'Unknown') {
+    if ($ip != 'Unknown' && $ip != '127.0.1') {
       $country = $iplocation->getlocation($ip);
-      $this->setCode(1);
-      $send = $IpModel->getbnbynameandlang($country['country'], 'zh');
+
+      return $IpModel->getbnbynameandlang($country['country'], 'zh');
     } else {
-      $this->setCode(1);
-      $send = 'Asia';
-      $this->jsonReturn($send);
+
+      return 'Asia';
+      //   $this->jsonReturn($send);
     }
   }
 
@@ -52,9 +52,8 @@ class IndexController extends ShopMallController {
     $iplocation = new IpLocation();
     if ($ip != 'Unknown') {
       $country = $iplocation->getlocation($ip);
-  
+
       $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
-     
     } else {
       $send = 'China';
     }
