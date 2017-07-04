@@ -213,7 +213,7 @@ class ProductModel extends PublicModel {
 
         //数据读取
         try {
-            $field = 'spu,lang,qrcode,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_id,supplier_name,recommend_flag,source,source_detail,created_at,customization_flag,customizability,availability,availability_ratings,resp_time,resp_rate,delivery_cycle,target_market';
+            $field = 'spu,lang,qrcode,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_id,supplier_name,recommend_flag,source,source_detail,created_at,customization_flag,customizability,availability,availability_ratings,resp_time,resp_rate,delivery_cycle,target_market,warranty';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
