@@ -38,7 +38,7 @@ class QuoteController extends PublicController {
 
 		$inquiryList = $this->inquiryModel->where($where)->select();
 
-		$quoteList = $correspond = array();
+		$quoteList = $correspond = $approveLogList = array();
 
 		$user = $this->getUserInfo();
 
@@ -64,9 +64,19 @@ class QuoteController extends PublicController {
 
 			$correspond[$inquiry['serial_no']] = $quote['quote_no']; //询单流水号和报价单号的对应
 			$quoteList[] = $quote;
+			
+			$approveLog = array(
+			    'inquiry_no' =>$inquiry['inquiry_no'],
+			    'type' => '创建报价单'
+			);
+			
+			$approveLogList[] = $approveLog;
 		}
 
 		if ($this->quoteModel->addAll($quoteList)) {
+		    
+		    $this->approveLogModel->addAll($approveLogList); //记录创建报价单日志
+		    
 			$this->createQuoteItem($where, $correspond);
 			$this->createQuoteAttach($where, $correspond);
 			$this->createQuoteItemAttach($where, $correspond);
@@ -622,7 +632,6 @@ class QuoteController extends PublicController {
 			$approveLog = array (
 			    'inquiry_no' => $quote['inquiry_no'],
 			    'type' => '商务报价审核',
-			    'belong' => 'BUSSINESS',
 			    'status' => $condition['status'],
 			    'notes' => $condition['notes']
 			);
