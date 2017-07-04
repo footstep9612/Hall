@@ -467,23 +467,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 	/**
 	 * @desc 记录审核日志
 	 * @author liujf 2017-07-01
-	 * @param array $data 插入数据
+	 * @param array $condition 插入数据
 	 * @return array
 	 */
-	public function addApproveLog($data) {
+	public function addApproveLog($condition) {
 		$approveLogModel = new ApproveLogModel();
 		$user = $this->getUserInfo();
-		$approveLog = array (
-			'inquiry_no' => $data['inquiry_no'],
-			'type' => $data['type'],
-			'belong' => $data['belong'],
-			'approver_id' => $user['id'],
-			'approver' => $user['name'],
-			'status' => $data['status'],
-			'notes' => $data['notes']
-		);
+		$condition['approver_id'] = $user['id'];
+		$condition['approver'] = $user['name'];
+		$condition['created_at'] = date('Y-m-d H:i:s');
 		
-		return $approveLogModel->addData($approveLog);
+		return $approveLogModel->addData($condition);
 	}
 
 }

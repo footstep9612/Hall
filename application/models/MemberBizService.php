@@ -61,7 +61,7 @@ class MemberBizServiceModel extends PublicModel {
             $bizService = new BizServiceModel();
             foreach ($level as $vals) {
                 foreach ($vals as $v) {
-                    $info = $bizService->field('*')->where(array('service_code' => $v['biz_service_bn'], 'lang' => $lang))->find();
+                    $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $v['biz_service_bn'], 'lang' => $lang))->find();
                     if(empty($info)) continue;
                     $data[$v['buyer_level']][] = $info;
                 }
