@@ -48,7 +48,7 @@ class IndexController extends ShopMallController {
   public function getCounryAction() {
     $IpModel = new MarketareaproductModel();
 
-    $ip = '206.220.42.25'; //get_client_ip();
+    $ip = get_client_ip();
     $iplocation = new IpLocation();
 
     if ($ip != 'Unknown') {
