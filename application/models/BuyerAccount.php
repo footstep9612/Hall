@@ -211,6 +211,7 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      */
     public function checkPassword($data){
+        $where = array();
         if(!empty($data['id'])){
             $where['id'] = $data['id'];
         } else{
@@ -233,7 +234,7 @@ class BuyerAccountModel extends PublicModel {
      * return bool
      */
     public function update_pwd($data,$token){
-
+        $where = array();
         if(!empty($token['customer_id'])){
             $where['customer_id'] = $token['customer_id'];
         } else{
