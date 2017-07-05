@@ -155,8 +155,6 @@ class ESClient {
     $indexParams['body'] = $body;
     $indexParams['body']['settings']['number_of_shards'] = 15;
     $indexParams['body']['settings']['number_of_replicas'] = 0;
-    echo json_encode($indexParams, 256);
-    die();
     return $this->server->indices()->create($indexParams);
   }
 
@@ -223,7 +221,6 @@ class ESClient {
     $searchParams['size'] = $size;
 
     try {
-      echo json_encode($searchParams['body']);
       return $this->server->indices()->analyze($searchParams);
     } catch (Exception $ex) {
 
@@ -436,6 +433,23 @@ class ESClient {
   }
 
   /*
+   * 更改文档
+   */
+
+  public function UpdateByQuery($index, $type, $body) {
+    $updateParams = array();
+    $updateParams['index'] = $index;
+    $updateParams['type'] = $type;
+    $updateParams['body']['doc'] = $body; //['doc']['testField'] = 'xxxx';
+    try {
+      return $this->server->updateByQuery($updateParams);
+    } catch (Exception $ex) {
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+  /*
    * 删除文档
    */
 
@@ -446,6 +460,23 @@ class ESClient {
     $deleteParams['id'] = $id;
     try {
       return $this->server->delete($deleteParams);
+    } catch (Exception $ex) {
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+  /*
+   * 批量删除 查询 删除
+   */
+
+  public function deleteByQuery($index, $type, $body) {
+    $deleteParams = array();
+    $deleteParams['index'] = $index;
+    $deleteParams['type'] = $type;
+    $deleteParams['body'] = $body;
+    try {
+      return $this->server->deleteByQuery($deleteParams);
     } catch (Exception $ex) {
       LOG::write($ex->getMessage(), LOG::ERR);
       return false;

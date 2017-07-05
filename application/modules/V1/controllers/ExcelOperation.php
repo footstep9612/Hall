@@ -5,12 +5,13 @@
  * Class ExcelOperationController
  * @author maimaiti
  */
-class ExcelOperationController extends PublicController {
+class ExcelOperationController extends Yaf_Controller_Abstract{
 
     /**
      * 测试接口
      */
     public function testAction() {
+	echo $_SERVER['HTTP_HOST'];die;
         if (!$this->getRequest()->isPost()) {
             $response = ['code' => 400, 'message' => 'BadRequest...', 'data' => []];
             exit(json_encode($response));

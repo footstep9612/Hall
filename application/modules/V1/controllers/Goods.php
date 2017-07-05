@@ -154,93 +154,27 @@ class GoodsController extends PublicController
         $result = $goodsTplModel->getAttrTpl();
     }
 
+
     /**
-     * sku新建插入(pc)
-     * @author  klp  2017/6/22
+     * sku新增  -- 门户
+     * @author  klp  2017/7-5
      */
-    public function createSkuAction()
+    public function addSkuAction()
     {
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->create_data($this->create_data,$this->username);
+        $result = $goodsModel->createSku($this->input);
         if($result){
             $data = array(
                 'code' => 1,
-                'message' => '新增成功'
+                'message' => '数据获取成功',
+                'data' => $result
             );
-        } else{
-            $data = array(
-                'code' => -1008,
-                'message' => '新增失败'
-            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
         }
-        jsonReturn($data);
+        exit;
     }
-
-    /**
-     * sku编辑更新(pc)
-     * @author  klp  2017/6/22
-     */
-    public function updateSkuAction()
-    {
-        $goodsModel = new GoodsModel();
-        $result = $goodsModel->create_data($this->create_data,$this->username);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '新增成功'
-            );
-        } else{
-            $data = array(
-                'code' => -1008,
-                'message' => '新增失败'
-            );
-        }
-        jsonReturn($data);
-    }
-
-    /**
-     * sku新建插入(pc)
-     * @author  klp  2017/6/22
-     */
-   /* public function createAction()
-    {
-        $goodsModel = new GoodsModel();
-        $result = $goodsModel->create_data($this->create_data,$this->username);
-        if($result){
-            $data = array(
-                'code' => '1',
-                'message' => '新增成功'
-            );
-        } else{
-            $data = array(
-                'code' => '-1008',
-                'message' => '新增失败'
-            );
-        }
-        jsonReturn($data);
-    }*/
-
-    /**
-     * sku编辑更新(pc)
-     * @author  klp  2017/6/22
-     */
-   /* public function updateAction()
-    {
-        $goodsModel = new GoodsModel();
-        $result = $goodsModel->create_data($this->create_data,$this->username);
-        if($result){
-            $data = array(
-                'code' => '1',
-                'message' => '新增成功'
-            );
-        } else{
-            $data = array(
-                'code' => '-1008',
-                'message' => '新增失败'
-            );
-        }
-        jsonReturn($data);
-    }*/
     //测试
     public function catAction()
     {
