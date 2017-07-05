@@ -7,97 +7,99 @@
  */
 
 /**
- * Description of Buyeraddress
+ * Description of User
  *
- * @author zhongyg
+<<<<<<< HEAD
+ * @author jhw
  */
-class BuyeraddressModel extends PublicModel {
+class BuyerAddressModel extends PublicModel
+{
 
     //put your code here
-    protected $tableName = 'buyer_address';
     protected $dbName = 'erui_buyer';
-    Protected $autoCheckFields = false;
+    protected $tableName = 'buyer_address';
 
-    const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
-    const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
-    const STATUS_DELETED = 'DELETED'; //DELETED-删除
-
-    public function __construct($str = '') {
+    public function __construct($str = '')
+    {
         parent::__construct($str = '');
-    }
-
-
-    /**
-     * 根据条件获取查询条件
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
-    protected function getcondition($condition = []) {
-
-    }
-
-    /**
-     * 获取数据条数
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
-    public function getcount($condition = []) {
-
-    }
-
-    /**
-     * 获取列表
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
-    public function getlist($condition = []) {
-
-    }
-
-    /**
-     * 获取列表
-     * @param  string $code 编码
-     * @param  int $id id
-     * @param  string $lang 语言
-     * @return mix
-     * @author zyg
-     */
-    public function info($code = '', $id = '', $lang = '') {
-
-    }
-
-    /**
-     * 删除数据
-     * @param  string $code 编码
-     * @param  int $id id
-     * @param  string $lang 语言
-     * @return bool
-     * @author zyg
-     */
-    public function delete_data($code = '', $id = '', $lang = '') {
-
-    }
-
-    /**
-     * 更新数据
-     * @param  mix $upcondition 更新条件
-     * @return bool
-     * @author zyg
-     */
-    public function update_data($upcondition = []) {
-
     }
 
     /**
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
-     * @author zyg
+     * @author jhw
      */
-    public function create_data($createcondition = []) {
+    public function create_data($create= []) {
+        if(isset($create['customer_id'])){
+            $arr['customer_id'] = $create['customer_id'];
+        }
+        if(isset($create['lang'])){
+            $arr['lang'] = $create['lang'];
+        }
+        if(isset($create['address'])){
+            $arr['address'] = $create['address'];
+        }
+        if(isset($create['zipcode'])){
+            $arr['zipcode'] = $create['zipcode'];
+        }
+        if(isset($create['longitude'])){
+            $arr['longitude'] = $create['longitude'];
+        }
+        if(isset($create['latitude'])){
+            $arr['latitude'] = $create['latitude'];
+        }
+        if(isset($create['tel_country_code'])){
+            $arr['tel_country_code'] = md5($create['tel_country_code']);
+        }
+        if(isset($create['tel_area_code'])){
+            $arr['tel_area_code'] = $create['tel_area_code'];
+        }
+        if(isset($create['tel_local_number'])){
+            $arr['tel_local_number'] =$create['tel_local_number'];
+        }
+        if(isset($create['tel_ext_number'])){
+            $arr['tel_ext_number'] =$create['tel_ext_number'];
+        }
+        if(isset($create['official_email'])){
+            $arr['official_email'] =$create['official_email'];
+        }
+        $arr['created_at'] =date("Y-m-d H:i:s");
+        try{
+            $data = $this->create($arr);
+            return $this->add($data);
+        } catch (Exception $ex) {
+            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
 
+    }
+    /**
+     * 采购商个人信息更新
+     * @author klp
+     */
+    public function update_data($condition,$where){
+        if ($condition['address']) {
+            $data['address'] = $condition['address'];
+        }
+        if ($condition['zipcode']) {
+            $data['zipcode'] = $condition['zipcode'];
+        }
+        if ($condition['tel_country_code']) {
+            $data['tel_country_code'] = $condition['tel_country_code'];
+        }
+        if ($condition['tel_area_code']) {
+            $data['tel_area_code'] = $condition['tel_area_code'];
+        }
+        if ($condition['tel_ext_number']) {
+            $data['tel_ext_number'] = $condition['tel_ext_number'];
+        }
+        if ($condition['official_email']) {
+            $data['official_email'] = $condition['official_email'];
+        }
+
+        return $this->where($where)->save($data);
     }
 }
