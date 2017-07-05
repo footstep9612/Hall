@@ -47,7 +47,7 @@ abstract class ShopMallController extends Yaf_Controller_Abstract {
                         "account_id" => $userinfo["account_id"],
                         "customer_id" => $userinfo["customer_id"],
                         "user_name" => $tokeninfo["user_name"],
-                        "email" => $tokeninfo["email"],
+                        "email" => $userinfo["email"],
                         "token" => $token, //token
                     );
                 }
