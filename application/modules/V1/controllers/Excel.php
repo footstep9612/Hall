@@ -349,7 +349,7 @@ class ExcelController extends PublicController
         }
 
         $obj->save($savePath . $filename);
-        die();
+        flush();
 	    $fullPath = $savePath . $filename;
 
         //$fullPath = $_SERVER['DOCUMENT_ROOT'].'application/ExcelFiles/'.basename($fullPath);
