@@ -712,7 +712,7 @@ class ExcelController extends PublicController
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         //保存文件
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         //$objWriter->save('demo.xlsx');
         //$objWriter->save(dirname(__FILE__)."/dir1"."/".date('YmdHis')."_goods".".xlsx");
         //保存到服务器指定目录
