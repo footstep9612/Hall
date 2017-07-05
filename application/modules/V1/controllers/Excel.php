@@ -6,8 +6,8 @@
  * Class ExcelController
  * @author maimaiti
  */
-class ExcelController extends PublicController
-//class ExcelController extends Yaf_Controller_Abstract
+//class ExcelController extends PublicController
+class ExcelController extends Yaf_Controller_Abstract
 {
 
 
@@ -342,14 +342,13 @@ class ExcelController extends PublicController
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-        $savePath = $_SERVER['DOCUMENT_ROOT'] . "application/" . $path . "/";
+        $savePath = $_SERVER['DOCUMENT_ROOT'] . "/application/" . $path . "/";
         //echo $savePath . $filename;die;
         if (!is_dir($savePath)) {
             mkdir($savePath, 0775, true);
         }
 
         $obj->save($savePath . $filename);
-        flush();
 	    $fullPath = $savePath . $filename;
 
         //$fullPath = $_SERVER['DOCUMENT_ROOT'].'application/ExcelFiles/'.basename($fullPath);
