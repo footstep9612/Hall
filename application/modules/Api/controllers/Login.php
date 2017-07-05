@@ -56,7 +56,7 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         } else {
             $datajson = [];
-            echo json_encode(array("code" => "-104", "data" => $datajson, "message" => "The cellphone number or user name does not exist."));
+            echo json_encode(array("code" => "-104", "data" => $datajson, "message" => "Logon failure"));
         }
     }
     /**
