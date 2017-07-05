@@ -55,21 +55,24 @@ class InquiryController extends PublicController {
         $where = json_decode(file_get_contents("php://input"), true);
 
         $results = $inquiry->getlist($where);
-        foreach($results['data'] as $key=>$val){
-            if(isset($val['agent'])){
-                $userId = json_decode($val['agent']);
-                $userInfo = $user->where('id='.$userId['1'])->find();
-                $results['data'][$key]['agent'] = $userInfo['name'];
-            }
-            if(isset($val['inquiry_region'])){
-                $areaInfo = $area->where('id='.$val['inquiry_region'])->find();
-                $results['data'][$key]['inquiry_region'] = $areaInfo['bn'];
-            }
-            if(isset($val['inquiry_country'])){
-                $areaInfo = $country->where('id='.$val['inquiry_country'])->find();
-                $results['data'][$key]['inquiry_country'] = $areaInfo['country_bn'];
+        if($results['code'] == '1'){
+            foreach($results['data'] as $key=>$val){
+                if(!empty($val['agent'])){
+                    $userId = json_decode($val['agent']);
+                    $userInfo = $user->where('id='.$userId['1'])->find();
+                    $results['data'][$key]['agent'] = $userInfo['name'];
+                }
+                if(!empty($val['inquiry_region'])){
+                    $areaInfo = $area->where('id='.$val['inquiry_region'])->find();
+                    $results['data'][$key]['inquiry_region'] = $areaInfo['bn'];
+                }
+                if(!empty($val['inquiry_country'])){
+                    $areaInfo = $country->where('id='.$val['inquiry_country'])->find();
+                    $results['data'][$key]['inquiry_country'] = $areaInfo['country_bn'];
+                }
             }
         }
+
         $this->jsonReturn($results);
     }
 
@@ -106,7 +109,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $results = $inquiry->update_all($data);
+        $results = $inquiry->update_status($data);
         $this->jsonReturn($results);
     }
 

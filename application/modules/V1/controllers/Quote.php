@@ -20,7 +20,7 @@ class QuoteController extends PublicController {
 		$this->finalQuoteAttachModel = new FinalQuoteAttachModel();
 		$this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
-		$this->goodsPriceHisModel = new GoodsPriceHisModel();
+		$this->approveLogModel = new ApproveLogModel();
 	}
 
 	/**
@@ -33,13 +33,11 @@ class QuoteController extends PublicController {
 
 		$serial_no_arr = explode(',', $condition['serial_no']);
 
-		$whereQuote = $where = array('serial_no' => array('in', $serial_no_arr));
-
-		$whereQuote['quote_status'] = 'NOT_QUOTED';
+		$where = array('serial_no' => array('in', $serial_no_arr));
 
 		$inquiryList = $this->inquiryModel->where($where)->select();
 
-		$quoteList = $correspond = array();
+		$quoteList = $correspond = $approveLogList = array();
 
 		$user = $this->getUserInfo();
 
@@ -65,9 +63,19 @@ class QuoteController extends PublicController {
 
 			$correspond[$inquiry['serial_no']] = $quote['quote_no']; //询单流水号和报价单号的对应
 			$quoteList[] = $quote;
+			
+			$approveLog = array(
+			    'inquiry_no' =>$inquiry['inquiry_no'],
+			    'type' => '创建报价单'
+			);
+			
+			$approveLogList[] = $approveLog;
 		}
 
 		if ($this->quoteModel->addAll($quoteList)) {
+		    
+		    $this->approveLogModel->addAll($approveLogList); //记录创建报价单日志
+		    
 			$this->createQuoteItem($where, $correspond);
 			$this->createQuoteAttach($where, $correspond);
 			$this->createQuoteItemAttach($where, $correspond);
@@ -168,8 +176,28 @@ class QuoteController extends PublicController {
 	 */
 	public function getQuoteListAction() {
 		$condition = $this->put_data;
+		$user = new UserModel();
+		$area = new MarketAreaModel();
+		$country = new MarketAreaCountryModel();
 
 		$data = $this->quoteModel->getJoinList($condition);
+		if($data) {
+			foreach ($data as $key => $val) {
+				if (!empty($val['agent'])) {
+					$userId = json_decode($val['agent']);
+					$userInfo = $user->where('id=' . $userId['1'])->find();
+					$data[$key]['agent'] = $userInfo['name'];
+				}
+				if (!empty($val['inquiry_region'])) {
+					$areaInfo = $area->where('id=' . $val['inquiry_region'])->find();
+					$data[$key]['inquiry_region'] = $areaInfo['bn'];
+				}
+				if (!empty($val['inquiry_country'])) {
+					$areaInfo = $country->where('id=' . $val['inquiry_country'])->find();
+					$data[$key]['inquiry_country'] = $areaInfo['country_bn'];
+				}
+			}
+		}
 
 		if ($data) {
 			$res['code'] = 1;
@@ -225,6 +253,7 @@ class QuoteController extends PublicController {
 			$condition['quoter'] = $user['name'];
 			$condition['quoter_email'] = $user['email'];
 			$condition['quote_at'] = date('Y-m-d H:i:s');
+			$condition['period_of_validity'] = date('Y-m-d H:i:s', strtotime($condition['period_of_validity']));
 			
 			$condition['package_volumn'] = $condition['package_volumn'] ? : 0;
 			$condition['exchange_rate'] = $condition['exchange_rate'] ? : 0;
@@ -267,7 +296,11 @@ class QuoteController extends PublicController {
 	public function updateQuoteStatusAction() {
 		$condition = $this->put_data;
 
-		$res = $this->quoteModel->updateQuoteStatus($condition);
+		if(!empty($condition['quote_no'])){
+
+			$res = $this->quoteModel->updateQuoteStatus($condition);
+		}
+
 
 		$this->jsonReturn($res);
 	}
@@ -550,42 +583,57 @@ class QuoteController extends PublicController {
 	public function quoteApproveAction() {
 		$condition = $this->put_data;
 
-		if (!empty($condition['quote_no']) && !empty($condition['level']) && !empty($condition['status'])) {
+		if (!empty($condition['quote_no'])) {
 			$where['quote_no'] = $condition['quote_no'];
 			
 			$user = $this->getUserInfo();
 			
 			$time = date('Y-m-d H:i:s');
-			
+
 			$quote = $this->quoteModel->getDetail($condition['quote_no']);
-			
+
 			$status = $condition['status'] == 'Y' ? 'APPROVED' : 'NOT_APPROVED';
-			
-			if ($condition['level'] == 1) {
+
+			/*if ($condition['level'] == 1) {
 				$quoteCheck['checker'] = $user['name'];
 				$quoteCheck['checker_email'] = $user['email'];
 				$quoteCheck['check_at'] = $time;
 				$quoteCheck['check_notes'] = $condition['notes'];
-				
+
 				if ($condition['status'] == 'N') $quoteCheck['biz_quote_status'] = $quoteCheck['quote_status'] = $status;
 			} elseif ($condition['level'] == 2) {
 				$quoteCheck['checker2'] = $user['name'];
 				$quoteCheck['checker2_email'] = $user['email'];
 				$quoteCheck['check2_at'] = $time;
 				$quoteCheck['check2_notes'] = $condition['notes'];
-				
+
 				$quoteCheck['biz_quote_status'] = $status;
-				
+
 				if ($condition['status'] == 'Y') {
 					if ($quote['logi_quote_status'] == 'APPROVED') $quoteCheck['quote_status'] = $status;
 				} else {
 					$quoteCheck['quote_status'] = $status;
 				}
+			}*/
+			
+			$quoteCheck['checker'] = $user['name'];
+			$quoteCheck['checker_email'] = $user['email'];
+			$quoteCheck['check_at'] = $time;
+			$quoteCheck['check_notes'] = $condition['notes'];
+	        if ($condition['status'] == 'Y') {
+				if ($quote['logi_quote_status'] == 'APPROVED') $quoteCheck['quote_status'] = $status;
+			} else {
+				$quoteCheck['quote_status'] = $status;
 			}
 			
-			
-			
 			$this->quoteModel->where($where)->save($quoteCheck);
+			
+			$approveLog = array (
+			    'inquiry_no' => $quote['inquiry_no'],
+			    'type' => '商务报价审核',
+			    'status' => $condition['status'],
+			    'notes' => $condition['notes']
+			);
 			
 			$res = $this->addApproveLog($approveLog);
 			
@@ -596,20 +644,17 @@ class QuoteController extends PublicController {
 	}
 	
 	/**
-	 * @desc 商务技术报价审核列表接口
+	 * @desc 询报价跟踪日志列表接口
 	 * @author liujf 2017-07-02
 	 * @return json
 	 */
 	public function quoteApproveListAction() {
 		$condition = $this->put_data;
-    	
-		$condition['belong'] = 'BUSSINESS';
-		
+    			
     	$res = $this->approveLogModel->getList($condition);
     		
 		$this->jsonReturn($res);
 	}
-    
 
 	/**
 	 * @desc 获取报价计算后的数据
@@ -645,47 +690,6 @@ class QuoteController extends PublicController {
 
 		return $exchangeRate['rate'];
 	}
-
-	/**
-	 * @desc 创建市场报价单
-	 * @author liujf 2017-07-01
-	 * @param array $condition 条件参数
-	 * @return array
-	 */
-	private function createFinalQuote($condition) {
-
-		$quote = $this->quoteModel->getDetail($condition);
-		$this->finalQuoteModel->add($quote);
-
-		$quoteItemList = $this->quoteItemModel->getItemList($condition);
-		$this->finalQuoteItemModel->addAll($quoteItemList);
-
-		$quoteAttachList = $this->quoteAttachModel->getAttachList($condition);
-		$this->finalQuoteAttachModel->addAll($quoteAttachList);
-
-		$quoteItemAttachList = $this->quoteItemAttachModel->getAttachList($condition);
-		$this->finalQuoteItemModel->addAll($quoteItemAttachList);
-
-	}
-	
-	/**
-     * @desc 获取SKU历史报价接口
- 	 * @author liujf 2017-07-02
-     * @return json
-     */
-    public function getGoodsPriceHisAction() {
-    	$condition = $this->put_data;
-    	
-    	if (!empty($condition['sku'])) {
-    		
-    		$res = $this->goodsPriceHisModel->getList($condition);
-    		
-			$this->jsonReturn($res);
-    	} else {
-    		$this->jsonReturn(false);
-    	}
-    	
-    }
 
 	/**
 	 * @desc 重写jsonReturn方法

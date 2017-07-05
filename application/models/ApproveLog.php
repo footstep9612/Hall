@@ -98,7 +98,6 @@ class ApproveLogModel extends PublicModel {
 	public function addData($condition) {
 		
 		$data = $this->create($condition);
-		$data['created_at'] = date('Y-m-d H:i:s');
 
 		return $this->add($data);
 	}

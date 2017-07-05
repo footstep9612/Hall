@@ -228,7 +228,7 @@ class BuyerModel extends PublicModel {
         if($buyerInfo){
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
-            $userInfo = $buyerAccount->field('email,user_name,phone,first_name,last_name,status')
+            $userInfo = $buyerAccount->field('email,user_name,mobile,first_name,last_name,status')
                                      ->where(array('customer_id' => $buyerInfo['customer_id']))
                                      ->find();
 
@@ -241,7 +241,7 @@ class BuyerModel extends PublicModel {
 
             $buyerInfo['email'] = $userInfo['email'];
             $buyerInfo['user_name'] = $userInfo['user_name'];
-            $buyerInfo['phone'] = $userInfo['phone'];
+            $buyerInfo['mobile'] = $userInfo['mobile'];
             $buyerInfo['first_name'] = $userInfo['first_name'];
             $buyerInfo['last_name'] = $userInfo['last_name'];
             $buyerInfo['status'] = $userInfo['status'];

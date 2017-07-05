@@ -85,9 +85,9 @@ class QuoteModel extends PublicModel {
     	$where = $this->getWhere($condition);
     	
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-    		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
+    		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->order('id DESC')->select();
     	} else {
-    		return $this->where($where)->page(1, 10)->select();
+    		return $this->where($where)->page(1, 10)->order('id DESC')->select();
     	}
     }   
     
@@ -127,13 +127,14 @@ class QuoteModel extends PublicModel {
 	    				 ->field($this->fieldJoin)
 	    				 ->where($where)
 	    				 ->page($condition['currentPage'], $condition['pageSize'])
+	    				 ->order('a.id DESC')
 	    				 ->select();
     	} else {
     		return $this->alias('a')
     					->join($this->joinInquiry, 'LEFT')
     					->field($this->fieldJoin)
     					->where($where)
-    					->page(1, 10)
+    					->order('a.id DESC')
     					->select();
     	}
     }
@@ -193,7 +194,7 @@ class QuoteModel extends PublicModel {
 	 * @param array $condition
 	 * @return array
 	 */
-	public function updateQuoteStatus($condition = []) {
+	public function updateQuoteStatus($condition = [], $data = []) {
 
 		if(isset($condition['quote_no'])){
 			$where['quote_no'] = array('in',explode(',',$condition['quote_no']));
@@ -201,12 +202,15 @@ class QuoteModel extends PublicModel {
 			return false;
 		}
 		if(isset($condition['quote_status'])){
-			$quote_status = $condition['quote_status'];
-		}else{
-			return false;
+			$status['quote_status'] = $condition['quote_status'];
 		}
-
-		return $this->where($where)->save(['quote_status' => $quote_status]);
+		if(isset($condition['biz_quote_status'])){
+			$status['biz_quote_status'] = $condition['biz_quote_status'];
+		}
+		if(isset($condition['logi_quote_status'])){
+			$status['logi_quote_status'] = $condition['logi_quote_status'];
+		}
+		return $this->where($where)->save($status);
 	}
 
 	/**

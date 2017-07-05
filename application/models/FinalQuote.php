@@ -60,6 +60,8 @@ class FinalQuoteModel extends PublicModel {
 		if (!empty($condition['logi_quote_status'])) {
 			$where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
 		}
+		
+		return $where;
 	}
     /**
      * @desc 获取记录总数
@@ -83,7 +85,7 @@ class FinalQuoteModel extends PublicModel {
      */
     public function getList($condition) {
     	
-    	$where = $this->getWhere($condition);
+    	$where = $this->getJoinWhere($condition);
     	
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
     		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();

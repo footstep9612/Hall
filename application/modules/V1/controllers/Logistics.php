@@ -57,8 +57,12 @@ class LogisticsController extends PublicController {
     	if (!empty($condition['quote_no'])) {
     		
     		$quote = $this->quoteModel->getDetail($condition);
-    		
+			$user = $this->getUserInfo();
+
+			$condition['logi_agent'] = $user['name'];
+			$condition['logi_agent_email'] = $user['email'];
     		$condition['logi_submit_at'] = date('Y-m-d H:i:s');
+
     		$condition['overland_insu_rate'] = round($quote['total_exw_price'] * 0.0002, 8);
     		$inlandMarineInsurance = inlandMarineInsurance(array('total_exw_price' => $quote['total_exw_price'], $condition['overland_insu_rate']));
     		$condition['inland_marine_insu'] = isset($inlandMarineInsurance['code']) ? 0 : $inlandMarineInsurance;
@@ -84,6 +88,9 @@ class LogisticsController extends PublicController {
     		$condition['total_logi_fee'] = $logiData['total_logi_fee'];
     		$condition['total_quote_price'] = $logiData['total_quote_price'];
     		$condition['total_bank_fee'] = $logiData['total_bank_fee'];
+
+			$condition['export_credit_insu'] = sprintf("%.2f", ($quote['total_quote_price']*$condition['premium_rate']));
+
     		
     		$where['quote_no'] = $condition['quote_no'];
     		$res = $this->quoteModel->updateQuote($where, $condition);
@@ -178,8 +185,7 @@ class LogisticsController extends PublicController {
 			
 			$approveLog = array (
 				'inquiry_no' => $quote['inquiry_no'],
-				'type' => $condition['type'],
-				'belong' => 'LOGISTICS',
+				'type' => '物流报价审核',
 				'status' => $condition['status'],
 				'notes' => $condition['notes']
 			);
@@ -200,15 +206,15 @@ class LogisticsController extends PublicController {
 	 * @author liujf 2017-07-02
 	 * @return json
 	 */
-	public function logiQuoteApproveListAction() {
-		$condition = $this->put_data;
+// 	public function logiQuoteApproveListAction() {
+// 		$condition = $this->put_data;
     	
-		$condition['belong'] = 'LOGISTICS';
+// 		$condition['belong'] = 'LOGISTICS';
 		
-    	$res = $this->approveLogModel->getList($condition);
+//     	$res = $this->approveLogModel->getList($condition);
     		
-		$this->jsonReturn($res);
-	}
+// 		$this->jsonReturn($res);
+// 	}
     
 	/**
      * @desc 重写jsonReturn方法
