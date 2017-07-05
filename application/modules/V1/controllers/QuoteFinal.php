@@ -40,7 +40,7 @@ class QuoteFinalController extends PublicController {
 
         $quoteList = $this->quoteModel->where($where)->select();
 
-       $quoteFinal = $quoteFinalList = $approveLogList = array();
+       $quoteFinal = $quoteFinalList = $inquiry_no_arr = array();
 
         $time = date('Y-m-d H:i:s');
 
@@ -51,17 +51,17 @@ class QuoteFinalController extends PublicController {
             
             $quoteFinalList[] = $quoteFinal;
             
-            $approveLog = array(
-                'inquiry_no' =>$quote['inquiry_no'],
-                'type' => '创建市场报价单'
-            );
-            	
-            $approveLogList[] = $approveLog;
+            $inquiry_no_arr[] = $quote['inquiry_no'];
         }
 
         if ($this->finalQuoteModel->addAll($quoteFinalList)) {
             
-            $this->approveLogModel->addAll($approveLogList); //记录创建市场报价单日志
+            $approveLog = array(
+                'inquiry_no' =>implode(',', $inquiry_no_arr),
+                'type' => '创建市场报价单'
+            );
+            
+            $this->addApproveLog($approveLog); //记录创建市场报价单日志
             
             $this->createFinalQuoteItem($where);
             $this->createFinalQuoteAttach($where);

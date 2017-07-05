@@ -473,11 +473,25 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 	public function addApproveLog($condition) {
 		$approveLogModel = new ApproveLogModel();
 		$user = $this->getUserInfo();
-		$condition['approver_id'] = $user['id'];
-		$condition['approver'] = $user['name'];
-		$condition['created_at'] = date('Y-m-d H:i:s');
+		$time = date('Y-m-d H:i:s');
 		
-		return $approveLogModel->addData($condition);
+		$inquiry_no_arr = explode(',', $condition['inquiry_no']);
+		
+		$approveLogList = $approveLog =array();
+		
+		foreach ($inquiry_no_arr as $inquiry_no) {
+		    $data = $condition;
+		    $data['inquiry_no'] = $inquiry_no;
+		    $data['approver_id'] = $user['id'];
+		    $data['approver'] = $user['name'];
+		    $data['created_at'] = $time;
+		    
+		    $approveLog = $approveLogModel->create($data);
+		    
+		    $approveLogList[] = $approveLog;
+		}
+		
+		return $approveLogModel->addAll($approveLogList);
 	}
 
 }
