@@ -351,7 +351,7 @@ class ExcelController extends Yaf_Controller_Abstract
         $obj->save($savePath . $filename);
 	    $fullPath = $savePath . $filename;
 
-        $fullPath = $_SERVER['DOCUMENT_ROOT'].'/application/ExcelFiles/'.basename($fullPath);
+        $fullPath = $_SERVER['DOCUMENT_ROOT'].'application/ExcelFiles/'.basename($fullPath);
         return $fullPath;
     }
 
