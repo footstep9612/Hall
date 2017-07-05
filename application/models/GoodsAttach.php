@@ -5,7 +5,8 @@
  * Date: 2017/6/24
  * Time: 15:26
  */
-class GoodsAttachModel extends Model{
+class GoodsAttachModel extends PublicModel
+{
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
         $config_obj = Yaf_Registry::get("config");
@@ -17,6 +18,10 @@ class GoodsAttachModel extends Model{
         parent::__construct();
     }
 
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_INVALID = 'INVALID'; //无效；
+    const STATUS_DELETED = 'DELETED'; //删除；
     /**
      * 获取商品附件
      * @param array $condition
@@ -71,5 +76,57 @@ class GoodsAttachModel extends Model{
             return array();
         }
         return array();
+    }
+
+    /**
+     * sku附件参数处理（门户后台）
+     * @author klp
+     * @return array
+     */
+    public function check_data($data=[])
+    {
+        $condition['sku'] = $data['sku'] ? $data['sku']: '';
+        $condition['attach_type'] = $data['attach_type'] ? $data['attach_type']: 'BIG_IMAGE';
+        $condition['attach_name'] = $data['attach_name'] ? $data['attach_name']: '';
+        $condition['sort_order'] = $data['sort_order'] ? $data['sort_order']: 0;
+        $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
+        if (isset($data['attach_url'])) {
+            $condition['attach_url'] = $data['attach_url'];
+        } else {
+            JsonReturn('','-1001','文件地址不能为空');
+        }
+        if(isset($data['status'])){
+            switch ($data['status']) {
+                case self::STATUS_VALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_DELETED:
+                    $condition['status'] = $data['status'];
+                    break;
+            }
+        } else {
+            $condition['status'] = self::STATUS_VALID;
+        }
+        return $condition;
+    }
+
+    /**
+     * sku附件新增（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function createSkuAttach($data)
+    {
+        $condition = $this->check_data($data);
+
+        $res = $this->add($condition);
+        if($res){
+            return true;
+        } else{
+            return false;
+        }
     }
 }

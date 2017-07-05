@@ -11,9 +11,14 @@ class GoodsModel extends PublicModel {
   //状态
   const STATUS_VALID = 'VALID'; //有效
   const STATUS_TEST = 'TEST'; //测试；
-  const STATUS_CHECKING = 'CHECKING'; //审核中；
   const STATUS_INVALID = 'INVALID';  //无效
   const STATUS_DELETED = 'DELETED'; //DELETED-删除
+  const STATUS_CHECKING = 'CHECKING'; //审核中；
+
+//  const STATUS_PENDING = 'PENDING'; //待提交；
+//  const STATUS_CHECKING = 'CHECKING'; //待审核；
+//  const STATUS_CHECKING = 'CHECKING'; //通过；
+//  const STATUS_CHECKING = 'CHECKING'; //不通过；
 
   public function __construct() {
     //动态读取配置中的数据库配置   便于后期维护
@@ -527,5 +532,98 @@ class GoodsModel extends PublicModel {
     }
     return array();
   }
+  /**
+   * sku参数处理（门户后台）
+   * @author klp
+   * @return array
+   */
+    public function check_data($data=[])
+    {
+      $condition['lang'] = $data['lang'] ? $data['lang']: 'en';
+      $condition['spu'] = $data['spu'] ? $data['spu']: '';
+      $condition['sku'] = $data['sku'] ? $data['sku']: '';
+      $condition['qrcode'] = $data['qrcode'] ? $data['qrcode']: '';
+      $condition['model'] = $data['model'] ? $data['model']: '';
+      $condition['description'] = $data['description'] ? $data['description']: '';
+      $condition['package_quantity'] = $data['package_quantity'] ? $data['package_quantity']: '';
+      $condition['exw_day'] = $data['exw_day'] ? $data['exw_day']: '';
+      $condition['purchase_price1'] = $data['purchase_price1'] ? $data['purchase_price1']: '';
+      $condition['purchase_price2'] = $data['purchase_price2'] ? $data['purchase_price2']: '';
+      $condition['purchase_price_cur'] = $data['purchase_price_cur'] ? $data['purchase_price_cur']: '';
+      $condition['purchase_unit'] = $data['purchase_unit'] ? $data['purchase_unit']: '';
+      $condition['pricing_flag'] = $data['pricing_flag'] ? $data['pricing_flag']: 'N';
+      $condition['created_by'] = $data['created_by'] ? $data['created_by']: '';
+      $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
+      if (isset($data['name'])) {
+        $condition['name'] = $data['name'];
+      } else {
+        JsonReturn('','-1001','商品名称不能为空');
+      }
+      if (isset($data['show_name'])) {
+        $condition['show_name'] = $data['show_name'];
+      } else {
+        JsonReturn('','-1001','商品展示名称不能为空');
+      }
+      if(isset($data['status'])){
+          switch ($data['status']) {
+            case self::STATUS_VALID:
+              $condition['status'] = $data['status'];
+              break;
+            case self::STATUS_INVALID:
+              $condition['status'] = $data['status'];
+              break;
+            case self::STATUS_DELETED:
+              $condition['status'] = $data['status'];
+              break;
+          }
+      } else {
+        $condition['status'] = self::STATUS_VALID;
+      }
+      return $condition;
+    }
 
+    /**
+     * sku新增（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function createSku($data)
+    {
+      $condition = $this->check_data($data);
+
+      $res = $this->add($condition);
+      if($res){
+        return true;
+      } else{
+        return false;
+      }
+    }
+
+    /**
+     * sku更新（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function updateSku($data,$where)
+    {
+      $condition = $this->check_data($data);
+      if(!empty($where)){
+        return $this->where($where)->save($condition);
+      } else {
+        JsonReturn('','-1001','条件不能为空');
+      }
+    }
+  /**
+   * sku删除（门户后台）
+   * @author klp
+   * @return bool
+   */
+  public function deleteSku($where)
+  {
+    if(!empty($where)){
+      return $this->where($where)->delete();
+    } else {
+      JsonReturn('','-1001','条件不能为空');
+    }
+  }
 }
