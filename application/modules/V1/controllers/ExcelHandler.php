@@ -5,7 +5,7 @@
      /**
       * 导入询价单接口
       */
-     public function importInquryAction()
+     public function importInquiryAction()
      {
         $response = [
             'code'=>1,
