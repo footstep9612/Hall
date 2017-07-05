@@ -9,6 +9,15 @@
 class ExcelController extends PublicController
 //class ExcelController extends Yaf_Controller_Abstract
 {
+
+
+    public function testAction(){
+
+	echo "excel test";die;
+    }
+
+
+
     /**
      * 报价单Excel导出api接口
      * @author maimaiti
@@ -338,7 +347,9 @@ class ExcelController extends PublicController
             mkdir($savePath, 0775, true);
         }
         $obj->save($savePath . $filename);
-        return $savePath . $filename;
+	$fullPath = $savePath . $filename;
+        $fullPath = $_SERVER['HTTP_HOST'].'/application/ExcelFiles/'.basename($fullPath);
+        return $fullPath;
     }
 
     /**
