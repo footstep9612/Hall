@@ -1,4 +1,5 @@
 <?php
+
 /* To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -90,8 +91,8 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['status'])) {
       $status = $condition['status'];
-      if (!in_array($updated_at_end, ['NORMAL', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
-        $status = 'NORMAL';
+      if (!in_array($updated_at_end, ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+        $status = 'VALID';
       }
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
     } else {
@@ -225,13 +226,13 @@ class EsproductModel extends PublicModel {
       $newbody = $this->getCondition($condition);
       $allcount = $es->setbody($newbody)
               ->count($this->dbName, $this->tableName . '_' . $lang);
-    
+
       return [$es->setbody($body)
                   ->setfields($_source)
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {
-    
+
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
       return [];
@@ -305,7 +306,7 @@ class EsproductModel extends PublicModel {
       $condition['lang'] = $lang;
     }
     try {
-      //redis 操作
+//redis 操作
       $redis_key = md5(json_encode($condition));
       if (redisExist($redis_key)) {
         return redisGet($redis_key);
@@ -464,7 +465,7 @@ class EsproductModel extends PublicModel {
   public function getgoods_specsbyspus($spus, $lang = 'en') {
     try {
       $product_attrs = $this->table('erui_goods.t_goods_attr')
-              //  ->field('spu,attr_name,attr_value,attr_no')
+//  ->field('spu,attr_name,attr_value,attr_no')
               ->where(['spu' => ['in', $spus],
                   'lang' => $lang,
                   'spec_flag' => 'Y',
@@ -937,5 +938,194 @@ class EsproductModel extends PublicModel {
     }
   }
 
-}
+  public function getInsertCodition($condition, $lang = 'en') {
+    $data = [];
+    if (isset($condition['id'])) {
+      $data['id'] = $condition['id'];
+    }
+    $data['lang'] = $lang;
+    if ($condition['meterial_cat_no']) {
+      $data['meterial_cat_no'] = $condition['meterial_cat_no'];
+      $data['meterial_cat'] = [];
+    }
+    if ($condition['spu']) {
+      $data['spu'] = $condition['spu'];
+    }
+    if ($condition['qrcode']) {
+      $data['qrcode'] = $condition['qrcode'];
+    }
+    if ($condition['name']) {
+      $data['name'] = $condition['name'];
+    }
+    if ($condition['show_name']) {
+      $data['show_name'] = $condition['show_name'];
+    }
+    if ($condition['keywords']) {
+      $data['keywords'] = $condition['keywords'];
+    } if ($condition['exe_standard']) {
+      $data['exe_standard'] = $condition['exe_standard'];
+    }if ($condition['app_scope']) {
+      $data['app_scope'] = $condition['app_scope'];
+    }
+    if ($condition['tech_paras']) {
+      $data['tech_paras'] = $condition['tech_paras'];
+    }
+    if ($condition['advantages']) {
+      $data['advantages'] = $condition['advantages'];
+    }
+    if ($condition['profile']) {
+      $data['profile'] = $condition['profile'];
+    }
+    if ($condition['description']) {
+      $data['description'] = $condition['description'];
+    }
 
+    if ($condition['supplier_id']) {
+      $data['supplier_id'] = $condition['supplier_id'];
+    }
+    if ($condition['supplier_name']) {
+      $data['supplier_name'] = $condition['supplier_name'];
+    }
+    if ($condition['brand']) {
+      $data['brand'] = $condition['brand'];
+    }
+    if ($condition['warranty']) {
+      $data['warranty'] = $condition['warranty'];
+    }
+    if ($condition['customization_flag']) {
+      $data['customization_flag'] = $condition['customization_flag'] == 'Y' ? 'Y' : 'N';
+    } else {
+      $data['customization_flag'] = 'N';
+    }
+    if ($condition['customizability']) {
+      $data['customizability'] = $condition['customizability'];
+    } if ($condition['availability']) {
+      $data['availability'] = $condition['availability'];
+    } if ($condition['resp_time']) {
+      $data['resp_time'] = $condition['resp_time'];
+    }if ($condition['resp_rate']) {
+      $data['resp_rate'] = $condition['resp_rate'];
+    }
+    if ($condition['delivery_cycle']) {
+      $data['delivery_cycle'] = $condition['delivery_cycle'];
+    }
+    if ($condition['target_market']) {
+      $data['target_market'] = $condition['target_market'];
+    }
+    if ($condition['source']) {
+      $data['source'] = $condition['source'];
+    }
+
+    if ($condition['source_detail']) {
+      $data['source_detail'] = $condition['source_detail'];
+    }
+    if ($condition['recommend_flag']) {
+      $data['recommend_flag'] = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
+    } else {
+      $data['recommend_flag'] = 'N';
+    }
+
+    if (isset($condition['status']) && in_array($condition['status'], ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+      $data['status'] = strtoupper($condition['status']);
+    } else {
+      $data['status'] = 'CHECKING';
+    }
+    if (isset($condition['created_by'])) {
+      $data['status'] = $condition['created_by'];
+    } else {
+      $data['status'] = '';
+    }
+    if (isset($condition['created_at'])) {
+      $data['created_at'] = $condition['created_at'];
+    } else {
+      $data['created_at'] = '';
+    }
+    if (isset($condition['updated_by'])) {
+      $data['updated_by'] = $condition['updated_by'];
+    } else {
+      $data['updated_by'] = '';
+    }
+    if (isset($condition['updated_at'])) {
+      $data['updated_at'] = $condition['updated_at'];
+    } else {
+      $data['updated_at'] = '';
+    }
+    if (isset($condition['checked_by'])) {
+      $data['checked_by'] = $condition['checked_by'];
+    } else {
+      $data['checked_by'] = '';
+    }
+
+    if (isset($condition['checked_at'])) {
+      $data['checked_at'] = $condition['checked_at'];
+    } else {
+      $data['checked_at'] = '';
+    }
+    if (isset($condition['skus'])) {
+      
+    } else {
+      $data['skus'] = json_encode([]);
+    }
+
+    if (isset($condition['specs'])) {
+      
+    } else {
+      $data['specs'] = json_encode([]);
+    }
+
+    if (isset($condition['attachs'])) {
+      
+    } else {
+      $data['attachs'] = json_encode([]);
+    }
+
+    if (isset($condition['show_cats'])) {
+      
+    } else {
+      $data['show_cats'] = json_encode([]);
+    }
+    if (isset($condition['attrs'])) {
+      
+    } else {
+      $data['attrs'] = json_encode([]);
+    }
+    if (isset($condition['v'])) {
+      
+    } else {
+      $data['supply_capabilitys'] = json_encode([]);
+    }
+  }
+
+  /*
+   * 添加产品到Es
+   * @param string $lang // 语言 zh en ru es 
+   * @return mix  
+   */
+
+  public function create_data($data, $lang = 'en') {
+    try {
+      
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+  /*
+   * 添加产品到Es
+   * @param string $lang // 语言 zh en ru es 
+   * @return mix  
+   */
+
+  public function update_data($data, $spu, $lang = 'en') {
+    try {
+      $spus[] = $spu;
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+}
