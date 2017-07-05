@@ -225,7 +225,6 @@ class MaterialcatModel extends PublicModel {
         return $this->where($where)
                         ->save(['status' => self::STATUS_VALID]);
     }
-
     /**
      * 更新数据
      * @param  mix $upcondition 更新条件
