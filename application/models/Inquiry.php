@@ -59,7 +59,7 @@ class InquiryModel extends PublicModel {
             $where['customer_id'] = $condition['customer_id'];
         }
         if(!empty($condition['start_time']) && !empty($condition['end_time'])){
-            $where['inquiry_time'] = array(
+            $where['created_at'] = array(
                 array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
                 array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
             );

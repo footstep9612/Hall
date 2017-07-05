@@ -7,14 +7,16 @@
  */
 
 /**
- * Description of Buyeraddress
+ * 采购商联系人
+ * Description of Buyercontact
  *
  * @author zhongyg
  */
-class BuyeraddressModel extends PublicModel {
+class BuyercontactModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'buyer_address';
+    //put your code here
+    protected $tableName = 'buyer_contact';
     protected $dbName = 'erui_buyer';
     Protected $autoCheckFields = false;
 
@@ -26,7 +28,6 @@ class BuyeraddressModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-
     /**
      * 根据条件获取查询条件
      * @param mix $condition
@@ -34,7 +35,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     protected function getcondition($condition = []) {
-
+        
     }
 
     /**
@@ -44,7 +45,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function getcount($condition = []) {
-
+        
     }
 
     /**
@@ -54,7 +55,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition = []) {
-
+        
     }
 
     /**
@@ -66,7 +67,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function info($code = '', $id = '', $lang = '') {
-
+        
     }
 
     /**
@@ -78,7 +79,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function delete_data($code = '', $id = '', $lang = '') {
-
+        
     }
 
     /**
@@ -88,7 +89,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function update_data($upcondition = []) {
-
+        
     }
 
     /**
@@ -98,6 +99,8 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function create_data($createcondition = []) {
-
+        
     }
+
+    //put your code here
 }

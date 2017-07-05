@@ -60,6 +60,8 @@ class FinalQuoteModel extends PublicModel {
 		if (!empty($condition['logi_quote_status'])) {
 			$where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
 		}
+		
+		return $where;
 	}
     /**
      * @desc 获取记录总数

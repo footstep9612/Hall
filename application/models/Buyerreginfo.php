@@ -7,25 +7,25 @@
  */
 
 /**
- * Description of Buyeraddress
+ * 采购商注册信息
+ * Description of Buyerreginfo
  *
  * @author zhongyg
  */
-class BuyeraddressModel extends PublicModel {
+class BuyerreginfoModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'buyer_address';
+    protected $tableName = 'buyer_reg_info';
     protected $dbName = 'erui_buyer';
     Protected $autoCheckFields = false;
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
-    const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
-    const STATUS_DELETED = 'DELETED'; //DELETED-删除
+    const STATUS_INVALID = 'INVALID'; //无效；
+    const STATUS_DELETED = 'DELETED'; //删除
 
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
-
 
     /**
      * 根据条件获取查询条件
@@ -34,7 +34,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     protected function getcondition($condition = []) {
-
+        
     }
 
     /**
@@ -44,7 +44,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function getcount($condition = []) {
-
+        
     }
 
     /**
@@ -54,7 +54,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition = []) {
-
+        
     }
 
     /**
@@ -66,7 +66,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function info($code = '', $id = '', $lang = '') {
-
+        
     }
 
     /**
@@ -78,7 +78,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function delete_data($code = '', $id = '', $lang = '') {
-
+        
     }
 
     /**
@@ -88,7 +88,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function update_data($upcondition = []) {
-
+        
     }
 
     /**
@@ -98,6 +98,7 @@ class BuyeraddressModel extends PublicModel {
      * @author zyg
      */
     public function create_data($createcondition = []) {
-
+        
     }
+
 }
