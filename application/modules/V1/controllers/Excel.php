@@ -342,14 +342,14 @@ class ExcelController extends PublicController
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-/*        $savePath = $_SERVER['HTTP_HOST'] . "/application/" . $path . "/";
+        $savePath = $_SERVER['HTTP_HOST'] . "/application/" . $path . "/";
         if (!is_dir($savePath)) {
             mkdir($savePath, 0775, true);
-        }*/
+        }
         $obj->save($savePath . $filename);
-	    //$fullPath = $savePath . $filename;
-        //$fullPath = $_SERVER['HTTP_HOST'].'/application/ExcelFiles/'.basename($fullPath);
-        return $filename;
+	    $fullPath = $savePath . $filename;
+        $fullPath = $_SERVER['HTTP_HOST'].'/application/ExcelFiles/'.basename($fullPath);
+        return $fullPath;
     }
 
     /**
@@ -613,16 +613,13 @@ class ExcelController extends PublicController
         print_r($goods);*/
         $file = $this->goodsListHandler();
 
-        //文件名
-        $filename =str_replace(dirname($file).'/','',$file);
-
         $response = [
             'code'=>1,
             'message'=>ErrorMsg::getMessage('1'),
             'data'=>[
                 'file'=>$file,
                 //文件创建时间(文件创建时是指xls文件被导出的时间)
-                'exported_at'=>strstr($filename,'_',true)
+                'exported_at'=>date('Y-m-d H:i:s')
             ]
         ];
 
@@ -713,10 +710,8 @@ class ExcelController extends PublicController
 
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-        $objWriter->save("demo.1.xlsx");
-        return "demo.1.xlsx";
         //保存到服务器指定目录
-        //return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis',time())."_goodsList.xls");
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis',time())."_goodsList.xls");
     }
 
     /**
