@@ -1,12 +1,13 @@
 <?php
 
- class ExcelHandlerController extends PublicController
+ class OyghanController extends PublicController
  {
      /**
       * 导入询价单接口
       */
-     public function importInquiryAction()
+     public function importinquiryAction()
      {
+         //
         $response = [
             'code'=>1,
             'message'=>'成功',
