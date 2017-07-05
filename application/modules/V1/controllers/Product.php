@@ -206,5 +206,25 @@ class ProductController extends PublicController {
             jsonReturn('','-1002', '获取失败');
         }
     }
+    /**
+     * spu新增  -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function addSpuAction()
+    {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->createSpu($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
+        }
+        exit;
+    }
 
 }
