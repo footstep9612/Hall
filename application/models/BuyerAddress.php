@@ -9,7 +9,6 @@
 /**
  * Description of User
  *
-<<<<<<< HEAD
  * @author jhw
  */
 class BuyerAddressModel extends PublicModel
