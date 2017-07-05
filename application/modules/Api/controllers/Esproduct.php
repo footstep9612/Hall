@@ -16,17 +16,17 @@ class EsproductController extends PublicController {
   protected $index = 'erui_goods';
   protected $es = '';
   protected $langs = ['en', 'es', 'ru', 'zh'];
-  protected $version = '5';
+  protected $version = '1';
 
   //put your code here
   public function init() {
 
-     $this->es = new ESClient();
+    $this->es = new ESClient();
     if ($this->getRequest()->isCli()) {
       ini_set("display_errors", "On");
       error_reporting(E_ERROR | E_STRICT);
     } else {
-       parent::init();
+      parent::init();
     }
   }
 
