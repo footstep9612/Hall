@@ -7,14 +7,14 @@
  */
 
 /**
- * Description of Buyeraddress
+ * Description of Buyeragent
  *
  * @author zhongyg
  */
-class BuyeraddressModel extends PublicModel {
+class BuyeragentModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'buyer_address';
+    protected $tableName = 'buyer_agent';
     protected $dbName = 'erui_buyer';
     Protected $autoCheckFields = false;
 
@@ -25,7 +25,6 @@ class BuyeraddressModel extends PublicModel {
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
-
 
     /**
      * 根据条件获取查询条件

@@ -20,7 +20,6 @@ class QuoteController extends PublicController {
 		$this->finalQuoteAttachModel = new FinalQuoteAttachModel();
 		$this->finalQuoteItemAttachModel = new FinalQuoteItemAttachModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
-		$this->goodsPriceHisModel = new GoodsPriceHisModel();
 		$this->approveLogModel = new ApproveLogModel();
 	}
 
@@ -38,7 +37,7 @@ class QuoteController extends PublicController {
 
 		$inquiryList = $this->inquiryModel->where($where)->select();
 
-		$quoteList = $correspond = array();
+		$quoteList = $correspond = $approveLogList = array();
 
 		$user = $this->getUserInfo();
 
@@ -64,9 +63,19 @@ class QuoteController extends PublicController {
 
 			$correspond[$inquiry['serial_no']] = $quote['quote_no']; //询单流水号和报价单号的对应
 			$quoteList[] = $quote;
+			
+			$approveLog = array(
+			    'inquiry_no' =>$inquiry['inquiry_no'],
+			    'type' => '创建报价单'
+			);
+			
+			$approveLogList[] = $approveLog;
 		}
 
 		if ($this->quoteModel->addAll($quoteList)) {
+		    
+		    $this->approveLogModel->addAll($approveLogList); //记录创建报价单日志
+		    
 			$this->createQuoteItem($where, $correspond);
 			$this->createQuoteAttach($where, $correspond);
 			$this->createQuoteItemAttach($where, $correspond);
@@ -622,7 +631,6 @@ class QuoteController extends PublicController {
 			$approveLog = array (
 			    'inquiry_no' => $quote['inquiry_no'],
 			    'type' => '商务报价审核',
-			    'belong' => 'BUSSINESS',
 			    'status' => $condition['status'],
 			    'notes' => $condition['notes']
 			);
@@ -682,47 +690,6 @@ class QuoteController extends PublicController {
 
 		return $exchangeRate['rate'];
 	}
-
-	/**
-	 * @desc 创建市场报价单
-	 * @author liujf 2017-07-01
-	 * @param array $condition 条件参数
-	 * @return array
-	 */
-	private function createFinalQuote($condition) {
-
-		$quote = $this->quoteModel->getDetail($condition);
-		$this->finalQuoteModel->add($quote);
-
-		$quoteItemList = $this->quoteItemModel->getItemList($condition);
-		$this->finalQuoteItemModel->addAll($quoteItemList);
-
-		$quoteAttachList = $this->quoteAttachModel->getAttachList($condition);
-		$this->finalQuoteAttachModel->addAll($quoteAttachList);
-
-		$quoteItemAttachList = $this->quoteItemAttachModel->getAttachList($condition);
-		$this->finalQuoteItemModel->addAll($quoteItemAttachList);
-
-	}
-	
-	/**
-     * @desc 获取SKU历史报价接口
- 	 * @author liujf 2017-07-02
-     * @return json
-     */
-    public function getGoodsPriceHisAction() {
-    	$condition = $this->put_data;
-    	
-    	if (!empty($condition['sku'])) {
-    		
-    		$res = $this->goodsPriceHisModel->getList($condition);
-    		
-			$this->jsonReturn($res);
-    	} else {
-    		$this->jsonReturn(false);
-    	}
-    	
-    }
 
 	/**
 	 * @desc 重写jsonReturn方法

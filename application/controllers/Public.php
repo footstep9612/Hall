@@ -19,7 +19,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
         if ($this->getRequest()->getModuleName() == 'V1' &&

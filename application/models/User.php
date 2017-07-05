@@ -215,7 +215,6 @@ class UserModel extends PublicModel {
             $data['enc_password'] = md5($condition['enc_password']);
         }
         switch ($condition['status']) {
-
             case self::STATUS_DELETED:
                 $data['status'] = $condition['status'];
                 break;

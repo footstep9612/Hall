@@ -186,7 +186,6 @@ class LogisticsController extends PublicController {
 			$approveLog = array (
 				'inquiry_no' => $quote['inquiry_no'],
 				'type' => '物流报价审核',
-				'belong' => 'LOGISTICS',
 				'status' => $condition['status'],
 				'notes' => $condition['notes']
 			);

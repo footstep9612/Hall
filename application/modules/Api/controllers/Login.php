@@ -56,7 +56,7 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         } else {
             $datajson = [];
-            echo json_encode(array("code" => "-104", "data" => $datajson, "message" => "登录失败"));
+            echo json_encode(array("code" => "-104", "data" => $datajson, "message" => "The cellphone number or user name does not exist."));
         }
     }
     /**
@@ -122,7 +122,7 @@ class LoginController extends Yaf_Controller_Abstract {
         $login_arr['user_name'] = $data['user_name'];
         $check = $buyer_account_model->Exist($login_arr);
         if($check){
-            jsonReturn('',-101,'The cellphone number or user name already exists.');
+            jsonReturn('',-101,'The company email or user name already exists.');
         }
 
         // 生成用户编码
