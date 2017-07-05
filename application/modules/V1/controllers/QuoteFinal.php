@@ -201,22 +201,9 @@ class QuoteFinalController extends PublicController {
         if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
 
-            $user = $this->getUserInfo();
-
-            $quote = $this->quoteModel->where(array('quote_no' => $condition['quote_no']))->find();
-
-            $inquiry = $this->inquiryModel->where(array('inquiry_no' => $quote['inquiry_no']))->find();
-
-            $calculateQuoteInfo = $this->getCalculateQuoteInfo($condition);
-
-            $finalQuote['total_weight'] = $calculateQuoteInfo['$totalWeight'];
-            $finalQuote['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
-            $finalQuote['total_purchase_price'] = $calculateQuoteInfo['totalPurchasePrice'];
-            $exw = exw($calculateQuoteInfo['exwData'], $condition['gross_profit_rate']);
-            $finalQuote['total_exw_price'] = $exw['total'];
-            $finalQuote['quoter'] = $inquiry['agent'];
-            $finalQuote['quoter_email'] = $inquiry['agent_email'];
-            $finalQuote['quote_at'] = date('Y-m-d H:i:s');
+            $finalQuote['payment_received_days'] = $condition['payment_received_days'];
+            $finalQuote['exw_delivery_period'] = $condition['exw_delivery_period'];
+            $finalQuote['fund_occupation_rate'] = $condition['fund_occupation_rate'];
 
             $res = $this->finalQuoteModel->update($where,$finalQuote);
 
