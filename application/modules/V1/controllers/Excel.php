@@ -6,8 +6,8 @@
  * Class ExcelController
  * @author maimaiti
  */
-class ExcelController extends PublicController
-//class ExcelController extends Yaf_Controller_Abstract
+//class ExcelController extends PublicController
+class ExcelController extends Yaf_Controller_Abstract
 {
 
 
@@ -342,13 +342,16 @@ class ExcelController extends PublicController
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-        $savePath = $_SERVER['HTTP_HOST'] . "/application/" . $path . "/";
+        $savePath = $_SERVER['DOCUMENT_ROOT'] . "application/" . $path . "/";
+        //echo $savePath;die;
         if (!is_dir($savePath)) {
             mkdir($savePath, 0775, true);
         }
+
         $obj->save($savePath . $filename);
 	    $fullPath = $savePath . $filename;
-        $fullPath = $_SERVER['HTTP_HOST'].'/application/ExcelFiles/'.basename($fullPath);
+
+        $fullPath = $_SERVER['DOCUMENT_ROOT'].'application/ExcelFiles/'.basename($fullPath);
         return $fullPath;
     }
 
@@ -544,8 +547,8 @@ class ExcelController extends PublicController
     public function goodsListAction()
     {
         //验证请求类型
-        $this->requestValidator();
-
+        //$this->requestValidator();
+        //exit('ddd');
         //判断语言参数
         $request = json_decode(file_get_contents("php://input"),true);
         $goodsModel = new GoodsModel();
@@ -710,9 +713,12 @@ class ExcelController extends PublicController
 
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        //$objWriter->save('demo.xlsx');
+        //$objWriter->save(dirname(__FILE__)."/dir1"."/".date('YmdHis')."_goods".".xlsx");
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis',time())."_goodsList.xls");
     }
+
 
     /**
      * 导出询价单模板接口(市场询报价)
