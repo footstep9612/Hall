@@ -13,37 +13,39 @@
  */
 class BuyerAccountModel extends PublicModel {
 
-    protected $tableName = 'buyer_account';
-    protected $dbName = 'erui_buyer'; //数据库名称
-    public function __construct($str = '') {
+  protected $tableName = 'buyer_account';
+  protected $dbName = 'erui_buyer'; //数据库名称
 
-        parent::__construct();
+  public function __construct($str = '') {
+
+    parent::__construct();
+  }
+
+  //状态
+  const STATUS_VALID = 'VALID'; //有效
+  const STATUS_INVALID = 'INVALID'; //无效；
+  const STATUS_DELETE = 'DELETE'; //删除；
+
+  /**
+   * 判断用户是否存在
+   * @param  string $name 用户名
+   * @param  string $lang 语言
+   * @return mix
+   * @author jhw
+   */
+
+  public function Exist($data) {
+    if (!empty($data['email']) && !empty($data['user_name'])) {
+      $map1['email'] = $data['email'];
+      $map1['user_name'] = $data['user_name'];
+      $map1['_logic'] = 'or';
+      $map['_complex'] = $map1;
+      $row = $this->table('erui_buyer.t_buyer_account')->where($map)->select();
+    } else {
+      $row = $this->table('erui_buyer.t_buyer_account')->where($data)->select();
     }
-
-    //状态
-    const STATUS_VALID = 'VALID'; //有效
-    const STATUS_INVALID = 'INVALID'; //无效；
-    const STATUS_DELETE = 'DELETE'; //删除；
-
-    /**
-     * 判断用户是否存在
-     * @param  string $name 用户名
-     * @param  string $lang 语言
-     * @return mix
-     * @author jhw
-     */
-    public function Exist($data) {
-        if ( !empty($data['email']) && !empty($data['user_name']) ){
-            $map1['email']=$data['email'];
-            $map1['user_name']=$data['user_name'];
-            $map1['_logic'] = 'or';
-            $map['_complex'] = $map1;
-            $row = $this->table('erui_buyer.t_buyer_account')->where($map)->select();
-        }else{
-            $row = $this->table('erui_buyer.t_buyer_account')->where($data)->select();
-        }
-        return empty($row) ? false : $row ;
-    }
+    return empty($row) ? false : $row;
+  }
 
 //    /**
 //     * 获取列表
@@ -66,7 +68,6 @@ class BuyerAccountModel extends PublicModel {
 //        $res = $this->query( $sql );
 //        return $res;
 //    }
-
 //    /**
 //     * 获取列表
 //     * @param  int  $id
@@ -85,31 +86,31 @@ class BuyerAccountModel extends PublicModel {
 //        }
 //    }
 
-    /**
-     * 登录
-     * @param  string $name 用户名
-     * @param  string$enc_password 密码
-     * @param  string $lang 语言
-     * @return mix
-     * @author zyg
-     */
-    public function login($data) {
-        $where=array();
-        if(!empty($data['email'])){
-            $where['email'] = $data['email'];
-        }
-        if(!empty($data['user_name'])){
-            $where['user_name'] = $data['user_name'];
-        }
-        if(empty($where['user_name'])&&empty($where['email'])){
-            echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
-            exit();
-        }
-        if(!empty($data['password'])){
-            $where['password_hash'] = md5($data['password']);
-        }
-        $where['status'] = 'VALID';
-        $row = $this->where($where)
+  /**
+   * 登录
+   * @param  string $name 用户名
+   * @param  string$enc_password 密码
+   * @param  string $lang 语言
+   * @return mix
+   * @author zyg
+   */
+  public function login($data) {
+    $where = array();
+    if (!empty($data['email'])) {
+      $where['email'] = $data['email'];
+    }
+    if (!empty($data['user_name'])) {
+      $where['user_name'] = $data['user_name'];
+    }
+    if (empty($where['user_name']) && empty($where['email'])) {
+      echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
+      exit();
+    }
+    if (!empty($data['password'])) {
+      $where['password_hash'] = md5($data['password']);
+    }
+    $where['status'] = 'VALID';
+    $row = $this->where($where)
             ->field('id,customer_id,email,user_name,mobile,role,first_name,last_name,phone,status,login_count,last_login_time,login_failure_count')
             ->find();
         return $row;
@@ -248,5 +249,5 @@ class BuyerAccountModel extends PublicModel {
         return $this->where($where)->save($new);
     }
 
-}
 
+}
