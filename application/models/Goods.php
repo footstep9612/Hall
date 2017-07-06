@@ -387,6 +387,8 @@ class GoodsModel extends PublicModel {
   public function create_data($createcondition) {
     $where = [];
     $data = $this->condition($createcondition);
+    $esgoods_model = new EsgoodsModel();
+    $esgoods_model->create_data($data, $data['lang']);
     return $this->where($where)->save($data);
   }
 

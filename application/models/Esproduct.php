@@ -1524,4 +1524,16 @@ class EsproductModel extends PublicModel {
     return true;
   }
 
+  public function delete_data($spu, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    $data['status'] = self::STATUS_DELETED;
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $flag = $es->update_document($this->dbName, $type, $data, $id);
+    return true;
+  }
+
 }
