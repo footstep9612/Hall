@@ -30,7 +30,7 @@ class EsgoodsController extends PublicController {
   }
 
   public function listAction() {
-    
+
     $model = new EsgoodsModel();
     $ret = $model->getgoods($this->put_data, null, $this->getLang());
 
@@ -43,7 +43,12 @@ class EsgoodsController extends PublicController {
 
       foreach ($data['hits']['hits'] as $key => $item) {
         $list[$key] = $item["_source"];
-        $list[$key]['id'] = $item['_id'];
+        $attachs = json_decode($item["_source"]['attachs'], true);
+        if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+          $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
+        } else {
+          $list[$key]['img'] = null;
+        }
       }
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);
