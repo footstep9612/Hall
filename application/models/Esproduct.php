@@ -91,7 +91,7 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['status'])) {
       $status = $condition['status'];
-      if (!in_array($updated_at_end, ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+     if (!in_array($status, ['NORMAL','VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
         $status = 'VALID';
       }
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
