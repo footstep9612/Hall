@@ -613,17 +613,17 @@ class GoodsModel extends PublicModel {
         JsonReturn('','-1001','条件不能为空');
       }
     }
-  /**
-   * sku删除（门户后台）
-   * @author klp
-   * @return bool
-   */
-  public function deleteSku($where)
-  {
-    if(!empty($where)){
-      return $this->where($where)->delete();
-    } else {
-      JsonReturn('','-1001','条件不能为空');
+    /**
+     * sku删除（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function deleteSku($where)
+    {
+      if(!empty($where)){
+        return $this->where($where)->delete();
+      } else {
+        JsonReturn('','-1001','条件不能为空');
+      }
     }
-  }
 }

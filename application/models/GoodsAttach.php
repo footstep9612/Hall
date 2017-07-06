@@ -120,13 +120,42 @@ class GoodsAttachModel extends PublicModel
      */
     public function createSkuAttach($data)
     {
-        $condition = $this->check_data($data);
-
-        $res = $this->add($condition);
+        $arr = [];
+        foreach($data as $value){
+            $arr[] = $this->check_data($value);
+        }
+        $res = $this->addAll($arr);
         if($res){
             return true;
         } else{
             return false;
+        }
+    }
+    /**
+     * sku附件更新（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function updateSku($data,$where)
+    {
+        $condition = $this->check_data($data);
+        if(!empty($where)){
+            return $this->where($where)->save($condition);
+        } else {
+            JsonReturn('','-1001','条件不能为空');
+        }
+    }
+    /**
+     * sku附件删除（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function deleteSku($where)
+    {
+        if(!empty($where)){
+            return $this->where($where)->delete();
+        } else {
+            JsonReturn('','-1001','条件不能为空');
         }
     }
 }

@@ -6,8 +6,8 @@
  * Class ExcelController
  * @author maimaiti
  */
-class ExcelController extends PublicController
-//class ExcelController extends Yaf_Controller_Abstract
+//class ExcelController extends PublicController
+class ExcelController extends Yaf_Controller_Abstract
 {
 
 
@@ -342,14 +342,17 @@ class ExcelController extends PublicController
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-        $savePath = $_SERVER['HTTP_HOST'] . "/application/" . $path . "/";
-        if (!is_dir($savePath)) {
+        $savePath = $_SERVER['DOCUMENT_ROOT'] . "/application/" . $path . "/demo.xls";
+        //echo $savePath . $filename;die;
+/*        if (!is_dir($savePath)) {
             mkdir($savePath, 0775, true);
-        }
-        $obj->save($savePath . $filename);
-	$fullPath = $savePath . $filename;
-        $fullPath = $_SERVER['HTTP_HOST'].'/application/ExcelFiles/'.basename($fullPath);
-        return $fullPath;
+        }*/
+
+        $obj->save($savePath);
+	    //$fullPath = $savePath . $filename;
+
+        //$fullPath = $_SERVER['DOCUMENT_ROOT'].'application/ExcelFiles/'.basename($fullPath);
+        return $savePath;
     }
 
     /**
@@ -544,8 +547,8 @@ class ExcelController extends PublicController
     public function goodsListAction()
     {
         //验证请求类型
-        $this->requestValidator();
-
+        //$this->requestValidator();
+        //exit('ddd');
         //判断语言参数
         $request = json_decode(file_get_contents("php://input"),true);
         $goodsModel = new GoodsModel();
@@ -613,27 +616,16 @@ class ExcelController extends PublicController
         print_r($goods);*/
         $file = $this->goodsListHandler();
 
-        if ($this->check_remote_file_exists($file))
-        {
-            //文件名
-            $filename =str_replace(dirname($file).'/','',$file);
+        $response = [
+            'code'=>1,
+            'message'=>ErrorMsg::getMessage('1'),
+            'data'=>[
+                'file'=>$file,
+                //文件创建时间(文件创建时是指xls文件被导出的时间)
+                'exported_at'=>date('Y-m-d H:i:s')
+            ]
+        ];
 
-            $response = [
-                'code'=>1,
-                'message'=>ErrorMsg::getMessage('1'),
-                'data'=>[
-                    'file'=>$file,
-                    //文件创建时间(文件创建时是指xls文件被导出的时间)
-                    'exported_at'=>strstr($filename,'_',true)
-                ]
-            ];
-        }else{
-            $response = [
-                'code'=>0,
-                'message'=>ErrorMsg::getMessage('0'),
-                'data'=>[]
-            ];
-        }
         exit(json_encode($response));
     }
 
@@ -720,10 +712,13 @@ class ExcelController extends PublicController
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         //保存文件
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        //$objWriter->save('demo.xlsx');
+        //$objWriter->save(dirname(__FILE__)."/dir1"."/".date('YmdHis')."_goods".".xlsx");
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis',time())."_goodsList.xls");
     }
+
 
     /**
      * 导出询价单模板接口(市场询报价)
