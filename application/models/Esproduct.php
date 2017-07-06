@@ -91,7 +91,7 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['status'])) {
       $status = $condition['status'];
-     if (!in_array($status, ['NORMAL','VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+      if (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
         $status = 'VALID';
       }
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
@@ -229,6 +229,7 @@ class EsproductModel extends PublicModel {
 
       return [$es->setbody($body)
                   ->setfields($_source)
+                  ->setsort('spu', 'asc')
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {
