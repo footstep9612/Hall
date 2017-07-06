@@ -11,14 +11,9 @@ class GoodsModel extends PublicModel {
   //状态
   const STATUS_VALID = 'VALID'; //有效
   const STATUS_TEST = 'TEST'; //测试；
+  const STATUS_CHECKING = 'CHECKING'; //审核中；
   const STATUS_INVALID = 'INVALID';  //无效
   const STATUS_DELETED = 'DELETED'; //DELETED-删除
-  const STATUS_CHECKING = 'CHECKING'; //审核中；
-
-//  const STATUS_PENDING = 'PENDING'; //待提交；
-//  const STATUS_CHECKING = 'CHECKING'; //待审核；
-//  const STATUS_CHECKING = 'CHECKING'; //通过；
-//  const STATUS_CHECKING = 'CHECKING'; //不通过；
 
   public function __construct() {
     //动态读取配置中的数据库配置   便于后期维护
@@ -50,8 +45,8 @@ class GoodsModel extends PublicModel {
     if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
       $where['status'] = strtoupper($condition['status']);
     }
-    if(redisHashExist('Sku',md5(json_encode($where)))){
-      return json_decode(redisHashGet('Sku',md5(json_encode($where))),true);
+    if (redisHashExist('Sku', md5(json_encode($where)))) {
+      return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
     }
 
     $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
@@ -88,7 +83,7 @@ class GoodsModel extends PublicModel {
           //按语言分组
           $data[$item['lang']] = $item;
         }
-        redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
+        redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
       }
       return $data;
     } catch (Exception $e) {
@@ -235,6 +230,7 @@ class GoodsModel extends PublicModel {
       return [];
     }
   }
+
   /**
    * 根据spu获取sku数   (这里不包括删除的)
    * @author link
@@ -359,7 +355,7 @@ class GoodsModel extends PublicModel {
     }
 
     try {
-     // $count = $this->field("$thistable.id")->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
+      // $count = $this->field("$thistable.id")->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
       $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
       $data = array(
           'lang' => $lang,
@@ -372,7 +368,7 @@ class GoodsModel extends PublicModel {
         //foreach($result as $k=> $item){
         // $result[$k]['cat_name']
         // }
-        $data['count'] = count($result);//$count;
+        $data['count'] = count($result); //$count;
         $data['data'] = $result;
       }
       return $data;
@@ -532,98 +528,55 @@ class GoodsModel extends PublicModel {
     }
     return array();
   }
+
   /**
-   * sku参数处理（门户后台）
-   * @author klp
+   * 根据SPU获取SKU信息
+   * @param string $spu
+   * @param string $lang
    * @return array
    */
-    public function check_data($data=[])
-    {
-      $condition['lang'] = $data['lang'] ? $data['lang']: 'en';
-      $condition['spu'] = $data['spu'] ? $data['spu']: '';
-      $condition['sku'] = $data['sku'] ? $data['sku']: '';
-      $condition['qrcode'] = $data['qrcode'] ? $data['qrcode']: '';
-      $condition['model'] = $data['model'] ? $data['model']: '';
-      $condition['description'] = $data['description'] ? $data['description']: '';
-      $condition['package_quantity'] = $data['package_quantity'] ? $data['package_quantity']: '';
-      $condition['exw_day'] = $data['exw_day'] ? $data['exw_day']: '';
-      $condition['purchase_price1'] = $data['purchase_price1'] ? $data['purchase_price1']: '';
-      $condition['purchase_price2'] = $data['purchase_price2'] ? $data['purchase_price2']: '';
-      $condition['purchase_price_cur'] = $data['purchase_price_cur'] ? $data['purchase_price_cur']: '';
-      $condition['purchase_unit'] = $data['purchase_unit'] ? $data['purchase_unit']: '';
-      $condition['pricing_flag'] = $data['pricing_flag'] ? $data['pricing_flag']: 'N';
-      $condition['created_by'] = $data['created_by'] ? $data['created_by']: '';
-      $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
-      if (isset($data['name'])) {
-        $condition['name'] = $data['name'];
+  public function getskusbyspu($spu, $lang = 'en') {
+    try {
+      $skus = $this->table('erui_goods.t_goods')
+              ->field('sku,`name`,`model`,`show_name`')
+              ->where(['spu' => $spu, 'lang' => $lang, 'status' => 'VALID'])
+              ->select();
+      $ret = [];
+      if ($skus) {
+        return $skus;
       } else {
-        JsonReturn('','-1001','商品名称不能为空');
+        return $ret;
       }
-      if (isset($data['show_name'])) {
-        $condition['show_name'] = $data['show_name'];
-      } else {
-        JsonReturn('','-1001','商品展示名称不能为空');
-      }
-      if(isset($data['status'])){
-          switch ($data['status']) {
-            case self::STATUS_VALID:
-              $condition['status'] = $data['status'];
-              break;
-            case self::STATUS_INVALID:
-              $condition['status'] = $data['status'];
-              break;
-            case self::STATUS_DELETED:
-              $condition['status'] = $data['status'];
-              break;
-          }
-      } else {
-        $condition['status'] = self::STATUS_VALID;
-      }
-      return $condition;
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return [];
     }
+  }
 
-    /**
-     * sku新增（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function createSku($data)
-    {
-      $condition = $this->check_data($data);
-
-      $res = $this->add($condition);
-      if($res){
-        return true;
-      } else{
-        return false;
-      }
-    }
-
-    /**
-     * sku更新（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function updateSku($data,$where)
-    {
-      $condition = $this->check_data($data);
-      if(!empty($where)){
-        return $this->where($where)->save($condition);
+  /**
+   * 根据SPU获取SKU信息
+   * @param string $skus
+   * @param string $lang
+   * @return array
+   */
+  public function getskusbyskus($skus, $lang = 'en') {
+    try {
+      $skuinfos = $this->table('erui_goods.t_goods')
+              ->field('sku,`name`,`model`,`show_name`')
+              ->where(['sku' => $skus, 'lang' => $lang, 'status' => 'VALID'])
+              ->select();
+      $ret = [];
+      if ($skuinfos) {
+        return $skuinfos;
       } else {
-        JsonReturn('','-1001','条件不能为空');
+        return $ret;
       }
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return [];
     }
-    /**
-     * sku删除（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function deleteSku($where)
-    {
-      if(!empty($where)){
-        return $this->where($where)->delete();
-      } else {
-        JsonReturn('','-1001','条件不能为空');
-      }
-    }
+  }
+
 }
