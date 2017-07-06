@@ -849,6 +849,7 @@ class ESClient {
     );
     $searchParams['from'] = $from;
     $searchParams['size'] = $size;
+ 
     try {
       return $this->server->search($searchParams);
     } catch (Exception $ex) {
@@ -973,10 +974,8 @@ class ESClient {
     $params['index'] = $index;
     $params['type'] = $type;
     $params['body']['query']['bool']['must'] = $must;
-
     $params['body']['query']['bool']['must_not'] = $must_not;
     $params['body']['query']['bool']['should'] = $must_not;
-
 
     $results = $this->server->search($params);
     return $results;

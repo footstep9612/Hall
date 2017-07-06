@@ -401,6 +401,8 @@ class EsproductModel extends PublicModel {
               ->field('id,cat_no,name,parent_cat_no')
               ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])
               ->select();
+
+
       if (!$cat3s) {
 
         return [];
@@ -414,9 +416,16 @@ class EsproductModel extends PublicModel {
               ->field('id,cat_no,name,parent_cat_no')
               ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])
               ->select();
-      if (!$cat2s) {
 
-        return [];
+
+      if (!$cat2s) {
+        $newcat3s = [];
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name']];
+        }
+        return $newcat3s;
       }
       foreach ($cat2s as $cat2) {
         $cat1_nos[] = $cat2['parent_cat_no'];
@@ -428,8 +437,20 @@ class EsproductModel extends PublicModel {
               ->select();
       $newcat1s = [];
       if (!$cat1s) {
-
-        return [];
+        $newcat3s = [];
+        $newcat2s = [];
+        foreach ($cat2s as $val) {
+          $newcat2s[$val['cat_no']] = $val;
+        }
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name'],
+              'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+              'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+          ];
+        }
+        return $newcat3s;
       }
       foreach ($cat1s as $val) {
         $newcat1s[$val['cat_no']] = $val;
@@ -665,11 +686,15 @@ class EsproductModel extends PublicModel {
         $cat2s = $this->table('erui_goods.t_show_cat')
                         ->field('id,cat_no,name,parent_cat_no')
                         ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
-      } else {
-        return [];
       }
       if (!$cat2s) {
-        return [];
+        $newcat3s = [];
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
+              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],];
+        }
+        return $newcat3s;
       }
       foreach ($cat2s as $cat2) {
         $cat1_nos[] = $cat2['parent_cat_no'];
@@ -677,16 +702,27 @@ class EsproductModel extends PublicModel {
       if ($cat1_nos) {
         $cat1s = $this->table('erui_goods.t_show_cat')->field('id,cat_no,name')
                         ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
-      } else {
-        return [];
+      }
+
+      $newcat2s = [];
+      foreach ($cat2s as $val) {
+        $newcat2s[$val['cat_no']] = $val;
+      }
+      if (!$cat1s) {
+        $newcat3s = [];
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
+              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+              'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+              'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+          ];
+        }
+        return $newcat3s;
       }
       $newcat1s = [];
       foreach ($cat1s as $val) {
         $newcat1s[$val['cat_no']] = $val;
-      }
-      $newcat2s = [];
-      foreach ($cat2s as $val) {
-        $newcat2s[$val['cat_no']] = $val;
       }
       foreach ($cat3s as $val) {
         $newcat3s[$val['cat_no']] = [
@@ -746,14 +782,25 @@ class EsproductModel extends PublicModel {
   public function getproductattrsbyspus($spus, $lang = 'en') {
     try {
       $products = $this->where(['spu' => ['in', $spus], 'lang' => $lang])
-              ->field('spu,meterial_cat_no')
+              ->field('spu,meterial_cat_no,brand,supplier_id,supplier_name,source,meterial_cat_no')
               ->select();
 
 
+      $brands = [];
+      $supplier_ids = [];
+      $supplier_names = [];
+      $sources = [];
+      $meterial_cat_nos = [];
       $spus = $mcat_nos = [];
       foreach ($products as $item) {
+
         $mcat_nos[] = $item['meterial_cat_no'];
         $spus[] = $item['spu'];
+        $brands[$item['spu']] = $item['brand'];
+        $supplier_ids[$item['spu']] = $item['supplier_id'];
+        $supplier_names[$item['spu']] = $item['supplier_name'];
+        $sources[$item['spu']] = $item['source'];
+        $meterial_cat_nos[$item['spu']] = $item['meterial_cat_no'];
       }
       $spus = array_unique($spus);
       $mcat_nos = array_unique($mcat_nos);
@@ -796,7 +843,11 @@ class EsproductModel extends PublicModel {
         } else {
           $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
         }
-
+        $body['brand'] = $brands[$item['spu']];
+        $body['supplier_id'] = $supplier_ids[$item['spu']];
+        $body['supplier_name'] = $supplier_names[$item['spu']];
+        $body['source'] = $sources[$item['spu']];
+        $body['meterial_cat_no'] = $meterial_cat_nos[$item['spu']];
         $ret[$item['spu']] = $body;
       }
       return $ret;
@@ -1380,6 +1431,96 @@ class EsproductModel extends PublicModel {
     $id = $spu;
     $type = $this->tableName . '_' . $lang;
     $es->update_document($this->dbName, $type, $data, $id);
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_brand($spu, $brand, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    if ($brand) {
+      $data['brand'] = $brand;
+    } else {
+      $data['brand'] = '';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+
+    $esgoodsdata = [
+        "script" => [
+            "inline" => "ctx._source.brand=brand;",
+            "params" => [
+                "brand" => $brand,
+            ]
+        ],
+        "query" => [
+            ESClient::MATCH_PHRASE => [
+                "spu" => $spu
+            ]
+        ]
+    ];
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_spuname($spu, $spuname, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    if ($spuname) {
+      $data['name'] = $spuname;
+    } else {
+      $data['name'] = '';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_supplier_name($spu, $supplier_name, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    if ($supplier_name) {
+      $data['supplier_name'] = $supplier_name;
+    } else {
+      $data['supplier_name'] = '';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+
+    $esgoodsdata = [
+        "script" => [
+            "inline" => "ctx._source.brand=brand;",
+            "params" => [
+                "supplier_name" => $supplier_name,
+            ]
+        ],
+        "query" => [
+            ESClient::MATCH_PHRASE => [
+                "spu" => $spu
+            ]
+        ]
+    ];
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
     return true;
   }
 

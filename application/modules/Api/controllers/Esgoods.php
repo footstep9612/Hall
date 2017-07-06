@@ -30,9 +30,10 @@ class EsgoodsController extends PublicController {
   }
 
   public function listAction() {
-    $this->setLang('zh');
+    
     $model = new EsgoodsModel();
     $ret = $model->getgoods($this->put_data, null, $this->getLang());
+
     if ($ret) {
       $list = [];
       $data = $ret[0];
@@ -163,6 +164,10 @@ class EsgoodsController extends PublicController {
                 "index" => "not_analyzed",
                 "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
             ],
+            'meterial_cat_no' => [
+                'type' => $type_string,
+                "index" => "not_analyzed",
+            ],
             'meterial_cat' => [
                 'type' => $type_string,
                 "analyzer" => $analyzer,
@@ -183,6 +188,31 @@ class EsgoodsController extends PublicController {
                 "search_analyzer" => $analyzer,
                 "include_in_all" => "true",
                 "boost" => 4
+            ],
+            'supplier_id' => [
+                'type' => $type_string,
+                "index" => "not_analyzed",
+            ],
+            'supplier_name' => [
+                'type' => $type_string,
+                "analyzer" => $analyzer,
+                "search_analyzer" => $analyzer,
+                "include_in_all" => "true",
+                "boost" => 1
+            ],
+            'brand' => [
+                'type' => $type_string,
+                "analyzer" => $analyzer,
+                "search_analyzer" => $analyzer,
+                "include_in_all" => "true",
+                "boost" => 2
+            ],
+            'source' => [
+                'type' => $type_string,
+                "analyzer" => $analyzer,
+                "search_analyzer" => $analyzer,
+                "include_in_all" => "true",
+                "boost" => 1
             ],
             'specs' => [
                 'type' => $type_string,
