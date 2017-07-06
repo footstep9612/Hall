@@ -76,7 +76,7 @@ class QuoteModel extends PublicModel {
 			 $where['b.customer_id'] = $condition['customer_id'];
 		 }
 		 if(!empty($condition['start_time']) && !empty($condition['end_time'])){
-			 $where['created_at'] = array(
+			 $where['b.created_at'] = array(
 					 array('gt',date('Y-m-d H:i:s',$condition['start_time'])),
 					 array('lt',date('Y-m-d H:i:s',$condition['end_time']))
 			 );
@@ -147,7 +147,7 @@ class QuoteModel extends PublicModel {
     	$where = $this->getJoinWhere($condition);
     	
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-    		
+
     		return $this->alias('a')
 	    				 ->join($this->joinInquiry, 'LEFT')
 	    				 ->field($this->fieldJoin)
