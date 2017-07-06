@@ -277,7 +277,7 @@ class GoodsModel extends PublicModel {
     $field = "$thistable.pricing_flag,$ptable.meterial_cat_no,$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
     $where = array();
-    $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
+    $current_no = isset($condition['currentPage']) ? $condition['currentPage'] : 1;
     $pagesize = isset($condition['pagesize']) ? $condition['pagesize'] : 10;
     //spu 编码
     if (isset($condition['spu']) && !empty($condition['spu'])) {
