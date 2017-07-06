@@ -339,6 +339,9 @@ class ExcelController extends Yaf_Controller_Abstract
             mkdir($savePath, 0775, true);
         }
         $saveName = $savePath.$filename;
+        if (!is_writable($saveName)) {
+            chmod($saveName, 0777);
+        }
         $obj->save($saveName);
         return $saveName;
     }
