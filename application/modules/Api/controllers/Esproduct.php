@@ -98,6 +98,17 @@ class EsproductController extends PublicController {
         } else {
           $list[$key]['img'] = null;
         }
+        $show_cats = json_decode($item["_source"]["show_cats"], true);
+        if ($show_cats) {
+          rsort($show_cats);
+        }
+        $list[$key]['show_cats'] = $show_cats;
+        $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
+        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
+        $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+        $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
         $list[$key]['id'] = $item['_id'];
       }
       $material_cat_nos = [];
