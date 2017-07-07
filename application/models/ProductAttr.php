@@ -11,7 +11,7 @@ class ProductAttrModel extends PublicModel {
     //状态
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
-    const STATUS_DELETE = 'DELETE'; //删除；
+    const STATUS_DELETED = 'DELETED'; //删除；
 
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
@@ -190,4 +190,101 @@ class ProductAttrModel extends PublicModel {
         }
     }
 
+    /**
+     * spu属性参数处理（门户后台）
+     * @author klp
+     * @return array
+     */
+    public function check_data($data=[])
+    {
+        $condition['lang'] = $data['lang'] ? $data['lang']: 'en';
+        $condition['spu'] = $data['spu'] ? $data['spu']: '';
+        $condition['attr_value_type'] = $data['attr_value_type'] ? $data['attr_value_type']: 'String';
+        $condition['attr_value'] = $data['attr_value'] ? $data['attr_value']: '';
+        $condition['value_unit'] = $data['value_unit'] ? $data['value_unit']: 'Empty String';
+        $condition['goods_flag'] = $data['goods_flag'] ? $data['goods_flag']: 'Y';
+        $condition['spec_flag'] = $data['spec_flag'] ? $data['spec_flag']: 'N';
+        $condition['logi_flag'] = $data['logi_flag'] ? $data['logi_flag']: 'N';
+        $condition['hs_flag'] = $data['hs_flag'] ? $data['hs_flag']: 'N';
+        $condition['attr_group'] = $data['attr_group'] ? $data['attr_group']: '';
+        $condition['sort_order'] = $data['sort_order'] ? $data['sort_order']: '1';
+        $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
+        if (isset($data['attr_no'])) {
+            $condition['attr_no'] = $data['attr_no'];
+        } else {
+            JsonReturn('','-1001','属性编码不能为空');
+        }
+        if (isset($data['attr_name'])) {
+            $condition['attr_name'] = $data['attr_name'];
+        } else {
+            JsonReturn('','-1001','属性名称不能为空');
+        }
+        if (isset($data['created_by'])) {
+            $condition['created_by'] = $data['created_by'];
+        } else {
+            JsonReturn('','-1001','审核人不能为空');
+        }
+        if(isset($data['status'])){
+            switch ($data['status']) {
+                case self::STATUS_VALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_DELETED:
+                    $condition['status'] = $data['status'];
+                    break;
+            }
+        } else {
+            JsonReturn('','-1001','状态不能为空');
+        }
+        return $condition;
+    }
+
+    /**
+     * spu属性新增（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function createSpuAttr($data)
+    {
+        $arr = [];
+        foreach($data as $value){
+            $arr[] = $this->check_data($value);
+        }
+        $res = $this->addAll($arr);
+        if($res){
+            return true;
+        } else{
+            return false;
+        }
+    }
+    /**
+     * spu属性更新（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function updateSpu($data,$where)
+    {
+        $condition = $this->check_data($data);
+        if(!empty($where)){
+            return $this->where($where)->save($condition);
+        } else {
+            JsonReturn('','-1001','条件不能为空');
+        }
+    }
+    /**
+     * spu属性删除（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function deleteSpu($where)
+    {
+        if(!empty($where)){
+            return $this->where($where)->delete();
+        } else {
+            JsonReturn('','-1001','条件不能为空');
+        }
+    }
 }

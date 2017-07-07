@@ -389,7 +389,7 @@ class ProductModel extends PublicModel {
     public function check_data($data=[])
     {
         $condition['lang'] = $data['lang'] ? $data['lang']: 'en';
-        $condition['spu'] = $data['spu'] ? $data['spu']: '';
+//        $condition['spu'] = $data['spu'] ? $data['spu']: '';
         $condition['qrcode'] = $data['qrcode'] ? $data['qrcode']: '';
         $condition['keywords'] = $data['keywords'] ? $data['keywords']: '';
         $condition['exe_standard'] = $data['exe_standard'] ? $data['exe_standard']: '';
@@ -419,6 +419,11 @@ class ProductModel extends PublicModel {
         $condition['updated_at'] = $data['updated_at'] ? $data['updated_at']: '';
         $condition['checked_by'] = $data['checked_by'] ? $data['checked_by']: '';
         $condition['checked_at'] = $data['checked_at'] ? $data['checked_at']: '';
+        if (isset($data['spu'])) {
+            $condition['spu'] = $data['spu'];
+        } else {
+            JsonReturn('','-1001','spu编号不能为空');
+        }
         if (isset($data['meterial_cat_no'])) {
             $condition['meterial_cat_no'] = $data['meterial_cat_no'];
         } else {

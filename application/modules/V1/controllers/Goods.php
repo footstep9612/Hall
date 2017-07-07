@@ -1,5 +1,6 @@
 <?php
-class GoodsController extends PublicController
+//class GoodsController extends PublicController
+class GoodsController extends Yaf_Controller_Abstract
 {
     private $input;
 
@@ -138,23 +139,52 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-     * sku新建模板表(pc)
-     * @author  klp  2017/6/22
+     * 获取公共模板表
+     * @author  klp  2017/7/6
      */
-    public function getTplAction()
+    public function getCommonTplAction()
     {
-        $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['spu'])){
-            $spu = $data['spu'];
-        } else{
-            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
-        }
-        $type = !empty($data['attr_type'])? $data['attr_type'] : '';
+        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
         $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getAttrTpl();
+        $result = $goodsTplModel->getCommonAttrTpl($lang);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
+        }
     }
 
-
+    /**
+     * 获取sku模板表
+     * @author  klp  2017/7/6
+     */
+    public function getGoodsAttrTplAction()
+    {
+        //$this->input['sku'] = 3303060000010001;//测试
+        if(!empty($this->input['sku'])){
+            $sku = $this->input['sku'];
+        } else{
+            jsonReturn('','-1001','sku不可以为空');
+        }
+        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
+        $goodsTplModel = new GoodsAttrTplModel();
+        $result = $goodsTplModel->getGoodsAttrTpl($sku,$lang);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
+        }
+    }
     /**
      * sku新增  -- 门户
      * @author  klp  2017/7-5
@@ -175,16 +205,25 @@ class GoodsController extends PublicController
         }
         exit;
     }
-    //测试
-    public function catAction()
+    /**
+     * sku供应商信息  -- 门户
+     * @author  klp  2017/7-6
+     */
+    public function getSupplierInfoAction()
     {
-        $sku = 'sku002';
-        $goods = new GoodsModel();
-        $result = $goods->getInfo($sku,'');
-        var_dump($result);
-       /* $spu = 3303060000010000;
-        $ProductModel = new ProductModel();
-        $brand = $ProductModel->getBrandBySpu($spu,'en');*/
-        //var_dump($brand);
+        $SupplierAccountModel = new SupplierAccountModel();
+        $result = $SupplierAccountModel->getInfo($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
+        }
+        exit;
     }
+
 }

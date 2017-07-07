@@ -85,15 +85,14 @@ class GoodsAttachModel extends PublicModel
      */
     public function check_data($data=[])
     {
-        $condition['sku'] = $data['sku'] ? $data['sku']: '';
-        $condition['attach_type'] = $data['attach_type'] ? $data['attach_type']: 'BIG_IMAGE';
-        $condition['attach_name'] = $data['attach_name'] ? $data['attach_name']: '';
+//        $condition['sku'] = $data['sku'] ? $data['sku']: '';
+//        $condition['attach_name'] = $data['attach_name'] ? $data['attach_name']: '';
         $condition['sort_order'] = $data['sort_order'] ? $data['sort_order']: 0;
         $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
-        if (isset($data['attach_url'])) {
-            $condition['attach_url'] = $data['attach_url'];
+        if (isset($data['sku'])) {
+            $condition['sku'] = $data['sku'];
         } else {
-            JsonReturn('','-1001','文件地址不能为空');
+            JsonReturn('','-1001','sku编号不能为空');
         }
         if(isset($data['status'])){
             switch ($data['status']) {
@@ -110,7 +109,50 @@ class GoodsAttachModel extends PublicModel
         } else {
             $condition['status'] = self::STATUS_VALID;
         }
-        return $condition;
+        //附件组处理
+        $attachs = array();
+        if (is_array($condition['SMALL_IMAGE'])) {
+            foreach ($condition['SMALL_IMAGE'] as $v) {
+                $condition['attach_type'] = 'SMALL_IMAGE';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['BIG_IMAGE'])) {
+            foreach ($condition['BIG_IMAGE'] as $v) {
+                $condition['attach_type'] = 'BIG_IMAGE';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['MIDDLE_IMAGE'])) {
+            foreach ($condition['MIDDLE_IMAGE'] as $v) {
+                $condition['attach_type'] = 'MIDDLE_IMAGE';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['DOC'])) {
+            foreach ($condition['DOC'] as $v) {
+                $condition['attach_type'] = 'DOC';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        }
+        return $attachs;
     }
 
     /**
@@ -120,10 +162,8 @@ class GoodsAttachModel extends PublicModel
      */
     public function createSkuAttach($data)
     {
-        $arr = [];
-        foreach($data as $value){
-            $arr[] = $this->check_data($value);
-        }
+        $arr = $this->check_data($data);
+
         $res = $this->addAll($arr);
         if($res){
             return true;
@@ -136,9 +176,9 @@ class GoodsAttachModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function updateSku($data,$where)
+    public function updateSkuAttach($data,$where)
     {
-        $condition = $this->check_data($data);
+        $condition = $this->check_up($data);
         if(!empty($where)){
             return $this->where($where)->save($condition);
         } else {
@@ -146,16 +186,84 @@ class GoodsAttachModel extends PublicModel
         }
     }
     /**
+     * sku附件更新参数处理（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function check_up($data)
+    {
+        $condition = [];
+        if (isset($data['sku'])) {
+            $condition['sku'] = $data['sku'];
+        } else {
+            JsonReturn('','-1001','sku编号不能为空');
+        }
+        if (isset($data['sort_order'])) {$condition['sort_order'] = $data['sort_order'];}
+        if (isset($data['status'])) {$condition['status'] = strtoupper($data['status']);}
+        //附件组处理
+        $attachs = array();
+        if (is_array($data['SMALL_IMAGE'])) {
+            foreach ($data['SMALL_IMAGE'] as $v) {
+                if (isset($v['attach_name'])) {
+                    $condition['attach_name'] = $v['attach_name'];
+                }
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['BIG_IMAGE'])) {
+            foreach ($condition['BIG_IMAGE'] as $v) {
+                if (isset($v['attach_name'])) {
+                    $condition['attach_name'] = $v['attach_name'];
+                }
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['MIDDLE_IMAGE'])) {
+            foreach ($condition['MIDDLE_IMAGE'] as $v) {
+                if (isset($v['attach_name'])) {
+                    $condition['attach_name'] = $v['attach_name'];
+                }
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                }
+                $attachs[] = $condition;n;
+            }
+        } elseif (is_array($condition['DOC'])) {
+            foreach ($condition['DOC'] as $v) {
+                if (isset($v['attach_name'])) {
+                    $condition['attach_name'] = $v['attach_name'];
+                }
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                }
+                $attachs[] = $condition;;
+            }
+        }
+        return $attachs;
+    }
+    /**
      * sku附件删除（门户后台）
      * @author klp
      * @return bool
      */
-    public function deleteSku($where)
+    public function deleteSku($delData)
     {
-        if(!empty($where)){
-            return $this->where($where)->delete();
-        } else {
-            JsonReturn('','-1001','条件不能为空');
+        $where = [];
+        if(isset($delData['sku'])){
+            $where['sku'] = $delData['sku'];
+        }else{
+            JsonReturn('','-1001','sku不能为空');
+        }
+        try{
+            return $this->where($where)->save(['status' => 'DELETED']);
+        } catch(Exception $e){
+//            $results['code'] = $e->getCode();
+//            $results['message'] = $e->getMessage();
+            return false;
         }
     }
 }

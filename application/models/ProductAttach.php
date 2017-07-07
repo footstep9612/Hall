@@ -130,4 +130,133 @@ class ProductAttachModel extends PublicModel{
         $data['created_at'] = date('Y-m-d H:i:s',time());
         return $this->add($data);
     }
+
+    /**
+     * spu附件参数处理（门户后台）
+     * @author klp
+     * @return array
+     */
+    public function check_data($data=[])
+    {
+//        $condition['spu'] = $data['sku'] ? $data['spu']: '';
+//        $condition['attach_type'] = $data['attach_type'] ? $data['attach_type']: 'BIG_IMAGE';
+        $condition['attach_name'] = $data['attach_name'] ? $data['attach_name']: '';
+        $condition['sort_order'] = $data['sort_order'] ? $data['sort_order']: 0;
+        $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
+        if (isset($data['spu'])) {
+            $condition['spu'] = $data['spu'];
+        } else {
+            JsonReturn('','-1001','spu编号不能为空');
+        }
+        if (isset($data['attach_url'])) {
+            $condition['attach_url'] = $data['attach_url'];
+        } else {
+            JsonReturn('','-1001','文件地址不能为空');
+        }
+        if(isset($data['status'])){
+            switch ($data['status']) {
+                case self::STATUS_VALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_DELETED:
+                    $condition['status'] = $data['status'];
+                    break;
+            }
+        } else {
+            $condition['status'] = self::STATUS_VALID;
+        }
+        //附件组处理
+        $attachs = array();
+        if (is_array($condition['SMALL_IMAGE'])) {
+            foreach ($condition['SMALL_IMAGE'] as $v) {
+                $condition['attach_type'] = 'SMALL_IMAGE';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['BIG_IMAGE'])) {
+            foreach ($condition['BIG_IMAGE'] as $v) {
+                $condition['attach_type'] = 'BIG_IMAGE';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['MIDDLE_IMAGE'])) {
+            foreach ($condition['MIDDLE_IMAGE'] as $v) {
+                $condition['attach_type'] = 'MIDDLE_IMAGE';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        } elseif (is_array($condition['DOC'])) {
+            foreach ($condition['DOC'] as $v) {
+                $condition['attach_type'] = 'DOC';
+                if (isset($data['attach_url'])) {
+                    $condition['attach_url'] = $v['attach_url'];
+                } else {
+                    JsonReturn('','-1001','文件地址不能为空');
+                }
+                $attachs[] = $condition;
+            }
+        }
+        return $attachs;
+    }
+
+    /**
+     * spu附件新增（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function createSpuAttach($data)
+    {
+        $arr = [];
+        foreach($data as $value){
+            $arr[] = $this->check_data($value);
+        }
+        $res = $this->addAll($arr);
+        if($res){
+            return true;
+        } else{
+            return false;
+        }
+    }
+    /**
+     * spu附件更新（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function updateSpu($data,$where)
+    {
+        //$condition = $this->check_data($data);
+        if(!empty($where)){
+            return $this->where($where)->save($condition);
+        } else {
+            JsonReturn('','-1001','条件不能为空');
+        }
+    }
+    /**
+     * spu附件删除（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function deleteSpu($where)
+    {
+        if(!empty($where)){
+            return $this->where($where)->delete();
+        } else {
+            JsonReturn('','-1001','条件不能为空');
+        }
+    }
 }

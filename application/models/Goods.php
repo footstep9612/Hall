@@ -383,7 +383,7 @@ class GoodsModel extends PublicModel {
 
   /**
 
-   * 新增数据
+   * 更新数据
    * @param  mix $createcondition 新增条件
    * @return bool
    * @author klp
@@ -540,8 +540,8 @@ class GoodsModel extends PublicModel {
     public function check_data($data=[])
     {
       $condition['lang'] = $data['lang'] ? $data['lang']: 'en';
-      $condition['spu'] = $data['spu'] ? $data['spu']: '';
-      $condition['sku'] = $data['sku'] ? $data['sku']: '';
+      //$condition['spu'] = $data['spu'] ? $data['spu']: '';
+      //$condition['sku'] = $data['sku'] ? $data['sku']: '';
       $condition['qrcode'] = $data['qrcode'] ? $data['qrcode']: '';
       $condition['model'] = $data['model'] ? $data['model']: '';
       $condition['description'] = $data['description'] ? $data['description']: '';
@@ -554,6 +554,16 @@ class GoodsModel extends PublicModel {
       $condition['pricing_flag'] = $data['pricing_flag'] ? $data['pricing_flag']: 'N';
       $condition['created_by'] = $data['created_by'] ? $data['created_by']: '';
       $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
+      if (isset($data['spu'])) {
+        $condition['spu'] = $data['spu'];
+      } else {
+        JsonReturn('','-1001','spu编号不能为空');
+      }
+      if (isset($data['sku'])) {
+        $condition['sku'] = $data['sku'];
+      } else {
+        JsonReturn('','-1001','sku编号不能为空');
+      }
       if (isset($data['name'])) {
         $condition['name'] = $data['name'];
       } else {
@@ -592,6 +602,7 @@ class GoodsModel extends PublicModel {
       $condition = $this->check_data($data);
 
       $res = $this->add($condition);
+
       if($res){
         return true;
       } else{
@@ -606,24 +617,110 @@ class GoodsModel extends PublicModel {
      */
     public function updateSku($data,$where)
     {
-      $condition = $this->check_data($data);
+      $condition = $this->check_up($data);
       if(!empty($where)){
         return $this->where($where)->save($condition);
       } else {
         JsonReturn('','-1001','条件不能为空');
       }
     }
+
     /**
-     * sku删除（门户后台）
+     * sku更新参数处理（门户后台）
      * @author klp
      * @return bool
      */
-    public function deleteSku($where)
+    public function check_up($data)
     {
-      if(!empty($where)){
-        return $this->where($where)->delete();
+      if (isset($data['sku'])) {
+        $condition['sku'] = $data['sku'];
       } else {
-        JsonReturn('','-1001','条件不能为空');
+        JsonReturn('','-1001','sku编号不能为空');
+      }
+      if (isset($data['lang'])) {
+        $condition['lang'] = $data['lang'];
+      } else {
+        JsonReturn('','-1001','lang不能为空');
+      }
+      if (isset($data['model'])) {
+        $condition['model'] = $data['model'];
+      }
+      if (isset($data['description'])) {
+        $condition['description'] = $data['description'];
+      }if (isset($data['package_quantity'])) {
+      $condition['package_quantity'] = $data['package_quantity'];
+    }
+      if (isset($data['exw_day'])) {$condition['exw_day'] = $data['exw_day'];}
+      if (isset($data['purchase_price1'])) {$condition['purchase_price1'] = $data['purchase_price1'];}
+      if (isset($data['purchase_price2'])) {$condition['purchase_price2'] = $data['purchase_price2'];}
+      if (isset($data['purchase_price_cur'])) {$condition['purchase_price_cur'] = $data['purchase_price_cur'];}
+      if (isset($data['purchase_unit'])) {$condition['purchase_unit'] = $data['purchase_unit'];}
+      if (isset($data['pricing_flag'])) {$condition['pricing_flag'] = $data['pricing_flag'];}
+      if (isset($data['status'])) {$condition['status'] = strtoupper($data['status']);}
+    }
+    /**
+     * sku软删除（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function deleteSku($delData)
+    {
+      $where = []; $status = [];
+      if(isset($delData['lang'])){
+        $where['lang'] = $delData['lang'];
+      }
+      if(isset($delData['sku'])){
+        $where['sku'] = array('in',explode(',',$delData['sku']));
+      }else{
+        JsonReturn('','-1001','sku不能为空');
+      }
+      if(isset($delData['status'])){
+        $status['status'] = strtoupper($delData['status']);
+      }
+      try {
+        $result = $this->where($where)->save($status);
+        if(isset($result)){
+          return true;
+        }else{
+          return false;
+        }
+      } catch (Exception $e) {
+//        $results['code'] = $e->getCode();
+//        $results['message'] = $e->getMessage();
+        return false;
       }
     }
+    /**
+     * sku真实删除（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function deleteRealSku($delData)
+    {
+      $where = []; $status = [];
+      if(isset($delData['lang'])){
+        $where['lang'] = $delData['lang'];
+      }
+      if(isset($delData['sku'])){
+        $where['sku'] = array('in',explode(',',$delData['sku']));
+      }else{
+        JsonReturn('','-1001','sku不能为空');
+      }
+      if(isset($delData['status'])){
+        $status['status'] = strtoupper($delData['status']);
+      }
+      try {
+        $result = $this->where($where)->save(['status' => 'DELETED']);
+        if(isset($result)){
+          return true;
+        }else{
+          return false;
+        }
+      } catch (Exception $e) {
+//        $results['code'] = $e->getCode();
+//        $results['message'] = $e->getMessage();
+        return false;
+      }
+    }
+
 }

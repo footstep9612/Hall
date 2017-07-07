@@ -350,29 +350,30 @@ class GoodsAttrModel extends PublicModel
     public function check_data($data=[])
     {
         $condition['lang'] = $data['lang'] ? $data['lang']: 'en';
-        $condition['spu'] = $data['spu'] ? $data['spu']: '';
-        $condition['sku'] = $data['sku'] ? $data['sku']: '';
+//        $condition['spu'] = $data['spu'] ? $data['spu']: '';
+//        $condition['sku'] = $data['sku'] ? $data['sku']: '';
         $condition['attr_value_type'] = $data['attr_value_type'] ? $data['attr_value_type']: 'String';
         $condition['attr_value'] = $data['attr_value'] ? $data['attr_value']: '';
         $condition['value_unit'] = $data['value_unit'] ? $data['value_unit']: 'Empty String';
-        $condition['goods_flag'] = $data['goods_flag'] ? $data['goods_flag']: 'Y';
-        $condition['spec_flag'] = $data['spec_flag'] ? $data['spec_flag']: 'N';
-        $condition['logi_flag'] = $data['logi_flag'] ? $data['logi_flag']: 'N';
-        $condition['hs_flag'] = $data['hs_flag'] ? $data['hs_flag']: 'N';
         $condition['required_flag'] = $data['required_flag'] ? $data['required_flag']: 'N';
         $condition['search_flag'] = $data['search_flag'] ? $data['search_flag']: 'Y';
         $condition['attr_group'] = $data['attr_group'] ? $data['attr_group']: '';
         $condition['sort_order'] = $data['sort_order'] ? $data['sort_order']: '1';
         $condition['created_at'] = $data['created_at'] ? $data['created_at']: date('Y-m-d H:i:s');
+        if (isset($data['spu'])) {
+            $condition['spu'] = $data['spu'];
+        } else {
+            JsonReturn('','-1001','spu编号不能为空');
+        }
+        if (isset($data['sku'])) {
+            $condition['sku'] = $data['sku'];
+        } else {
+            JsonReturn('','-1001','sku编号不能为空');
+        }
         if (isset($data['attr_no'])) {
             $condition['attr_no'] = $data['attr_no'];
         } else {
             JsonReturn('','-1001','属性编码不能为空');
-        }
-        if (isset($data['attr_name'])) {
-            $condition['attr_name'] = $data['attr_name'];
-        } else {
-            JsonReturn('','-1001','属性名称不能为空');
         }
         if (isset($data['created_by'])) {
             $condition['created_by'] = $data['created_by'];
@@ -394,7 +395,66 @@ class GoodsAttrModel extends PublicModel
         } else {
             JsonReturn('','-1001','状态不能为空');
         }
-        return $condition;
+        //属性组处理
+        $attrs = array();
+        if (is_array($condition['goods_flag'])) {
+            foreach ($condition['goods_flag'] as $v) {
+                $condition['goods_flag'] = 'Y';
+                $condition['spec_flag'] = 'N';
+                $condition['logi_flag'] = 'N';
+                $condition['hs_flag'] = 'N';
+                $condition['attr_value'] = $v['attr_value'] ? $v['attr_value']: '';
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        } elseif (is_array($condition['spec_flag'])) {
+            foreach ($condition['spec_flag'] as $v) {
+                $v['goods_flag'] = 'N';
+                $v['spec_flag'] = 'Y';
+                $v['logi_flag'] = 'N';
+                $v['hs_flag'] = 'N';
+                $condition['attr_value'] = $v['attr_value'] ? $v['attr_value']: '';
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        } elseif (is_array($condition['logi_flag'])) {
+            foreach ($condition['logi_flag'] as $v) {
+                $v['goods_flag'] = 'N';
+                $v['spec_flag'] = 'N';
+                $v['logi_flag'] = 'Y';
+                $v['hs_flag'] = 'N';
+                $condition['attr_value'] = $v['attr_value'] ? $v['attr_value']: '';
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        } elseif (is_array($condition['hs_flag'])) {
+            foreach ($condition['hs_flag'] as $v) {
+                $v['goods_flag'] = 'N';
+                $v['spec_flag'] = 'N';
+                $v['logi_flag'] = 'N';
+                $v['hs_flag'] = 'Y';
+                $condition['attr_value'] = $v['attr_value'] ? $v['attr_value']: '';
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        }
+        return $attrs;
     }
 
     /**
@@ -404,10 +464,7 @@ class GoodsAttrModel extends PublicModel
      */
     public function createSkuAttr($data)
     {
-        $arr = [];
-        foreach($data as $value){
-            $arr[] = $this->check_data($value);
-        }
+        $arr = $this->check_data($data);
         $res = $this->addAll($arr);
         if($res){
             return true;
@@ -420,27 +477,115 @@ class GoodsAttrModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function updateSku($data,$where)
+    public function updateSkuAttr($data,$where)
     {
-        $condition = $this->check_data($data);
+        $condition = $this->check_up($data);
         if(!empty($where)){
             return $this->where($where)->save($condition);
         } else {
             JsonReturn('','-1001','条件不能为空');
         }
     }
+
+    /**
+     * sku属性更新参数处理（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function check_up($data)
+    {
+        $condition = [];
+        if (isset($data['sku'])) {
+            $condition['sku'] = $data['sku'];
+        } else {
+            JsonReturn('','-1001','sku编号不能为空');
+        }
+        if (isset($data['lang'])) {
+            $condition['lang'] = $data['lang'];
+        } else {
+            JsonReturn('','-1001','lang不能为空');
+        }
+        if (isset($data['spu'])) {$condition['spu'] = $data['spu'];}
+        if (isset($data['attr_no'])) {$condition['attr_no'] = $data['attr_no'];}
+//        if (isset($data['attr_name'])) {$condition['attr_name'] = $data['attr_name'];}
+//        if (isset($data['attr_value_type'])) {$condition['attr_value_type'] = $data['attr_value_type'];}
+//        if (isset($data['attr_value'])) {$condition['attr_value'] = $data['attr_value'];}
+        if (isset($data['value_unit'])) {$condition['value_unit'] = $data['value_unit'];}
+        if (isset($data['required_flag'])) {$condition['required_flag'] = $data['required_flag'];}
+        if (isset($data['search_flag'])) {$condition['search_flag'] = $data['search_flag'];}
+        if (isset($data['attr_group'])) {$condition['attr_group'] = $data['attr_group'];}
+        if (isset($data['sort_order'])) {$condition['sort_order'] = $data['sort_order'];}
+        if (isset($data['status'])) {$condition['status'] = strtoupper($data['status']);}
+
+        //属性组处理
+        $attrs = array();
+        if (is_array($data['goods_flag'])) {
+            foreach ($data['goods_flag'] as $v) {
+                if (isset($data['attr_value'])) {$condition['attr_value'] = $data['attr_value'];}
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        } elseif (is_array($data['spec_flag'])) {
+            foreach ($data['spec_flag'] as $v) {
+                if (isset($data['attr_value'])) {$condition['attr_value'] = $data['attr_value'];}
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        } elseif (is_array($data['logi_flag'])) {
+            foreach ($data['logi_flag'] as $v) {
+                if (isset($data['attr_value'])) {$condition['attr_value'] = $data['attr_value'];}
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        } elseif (is_array($data['hs_flag'])) {
+            foreach ($data['hs_flag'] as $v) {
+                if (isset($data['attr_value'])) {$condition['attr_value'] = $data['attr_value'];}
+                if (isset($v['attr_name'])) {
+                    $condition['attr_name'] = $v['attr_name'];
+                } else {
+                    JsonReturn('','-1001','属性名称不能为空');
+                }
+                $attrs[] = $condition;
+            }
+        }
+        return $attrs;
+    }
     /**
      * sku属性删除（门户后台）
      * @author klp
      * @return bool
      */
-    public function deleteSku($where)
+    public function deleteSkuAttr($delData)
     {
-        if(!empty($where)){
-            return $this->where($where)->delete();
-        } else {
-            JsonReturn('','-1001','条件不能为空');
+        $where = [];
+        if(isset($delData['lang'])){
+            $where['lang'] = $delData['lang'];
         }
+        if(isset($delData['sku'])){
+            $where['sku'] = $delData['sku'];
+        }else{
+            JsonReturn('','-1001','sku不能为空');
+        }
+        try{
+            return $this->where($where)->save(['status' => 'DELETED']);
+        } catch(Exception $e){
+//            $results['code'] = $e->getCode();
+//            $results['message'] = $e->getMessage();
+            return false;
+        }
+
     }
 
 }
