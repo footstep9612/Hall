@@ -227,13 +227,25 @@ class ShowCatModel extends PublicModel {
         $cat3 = $this->field('id,cat_no,name')
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
-        $cat2 = $this->field('id,cat_no,name')
-                ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
-                ->find();
-        $cat1 = $this->field('id,cat_no,name')
-                ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
-                ->find();
-        return [$cat1['cat_no'], $cat1['name'], $cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
+        if ($cat3) {
+          $cat2 = $this->field('id,cat_no,name')
+                  ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                  ->find();
+        } else {
+          return [];
+        }
+        if ($cat2) {
+          $cat1 = $this->field('id,cat_no,name')
+                  ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                  ->find();
+        } else {
+          return ['cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        }
+        if ($cat1) {
+          return ['cat_no1' => $cat1['cat_no'], 'cat_name1' => $cat1['name'], 'cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        } else {
+          return ['cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        }
       } else {
         return [];
       }
