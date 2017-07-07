@@ -31,9 +31,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
             }
-            if($jsondata['action_url']){
 
-            }
             $data = $this->getRequest()->getPost();
             if (!empty($data["token"])) {
                 $token = $data["token"];
@@ -44,7 +42,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     $tks = explode('.', $token);
                     $tokeninfo = JwtInfo($token); //解析token
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
-
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
@@ -54,7 +51,25 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
-
+                        //权限控制
+                        if(redisExist('role_user_'.$userinfo['user_id'])){
+                            $arr = json_decode(redisGet('role_user_'.$userinfo['user_id']),true);
+                        }else{
+                            $role_user = new RoleUserModel();
+                            $where['user_id'] = $userinfo['id'];
+                            $data = $role_user->getRolesArray($where);
+                            $arr = [];
+                            if($data[0]['url'] ){
+                                $arr=explode(',',$data[0]['url'] );
+                                redisSet('role_user_'.$userinfo['user_id'],json_encode($arr),300);
+                            }
+                        }
+                        if(!in_array(strtolower($jsondata['action_url']),$arr)){
+                            echo json_encode(array("code" => "-1111", "message" => "未获得授权"));
+                            exit;
+                        }
+                            //}
+                        //}
                     }
                 } catch (Exception $e) {
                     LOG::write($e->getMessage());
