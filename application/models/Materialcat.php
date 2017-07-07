@@ -190,14 +190,14 @@ class MaterialcatModel extends PublicModel {
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
         if ($cat3) {
-          $cat2 = $this->field('id,cat_no,name')
+          $cat2 = $this->field('id,cat_no,name,parent_cat_no')
                   ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                   ->find();
         } else {
           return [];
         }
         if ($cat2) {
-          $cat1 = $this->field('id,cat_no,name')
+          $cat1 = $this->field('id,cat_no,name,parent_cat_no')
                   ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                   ->find();
         } else {
