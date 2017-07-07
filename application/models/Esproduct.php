@@ -1325,15 +1325,11 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function Updatemeterialcatno($meterialcatno, $spu, $lang = 'en') {
+  public function Updatemeterialcatno($material_cat_no, $spu = null, $lang = 'en') {
     $es = new ESClient();
-    if (empty($spu)) {
+    if (empty($material_cat_no)) {
       return false;
     }
-    if (empty($meterialcatno)) {
-      return false;
-    }
-    $id = $spu;
     $type = $this->tableName . '_' . $lang;
     $mcatmodel = new MaterialcatModel();
     $data['meterial_cat'] = json_encode($mcatmodel->getinfo($material_cat_no, $lang), 256);
@@ -1344,22 +1340,61 @@ class EsproductModel extends PublicModel {
     $SupplycapabilityModel = new SupplycapabilityModel();
     $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$material_cat_no], $lang);
     $data['supply_capabilitys'] = json_encode($supply_capabilitys[$material_cat_no], 256);
-    $es->update_document($this->dbName, $type, $data, $id);
-
-    $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
-            "params" => [
-                "meterial_cat" => $data['meterial_cat'],
-                "show_cats" => $data['show_cats'],
-            ]
-        ],
-        "query" => [
-            ESClient::MATCH_PHRASE => [
-                "spu" => $spu
-            ]
-        ]
-    ];
+    $data['material_cat_no'] = $material_cat_no;
+    if ($spu) {
+      $id = $spu;
+      $es->update_document($this->dbName, $type, $data, $id);
+    } else {
+      $es_product_data = [
+          "script" => [
+              "inline" => "ctx._source.meterial_cat=meterial_cat;"
+              . "ctx._source.show_cats=show_cats;"
+              . "ctx._source.supply_capabilitys=supply_capabilitys;",
+              "params" => [
+                  "meterial_cat" => $data['meterial_cat'],
+                  "show_cats" => $data['show_cats'],
+                  'material_cat_no' => $material_cat_no,
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "material_cat_no" => $material_cat_no
+              ]
+          ]
+      ];
+      $es->UpdateByQuery($this->dbName, 'product_' . $lang, $es_product_data);
+    }
+    if ($spu) {
+      $esgoodsdata = [
+          "script" => [
+              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
+              "params" => [
+                  "meterial_cat" => $data['meterial_cat'],
+                  "show_cats" => $data['show_cats'],
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "spu" => $spu
+              ]
+          ]
+      ];
+    } else {
+      $esgoodsdata = [
+          "script" => [
+              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
+              "params" => [
+                  "meterial_cat" => $data['meterial_cat'],
+                  "show_cats" => $data['show_cats'],
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "material_cat_no" => $material_cat_no
+              ]
+          ]
+      ];
+    }
     $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
     return true;
   }
