@@ -18,7 +18,6 @@ class GoodsController extends PublicController
      * @author link 2017-06-26
      */
     public function infoBaseAction(){
-        $this->input['sku'] = '3303060000010001';
         if(empty($this->input['sku'])){
             jsonReturn('','1000');
         }
