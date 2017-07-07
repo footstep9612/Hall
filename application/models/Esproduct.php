@@ -691,9 +691,10 @@ class EsproductModel extends PublicModel {
       if (!$cat2s) {
         $newcat3s = [];
         foreach ($cat3s as $val) {
-          $newcat3s[$val['cat_no']] = [
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],];
+          $newcat3s[] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name']
+          ];
         }
         return $newcat3s;
       }
@@ -712,9 +713,9 @@ class EsproductModel extends PublicModel {
       if (!$cat1s) {
         $newcat3s = [];
         foreach ($cat3s as $val) {
-          $newcat3s[$val['cat_no']] = [
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+          $newcat3s[] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name'],
               'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
               'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
           ];
@@ -726,9 +727,9 @@ class EsproductModel extends PublicModel {
         $newcat1s[$val['cat_no']] = $val;
       }
       foreach ($cat3s as $val) {
-        $newcat3s[$val['cat_no']] = [
+        $newcat3s[] = [
             'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-            'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+            'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
             'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
             'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
             'cat_no3' => $val['cat_no'],

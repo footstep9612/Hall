@@ -116,7 +116,7 @@ class MaterialcatModel extends PublicModel {
                       //  ->field('id,user_id,name,email,mobile,status')
                       ->count('id');
     } catch (Exception $ex) {
-      Log::write($ex->getMessage(), $level_no);
+      Log::write($ex->getMessage(), Log::ERR);
       return false;
     }
   }
@@ -249,6 +249,42 @@ class MaterialcatModel extends PublicModel {
       $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
     }
     return $flag;
+  }
+
+  /**
+   * 交换分类排序
+   * @param string $cat_no 交换的分类编码
+   * @return string $chang_cat_no 被交换的分类编码
+   * @author zyg
+   */
+  public function changecat_sort_order($cat_no, $chang_cat_no) {
+
+    try {
+      $this->startTrans();
+      $sort_order = $this->field('sort_order')->where(['cat_no' => $cat_no])->find();
+      $sort_order1 = $this->field('sort_order')->where(['cat_no' => $chang_cat_no])->find();
+      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1]);
+      if ($flag) {
+        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order' => $sort_order]);
+
+        if ($flag1) {
+          $this->commit();
+          return true;
+        } else {
+          $this->rollback();
+          return false;
+        }
+      } else {
+        $this->rollback();
+        return false;
+      }
+      return $flag;
+    } catch (Exception $ex) {
+      $this->rollback();
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
   }
 
   /**

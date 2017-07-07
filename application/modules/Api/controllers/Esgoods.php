@@ -49,6 +49,11 @@ class EsgoodsController extends PublicController {
         } else {
           $list[$key]['img'] = null;
         }
+        $show_cats = json_decode($item["show_cats"], true);
+        if ($show_cats) {
+          rsort($show_cats);
+        }
+        $list[$key]['show_cats'] = $show_cats;
       }
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);

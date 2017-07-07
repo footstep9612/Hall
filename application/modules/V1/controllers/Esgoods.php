@@ -29,30 +29,41 @@ class EsgoodsController extends ShopMallController {
         parent::init();
     }
 
-    public function listAction() {
-        $this->setLang('zh');
-        $model = new EsgoodsModel();
-        $ret = $model->getgoods($this->put_data, null, $this->getLang());
-        if ($ret) {
-            $list = [];
-            $data = $ret[0];
-            $send['count'] = intval($data['hits']['total']);
-            $send['current_no'] = intval($ret[1]);
-            $send['pagesize'] = intval($ret[2]);
+ public function listAction() {
 
-            foreach ($data['hits']['hits'] as $key => $item) {
-                $list[$key] = $item["_source"];
-                $list[$key]['id'] = $item['_id'];
-            }
-            $send['data'] = $list;
-            $this->setCode(MSG::MSG_SUCCESS);
-            $send['code'] = $this->getCode();
-            $send['message'] = $this->getMessage();
-            $this->jsonReturn($send);
+    $model = new EsgoodsModel();
+    $ret = $model->getgoods($this->put_data, null, $this->getLang());
+
+    if ($ret) {
+      $list = [];
+      $data = $ret[0];
+      $send['count'] = intval($data['hits']['total']);
+      $send['current_no'] = intval($ret[1]);
+      $send['pagesize'] = intval($ret[2]);
+
+      foreach ($data['hits']['hits'] as $key => $item) {
+        $list[$key] = $item["_source"];
+        $attachs = json_decode($item["_source"]['attachs'], true);
+        if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+          $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
         } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->jsonReturn();
+          $list[$key]['img'] = null;
         }
+        $show_cats = json_decode($item["show_cats"], true);
+        if ($show_cats) {
+          rsort($show_cats);
+        }
+        $list[$key]['show_cats'] = $show_cats;
+      }
+      $send['data'] = $list;
+      $this->setCode(MSG::MSG_SUCCESS);
+      $send['code'] = $this->getCode();
+      $send['message'] = $this->getMessage();
+      $this->jsonReturn($send);
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
     }
+  }
 
 }
