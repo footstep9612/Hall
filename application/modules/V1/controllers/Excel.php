@@ -6,18 +6,9 @@
  * Class ExcelController
  * @author maimaiti
  */
-class ExcelController extends PublicController
-//class ExcelController extends Yaf_Controller_Abstract
+//class ExcelController extends PublicController
+class ExcelController extends Yaf_Controller_Abstract
 {
-
-
-    public function testAction(){
-
-	echo "excel test";die;
-    }
-
-
-
     /**
      * 报价单Excel导出api接口
      * @author maimaiti
@@ -342,17 +333,17 @@ class ExcelController extends PublicController
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-        $savePath = $_SERVER['DOCUMENT_ROOT'] . "application/" . $path . "/";
-        //echo $savePath . $filename;die;
+        $savePath = $_SERVER['DOCUMENT_ROOT'] . "/application/" . $path . "/";
+        //echo $_SERVER['DOCUMENT_ROOT'];die;
         if (!is_dir($savePath)) {
             mkdir($savePath, 0775, true);
         }
-
-        $obj->save($savePath . $filename);
-	    $fullPath = $savePath . $filename;
-
-        //$fullPath = $_SERVER['DOCUMENT_ROOT'].'application/ExcelFiles/'.basename($fullPath);
-        return $fullPath;
+        if(!is_writable($savePath)) {
+            chmod($savePath, 0777);
+        }
+        $saveName = $savePath.$filename;
+        $obj->save($saveName);
+        return $saveName;
     }
 
     /**

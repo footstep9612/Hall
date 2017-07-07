@@ -239,8 +239,16 @@ class MaterialcatModel extends PublicModel {
   public function delete_data($cat_no = '') {
 
     $where['cat_no'] = $cat_no;
-    return $this->where($where)
-                    ->save(['status' => self::STATUS_DELETED]);
+    $flag = $this->where($where)
+            ->save(['status' => self::STATUS_DELETED]);
+    if ($flag && $cat_no) {
+      $es_product_model = new EsproductModel();
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
+    }
+    return $flag;
   }
 
   /**
@@ -252,8 +260,16 @@ class MaterialcatModel extends PublicModel {
   public function approving($cat_no = '') {
 
     $where['cat_no'] = $cat_no;
-    return $this->where($where)
-                    ->save(['status' => self::STATUS_VALID]);
+    $flag = $this->where($where)
+            ->save(['status' => self::STATUS_VALID]);
+    if ($flag && $cat_no) {
+      $es_product_model = new EsproductModel();
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
+      $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
+    }
+    return $flag;
   }
 
   /**
@@ -303,9 +319,12 @@ class MaterialcatModel extends PublicModel {
     }
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
-
-
-    return $this->where($where)->save($data);
+    $flag = $this->where($where)->save($data);
+    if ($flag && $data['cat_no'] && $data['lang']) {
+      $es_product_model = new EsproductModel();
+      $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
+    }
+    return $flag;
   }
 
   /**
@@ -357,88 +376,87 @@ class MaterialcatModel extends PublicModel {
     return $this->add($data);
   }
 
-    
-    /**
-     * 根据cat_no获取所属分类name
-     * @param  string $code 编码
-     * klp
-     */
-    protected $data = array();
-    public function getNameByCat($code='')
-    {
-        if($code=='')
-            return '';
-        $condition = array(
-            'cat_no' => $code,
-            'status' => self::STATUS_VALID
-        );
-        $resultTr = $this->field('name,parent_cat_no')->where($condition)->select();
+  /**
+   * 根据cat_no获取所属分类name
+   * @param  string $code 编码
+   * klp
+   */
+  protected $data = array();
 
-        $this->data[] = $resultTr[0]['name'];
-        if($resultTr){
-            self::getNameByCat($resultTr[0]['parent_cat_no']);
-        }
-        $nameAll = $this->data[2].'/'.$this->data[1].'/'. $this->data[0];
-        return $nameAll;
-	}
+  public function getNameByCat($code = '') {
+    if ($code == '')
+      return '';
+    $condition = array(
+        'cat_no' => $code,
+        'status' => self::STATUS_VALID
+    );
+    $resultTr = $this->field('name,parent_cat_no')->where($condition)->select();
 
-    /**
-     * 根据编码获取分类信息
-     * @author link 2016-06-15
-     * @param string $catNo 分类编码
-     * @param string $lang 语言
-     * @return array
-     */
-    public function getMeterialCatByNo($catNo='',$lang=''){
-        if($catNo=='' || $lang=='')
-            return array();
+    $this->data[] = $resultTr[0]['name'];
+    if ($resultTr) {
+      self::getNameByCat($resultTr[0]['parent_cat_no']);
+    }
+    $nameAll = $this->data[2] . '/' . $this->data[1] . '/' . $this->data[0];
+    return $nameAll;
+  }
 
-        //读取缓存
-        if(redisHashExist('MeterialCat', $catNo.'_'.$lang)){
-            return (array)json_decode(redisHashGet('MeterialCat', $catNo.'_'.$lang));
-        }
+  /**
+   * 根据编码获取分类信息
+   * @author link 2016-06-15
+   * @param string $catNo 分类编码
+   * @param string $lang 语言
+   * @return array
+   */
+  public function getMeterialCatByNo($catNo = '', $lang = '') {
+    if ($catNo == '' || $lang == '')
+      return array();
 
-        try{
-            $field = 'lang,cat_no,parent_cat_no,level_no,name,description,sort_order';
-            $condition = array(
-                'cat_no'=>$catNo,
-                'status'=>self::STATUS_VALID,
-                'lang'=>$lang
-            );
-            $result = $this->field($field)->where($condition)->find();
-            if($result) {
-                redisHashSet('MeterialCat', $catNo . '_' . $lang, json_encode($result));
-                return $result;
-            }
-        }catch (Exception $e){
-            return array();
-        }
-        return array();
+    //读取缓存
+    if (redisHashExist('MeterialCat', $catNo . '_' . $lang)) {
+      return (array) json_decode(redisHashGet('MeterialCat', $catNo . '_' . $lang));
     }
 
-    /**
-     * 根据分类名称获取分类编码
-     * 模糊查询
-     * @author link 2017-06-26
-     * @param string $cat_name 分类名称
-     * @return array
-     */
-    public function getCatNoByName($cat_name=''){
-        if(empty($cat_name))
-            return array();
-
-        if(redisHashExist('Material',md5($cat_name))){
-            return (array)json_decode(redisHashGet('Material',md5($cat_name)));
-        }
-        try{
-            $result = $this->field('cat_no')->where(array('name'=>array('like',$cat_name)))->select();
-            if($result)
-                redisHashSet('Material',md5($cat_name),json_encode($result));
-
-            return $result?$result:array();
-        }catch (Exception $e){
-            return array();
-        }
+    try {
+      $field = 'lang,cat_no,parent_cat_no,level_no,name,description,sort_order';
+      $condition = array(
+          'cat_no' => $catNo,
+          'status' => self::STATUS_VALID,
+          'lang' => $lang
+      );
+      $result = $this->field($field)->where($condition)->find();
+      if ($result) {
+        redisHashSet('MeterialCat', $catNo . '_' . $lang, json_encode($result));
+        return $result;
+      }
+    } catch (Exception $e) {
+      return array();
     }
+    return array();
+  }
+
+  /**
+   * 根据分类名称获取分类编码
+   * 模糊查询
+   * @author link 2017-06-26
+   * @param string $cat_name 分类名称
+   * @return array
+   */
+  public function getCatNoByName($cat_name = '') {
+    if (empty($cat_name))
+      return array();
+
+    if (redisHashExist('Material', md5($cat_name))) {
+      return (array) json_decode(redisHashGet('Material', md5($cat_name)));
+    }
+    try {
+      $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->select();
+      if ($result)
+        redisHashSet('Material', md5($cat_name), json_encode($result));
+
+      return $result ? $result : array();
+    } catch (Exception $e) {
+      return array();
+    }
+  }
 
 }
