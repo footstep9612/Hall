@@ -31,8 +31,10 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
             }
-            $data = $this->getRequest()->getPost();
+            if($jsondata['action_url']){
 
+            }
+            $data = $this->getRequest()->getPost();
             if (!empty($data["token"])) {
                 $token = $data["token"];
             }
@@ -52,6 +54,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
+
                     }
                 } catch (Exception $e) {
                     LOG::write($e->getMessage());

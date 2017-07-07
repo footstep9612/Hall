@@ -47,9 +47,7 @@ class TestController extends ShopMallController{
     }
 
     function post($data, $action, $ContentType = 'json', $timeout = 30) {
-
         $url = 'http://localhost' . $action;
-
         if ($ContentType == "json") {
             $header = array(
                 'Content-type: application/json;charset=UTF-8',
@@ -69,10 +67,7 @@ class TestController extends ShopMallController{
         curl_setopt($ch, CURLOPT_AUTOREFERER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $formdata);
         curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
-
         $response = curl_exec($ch);
-
-
         if (curl_errno($ch)) {
             print curl_error($ch);
         }

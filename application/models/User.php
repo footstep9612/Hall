@@ -135,9 +135,6 @@ class UserModel extends PublicModel {
             $where['password_hash'] = md5($data['password']);
         }
         $where['status'] = 'NORMAL';
-        $this->where($where)
-            ->field('id,user_no,name,email,mobile,status')
-            ->find();
         $row = $this->where($where)
             ->field('id,user_no,name,email,mobile,status')
             ->find();
