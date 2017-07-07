@@ -52,7 +52,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "token" => $token, //token
                         );
                         //权限控制
-                        if(redisExist('role_user_'.$userinfo['user_id'])){
+                        if(redisExist('role_user_'.$userinfo['id'])){
                             $arr = json_decode(redisGet('role_user_'.$userinfo['user_id']),true);
                         }else{
                             $role_user = new RoleUserModel();
@@ -61,7 +61,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             $arr = [];
                             if($data[0]['url'] ){
                                 $arr=explode(',',$data[0]['url'] );
-                                redisSet('role_user_'.$userinfo['user_id'],json_encode($arr),300);
+                                redisSet('role_user_'.$userinfo['id'],json_encode($arr),300);
                             }
                         }
                         if(!in_array(strtolower($jsondata['action_url']),$arr)){
