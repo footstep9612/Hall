@@ -227,13 +227,25 @@ class ShowCatModel extends PublicModel {
         $cat3 = $this->field('id,cat_no,name')
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
-        $cat2 = $this->field('id,cat_no,name')
-                ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
-                ->find();
-        $cat1 = $this->field('id,cat_no,name')
-                ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
-                ->find();
-        return [$cat1['cat_no'], $cat1['name'], $cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
+        if ($cat3) {
+          $cat2 = $this->field('id,cat_no,name')
+                  ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                  ->find();
+        } else {
+          return [];
+        }
+        if ($cat2) {
+          $cat1 = $this->field('id,cat_no,name')
+                  ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                  ->find();
+        } else {
+          return ['cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        }
+        if ($cat1) {
+          return ['cat_no1' => $cat1['cat_no'], 'cat_name1' => $cat1['name'], 'cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        } else {
+          return ['cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        }
       } else {
         return [];
       }
@@ -282,13 +294,6 @@ class ShowCatModel extends PublicModel {
     $where['cat_no'] = $cat_no;
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
-    if ($flag && $cat_no) {
-      $es_product_model = new EsproductModel();
-      $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
-      $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
-      $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
-      $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
-    }
     return $flag;
   }
 
@@ -337,16 +342,32 @@ class ShowCatModel extends PublicModel {
   public function approving($cat_no = '') {
 
     $where['cat_no'] = $cat_no;
+    $es_product_model = new EsproductModel();
+
+
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_VALID]);
-//    if ($flag && $cat_no) {
-//      $es_product_model = new EsproductModel();
-//      $es_product_model->Updateshowcats($cat_no, null, 'en');
-//      $es_product_model->Updateshowcats($cat_no, null, 'zh');
-//      $es_product_model->Updateshowcats($cat_no, null, 'es');
-//      $es_product_model->Updateshowcats($cat_no, null, 'ru');
-//    }
-    return $flag;
+    if ($flag) {
+      $cat_new_en = $this->getinfo($cat_no, 'en');
+      if ($cat_new_en) {
+        $es_product_model->Replaceshowcats($data['cat_no'], ']', ',' . json_encode($cat_new_en, 256), 'en');
+      }
+      $cat_new_zh = $this->getinfo($cat_no, 'en');
+      if ($cat_new_zh) {
+        $es_product_model->Replaceshowcats($data['cat_no'], ']', ',' . json_encode($cat_new_zh, 256), 'zh');
+      }
+      $cat_new_es = $this->getinfo($cat_no, 'es');
+      if ($cat_new_es) {
+        $es_product_model->Replaceshowcats($data['cat_no'], ']', ',' . json_encode($cat_new_es, 256), 'es');
+      }
+      $cat_new_ru = $this->getinfo($cat_no, 'ru');
+      if ($cat_new_ru) {
+        $es_product_model->Replaceshowcats($data['cat_no'], ']', json_encode($cat_new_ru, 256), 'ru');
+      }
+      return $flag;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -358,24 +379,18 @@ class ShowCatModel extends PublicModel {
   public function update_data($upcondition = [], $username = '') {
     $data = [];
     $where = [];
-    if ($condition['id']) {
-      $where['id'] = $condition['id'];
-    }
+
     if ($condition['cat_no']) {
       $data['cat_no'] = $condition['cat_no'];
     }
+    $where['cat_no'] = $condition['cat_no'];
     if ($condition['parent_cat_no']) {
       $data['parent_cat_no'] = $condition['parent_cat_no'];
     }
     if ($condition['level_no']) {
       $data['level_no'] = $condition['level_no'];
     }
-    if ($condition['lang']) {
-      $data['lang'] = $condition['lang'];
-    }
-    if ($condition['name']) {
-      $data['name'] = $condition['name'];
-    }
+
     switch ($condition['status']) {
 
       case self::STATUS_DELETED:
@@ -404,11 +419,44 @@ class ShowCatModel extends PublicModel {
     }
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
-    $flag = $this->where($where)->save($data);
-//    if ($flag && $data['cat_no'] && $data['lang']) {
-//      $es_product_model = new EsproductModel();
-//      $es_product_model->Updateshowcats(null, $data['lang']);
-//    }
+    $es_product_model = new EsproductModel();
+
+    if (isset($condition['en'])) {
+      $data['lang'] = 'en';
+      $data['name'] = $condition['en']['name'];
+      $where['lang'] = $data['lang'];
+      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
+      $flag = $this->where($where)->save($data);
+      $cats_new = $this->getinfo($data['cat_no'], $data['lang']);
+      $es_product_model->Replaceshowcats($data['cat_no'], json_encode($cat_old, 256), json_encode($cats_new, 256), $data['lang']);
+    }
+    if (isset($condition['zh'])) {
+      $data['lang'] = 'zh';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
+      $flag = $this->where($where)->save($data);
+      $cats_new = $this->getinfo($data['cat_no'], $data['lang']);
+      $es_product_model->Replaceshowcats($data['cat_no'], json_encode($cat_old, 256), json_encode($cats_new, 256), $data['lang']);
+    }
+    if (isset($condition['es'])) {
+      $data['lang'] = 'es';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
+      $flag = $this->where($where)->save($data);
+      $cats_new = $this->getinfo($data['cat_no'], $data['lang']);
+      $es_product_model->Replaceshowcats($data['cat_no'], json_encode($cat_old, 256), json_encode($cats_new, 256), $data['lang']);
+    }
+    if (isset($condition['ru'])) {
+      $data['lang'] = 'ru';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
+      $flag = $this->where($where)->save($data);
+      $cats_new = $this->getinfo($data['cat_no'], $data['lang']);
+      $es_product_model->Replaceshowcats($data['cat_no'], json_encode($cat_old, 256), json_encode($cats_new, 256), $data['lang']);
+    }
     return $flag;
   }
 
@@ -467,7 +515,28 @@ class ShowCatModel extends PublicModel {
     }
 
 
-    return $this->add($data);
+    if (isset($condition['en'])) {
+      $data['lang'] = 'en';
+      $data['name'] = $condition['en']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['zh'])) {
+      $data['lang'] = 'zh';
+      $data['name'] = $condition['zh']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['es'])) {
+      $data['lang'] = 'es';
+      $data['name'] = $condition['zh']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['ru'])) {
+      $data['lang'] = 'ru';
+      $data['name'] = $condition['zh']['name'];
+
+      $flag = $this->add($data);
+    }
+    return $flag;
   }
 
   /**

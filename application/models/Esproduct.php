@@ -556,7 +556,7 @@ class EsproductModel extends PublicModel {
           $spu = $spec['spu'];
           $sku = $spec['sku'];
           unset($spec['spu']);
-          unset($spec['sku']);
+          // unset($spec['sku']);
           $ret[$spu][$sku] = $spec;
         } return $ret;
       }
@@ -925,7 +925,9 @@ class EsproductModel extends PublicModel {
             $id = $item['spu'];
             $body = $item;
             if (isset($skus[$item['spu']])) {
-              $body['skus'] = json_encode($skus[$item['spu']], JSON_UNESCAPED_UNICODE);
+              $json_skus = $skus[$item['spu']];
+              rsort($json_skus);
+              $body['skus'] = json_encode($json_skus, JSON_UNESCAPED_UNICODE);
             } else {
               $body['skus'] = '[]';
             }
@@ -1297,69 +1299,62 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function Updateshowcats($spu = null, $lang = 'en', $cat_no = null) {
+  public function Updateshowcats($spu = null, $lang = 'en') {
     $es = new ESClient();
-    if (empty($spu) && empty($cat_no)) {
+    if (empty($spu)) {
       return false;
     }
-    if ($spu) {
-      $id = $spu;
-      $type = $this->tableName . '_' . $lang;
-      $showcatproduct_model = new ShowCatProductModel();
-      $show_cat_nos = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
-      $scats = $this->getshow_cats($show_cat_nos, $lang);
-      $data['show_cats'] = json_encode($scats, 256);
-      $es->update_document($this->dbName, $type, $data, $id);
-      $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.show_cats=show_cats;",
-              "params" => [
-                  "show_cats" => $data['show_cats'],
-              ]
-          ],
-          "query" => [
-              ESClient::MATCH_PHRASE => [
-                  "spu" => $spu
-              ]
-          ]
-      ];
-      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
-    } elseif ($cat_no) {
-      $id = $spu;
-      $type = $this->tableName . '_' . $lang;
-      $showcatproduct_model = new ShowCatProductModel();
-      $show_cat_nos = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
-      $scats = $this->getshow_cats($show_cat_nos, $lang);
-      $data['show_cats'] = json_encode($scats, 256);
-      $es_product_data = [
-          "script" => [
-              "inline" => "ctx._source.show_cats=show_cats;",
-              "params" => [
-                  "show_cats" => $data['show_cats'],
-              ]
-          ],
-          "query" => [
-              ESClient::MATCH_PHRASE => [
-                  "show_cats" => $cat_no
-              ]
-          ]
-      ];
-      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
-      $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.show_cats=show_cats;",
-              "params" => [
-                  "show_cats" => $data['show_cats'],
-              ]
-          ],
-          "query" => [
-              ESClient::MATCH_PHRASE => [
-                  "show_cats" => $cat_no
-              ]
-          ]
-      ];
-      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $showcatproduct_model = new ShowCatProductModel();
+    $show_cat_nos = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
+    $scats = $this->getshow_cats($show_cat_nos, $lang);
+    $data['show_cats'] = json_encode($scats, 256);
+    $es->update_document($this->dbName, $type, $data, $id);
+    $esgoodsdata = [
+        "script" => [
+            "inline" => "ctx._source.show_cats=show_cats;",
+            "params" => [
+                "show_cats" => $data['show_cats'],
+            ]
+        ],
+        "query" => [
+            ESClient::MATCH_PHRASE => [
+                "spu" => $spu
+            ]
+        ]
+    ];
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+
+    return true;
+  }
+
+  /* 新增ES
+   * $substr 替换前的内容, 需要替换的内容
+   * $replacement 替换后的内容
+   */
+
+  public function Replaceshowcats($cat_no, $substr, $replacement, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($cat_no)) {
+      return false;
     }
+    $data = [
+        "script" => [
+            "inline" => "ctx._source.show_cats.replace(substr,replacement);",
+            "params" => [
+                "substr" => $substr,
+                "replacement" => $replacement]
+        ],
+        "query" => [
+            ESClient::MATCH_PHRASE => [
+                "show_cats" => $cat_no
+            ]
+        ]
+    ];
+    $es->UpdateByQuery($this->dbName, 'product_' . $lang, $data);
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $data);
+
     return true;
   }
 
