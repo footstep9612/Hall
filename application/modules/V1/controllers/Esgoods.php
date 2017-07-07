@@ -60,10 +60,7 @@ class EsgoodsController extends ShopMallController {
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
 		$list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
 		
-      }  echo '<pre>';
-      
-      print_r($list);
-      die();
+      } 
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);
       $send['code'] = $this->getCode();
