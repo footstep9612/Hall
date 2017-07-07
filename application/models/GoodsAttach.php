@@ -53,7 +53,7 @@ class GoodsAttachModel extends PublicModel
 
         //读取redis缓存
         if(redisHashExist('Attach',$sku.'_'.$type.'_'.$status)){
-            return (array)json_decode(redisHashGet('Attach',$sku.'_'.$type.'_'.$status));
+            return json_decode(redisHashGet('Attach',$sku.'_'.$type.'_'.$status),true);
         }
 
         try{

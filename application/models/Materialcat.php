@@ -186,13 +186,13 @@ class MaterialcatModel extends PublicModel {
   public function getinfo($cat_no, $lang = 'en') {
     try {
       if ($cat_no) {
-        $cat3 = $this->field('id,cat_no,name')
+        $cat3 = $this->field('id,cat_no,name,parent_cat_no')
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
-        $cat2 = $this->field('id,cat_no,name')
+        $cat2 = $this->field('id,cat_no,name,parent_cat_no')
                 ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
-        $cat1 = $this->field('id,cat_no,name')
+        $cat1 = $this->field('id,cat_no,name,parent_cat_no')
                 ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
         return [$cat1['cat_no'], $cat1['name'], $cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
