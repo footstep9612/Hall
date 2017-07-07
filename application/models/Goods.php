@@ -8,88 +8,99 @@
  */
 class GoodsModel extends PublicModel {
 
-  //状态
-  const STATUS_VALID = 'VALID'; //有效
-  const STATUS_TEST = 'TEST'; //测试；
-  const STATUS_CHECKING = 'CHECKING'; //审核中；
-  const STATUS_INVALID = 'INVALID';  //无效
-  const STATUS_DELETED = 'DELETED'; //DELETED-删除
+    //状态
+    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_TEST = 'TEST'; //测试；
+    const STATUS_CHECKING = 'CHECKING'; //审核中；
+    const STATUS_INVALID = 'INVALID';  //无效
+    const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
-  public function __construct() {
-    //动态读取配置中的数据库配置   便于后期维护
-    $config_obj = Yaf_Registry::get("config");
-    $config_db = $config_obj->database->config->goods->toArray();
-    $this->dbName = $config_db['name'];
-    $this->tablePrefix = $config_db['tablePrefix'];
-    $this->tableName = 'goods';
+    public function __construct() {
+        //动态读取配置中的数据库配置   便于后期维护
+        $config_obj = Yaf_Registry::get("config");
+        $config_db = $config_obj->database->config->goods->toArray();
+        $this->dbName = $config_db['name'];
+        $this->tablePrefix = $config_db['tablePrefix'];
+        $this->tableName = 'goods';
 
-    parent::__construct();
-  }
-
-  /**
-   * 商品基本信息    -- 公共方法
-   * @author link 2017-06-26
-   * @param array $condition
-   * @return array
-   */
-  public function getInfoBase($condition = []) {
-    if (!isset($condition['sku']))
-      return array();
-
-    $where = array(
-        'sku' => trim($condition['sku']),
-    );
-    if (isset($condition['lang'])) {
-      $where['lang'] = strtolower($condition['lang']);
-    }
-    if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
-      $where['status'] = strtoupper($condition['status']);
-    }
-    if (redisHashExist('Sku', md5(json_encode($where)))) {
-      return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
+        parent::__construct();
     }
 
-    $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
-    try {
-      $result = $this->field($field)->where($where)->select();
-      $data = array();
-      if ($result) {
-        foreach ($result as $item) {
-          //获取供应商与品牌
-          $product = new ProductModel();
-          $productInfo = $product->getInfo($item['spu'], $item['lang'], $product::STATUS_VALID);
-          $item['brand'] = $item['spec'] = $item['supplier_id'] = $item['supplier_name'] = $item['meterial_cat_no'] = '';
-          if ($productInfo) {
-            if (isset($productInfo[$item['lang']])) {
-              $productInfo = (array) $productInfo[$item['lang']];
-              $item['brand'] = $productInfo['brand'];
-              $item['supplier_id'] = $productInfo['supplier_id'];
-              $item['supplier_name'] = $productInfo['supplier_name'];
-              $item['meterial_cat_no'] = $productInfo['meterial_cat_no'];
-            }
-          }
+    /**
+     * 商品基本信息    -- 公共方法
+     * @author link 2017-06-26
+     * @param array $condition
+     * @return array
+     */
+    public function getInfoBase($condition = []) {
+        if (!isset($condition['sku']))
+            return array();
 
-          //获取商品规格
-          $gattr = new GoodsAttrModel();
-          $spec = $gattr->getSpecBySku($item['sku'], $item['lang']);
-          $spec_str = '';
-          if ($spec) {
-            foreach ($spec as $r) {
-              $spec_str .= $r['attr_name'] . ':' . $r['attr_value'] . $r['value_unit'] . ';';
-            }
-          }
-          $item['spec'] = $spec_str;
-
-          //按语言分组
-          $data[$item['lang']] = $item;
+        $where = array(
+            'sku' => trim($condition['sku']),
+        );
+        if (isset($condition['lang'])) {
+            $where['lang'] = strtolower($condition['lang']);
         }
-        redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
-      }
-      return $data;
-    } catch (Exception $e) {
-      return array();
+        if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
+            $where['status'] = strtoupper($condition['status']);
+        }
+        if (redisHashExist('Sku', md5(json_encode($where)))) {
+            //return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
+        }
+
+        $mcatModel = new MaterialcatModel();
+        $gattachModel = new GoodsAttachModel();
+
+        $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
+        try {
+            $result = $this->field($field)->where($where)->select();
+            $data = array();
+            if ($result) {
+                foreach ($result as $item) {
+                    //获取供应商与品牌
+                    $product = new ProductModel();
+                    $productInfo = $product->getInfo($item['spu'], $item['lang'], $product::STATUS_VALID);
+                    $item['brand'] = $item['spec'] = $item['supplier_id'] = $item['supplier_name'] = $item['meterial_cat_no'] = '';
+                    if ($productInfo) {
+                        if (isset($productInfo[$item['lang']])) {
+                            $productInfo = (array) $productInfo[$item['lang']];
+                            $item['brand'] = $productInfo['brand'];
+                            $item['supplier_id'] = $productInfo['supplier_id'];
+                            $item['supplier_name'] = $productInfo['supplier_name'];
+                            $item['meterial_cat_no'] = $productInfo['meterial_cat_no'];
+                        }
+                    }
+
+                    //获取分类信息
+                    $cats = $mcatModel->getinfo($item['meterial_cat_no'],$item['lang']);
+                    $item['cats'] = $cats?$cats:array();
+
+                    //获取商品规格
+                    $gattr = new GoodsAttrModel();
+                    $spec = $gattr->getSpecBySku($item['sku'], $item['lang']);
+                    $spec_str = '';
+                    if ($spec) {
+                        foreach ($spec as $r) {
+                            $spec_str .= $r['attr_name'] . ':' . $r['attr_value'] . $r['value_unit'] . ';';
+                        }
+                    }
+                    $item['spec'] = $spec_str;
+
+                    //按语言分组
+                    $data[$item['lang']] = $item;
+                }
+
+                //获取附件
+                $attach = $gattachModel->getAttach(array('sku'=>$item['sku']));
+                $data['attach'] = $attach;
+                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
+            }
+            return $data;
+        } catch (Exception $e) {
+            return array();
+        }
     }
-  }
 
   /**
    * pc-sku商品详情
