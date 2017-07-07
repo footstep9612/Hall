@@ -52,9 +52,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "token" => $token, //token
                         );
                         //权限控制
-                        if(redisExist('role_user_'.$userinfo['id'])){
-                            $arr = json_decode(redisGet('role_user_'.$userinfo['user_id']),true);
-                        }else{
+//                        if(redisExist('role_user_'.$userinfo['id'])){
+//                            $arr = json_decode(redisGet('role_user_'.$userinfo['user_id']),true);
+//                        }else{
                             $role_user = new RoleUserModel();
                             $where['user_id'] = $userinfo['id'];
                             $data = $role_user->getRolesArray($where);
@@ -63,7 +63,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                                 $arr=explode(',',$data[0]['url'] );
                                 redisSet('role_user_'.$userinfo['id'],json_encode($arr),300);
                             }
-                        }
+                        //}
                         if(!in_array(strtolower($jsondata['action_url']),$arr)){
                             echo json_encode(array("code" => "-1111", "message" => "未获得授权"));
                             exit;
