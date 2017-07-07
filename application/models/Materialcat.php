@@ -133,10 +133,12 @@ class MaterialcatModel extends PublicModel {
       $count = $this->getcount($condition);
       return $this->where($where)
                       ->limit($condition['page'] . ',' . $condition['countPerPage'])
+                      ->order('sort_order DESC')
                       ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
                       ->select();
     } else {
       return $this->where($where)
+                      ->order('sort_order DESC')
                       ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
                       ->select();
     }
@@ -155,6 +157,7 @@ class MaterialcatModel extends PublicModel {
 
     return $this->where($where)
                     ->field('id,cat_no,lang,name,status,sort_order')
+                    ->order('sort_order DESC')
                     ->select();
   }
 
@@ -459,7 +462,8 @@ class MaterialcatModel extends PublicModel {
           'status' => self::STATUS_VALID,
           'lang' => $lang
       );
-      $result = $this->field($field)->where($condition)->find();
+      $result = $this->field($field)->where($condition)
+                      ->order('sort_order DESC')->find();
       if ($result) {
         redisHashSet('MeterialCat', $catNo . '_' . $lang, json_encode($result));
         return $result;
@@ -485,7 +489,7 @@ class MaterialcatModel extends PublicModel {
       return (array) json_decode(redisHashGet('Material', md5($cat_name)));
     }
     try {
-      $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->select();
+      $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->order('sort_order DESC')->select();
       if ($result)
         redisHashSet('Material', md5($cat_name), json_encode($result));
 

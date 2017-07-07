@@ -58,7 +58,10 @@ class EsgoodsController extends PublicController {
         $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
         $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
+        $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       }
+      
+    
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);
       $send['code'] = $this->getCode();

@@ -16,7 +16,8 @@ class MSG {
 //put your code here
   const MSG_SUCCESS = 1; //更新或插入成功
   const MSG_FAILED = -1; //更新或插入错误
-  const MSG_DELETE_FAILED = -2; //更新或插入错误
+  const MSG_DELETE_FAILED = -2; //删除失败
+  const MSG_EMPTY = -3; //未获取到数据
   const MSG_USER_NOT_EXIST = -104; //用户不存在
   const MSG_USER_PASSWORD_EMPTY = -101; //密码不可以为空
   const MSG_USER_NAME_EMPTY = -102; //帐号不可以为空
@@ -145,6 +146,7 @@ class MSG {
         self::MSG_USER_NAME_EXIST => '手机或账号已存在!',
         self::MSG_USER_REGISTER_FAIL => '注册失败!',
         self::ERROR_PARAM => '参数有误',
+        self::MSG_EMPTY => '数据为空',
     ];
     return isset($map[$code]) ? $map[$code] : $map[self::MSG_OTHER_ERR];
   }

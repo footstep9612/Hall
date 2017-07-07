@@ -13,23 +13,23 @@
  */
 class EsgoodsController extends ShopMallController {
 
-    protected $index = 'erui_goods';
-    protected $es = '';
-    protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '5';
+  protected $index = 'erui_goods';
+  protected $es = '';
+  protected $langs = ['en', 'es', 'ru', 'zh'];
+  protected $version = '5';
 
-    //put your code here
-    public function init() {
-//        ini_set("display_errors", "On");
-//        error_reporting(E_ERROR | E_STRICT);
-//        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-//        $lang = $this->getPut('lang', 'en');
-//        $this->setLang($lang);
+  //put your code here
+  public function init() {
+    ini_set("display_errors", "On");
+    error_reporting(E_ERROR | E_STRICT);
+    $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+    $lang = $this->getPut('lang', 'en');
+    $this->setLang($lang);
     $this->es = new ESClient();
-        parent::init();
-    }
+    // parent::init();
+  }
 
- public function listAction() {
+  public function listAction() {
 
     $model = new EsgoodsModel();
     $ret = $model->getgoods($this->put_data, null, $this->getLang());
@@ -49,12 +49,21 @@ class EsgoodsController extends ShopMallController {
         } else {
           $list[$key]['img'] = null;
         }
-        $show_cats = json_decode($item["show_cats"], true);
+        $show_cats = json_decode($item["_source"]["show_cats"], true);
         if ($show_cats) {
           rsort($show_cats);
         }
         $list[$key]['show_cats'] = $show_cats;
-      }
+        $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
+        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
+		$list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+		
+      }  echo '<pre>';
+      
+      print_r($list);
+      die();
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);
       $send['code'] = $this->getCode();
