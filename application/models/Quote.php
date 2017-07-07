@@ -46,15 +46,41 @@ class QuoteModel extends PublicModel {
      * @return array
      */
      public function getJoinWhere($condition) {
-     	$where = array();
-     	
-     	if(!empty($condition['quote_no'])) {
-    		$where['a.quote_no'] = $condition['quote_no'];
-    	}
-    	
-     	if(!empty($condition['logi_quote_status'])) {
-    		$where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
-    	}
+		 $where = array();
+
+		 if(!empty($condition['quote_no'])) {
+			 $where['a.quote_no'] = $condition['quote_no'];
+    	 }
+		 if(!empty($condition['logi_quote_status'])) {
+			 $where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
+		 }
+		 if (!empty($condition['serial_no'])) {
+			 $where['b.serial_no'] = $condition['serial_no'];
+		 }
+		 if (!empty($condition['inquiry_no'])) {
+			 $where['b.inquiry_no'] = $condition['inquiry_no'];
+		 }
+		 if (!empty($condition['quote_status'])) {
+			 $where['a.quote_status'] = $condition['quote_status'];
+		 }
+		 if (!empty($condition['inquiry_region'])) {
+			 $where['b.inquiry_region'] = $condition['inquiry_region'];
+		 }
+		 if (!empty($condition['inquiry_country'])) {
+			 $where['b.inquiry_country'] = $condition['inquiry_country'];
+		 }
+		 if (!empty($condition['agent'])) {
+			 $where['b.agent'] = $condition['agent'];
+		 }
+		 if (!empty($condition['customer_id'])) {
+			 $where['b.customer_id'] = $condition['customer_id'];
+		 }
+		 if(!empty($condition['start_time']) && !empty($condition['end_time'])){
+			 $where['b.created_at'] = array(
+					 array('gt',date('Y-m-d H:i:s',$condition['start_time'])),
+					 array('lt',date('Y-m-d H:i:s',$condition['end_time']))
+			 );
+		 }
     	
     	return $where;
     	
@@ -121,7 +147,7 @@ class QuoteModel extends PublicModel {
     	$where = $this->getJoinWhere($condition);
     	
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-    		
+
     		return $this->alias('a')
 	    				 ->join($this->joinInquiry, 'LEFT')
 	    				 ->field($this->fieldJoin)

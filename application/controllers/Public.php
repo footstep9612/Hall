@@ -19,7 +19,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
         if ($this->getRequest()->getModuleName() == 'V1' &&
@@ -31,18 +31,16 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
             }
-            $data = $this->getRequest()->getPost();
 
+            $data = $this->getRequest()->getPost();
             if (!empty($data["token"])) {
                 $token = $data["token"];
             }
             $model = new UserModel();
             if (!empty($token)) {
                 try {
-                    $tks = explode('.', $token);
                     $tokeninfo = JwtInfo($token); //解析token
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
-
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
@@ -52,6 +50,25 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
+                        //权限控制
+//                        if(redisExist('role_user_'.$userinfo['id'])){
+//                            $arr = json_decode(redisGet('role_user_'.$userinfo['user_id']),true);
+//                        }else{
+                            $role_user = new RoleUserModel();
+                            $where['user_id'] = $userinfo['id'];
+                            $data = $role_user->getRolesArray($where);
+                            $arr = [];
+                            if($data[0]['url'] ){
+                                $arr=explode(',',$data[0]['url'] );
+                                //redisSet('role_user_'.$userinfo['id'],json_encode($arr),300);
+                            }
+                        //}
+                        if(!in_array(strtolower($jsondata['action_url']),$arr)){
+                            echo json_encode(array("code" => "-1111", "message" => "未获得授权"));
+                            exit;
+                        }
+                            //}
+                        //}
                     }
                 } catch (Exception $e) {
                     LOG::write($e->getMessage());
@@ -473,11 +490,25 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 	public function addApproveLog($condition) {
 		$approveLogModel = new ApproveLogModel();
 		$user = $this->getUserInfo();
-		$condition['approver_id'] = $user['id'];
-		$condition['approver'] = $user['name'];
-		$condition['created_at'] = date('Y-m-d H:i:s');
+		$time = date('Y-m-d H:i:s');
 		
-		return $approveLogModel->addData($condition);
+		$inquiry_no_arr = explode(',', $condition['inquiry_no']);
+		
+		$approveLogList = $approveLog =array();
+		
+		foreach ($inquiry_no_arr as $inquiry_no) {
+		    $data = $condition;
+		    $data['inquiry_no'] = $inquiry_no;
+		    $data['approver_id'] = $user['id'];
+		    $data['approver'] = $user['name'];
+		    $data['created_at'] = $time;
+		    
+		    $approveLog = $approveLogModel->create($data);
+		    
+		    $approveLogList[] = $approveLog;
+		}
+		
+		return $approveLogModel->addAll($approveLogList);
 	}
 
 }

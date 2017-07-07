@@ -45,8 +45,8 @@ class GoodsModel extends PublicModel {
     if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
       $where['status'] = strtoupper($condition['status']);
     }
-    if(redisHashExist('Sku',md5(json_encode($where)))){
-      return json_decode(redisHashGet('Sku',md5(json_encode($where))),true);
+    if (redisHashExist('Sku', md5(json_encode($where)))) {
+      return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
     }
 
     $field = 'sku,spu,lang,name,show_name,qrcode,model,description,status';
@@ -83,7 +83,7 @@ class GoodsModel extends PublicModel {
           //按语言分组
           $data[$item['lang']] = $item;
         }
-        redisHashSet('Sku',md5(json_encode($where)),json_encode($data));
+        redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
       }
       return $data;
     } catch (Exception $e) {
@@ -230,6 +230,7 @@ class GoodsModel extends PublicModel {
       return [];
     }
   }
+
   /**
    * 根据spu获取sku数   (这里不包括删除的)
    * @author link
@@ -276,7 +277,7 @@ class GoodsModel extends PublicModel {
     $field = "$thistable.pricing_flag,$ptable.meterial_cat_no,$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.model,$thistable.created_by,$thistable.created_at";
 
     $where = array();
-    $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
+    $current_no = isset($condition['currentPage']) ? $condition['currentPage'] : 1;
     $pagesize = isset($condition['pagesize']) ? $condition['pagesize'] : 10;
     //spu 编码
     if (isset($condition['spu']) && !empty($condition['spu'])) {
@@ -354,7 +355,7 @@ class GoodsModel extends PublicModel {
     }
 
     try {
-     // $count = $this->field("$thistable.id")->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
+      // $count = $this->field("$thistable.id")->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->count();
       $result = $this->field($field)->join($ptable . " On $thistable.spu = $ptable.spu AND $thistable.lang =$ptable.lang", 'LEFT')->where($where)->page($current_no, $pagesize)->select();
       $data = array(
           'lang' => $lang,
@@ -367,7 +368,7 @@ class GoodsModel extends PublicModel {
         //foreach($result as $k=> $item){
         // $result[$k]['cat_name']
         // }
-        $data['count'] = count($result);//$count;
+        $data['count'] = count($result); //$count;
         $data['data'] = $result;
       }
       return $data;
@@ -386,6 +387,8 @@ class GoodsModel extends PublicModel {
   public function create_data($createcondition) {
     $where = [];
     $data = $this->condition($createcondition);
+    $esgoods_model = new EsgoodsModel();
+    $esgoods_model->create_data($data, $data['lang']);
     return $this->where($where)->save($data);
   }
 
@@ -526,6 +529,56 @@ class GoodsModel extends PublicModel {
       return array();
     }
     return array();
+  }
+
+  /**
+   * 根据SPU获取SKU信息
+   * @param string $spu
+   * @param string $lang
+   * @return array
+   */
+  public function getskusbyspu($spu, $lang = 'en') {
+    try {
+      $skus = $this->table('erui_goods.t_goods')
+              ->field('sku,`name`,`model`,`show_name`')
+              ->where(['spu' => $spu, 'lang' => $lang, 'status' => 'VALID'])
+              ->select();
+      $ret = [];
+      if ($skus) {
+        return $skus;
+      } else {
+        return $ret;
+      }
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return [];
+    }
+  }
+
+  /**
+   * 根据SPU获取SKU信息
+   * @param string $skus
+   * @param string $lang
+   * @return array
+   */
+  public function getskusbyskus($skus, $lang = 'en') {
+    try {
+      $skuinfos = $this->table('erui_goods.t_goods')
+              ->field('sku,`name`,`model`,`show_name`')
+              ->where(['sku' => $skus, 'lang' => $lang, 'status' => 'VALID'])
+              ->select();
+      $ret = [];
+      if ($skuinfos) {
+        return $skuinfos;
+      } else {
+        return $ret;
+      }
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return [];
+    }
   }
 
 }

@@ -91,7 +91,7 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['status'])) {
       $status = $condition['status'];
-      if (!in_array($updated_at_end, ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+      if (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
         $status = 'VALID';
       }
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
@@ -229,6 +229,7 @@ class EsproductModel extends PublicModel {
 
       return [$es->setbody($body)
                   ->setfields($_source)
+                  ->setsort('spu', 'asc')
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {
@@ -401,6 +402,8 @@ class EsproductModel extends PublicModel {
               ->field('id,cat_no,name,parent_cat_no')
               ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])
               ->select();
+
+
       if (!$cat3s) {
 
         return [];
@@ -414,9 +417,16 @@ class EsproductModel extends PublicModel {
               ->field('id,cat_no,name,parent_cat_no')
               ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])
               ->select();
-      if (!$cat2s) {
 
-        return [];
+
+      if (!$cat2s) {
+        $newcat3s = [];
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name']];
+        }
+        return $newcat3s;
       }
       foreach ($cat2s as $cat2) {
         $cat1_nos[] = $cat2['parent_cat_no'];
@@ -428,8 +438,20 @@ class EsproductModel extends PublicModel {
               ->select();
       $newcat1s = [];
       if (!$cat1s) {
-
-        return [];
+        $newcat3s = [];
+        $newcat2s = [];
+        foreach ($cat2s as $val) {
+          $newcat2s[$val['cat_no']] = $val;
+        }
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name'],
+              'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+              'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+          ];
+        }
+        return $newcat3s;
       }
       foreach ($cat1s as $val) {
         $newcat1s[$val['cat_no']] = $val;
@@ -525,9 +547,8 @@ class EsproductModel extends PublicModel {
 
   public function getskusbyspus($spus, $lang = 'en') {
     try {
-      $specs = $this->table('erui_goods.t_goods')
-              ->field('sku,spu,`name`,`model`,`show_name`')
-              ->where(['spu' => ['in', $spus], 'status' => 'VALID'])
+      $specs = $this->table('erui_goods.t_goods')->field('sku,spu,`name`,`model`,`show_name`')
+              ->where(['spu' => ['in', $spus], 'lang' => $lang, 'status' => 'VALID'])
               ->select();
       $ret = [];
       if ($specs) {
@@ -537,9 +558,9 @@ class EsproductModel extends PublicModel {
           unset($spec['spu']);
           unset($spec['sku']);
           $ret[$spu][$sku] = $spec;
-        }
+        } return $ret;
       }
-      return $ret;
+      return [];
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
@@ -586,29 +607,23 @@ class EsproductModel extends PublicModel {
   public function getproduct_specsbyskus($spus, $lang = 'en') {
     try {
       $product_attrs = $this->table('erui_goods.t_product_attr')
-              ->field('spu,attr_name,attr_value,attr_no')
-              ->where(['spu' => ['in', $spus],
-                  'lang' => $lang,
-                  'spec_flag' => 'Y',
-                  'status' => 'VALID'
-              ])
-              ->select();
-      $ret = [];
-      if ($product_attrs) {
-        foreach ($product_attrs as $item) {
-          $sku = $item['spu'];
-          unset($item['spu']);
-          $ret[$sku][] = $item;
-        }
-      }
-
-
-      return $ret;
+                      ->field('spu,attr_name,attr_value,attr_no')
+                      ->where(['spu' => ['in', $spus], 'lang' => $lang, 'spec_flag' => 'Y', 'status' => 'VALID'
+                      ])->select();
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
       return [];
     }
+    $ret = [];
+    if (is_array($product_attrs)) {
+      foreach ($product_attrs as $item) {
+        $sku = $item['spu'];
+        unset($item['spu']);
+        $ret[$sku][] = $item;
+      }
+    }
+    return $ret;
   }
 
   /*
@@ -625,21 +640,20 @@ class EsproductModel extends PublicModel {
               ->field('show_cat_no,material_cat_no')
               ->where(['material_cat_no' => ['in', $cat_nos], 'status' => 'VALID'])
               ->select();
-
-      $ret = [];
-      if ($show_material_cats) {
-        foreach ($show_material_cats as $item) {
-
-          $ret[$item['material_cat_no']][$item['show_cat_no']] = $item['show_cat_no'];
-        }
-      }
-
-      return $ret;
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
       return [];
     }
+    $ret = [];
+    if ($show_material_cats) {
+      foreach ($show_material_cats as $item) {
+
+        $ret[$item['material_cat_no']][$item['show_cat_no']] = $item['show_cat_no'];
+      }
+    }
+
+    return $ret;
   }
 
   /*
@@ -652,12 +666,15 @@ class EsproductModel extends PublicModel {
   public function getshow_cats($show_cat_nos, $lang = 'en') {
 
     try {
-      $cat3s = $this->table('erui_goods.t_show_cat')
-              ->field('parent_cat_no,cat_no,name')
-              ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
-              ->select();
-      $cat1_nos = $cat2_nos = [];
-
+      if ($show_cat_nos) {
+        $cat3s = $this->table('erui_goods.t_show_cat')
+                ->field('parent_cat_no,cat_no,name')
+                ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
+                ->select();
+        $cat1_nos = $cat2_nos = [];
+      } else {
+        return [];
+      }
 
       if (!$cat3s) {
         return [];
@@ -666,39 +683,58 @@ class EsproductModel extends PublicModel {
       foreach ($cat3s as $cat) {
         $cat2_nos[] = $cat['parent_cat_no'];
       }
-
-      $cat2s = $this->table('erui_goods.t_show_cat')
-                      ->field('id,cat_no,name,parent_cat_no')
-                      ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
+      if ($cat2_nos) {
+        $cat2s = $this->table('erui_goods.t_show_cat')
+                        ->field('id,cat_no,name,parent_cat_no')
+                        ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
+      }
       if (!$cat2s) {
-        return [];
+        $newcat3s = [];
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name']
+          ];
+        }
+        return $newcat3s;
       }
       foreach ($cat2s as $cat2) {
         $cat1_nos[] = $cat2['parent_cat_no'];
       }
-      $cat1s = $this->table('erui_goods.t_show_cat')->field('id,cat_no,name')
-                      ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
-      $newcat1s = [];
-      if (!$cat2s) {
-        return [];
+      if ($cat1_nos) {
+        $cat1s = $this->table('erui_goods.t_show_cat')->field('id,cat_no,name')
+                        ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
       }
-      foreach ($cat1s as $val) {
-        $newcat1s[$val['cat_no']] = $val;
-      }
+
       $newcat2s = [];
       foreach ($cat2s as $val) {
         $newcat2s[$val['cat_no']] = $val;
       }
+      if (!$cat1s) {
+        $newcat3s = [];
+        foreach ($cat3s as $val) {
+          $newcat3s[$val['cat_no']] = [
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name'],
+              'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+              'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+          ];
+        }
+        return $newcat3s;
+      }
+      $newcat1s = [];
+      foreach ($cat1s as $val) {
+        $newcat1s[$val['cat_no']] = $val;
+      }
       foreach ($cat3s as $val) {
         $newcat3s[$val['cat_no']] = [
             'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-            'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+            'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
             'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
             'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
             'cat_no3' => $val['cat_no'],
             'cat_name3' => $val['name']];
       }
-
       return $newcat3s;
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -748,14 +784,25 @@ class EsproductModel extends PublicModel {
   public function getproductattrsbyspus($spus, $lang = 'en') {
     try {
       $products = $this->where(['spu' => ['in', $spus], 'lang' => $lang])
-              ->field('spu,meterial_cat_no')
+              ->field('spu,meterial_cat_no,brand,supplier_id,supplier_name,source,meterial_cat_no')
               ->select();
 
 
+      $brands = [];
+      $supplier_ids = [];
+      $supplier_names = [];
+      $sources = [];
+      $meterial_cat_nos = [];
       $spus = $mcat_nos = [];
       foreach ($products as $item) {
+
         $mcat_nos[] = $item['meterial_cat_no'];
         $spus[] = $item['spu'];
+        $brands[$item['spu']] = $item['brand'];
+        $supplier_ids[$item['spu']] = $item['supplier_id'];
+        $supplier_names[$item['spu']] = $item['supplier_name'];
+        $sources[$item['spu']] = $item['source'];
+        $meterial_cat_nos[$item['spu']] = $item['meterial_cat_no'];
       }
       $spus = array_unique($spus);
       $mcat_nos = array_unique($mcat_nos);
@@ -788,6 +835,7 @@ class EsproductModel extends PublicModel {
           $body['meterial_cat'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
         }
         if (!empty($show_cat)) {
+          rsort($show_cat);
           $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE);
         } else {
           $body['show_cats'] = json_encode([], JSON_UNESCAPED_UNICODE);
@@ -798,7 +846,11 @@ class EsproductModel extends PublicModel {
         } else {
           $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
         }
-
+        $body['brand'] = $brands[$item['spu']];
+        $body['supplier_id'] = $supplier_ids[$item['spu']];
+        $body['supplier_name'] = $supplier_names[$item['spu']];
+        $body['source'] = $sources[$item['spu']];
+        $body['meterial_cat_no'] = $meterial_cat_nos[$item['spu']];
         $ret[$item['spu']] = $body;
       }
       return $ret;
@@ -873,8 +925,6 @@ class EsproductModel extends PublicModel {
             $id = $item['spu'];
             $body = $item;
             if (isset($skus[$item['spu']])) {
-
-
               $body['skus'] = json_encode($skus[$item['spu']], JSON_UNESCAPED_UNICODE);
             } else {
               $body['skus'] = '[]';
@@ -902,7 +952,12 @@ class EsproductModel extends PublicModel {
             } else {
               $body['meterial_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
             }
-            $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
+            if ($show_cat) {
+              rsort($show_cat);
+              $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE);
+            } else {
+              $body['show_cats'] = json_encode([], JSON_UNESCAPED_UNICODE);
+            }
             if (isset($product_attrs[$item['spu']])) {
               $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
             } else {
@@ -944,87 +999,177 @@ class EsproductModel extends PublicModel {
       $data['id'] = $condition['id'];
     }
     $data['lang'] = $lang;
-    if ($condition['meterial_cat_no']) {
-      $data['meterial_cat_no'] = $condition['meterial_cat_no'];
-      $data['meterial_cat'] = [];
+    if (isset($condition['meterial_cat_no'])) {
+      $material_cat_no = $data['meterial_cat_no'] = $condition['meterial_cat_no'];
+      $mcatmodel = new MaterialcatModel();
+      $data['meterial_cat'] = json_encode($mcatmodel->getinfo($material_cat_no, $lang), 256);
+      $smmodel = new ShowmaterialcatModel();
+      $show_cat_nos = $smmodel->getshowcatnosBymatcatno($material_cat_no, $lang);
+      $scats = $this->getshow_cats($show_cat_nos, $lang);
+      $data['show_cats'] = json_encode($scats[$material_cat_no], 256);
+      $SupplycapabilityModel = new SupplycapabilityModel();
+      $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$material_cat_no], $lang);
+      if (isset($supply_capabilitys[$material_cat_no])) {
+        $data['supply_capabilitys'] = json_encode($supply_capabilitys[$material_cat_no], 256);
+      } else {
+        $data['supply_capabilitys'] = json_encode([]);
+      }
+    } else {
+      $data['meterial_cat_no'] = '';
+      $data['meterial_cat'] = json_encode(new \stdClass());
+      $data['show_cats'] = json_encode([]);
+      $data['supply_capabilitys'] = json_encode([]);
     }
-    if ($condition['spu']) {
-      $data['spu'] = $condition['spu'];
+    if (isset($condition['spu'])) {
+      $spu = $data['spu'] = $condition['spu'];
+
+      $product_attrs = $this->getproduct_attrbyspus([$spu], $lang);
+      $specs = $this->getproduct_specsbyskus([$spu], $lang);
+      $attachs = $this->getproduct_attachsbyspus([$spu], $lang);
+      if (isset($product_attrs[$spu])) {
+        $data['attrs'] = json_encode($product_attrs[$spu], 256);
+      } else {
+        $data['attrs'] = json_encode([], 256);
+      }
+      if (isset($specs[$spu])) {
+        $data['specs'] = json_encode($specs[$spu], 256);
+      } else {
+        $data['specs'] = json_encode([], 256);
+      }
+      if (isset($attachs[$spu])) {
+        $data['attachs'] = json_encode($attachs[$spu], 256);
+      } else {
+        $data['attachs'] = json_encode([], 256);
+      }
+    } else {
+      $data['spu'] = '';
+      $data['attrs'] = json_encode([], 256);
+      $data['specs'] = json_encode([], 256);
+      $data['attachs'] = json_encode([], 256);
     }
-    if ($condition['qrcode']) {
+    if (isset($condition['qrcode'])) {
       $data['qrcode'] = $condition['qrcode'];
+    } else {
+      $data['qrcode'] = null;
     }
-    if ($condition['name']) {
+    if (isset($condition['name'])) {
       $data['name'] = $condition['name'];
+    } else {
+      $data['name'] = '';
     }
-    if ($condition['show_name']) {
+    if (isset($condition['show_name'])) {
       $data['show_name'] = $condition['show_name'];
+    } else {
+      $data['show_name'] = '';
     }
-    if ($condition['keywords']) {
+    if (isset($condition['keywords'])) {
       $data['keywords'] = $condition['keywords'];
-    } if ($condition['exe_standard']) {
+    } else {
+      $data['keywords'] = '';
+    }
+
+    if ($condition['exe_standard']) {
       $data['exe_standard'] = $condition['exe_standard'];
-    }if ($condition['app_scope']) {
+    } else {
+      $data['exe_standard'] = '';
+    }
+    if (isset($condition['app_scope'])) {
       $data['app_scope'] = $condition['app_scope'];
+    } else {
+      $data['app_scope'] = '';
     }
-    if ($condition['tech_paras']) {
+    if (isset($condition['tech_paras'])) {
       $data['tech_paras'] = $condition['tech_paras'];
+    } else {
+      $data['tech_paras'] = '';
     }
-    if ($condition['advantages']) {
+    if (isset($condition['advantages'])) {
       $data['advantages'] = $condition['advantages'];
+    } else {
+      $data['advantages'] = '';
     }
-    if ($condition['profile']) {
+    if (isset($condition['profile'])) {
       $data['profile'] = $condition['profile'];
+    } else {
+      $data['profile'] = '';
     }
     if ($condition['description']) {
       $data['description'] = $condition['description'];
     }
 
-    if ($condition['supplier_id']) {
+    if (isset($condition['supplier_id'])) {
       $data['supplier_id'] = $condition['supplier_id'];
+    } else {
+      $data['supplier_id'] = '';
     }
-    if ($condition['supplier_name']) {
+    if (isset($condition['supplier_name'])) {
       $data['supplier_name'] = $condition['supplier_name'];
+    } else {
+      $data['supplier_name'] = '';
     }
-    if ($condition['brand']) {
+    if (isset($condition['brand'])) {
       $data['brand'] = $condition['brand'];
+    } else {
+      $data['brand'] = '';
     }
-    if ($condition['warranty']) {
+    if (isset($condition['warranty'])) {
       $data['warranty'] = $condition['warranty'];
+    } else {
+      $data['warranty'] = '';
     }
-    if ($condition['customization_flag']) {
+    if (isset($condition['customization_flag'])) {
       $data['customization_flag'] = $condition['customization_flag'] == 'Y' ? 'Y' : 'N';
     } else {
       $data['customization_flag'] = 'N';
     }
-    if ($condition['customizability']) {
+    if (isset($condition['customizability'])) {
       $data['customizability'] = $condition['customizability'];
-    } if ($condition['availability']) {
-      $data['availability'] = $condition['availability'];
-    } if ($condition['resp_time']) {
-      $data['resp_time'] = $condition['resp_time'];
-    }if ($condition['resp_rate']) {
-      $data['resp_rate'] = $condition['resp_rate'];
-    }
-    if ($condition['delivery_cycle']) {
-      $data['delivery_cycle'] = $condition['delivery_cycle'];
-    }
-    if ($condition['target_market']) {
-      $data['target_market'] = $condition['target_market'];
-    }
-    if ($condition['source']) {
-      $data['source'] = $condition['source'];
+    } else {
+      $data['customizability'] = '';
     }
 
-    if ($condition['source_detail']) {
-      $data['source_detail'] = $condition['source_detail'];
+    if (isset($condition['availability'])) {
+      $data['availability'] = $condition['availability'];
+    } else {
+      $data['availability'] = '';
     }
-    if ($condition['recommend_flag']) {
+    if (isset($condition['resp_time'])) {
+      $data['resp_time'] = $condition['resp_time'];
+    } else {
+      $data['resp_time'] = '';
+    }
+    if (isset($condition['resp_rate'])) {
+      $data['resp_rate'] = $condition['resp_rate'];
+    } else {
+      $data['resp_rate'] = '';
+    }
+    if (isset($condition['delivery_cycle'])) {
+      $data['delivery_cycle'] = $condition['delivery_cycle'];
+    } else {
+      $data['delivery_cycle'] = '';
+    }
+    if (isset($condition['target_market'])) {
+      $data['target_market'] = $condition['target_market'];
+    } else {
+      $data['target_market'] = '';
+    }
+
+    if (isset($condition['source'])) {
+      $data['source'] = $condition['source'];
+    } else {
+      $data['source'] = '';
+    }
+
+    if (isset($condition['source_detail'])) {
+      $data['source_detail'] = $condition['source_detail'];
+    } else {
+      $data['source_detail'] = '';
+    }
+    if (isset($condition['recommend_flag'])) {
       $data['recommend_flag'] = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
     } else {
       $data['recommend_flag'] = 'N';
     }
-
     if (isset($condition['status']) && in_array($condition['status'], ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
       $data['status'] = strtoupper($condition['status']);
     } else {
@@ -1062,38 +1207,12 @@ class EsproductModel extends PublicModel {
       $data['checked_at'] = '';
     }
     if (isset($condition['skus'])) {
-      
+      $goodsmodel = new GoodsModel();
+      $data['skus'] = $goodsmodel->getskusbyspu($data, $lang);
     } else {
       $data['skus'] = json_encode([]);
     }
-
-    if (isset($condition['specs'])) {
-      
-    } else {
-      $data['specs'] = json_encode([]);
-    }
-
-    if (isset($condition['attachs'])) {
-      
-    } else {
-      $data['attachs'] = json_encode([]);
-    }
-
-    if (isset($condition['show_cats'])) {
-      
-    } else {
-      $data['show_cats'] = json_encode([]);
-    }
-    if (isset($condition['attrs'])) {
-      
-    } else {
-      $data['attrs'] = json_encode([]);
-    }
-    if (isset($condition['v'])) {
-      
-    } else {
-      $data['supply_capabilitys'] = json_encode([]);
-    }
+    return $data;
   }
 
   /*
@@ -1104,7 +1223,16 @@ class EsproductModel extends PublicModel {
 
   public function create_data($data, $lang = 'en') {
     try {
-      
+      $es = new ESClient();
+      $body = $this->getInsertCodition($data);
+      $id = $data['spu'];
+      $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+      if ($flag['_shards']['successful'] !== 1) {
+        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        return true;
+      } else {
+        return false;
+      }
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
@@ -1120,12 +1248,370 @@ class EsproductModel extends PublicModel {
 
   public function update_data($data, $spu, $lang = 'en') {
     try {
-      $spus[] = $spu;
+      $es = new ESClient();
+      $body = $this->getInsertCodition($data);
+      if (empty($spu)) {
+        return false;
+      }
+      $id = $spu;
+      $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+      if ($flag['_shards']['successful'] !== 1) {
+        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        return true;
+      } else {
+        return false;
+      }
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
       return false;
     }
+  }
+
+  /* 上架
+   * 
+   */
+
+  public function changestatus($spu, $lang = 'en') {
+    try {
+      $es = new ESClient();
+      if (empty($spu)) {
+        return false;
+      }
+      if (in_array(strtoupper($status), ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+        $data['status'] = strtoupper($status);
+      } else {
+        $data['status'] = 'CHECKING';
+      }
+      $id = $spu;
+      $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
+      return true;
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Updateshowcats($spu = null, $lang = 'en', $cat_no = null) {
+    $es = new ESClient();
+    if (empty($spu) && empty($cat_no)) {
+      return false;
+    }
+    if ($spu) {
+      $id = $spu;
+      $type = $this->tableName . '_' . $lang;
+      $showcatproduct_model = new ShowCatProductModel();
+      $show_cat_nos = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
+      $scats = $this->getshow_cats($show_cat_nos, $lang);
+      $data['show_cats'] = json_encode($scats, 256);
+      $es->update_document($this->dbName, $type, $data, $id);
+      $esgoodsdata = [
+          "script" => [
+              "inline" => "ctx._source.show_cats=show_cats;",
+              "params" => [
+                  "show_cats" => $data['show_cats'],
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "spu" => $spu
+              ]
+          ]
+      ];
+      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    } elseif ($cat_no) {
+      $id = $spu;
+      $type = $this->tableName . '_' . $lang;
+      $showcatproduct_model = new ShowCatProductModel();
+      $show_cat_nos = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
+      $scats = $this->getshow_cats($show_cat_nos, $lang);
+      $data['show_cats'] = json_encode($scats, 256);
+      $es_product_data = [
+          "script" => [
+              "inline" => "ctx._source.show_cats=show_cats;",
+              "params" => [
+                  "show_cats" => $data['show_cats'],
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "show_cats" => $cat_no
+              ]
+          ]
+      ];
+      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+      $esgoodsdata = [
+          "script" => [
+              "inline" => "ctx._source.show_cats=show_cats;",
+              "params" => [
+                  "show_cats" => $data['show_cats'],
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "show_cats" => $cat_no
+              ]
+          ]
+      ];
+      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    }
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Updatemeterialcatno($material_cat_no, $spu = null, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($material_cat_no)) {
+      return false;
+    }
+    $type = $this->tableName . '_' . $lang;
+    $mcatmodel = new MaterialcatModel();
+    $data['meterial_cat'] = json_encode($mcatmodel->getinfo($material_cat_no, $lang), 256);
+    $smmodel = new ShowmaterialcatModel();
+    $show_cat_nos = $smmodel->getshowcatnosBymatcatno($material_cat_no, $lang);
+    $scats = $this->getshow_cats($show_cat_nos, $lang);
+    $data['show_cats'] = json_encode($scats[$material_cat_no], 256);
+    $SupplycapabilityModel = new SupplycapabilityModel();
+    $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$material_cat_no], $lang);
+    $data['supply_capabilitys'] = json_encode($supply_capabilitys[$material_cat_no], 256);
+    $data['material_cat_no'] = $material_cat_no;
+    if ($spu) {
+      $id = $spu;
+      $es->update_document($this->dbName, $type, $data, $id);
+    } else {
+      $es_product_data = [
+          "script" => [
+              "inline" => "ctx._source.meterial_cat=meterial_cat;"
+              . "ctx._source.show_cats=show_cats;"
+              . "ctx._source.supply_capabilitys=supply_capabilitys;",
+              "params" => [
+                  "meterial_cat" => $data['meterial_cat'],
+                  "show_cats" => $data['show_cats'],
+                  'material_cat_no' => $material_cat_no,
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "material_cat_no" => $material_cat_no
+              ]
+          ]
+      ];
+      $es->UpdateByQuery($this->dbName, 'product_' . $lang, $es_product_data);
+    }
+    if ($spu) {
+      $esgoodsdata = [
+          "script" => [
+              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
+              "params" => [
+                  "meterial_cat" => $data['meterial_cat'],
+                  "show_cats" => $data['show_cats'],
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "spu" => $spu
+              ]
+          ]
+      ];
+    } else {
+      $esgoodsdata = [
+          "script" => [
+              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
+              "params" => [
+                  "meterial_cat" => $data['meterial_cat'],
+                  "show_cats" => $data['show_cats'],
+              ]
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "material_cat_no" => $material_cat_no
+              ]
+          ]
+      ];
+    }
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_Attrs($spu, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    $product_attrs = $this->getproduct_attrbyspus([$spu], $lang);
+    $specs = $this->getproduct_specsbyskus([$spu], $lang);
+    $id = $spu;
+    $data['attrs'] = json_encode($product_attrs[$spu], 256);
+    $data['specs'] = json_encode($specs[$spu], 256);
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+    $goodsmodel = new GoodsModel();
+    $sku_infos = $goodsmodel->getskusbyspu($spu, $lang);
+    $esgoodsmodel = new EsgoodsModel();
+    foreach ($sku_infos as $sku) {
+      $esgoodsmodel->Update_Attrs($sku['sku'], $lang, $product_attrs, $specs);
+    }
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_Attachs($spu, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    $attachs = $this->getproduct_attachsbyspus([$spu], $lang);
+    if (isset($attachs[$spu])) {
+      $data['attachs'] = json_encode($attachs[$spu], 256);
+    } else {
+      $data['attachs'] = '[]';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+
+
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_skus($spu, $skus, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    $goodsmodel = new GoodsModel();
+
+    $skuinfos = $goodsmodel->getskusbyskus($skus, $lang);
+    if ($skuinfos) {
+      $data['skus'] = json_encode($skuinfos, 256);
+    } else {
+      $data['skus'] = '[]';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_brand($spu, $brand, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    if ($brand) {
+      $data['brand'] = $brand;
+    } else {
+      $data['brand'] = '';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+
+    $esgoodsdata = [
+        "script" => [
+            "inline" => "ctx._source.brand=brand;",
+            "params" => [
+                "brand" => $brand,
+            ]
+        ],
+        "query" => [
+            ESClient::MATCH_PHRASE => [
+                "spu" => $spu
+            ]
+        ]
+    ];
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_spuname($spu, $spuname, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    if ($spuname) {
+      $data['name'] = $spuname;
+    } else {
+      $data['name'] = '';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+    return true;
+  }
+
+  /* 新增ES
+   * 
+   */
+
+  public function Update_supplier_name($spu, $supplier_name, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    if ($supplier_name) {
+      $data['supplier_name'] = $supplier_name;
+    } else {
+      $data['supplier_name'] = '';
+    }
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $es->update_document($this->dbName, $type, $data, $id);
+
+    $esgoodsdata = [
+        "script" => [
+            "inline" => "ctx._source.brand=brand;",
+            "params" => [
+                "supplier_name" => $supplier_name,
+            ]
+        ],
+        "query" => [
+            ESClient::MATCH_PHRASE => [
+                "spu" => $spu
+            ]
+        ]
+    ];
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    return true;
+  }
+
+  public function delete_data($spu, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($spu)) {
+      return false;
+    }
+    $data['status'] = self::STATUS_DELETED;
+    $id = $spu;
+    $type = $this->tableName . '_' . $lang;
+    $flag = $es->update_document($this->dbName, $type, $data, $id);
+    return true;
   }
 
 }

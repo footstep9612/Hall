@@ -108,7 +108,7 @@ class MemberBizServiceModel extends PublicModel {
             $where['buyer_level'] = ucwords($buyerLevel['buyer_level']);
         }
         if(redisHashExist('service',md5(json_encode($where)))){
-            $result = json_decode(redisHashGet('service',md5(json_encode($lang))),true);
+            $result = json_decode(redisHashGet('service',md5(json_encode($where))),true);
             return $result ? $result : array();
         }
             //通过buyer_level查找biz_service_bn
@@ -116,7 +116,7 @@ class MemberBizServiceModel extends PublicModel {
             $data = array();
             $bizService = new BizServiceModel();
             foreach ($biz_service_bn as $vals) {
-                $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $vals['biz_service_bn'], 'lang' => 'zh'))->find();
+                $info = $bizService->field('major_class,minor_class,service_name')->where(array('service_code' => $vals['biz_service_bn'], 'lang' => $lang))->find();
                 if(empty($info)) continue;
                 $data[] = $info;
             }
@@ -128,7 +128,6 @@ class MemberBizServiceModel extends PublicModel {
                  * Logistics Service -物流服务
                  * Quality  Assurance-品质保障
                  * Steward Service -管家服务
-                 * Other - 其他服务
                  */
                 $service = array();
                 foreach ($data as $key => $item) {

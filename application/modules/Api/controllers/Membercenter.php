@@ -11,7 +11,7 @@
  * 2017/6/26
  * @author klp
  */
-class MemberCenterController extends ShopMallController
+class MembercenterController extends ShopMallController
 {
 
     /**

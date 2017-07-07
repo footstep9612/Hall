@@ -6,43 +6,31 @@
  * Class ExcelController
  * @author maimaiti
  */
-class ExcelController extends PublicController
-//class ExcelController extends Yaf_Controller_Abstract
+//class ExcelController extends PublicController
+class ExcelController extends Yaf_Controller_Abstract
 {
     /**
      * 报价单Excel导出api接口
      * @author maimaiti
      */
-    public function quoteAction() {
-
-        //请求验证
-        $this->requestValidator();
-
+    public function quoteAction()
+    {
         //获取post
         $raw = json_decode(file_get_contents("php://input"), true);
         if (!isset($raw['quote_no'])) {
             jsonReturn(null, -2103, ErrorMsg::getMessage('-2103'));
         }
 
-
         $file = $this->data2excelAction($raw['quote_no']);
-        if ($this->check_remote_file_exists($file))
-        {
-            $returnData = [
-                'code' => 1,
-                'message' => ErrorMsg::getMessage('1'),
-                'data' => [
-                    'file' => $file,
-                    'exported_at' => date('YmdHis')
-                ]
-            ];
-        }else{
-            $returnData = [
-                'code' => 0,
-                'message' => '导出文件路径有错误~',
-                'data' => []
-            ];
-        }
+        //响应数据
+        $returnData = [
+            'code' => 1,
+            'message' => ErrorMsg::getMessage('1'),
+            'data' => [
+                'file' => $file,
+                'exported_at' => date('YmdHis')
+            ]
+        ];
         exit(json_encode($returnData));
     }
 
@@ -60,7 +48,7 @@ class ExcelController extends PublicController
         $objSheet->setTitle('商务技术报价单'); //设置当前sheet标题
 
         //获取数据
-        $quote = $this->getData($quote_no);
+        //$quote = $this->getData($quote_no);
         //var_dump($quote);die;
 
         //3.填充数据
@@ -120,13 +108,13 @@ class ExcelController extends PublicController
             $objSheet->getColumnDimension($big_col)->setWidth('18');
         endforeach;
 
-        $objSheet->setCellValue("A3", "报价人 : " . $quote['quoter'])->mergeCells("A3:E3");
+        $objSheet->setCellValue("A3", "报价人 : ")->mergeCells("A3:E3");
         $objSheet->setCellValue("A4", "电话 : ")->mergeCells("A4:E4");
-        $objSheet->setCellValue("A5", "邮箱 : " . $quote['quoter_email'])->mergeCells("A5:E5");
+        $objSheet->setCellValue("A5", "邮箱 : ")->mergeCells("A5:E5");
 
         $objSheet->setCellValue("F3", "询价单位 : (加拿大)孙继飞")->mergeCells("F3:R3");
         $objSheet->setCellValue("F4", "业务对接人 : 孙继飞")->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "报价时间 : " . date('Y-m-d', $quote['quote_at']))->mergeCells("F5:R5");
+        $objSheet->setCellValue("F5", "报价时间 : ")->mergeCells("F5:R5");
 
 
         $objSheet->setCellValue("A6", '易瑞国际电子商务有限公司商务技术部')
@@ -170,7 +158,7 @@ class ExcelController extends PublicController
         }
 
 
-        $objSheet->setCellValue("A9", $quote['id']);
+        $objSheet->setCellValue("A9",'ID');
 
         $objSheet->setCellValue("B9", "科瑞");
         $objSheet->setCellValue("C9", "kerui");
@@ -299,7 +287,7 @@ class ExcelController extends PublicController
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
 
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_QD.xls");
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('Ymd_His')."_QD.xls");
 
     }
 
@@ -333,12 +321,15 @@ class ExcelController extends PublicController
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-        $savePath = $_SERVER['HTTP_HOST'] . "/application/" . $path . "/";
+        $appPath = $_SERVER['DOCUMENT_ROOT'] . "/application/";
+        $savePath = $appPath . $path . "/";
+        //echo $_SERVER['DOCUMENT_ROOT'];die;
         if (!is_dir($savePath)) {
-            mkdir($savePath, 0775, true);
+            mkdir($savePath, 0777, true);
         }
-        $obj->save($savePath . $filename);
-        return $savePath . $filename;
+        $saveName = $savePath . $filename;
+        $obj->save($saveName);
+        return $saveName;
     }
 
     /**
@@ -347,28 +338,15 @@ class ExcelController extends PublicController
      * @author maimaiti
      */
     public function quoteItemAction() {
-        //请求验证
-        $this->requestValidator();
         $file = $this->export_sku_handler();
-
-        if ($this->check_remote_file_exists($file))
-        {
-            //成功导出
-            $data = [
-                'code' => 1,
-                'message' => ErrorMsg::getMessage('1'),
-                'data' => [
-                    'file' => $file,
-                    'exported_at' => date('YmdHis')
-                ]
-            ];
-        }else{
-            $data = [
-                'code' => 0,
-                'message' => ErrorMsg::getMessage('0'),
-                'data' => []
-            ];
-        }
+        $data = [
+            'code'=>1,
+            'message'=>'成功',
+            'data'=>[
+                'file'=>$file,
+                'exported_at'=>time()
+            ]
+        ];
         exit(json_encode($data));
     }
 
@@ -443,7 +421,7 @@ class ExcelController extends PublicController
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_QI.xls");
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('Ymd_His')."_QI.xls");
     }
 
     /**
@@ -533,8 +511,8 @@ class ExcelController extends PublicController
     public function goodsListAction()
     {
         //验证请求类型
-        $this->requestValidator();
-
+        //$this->requestValidator();
+        //exit('ddd');
         //判断语言参数
         $request = json_decode(file_get_contents("php://input"),true);
         $goodsModel = new GoodsModel();
@@ -602,27 +580,16 @@ class ExcelController extends PublicController
         print_r($goods);*/
         $file = $this->goodsListHandler();
 
-        if ($this->check_remote_file_exists($file))
-        {
-            //文件名
-            $filename =str_replace(dirname($file).'/','',$file);
+        $response = [
+            'code'=>1,
+            'message'=>ErrorMsg::getMessage('1'),
+            'data'=>[
+                'file'=>$file,
+                //文件创建时间(文件创建时是指xls文件被导出的时间)
+                'exported_at'=>date('Y-m-d H:i:s')
+            ]
+        ];
 
-            $response = [
-                'code'=>1,
-                'message'=>ErrorMsg::getMessage('1'),
-                'data'=>[
-                    'file'=>$file,
-                    //文件创建时间(文件创建时是指xls文件被导出的时间)
-                    'exported_at'=>strstr($filename,'_',true)
-                ]
-            ];
-        }else{
-            $response = [
-                'code'=>0,
-                'message'=>ErrorMsg::getMessage('0'),
-                'data'=>[]
-            ];
-        }
         exit(json_encode($response));
     }
 
@@ -688,18 +655,18 @@ class ExcelController extends PublicController
         //追加数据库数据
 
         //P($sku_items);die;
-/*        $item = 2;
-        foreach ($sku_items as $key => $value) {
-            $objSheet->setCellValue("A" . $item, $value['quote_no'])
-                ->setCellValue("B" . $item, $value['name_cn'])
-                ->setCellValue("C" . $item, $value['name_en'])
-                ->setCellValue("D" . $item, $value['quote_spec'])
-                ->setCellValue("E" . $item, $value['inquiry_desc'])
-                ->setCellValue("F" . $item, $value['quote_quantity'])
-                ->setCellValue("G" . $item, $value['quote_unit'])
-                ->setCellValue("H" . $item, $value['quote_brand']);
-            $item++;
-        }*/
+        /*        $item = 2;
+                foreach ($sku_items as $key => $value) {
+                    $objSheet->setCellValue("A" . $item, $value['quote_no'])
+                        ->setCellValue("B" . $item, $value['name_cn'])
+                        ->setCellValue("C" . $item, $value['name_en'])
+                        ->setCellValue("D" . $item, $value['quote_spec'])
+                        ->setCellValue("E" . $item, $value['inquiry_desc'])
+                        ->setCellValue("F" . $item, $value['quote_quantity'])
+                        ->setCellValue("G" . $item, $value['quote_unit'])
+                        ->setCellValue("H" . $item, $value['quote_brand']);
+                    $item++;
+                }*/
 
 
         //居中设置
@@ -709,29 +676,25 @@ class ExcelController extends PublicController
             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         //保存文件
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        //$objWriter->save('demo.xlsx');
+        //$objWriter->save(dirname(__FILE__)."/dir1"."/".date('YmdHis')."_goods".".xlsx");
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis',time())."_goodsList.xls");
     }
+
 
     /**
      * 导出询价单模板接口(市场询报价)
      */
     public function getMarketInquiryTemplateAction()
     {
-        //请求验证
-        $this->requestValidator();
-
         //导出询价单模板
-        $inquiryTemplateFile = $_SERVER['HTTP_HOST']."/application/ExcelFiles/marketInquiryTemplate.xls";
+        $inquiryTemplateFile = $_SERVER['DOCUMENT_ROOT']."/application/ExcelFiles/marketInquiryTemplate.xls";
 
         //判断文件的真实性和是否存在
-        if ( $this->check_remote_file_exists($inquiryTemplateFile) )
-        {
-            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
-        }else{
-            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
-        }
+        $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
+
         exit(json_encode($response));
     }
     /**
@@ -739,18 +702,11 @@ class ExcelController extends PublicController
      */
     public function getBusinessInquiryTemplateAction()
     {
-        //请求验证
-        $this->requestValidator();
 
         //导出询价单模板
-        $inquiryTemplateFile = $_SERVER['HTTP_HOST']."/ExcelFiles/businessInquiryTemplate.xls";
+        $inquiryTemplateFile = $_SERVER['DOCUMENT_ROOT']."/application/ExcelFiles/businessInquiryTemplate.xls";
         //判断文件的真实性和是否存在
-        if (  $this->check_remote_file_exists($inquiryTemplateFile) )
-        {
-            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
-        }else{
-            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
-        }
+        $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
         exit(json_encode($response));
     }
 
@@ -761,9 +717,6 @@ class ExcelController extends PublicController
      */
     public function inquiryDetailAction()
     {
-        //验证请求
-        $this->requestValidator();
-
         //获取参数
         $request = json_decode(file_get_contents("php://input"),true);
         //流水号
@@ -808,25 +761,15 @@ class ExcelController extends PublicController
         }else{
             //创建表格并填充数据
             $file = $this->createInquiryDetailExcel($inquiryDetail);
+            $response = [
+                'code'=>1,
+                'message'=>ErrorMsg::getMessage('1'),
+                'data'=>[
+                    'file'=>$file,
+                    'exported_at'=>time()
+                ]
+            ];
 
-            if ($this->check_remote_file_exists($file))
-            {
-                $file =str_replace(dirname($file).'/','',$file);
-                $response = [
-                    'code'=>1,
-                    'message'=>ErrorMsg::getMessage('1'),
-                    'data'=>[
-                        'file'=>$file,
-                        'exported_at'=>strstr($file,'_',true)
-                    ]
-                ];
-            }else{
-                $response = [
-                    'code'=>0,
-                    'message'=>'读取导出文件路径失败~',
-                    'data'=>[]
-                ];
-            }
         }
         exit(json_encode($response));
     }
@@ -844,8 +787,8 @@ class ExcelController extends PublicController
         $objSheet->setTitle('询单明细'); //设置当前sheet标题
         //设置列宽度
         $normal_cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
-                        "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
-                        "Y", "Z","AA"
+            "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
+            "Y", "Z","AA"
         ];
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('16');
@@ -892,39 +835,5 @@ class ExcelController extends PublicController
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_IQD.xls");
-    }
-
-    /**
-     * 检查远程文件是否为存在
-     * @param $url 远程文件
-     * @return bool 返回结果 1为存在 0为不存在
-     */
-    private function check_remote_file_exists($url) {
-        $curl = curl_init($url); // 不取回数据
-        curl_setopt($curl, CURLOPT_NOBODY, true);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // 发送请求
-        $result = curl_exec($curl);
-        $found = false; // 如果请求没有发送失败
-        if ($result !== false)
-        {
-            /** 再检查http响应码是否为200 */
-            $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            if ($statusCode == 200)
-            {
-                $found = true;
-            }
-        }
-        curl_close($curl);
-        return $found;
-    }
-    /**
-     * 请求类型验证
-     * @return bool
-     */
-    protected function requestValidator()
-    {
-        //请求类型为POST或者PUT均可通过
-        if ( $this->getRequest()->isPost() || $this->getRequest()->isPut()) return true;
-        exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101')]));
     }
 }

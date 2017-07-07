@@ -60,8 +60,8 @@ class InquiryModel extends PublicModel {
         }
         if(!empty($condition['start_time']) && !empty($condition['end_time'])){
             $where['created_at'] = array(
-                array('gt',date('Y-m-d H:i:s',strtotime($condition['start_time']))),
-                array('lt',date('Y-m-d H:i:s',strtotime($condition['end_time'])))
+                array('gt',date('Y-m-d H:i:s',$condition['start_time'])),
+                array('lt',date('Y-m-d H:i:s',$condition['end_time']))
             );
         }
         if (!empty($condition['inquirer_email'])) {
@@ -100,7 +100,7 @@ class InquiryModel extends PublicModel {
         $pagesize = isset($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            $count = $this->getcount($where);
+            $count = $this->where($where)->count('id');
             $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
