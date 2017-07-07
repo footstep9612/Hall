@@ -39,7 +39,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $model = new UserModel();
             if (!empty($token)) {
                 try {
-                    $tks = explode('.', $token);
                     $tokeninfo = JwtInfo($token); //解析token
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
                     if (empty($userinfo)) {
@@ -61,7 +60,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             $arr = [];
                             if($data[0]['url'] ){
                                 $arr=explode(',',$data[0]['url'] );
-                                redisSet('role_user_'.$userinfo['id'],json_encode($arr),300);
+                                //redisSet('role_user_'.$userinfo['id'],json_encode($arr),300);
                             }
                         //}
                         if(!in_array(strtolower($jsondata['action_url']),$arr)){
