@@ -691,7 +691,7 @@ class EsproductModel extends PublicModel {
       if (!$cat2s) {
         $newcat3s = [];
         foreach ($cat3s as $val) {
-          $newcat3s[] = [
+          $newcat3s[$val['cat_no']] = [
               'cat_no3' => $val['cat_no'],
               'cat_name3' => $val['name']
           ];
@@ -713,7 +713,7 @@ class EsproductModel extends PublicModel {
       if (!$cat1s) {
         $newcat3s = [];
         foreach ($cat3s as $val) {
-          $newcat3s[] = [
+          $newcat3s[$val['cat_no']] = [
               'cat_no3' => $val['cat_no'],
               'cat_name3' => $val['name'],
               'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
@@ -727,7 +727,7 @@ class EsproductModel extends PublicModel {
         $newcat1s[$val['cat_no']] = $val;
       }
       foreach ($cat3s as $val) {
-        $newcat3s[] = [
+        $newcat3s[$val['cat_no']] = [
             'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
             'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
             'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
@@ -835,6 +835,7 @@ class EsproductModel extends PublicModel {
           $body['meterial_cat'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
         }
         if (!empty($show_cat)) {
+          rsort($show_cat);
           $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE);
         } else {
           $body['show_cats'] = json_encode([], JSON_UNESCAPED_UNICODE);
@@ -924,8 +925,6 @@ class EsproductModel extends PublicModel {
             $id = $item['spu'];
             $body = $item;
             if (isset($skus[$item['spu']])) {
-
-
               $body['skus'] = json_encode($skus[$item['spu']], JSON_UNESCAPED_UNICODE);
             } else {
               $body['skus'] = '[]';
@@ -953,7 +952,12 @@ class EsproductModel extends PublicModel {
             } else {
               $body['meterial_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
             }
-            $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
+            if ($show_cat) {
+              rsort($show_cat);
+              $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE);
+            } else {
+              $body['show_cats'] = json_encode([], JSON_UNESCAPED_UNICODE);
+            }
             if (isset($product_attrs[$item['spu']])) {
               $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
             } else {
