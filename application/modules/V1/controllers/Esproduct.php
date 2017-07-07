@@ -88,6 +88,8 @@ class EsproductController extends ShopMallController {
         } else {
           $list[$key]['img'] = null;
         }
+        $list[$key]['id'] = $item['_id'];
+
         $show_cats = json_decode($item["_source"]["show_cats"], true);
         if ($show_cats) {
           rsort($show_cats);
@@ -99,7 +101,6 @@ class EsproductController extends ShopMallController {
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
         $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
-        $list[$key]['id'] = $item['_id'];
       }
       $material_cat_nos = [];
       foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {

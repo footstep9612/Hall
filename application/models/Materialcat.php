@@ -201,12 +201,12 @@ class MaterialcatModel extends PublicModel {
                   ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                   ->find();
         } else {
-          return [$cat3['cat_no'], $cat3['name']];
+          return ['cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
         }
         if ($cat1) {
-          return [$cat1['cat_no'], $cat1['name'], $cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
+          return ['cat_no1' => $cat1['cat_no'], 'cat_name1' => $cat1['name'], 'cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
         } else {
-          return [$cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
+          return ['cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
         }
       } else {
         return [];
@@ -344,12 +344,7 @@ class MaterialcatModel extends PublicModel {
     if ($condition['level_no']) {
       $data['level_no'] = $condition['level_no'];
     }
-    if ($condition['lang']) {
-      $data['lang'] = $condition['lang'];
-    }
-    if ($condition['name']) {
-      $data['name'] = $condition['name'];
-    }
+
     switch ($condition['status']) {
 
       case self::STATUS_DELETED:
@@ -370,9 +365,34 @@ class MaterialcatModel extends PublicModel {
     }
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
-    $flag = $this->where($where)->save($data);
-    if ($flag && $data['cat_no'] && $data['lang']) {
-      $es_product_model = new EsproductModel();
+    $es_product_model = new EsproductModel();
+
+    if (isset($condition['en'])) {
+      $data['lang'] = 'en';
+      $data['name'] = $condition['en']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
+      $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
+    }
+    if (isset($condition['zh'])) {
+      $data['lang'] = 'zh';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
+      $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
+    }
+    if (isset($condition['es'])) {
+      $data['lang'] = 'es';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
+      $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
+    }
+    if (isset($condition['ru'])) {
+      $data['lang'] = 'ru';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
       $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
     }
     return $flag;
@@ -398,12 +418,7 @@ class MaterialcatModel extends PublicModel {
     if ($condition['level_no']) {
       $data['level_no'] = $condition['level_no'];
     }
-    if ($condition['lang']) {
-      $data['lang'] = $condition['lang'];
-    }
-    if ($condition['name']) {
-      $data['name'] = $condition['name'];
-    }
+
     switch ($condition['status']) {
 
       case self::STATUS_DELETED:
@@ -423,8 +438,28 @@ class MaterialcatModel extends PublicModel {
       $data['sort_order'] = $condition['sort_order'];
     }
 
+    if (isset($condition['en'])) {
+      $data['lang'] = 'en';
+      $data['name'] = $condition['en']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['zh'])) {
+      $data['lang'] = 'zh';
+      $data['name'] = $condition['zh']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['es'])) {
+      $data['lang'] = 'es';
+      $data['name'] = $condition['zh']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['ru'])) {
+      $data['lang'] = 'ru';
+      $data['name'] = $condition['zh']['name'];
 
-    return $this->add($data);
+      $flag = $this->add($data);
+    }
+    return $flag;
   }
 
   /**
