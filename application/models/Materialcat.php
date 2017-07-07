@@ -186,27 +186,27 @@ class MaterialcatModel extends PublicModel {
   public function getinfo($cat_no, $lang = 'en') {
     try {
       if ($cat_no) {
-        $cat3 = $this->field('id,cat_no,name')
+        $cat3 = $this->field('id,cat_no,name,parent_cat_no')
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
         if ($cat3) {
-          $cat2 = $this->field('id,cat_no,name')
+          $cat2 = $this->field('id,cat_no,name,parent_cat_no')
                   ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                   ->find();
         } else {
           return [];
         }
         if ($cat2) {
-          $cat1 = $this->field('id,cat_no,name')
+          $cat1 = $this->field('id,cat_no,name,parent_cat_no')
                   ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                   ->find();
         } else {
           return ['cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
         }
         if ($cat1) {
-          return ['cat_no1' => $cat1['cat_no'], 'cat_name1' => $cat1['name'], 'cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+          return ['cat_no1' => $cat1['cat_no'], 'cat_name1' => $cat1['name'], 'cat_no2' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
         } else {
-          return ['cat_no1' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+          return ['cat_no2' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
         }
       } else {
         return [];
