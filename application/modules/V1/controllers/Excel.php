@@ -17,41 +17,48 @@ class ExcelController extends Yaf_Controller_Abstract
     {
         //获取post
         $raw = json_decode(file_get_contents("php://input"), true);
-        if (!isset($raw['quote_no'])) {
+        //判断请求参数 这个就扣可以接受serial_no(流水号)或者quote_no(报价单号)
+        if (empty($raw))
+        {
             jsonReturn(null, -2103, ErrorMsg::getMessage('-2103'));
         }
 
-        $file = $this->data2excelAction($raw['quote_no']);
+        if (isset($raw['quote_no'])) {
+            $condition = ['quote_no'=>$raw['quote_no']];
+        }
+        if (isset($raw['serial_no'])) {
+            $condition = ['serial_no'=>$raw['serial_no']];
+        }
+        $result = $this->data2excelAction($condition);
         //响应数据
-        $returnData = [
-            'code' => 1,
-            'message' => ErrorMsg::getMessage('1'),
-            'data' => [
-                'file' => $file,
-                'exported_at' => date('YmdHis')
-            ]
-        ];
-        exit(json_encode($returnData));
+        exit(json_encode($result));
     }
 
     /**
      * 数据导出为Excel
      * @author maimaiti
      */
-    private function data2excelAction($quote_no) {
+    private function data2excelAction($condition)
+    {
+        //按条件查询数据库记录
+        $quote = $this->getQuoteByCondition($condition);
 
         //加载PHPExcel类,新建Excel表格
         $objPHPExcel = new PHPExcel();
-
         //2.创建sheet(内置表)
         $objSheet = $objPHPExcel->getActiveSheet(); //获取当前sheet
-        $objSheet->setTitle('商务技术报价单'); //设置当前sheet标题
-
-        //获取数据
-        //$quote = $this->getData($quote_no);
-        //var_dump($quote);die;
-
-        //3.填充数据
+        //设置报价单标题
+        switch (key($condition))
+        {
+            case "quote_no" :
+                $objSheet->setTitle('市场报价单');
+                $prefix = $quote['inquiry_no']."_Q_O_";//导出文件前缀
+                break;
+            case "serial_no" :
+                $objSheet->setTitle('商务技术报价单');
+                $prefix = $quote['inquiry_no']."_Q_I_";//导出文件前缀
+                break;
+        }
         //设置边框
         $styleArray = [
             'borders' => [
@@ -284,36 +291,52 @@ class ExcelController extends Yaf_Controller_Abstract
         //添加logo
 
         //4.保存文件
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
 
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", date('Ymd_His')."_QD.xls");
+        $file =  $this->export_to_disc($objWriter, "ExcelFiles", $prefix.date('Ymd_His').".xls");
+        if (!is_file($file) && !file_exists($file))
+        {
+            $data = [
+                'code'=>-2105,
+                'message'=>ErrorMsg::getMessage('-2105')
+            ];
+        }else{
+            $data = [
+                'code'=>1,
+                'message'=>ErrorMsg::getMessage('1'),
+                'data'=>[
+                    'file'=>$file,
+                    'exported_at'=>time('YmdHis')
+                ]
+            ];
+        }
+        return $data;
 
     }
-
     /**
      * 获取数据库信息，并重组返回
      * @author maimaiti
      * @return array $data 返回数据
      */
-    private function getData($quote_no) {
+    private function getQuoteByCondition($condition)
+    {
         $obj = new QuoteModel();
         $fields = [
+            'id',
+            'inquiry_no',
             'quoter', //商务报价人
             'quoter_email', //商务报价人邮箱
             'quote_at', //商务报价时间
             'id', //编号
-            // ...
         ];
-        $where = ['quote_no' => $quote_no];
-        $data = $obj->where($where)->field($fields, false)->find();
+        $data = $obj->where($condition)->field($fields, false)->find();
         if (!$data)
         {
             jsonReturn(null, -2102, ErrorMsg::getMessage('-2102'));
         }
         return $data;
     }
-
     /**
      * 保存到服务器指定目录
      * @param $obj  PHPExcel写入对象
