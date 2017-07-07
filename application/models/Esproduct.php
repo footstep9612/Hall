@@ -556,7 +556,7 @@ class EsproductModel extends PublicModel {
           $spu = $spec['spu'];
           $sku = $spec['sku'];
           unset($spec['spu']);
-          unset($spec['sku']);
+          // unset($spec['sku']);
           $ret[$spu][$sku] = $spec;
         } return $ret;
       }
@@ -692,8 +692,9 @@ class EsproductModel extends PublicModel {
         $newcat3s = [];
         foreach ($cat3s as $val) {
           $newcat3s[$val['cat_no']] = [
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],];
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name']
+          ];
         }
         return $newcat3s;
       }
@@ -713,8 +714,8 @@ class EsproductModel extends PublicModel {
         $newcat3s = [];
         foreach ($cat3s as $val) {
           $newcat3s[$val['cat_no']] = [
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-              'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+              'cat_no3' => $val['cat_no'],
+              'cat_name3' => $val['name'],
               'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
               'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
           ];
@@ -728,7 +729,7 @@ class EsproductModel extends PublicModel {
       foreach ($cat3s as $val) {
         $newcat3s[$val['cat_no']] = [
             'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-            'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+            'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
             'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
             'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
             'cat_no3' => $val['cat_no'],
@@ -834,6 +835,7 @@ class EsproductModel extends PublicModel {
           $body['meterial_cat'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
         }
         if (!empty($show_cat)) {
+          rsort($show_cat);
           $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE);
         } else {
           $body['show_cats'] = json_encode([], JSON_UNESCAPED_UNICODE);
@@ -923,9 +925,9 @@ class EsproductModel extends PublicModel {
             $id = $item['spu'];
             $body = $item;
             if (isset($skus[$item['spu']])) {
-
-
-              $body['skus'] = json_encode($skus[$item['spu']], JSON_UNESCAPED_UNICODE);
+              $json_skus = $skus[$item['spu']];
+              rsort($json_skus);
+              $body['skus'] = json_encode($json_skus, JSON_UNESCAPED_UNICODE);
             } else {
               $body['skus'] = '[]';
             }
@@ -952,7 +954,12 @@ class EsproductModel extends PublicModel {
             } else {
               $body['meterial_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
             }
-            $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE); // $mcats[$item['meterial_cat_no']];
+            if ($show_cat) {
+              rsort($show_cat);
+              $body['show_cats'] = json_encode($show_cat, JSON_UNESCAPED_UNICODE);
+            } else {
+              $body['show_cats'] = json_encode([], JSON_UNESCAPED_UNICODE);
+            }
             if (isset($product_attrs[$item['spu']])) {
               $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
             } else {
@@ -1292,7 +1299,7 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function Updateshowcats($spu, $lang = 'en') {
+  public function Updateshowcats($spu = null, $lang = 'en') {
     $es = new ESClient();
     if (empty($spu)) {
       return false;
@@ -1318,6 +1325,36 @@ class EsproductModel extends PublicModel {
         ]
     ];
     $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+
+    return true;
+  }
+
+  /* 新增ES
+   * $substr 替换前的内容, 需要替换的内容
+   * $replacement 替换后的内容
+   */
+
+  public function Replaceshowcats($cat_no, $substr, $replacement, $lang = 'en') {
+    $es = new ESClient();
+    if (empty($cat_no)) {
+      return false;
+    }
+    $data = [
+        "script" => [
+            "inline" => "ctx._source.show_cats.replace(substr,replacement);",
+            "params" => [
+                "substr" => $substr,
+                "replacement" => $replacement]
+        ],
+        "query" => [
+            ESClient::MATCH_PHRASE => [
+                "show_cats" => $cat_no
+            ]
+        ]
+    ];
+    $es->UpdateByQuery($this->dbName, 'product_' . $lang, $data);
+    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $data);
+
     return true;
   }
 

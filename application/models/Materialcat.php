@@ -116,7 +116,7 @@ class MaterialcatModel extends PublicModel {
                       //  ->field('id,user_id,name,email,mobile,status')
                       ->count('id');
     } catch (Exception $ex) {
-      Log::write($ex->getMessage(), $level_no);
+      Log::write($ex->getMessage(), Log::ERR);
       return false;
     }
   }
@@ -133,10 +133,12 @@ class MaterialcatModel extends PublicModel {
       $count = $this->getcount($condition);
       return $this->where($where)
                       ->limit($condition['page'] . ',' . $condition['countPerPage'])
+                      ->order('sort_order DESC')
                       ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
                       ->select();
     } else {
       return $this->where($where)
+                      ->order('sort_order DESC')
                       ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
                       ->select();
     }
@@ -155,6 +157,7 @@ class MaterialcatModel extends PublicModel {
 
     return $this->where($where)
                     ->field('id,cat_no,lang,name,status,sort_order')
+                    ->order('sort_order DESC')
                     ->select();
   }
 
@@ -183,16 +186,28 @@ class MaterialcatModel extends PublicModel {
   public function getinfo($cat_no, $lang = 'en') {
     try {
       if ($cat_no) {
-        $cat3 = $this->field('id,cat_no,name')
+        $cat3 = $this->field('id,cat_no,name,parent_cat_no')
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
-        $cat2 = $this->field('id,cat_no,name')
-                ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
-                ->find();
-        $cat1 = $this->field('id,cat_no,name')
-                ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
-                ->find();
-        return [$cat1['cat_no'], $cat1['name'], $cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
+        if ($cat3) {
+          $cat2 = $this->field('id,cat_no,name,parent_cat_no')
+                  ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                  ->find();
+        } else {
+          return [];
+        }
+        if ($cat2) {
+          $cat1 = $this->field('id,cat_no,name,parent_cat_no')
+                  ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                  ->find();
+        } else {
+          return ['cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        }
+        if ($cat1) {
+          return ['cat_no1' => $cat1['cat_no'], 'cat_name1' => $cat1['name'], 'cat_no2' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        } else {
+          return ['cat_no2' => $cat2['cat_no'], 'cat_name2' => $cat2['name'], 'cat_no3' => $cat3['cat_no'], 'cat_name3' => $cat3['name']];
+        }
       } else {
         return [];
       }
@@ -252,6 +267,42 @@ class MaterialcatModel extends PublicModel {
   }
 
   /**
+   * 交换分类排序
+   * @param string $cat_no 交换的分类编码
+   * @return string $chang_cat_no 被交换的分类编码
+   * @author zyg
+   */
+  public function changecat_sort_order($cat_no, $chang_cat_no) {
+
+    try {
+      $this->startTrans();
+      $sort_order = $this->field('sort_order')->where(['cat_no' => $cat_no])->find();
+      $sort_order1 = $this->field('sort_order')->where(['cat_no' => $chang_cat_no])->find();
+      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1]);
+      if ($flag) {
+        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order' => $sort_order]);
+
+        if ($flag1) {
+          $this->commit();
+          return true;
+        } else {
+          $this->rollback();
+          return false;
+        }
+      } else {
+        $this->rollback();
+        return false;
+      }
+      return $flag;
+    } catch (Exception $ex) {
+      $this->rollback();
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+  /**
    * 通过审核
    * @param  int $id id
    * @return bool
@@ -293,12 +344,7 @@ class MaterialcatModel extends PublicModel {
     if ($condition['level_no']) {
       $data['level_no'] = $condition['level_no'];
     }
-    if ($condition['lang']) {
-      $data['lang'] = $condition['lang'];
-    }
-    if ($condition['name']) {
-      $data['name'] = $condition['name'];
-    }
+
     switch ($condition['status']) {
 
       case self::STATUS_DELETED:
@@ -319,9 +365,34 @@ class MaterialcatModel extends PublicModel {
     }
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
-    $flag = $this->where($where)->save($data);
-    if ($flag && $data['cat_no'] && $data['lang']) {
-      $es_product_model = new EsproductModel();
+    $es_product_model = new EsproductModel();
+
+    if (isset($condition['en'])) {
+      $data['lang'] = 'en';
+      $data['name'] = $condition['en']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
+      $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
+    }
+    if (isset($condition['zh'])) {
+      $data['lang'] = 'zh';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
+      $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
+    }
+    if (isset($condition['es'])) {
+      $data['lang'] = 'es';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
+      $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
+    }
+    if (isset($condition['ru'])) {
+      $data['lang'] = 'ru';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $flag = $this->where($where)->save($data);
       $es_product_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
     }
     return $flag;
@@ -347,12 +418,7 @@ class MaterialcatModel extends PublicModel {
     if ($condition['level_no']) {
       $data['level_no'] = $condition['level_no'];
     }
-    if ($condition['lang']) {
-      $data['lang'] = $condition['lang'];
-    }
-    if ($condition['name']) {
-      $data['name'] = $condition['name'];
-    }
+
     switch ($condition['status']) {
 
       case self::STATUS_DELETED:
@@ -372,8 +438,28 @@ class MaterialcatModel extends PublicModel {
       $data['sort_order'] = $condition['sort_order'];
     }
 
+    if (isset($condition['en'])) {
+      $data['lang'] = 'en';
+      $data['name'] = $condition['en']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['zh'])) {
+      $data['lang'] = 'zh';
+      $data['name'] = $condition['zh']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['es'])) {
+      $data['lang'] = 'es';
+      $data['name'] = $condition['zh']['name'];
+      $flag = $this->add($data);
+    }
+    if (isset($condition['ru'])) {
+      $data['lang'] = 'ru';
+      $data['name'] = $condition['zh']['name'];
 
-    return $this->add($data);
+      $flag = $this->add($data);
+    }
+    return $flag;
   }
 
   /**
@@ -423,7 +509,8 @@ class MaterialcatModel extends PublicModel {
           'status' => self::STATUS_VALID,
           'lang' => $lang
       );
-      $result = $this->field($field)->where($condition)->find();
+      $result = $this->field($field)->where($condition)
+                      ->order('sort_order DESC')->find();
       if ($result) {
         redisHashSet('MeterialCat', $catNo . '_' . $lang, json_encode($result));
         return $result;
@@ -449,7 +536,7 @@ class MaterialcatModel extends PublicModel {
       return (array) json_decode(redisHashGet('Material', md5($cat_name)));
     }
     try {
-      $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->select();
+      $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->order('sort_order DESC')->select();
       if ($result)
         redisHashSet('Material', md5($cat_name), json_encode($result));
 
