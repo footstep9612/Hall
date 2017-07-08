@@ -1488,3 +1488,17 @@ function send_Mail($to, $title, $body, $name = null) {
     return ['code' => -1, 'msg' => $e->errorMessage()];
   }
 }
+
+/**
+ * 格式化打印函数
+ * @author 买买提
+ * @param $var
+ */
+function p($var)
+{
+    header('Content-type:text/html;charset=utf8');
+    echo "<pre style='background: #f3f3f3;padding:15px;'>";
+    print_r($var);
+    echo "</pre>";
+    die;
+}
