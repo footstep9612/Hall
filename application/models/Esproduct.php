@@ -169,7 +169,6 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['checked_by'])) {
       $checked_by = $condition['checked_by'];
-
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
     }
 
@@ -208,7 +207,8 @@ class EsproductModel extends PublicModel {
       if (!$_source) {
         $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
             , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
-            'recommend_flag', 'supply_capabilitys', 'tech_paras'];
+            'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
+            'brand', 'supplier_name'];
       }
       $body = $this->getCondition($condition);
 
@@ -227,9 +227,26 @@ class EsproductModel extends PublicModel {
       $allcount = $es->setbody($newbody)
               ->count($this->dbName, $this->tableName . '_' . $lang);
 
+      $sort = [
+          "order" => "desc",
+          "nested_filter" => [
+              "term" => [
+                  "source" => "ERUI"
+              ]
+          ]
+      ];
+      $sort_brand = [
+          "order" => "desc",
+          "nested_filter" => [
+              "term" => [
+                  "brand" => "KERUI"
+              ]
+          ]
+      ];
       return [$es->setbody($body)
                   ->setfields($_source)
-                  ->setsort('spu', 'asc')
+                  ->setsort('_score', $sort)
+                  ->setsort('id', $sort_brand)
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {

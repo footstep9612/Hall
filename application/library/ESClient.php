@@ -791,7 +791,11 @@ class ESClient {
    */
 
   public function setsort($field, $sort) {
-    $this->body['sort'][] = [$field => ['order' => $sort]];
+    if (is_string($sort)) {
+      $this->body['sort'][] = [$field => ['order' => $sort]];
+    } elseif (is_array($sort)) {
+      $this->body['sort'][] = [$field => $sort];
+    }
     return $this;
   }
 
@@ -833,9 +837,8 @@ class ESClient {
         'type' => $type,
         'body' => $this->body,
     );
-    $searchParams['from'] = $from;
-    $searchParams['size'] = $size;
-
+    $searchParams['body']['from'] = $from;
+    $searchParams['body']['size'] = $size;
     try {
       return $this->server->search($searchParams);
     } catch (Exception $ex) {
