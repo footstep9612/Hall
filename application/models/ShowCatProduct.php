@@ -76,8 +76,37 @@ class ShowCatProductModel extends PublicModel {
       $return = array(
           'spu' => $spu,
       );
-      $where = ['spu' => $spu,'status'=>'VALID'];
+      $where = ['spu' => $spu, 'status' => 'VALID'];
       $result = $this->field('cat_no')
+                      ->where($where)->select();
+      if ($result) {
+        return $result;
+      } else {
+        return [];
+      }
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return [];
+    }
+  }
+
+  /**
+   * 根据展示分类编号查询sku
+   * @param string $show_cat_no 展示分类编号
+   * @param int $current_num 当前页
+   * @param int $pagesize 每页显示多少条
+   * @return array|bool
+   */
+  public function getspusByCatNo($CatNo = '', $lang = '') {
+    if (empty($spu))
+      return [];
+    try {
+      $return = array(
+          'cat_no' => $spu,
+      );
+      $where = ['cat_no' => $CatNo, 'status' => 'VALID'];
+      $result = $this->field('spu')
                       ->where($where)->select();
       if ($result) {
         return $result;

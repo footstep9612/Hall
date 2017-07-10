@@ -306,24 +306,10 @@ class ESClient {
    * 批量创建文档
    */
 
-  public function bulk() {
-    $params = [];
-    for ($i = 0; $i < 100; $i++) {
-      $params['body'][] = [
-          'index' => [
-              '_index' => 'my_index',
-              '_type' => 'my_type',
-              '_id' => $i
-          ]
-      ];
-
-      $params['body'][] = [
-          'my_field' => 'my_value',
-          'second_field' => 'some more values'
-      ];
-    }
+  public function bulk($params) {
 
     $responses = $this->server->bulk($params);
+    return $responses;
   }
 
   /*
@@ -849,7 +835,7 @@ class ESClient {
     );
     $searchParams['from'] = $from;
     $searchParams['size'] = $size;
- 
+
     try {
       return $this->server->search($searchParams);
     } catch (Exception $ex) {
