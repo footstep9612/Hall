@@ -235,18 +235,10 @@ class EsproductModel extends PublicModel {
               ]
           ]
       ];
-      $sort_brand = [
-          "order" => "desc",
-          "nested_filter" => [
-              "term" => [
-                  "brand" => "KERUI"
-              ]
-          ]
-      ];
+
       return [$es->setbody($body)
                   ->setfields($_source)
                   ->setsort('_score', $sort)
-                  ->setsort('id', $sort_brand)
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {
