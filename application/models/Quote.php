@@ -51,6 +51,9 @@ class QuoteModel extends PublicModel {
 		 if(!empty($condition['quote_no'])) {
 			 $where['a.quote_no'] = $condition['quote_no'];
     	 }
+		 if(!empty($condition['biz_quote_status'])) {
+			 $where['a.biz_quote_status'] = $condition['biz_quote_status'];
+		 }
 		 if(!empty($condition['logi_quote_status'])) {
 			 $where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
 		 }
