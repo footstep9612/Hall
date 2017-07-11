@@ -34,12 +34,23 @@ class EsgoodsController extends PublicController {
     $model = new EsgoodsModel();
     $ret = $model->getgoods($this->put_data, null, $this->getLang());
 
+
     if ($ret) {
       $list = [];
       $data = $ret[0];
       $send['count'] = intval($data['hits']['total']);
       $send['current_no'] = intval($ret[1]);
       $send['pagesize'] = intval($ret[2]);
+      $skus = [];
+      foreach ($data['hits']['hits'] as $key => $item) {
+        $skus[] = $item["_source"]['sku'];
+      }
+      $ret_zh = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'zh');
+
+      $list_zh = [];
+      foreach ($ret_zh[0]['hits']['hits'] as $item) {
+        $list_zh[$item["_source"]['sku']] = $item["_source"]['name'];
+      }
 
       foreach ($data['hits']['hits'] as $key => $item) {
         $list[$key] = $item["_source"];
@@ -53,6 +64,14 @@ class EsgoodsController extends PublicController {
         if ($show_cats) {
           rsort($show_cats);
         }
+        $sku = $item["_source"]['sku'];
+
+        if (isset($list_zh[$sku])) {
+          $list[$key]['name_zh'] = $list_zh[$sku];
+        } else {
+          $list[$key]['name_zh'] = '';
+        }
+
         $list[$key]['show_cats'] = $show_cats;
         $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
         $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
@@ -60,8 +79,6 @@ class EsgoodsController extends PublicController {
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       }
-
-
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);
       $send['code'] = $this->getCode();
