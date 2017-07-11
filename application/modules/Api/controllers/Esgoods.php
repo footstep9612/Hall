@@ -28,8 +28,9 @@ class EsgoodsController extends PublicController {
       parent::init();
     }
   }
+
   public function listAction() {
-    $lang = $this->getPut('lang', 'zh');
+    $lang = $this->getPut('lang', 'en');
     $model = new EsgoodsModel();
     $ret = $model->getgoods($this->put_data, null, $lang);
     if ($ret) {
@@ -43,12 +44,19 @@ class EsgoodsController extends PublicController {
         foreach ($data['hits']['hits'] as $key => $item) {
           $skus[] = $item["_source"]['sku'];
         }
-
         $ret_en = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'en');
-
         $list_en = [];
         foreach ($ret_en[0]['hits']['hits'] as $item) {
           $list_en[$item["_source"]['sku']] = $item["_source"]['name'];
+        }
+      } elseif ($lang == 'en') {
+        foreach ($data['hits']['hits'] as $key => $item) {
+          $skus[] = $item["_source"]['sku'];
+        }
+        $ret_zh = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'zh');
+        $list_zh = [];
+        foreach ($ret_zh[0]['hits']['hits'] as $item) {
+          $list_zh[$item["_source"]['sku']] = $item["_source"]['name'];
         }
       }
       foreach ($data['hits']['hits'] as $key => $item) {
@@ -68,6 +76,8 @@ class EsgoodsController extends PublicController {
         if (isset($list_en[$sku])) {
           $list[$key]['name'] = $list_en[$sku];
           $list[$key]['name_' . $lang] = $item["_source"]['name'];
+        } elseif (isset($list_zh[$sku])) {
+          $list[$key]['name_zh'] = $item["_source"]['name'];
         } else {
           $list[$key]['name'] = $item["_source"]['name'];
           $list[$key]['name_' . $lang] = $item["_source"]['name'];

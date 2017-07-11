@@ -30,7 +30,7 @@ class EsgoodsController extends ShopMallController {
   }
 
   public function listAction() {
-    $lang = $this->getPut('lang', 'zh');
+    $lang = $this->getPut('lang', 'en');
     $model = new EsgoodsModel();
     $ret = $model->getgoods($this->put_data, null, $lang);
     if ($ret) {
