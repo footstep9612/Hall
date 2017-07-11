@@ -227,18 +227,10 @@ class EsproductModel extends PublicModel {
       $allcount = $es->setbody($newbody)
               ->count($this->dbName, $this->tableName . '_' . $lang);
 
-      $sort = [
-          "order" => "desc",
-          "nested_filter" => [
-              "term" => [
-                  "source" => "ERUI"
-              ]
-          ]
-      ];
-
       return [$es->setbody($body)
                   ->setfields($_source)
-                  ->setsort('_score', $sort)
+                  ->setsort('sort_order', 'desc')
+                  ->setsort('_score', 'desc')
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {
@@ -933,6 +925,12 @@ class EsproductModel extends PublicModel {
           foreach ($products as $key => $item) {
             $id = $item['spu'];
             $body = $item;
+
+            if ($body['source'] == 'ERUI') {
+              $body['sort_order'] = 100;
+            } else {
+              $body['sort_order'] = 1;
+            }
             if (isset($skus[$item['spu']])) {
               $json_skus = $skus[$item['spu']];
               rsort($json_skus);
@@ -940,15 +938,11 @@ class EsproductModel extends PublicModel {
             } else {
               $body['skus'] = '[]';
             }
-
             if (isset($specs[$item['spu']])) {
-
-
               $body['specs'] = json_encode($specs[$item['spu']], JSON_UNESCAPED_UNICODE);
             } else {
               $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
             }
-
             if (isset($attachs[$item['spu']])) {
               $body['attachs'] = json_encode($attachs[$item['spu']], 256);
             } else {
@@ -980,8 +974,10 @@ class EsproductModel extends PublicModel {
             } else {
               $body['supply_capabilitys'] = json_encode([], JSON_UNESCAPED_UNICODE);
             }
+
+
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            echo $item['id'], '  ', $k, PHP_EOL;
+
 
             if ($flag['_shards']['successful'] !== 1) {
               LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
