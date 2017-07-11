@@ -387,7 +387,8 @@ class ExcelController extends Yaf_Controller_Abstract
             'rebate_rate',//退税率
             'quote_notes',//备注(商务技术备注)
         ];
-        $data['quote_items'] = $quote_item_model->where($condition)->field($quote_item_fields)->select();
+        $where = ['quote_no'=>$data['quote_no']];
+        $data['quote_items'] = $quote_item_model->where($where)->field($quote_item_fields)->select();
         return $data;
     }
 
