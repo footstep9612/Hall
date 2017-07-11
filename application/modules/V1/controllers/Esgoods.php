@@ -30,17 +30,28 @@ class EsgoodsController extends ShopMallController {
   }
 
   public function listAction() {
-
+    $lang = $this->getPut('lang', 'zh');
     $model = new EsgoodsModel();
-    $ret = $model->getgoods($this->put_data, null, $this->getLang());
-
+    $ret = $model->getgoods($this->put_data, null, $lang);
     if ($ret) {
       $list = [];
       $data = $ret[0];
       $send['count'] = intval($data['hits']['total']);
       $send['current_no'] = intval($ret[1]);
       $send['pagesize'] = intval($ret[2]);
+      $skus = [];
+      if ($lang != 'en') {
+        foreach ($data['hits']['hits'] as $key => $item) {
+          $skus[] = $item["_source"]['sku'];
+        }
 
+        $ret_en = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'en');
+
+        $list_en = [];
+        foreach ($ret_en[0]['hits']['hits'] as $item) {
+          $list_en[$item["_source"]['sku']] = $item["_source"]['name'];
+        }
+      }
       foreach ($data['hits']['hits'] as $key => $item) {
         $list[$key] = $item["_source"];
         $attachs = json_decode($item["_source"]['attachs'], true);
@@ -53,14 +64,23 @@ class EsgoodsController extends ShopMallController {
         if ($show_cats) {
           rsort($show_cats);
         }
+        $sku = $item["_source"]['sku'];
+
+        if (isset($list_en[$sku])) {
+          $list[$key]['name'] = $list_en[$sku];
+          $list[$key]['name_' . $lang] = $item["_source"]['name'];
+        } else {
+          $list[$key]['name'] = $item["_source"]['name'];
+          $list[$key]['name_' . $lang] = $item["_source"]['name'];
+        }
+
         $list[$key]['show_cats'] = $show_cats;
         $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
         $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
         $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-		$list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
-		
-      } 
+        $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+      }
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);
       $send['code'] = $this->getCode();
