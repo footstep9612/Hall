@@ -521,7 +521,6 @@ class GoodsAttrModel extends PublicModel
                     break;
             }
         }
-
         //属性组处理
         $attrs = array();
         if (isset($data['goods_flag']) && is_array($data['goods_flag'])) {
