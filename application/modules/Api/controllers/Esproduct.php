@@ -136,7 +136,7 @@ class EsproductController extends PublicController {
           }
         }
         $matshowcatmodel = new ShowmaterialcatModel();
-        $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
+        $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(),$show_cat_nos);
         $new_showcats1 = $new_showcats2 = $new_showcats3 = [];
         $new_showcat2_nos = [];
         $new_showcat1_nos = [];
