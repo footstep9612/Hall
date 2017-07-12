@@ -65,7 +65,8 @@ class EsgoodsController extends PublicController {
         if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
           $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
         } else {
-          $list[$key]['img'] = null;
+          $product_attach_model = new ProductAttachModel();
+          $list[$key]['img'] = $product_attach_model->getimgBySpu($item["_source"]['spu']);
         }
         $show_cats = json_decode($item["_source"]["show_cats"], true);
         if ($show_cats) {
