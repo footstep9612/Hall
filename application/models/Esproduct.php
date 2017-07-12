@@ -211,7 +211,6 @@ class EsproductModel extends PublicModel {
             'brand', 'supplier_name'];
       }
       $body = $this->getCondition($condition);
-
       $pagesize = 10;
       $current_no = 1;
       if (isset($condition['current_no'])) {
@@ -226,7 +225,6 @@ class EsproductModel extends PublicModel {
       $newbody = $this->getCondition($condition);
       $allcount = $es->setbody($newbody)
               ->count($this->dbName, $this->tableName . '_' . $lang);
-
       return [$es->setbody($body)
                   ->setfields($_source)
                   ->setsort('sort_order', 'desc')
@@ -578,13 +576,17 @@ class EsproductModel extends PublicModel {
   public function getshow_catsbyspus($spus, $lang = 'en') {
     try {
 
-      $show_cat_products = $this->table('erui_goods.t_show_cat_product')
-              ->field('cat_no,spu')
-              ->where(['spu' => ['in', $spus], 'status' => 'VALID'])
+      $show_cat_products = $this->table('erui_goods.t_show_cat_product scp')
+              ->join('erui_goods.t_show_cat sc on scp.cat_no=sc.cat_no')
+              ->field('scp.cat_no,scp.spu', 'left')
+              ->where(['scp.spu' => ['in', $spus],
+                  'scp.status' => 'VALID',
+                  'sc.status' => 'VALID',
+                  'sc.lang' => $lang,
+                  'sc.id>0',
+              ])
               ->select();
       $ret = [];
-
-
       foreach ($show_cat_products as $item) {
 
         $ret[$item['spu']] = $item['cat_no'];
@@ -608,7 +610,8 @@ class EsproductModel extends PublicModel {
     try {
       $product_attrs = $this->table('erui_goods.t_product_attr')
                       ->field('spu,attr_name,attr_value,attr_no')
-                      ->where(['spu' => ['in', $spus], 'lang' => $lang, 'spec_flag' => 'Y', 'status' => 'VALID'
+                      ->where(['spu' => ['in', $spus], 'lang' => $lang,
+                          'spec_flag' => 'Y', 'status' => 'VALID'
                       ])->select();
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -636,9 +639,15 @@ class EsproductModel extends PublicModel {
   public function getshow_material_cats($cat_nos, $lang = 'en') {
 
     try {
-      $show_material_cats = $this->table('erui_goods.t_show_material_cat')
+      $show_material_cats = $this->table('erui_goods.t_show_material_cat smc')
+              ->join('erui_goods.t_show_cat sc on smc.show_cat_no=sc.cat_no')
               ->field('show_cat_no,material_cat_no')
-              ->where(['material_cat_no' => ['in', $cat_nos], 'status' => 'VALID'])
+              ->where([
+                  'smc.material_cat_no' => ['in', $cat_nos],
+                  'sc.status' => 'VALID',
+                  'sc.lang' => $lang,
+                  'sc.id>0',
+                  'smc.status' => 'VALID'])
               ->select();
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
