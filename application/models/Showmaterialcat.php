@@ -63,7 +63,6 @@ class ShowmaterialcatModel extends PublicModel {
                           's.status' => 'VALID',
                           's.lang' => $lang,
                       ])
-                      ->limit(0, 1)
                       ->field('ms.material_cat_no,ms.show_cat_no as cat_no,ms.status,s.name,s.parent_cat_no')
                       ->select();
     } catch (Exception $ex) {
