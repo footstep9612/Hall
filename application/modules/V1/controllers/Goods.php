@@ -351,7 +351,7 @@ class GoodsController extends Yaf_Controller_Abstract
      */
     public function modifySkuAttrAction()
     {
-        $this->input = $this->test();//测试
+        //$this->input = $this->test();//测试
         $goodsAttrModel = new GoodsAttrModel();
         if(isset($this->input['status']) && !empty($this->input['status'])){
             $result = $goodsAttrModel->modifySkuAttr($this->input);//状态更改
@@ -377,7 +377,7 @@ class GoodsController extends Yaf_Controller_Abstract
      */
     public function modifySkuAttachAction()
     {
-        $this->input = $this->test();//测试
+        //$this->input = $this->test();//测试
         $goodsAttachModel = new GoodsAttachModel();
         if(isset($this->input['status']) && !empty($this->input['status'])){
             $result = $goodsAttachModel->modifySkuAttach($this->input);//状态更改

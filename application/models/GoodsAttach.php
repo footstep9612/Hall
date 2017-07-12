@@ -111,7 +111,7 @@ class GoodsAttachModel extends PublicModel
         }
         //附件组处理
         $attachs = array();
-        if (is_array($data['SMALL_IMAGE'])) {
+        if (isset($data['SMALL_IMAGE']) && is_array($data['SMALL_IMAGE'])) {
             foreach ($data['SMALL_IMAGE'] as $k=>$v) {
                 $condition['attach_type'] = 'SMALL_IMAGE';
                 $condition['attach_name'] = $k;
@@ -120,7 +120,7 @@ class GoodsAttachModel extends PublicModel
                 }
                 $attachs[] = $condition;
             }
-        } elseif (is_array($data['BIG_IMAGE'])) {
+        } elseif (isset($data['BIG_IMAGE']) && is_array($data['BIG_IMAGE'])) {
             foreach ($data['BIG_IMAGE'] as $k=>$v) {
                 $condition['attach_type'] = 'BIG_IMAGE';
                 $condition['attach_name'] = $k;
@@ -129,7 +129,7 @@ class GoodsAttachModel extends PublicModel
                 }
                 $attachs[] = $condition;
             }
-        } elseif (is_array($data['MIDDLE_IMAGE'])) {
+        } elseif (isset($data['MIDDLE_IMAGE']) && is_array($data['MIDDLE_IMAGE'])) {
             foreach ($data['MIDDLE_IMAGE'] as $k=>$v) {
                 $condition['attach_type'] = 'MIDDLE_IMAGE';
                 $condition['attach_name'] = $k;
@@ -138,7 +138,7 @@ class GoodsAttachModel extends PublicModel
                 }
                 $attachs[] = $condition;
             }
-        } elseif (is_array($data['DOC'])) {
+        } elseif (isset($data['DOC']) && is_array($data['DOC'])) {
             foreach ($data['DOC'] as $k=>$v) {
                 $condition['attach_type'] = 'DOC';
                 $condition['attach_name'] = $k;

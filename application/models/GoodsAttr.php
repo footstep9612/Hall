@@ -397,7 +397,7 @@ class GoodsAttrModel extends PublicModel
         }
         //属性组处理
         $attrs = array();
-        if (is_array($data['goods_flag'])) {
+        if (isset($data['goods_flag']) && is_array($data['goods_flag'])) {
             foreach ($data['goods_flag'] as $k=>$v) {
                 $condition['goods_flag'] = 'Y';
                 $condition['spec_flag'] = 'N';
@@ -407,7 +407,7 @@ class GoodsAttrModel extends PublicModel
                 $condition['attr_name'] = $k;
                 $attrs[] = $condition;
             }
-        } elseif (is_array($data['spec_flag'])) {
+        } elseif (isset($data['spec_flag']) && is_array($data['spec_flag'])) {
             foreach ($data['spec_flag'] as $k=>$v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'Y';
@@ -417,7 +417,7 @@ class GoodsAttrModel extends PublicModel
                 $condition['attr_name'] = $k;
                 $attrs[] = $condition;
             }
-        } elseif (is_array($data['logi_flag'])) {
+        } elseif (isset($data['logi_flag']) && is_array($data['logi_flag'])) {
             foreach ($data['logi_flag'] as $k=>$v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'N';
@@ -427,7 +427,7 @@ class GoodsAttrModel extends PublicModel
                 $condition['attr_name'] = $k;
                 $attrs[] = $condition;
             }
-        } elseif (is_array($data['hs_flag'])) {
+        } elseif (isset($data['hs_flag']) && is_array($data['hs_flag'])) {
             foreach ($data['hs_flag'] as $k=>$v) {
                 $v['goods_flag'] = 'N';
                 $v['spec_flag'] = 'N';

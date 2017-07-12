@@ -382,99 +382,6 @@ class GoodsModel extends PublicModel {
     }
 
     /**
-
-     * 更新数据
-     * @param  mix $createcondition 新增条件
-     * @return bool
-     * @author klp
-     */
-    public function create_data($createcondition) {
-      $where = [];
-      $data = $this->condition($createcondition);
-      return $this->where($where)->save($data);
-    }
-
-    //公共部分处理
-    public function condition($condition, $username = '') {
-      if ($condition['id']) {
-        $where['id'] = $condition['id'];
-      }
-      if ($condition['lang']) {
-        $data['lang'] = $condition['lang'];
-      }
-      if ($condition['spu']) {
-        $data['spu'] = $condition['spu'];
-      }
-      if ($condition['sku']) {
-        $data['sku'] = $condition['sku'];
-      }
-      if ($condition['cat_no']) {
-        $data['cat_no'] = $condition['cat_no'];
-      }
-      if ($condition['attr_value_type']) {
-        $data['attr_value_type'] = $condition['attr_value_type'];
-      }
-      if ($condition['attr_group']) {
-        $data['attr_group'] = $condition['attr_group'];
-      }
-      if ($condition['sort_order']) {
-        $data['sort_order'] = $condition['sort_order'];
-      }
-      switch ($condition['status']) {
-        case self::STATUS_DELETED:
-          $data['status'] = $condition['status'];
-          break;
-        case self::STATUS_VALID:
-          $data['status'] = $condition['status'];
-          break;
-        case self::STATUS_INVALID:
-          $data['status'] = $condition['status'];
-          break;
-      }
-      $data['created_at'] = date('Y-m-d H:i:s');
-      $data['created_by'] = $username;
-
-      $attrs = array();
-      if ($condition['goods_flag']) {
-        foreach ($condition['goods_flag'] as $v) {
-          $v['goods_flag'] = 'Y';
-          $v['spec_flag'] = 'N';
-          $v['logi_flag'] = 'N';
-          $v['hs_flag'] = 'N';
-          $r = array_merge($data, $v);
-          $attrs[] = $r;
-        }
-      } elseif ($condition['spec_flag']) {
-        foreach ($condition['spec_flag'] as $v) {
-          $v['goods_flag'] = 'N';
-          $v['spec_flag'] = 'Y';
-          $v['logi_flag'] = 'N';
-          $v['hs_flag'] = 'N';
-          $r = array_merge($data, $v);
-          $attrs[] = $r;
-        }
-      } elseif ($condition['logi_flag']) {
-        foreach ($condition['logi_flag'] as $v) {
-          $v['goods_flag'] = 'N';
-          $v['spec_flag'] = 'N';
-          $v['logi_flag'] = 'Y';
-          $v['hs_flag'] = 'N';
-          $r = array_merge($data, $v);
-          $attrs[] = $r;
-        }
-      } elseif ($condition['hs_flag']) {
-        foreach ($condition['hs_flag'] as $v) {
-          $v['goods_flag'] = 'N';
-          $v['spec_flag'] = 'N';
-          $v['logi_flag'] = 'N';
-          $v['hs_flag'] = 'Y';
-          $r = array_merge($data, $v);
-          $attrs[] = $r;
-        }
-      }
-    }
-
-    /**
      * 根据sku获取spu
      * @param string $sku sku编码
      * @return bool
@@ -501,10 +408,10 @@ class GoodsModel extends PublicModel {
       return array();
 
     if (redisHashExist('Sku', $spu . '_' . $lang)) {
-      return json_decode(redisHashGet('Sku', $spu . '_' . $lang), true);
+      //return json_decode(redisHashGet('Sku', $spu . '_' . $lang), true);
     }
     try {
-      $field = "sku,lang,qrcode,name,show_name,model,package_quantity,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
+      $field = "sku,lang,qrcode,name,show_name,model,package_quantity,warranty,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
       $condition = array(
           "spu" => $spu,
           "lang" => $lang,
