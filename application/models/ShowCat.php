@@ -257,41 +257,35 @@ class ShowCatModel extends PublicModel {
   }
 
   /**
-   * 判断用户是否存在
-   * @param  string $name 用户名
-   * @param  string$enc_password 密码
-   * @param  string $lang 语言
+   * 判断是否存在
+   * @param  mix $where 搜索条件
    * @return mix
    * @author zyg
    */
-  public function Exist($name, $type = 'name') {
-    switch (strtolower($type)) {
+  public function Exist($where) {
 
-      case 'name':
-        $where['name'] = $name;
-        break;
-      default :
-        return false;
-        break;
-    }
-    //$where['enc_password'] = md5($enc_password);
     $row = $this->where($where)
             ->field('id')
             ->find();
-
-    var_dump();
     return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
   }
 
   /**
    * 删除数据
-   * @param  int $id id
+   * @param  string $cat_no 分类编码
+   * @param  string $lang 语言
    * @return bool
    * @author zyg
    */
-  public function delete_data($cat_no = '') {
-
-    $where['cat_no'] = $cat_no;
+  public function delete_data($cat_no = '', $lang = '') {
+    if (!$cat_no) {
+      return false;
+    } else {
+      $where['cat_no'] = $cat_no;
+    }
+    if ($lang) {
+      $where['lang'] = $lang;
+    }
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
     return $flag;
@@ -335,19 +329,22 @@ class ShowCatModel extends PublicModel {
 
   /**
    * 通过审核
-   * @param  int $id id
+   * @param  string $cat_no 分类编码
    * @return bool
    * @author zyg
    */
-  public function approving($cat_no = '') {
+  public function approving($cat_no = '', $lang = '') {
 
     $where['cat_no'] = $cat_no;
+    if ($lang) {
+      $where['lang'] = $lang;
+    }
     $es_product_model = new EsproductModel();
 
 
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_VALID]);
-    if ($flag) {
+    if ($flag && !$lang) {
       $cat_new_en = $this->getinfo($cat_no, 'en');
       if ($cat_new_en) {
         $es_product_model->Replaceshowcats($data['cat_no'], ']', ',' . json_encode($cat_new_en, 256), 'en');
@@ -365,6 +362,12 @@ class ShowCatModel extends PublicModel {
         $es_product_model->Replaceshowcats($data['cat_no'], ']', json_encode($cat_new_ru, 256), 'ru');
       }
       return $flag;
+    } elseif ($flag && $lang) {
+      $cat_new = $this->getinfo($cat_no, $lang);
+      if ($cat_new) {
+        $es_product_model->Replaceshowcats($data['cat_no'], ']', json_encode($cat_new, 256), $lang);
+      }
+      return $flag;
     } else {
       return false;
     }
@@ -377,8 +380,92 @@ class ShowCatModel extends PublicModel {
    * @author zyg
    */
   public function update_data($upcondition = [], $username = '') {
+    $condition = $upcondition;
+    list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, $username);
+    $this->startTrans();
+    if (isset($condition['en'])) {
+      $data['lang'] = 'en';
+      $data['name'] = $condition['en']['name'];
+      $where['lang'] = $data['lang'];
+      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
+      $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
+      if (!$flag) {
+        $this->rollback();
+        return false;
+      }
+    }
+    if (isset($condition['zh'])) {
+      $data['lang'] = 'zh';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
+      $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
+      if (!$flag) {
+        $this->rollback();
+        return false;
+      }
+    }
+    if (isset($condition['es'])) {
+      $data['lang'] = 'es';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
+      $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
+      if (!$flag) {
+        $this->rollback();
+        return false;
+      }
+    }
+    if (isset($condition['ru'])) {
+      $data['lang'] = 'ru';
+      $data['name'] = $condition['zh']['name'];
+      $where['lang'] = $data['lang'];
+
+      $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
+      if (!$flag) {
+        $this->rollback();
+        return false;
+      }
+    }
+    if ($upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
+
+      $childs = $this->get_list($cat_no);
+      foreach ($childs as $key => $val) {
+        $child_cat_no = $this->getCatNo($data['cat_no'], 3);
+        $flag = $this->where(['cat_no' => $val['cat_no']])
+                ->save(['cat_no' => $child_cat_no, 'parent_cat_no' => $data['cat_no']]);
+        if (!$flag) {
+          $this->rollback();
+          return false;
+        }
+        $flag = $this->updateothercat($val['cat_no'], $child_cat_no);
+        if (!$flag) {
+          $this->rollback();
+          return false;
+        }
+      }
+    } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
+      $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
+      if (!$flag) {
+        $this->rollback();
+        return false;
+      }
+    }
+    $this->commit();
+    return $flag;
+  }
+
+  /**
+   * 更新数据
+   * @param  mix $upcondition 更新条件
+   * @return mix
+   * @author zyg
+   */
+  public function getUpdateCondition($upcondition = [], $username = '') {
     $data = [];
     $where = [];
+    $info = [];
+    $cat_no = '';
     $condition = $upcondition;
     if ($condition['cat_no']) {
       $where['cat_no'] = $condition['cat_no'];
@@ -433,77 +520,7 @@ class ShowCatModel extends PublicModel {
     }
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
-    $this->startTrans();
-    if (isset($condition['en'])) {
-      $data['lang'] = 'en';
-      $data['name'] = $condition['en']['name'];
-      $where['lang'] = $data['lang'];
-      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
-      $flag = $this->where($where)->save($data);
-      if (!$flag) {
-        $this->rollback();
-        return false;
-      }
-    }
-    if (isset($condition['zh'])) {
-      $data['lang'] = 'zh';
-      $data['name'] = $condition['zh']['name'];
-      $where['lang'] = $data['lang'];
-      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
-      $flag = $this->where($where)->save($data);
-      if (!$flag) {
-        $this->rollback();
-        return false;
-      }
-    }
-    if (isset($condition['es'])) {
-      $data['lang'] = 'es';
-      $data['name'] = $condition['zh']['name'];
-      $where['lang'] = $data['lang'];
-      $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
-      $flag = $this->where($where)->save($data);
-      if (!$flag) {
-        $this->rollback();
-        return false;
-      }
-    }
-    if (isset($condition['ru'])) {
-      $data['lang'] = 'ru';
-      $data['name'] = $condition['zh']['name'];
-      $where['lang'] = $data['lang'];
-
-      $flag = $this->where($where)->save($data);
-      if (!$flag) {
-        $this->rollback();
-        return false;
-      }
-    }
-    if ($upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
-
-      $childs = $this->get_list($cat_no);
-      foreach ($childs as $key => $val) {
-        $child_cat_no = $this->getCatNo($data['cat_no'], 3);
-        $flag = $this->where(['cat_no' => $val['cat_no']])
-                ->save(['cat_no' => $child_cat_no, 'parent_cat_no' => $data['cat_no']]);
-        if (!$flag) {
-          $this->rollback();
-          return false;
-        }
-        $flag = $this->updateothercat($val['cat_no'], $child_cat_no);
-        if (!$flag) {
-          $this->rollback();
-          return false;
-        }
-      }
-    } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
-      $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
-      if (!$flag) {
-        $this->rollback();
-        return false;
-      }
-    }
-    $this->commit();
-    return $flag;
+    return [$data, $where, $cat_no];
   }
 
   public function updateothercat($old_cat_no, $new_cat_no) {

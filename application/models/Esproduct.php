@@ -43,10 +43,11 @@ class EsproductModel extends PublicModel {
       }
       $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $spus_arr]];
     }
-
     if (isset($condition['show_cat_no'])) {
       $show_cat_no = $condition['show_cat_no'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_cats' => $show_cat_no]];
+      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
+          [ESClient::DEFAULT_FIELD => 'show_cats',
+              ESClient::QUERY => $show_cat_no]];
     }
 
     if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
@@ -110,7 +111,6 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['source'])) {
       $source = $condition['source'];
-
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['source' => $source]];
     }
     if (isset($condition['exe_standard'])) {
@@ -185,10 +185,10 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['keyword'])) {
       $show_name = $condition['keyword'];
-      $body['query'] = ['multi_match' => [
-              "query" => $show_name,
-              "type" => "most_fields",
-              "fields" => ["show_name", "attrs", 'specs']
+      $body['query']['bool']['must'][] = [ESClient::MULTI_MATCH => [
+              'query' => $show_name,
+              'type' => 'most_fields',
+              'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
       ]];
     }
     return $body;
@@ -280,7 +280,6 @@ class EsproductModel extends PublicModel {
   public function getshow_catlist($condition, $lang = 'en') {
 
     try {
-
       $data = $this->getmeterial_catlist($condition, $lang);
       $show_model = new ShowCatModel();
     } catch (Exception $ex) {

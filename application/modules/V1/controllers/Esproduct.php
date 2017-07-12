@@ -26,44 +26,36 @@ class EsproductController extends ShopMallController {
     $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
-    if ($this->getRequest()->getModuleName() == 'V1' &&
-            $this->getRequest()->getControllerName() == 'User' &&
-            in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-      
-    } else {
+    if (!empty($jsondata["token"])) {
+      $token = $jsondata["token"];
+    }
+    $model = new UserModel();
+    if (!empty($token)) {
+      try {
+        $tks = explode('.', $token);
+        $tokeninfo = JwtInfo($token); //解析token
+        $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
 
-      if (!empty($jsondata["token"])) {
-        $token = $jsondata["token"];
-      }
-      $model = new UserModel();
-      if (!empty($token)) {
-        try {
-          $tks = explode('.', $token);
-          $tokeninfo = JwtInfo($token); //解析token
-          $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
-
-          if (empty($userinfo)) {
-            $this->put_data['source'] = 'ERUI';
-          } else {
-            $this->user = array(
-                "id" => $userinfo["id"],
-                "name" => $tokeninfo["name"],
-                'email' => $tokeninfo["email"],
-                "token" => $token, //token
-            );
-          }
-        } catch (Exception $e) {
+        if (empty($userinfo)) {
           $this->put_data['source'] = 'ERUI';
+        } else {
+          $this->user = array(
+              "id" => $userinfo["id"],
+              "name" => $tokeninfo["name"],
+              'email' => $tokeninfo["email"],
+              "token" => $token, //token
+          );
         }
-      } else {
+      } catch (Exception $e) {
         $this->put_data['source'] = 'ERUI';
       }
+    } else {
+      $this->put_data['source'] = 'ERUI';
     }
     $this->es = new ESClient();
   }
 
   public function listAction() {
-
     $model = new EsproductModel();
     $ret = $model->getproducts($this->put_data, null, $this->getLang());
 
@@ -89,7 +81,6 @@ class EsproductController extends ShopMallController {
           $list[$key]['img'] = null;
         }
         $list[$key]['id'] = $item['_id'];
-
         $show_cats = json_decode($item["_source"]["show_cats"], true);
         if ($show_cats) {
           rsort($show_cats);
@@ -111,7 +102,6 @@ class EsproductController extends ShopMallController {
       ksort($material_cat_nos);
       $catno_key = 'show_cats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang());
       $catlist = json_decode(redisGet($catno_key), true);
-
       if (!$catlist) {
         $matshowcatmodel = new ShowmaterialcatModel();
         $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
@@ -170,10 +160,8 @@ class EsproductController extends ShopMallController {
               foreach ($cat2['childs'] as $cat3) {
                 $newcat2['childs'][] = $cat3;
               }
-              $newcat1['childs'] = $newcat2;
+              $newcat1['childs'][] = $newcat2;
             }
-
-
             $new_showcats[] = $newcat1;
           }
         }

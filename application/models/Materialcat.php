@@ -219,41 +219,35 @@ class MaterialcatModel extends PublicModel {
   }
 
   /**
-   * 判断用户是否存在
-   * @param  string $name 用户名
-   * @param  string$enc_password 密码
-   * @param  string $lang 语言
+   * 判断是否存在
+   * @param  mix $where 搜索条件
    * @return mix
    * @author zyg
    */
-  public function Exist($name, $type = 'name') {
-    switch (strtolower($type)) {
+  public function Exist($where) {
 
-      case 'name':
-        $where['name'] = $name;
-        break;
-      default :
-        return false;
-        break;
-    }
-    //$where['enc_password'] = md5($enc_password);
     $row = $this->where($where)
             ->field('id')
             ->find();
-
-    var_dump();
     return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
   }
 
   /**
    * 删除数据
-   * @param  int $id id
+   * @param  string $cat_no
+   * @param  string $lang 语言
    * @return bool
    * @author zyg
    */
-  public function delete_data($cat_no = '') {
+  public function delete_data($cat_no = '', $lang = '') {
 
+    if (!$cat_no) {
+      return false;
+    }
     $where['cat_no'] = $cat_no;
+    if ($lang) {
+      $where['lang'] = $lang;
+    }
     $info = $this->info($cat_no);
     $this->startTrans();
     $flag = $this->where($where)
@@ -274,12 +268,15 @@ class MaterialcatModel extends PublicModel {
         return false;
       }
     }
-    if ($flag && $cat_no && $info['level_no'] == 3) {
+    if ($flag && $cat_no && $info['level_no'] == 3 && !$lang) {
       $es_product_model = new EsproductModel();
       $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
       $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
       $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
       $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
+    } elseif ($flag && $cat_no && $info['level_no'] == 3 && $lang) {
+      $es_product_model = new EsproductModel();
+      $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
     } else {
       $this->rollback();
       return false;
@@ -326,21 +323,26 @@ class MaterialcatModel extends PublicModel {
 
   /**
    * 通过审核
-   * @param  int $id id
+   * @param  string $cat_no
    * @return bool
    * @author zyg
    */
-  public function approving($cat_no = '') {
+  public function approving($cat_no = '', $lang = '') {
 
     $where['cat_no'] = $cat_no;
+    if ($lang) {
+      $condition['lang'] = $lang;
+    }
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_VALID]);
-    if ($flag && $cat_no) {
+    if ($flag && $cat_no && !$lang) {
       $es_product_model = new EsproductModel();
       $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
       $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
       $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
       $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
+    } elseif ($flag && $cat_no && $lang) {
+      $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
     }
     return $flag;
   }
@@ -348,35 +350,18 @@ class MaterialcatModel extends PublicModel {
   /**
    * 更新数据
    * @param  mix $upcondition 更新条件
-   * @return bool
+   * @return mix
    * @author zyg
    */
   public function update_data($upcondition = [], $username = '') {
-    $data = [];
-    $where = [];
-    $info = [];
-    if ($upcondition['cat_no']) {
+    $data = $this->getUpdateCondition($upcondition, $username);
+    if (!$data) {
+      return false;
+    }
+    if (isset($upcondition['cat_no']) && $upcondition['cat_no']) {
       $where['cat_no'] = $upcondition['cat_no'];
-      $info = $this->getinfo($where['cat_no']);
     } else {
       return false;
-    }
-    if (isset($upcondition['parent_cat_no'])) {
-      $data['parent_cat_no'] = $upcondition['parent_cat_no'];
-    }
-    if (isset($upcondition['level_no']) && $info['level_no'] != $upcondition['level_no']) {
-      return false;
-    }
-
-
-    if (isset($upcondition['level_no']) && in_array($upcondition['level_no'], [1, 2, 3])) {
-      $data['level_no'] = $upcondition['level_no'];
-    }
-
-    if ($upcondition['level_no'] == 1) {
-      $data['parent_cat_no'] = 0;
-    } elseif (isset($upcondition['parent_cat_no'])) {
-      $data['parent_cat_no'] = $upcondition['parent_cat_no'];
     }
     if (!isset($data['parent_cat_no']) && $data['parent_cat_no'] != $info['parent_cat_no']) {
       $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
@@ -386,33 +371,14 @@ class MaterialcatModel extends PublicModel {
         $data['cat_no'] = $cat_no;
       }
     }
-    switch ($upcondition['status']) {
-
-      case self::STATUS_DELETED:
-        $data['status'] = $upcondition['status'];
-        break;
-      case self::STATUS_DRAFT:
-        $data['status'] = $upcondition['status'];
-        break;
-      case self::STATUS_APPROVING:
-        $data['status'] = $upcondition['status'];
-        break;
-      case self::STATUS_VALID:
-        $data['status'] = $upcondition['status'];
-        break;
-    }
-    if ($condition['sort_order']) {
-      $data['sort_order'] = $upcondition['sort_order'];
-    }
-    $data['created_at'] = date('Y-m-d H:i:s');
-    $data['created_by'] = $username;
-
     $this->startTrans();
     if (isset($upcondition['en'])) {
       $data['lang'] = 'en';
       $data['name'] = $upcondition['en']['name'];
       $where['lang'] = $data['lang'];
-      $flag = $this->where($where)->save($data);
+      $exist_flag = $this->Exist($where);
+      $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
+
       if (!$flag) {
         $this->rollback();
         return false;
@@ -420,9 +386,10 @@ class MaterialcatModel extends PublicModel {
     }
     if (isset($upcondition['zh'])) {
       $data['lang'] = 'zh';
-      $data['name'] = $condition['zh']['name'];
+      $data['name'] = $upcondition['zh']['name'];
       $where['lang'] = $data['lang'];
-      $flag = $this->where($where)->save($data);
+      $exist_flag = $this->Exist($where);
+      $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
@@ -430,9 +397,9 @@ class MaterialcatModel extends PublicModel {
     }
     if (isset($upcondition['es'])) {
       $data['lang'] = 'es';
-      $data['name'] = $condition['zh']['name'];
+      $data['name'] = $upcondition['zh']['name'];
       $where['lang'] = $data['lang'];
-      $flag = $this->where($where)->save($data);
+      $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
@@ -442,7 +409,8 @@ class MaterialcatModel extends PublicModel {
       $data['lang'] = 'ru';
       $data['name'] = $upcondition['zh']['name'];
       $where['lang'] = $data['lang'];
-      $flag = $this->where($where)->save($data);
+      $exist_flag = $this->Exist($where);
+      $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
@@ -474,6 +442,60 @@ class MaterialcatModel extends PublicModel {
     }
     $this->commit();
     return $flag;
+  }
+
+  /**
+   * 更新数据
+   * @param  mix $upcondition 更新条件
+   * @return mix
+   * @author zyg
+   */
+  public function getUpdateCondition($upcondition = [], $username = '') {
+    $data = [];
+    $where = [];
+    $info = [];
+    if ($upcondition['cat_no']) {
+      $where['cat_no'] = $upcondition['cat_no'];
+      $info = $this->getinfo($where['cat_no']);
+    } else {
+      return false;
+    }
+    if (isset($upcondition['parent_cat_no'])) {
+      $data['parent_cat_no'] = $upcondition['parent_cat_no'];
+    }
+    if (isset($upcondition['level_no']) && $info['level_no'] != $upcondition['level_no']) {
+      return false;
+    }
+    if (isset($upcondition['level_no']) && in_array($upcondition['level_no'], [1, 2, 3]))
+      $data['level_no'] = $upcondition['level_no'];
+
+
+    if ($upcondition['level_no'] == 1) {
+      $data['parent_cat_no'] = 0;
+    } elseif (isset($upcondition['parent_cat_no'])) {
+      $data['parent_cat_no'] = $upcondition['parent_cat_no'];
+    }
+
+    switch ($upcondition['status']) {
+
+      case self::STATUS_DELETED:
+        $data['status'] = $upcondition['status'];
+        break;
+      case self::STATUS_DRAFT:
+        $data['status'] = $upcondition['status'];
+        break;
+      case self::STATUS_APPROVING:
+        $data['status'] = $upcondition['status'];
+        break;
+      case self::STATUS_VALID:
+        $data['status'] = $upcondition['status'];
+        break;
+    }
+    if ($upcondition['sort_order']) {
+      $data['sort_order'] = $upcondition['sort_order'];
+    }
+    $data['created_at'] = date('Y-m-d H:i:s');
+    $data['created_by'] = $username;
   }
 
   public function updateothercat($old_cat_no, $new_cat_no) {

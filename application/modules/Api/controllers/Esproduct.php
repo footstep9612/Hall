@@ -179,7 +179,7 @@ class EsproductController extends PublicController {
               foreach ($cat2['childs'] as $cat3) {
                 $newcat2['childs'][] = $cat3;
               }
-              $newcat1['childs'] = $newcat2;
+              $newcat1['childs'][] = $newcat2;
             }
 
 

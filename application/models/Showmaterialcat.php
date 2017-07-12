@@ -47,24 +47,35 @@ class ShowmaterialcatModel extends PublicModel {
   }
 
   /*
-   * 获取物料分类
-   * 
+   * 根据物料分类编号和语言获取展示分类信息
+   * @param array $material_cat_nos 物料分类编码
+   * @param string  $lang 语言
+   * return array
    */
 
   public function getshowcatsBymaterialcatno($material_cat_nos, $lang = 'en') {
 
     try {
       $material_cat_nos = array_values($material_cat_nos);
+      $real_material_cat_nos = $this->table('erui_goods.t_material_cat')
+              ->where(['cat_no' => ['in', $material_cat_nos],
+                  'status' => 'VALID',
+                  'lang' => $lang,
+              ])
+              ->select();
 
-      return $this->alias('ms')
-                      ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ', 'left')
-                      ->where(['ms.material_cat_no' => ['in', $material_cat_nos]
-                          , 'ms.status' => 'VALID',
-                          's.status' => 'VALID',
-                          's.lang' => $lang,
-                      ])
-                      ->field('ms.material_cat_no,ms.show_cat_no as cat_no,ms.status,s.name,s.parent_cat_no')
-                      ->select();
+      $flag = $this->alias('ms')
+              ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ', 'left')
+              ->where(['ms.material_cat_no' => ['in', $real_material_cat_nos]
+                  , 'ms.status' => 'VALID',
+                  's.status' => 'VALID',
+                  's.lang' => $lang,
+              ])
+              ->field('ms.material_cat_no,ms.show_cat_no as cat_no,'
+                      . 'ms.status,s.name,s.parent_cat_no')
+              ->select();
+      echo $this->_sql();
+      return $flag;
     } catch (Exception $ex) {
       Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
       Log::write($ex->getMessage());
