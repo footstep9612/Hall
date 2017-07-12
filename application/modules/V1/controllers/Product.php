@@ -198,8 +198,9 @@ class ProductController extends PublicController {
         }elseif(!isset($this->input['lang'])){
             $this->input['lang'] = browser_lang() ? browser_lang() : 'en';
         }
+        $this->input['spec_type'] = isset($this->input['spec_type'])?$this->input['spec_type']:0;
         $gmodel = new GoodsModel();
-        $result = $gmodel->getSpecGoodsBySpu($this->input['spu'],$this->input['lang']);
+        $result = $gmodel->getSpecGoodsBySpu($this->input['spu'],$this->input['lang'],$this->input['spec_type']);
         if($result){
             jsonReturn(array('data'=>$result));
         } else {
