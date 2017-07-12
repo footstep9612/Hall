@@ -47,24 +47,27 @@ class ShowmaterialcatModel extends PublicModel {
   }
 
   /*
-   * 根据物料分类编号和语言获取展示分类信息
-   * @param array $material_cat_nos 物料分类编码
-   * @param string  $lang 语言
-   * return array
+   * 获取物料分类
+   * 
    */
 
-  public function getshowcatsBymaterialcatno($material_cat_nos, $lang = 'en') {
+  public function getshowcatsBymaterialcatno($material_cat_nos, $lang = 'en', $show_cat_nos = []) {
 
     try {
-      $material_cat_nos = array_values($material_cat_nos); 
+      $material_cat_nos = array_values($material_cat_nos);
 
+      $where = ['ms.material_cat_no' => ['in', $material_cat_nos]
+          , 'ms.status' => 'VALID',
+          's.status' => 'VALID',
+          's.lang' => $lang,
+      ];
+      
+      if ($show_cat_nos) {
+        $where['ms.show_cat_no'] = ['in', $show_cat_nos];
+      }
       $flag = $this->alias('ms')
               ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ', 'left')
-              ->where(['ms.material_cat_no' => ['in', $real_material_cat_nos]
-                  , 'ms.status' => 'VALID',
-                  's.status' => 'VALID',
-                  's.lang' => $lang,
-              ])
+              ->where()
               ->field('ms.material_cat_no,ms.show_cat_no as cat_no,'
                       . 'ms.status,s.name,s.parent_cat_no')
               ->select();

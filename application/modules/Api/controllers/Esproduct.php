@@ -119,9 +119,33 @@ class EsproductController extends PublicController {
 
       ksort($material_cat_nos);
       $catno_key = 'show_cats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang());
-      $catlist = json_decode(redisGet($catno_key), true);
+     if ($this->put_data['show_cat_no']) {
+        $catno_key .= md5($this->put_data['show_cat_no']);
+      }    $catlist = json_decode(redisGet($catno_key), true);
 
       if (!$catlist) {
+         if ($this->put_data['show_cat_no']) {
+          $show_cat_model = new ShowCatModel();
+          $info = $show_cat_model->getinfo($this->put_data['show_cat_no'], $this->getLang());
+          if ($info['level_no'] == 1) {
+            $condition['level_no'] = 3;
+            $condition['top_no'] = $this->put_data['show_cat_no'];
+            $condition['lang'] = $this->getLang();
+            $cat_nos = $show_cat_model->getList($condition, 'cat_no');
+          } elseif ($info['level_no'] == 2) {
+            $condition['level_no'] = 3;
+            $condition['parent_cat_no'] = $this->put_data['show_cat_no'];
+            $condition['lang'] = $this->getLang();
+            $cat_nos = $show_cat_model->getList($condition, 'cat_no');
+          } elseif ($info['level_no'] == 3) {
+            $cat_nos = ['cat_no' => $this->put_data['show_cat_no']];
+          }
+          if ($cat_nos) {
+            foreach ($cat_nos as $showcat) {
+              $show_cat_nos = $showcat['cat_no'];
+            }
+          }
+        }
         $matshowcatmodel = new ShowmaterialcatModel();
         $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
         $new_showcats1 = $new_showcats2 = $new_showcats3 = [];

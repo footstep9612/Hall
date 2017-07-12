@@ -484,6 +484,10 @@ class ShowCatModel extends PublicModel {
     if (isset($upcondition['level_no']) && in_array($upcondition['level_no'], [1, 2, 3])) {
       $data['level_no'] = $upcondition['level_no'];
     }
+    if (isset($upcondition['top_no']) && in_array($upcondition['top_no'], [1, 2, 3])) {
+      $data['top_no'] = $upcondition['top_no'];
+    }
+
     if (!isset($data['parent_cat_no']) && $data['parent_cat_no'] != $info['parent_cat_no']) {
       $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
       if (!$cat_no) {
