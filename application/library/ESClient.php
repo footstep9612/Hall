@@ -27,6 +27,10 @@ class ESClient {
    * term是代表完全匹配，即不进行分词器分析，文档中必须包含整个搜索的词汇
    */
   const TERM = 'term';
+  const TERMS = 'terms';
+  const QUERY_STRING = 'query_string';
+  const DEFAULT_FIELD = 'default_field';
+  const QUERY = 'query';
   /*
    * 正则匹配
    * 使用regexp查询能够让你写下更复杂的模式
