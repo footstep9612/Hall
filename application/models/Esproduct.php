@@ -854,6 +854,7 @@ class EsproductModel extends PublicModel {
 
       $ret = [];
       foreach ($products as $item) {
+        $show_cat = [];
         $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
         if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
           foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
@@ -981,6 +982,11 @@ class EsproductModel extends PublicModel {
             $show_cat = [];
             if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {
               $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
+            }
+            if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
+              foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
+                $show_cat[$show_cat_no] = $scats[$show_cat_no];
+              }
             }
             if (isset($mcats[$item['meterial_cat_no']])) {
               $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
