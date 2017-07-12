@@ -49,7 +49,24 @@ class EsproductModel extends PublicModel {
           [ESClient::DEFAULT_FIELD => 'show_cats',
               ESClient::QUERY => $show_cat_no]];
     }
-
+    if (isset($condition['mcat_no1'])) {
+      $mcat_no1 = $condition['mcat_no1'];
+      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
+          [ESClient::DEFAULT_FIELD => 'meterial_cat',
+              ESClient::QUERY => $mcat_no1]];
+    }
+    if (isset($condition['mcat_no2'])) {
+      $mcat_no1 = $condition['mcat_no2'];
+      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
+          [ESClient::DEFAULT_FIELD => 'meterial_cat',
+              ESClient::QUERY => $mcat_no1]];
+    }
+    if (isset($condition['mcat_no3'])) {
+      $mcat_no1 = $condition['mcat_no3'];
+      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
+          [ESClient::DEFAULT_FIELD => 'meterial_cat',
+              ESClient::QUERY => $mcat_no1]];
+    }
     if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
       $created_at_start = $condition['created_at_start'];
       $created_at_end = $condition['created_at_end'];
@@ -175,6 +192,11 @@ class EsproductModel extends PublicModel {
     if (isset($condition['show_name'])) {
       $show_name = $condition['show_name'];
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name' => $show_name]];
+    }
+    if (isset($condition['name'])) {
+      $name = $condition['name'];
+      $body['query']['bool']['must'][] = [ESClient::MATCH => ['name' => ['query' => $name,
+                  'minimum_should_match' => '75%']]];
     }
     if (isset($condition['attrs'])) {
       $attrs = $condition['attrs'];
