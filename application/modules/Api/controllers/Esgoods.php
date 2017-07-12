@@ -30,19 +30,65 @@ class EsgoodsController extends PublicController {
   }
 
   public function listAction() {
-    $this->setLang('zh');
+    $lang = $this->getPut('lang', 'en');
     $model = new EsgoodsModel();
-    $ret = $model->getgoods($this->put_data, null, $this->getLang());
+    $ret = $model->getgoods($this->put_data, null, $lang);
     if ($ret) {
       $list = [];
       $data = $ret[0];
       $send['count'] = intval($data['hits']['total']);
       $send['current_no'] = intval($ret[1]);
       $send['pagesize'] = intval($ret[2]);
-
+      $skus = [];
+      if ($lang != 'en') {
+        foreach ($data['hits']['hits'] as $key => $item) {
+          $skus[] = $item["_source"]['sku'];
+        }
+        $ret_en = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'en');
+        $list_en = [];
+        foreach ($ret_en[0]['hits']['hits'] as $item) {
+          $list_en[$item["_source"]['sku']] = $item["_source"]['name'];
+        }
+      } elseif ($lang == 'en') {
+        foreach ($data['hits']['hits'] as $key => $item) {
+          $skus[] = $item["_source"]['sku'];
+        }
+        $ret_zh = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'zh');
+        $list_zh = [];
+        foreach ($ret_zh[0]['hits']['hits'] as $item) {
+          $list_zh[$item["_source"]['sku']] = $item["_source"]['name'];
+        }
+      }
       foreach ($data['hits']['hits'] as $key => $item) {
         $list[$key] = $item["_source"];
-        $list[$key]['id'] = $item['_id'];
+        $attachs = json_decode($item["_source"]['attachs'], true);
+        if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+          $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
+        } else {
+          $list[$key]['img'] = null;
+        }
+        $show_cats = json_decode($item["_source"]["show_cats"], true);
+        if ($show_cats) {
+          rsort($show_cats);
+        }
+        $sku = $item["_source"]['sku'];
+
+        if (isset($list_en[$sku])) {
+          $list[$key]['name'] = $list_en[$sku];
+          $list[$key]['name_' . $lang] = $item["_source"]['name'];
+        } elseif (isset($list_zh[$sku])) {
+          $list[$key]['name_zh'] = $item["_source"]['name'];
+        } else {
+          $list[$key]['name'] = $item["_source"]['name'];
+          $list[$key]['name_' . $lang] = $item["_source"]['name'];
+        }
+
+        $list[$key]['show_cats'] = $show_cats;
+        $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
+        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
+        $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       }
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);
@@ -163,6 +209,10 @@ class EsgoodsController extends PublicController {
                 "index" => "not_analyzed",
                 "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
             ],
+            'meterial_cat_no' => [
+                'type' => $type_string,
+                "index" => "not_analyzed",
+            ],
             'meterial_cat' => [
                 'type' => $type_string,
                 "analyzer" => $analyzer,
@@ -183,6 +233,31 @@ class EsgoodsController extends PublicController {
                 "search_analyzer" => $analyzer,
                 "include_in_all" => "true",
                 "boost" => 4
+            ],
+            'supplier_id' => [
+                'type' => $type_string,
+                "index" => "not_analyzed",
+            ],
+            'supplier_name' => [
+                'type' => $type_string,
+                "analyzer" => $analyzer,
+                "search_analyzer" => $analyzer,
+                "include_in_all" => "true",
+                "boost" => 1
+            ],
+            'brand' => [
+                'type' => $type_string,
+                "analyzer" => $analyzer,
+                "search_analyzer" => $analyzer,
+                "include_in_all" => "true",
+                "boost" => 2
+            ],
+            'source' => [
+                'type' => $type_string,
+                "analyzer" => $analyzer,
+                "search_analyzer" => $analyzer,
+                "include_in_all" => "true",
+                "boost" => 1
             ],
             'specs' => [
                 'type' => $type_string,

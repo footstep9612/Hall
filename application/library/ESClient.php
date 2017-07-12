@@ -27,6 +27,10 @@ class ESClient {
    * term是代表完全匹配，即不进行分词器分析，文档中必须包含整个搜索的词汇
    */
   const TERM = 'term';
+  const TERMS = 'terms';
+  const QUERY_STRING = 'query_string';
+  const DEFAULT_FIELD = 'default_field';
+  const QUERY = 'query';
   /*
    * 正则匹配
    * 使用regexp查询能够让你写下更复杂的模式
@@ -306,24 +310,10 @@ class ESClient {
    * 批量创建文档
    */
 
-  public function bulk() {
-    $params = [];
-    for ($i = 0; $i < 100; $i++) {
-      $params['body'][] = [
-          'index' => [
-              '_index' => 'my_index',
-              '_type' => 'my_type',
-              '_id' => $i
-          ]
-      ];
-
-      $params['body'][] = [
-          'my_field' => 'my_value',
-          'second_field' => 'some more values'
-      ];
-    }
+  public function bulk($params) {
 
     $responses = $this->server->bulk($params);
+    return $responses;
   }
 
   /*
@@ -805,7 +795,11 @@ class ESClient {
    */
 
   public function setsort($field, $sort) {
-    $this->body['sort'][] = [$field => ['order' => $sort]];
+    if (is_string($sort)) {
+      $this->body['sort'][] = [$field => ['order' => $sort]];
+    } elseif (is_array($sort)) {
+      $this->body['sort'][] = [$field => $sort];
+    }
     return $this;
   }
 
@@ -847,8 +841,8 @@ class ESClient {
         'type' => $type,
         'body' => $this->body,
     );
-    $searchParams['from'] = $from;
-    $searchParams['size'] = $size;
+    $searchParams['body']['from'] = $from;
+    $searchParams['body']['size'] = $size;
     try {
       return $this->server->search($searchParams);
     } catch (Exception $ex) {
@@ -973,10 +967,8 @@ class ESClient {
     $params['index'] = $index;
     $params['type'] = $type;
     $params['body']['query']['bool']['must'] = $must;
-
     $params['body']['query']['bool']['must_not'] = $must_not;
     $params['body']['query']['bool']['should'] = $must_not;
-
 
     $results = $this->server->search($params);
     return $results;

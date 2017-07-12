@@ -9,70 +9,57 @@
 //class ExcelController extends PublicController
 class ExcelController extends Yaf_Controller_Abstract
 {
-
-
-    public function testAction(){
-
-	echo "excel test";die;
-    }
-
-
-
     /**
      * 报价单Excel导出api接口
      * @author maimaiti
      */
-    public function quoteAction() {
-
-        //请求验证
-        $this->requestValidator();
-
+    public function quoteAction()
+    {
         //获取post
         $raw = json_decode(file_get_contents("php://input"), true);
-        if (!isset($raw['quote_no'])) {
+        //判断请求参数 这个就扣可以接受serial_no(流水号)或者quote_no(报价单号)
+        if (empty($raw))
+        {
             jsonReturn(null, -2103, ErrorMsg::getMessage('-2103'));
         }
 
-
-        $file = $this->data2excelAction($raw['quote_no']);
-        if ($this->check_remote_file_exists($file))
-        {
-            $returnData = [
-                'code' => 1,
-                'message' => ErrorMsg::getMessage('1'),
-                'data' => [
-                    'file' => $file,
-                    'exported_at' => date('YmdHis')
-                ]
-            ];
-        }else{
-            $returnData = [
-                'code' => 0,
-                'message' => '导出文件路径有错误~',
-                'data' => []
-            ];
+        if (isset($raw['quote_no'])) {
+            $condition = ['quote_no'=>$raw['quote_no']];
         }
-        exit(json_encode($returnData));
+        if (isset($raw['serial_no'])) {
+            $condition = ['serial_no'=>$raw['serial_no']];
+        }
+        $result = $this->data2excelAction($condition);
+        //$result = $this->testAction($condition);
+        //响应数据
+        exit(json_encode($result));
     }
 
     /**
      * 数据导出为Excel
      * @author maimaiti
      */
-    private function data2excelAction($quote_no) {
+    private function data2excelAction($condition)
+    {
+        //按条件查询数据库记录
+        $quote = $this->getQuoteByCondition($condition);
 
         //加载PHPExcel类,新建Excel表格
         $objPHPExcel = new PHPExcel();
-
         //2.创建sheet(内置表)
         $objSheet = $objPHPExcel->getActiveSheet(); //获取当前sheet
-        $objSheet->setTitle('商务技术报价单'); //设置当前sheet标题
-
-        //获取数据
-        $quote = $this->getData($quote_no);
-        //var_dump($quote);die;
-
-        //3.填充数据
+        //设置报价单标题
+        switch (key($condition))
+        {
+            case "quote_no" :
+                $objSheet->setTitle('市场报价单');
+                $prefix = $quote['inquiry_no']."_Q_O_";//导出文件前缀
+                break;
+            case "serial_no" :
+                $objSheet->setTitle('商务技术报价单');
+                $prefix = $quote['inquiry_no']."_Q_I_";//导出文件前缀
+                break;
+        }
         //设置边框
         $styleArray = [
             'borders' => [
@@ -114,7 +101,7 @@ class ExcelController extends Yaf_Controller_Abstract
         //设置最小列宽度
         $small_cols = ["A", "G"];
         foreach ($small_cols as $small_col):
-            $objSheet->getColumnDimension($small_col)->setWidth('6');
+            $objSheet->getColumnDimension($small_col)->setWidth('9');
         endforeach;
 
         //设置中等列宽度
@@ -129,13 +116,389 @@ class ExcelController extends Yaf_Controller_Abstract
             $objSheet->getColumnDimension($big_col)->setWidth('18');
         endforeach;
 
-        $objSheet->setCellValue("A3", "报价人 : " . $quote['quoter'])->mergeCells("A3:E3");
+        $objSheet->setCellValue("A3", "报价人 : " .$quote['quoter'])->mergeCells("A3:E3");
         $objSheet->setCellValue("A4", "电话 : ")->mergeCells("A4:E4");
-        $objSheet->setCellValue("A5", "邮箱 : " . $quote['quoter_email'])->mergeCells("A5:E5");
+        $objSheet->setCellValue("A5", "邮箱 : " .$quote['quoter_email'])->mergeCells("A5:E5");
 
-        $objSheet->setCellValue("F3", "询价单位 : (加拿大)孙继飞")->mergeCells("F3:R3");
-        $objSheet->setCellValue("F4", "业务对接人 : 孙继飞")->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "报价时间 : " . date('Y-m-d', $quote['quote_at']))->mergeCells("F5:R5");
+        $objSheet->setCellValue("F3", "询价单位 : ")->mergeCells("F3:R3");
+        $objSheet->setCellValue("F4", "业务对接人 : ")->mergeCells("F4:R4");
+        $objSheet->setCellValue("F5", "报价时间 : " .$quote['quote_at'])->mergeCells("F5:R5");
+
+
+        $objSheet->setCellValue("A6", '易瑞国际电子商务有限公司商务技术部')
+            //单元格合并
+            ->mergeCells("A6:R6")
+            //设置高度
+            ->getRowDimension("6")
+            ->setRowHeight(26);
+
+        $objSheet->getCell("A6")
+            ->getStyle()
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        $objSheet->setCellValue("A7", "序号\nitem")->mergeCells("A7:A8");
+        $objSheet->setCellValue("B7", "名称\nitem")->mergeCells("B7:B8");
+        $objSheet->setCellValue("C7", "外文名称\nitem")->mergeCells("C7:C8");
+        $objSheet->setCellValue("D7", "规格\nmodel")->mergeCells("D7:D8");
+        $objSheet->setCellValue("E7", "客户需求描述\nRequirementSpecifications")->mergeCells("E7:E8");
+        $objSheet->setCellValue("F7", "报价产品描述\nSupplySpecifications")->mergeCells("F7:F8");
+        $objSheet->setCellValue("G7", "数量\nQty")->mergeCells("G7:G8");
+        $objSheet->setCellValue("H7", "单位\nUnit")->mergeCells("H7:H8");
+        $objSheet->setCellValue("I7", "产品品牌\nBrand")->mergeCells("I7:I8");
+        $objSheet->setCellValue("J7", "报出EXW单价\nQuote EXW Unit Price")->mergeCells("J7:J8");
+        $objSheet->setCellValue("K7", "贸易单价\nTrade Unit Price")->mergeCells("K7:K8");
+        $objSheet->setCellValue("L7", "单重\nUnit\nWeight(kg)")->mergeCells("L7:L8");
+        $objSheet->setCellValue("M7", "包装体积\nPacking\nSizeL*W*H(mm)")->mergeCells("M7:M8");
+        $objSheet->setCellValue("N7", "包装方式\nPacking")->mergeCells("N7:N8");
+        $objSheet->setCellValue("O7", "交货期\nValidity\n(Working Day)")->mergeCells("O7:O8");
+        $objSheet->setCellValue("P7", "退税率\nTax RefundRate")->mergeCells("P7:P8");
+        $objSheet->setCellValue("Q7", "备注\nRemark")->mergeCells("Q7:Q8");
+
+        $cols = ["A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7", "I7", "J7", "K7", "L7", "M7", "N7", "O7", "P7", "Q7"];
+        foreach ($cols as $col) {
+            $objSheet->getStyle($col)
+                ->getAlignment()
+                ->setWrapText(true)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
+
+        //判断quote_item子数组
+        if (is_array($quote['quote_items']) && !empty($quote['quote_items']))
+        {
+            $row_num = 9;
+            foreach ($quote['quote_items'] as $item)
+            {
+                $objSheet->setCellValue("A".$row_num, $item['id']);
+                $objSheet->setCellValue("B".$row_num, $item['name_cn']);
+                $objSheet->setCellValue("C".$row_num, $item['name_en']);
+                $objSheet->setCellValue("D".$row_num, $item['quote_spec']);
+                $objSheet->setCellValue("E".$row_num, $item['inquiry_desc']);
+                $objSheet->setCellValue("F".$row_num, $item['quote_desc']);
+                $objSheet->setCellValue("G".$row_num, $item['quote_quantity']);
+                $objSheet->setCellValue("H".$row_num, $item['quote_unit']);
+                $objSheet->setCellValue("I".$row_num, $item['quote_brand']);
+                $objSheet->setCellValue("J".$row_num, $item['exw_unit_price']);
+                $objSheet->setCellValue("K".$row_num, $item['quote_unit_price']);
+                $objSheet->setCellValue("L".$row_num, $item['unit_weight']);
+                $objSheet->setCellValue("M".$row_num, $item['package_size']);
+                $objSheet->setCellValue("N".$row_num, $quote['package_mode']);
+                $objSheet->setCellValue("O".$row_num, $item['delivery_period']);
+                $objSheet->setCellValue("P".$row_num, $item['rebate_rate']);
+                $objSheet->setCellValue("Q".$row_num, $item['quote_notes']);
+
+                //设置居中
+                $cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q"];
+                foreach ($cols as $col) {
+                    $objSheet->getStyle($col.$row_num)
+                        ->getAlignment()
+                        ->setWrapText(true)
+                        ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                }
+
+                $row_num++;
+            }
+            $objSheet->getStyle("A7:K".$row_num)->applyFromArray($styleArray);
+
+            $num10 = $row_num + 1;
+            $objSheet->setCellValue("A".$num10, "")->mergeCells("A".$num10.":R".$num10);
+
+            $num11 = $row_num + 2;
+            $objSheet->setCellValue("B".$num11, "总重(kg)");
+            $objSheet->setCellValue("C".$num11, $quote['total_weight']);
+            $objSheet->setCellValue("D".$num11, "包装总体积(m³)");
+            $objSheet->setCellValue("E".$num11, $quote['package_volumn']);
+            $objSheet->setCellValue("F".$num11, "付款方式");
+            $objSheet->setCellValue("G".$num11, $quote['payment_mode']);
+            $objSheet->setCellValue("H".$num11, "");
+            $objSheet->setCellValue("I".$num11, "");
+            $objSheet->setCellValue("J".$num11, "EXW交货周期(天)");
+            $objSheet->setCellValue("K".$num11, $quote['exw_delivery_period']);
+
+            $num12 = $row_num + 3;
+            $objSheet->setCellValue("B".$num12, "贸易术语");
+            $objSheet->setCellValue("C".$num12, $quote['trade_terms']);
+            $objSheet->setCellValue("D".$num12, "运输方式");
+            $objSheet->setCellValue("E".$num12, "Ocean");
+            $objSheet->setCellValue("F".$num12, "存放地");
+            $objSheet->setCellValue("G".$num12, $quote['origin_place']);
+            $objSheet->setCellValue("H".$num12, "目的地");
+            $objSheet->setCellValue("I".$num12, $quote['destination']);
+            $objSheet->setCellValue("J".$num12, "运输周期(天)");
+            $objSheet->setCellValue("K".$num12, $quote['est_transport_cycle']);
+
+            $num13 = $row_num + 4;
+            $objSheet->setCellValue("B".$num13, "物流合计");
+            $objSheet->setCellValue("C".$num13, $quote['total_logi_fee']);
+            $objSheet->setCellValue("D".$num13, "物流合计币种");
+            $objSheet->setCellValue("E".$num13, $quote['total_logi_fee_cur']);
+            $objSheet->setCellValue("F".$num13, "银行费用");
+            $objSheet->setCellValue("G".$num13, $quote['total_bank_fee']);
+            $objSheet->setCellValue("H".$num13, "银行费用币种");
+            $objSheet->setCellValue("I".$num13, $quote['total_bank_fee_cur']);
+            $objSheet->setCellValue("J".$num13, "");
+            $objSheet->setCellValue("K".$num13, "");
+
+            $num14 = $row_num + 5;
+            $objSheet->setCellValue("B".$num14, "EXW合计");
+            $objSheet->setCellValue("C".$num14, $quote['total_exw_price']);
+            $objSheet->setCellValue("D".$num14, "EXW合计币种");
+            $objSheet->setCellValue("E".$num14, $quote['total_exw_cur']);
+            $objSheet->setCellValue("F".$num14, "出信用保险");
+            $objSheet->setCellValue("G".$num14, $quote['total_insu_fee']);
+            $objSheet->setCellValue("H".$num14, "出信用保险币种");
+            $objSheet->setCellValue("I".$num14, $quote['total_insu_fee_cur']);
+            $objSheet->setCellValue("J".$num14, "");
+            $objSheet->setCellValue("K".$num14, "");
+
+            $num15 = $row_num + 6;
+            $objSheet->setCellValue("B".$num15, "报价合计");
+            $objSheet->setCellValue("C".$num15, $quote['total_quote_price']);
+            $objSheet->setCellValue("D".$num15, "1报价合计币种");
+            $objSheet->setCellValue("E".$num15, $quote['total_quote_cur']);
+            $objSheet->setCellValue("F".$num15, "");
+            $objSheet->setCellValue("G".$num15, "");
+            $objSheet->setCellValue("H".$num15, "");
+            $objSheet->setCellValue("I".$num15, "");
+            $objSheet->setCellValue("J".$num15, "");
+            $objSheet->setCellValue("K".$num15, "");
+
+            $objSheet->getStyle("A".$num11.":K".$num15)->applyFromArray($styleArray);
+
+            $total_rows = [
+                "A".$num11, "A".$num12, "A".$num13, "A".$num14, "A".$num15, "B".$num11, "B".$num12, "B".$num13, "B".$num14, "B".$num15,
+                "C".$num11, "C".$num12, "C".$num13, "C".$num14, "C".$num15, "D".$num11, "D".$num12, "D".$num13, "D".$num14, "D".$num15,
+                "E".$num11, "E".$num12, "E".$num13, "E".$num14, "E".$num15, "F".$num11, "F".$num12, "F".$num13, "F".$num14, "F".$num15,
+                "G".$num11, "G".$num12, "G".$num13, "G".$num14, "G".$num15, "H".$num11, "H".$num12, "H".$num13, "H".$num14, "H".$num15,
+                "I".$num11, "I".$num12, "I".$num13, "I".$num14, "I".$num15, "J".$num11, "J".$num12, "J".$num13, "J".$num14, "J".$num15,
+                "K".$num11, "K".$num12, "K".$num13, "K".$num14, "K".$num15,
+            ];
+            foreach ($total_rows as $total_row) {
+                $objSheet->getCell($total_row)->getStyle()
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                    ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getStyle($total_row)->applyFromArray($styleArray);
+            }
+
+            $num16 = $row_num + 7; $num17 = $row_num + 8;
+            $objSheet->setCellValue("A".$num16, '报价备注 : ' .$quote['quote_notes'])->mergeCells("A".$num16.":K".$num17);
+            $objSheet->getStyle("A".$num16.":K".$num17)->applyFromArray($styleArray);
+            $objSheet->getCell("A".$num16)
+                ->getStyle()
+                ->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+            $num18 = $row_num + 9; $num19 = $row_num + 10;
+            $objSheet->setCellValue("A".$num18, '物流备注 : ' .$quote['logi_notes'])->mergeCells("A".$num18.":K".$num19);
+            $objSheet->getStyle("A".$num18.":K".$num19)->applyFromArray($styleArray);
+            $objSheet->getCell("A".$num18)
+                ->getStyle()
+                ->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+            $num20 = $row_num + 11; $num21 = $row_num + 12;
+            $objSheet->setCellValue("A".$num20, "")->mergeCells("A".$num20.":K".$num21);
+            $objSheet->getStyle("A".$num20.":K".$num21)->applyFromArray($styleArray);
+
+        }else{
+            //p('no quote_item data');
+        }
+
+        //添加logo
+
+        //4.保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+
+        //保存到服务器指定目录
+        $file =  $this->export_to_disc($objWriter, "ExcelFiles", $prefix.date('Ymd_His').".xls");
+        if (!is_file($file) && !file_exists($file))
+        {
+            $data = [
+                'code'=>-2105,
+                'message'=>ErrorMsg::getMessage('-2105')
+            ];
+        }else{
+            $data = [
+                'code'=>1,
+                'message'=>ErrorMsg::getMessage('1'),
+                'data'=>[
+                    'file'=>$file,
+                    'exported_at'=>time('YmdHis')
+                ]
+            ];
+        }
+        return $data;
+
+    }
+    /**
+     * 获取数据库信息，并重组返回
+     * @author maimaiti
+     * @return array $data 返回数据
+     */
+    private function getQuoteByCondition($condition)
+    {
+        //第一次查询判断
+        $quoteObj = new QuoteModel();
+        $firstCondition = $quoteObj->where($condition)->find();
+        if (!$firstCondition)
+        {
+            jsonReturn(null, -2102, ErrorMsg::getMessage('-2102'));
+        }
+
+        //第二次真正获取数据并且重组数组结构
+        $fields = [
+            'id',//编号
+            'inquiry_no',
+            'quote_no',
+            'quoter', //商务报价人
+            'quoter_email', //商务报价人邮箱
+            'quote_at', //商务报价时间
+            'serial_no',//项目代码(流水号)
+            'notes',//备注
+            'quote_notes',//商务报价备注
+            'logi_notes',//物流备注
+            'total_weight',//总重
+            'package_volumn',//包装总体积
+            'trade_terms',//贸易术语
+            'total_logi_fee',//物流合计
+            'total_logi_fee_cur',//物流合计币种
+            'total_exw_price',//EXW合计
+            'total_exw_cur',//EXW合计币种
+            'total_quote_price',//报价合计
+            'total_quote_cur',//报价合计币种
+            'payment_mode',//付款方式
+            'origin_place',//存放地
+            'destination',//目的地
+            'total_bank_fee',//银行费用
+            'total_bank_fee_cur',//银行费用币种
+            'total_insu_fee',//出口信用保险费用
+            'total_insu_fee_cur',//出口信用保险费用币种
+            'exw_delivery_period',//EXW交货周期
+            'est_transport_cycle',//预计运输周期
+            'package_mode'//包装方式
+        ];
+        //询单本身信息
+        $data = $quoteObj->where($condition)->field($fields, false)->find();
+        //追加询单明细信息
+        $quote_item_model = new QuoteItemModel();
+        $quote_item_fields = [
+            'id',//编号
+            'name_cn',//中文名称
+            'name_en',//外文名称
+            'quote_spec',//规格
+            'inquiry_desc',//客户需求描述
+            'quote_desc',//报价产品描述
+            'quote_quantity',//数量
+            'quote_unit',//单位
+            'quote_brand',//品牌
+            'exw_unit_price',//EXW单价
+            'quote_unit_price',//贸易单价
+            'unit_weight',//单重
+            'package_size',//包装尺寸
+            'delivery_period',//交货期
+            'rebate_rate',//退税率
+            'quote_notes',//备注(商务技术备注)
+        ];
+        $where = ['quote_no'=>$data['quote_no']];
+        $data['quote_items'] = $quote_item_model->where($where)->field($quote_item_fields)->select();
+        return $data;
+    }
+
+    /**
+     * 我的测试
+     * @param $condition
+     * @return array
+     */
+    public function testAction($condition)
+    {
+        //按条件查询数据库记录
+        $quote = $this->getQuoteByCondition($condition);
+
+        //加载PHPExcel类,新建Excel表格
+        $objPHPExcel = new PHPExcel();
+        //2.创建sheet(内置表)
+        $objSheet = $objPHPExcel->getActiveSheet(); //获取当前sheet
+        //设置报价单标题
+        switch (key($condition))
+        {
+            case "quote_no" :
+                $objSheet->setTitle('市场报价单');
+                $prefix = $quote['inquiry_no']."_Q_O_";//导出文件前缀
+                break;
+            case "serial_no" :
+                $objSheet->setTitle('商务技术报价单');
+                $prefix = $quote['inquiry_no']."_Q_I_";//导出文件前缀
+                break;
+        }
+        //设置边框
+        $styleArray = [
+            'borders' => [
+                'outline' => [
+                    'style' => PHPExcel_Style_Border::BORDER_THIN,
+                    'color' => ['rgb' => '333333'],
+                ],
+            ],
+        ];
+
+        /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
+        $objSheet->setCellValue("A1", '易瑞国际电子商务有限公司商务技术部')->mergeCells("A1:R2");
+        $objSheet->getStyle("A3:R5")->applyFromArray($styleArray);
+
+
+        $objSheet->getStyle("A1:R2")
+            ->getFont()
+            ->setSize(18)
+            ->setBold(true);
+
+        /* 设置A1~R1的文字属性 */
+        $objSheet->getCell("A1")
+            ->getStyle()
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置全局文字居中
+        $objSheet->getDefaultStyle()
+            ->getFont()
+            ->setName("微软雅黑")
+            ->setSize(10);
+
+        $objSheet->getStyle()
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置最小列宽度
+        $small_cols = ["A", "G"];
+        foreach ($small_cols as $small_col):
+            $objSheet->getColumnDimension($small_col)->setWidth('9');
+        endforeach;
+
+        //设置中等列宽度
+        $normal_cols = ["I", "K", "L", "N", "O", "P", "Q"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('12');
+        endforeach;
+
+        //设置最大列宽度
+        $big_cols = ["B", "C", "D", "E", "F", "H", "J", "M", "R"];
+        foreach ($big_cols as $big_col):
+            $objSheet->getColumnDimension($big_col)->setWidth('18');
+        endforeach;
+
+        $objSheet->setCellValue("A3", "报价人 : " .$quote['quoter'])->mergeCells("A3:E3");
+        $objSheet->setCellValue("A4", "电话 : ")->mergeCells("A4:E4");
+        $objSheet->setCellValue("A5", "邮箱 : " .$quote['quoter_email'])->mergeCells("A5:E5");
+
+        $objSheet->setCellValue("F3", "询价单位 : ")->mergeCells("F3:R3");
+        $objSheet->setCellValue("F4", "业务对接人 : ")->mergeCells("F4:R4");
+        $objSheet->setCellValue("F5", "报价时间 : " .$quote['quote_at'])->mergeCells("F5:R5");
 
 
         $objSheet->setCellValue("A6", '易瑞国际电子商务有限公司商务技术部')
@@ -179,162 +542,177 @@ class ExcelController extends Yaf_Controller_Abstract
         }
 
 
-        $objSheet->setCellValue("A9", $quote['id']);
+        //判断quote_item子数组
+        if (is_array($quote['quote_items']) && !empty($quote['quote_items']))
+        {
+            $row_num = 9;
+            foreach ($quote['quote_items'] as $item)
+            {
+                $objSheet->setCellValue("A".$row_num, $item['id']);
+                $objSheet->setCellValue("B".$row_num, $item['name_cn']);
+                $objSheet->setCellValue("C".$row_num, $item['name_en']);
+                $objSheet->setCellValue("D".$row_num, $item['quote_spec']);
+                $objSheet->setCellValue("E".$row_num, $item['inquiry_desc']);
+                $objSheet->setCellValue("F".$row_num, $item['quote_desc']);
+                $objSheet->setCellValue("G".$row_num, $item['quote_quantity']);
+                $objSheet->setCellValue("H".$row_num, $item['quote_unit']);
+                $objSheet->setCellValue("I".$row_num, $item['quote_brand']);
+                $objSheet->setCellValue("J".$row_num, $item['exw_unit_price']);
+                $objSheet->setCellValue("K".$row_num, $item['quote_unit_price']);
+                $objSheet->setCellValue("L".$row_num, $item['unit_weight']);
+                $objSheet->setCellValue("M".$row_num, $item['package_size']);
+                $objSheet->setCellValue("N".$row_num, $quote['package_mode']);
+                $objSheet->setCellValue("O".$row_num, $item['delivery_period']);
+                $objSheet->setCellValue("P".$row_num, $item['rebate_rate']);
+                $objSheet->setCellValue("Q".$row_num, $item['quote_notes']);
 
-        $objSheet->setCellValue("B9", "科瑞");
-        $objSheet->setCellValue("C9", "kerui");
-        $objSheet->setCellValue("D9", "1|22|35");
-        $objSheet->setCellValue("E9", "描述");
-        $objSheet->setCellValue("F9", "");
-        $objSheet->setCellValue("G9", "100");
-        $objSheet->setCellValue("H9", "热");
-        $objSheet->setCellValue("I9", "科瑞");
-        $objSheet->setCellValue("J9", "130");
-        $objSheet->setCellValue("K9", "131.16");
-        $objSheet->setCellValue("L9", "12");
-        $objSheet->setCellValue("M9", "");
-        $objSheet->setCellValue("N9", "4656");
-        $objSheet->setCellValue("O9", "12");
-        $objSheet->setCellValue("P9", "");
-        $objSheet->setCellValue("Q9", "");
+                //设置居中
+                $cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q"];
+                foreach ($cols as $col) {
+                    $objSheet->getStyle($col.$row_num)
+                        ->getAlignment()
+                        ->setWrapText(true)
+                        ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                }
 
-        $cols = ["A9", "B9", "C9", "D9", "E9", "F9", "G9", "H9", "I9", "J9", "K9", "L9", "M9", "N9", "O9", "P9", "Q9"];
-        foreach ($cols as $col) {
-            $objSheet->getStyle($col)
+                $row_num++;
+            }
+            $objSheet->getStyle("A7:K".$row_num)->applyFromArray($styleArray);
+
+            $num10 = $row_num + 1;
+            $objSheet->setCellValue("A".$num10, "")->mergeCells("A".$num10.":R".$num10);
+
+            $num11 = $row_num + 2;
+            $objSheet->setCellValue("B".$num11, "总重(kg)");
+            $objSheet->setCellValue("C".$num11, $quote['total_weight']);
+            $objSheet->setCellValue("D".$num11, "包装总体积(m³)");
+            $objSheet->setCellValue("E".$num11, $quote['package_volumn']);
+            $objSheet->setCellValue("F".$num11, "付款方式");
+            $objSheet->setCellValue("G".$num11, $quote['payment_mode']);
+            $objSheet->setCellValue("H".$num11, "");
+            $objSheet->setCellValue("I".$num11, "");
+            $objSheet->setCellValue("J".$num11, "EXW交货周期(天)");
+            $objSheet->setCellValue("K".$num11, $quote['exw_delivery_period']);
+
+            $num12 = $row_num + 3;
+            $objSheet->setCellValue("B".$num12, "贸易术语");
+            $objSheet->setCellValue("C".$num12, $quote['trade_terms']);
+            $objSheet->setCellValue("D".$num12, "运输方式");
+            $objSheet->setCellValue("E".$num12, "Ocean");
+            $objSheet->setCellValue("F".$num12, "存放地");
+            $objSheet->setCellValue("G".$num12, $quote['origin_place']);
+            $objSheet->setCellValue("H".$num12, "目的地");
+            $objSheet->setCellValue("I".$num12, $quote['destination']);
+            $objSheet->setCellValue("J".$num12, "运输周期(天)");
+            $objSheet->setCellValue("K".$num12, $quote['est_transport_cycle']);
+
+            $num13 = $row_num + 4;
+            $objSheet->setCellValue("B".$num13, "物流合计");
+            $objSheet->setCellValue("C".$num13, $quote['total_logi_fee']);
+            $objSheet->setCellValue("D".$num13, "物流合计币种");
+            $objSheet->setCellValue("E".$num13, $quote['total_logi_fee_cur']);
+            $objSheet->setCellValue("F".$num13, "银行费用");
+            $objSheet->setCellValue("G".$num13, $quote['total_bank_fee']);
+            $objSheet->setCellValue("H".$num13, "银行费用币种");
+            $objSheet->setCellValue("I".$num13, $quote['total_bank_fee_cur']);
+            $objSheet->setCellValue("J".$num13, "");
+            $objSheet->setCellValue("K".$num13, "");
+
+            $num14 = $row_num + 5;
+            $objSheet->setCellValue("B".$num14, "EXW合计");
+            $objSheet->setCellValue("C".$num14, $quote['total_exw_price']);
+            $objSheet->setCellValue("D".$num14, "EXW合计币种");
+            $objSheet->setCellValue("E".$num14, $quote['total_exw_cur']);
+            $objSheet->setCellValue("F".$num14, "出信用保险");
+            $objSheet->setCellValue("G".$num14, $quote['total_insu_fee']);
+            $objSheet->setCellValue("H".$num14, "出信用保险币种");
+            $objSheet->setCellValue("I".$num14, $quote['total_insu_fee_cur']);
+            $objSheet->setCellValue("J".$num14, "");
+            $objSheet->setCellValue("K".$num14, "");
+
+            $num15 = $row_num + 6;
+            $objSheet->setCellValue("B".$num15, "报价合计");
+            $objSheet->setCellValue("C".$num15, $quote['total_quote_price']);
+            $objSheet->setCellValue("D".$num15, "1报价合计币种");
+            $objSheet->setCellValue("E".$num15, $quote['total_quote_cur']);
+            $objSheet->setCellValue("F".$num15, "");
+            $objSheet->setCellValue("G".$num15, "");
+            $objSheet->setCellValue("H".$num15, "");
+            $objSheet->setCellValue("I".$num15, "");
+            $objSheet->setCellValue("J".$num15, "");
+            $objSheet->setCellValue("K".$num15, "");
+
+            $objSheet->getStyle("A".$num11.":K".$num15)->applyFromArray($styleArray);
+
+            $total_rows = [
+                "A".$num11, "A".$num12, "A".$num13, "A".$num14, "A".$num15, "B".$num11, "B".$num12, "B".$num13, "B".$num14, "B".$num15,
+                "C".$num11, "C".$num12, "C".$num13, "C".$num14, "C".$num15, "D".$num11, "D".$num12, "D".$num13, "D".$num14, "D".$num15,
+                "E".$num11, "E".$num12, "E".$num13, "E".$num14, "E".$num15, "F".$num11, "F".$num12, "F".$num13, "F".$num14, "F".$num15,
+                "G".$num11, "G".$num12, "G".$num13, "G".$num14, "G".$num15, "H".$num11, "H".$num12, "H".$num13, "H".$num14, "H".$num15,
+                "I".$num11, "I".$num12, "I".$num13, "I".$num14, "I".$num15, "J".$num11, "J".$num12, "J".$num13, "J".$num14, "J".$num15,
+                "K".$num11, "K".$num12, "K".$num13, "K".$num14, "K".$num15,
+            ];
+            foreach ($total_rows as $total_row) {
+                $objSheet->getCell($total_row)->getStyle()
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                    ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getStyle($total_row)->applyFromArray($styleArray);
+            }
+
+            $num16 = $row_num + 7; $num17 = $row_num + 8;
+            $objSheet->setCellValue("A".$num16, '报价备注 : ' .$quote['quote_notes'])->mergeCells("A".$num16.":K".$num17);
+            $objSheet->getStyle("A".$num16.":K".$num17)->applyFromArray($styleArray);
+            $objSheet->getCell("A".$num16)
+                ->getStyle()
                 ->getAlignment()
-                ->setWrapText(true)
-                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        }
-
-        $objSheet->setCellValue("A10", "")->mergeCells("A10:R10");
-
-        $objSheet->setCellValue("B11", "重量");
-        $objSheet->setCellValue("C11", "12000");
-        $objSheet->setCellValue("D11", "包装总体积(m³)");
-        $objSheet->setCellValue("E11", "23");
-        $objSheet->setCellValue("F11", "付款方式");
-        $objSheet->setCellValue("G11", "电汇");
-        $objSheet->setCellValue("H11", "");
-        $objSheet->setCellValue("I11", "");
-        $objSheet->setCellValue("J11", "EXW交货周期(天)");
-        $objSheet->setCellValue("K11", "60");
-
-        $objSheet->setCellValue("B12", "贸易术语");
-        $objSheet->setCellValue("C12", "FOB");
-        $objSheet->setCellValue("D12", "运输方式");
-        $objSheet->setCellValue("E12", "Ocean");
-        $objSheet->setCellValue("F12", "存放地");
-        $objSheet->setCellValue("G12", "东营");
-        $objSheet->setCellValue("H12", "目的地");
-        $objSheet->setCellValue("I12", "目的地");
-        $objSheet->setCellValue("J12", "运输周期(天)");
-        $objSheet->setCellValue("K12", "15");
-
-        $objSheet->setCellValue("B13", "物流合计");
-        $objSheet->setCellValue("C13", "214.3");
-        $objSheet->setCellValue("D13", "物流合计");
-        $objSheet->setCellValue("E13", "USD");
-        $objSheet->setCellValue("F13", "银行费用");
-        $objSheet->setCellValue("G13", "1254.35");
-        $objSheet->setCellValue("H13", "银行费用币种");
-        $objSheet->setCellValue("I13", "USD");
-        $objSheet->setCellValue("J13", "");
-        $objSheet->setCellValue("K13", "");
-
-        $objSheet->setCellValue("B14", "EXW合计");
-        $objSheet->setCellValue("C14", "0");
-        $objSheet->setCellValue("D14", "EXW合计币种");
-        $objSheet->setCellValue("E14", "USD");
-        $objSheet->setCellValue("F14", "出信用保险");
-        $objSheet->setCellValue("G14", "0");
-        $objSheet->setCellValue("H14", "出信用保险币种");
-        $objSheet->setCellValue("I14", "USD");
-        $objSheet->setCellValue("J14", "");
-        $objSheet->setCellValue("K14", "");
-
-        $objSheet->setCellValue("B15", "报价合计");
-        $objSheet->setCellValue("C15", "131158.64");
-        $objSheet->setCellValue("D15", "1报价合计币种");
-        $objSheet->setCellValue("E15", "USD");
-        $objSheet->setCellValue("F15", "");
-        $objSheet->setCellValue("G15", "");
-        $objSheet->setCellValue("H15", "");
-        $objSheet->setCellValue("I15", "");
-        $objSheet->setCellValue("J15", "");
-        $objSheet->setCellValue("K15", "");
-
-
-        $objSheet->getStyle("A11:K15")->applyFromArray($styleArray);
-
-        $total_rows = [
-            "A11", "A12", "A13", "A14", "A15", "B11", "B12", "B13", "B14", "B15",
-            "C11", "C12", "C13", "C14", "C15", "D11", "D12", "D13", "D14", "D15",
-            "E11", "E12", "E13", "E14", "E15", "F11", "F12", "F13", "F14", "F15",
-            "G11", "G12", "G13", "G14", "G15", "H11", "H12", "H13", "H14", "H15",
-            "I11", "I12", "I13", "I14", "I15", "J11", "J12", "J13", "J14", "J15",
-            "K11", "K12", "K13", "K14", "K15",
-        ];
-        foreach ($total_rows as $total_row) {
-            $objSheet->getCell($total_row)->getStyle()
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
                 ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-            $objSheet->getStyle($total_row)->applyFromArray($styleArray);
+
+            $num18 = $row_num + 9; $num19 = $row_num + 10;
+            $objSheet->setCellValue("A".$num18, '物流备注 : ' .$quote['logi_notes'])->mergeCells("A".$num18.":K".$num19);
+            $objSheet->getStyle("A".$num18.":K".$num19)->applyFromArray($styleArray);
+            $objSheet->getCell("A".$num18)
+                ->getStyle()
+                ->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
+                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+            $num20 = $row_num + 11; $num21 = $row_num + 12;
+            $objSheet->setCellValue("A".$num20, "")->mergeCells("A".$num20.":K".$num21);
+            $objSheet->getStyle("A".$num20.":K".$num21)->applyFromArray($styleArray);
+
+        }else{
+            //p('no quote_item data');
         }
-
-        $objSheet->setCellValue("A16", '报价备注 : ')->mergeCells("A16:K17");
-        $objSheet->getStyle("A16:K17")->applyFromArray($styleArray);
-        $objSheet->getCell("A16")
-            ->getStyle()
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
-            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-
-        $objSheet->setCellValue("A18", '物流备注 : ')->mergeCells("A18:K19");
-        $objSheet->getStyle("A18:K19")->applyFromArray($styleArray);
-        $objSheet->getCell("A18")
-            ->getStyle()
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT)
-            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-
-        $objSheet->setCellValue("A20", "")->mergeCells("A20:K21");
-        $objSheet->getStyle("A20:K21")->applyFromArray($styleArray);
 
         //添加logo
 
         //4.保存文件
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
 
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_QD.xls");
-
-    }
-
-    /**
-     * 获取数据库信息，并重组返回
-     * @author maimaiti
-     * @return array $data 返回数据
-     */
-    private function getData($quote_no) {
-        $obj = new QuoteModel();
-        $fields = [
-            'quoter', //商务报价人
-            'quoter_email', //商务报价人邮箱
-            'quote_at', //商务报价时间
-            'id', //编号
-            // ...
-        ];
-        $where = ['quote_no' => $quote_no];
-        $data = $obj->where($where)->field($fields, false)->find();
-        if (!$data)
+        $file =  $this->export_to_disc($objWriter, "ExcelFiles", $prefix.date('Ymd_His').".xls");
+        if (!is_file($file) && !file_exists($file))
         {
-            jsonReturn(null, -2102, ErrorMsg::getMessage('-2102'));
+            $data = [
+                'code'=>-2105,
+                'message'=>ErrorMsg::getMessage('-2105')
+            ];
+        }else{
+            $data = [
+                'code'=>1,
+                'message'=>ErrorMsg::getMessage('1'),
+                'data'=>[
+                    'file'=>$file,
+                    'exported_at'=>time('YmdHis')
+                ]
+            ];
         }
         return $data;
-    }
 
+    }
     /**
      * 保存到服务器指定目录
      * @param $obj  PHPExcel写入对象
@@ -342,17 +720,15 @@ class ExcelController extends Yaf_Controller_Abstract
      */
     private function export_to_disc($obj, $path, $filename) {
         //保存路径，不存在则创建
-        $savePath = $_SERVER['DOCUMENT_ROOT'] . "/application/" . $path . "/";
-        //echo $savePath . $filename;die;
+        $appPath = $_SERVER['DOCUMENT_ROOT'] . "/application/";
+        $savePath = $appPath . $path . "/";
+        //echo $_SERVER['DOCUMENT_ROOT'];die;
         if (!is_dir($savePath)) {
-            mkdir($savePath, 0775, true);
+            mkdir($savePath, 0777, true);
         }
-
-        $obj->save($savePath . $filename);
-	    $fullPath = $savePath . $filename;
-
-        //$fullPath = $_SERVER['DOCUMENT_ROOT'].'application/ExcelFiles/'.basename($fullPath);
-        return $fullPath;
+        $saveName = $savePath . $filename;
+        $obj->save($saveName);
+        return $saveName;
     }
 
     /**
@@ -360,29 +736,17 @@ class ExcelController extends Yaf_Controller_Abstract
      * 操作表quote_item 只导出商品信息
      * @author maimaiti
      */
-    public function quoteItemAction() {
-        //请求验证
-        $this->requestValidator();
+    public function quoteItemAction()
+    {
         $file = $this->export_sku_handler();
-
-        if ($this->check_remote_file_exists($file))
-        {
-            //成功导出
-            $data = [
-                'code' => 1,
-                'message' => ErrorMsg::getMessage('1'),
-                'data' => [
-                    'file' => $file,
-                    'exported_at' => date('YmdHis')
-                ]
-            ];
-        }else{
-            $data = [
-                'code' => 0,
-                'message' => ErrorMsg::getMessage('0'),
-                'data' => []
-            ];
-        }
+        $data = [
+            'code'=>1,
+            'message'=>'成功',
+            'data'=>[
+                'file'=>$file,
+                'exported_at'=>time()
+            ]
+        ];
         exit(json_encode($data));
     }
 
@@ -457,7 +821,7 @@ class ExcelController extends Yaf_Controller_Abstract
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_QI.xls");
+        return $this->export_to_disc($objWriter, "ExcelFiles", date('Ymd_His')."_QI.xls");
     }
 
     /**
@@ -468,7 +832,15 @@ class ExcelController extends Yaf_Controller_Abstract
     {
         //1.接受Excel文件并核验
         $post = json_decode(file_get_contents("php://input"),true);
-        $excel_file = $post['file'];
+        echo $post['file'];
+        $excel_file = strstr($post['file'],'/');
+        p($excel_file);
+        if (is_file($excel_file))
+        {
+            p($excel_file);
+        }else{
+            p('die here');
+        }
         if(!$this->check_remote_file_exists($excel_file))
         {
             jsonReturn(null,-2104,ErrorMsg::getMessage('-2104'));
@@ -546,9 +918,6 @@ class ExcelController extends Yaf_Controller_Abstract
      */
     public function goodsListAction()
     {
-        //验证请求类型
-        //$this->requestValidator();
-        //exit('ddd');
         //判断语言参数
         $request = json_decode(file_get_contents("php://input"),true);
         $goodsModel = new GoodsModel();
@@ -691,18 +1060,18 @@ class ExcelController extends Yaf_Controller_Abstract
         //追加数据库数据
 
         //P($sku_items);die;
-/*        $item = 2;
-        foreach ($sku_items as $key => $value) {
-            $objSheet->setCellValue("A" . $item, $value['quote_no'])
-                ->setCellValue("B" . $item, $value['name_cn'])
-                ->setCellValue("C" . $item, $value['name_en'])
-                ->setCellValue("D" . $item, $value['quote_spec'])
-                ->setCellValue("E" . $item, $value['inquiry_desc'])
-                ->setCellValue("F" . $item, $value['quote_quantity'])
-                ->setCellValue("G" . $item, $value['quote_unit'])
-                ->setCellValue("H" . $item, $value['quote_brand']);
-            $item++;
-        }*/
+        /*        $item = 2;
+                foreach ($sku_items as $key => $value) {
+                    $objSheet->setCellValue("A" . $item, $value['quote_no'])
+                        ->setCellValue("B" . $item, $value['name_cn'])
+                        ->setCellValue("C" . $item, $value['name_en'])
+                        ->setCellValue("D" . $item, $value['quote_spec'])
+                        ->setCellValue("E" . $item, $value['inquiry_desc'])
+                        ->setCellValue("F" . $item, $value['quote_quantity'])
+                        ->setCellValue("G" . $item, $value['quote_unit'])
+                        ->setCellValue("H" . $item, $value['quote_brand']);
+                    $item++;
+                }*/
 
 
         //居中设置
@@ -725,19 +1094,12 @@ class ExcelController extends Yaf_Controller_Abstract
      */
     public function getMarketInquiryTemplateAction()
     {
-        //请求验证
-        $this->requestValidator();
-
         //导出询价单模板
-        $inquiryTemplateFile = $_SERVER['HTTP_HOST']."/application/ExcelFiles/marketInquiryTemplate.xls";
+        $inquiryTemplateFile = $_SERVER['DOCUMENT_ROOT']."/application/ExcelFiles/marketInquiryTemplate.xls";
 
         //判断文件的真实性和是否存在
-        if ( $this->check_remote_file_exists($inquiryTemplateFile) )
-        {
-            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
-        }else{
-            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
-        }
+        $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
+
         exit(json_encode($response));
     }
     /**
@@ -745,18 +1107,11 @@ class ExcelController extends Yaf_Controller_Abstract
      */
     public function getBusinessInquiryTemplateAction()
     {
-        //请求验证
-        $this->requestValidator();
 
         //导出询价单模板
-        $inquiryTemplateFile = $_SERVER['HTTP_HOST']."/ExcelFiles/businessInquiryTemplate.xls";
+        $inquiryTemplateFile = $_SERVER['DOCUMENT_ROOT']."/application/ExcelFiles/businessInquiryTemplate.xls";
         //判断文件的真实性和是否存在
-        if (  $this->check_remote_file_exists($inquiryTemplateFile) )
-        {
-            $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
-        }else{
-            $response = ['code'=>-2104,'message'=>ErrorMsg::getMessage('-2104'),'data'=>[]] ;
-        }
+        $response = ['code'=>1,'message'=>ErrorMsg::getMessage('1'),'data'=>['file'=>$inquiryTemplateFile]] ;
         exit(json_encode($response));
     }
 
@@ -767,9 +1122,6 @@ class ExcelController extends Yaf_Controller_Abstract
      */
     public function inquiryDetailAction()
     {
-        //验证请求
-        $this->requestValidator();
-
         //获取参数
         $request = json_decode(file_get_contents("php://input"),true);
         //流水号
@@ -814,25 +1166,15 @@ class ExcelController extends Yaf_Controller_Abstract
         }else{
             //创建表格并填充数据
             $file = $this->createInquiryDetailExcel($inquiryDetail);
+            $response = [
+                'code'=>1,
+                'message'=>ErrorMsg::getMessage('1'),
+                'data'=>[
+                    'file'=>$file,
+                    'exported_at'=>time()
+                ]
+            ];
 
-            if ($this->check_remote_file_exists($file))
-            {
-                $file =str_replace(dirname($file).'/','',$file);
-                $response = [
-                    'code'=>1,
-                    'message'=>ErrorMsg::getMessage('1'),
-                    'data'=>[
-                        'file'=>$file,
-                        'exported_at'=>strstr($file,'_',true)
-                    ]
-                ];
-            }else{
-                $response = [
-                    'code'=>0,
-                    'message'=>'读取导出文件路径失败~',
-                    'data'=>[]
-                ];
-            }
         }
         exit(json_encode($response));
     }
@@ -850,8 +1192,8 @@ class ExcelController extends Yaf_Controller_Abstract
         $objSheet->setTitle('询单明细'); //设置当前sheet标题
         //设置列宽度
         $normal_cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
-                        "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
-                        "Y", "Z","AA"
+            "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
+            "Y", "Z","AA"
         ];
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('16');
@@ -898,39 +1240,5 @@ class ExcelController extends Yaf_Controller_Abstract
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         //保存到服务器指定目录
         return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_IQD.xls");
-    }
-
-    /**
-     * 检查远程文件是否为存在
-     * @param $url 远程文件
-     * @return bool 返回结果 1为存在 0为不存在
-     */
-    private function check_remote_file_exists($url) {
-        $curl = curl_init($url); // 不取回数据
-        curl_setopt($curl, CURLOPT_NOBODY, true);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // 发送请求
-        $result = curl_exec($curl);
-        $found = false; // 如果请求没有发送失败
-        if ($result !== false)
-        {
-            /** 再检查http响应码是否为200 */
-            $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            if ($statusCode == 200)
-            {
-                $found = true;
-            }
-        }
-        curl_close($curl);
-        return $found;
-    }
-    /**
-     * 请求类型验证
-     * @return bool
-     */
-    protected function requestValidator()
-    {
-        //请求类型为POST或者PUT均可通过
-        if ( $this->getRequest()->isPost() || $this->getRequest()->isPut()) return true;
-        exit(json_encode(['code'=>-2101,'message'=>ErrorMsg::getMessage('-2101')]));
     }
 }
