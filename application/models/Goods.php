@@ -510,7 +510,7 @@ class GoodsModel extends PublicModel {
       return array();
 
     if (redisHashExist('Sku', $spu . '_' . $lang)) {
-      return json_decode(redisHashGet('Sku', $spu . '_' . $lang), true);
+      //return json_decode(redisHashGet('Sku', $spu . '_' . $lang), true);
     }
     try {
       $field = "sku,lang,qrcode,name,show_name,model,package_quantity,warranty,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
