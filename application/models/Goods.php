@@ -397,107 +397,48 @@ class GoodsModel extends PublicModel {
       return false;
     }
 
-  /**
-   * 获取spu下的规格商品（用于门户产品详情页）
-   * @param string $spu
-   * @param string $lang
-   * @return array
-   */
-  public function getSpecGoodsBySpu($spu = '', $lang = '') {
-    if (empty($spu))
-      return array();
+      /**
+       * 获取spu下的规格商品（用于门户产品详情页）
+       * @param string $spu
+       * @param string $lang
+       * @return array
+       */
+      public function getSpecGoodsBySpu($spu = '', $lang = '') {
+        if (empty($spu))
+          return array();
 
-    if (redisHashExist('Sku', $spu . '_' . $lang)) {
-      //return json_decode(redisHashGet('Sku', $spu . '_' . $lang), true);
-    }
-    try {
-      $field = "sku,lang,qrcode,name,show_name,model,package_quantity,warranty,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
-      $condition = array(
-          "spu" => $spu,
-          "lang" => $lang,
-          "status" => self::STATUS_VALID
-      );
-      $result = $this->field($field)->where($condition)->select();
-      if ($result) {
-        foreach ($result as $k => $item) {
-          //获取商品规格
-          $gattr = new GoodsAttrModel();
-          $spec = $gattr->getSpecBySku($item['sku'], $item['lang']);
-          $spec_str = '';
-          if ($spec) {
-            foreach ($spec as $r) {
-              $spec_str .= $r['attr_name'] . ':' . $r['attr_value'] . $r['value_unit'] . ';';
-            }
-          }
-          $result[$k]['spec'] = $spec_str;
+        if (redisHashExist('Sku', $spu . '_' . $lang)) {
+          //return json_decode(redisHashGet('Sku', $spu . '_' . $lang), true);
         }
-        redisHashSet('Sku', $spu . '_' . $lang, json_encode($result));
-        return $result;
-      }
-    } catch (Exception $e) {
-      return array();
-    }
-    return array();
-  }
-  /**
-   * sku参数处理（门户后台）
-   * @author klp
-   * @return array
-   */
-    public function check_data($data=[])
-    {
-      $condition['lang'] = isset($data['lang']) ? $data['lang']: 'en';
-      //$condition['spu'] = $data['spu'] ? $data['spu']: '';
-      //$condition['sku'] = $data['sku'] ? $data['sku']: '';
-      $condition['qrcode'] = isset($data['qrcode']) ? $data['qrcode']: '';
-      $condition['model'] = isset($data['model']) ? $data['model']: '';
-      $condition['description'] = isset($data['description']) ? $data['description']: '';
-      $condition['package_quantity'] = isset($data['package_quantity']) ? $data['package_quantity']: '';
-      $condition['exw_day'] = isset($data['exw_day']) ? $data['exw_day']: '';
-      $condition['purchase_price1'] = isset($data['purchase_price1']) ? $data['purchase_price1']: 0;
-      $condition['purchase_price2'] = isset($data['purchase_price2']) ? $data['purchase_price2']: 0;
-      $condition['purchase_price_cur'] = isset($data['purchase_price_cur']) ? $data['purchase_price_cur']: 0;
-      $condition['purchase_unit'] = isset($data['purchase_unit']) ? $data['purchase_unit']: '';
-      $condition['pricing_flag'] = isset($data['pricing_flag']) ? $data['pricing_flag']: 'N';
-      $condition['created_by'] = isset($data['created_by']) ? $data['created_by']: '';
-      $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
-      if (isset($data['spu'])) {
-        $condition['spu'] = $data['spu'];
-      } else {
-        JsonReturn('','-1001','spu编号不能为空');
-      }
-      if (isset($data['sku'])) {
-        $condition['sku'] = $data['sku'];
-      } else {
-        JsonReturn('','-1002','sku编号不能为空');
-      }
-      if (isset($data['sku_name'])) {
-        $condition['name'] = $data['sku_name'];
-      } else {
-        JsonReturn('','-1003','商品名称不能为空');
-      }
-      if (isset($data['show_name'])) {
-        $condition['show_name'] = $data['show_name'];
-      } else {
-        JsonReturn('','-1004','商品展示名称不能为空');
-      }
-      if(isset($data['status'])){
-          switch ($data['status']) {
-            case self::STATUS_VALID:
-              $condition['status'] = $data['status'];
-              break;
-            case self::STATUS_INVALID:
-              $condition['status'] = $data['status'];
-              break;
-            case self::STATUS_DELETED:
-              $condition['status'] = $data['status'];
-              break;
+        try {
+          $field = "sku,lang,qrcode,name,show_name,model,package_quantity,warranty,exw_day,status,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit";
+          $condition = array(
+              "spu" => $spu,
+              "lang" => $lang,
+              "status" => self::STATUS_VALID
+          );
+          $result = $this->field($field)->where($condition)->select();
+          if ($result) {
+            foreach ($result as $k => $item) {
+              //获取商品规格
+              $gattr = new GoodsAttrModel();
+              $spec = $gattr->getSpecBySku($item['sku'], $item['lang']);
+              $spec_str = '';
+              if ($spec) {
+                foreach ($spec as $r) {
+                  $spec_str .= $r['attr_name'] . ':' . $r['attr_value'] . $r['value_unit'] . ';';
+                }
+              }
+              $result[$k]['spec'] = $spec_str;
+            }
+            redisHashSet('Sku', $spu . '_' . $lang, json_encode($result));
+            return $result;
           }
-      } else {
-        $condition['status'] = self::STATUS_VALID;
+        } catch (Exception $e) {
+          return array();
+        }
+        return array();
       }
-      return $condition;
-    }
 
     /**
      * sku新增（门户后台）
@@ -541,38 +482,6 @@ class GoodsModel extends PublicModel {
       }
     }
 
-    /**
-     * sku更新参数处理（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function check_up($data)
-    {
-      $condition = array();
-      if (isset($data['model'])) {$condition['model'] = $data['model'];}
-      if (isset($data['description'])) {$condition['description'] = $data['description'];}
-      if (isset($data['package_quantity'])) {$condition['package_quantity'] = $data['package_quantity'];}
-      if (isset($data['exw_day'])) {$condition['exw_day'] = $data['exw_day'];}
-      if (isset($data['purchase_price1'])) {$condition['purchase_price1'] = $data['purchase_price1'];}
-      if (isset($data['purchase_price2'])) {$condition['purchase_price2'] = $data['purchase_price2'];}
-      if (isset($data['purchase_price_cur'])) {$condition['purchase_price_cur'] = $data['purchase_price_cur'];}
-      if (isset($data['purchase_unit'])) {$condition['purchase_unit'] = $data['purchase_unit'];}
-      if (isset($data['pricing_flag'])) {$condition['pricing_flag'] = $data['pricing_flag'];}
-      if (isset($data['status'])) {
-          switch ($data['status']) {
-              case self::STATUS_VALID:
-                  $condition['status'] = $data['status'];
-                  break;
-              case self::STATUS_INVALID:
-                  $condition['status'] = $data['status'];
-                  break;
-              case self::STATUS_DELETED:
-                  $condition['status'] = $data['status'];
-                  break;
-          }
-      }
-      return $condition;
-    }
     /**
      * sku软删除[状态更改]（门户后台）
      * @author klp
@@ -624,7 +533,7 @@ class GoodsModel extends PublicModel {
      */
     public function deleteRealSku($delData)
     {
-      $where = []; $status = [];
+      $where = [];
       if(isset($delData['lang'])){
         $where['lang'] = $delData['lang'];
       }
@@ -647,4 +556,96 @@ class GoodsModel extends PublicModel {
       }
     }
 
+    /**
+     * sku参数处理（门户后台）
+     * @author klp
+     * @return array
+     */
+    public function check_data($data=[])
+    {
+      $condition['lang'] = isset($data['lang']) ? $data['lang']: 'en';
+      //$condition['spu'] = $data['spu'] ? $data['spu']: '';
+      //$condition['sku'] = $data['sku'] ? $data['sku']: '';
+      $condition['qrcode'] = isset($data['qrcode']) ? $data['qrcode']: '';
+      $condition['model'] = isset($data['model']) ? $data['model']: '';
+      $condition['description'] = isset($data['description']) ? $data['description']: '';
+      $condition['package_quantity'] = isset($data['package_quantity']) ? $data['package_quantity']: '';
+      $condition['exw_day'] = isset($data['exw_day']) ? $data['exw_day']: '';
+      $condition['purchase_price1'] = isset($data['purchase_price1']) ? $data['purchase_price1']: 0;
+      $condition['purchase_price2'] = isset($data['purchase_price2']) ? $data['purchase_price2']: 0;
+      $condition['purchase_price_cur'] = isset($data['purchase_price_cur']) ? $data['purchase_price_cur']: 0;
+      $condition['purchase_unit'] = isset($data['purchase_unit']) ? $data['purchase_unit']: '';
+      $condition['pricing_flag'] = isset($data['pricing_flag']) ? $data['pricing_flag']: 'N';
+      $condition['created_by'] = isset($data['created_by']) ? $data['created_by']: '';
+      $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
+      if (isset($data['spu'])) {
+        $condition['spu'] = $data['spu'];
+      } else {
+        JsonReturn('','-1001','spu编号不能为空');
+      }
+      if (isset($data['sku'])) {
+        $condition['sku'] = $data['sku'];
+      } else {
+        JsonReturn('','-1002','sku编号不能为空');
+      }
+      if (isset($data['name'])) {
+        $condition['name'] = $data['name'];
+      } else {
+        JsonReturn('','-1003','商品名称不能为空');
+      }
+      if (isset($data['show_name'])) {
+        $condition['show_name'] = $data['show_name'];
+      } else {
+        JsonReturn('','-1004','商品展示名称不能为空');
+      }
+      if(isset($data['status'])){
+        switch ($data['status']) {
+          case self::STATUS_VALID:
+            $condition['status'] = $data['status'];
+            break;
+          case self::STATUS_INVALID:
+            $condition['status'] = $data['status'];
+            break;
+          case self::STATUS_DELETED:
+            $condition['status'] = $data['status'];
+            break;
+        }
+      } else {
+        $condition['status'] = self::STATUS_VALID;
+      }
+      return $condition;
+    }
+
+    /**
+     * sku更新参数处理（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function check_up($data)
+    {
+        $condition = array();
+        if (isset($data['model'])) {$condition['model'] = $data['model'];}
+        if (isset($data['description'])) {$condition['description'] = $data['description'];}
+        if (isset($data['package_quantity'])) {$condition['package_quantity'] = $data['package_quantity'];}
+        if (isset($data['exw_day'])) {$condition['exw_day'] = $data['exw_day'];}
+        if (isset($data['purchase_price1'])) {$condition['purchase_price1'] = $data['purchase_price1'];}
+        if (isset($data['purchase_price2'])) {$condition['purchase_price2'] = $data['purchase_price2'];}
+        if (isset($data['purchase_price_cur'])) {$condition['purchase_price_cur'] = $data['purchase_price_cur'];}
+        if (isset($data['purchase_unit'])) {$condition['purchase_unit'] = $data['purchase_unit'];}
+        if (isset($data['pricing_flag'])) {$condition['pricing_flag'] = $data['pricing_flag'];}
+        if (isset($data['status'])) {
+            switch ($data['status']) {
+                case self::STATUS_VALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $condition['status'] = $data['status'];
+                    break;
+                case self::STATUS_DELETED:
+                    $condition['status'] = $data['status'];
+                    break;
+            }
+        }
+        return $condition;
+    }
 }

@@ -455,7 +455,7 @@ class GoodsController extends Yaf_Controller_Abstract
             "spu" => "spu001",
             "lang" => "en",
             'model'=> 'model',
-            'sku_name'=> 'sku_name2',
+            'name'=> 'sku_name2',
             'show_name'=> 'sku00002',
             'goods_flag'=> [
                 0=>[
