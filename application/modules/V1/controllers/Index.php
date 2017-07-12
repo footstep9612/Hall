@@ -136,7 +136,6 @@ class IndexController extends ShopMallController {
     $condition['pagesize'] = 4;
     if (!$spus) {
       $condition['source'] = 'ERUI';
-      $condition['brand'] = 'KERUI';
     }
     $ret = $spumodel->getproducts($condition, null, $this->getLang());
 

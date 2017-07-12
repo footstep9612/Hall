@@ -1,5 +1,6 @@
 <?php
-class GoodsController extends PublicController
+//class GoodsController extends PublicController
+class GoodsController extends Yaf_Controller_Abstract
 {
     private $input;
 
@@ -138,31 +139,272 @@ class GoodsController extends PublicController
         exit;
     }
     /**
-     * sku新建模板表(pc)
-     * @author  klp  2017/6/22
+     * 获取公共模板表
+     * @author  klp  2017/7/6
      */
-    public function getTplAction()
+    public function getCommonTplAction()
     {
-        $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['spu'])){
-            $spu = $data['spu'];
-        } else{
-            jsonReturn(array("code" => "-1002", "message" => "sku不可以为空"));
-        }
-        $type = !empty($data['attr_type'])? $data['attr_type'] : '';
+        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
         $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getAttrTpl();
+        $result = $goodsTplModel->getCommonAttrTpl($lang);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
+        }
     }
 
-
+    /**
+     * 获取sku模板表
+     * @author  klp  2017/7/6
+     */
+    public function getGoodsAttrTplAction()
+    {
+        //$this->input['sku'] = 3303060000010001;//测试
+        if(!empty($this->input['sku'])){
+            $sku = $this->input['sku'];
+        } else{
+            jsonReturn('','-1001','sku不可以为空');
+        }
+        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
+        $goodsTplModel = new GoodsAttrTplModel();
+        $result = $goodsTplModel->getGoodsAttrTpl($sku,$lang);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','数据获取失败');
+        }
+    }
     /**
      * sku新增  -- 门户
      * @author  klp  2017/7-5
      */
     public function addSkuAction()
     {
+
         $goodsModel = new GoodsModel();
         $result = $goodsModel->createSku($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku属性新增  -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function addSkuAttrAction()
+    {
+
+        $goodsAttrModel = new GoodsAttrModel();
+        $result = $goodsAttrModel->createAttrSku($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku附件新增  -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function addSkuAttachAction()
+    {
+
+        $goodsAttachModel = new GoodsAttachModel();
+        $result = $goodsAttachModel->createAttachSku($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku更新  -- 门户
+     * @author  klp  2017/7-5
+     * sku lang
+     */
+    public function updateSkuAction()
+    {
+
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->updateSku($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku属性更新  -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function updateSkuAttrAction()
+    {
+        //$this->input = $this->test();//测试
+        $goodsAttrModel = new GoodsAttrModel();
+        $result = $goodsAttrModel->updateAttrSku($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku附件更新  -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function updateSkuAttachAction()
+    {
+        //$this->input = $this->test();//测试
+        $goodsAttachModel = new GoodsAttachModel();
+        $result = $goodsAttachModel->updateAttachSku($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku状态更改及删除  -- 门户
+     * @author  klp  2017/7-5
+     * sku lang
+     */
+    public function modifySkuAction()
+    {
+        //$this->input = $this->test();//测试
+        $goodsModel = new GoodsModel();
+       if(isset($this->input['status']) && !empty($this->input['status'])){
+           $result = $goodsModel->modifySku($this->input);//状态更改
+       } else{
+           $result = $goodsModel->deleteRealSku($this->input);//真实删除
+       }
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku属性状态更改及删除   -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function modifySkuAttrAction()
+    {
+        //$this->input = $this->test();//测试
+        $goodsAttrModel = new GoodsAttrModel();
+        if(isset($this->input['status']) && !empty($this->input['status'])){
+            $result = $goodsAttrModel->modifySkuAttr($this->input);//状态更改
+        } else{
+            $result = $goodsAttrModel->deleteRealAttr($this->input);//真实删除
+        }
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku附件状态更改及删除   -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function modifySkuAttachAction()
+    {
+        //$this->input = $this->test();//测试
+        $goodsAttachModel = new GoodsAttachModel();
+        if(isset($this->input['status']) && !empty($this->input['status'])){
+            $result = $goodsAttachModel->modifySkuAttach($this->input);//状态更改
+        } else{
+            $result = $goodsAttachModel->deleteRealAttach($this->input);//真实删除
+        }
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
+    /**
+     * sku供应商信息  -- 门户
+     * @author  klp  2017/7-6
+     */
+    public function getSupplierInfoAction()
+    {
+        $SupplierAccountModel = new SupplierAccountModel();
+        $result = $SupplierAccountModel->getInfo($this->input);
         if($result){
             $data = array(
                 'code' => 1,
@@ -175,16 +417,121 @@ class GoodsController extends PublicController
         }
         exit;
     }
-    //测试
-    public function catAction()
+
+    public function test()
     {
-        $sku = 'sku002';
-        $goods = new GoodsModel();
-        $result = $goods->getInfo($sku,'');
-        var_dump($result);
-       /* $spu = 3303060000010000;
-        $ProductModel = new ProductModel();
-        $brand = $ProductModel->getBrandBySpu($spu,'en');*/
-        //var_dump($brand);
+        $data = [
+            "sku" => "sku001",
+            "spu" => "spu001",
+            "lang" => "en",
+            'model'=> 'model',
+            'sku_name'=> 'sku_name2',
+            'show_name'=> 'sku00002',
+                'goods_flag'=> [
+                    'attr1'=> 'attr11',
+                    'attr2'=> 'attr22',
+                ],
+                'spec_flag'=> [
+                    'attr4'=> 'attr44',
+                    'attr5'=> 'attr55',
+                ],
+                'logi_flag'=> [
+                    'attr6'=> 'attr66',
+                    'attr7'=> 'attr77',
+                ],
+                'hs_flag'=> [
+                    'attr8'=> 'attr88',
+                    'attr9'=> 'attr99',
+                ],
+                'BIG_IMAGE'=>[
+                    'name1'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
+                    'name2'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
+                    'name3'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
+                ],
+        ];
+
+        $up = [
+            "sku" => "sku001",
+            "spu" => "spu001",
+            "lang" => "en",
+            'model'=> 'model',
+            'sku_name'=> 'sku_name2',
+            'show_name'=> 'sku00002',
+            'goods_flag'=> [
+                0=>[
+                    'id'=> 1,
+                    'attr_name'=> 'attr1111',
+                    'attr_value'=> 'attr1111',
+                ],
+                1=>[
+                    'id'=> 2,
+                    'attr_name'=> 'attr1222',
+                    'attr_value'=> 'attr1222',
+                ],
+
+            ],
+            'spec_flag'=> [
+                0=>[
+                    'id'=> 1,
+                    'attr_name'=> 'attr22',
+                    'attr_value'=> 'attr222',
+                ],
+                1=>[
+                    'id'=> 2,
+                    'attr_name'=> 'attr33',
+                    'attr_value'=> 'attr333',
+                ],
+            ],
+            'logi_flag'=> [
+                0=>[
+                    'id'=> 1,
+                    'attr_name'=> 'attr444',
+                    'attr_value'=> 'attr4441',
+                ],
+                1=>[
+                    'id'=> 2,
+                    'attr_name'=> 'attr555',
+                    'attr_value'=> 'attr6666',
+                ],
+            ],
+            'hs_flag'=> [
+                0=>[
+                    'id'=> 1,
+                    'attr_name'=> 'attr63',
+                    'attr_value'=> 'attr767',
+                ],
+                1=>[
+                    'id'=> 2,
+                    'attr_name'=> 'attr454',
+                    'attr_value'=> 'attr7879',
+                ],
+            ],
+            'BIG_IMAGE'=>[
+                0=>[
+                    'id'=> 1,
+                    'attach_name'=> 'attr767',
+                    'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
+                ],
+                1=>[
+                    'id'=> 2,
+                    'attach_name'=> 'attr7',
+                    'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
+                ],
+                2=>[
+                    'id'=> 3,
+                    'attach_name'=> 'attr9',
+                    'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
+                ],
+            ],
+        ];
+        $del = [
+            "sku" => "sku001",
+            "spu" => "spu001",
+            "status" => "INVALID",
+        ];
+        //return $data;
+        //return $up;
+        return $del;
     }
+
 }

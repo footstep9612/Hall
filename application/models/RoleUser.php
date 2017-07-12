@@ -48,23 +48,7 @@ class RoleUserModel extends PublicModel {
         return $this->query( $sql );
     }
 
-    public function getRolesArray($where,$order='id desc') {
-        $sql = 'SELECT GROUP_CONCAT(`t_url_perm`.`url`) as url';
-        $sql .= ' FROM '.$this->table_name;
-        $sql .= ' LEFT JOIN  `t_role` ON `t_role_user`.`role_id` =`t_role`.`id`';
-        $sql .= ' LEFT JOIN  `t_role_access_perm` ON `t_role_access_perm`.`role_id` =`t_role`.`id`';
-        $sql .= ' LEFT JOIN  `t_url_perm` ON `t_url_perm`.`id` =`t_role_access_perm`.`url_perm_id`';
-        $sql_where = '';
-        if(!empty($where['user_id'])) {
-            $sql_where .= ' WHERE `user_id`=' . $where['user_id'];
-        }
-        if ( $where ){
-            $sql .= $sql_where;
-        }
-        return $this->query( $sql );
-    }
-
-    /*
+    /**
      * 获取列表
      * @param  int  $id
      * @return array

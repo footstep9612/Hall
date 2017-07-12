@@ -65,25 +65,6 @@ class UserController extends PublicController {
             );
         }
     }
-    public function getRolesArray(){
-        if($this->user['id']){
-            $role_user = new RoleUserModel();
-            $where['user_id'] = $this->user['id'];
-            $data = $role_user->getRoleslist($where);
-            $datajson = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $data
-            );
-            jsonReturn($datajson);
-        }else{
-            $datajson = array(
-                'code' => -104,
-                'message' => '用户验证失败',
-            );
-        }
-    }
-
 
     public function excelAction() {
 

@@ -830,29 +830,48 @@ class ExcelController extends Yaf_Controller_Abstract
      */
     public function importQuoteItemAction()
     {
+        $clientData = json_decode( file_get_contents("php://input") , true ) ;
         //1.接受Excel文件并核验
-        $post = json_decode(file_get_contents("php://input"),true);
-        echo $post['file'];
-        $excel_file = strstr($post['file'],'/');
-        p($excel_file);
-        if (is_file($excel_file))
-        {
-            p($excel_file);
-        }else{
-            p('die here');
-        }
-        if(!$this->check_remote_file_exists($excel_file))
-        {
-            jsonReturn(null,-2104,ErrorMsg::getMessage('-2104'));
-        }
+        $remoteFile = $clientData ['file'] ;
+
+        //下载远程文件到本地
+        $localFile = $this->downloadRemoteFileToLocal($remoteFile);
+
 
         //2.分析数据并进行导入
-        //$excel_file = APPLICATION_PATH."/ExcelFiles/sku_null.xls";
-        $this->importQuoteItemHandler($excel_file);
+        $result = $this->importQuoteItemHandler($localFile);
+
 
         //3.响应(Response)
-        $response = ['code'=>-2105,'message'=>'导入成功','data'=>[]];
-        exit(json_encode($response));
+        exit(json_encode($result));
+    }
+
+    /**
+     * 下载远程文件到本地
+     * @param $remoteFile   string  远程文件完整路径
+     * @return string
+     */
+    protected function downloadRemoteFileToLocal($remoteFile)
+    {
+        //设置本地临时保存目录
+        $tmpSavePath = APPLICATION_PATH . '/ExcelFiles/tmp/' ;
+        if ( !is_dir($tmpSavePath) )    mkdir($tmpSavePath,0777,true) ;
+
+        $localFullFileName = $tmpSavePath . iconv("UTF-8","GB2312",urldecode(basename($remoteFile)));
+
+        $file = fopen ($remoteFile, "rb");
+
+        if ($file) {
+            $newf = fopen ($localFullFileName, "wb");
+            if ($newf)
+                while(!feof($file)) {
+                    fwrite($newf, fread($file, 1024 * 8 ), 1024 * 8 );
+                }
+        }
+        if ($file) fclose($file);
+        if ($newf) fclose($newf);
+
+        return $localFullFileName;
     }
     /**
      * 导入报价单明细数据处理
@@ -871,10 +890,10 @@ class ExcelController extends Yaf_Controller_Abstract
         array_shift($excelData);
 
         //判读有没有可导入的数据
-        if (empty($data))
+        if (empty($excelData))
         {
-            $response = ['code'=>-2105,'message'=>ErrorMsg::getMessage('-2105'),'data'=>[]];
-            exit(json_encode($response));
+            $response = ['code'=>-2105,'message'=>'没有可导入的数据~~','data'=>[]];
+            return $response;
         }
 
         //遍历重组
@@ -893,7 +912,16 @@ class ExcelController extends Yaf_Controller_Abstract
         }
 
         //批量添加到数据库中
-        $this->data2base($data);
+        if ($this->data2base($data))
+        {
+            $response = [ 'code'=>1,'message'=>'成功'];
+            //导入成功后删除本地文件
+            if (is_file($excel_file) && file_exists($excel_file)) unlink($excel_file);
+        }else{
+            $response = [ 'code'=>0,'message'=>'失败'];
+        }
+        return $response;
+
 
     }
 
@@ -909,6 +937,7 @@ class ExcelController extends Yaf_Controller_Abstract
         {
             $model->add($v);
         }
+
         return true;
     }
 
