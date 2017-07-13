@@ -249,7 +249,7 @@ class QuoteController extends PublicController {
 			$condition['exchange_rate'] = $calculateQuoteInfo['exchangeRate'];
 			$condition['total_purchase_price'] = $calculateQuoteInfo['totalPurchasePrice'];
 			$exw = exw($calculateQuoteInfo['exwData'], $condition['gross_profit_rate']);
-			$condition['total_exw_price'] = $exw['total'];
+			$condition['total_exw_price'] = $exw['total_exw_price'];
 			$condition['quoter'] = $user['name'];
 			$condition['quoter_email'] = $user['email'];
 			$condition['quote_at'] = date('Y-m-d H:i:s');
@@ -670,8 +670,9 @@ class QuoteController extends PublicController {
 		$totalWeight = 0;
 		$totalPurchasePrice	= 0;
 		foreach ($quoteItemList as $quoteItem) {
-			$totalWeight += $quoteItem['unit_weight'];
-			$itemRate = $this->exchangeRateModel->where(array('currency1' => $quoteItem['purchase_cur'], 'currency2' => $condition['purchase_cur']))->field('rate')->find();
+			$totalWeight += $quoteItem['unit_weight'] * $quoteItem['quote_quantity'];
+			//$itemRate = $this->exchangeRateModel->where(array('currency1' => $quoteItem['purchase_cur'], 'currency2' => $condition['purchase_cur']))->field('rate')->find();
+			$itemRate['rate'] = $exchangeRate;
 
 			$exwData[] = array('busyer_unit_price' => $quoteItem['purchase_price'] * $exchangeRate, 'num' => $quoteItem['quote_quantity']);
 			$totalPurchasePrice += $quoteItem['total_purchase_price'] * $itemRate['rate'];

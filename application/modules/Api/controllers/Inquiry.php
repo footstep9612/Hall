@@ -46,11 +46,18 @@ class InquiryController extends ShopMallController {
     public function addAction(){
         $inquiry = new InquiryModel();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['customer_id'] = $this->user['customer_id'];
-        $data['inquirer'] = $this->user['user_name'];
-        $data['inquirer_email'] = $this->user['email'];
 
-        $results = $inquiry->add_data($data);
+        $inquiryNo = $inquiry->checkInquiryNo($data['inquiry_no']);
+
+        if($inquiryNo['code']==1){
+            $data['customer_id'] = $this->user['customer_id'];
+            $data['inquirer'] = $this->user['user_name'];
+            $data['inquirer_email'] = $this->user['email'];
+
+            $results = $inquiry->add_data($data);
+        }else{
+            $results = $inquiryNo;
+        }
         $this->jsonReturn($results);
     }
 

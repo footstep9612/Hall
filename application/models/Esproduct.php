@@ -45,27 +45,23 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['show_cat_no'])) {
       $show_cat_no = $condition['show_cat_no'];
-      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
-          [ESClient::DEFAULT_FIELD => 'show_cats',
-              ESClient::QUERY => $show_cat_no]];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['show_cats' => $show_cat_no,]];
     }
     if (isset($condition['mcat_no1'])) {
       $mcat_no1 = $condition['mcat_no1'];
-      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
-          [ESClient::DEFAULT_FIELD => 'meterial_cat',
-              ESClient::QUERY => $mcat_no1]];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['meterial_cat' => $mcat_no1]];
     }
     if (isset($condition['mcat_no2'])) {
-      $mcat_no1 = $condition['mcat_no2'];
-      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
-          [ESClient::DEFAULT_FIELD => 'meterial_cat',
-              ESClient::QUERY => $mcat_no1]];
+      $mcat_no2 = $condition['mcat_no2'];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['meterial_cat' => $mcat_no2]];
     }
     if (isset($condition['mcat_no3'])) {
-      $mcat_no1 = $condition['mcat_no3'];
-      $body['query']['bool']['must'][] = [ESClient::QUERY_STRING =>
-          [ESClient::DEFAULT_FIELD => 'meterial_cat',
-              ESClient::QUERY => $mcat_no1]];
+      $mcat_no3 = $condition['mcat_no3'];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['meterial_cat' => $mcat_no3]];
     }
     if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
       $created_at_start = $condition['created_at_start'];
@@ -1271,7 +1267,7 @@ class EsproductModel extends PublicModel {
       $id = $data['spu'];
       $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
-        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
       } else {
         return false;
@@ -1299,7 +1295,7 @@ class EsproductModel extends PublicModel {
       $id = $spu;
       $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
-        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
       } else {
         return false;
@@ -1359,11 +1355,8 @@ class EsproductModel extends PublicModel {
     ];
     $product_doc['doc'] = $data;
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.show_cats=show_cats;",
-            "params" => [
-                "show_cats" => $data['show_cats'],
-            ]
+        "doc" => [
+            "show_cats" => $data['show_cats'],
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
@@ -1437,15 +1430,11 @@ class EsproductModel extends PublicModel {
       $es->update_document($this->dbName, $type, $data, $id);
     } else {
       $es_product_data = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;"
-              . "ctx._source.show_cats=show_cats;"
-              . "ctx._source.supply_capabilitys=supply_capabilitys;",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-                  'material_cat_no' => $new_cat_no,
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
+              'material_cat_no' => $new_cat_no,
+              'supply_capabilitys' => $data['supply_capabilitys']
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1457,12 +1446,9 @@ class EsproductModel extends PublicModel {
     }
     if ($spu) {
       $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1472,12 +1458,9 @@ class EsproductModel extends PublicModel {
       ];
     } else {
       $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1580,11 +1563,8 @@ class EsproductModel extends PublicModel {
     $es->update_document($this->dbName, $type, $data, $id);
 
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.brand=brand;",
-            "params" => [
-                "brand" => $brand,
-            ]
+        "doc" => [
+            "brand" => $brand,
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
@@ -1635,11 +1615,8 @@ class EsproductModel extends PublicModel {
     $es->update_document($this->dbName, $type, $data, $id);
 
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.brand=brand;",
-            "params" => [
-                "supplier_name" => $supplier_name,
-            ]
+        "doc" => [
+            "supplier_name" => $supplier_name,
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
