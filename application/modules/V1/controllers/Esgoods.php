@@ -20,13 +20,9 @@ class EsgoodsController extends ShopMallController {
 
   //put your code here
   public function init() {
-    ini_set("display_errors", "On");
-    error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-    $lang = $this->getPut('lang', 'en');
-    $this->setLang($lang);
+
     $this->es = new ESClient();
-    // parent::init();
+    parent::init();
   }
 
   public function listAction() {
@@ -80,6 +76,27 @@ class EsgoodsController extends ShopMallController {
         $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+      }
+      if ($this->put_data['keyword']) {
+        $search = [];
+        $search['keywords'] = $this->put_data['keyword'];
+        if ($this->user['email']) {
+          $search['user_email'] = $this->user['email'];
+        } else {
+          $search['user_email'] = '';
+        }
+        $search['search_time'] = date('Y-m-d H:i:s');
+        $usersearchmodel = new BuyersearchhisModel();
+        $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
+        $row = $usersearchmodel->exist($condition);
+        if ($row) {
+          $search['search_count'] = intval($row['search_count']) + 1;
+          $search['id'] = $row['id'];
+          $usersearchmodel->update_data($search);
+        } else {
+          $search['search_count'] = 1;
+          $usersearchmodel->add($search);
+        }
       }
       $send['data'] = $list;
       $this->setCode(MSG::MSG_SUCCESS);

@@ -343,6 +343,116 @@ class GoodsAttrModel extends PublicModel
     }
 
     /**
+     * sku属性新增（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function createAttrSku($data)
+    {
+        $arr = $this->check_data($data);
+        $res = $this->addAll($arr);
+        if($res){
+            return true;
+        } else{
+            return false;
+        }
+    }
+    /**
+     * sku属性更新（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function updateAttrSku($data)
+    {
+
+        $condition = $this->check_up($data);
+        if($condition){
+            try{
+                foreach($condition as $v){
+                    $this->where("id =". $v['id'])->save($v);
+                }
+                return true;
+            } catch(\Kafka\Exception $e){
+                return false;
+            }
+
+        } else{
+            return false;
+        }
+    }
+
+    /**
+     * sku属性软删除[状态更改]（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function modifySkuAttr($delData)
+    {
+        $where = []; $status = [];
+        if(isset($delData['lang'])){
+            $where['lang'] = $delData['lang'];
+        }
+        if(isset($delData['sku'])){
+            $where['sku'] = array('in',explode(',',$delData['sku']));
+        }else{
+            JsonReturn('','-1001','sku不能为空');
+        }
+        if(isset($delData['status'])) {
+            switch ($delData['status']) {
+                case self::STATUS_VALID:
+                    $status['status'] = $delData['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $status['status'] = $delData['status'];
+                    break;
+                case self::STATUS_DELETED:
+                    $status['status'] = $delData['status'];
+                    break;
+            }
+        } else{
+            JsonReturn('','-1003','[status]不能为空');
+        }
+        try {
+            $result = $this->where($where)->save($status);
+            if(isset($result)){
+                return true;
+            }else{
+                return false;
+            }
+        } catch (Exception $e) {
+//        $results['code'] = $e->getCode();
+//        $results['message'] = $e->getMessage();
+            return false;
+        }
+    }
+
+    /**
+     * sku属性删除[真实]（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function deleteRealAttr($delData)
+    {
+        $where = [];
+        if(isset($delData['lang'])){
+            $where['lang'] = $delData['lang'];
+        }
+        if(isset($delData['sku'])){
+            $where['sku'] = array('in',explode(',',$delData['sku']));
+        }else{
+            JsonReturn('','-1001','sku不能为空');
+        }
+        try{
+            return $this->where($where)->save(['status' => 'DELETED']);
+        } catch(Exception $e){
+//            $results['code'] = $e->getCode();
+//            $results['message'] = $e->getMessage();
+            return false;
+        }
+
+    }
+
+    /**
      * sku属性参数处理（门户后台）
      * @author klp
      * @return array
@@ -442,45 +552,6 @@ class GoodsAttrModel extends PublicModel
     }
 
     /**
-     * sku属性新增（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function createAttrSku($data)
-    {
-        $arr = $this->check_data($data);
-        $res = $this->addAll($arr);
-        if($res){
-            return true;
-        } else{
-            return false;
-        }
-    }
-    /**
-     * sku属性更新（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function updateAttrSku($data)
-    {
-
-        $condition = $this->check_up($data);
-        if($condition){
-            try{
-                foreach($condition as $v){
-                    $this->where("id =". $v['id'])->save($v);
-                }
-                return true;
-            } catch(\Kafka\Exception $e){
-                return false;
-            }
-
-        } else{
-            return false;
-        }
-    }
-
-    /**
      * sku属性更新参数处理（门户后台）
      * @author klp
      * @return bool
@@ -554,76 +625,4 @@ class GoodsAttrModel extends PublicModel
         }
         return $attrs;
     }
-
-    /**
-     * sku属性软删除[状态更改]（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function modifySkuAttr($delData)
-    {
-        $where = []; $status = [];
-        if(isset($delData['lang'])){
-            $where['lang'] = $delData['lang'];
-        }
-        if(isset($delData['sku'])){
-            $where['sku'] = array('in',explode(',',$delData['sku']));
-        }else{
-            JsonReturn('','-1001','sku不能为空');
-        }
-        if(isset($delData['status'])) {
-            switch ($delData['status']) {
-                case self::STATUS_VALID:
-                    $status['status'] = $delData['status'];
-                    break;
-                case self::STATUS_INVALID:
-                    $status['status'] = $delData['status'];
-                    break;
-                case self::STATUS_DELETED:
-                    $status['status'] = $delData['status'];
-                    break;
-            }
-        } else{
-            JsonReturn('','-1003','[status]不能为空');
-        }
-        try {
-            $result = $this->where($where)->save($status);
-            if(isset($result)){
-                return true;
-            }else{
-                return false;
-            }
-        } catch (Exception $e) {
-//        $results['code'] = $e->getCode();
-//        $results['message'] = $e->getMessage();
-            return false;
-        }
-    }
-
-    /**
-     * sku属性删除[真实]（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function deleteRealAttr($delData)
-    {
-        $where = [];
-        if(isset($delData['lang'])){
-            $where['lang'] = $delData['lang'];
-        }
-        if(isset($delData['sku'])){
-            $where['sku'] = array('in',explode(',',$delData['sku']));
-        }else{
-            JsonReturn('','-1001','sku不能为空');
-        }
-        try{
-            return $this->where($where)->save(['status' => 'DELETED']);
-        } catch(Exception $e){
-//            $results['code'] = $e->getCode();
-//            $results['message'] = $e->getMessage();
-            return false;
-        }
-
-    }
-
 }

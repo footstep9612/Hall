@@ -900,7 +900,8 @@ class ExcelController extends Yaf_Controller_Abstract
         //TODO 这里后期优化为PHPExcel自动映射到数据库字段的类
         foreach ($excelData as $k=>$v)
         {
-            $data[$k]['quote_no'] = $v[0];//询单号
+            //TODO 询单名称要完善
+            $data[$k]['quote_no'] = 'Q_' . date('Ymd_00001');//询单号
             $data[$k]['name_cn'] = $v[1];//中文名
             $data[$k]['name_en'] = $v[2];//外文名
             $data[$k]['quote_spec'] = $v[3];//规格
@@ -908,7 +909,7 @@ class ExcelController extends Yaf_Controller_Abstract
             $data[$k]['quote_quantity'] = $v[5];//数量
             $data[$k]['quote_unit'] = $v[6];//单位
             $data[$k]['quote_brand'] = $v[7];//品牌
-            $data[$k]['created_at'] = date('YmdHis');
+            $data[$k]['created_at'] = date('Y-m-d H:i:s');
         }
 
         //批量添加到数据库中
@@ -1153,61 +1154,60 @@ class ExcelController extends Yaf_Controller_Abstract
     {
         //获取参数
         $request = json_decode(file_get_contents("php://input"),true);
-        //流水号
-        $serial_no = $request['serial_no'];
+        //if (empty($request['serial_no'])) exit(json_encode(['code'=>-2107,'message'=>'缺少参数']));
+        //$serial_no = $request['serial_no'];//流水号
+        $serial_no = 'INQ_20170710_00291';//流水号
 
-        //查找数据
-        $inquiryModel = new InquiryModel();
-        $where = [ 'serial_no' =>  $serial_no ];
-        $field = [
-            'id',//序号
-            //商品ID
-            'inquiry_no',//客户询单号
-            //商品数据来源
-            //商品名称
-            //外文品名
-            //规格
-            //客户需求描述
-            //报价产品描述
-            //数量
-            //单位
-            //品牌
-            //产品分类
-            //供应商单位
-            //供应商联系方式
-            //采购单价
-            //EXW单价
-            //报出单价
-            //贸易单价
-            //单重
-            //包装尺寸
-            //交货期(天)
-            //未报价分析
-            //产品来源
-            //退税率
-            //商务技术备注
-            //报价有效期
-        ];
-        $inquiryDetail = $inquiryModel->where($where)->field($field)->find();
-        if (!$inquiryDetail)
-        {
-            $response = ['code'=>-2102,'message'=>ErrorMsg::getMessage('-2102'),'data'=>[]];
-        }else{
-            //创建表格并填充数据
-            $file = $this->createInquiryDetailExcel($inquiryDetail);
-            $response = [
-                'code'=>1,
-                'message'=>ErrorMsg::getMessage('1'),
-                'data'=>[
-                    'file'=>$file,
-                    'exported_at'=>time()
-                ]
-            ];
+        //获取询单明细数据
+        $inquiryDetailData = $this->getInquiryDetail($serial_no);
 
-        }
-        exit(json_encode($response));
+
     }
 
+    protected function getInquiryDetail($serial_no)
+    {
+        //查找数据
+        $inquiryModel = new QuoteItemModel();
+        $quoteModel = new QuoteModel();
+        $quote_no = $quoteModel->where(['serial_no'=>$serial_no])->getField('quote_no');
+
+        $where = [ 'quote_no' =>  $quote_no ];
+        $field = [
+            'id',//序号
+            'sku',//商品ID
+            'serial_no',//客户询单号
+            //商品数据来源
+            'name_cn',//商品名称
+            'name_en',//外文品名
+            'spec',//规格
+            'description',//客户需求描述
+            //报价产品描述
+            'quantity',//数量
+            'unit',//单位
+            'brand',//品牌
+            //产品分类
+            '',//供应商单位
+            '',//供应商联系方式
+            'purchase_price',//采购单价
+            'exw_unit_price',//EXW单价
+            'quote_unit_price',//报出单价
+            '',//贸易单价
+            'unit_weight',//单重
+            'package_size',//包装尺寸
+            'delivery_period',//交货期(天)
+            'reason_for_no_quote',//未报价分析
+            'goods_from',//产品来源
+            'rebate_rate',//退税率
+            'quote_notes',//商务技术备注
+            'period_of_validity'//报价有效期
+        ];
+        $inquiryDetail = $inquiryModel->where($where)->select();
+        p($inquiryDetail);
+    }
+    protected function exportInquiryDetailHandler()
+    {
+
+    }
     /**
      * 创建询单明细表格并填充数据
      * @param $item array 当前询单明细数据

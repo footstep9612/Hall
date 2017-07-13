@@ -31,7 +31,7 @@ class ShowCatModel extends PublicModel {
    * @param string $field     检索字段
    * @return array|bool
    */
-  public function getList($condition = [], $field = '') {
+  public function getListbyfield($condition = [], $field = '') {
     $field = empty($field) ? 'cat_no,name' : $field;
     if (empty($condition)) {
       $condition['parent_cat_no'] = 0;
@@ -58,7 +58,26 @@ class ShowCatModel extends PublicModel {
       return false;
     }
   }
-
+  /**
+   * 展示分类列表
+   * @param array $condition  条件
+   * @param string $lang     语言
+   * @return array
+   */
+  public function getListByconandlang($condition = [], $lang = 'en') {
+    $condition['lang'] = $lang ? strtolower($lang) : 'en';
+    $condition['status'] = self::STATUS_VALID;
+    try {
+      $data = $this->field(['cat_no'])->where($condition)->order('sort_order DESC')
+              ->group('cat_no')
+              ->select();
+   
+      return $data;
+    } catch (Exception $ex) {     
+      Log::write($ex->getMessage(), Log::ERR);
+      return [];
+    }
+  }
   /**
    * 根据条件获取查询条件
    * @param mix $condition

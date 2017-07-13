@@ -163,6 +163,7 @@ class QuoteModel extends PublicModel {
     					->join($this->joinInquiry, 'LEFT')
     					->field($this->fieldJoin)
     					->where($where)
+    					->page(1, 10)
     					->order('a.id DESC')
     					->select();
     	}

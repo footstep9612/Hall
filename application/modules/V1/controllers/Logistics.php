@@ -63,12 +63,13 @@ class LogisticsController extends PublicController {
 			$condition['logi_agent_email'] = $user['email'];
     		$condition['logi_submit_at'] = date('Y-m-d H:i:s');
 
-    		$condition['overland_insu_rate'] = round($quote['total_exw_price'] * 0.0002, 8);
-    		$inlandMarineInsurance = inlandMarineInsurance(array('total_exw_price' => $quote['total_exw_price'], $condition['overland_insu_rate']));
+    		$condition['overland_insu_rate'] = $quote['total_exw_price'] > 8 ? round($quote['total_exw_price'] * 0.0002, 8) : $quote['total_exw_price'] ;
+    		$inlandMarineInsurance = inlandMarineInsurance(array('total_exw_price' => $quote['total_exw_price'], 'overland_insu_rate' => $quote['overland_insu_rate']));
     		$condition['inland_marine_insu'] = isset($inlandMarineInsurance['code']) ? 0 : $inlandMarineInsurance;
     		$data = array('trade_terms' => $quote['trade_terms'],
+    		              'port_surcharge' => $quote['port_surcharge'],
     					  'total_exw_price' => $quote['total_exw_price'],
-				    	  'inspection_fee' => $condition['inspection_fee'],
+				    	  'inspection_fee' => $quote['inspection_fee'],
 				    	  'premium_rate' => $condition['premium_rate'],
 				    	  'payment_received_days' => $quote['payment_received_days'],
 				    	  'bank_interest' => $quote['bank_interest'],
@@ -79,17 +80,17 @@ class LogisticsController extends PublicController {
     					  'dest_tariff_rate' => $condition['dest_tariff_rate'],
 				    	  'dest_va_tax_rate' => $condition['dest_va_tax_rate'],
     					  'dest_clearance_fee' => $condition['dest_clearance_fee'],
+    		              'cargo_insurance_rate' => $condition['cargo_insu_rate'],
     		);
     		$logiData = logistics($data);
     		$condition['freightage_insu'] = $logiData['freightage_insu'];
     		$condition['dest_tariff'] = $logiData['dest_tariff'];
     		$condition['dest_va_tax'] = $logiData['dest_va_tax'];
-    		$condition['total_insu_fee'] = $logiData['total_insu_fee'];
     		$condition['total_logi_fee'] = $logiData['total_logi_fee'];
     		$condition['total_quote_price'] = $logiData['total_quote_price'];
     		$condition['total_bank_fee'] = $logiData['total_bank_fee'];
 
-			$condition['export_credit_insu'] = sprintf("%.2f", ($quote['total_quote_price']*$condition['premium_rate']));
+			$condition['export_credit_insu'] = round($logiData['total_quote_price']*$condition['premium_rate'], 8);
 
     		
     		$where['quote_no'] = $condition['quote_no'];

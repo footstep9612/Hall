@@ -67,7 +67,7 @@ class ShowmaterialcatModel extends PublicModel {
       }
       $flag = $this->alias('ms')
               ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ', 'left')
-              ->where()
+              ->where($where)
               ->field('ms.material_cat_no,ms.show_cat_no as cat_no,'
                       . 'ms.status,s.name,s.parent_cat_no')
               ->select();

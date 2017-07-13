@@ -137,8 +137,10 @@ class ProductAttachModel extends PublicModel {
       return json_decode(redisHashGet('product_Attach', $spu . '_img'), true);
     }
     try {
+
       $where['spu'] = $spu;
-      $where['status'] = 'BIG_IMAGE';
+      $where['attach_type'] = 'BIG_IMAGE';
+      $where['status'] = 'VALID';
       $field = 'attach_name,attach_url,status';
       $result = $this->field($field)->where($where)->order('sort_order desc')->find();
       if ($result) {
