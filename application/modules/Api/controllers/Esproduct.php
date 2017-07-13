@@ -210,12 +210,15 @@ class EsproductController extends PublicController {
         $search['keywords'] = $this->put_data['keyword'];
         $search['user_email'] = $this->user['email'];
         $search['search_time'] = date('Y-m-d H:i:s');
-        $usersearchmodel = new BuyersearchhisModel();
+        $usersearchmodel = new UsersearchhisModel();
         $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
         $row = $usersearchmodel->exist($condition);
         if ($row) {
           $search['search_count'] = intval($row['search_count']) + 1;
           $usersearchmodel->update_data($search);
+        } else {
+          $search['search_count'] = 1;
+          $usersearchmodel->add($search);
         }
       }
 

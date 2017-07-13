@@ -130,7 +130,7 @@ class EsproductController extends ShopMallController {
           }
         }
         $matshowcatmodel = new ShowmaterialcatModel();
-        $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(),$show_cat_nos);
+        $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(), $show_cat_nos);
         $new_showcats1 = $new_showcats2 = $new_showcats3 = [];
         $new_showcat2_nos = [];
         $new_showcat1_nos = [];
@@ -208,6 +208,9 @@ class EsproductController extends ShopMallController {
         if ($row) {
           $search['search_count'] = intval($row['search_count']) + 1;
           $usersearchmodel->update_data($search);
+        } else {
+          $search['search_count'] = 1;
+          $usersearchmodel->add($search);
         }
       }
 
