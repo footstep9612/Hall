@@ -1113,8 +1113,8 @@ function logistics($data) {
   }
   if ($data['trade_terms'] == 'FCA' || $data['trade_terms'] == 'FAS') {
     $arr['code'] = 1;
-    $arr['inland_marine_insurance'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
-    $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insurance'] + $data['land_freight'];
+    $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
+    $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'];
     $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
     $arr['freightage_insu'] = $arr['total_quote_price'] * 1.1 * $data['cargo_insurance_rate'];
     $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
