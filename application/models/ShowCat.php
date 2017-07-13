@@ -31,7 +31,7 @@ class ShowCatModel extends PublicModel {
    * @param string $field     检索字段
    * @return array|bool
    */
-  public function getList($condition = [], $field = '') {
+  public function getListbyfield($condition = [], $field = '') {
     $field = empty($field) ? 'cat_no,name' : $field;
     if (empty($condition)) {
       $condition['parent_cat_no'] = 0;
@@ -71,7 +71,7 @@ class ShowCatModel extends PublicModel {
       $data = $this->field(['cat_no'])->where($condition)->order('sort_order DESC')
               ->group('cat_no')
               ->select();
-      echo $this->_sql();
+   
       return $data;
     } catch (Exception $ex) {     
       Log::write($ex->getMessage(), Log::ERR);
