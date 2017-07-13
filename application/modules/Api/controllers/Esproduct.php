@@ -108,12 +108,12 @@ class EsproductController extends PublicController {
 
       ksort($material_cat_nos);
       $catno_key = 'show_cats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang());
-     if ($this->put_data['show_cat_no']) {
+      if ($this->put_data['show_cat_no']) {
         $catno_key .= md5($this->put_data['show_cat_no']);
-      }    $catlist = json_decode(redisGet($catno_key), true);
+      } $catlist = json_decode(redisGet($catno_key), true);
 
       if (!$catlist) {
-         if ($this->put_data['show_cat_no']) {
+        if ($this->put_data['show_cat_no']) {
           $show_cat_model = new ShowCatModel();
           $info = $show_cat_model->getinfo($this->put_data['show_cat_no'], $this->getLang());
           if ($info['level_no'] == 1) {
@@ -136,7 +136,7 @@ class EsproductController extends PublicController {
           }
         }
         $matshowcatmodel = new ShowmaterialcatModel();
-        $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(),$show_cat_nos);
+        $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(), $show_cat_nos);
         $new_showcats1 = $new_showcats2 = $new_showcats3 = [];
         $new_showcat2_nos = [];
         $new_showcat1_nos = [];
@@ -208,7 +208,11 @@ class EsproductController extends PublicController {
       if ($this->put_data['keyword']) {
         $search = [];
         $search['keywords'] = $this->put_data['keyword'];
-        $search['user_email'] = $this->user['email'];
+        if ($this->user['email']) {
+          $search['user_email'] = $this->user['email'];
+        } else {
+          $search['user_email'] = '';
+        }
         $search['search_time'] = date('Y-m-d H:i:s');
         $usersearchmodel = new UsersearchhisModel();
         $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];

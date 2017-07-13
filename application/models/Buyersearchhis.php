@@ -124,7 +124,7 @@ class BuyersearchhisModel extends PublicModel {
 
     public function exist($condition) {
         try {
-            $data = $this->create($data);
+            $data = $this->create($condition);
             $row = $this->where($data)->find();
             return empty($row) ? false : $row['id'];
         } catch (Exception $ex) {

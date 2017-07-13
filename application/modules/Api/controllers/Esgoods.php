@@ -94,7 +94,11 @@ class EsgoodsController extends PublicController {
       if ($this->put_data['keyword']) {
         $search = [];
         $search['keywords'] = $this->put_data['keyword'];
-        $search['user_email'] = $this->user['email'];
+        if ($this->user['email']) {
+          $search['user_email'] = $this->user['email'];
+        } else {
+          $search['user_email'] = '';
+        }
         $search['search_time'] = date('Y-m-d H:i:s');
         $usersearchmodel = new UsersearchhisModel();
         $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
