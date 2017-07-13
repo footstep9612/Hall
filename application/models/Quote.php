@@ -8,10 +8,10 @@ class QuoteModel extends PublicModel {
     protected $dbName = 'erui_rfq';
     protected $tableName = 'quote';
     protected $joinInquiry = 'erui_rfq.t_inquiry b ON a.inquiry_no = b.inquiry_no';
-    protected $fieldJoin = 'a.*, b.inquiry_name, b.customer_id, b.buyer_name, b.inquirer, b.inquirer_email, b.agent, b.agent_email,
+	protected $fieldJoin = 'a.*, b.inquiry_name, b.customer_id, b.buyer_name, b.inquirer, b.inquirer_email, b.agent, b.agent_email,
 			    			b.inquiry_time, b.inquiry_region, b.inquiry_country, b.inquiry_lang, b.trans_mode, b.from_country, b.from_port,
-			    			b.to_country, b.clearance_loc, b.to_port, b.delivery_address, b.transfer_flag, b.delivery_date, b.currency, b.bid_flag,
-			    			b.lastest_quote_date, b.kerui_flag, b.project_name, b.project_basic_info, b.adhoc_request, b.first_name, b.last_name,
+			    			b.to_country, b.clearance_loc, b.to_port, b.delivery_address, b.transfer_flag, b.delivery_date, b.currency, b.payment_mode, b.bid_flag,
+			    			b.lastest_quote_date, b.kerui_flag, b.project_name, b.project_basic_info, b.quote_notes, b.adhoc_request, b.first_name, b.last_name,
 			    			b.gender, b.title, b.phone, b.email, b.inquiry_status';
 			    
     public function __construct() {
