@@ -430,9 +430,17 @@ class ESClient {
     $updateParams = array();
     $updateParams['index'] = $index;
     $updateParams['type'] = $type;
-    $updateParams['body']['doc'] = $body; //['doc']['testField'] = 'xxxx';
+
     try {
-      return $this->server->updateByQuery($updateParams);
+
+      $ret = $this->search($index, $type, $body['query']);
+      if ($ret) {
+        foreach ($ret['hits']['hits'] as $item) {
+          $data = $body['doc'];
+          $this->update_document($index, $type, $data, $item['_id']);
+        }
+      }
+      //  return $this->server->updateByQuery($updateParams);
     } catch (Exception $ex) {
       LOG::write($ex->getMessage(), LOG::ERR);
       return false;

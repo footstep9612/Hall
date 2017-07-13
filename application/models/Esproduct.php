@@ -1271,7 +1271,7 @@ class EsproductModel extends PublicModel {
       $id = $data['spu'];
       $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
-        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
       } else {
         return false;
@@ -1299,7 +1299,7 @@ class EsproductModel extends PublicModel {
       $id = $spu;
       $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
-        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
       } else {
         return false;
@@ -1359,11 +1359,8 @@ class EsproductModel extends PublicModel {
     ];
     $product_doc['doc'] = $data;
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.show_cats=show_cats;",
-            "params" => [
-                "show_cats" => $data['show_cats'],
-            ]
+        "doc" => [
+            "show_cats" => $data['show_cats'],
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
@@ -1437,15 +1434,11 @@ class EsproductModel extends PublicModel {
       $es->update_document($this->dbName, $type, $data, $id);
     } else {
       $es_product_data = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;"
-              . "ctx._source.show_cats=show_cats;"
-              . "ctx._source.supply_capabilitys=supply_capabilitys;",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-                  'material_cat_no' => $new_cat_no,
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
+              'material_cat_no' => $new_cat_no,
+              'supply_capabilitys' => $data['supply_capabilitys']
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1457,12 +1450,9 @@ class EsproductModel extends PublicModel {
     }
     if ($spu) {
       $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1472,12 +1462,9 @@ class EsproductModel extends PublicModel {
       ];
     } else {
       $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1580,11 +1567,8 @@ class EsproductModel extends PublicModel {
     $es->update_document($this->dbName, $type, $data, $id);
 
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.brand=brand;",
-            "params" => [
-                "brand" => $brand,
-            ]
+        "doc" => [
+            "brand" => $brand,
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
@@ -1635,11 +1619,8 @@ class EsproductModel extends PublicModel {
     $es->update_document($this->dbName, $type, $data, $id);
 
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.brand=brand;",
-            "params" => [
-                "supplier_name" => $supplier_name,
-            ]
+        "doc" => [
+            "supplier_name" => $supplier_name,
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
