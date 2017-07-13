@@ -94,7 +94,6 @@ class EsproductController extends PublicController {
         $material_cat_nos[] = $item['key'];
       }
       $catlist = $this->getcatlist($material_cat_nos,$material_cats);
-
       $send['catlist'] = $catlist;
       $send['data'] = $list;
       $this->update_keywords();

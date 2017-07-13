@@ -65,12 +65,9 @@ class ShowCatModel extends PublicModel {
    * @return array
    */
   public function getListByconandlang($condition = [], $lang = 'en') {
-    //语言默认取en 统一小写
     $condition['lang'] = $lang ? strtolower($lang) : 'en';
     $condition['status'] = self::STATUS_VALID;
     try {
-      //后期优化缓存的读取
-      //这里需要注意排序的顺序（注意与后台一致）
       $data = $this->field(['cat_no'])->where($condition)->order('sort_order DESC')
               ->group('cat_no')
               ->select();
