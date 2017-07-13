@@ -223,7 +223,7 @@ class EsproductController extends ShopMallController {
       redisSet($catno_key, json_encode($catlist), 86400);
       return $catlist;
     }
-    return [];
+    return $catlist;
   }
 
   private function update_keywords() {
