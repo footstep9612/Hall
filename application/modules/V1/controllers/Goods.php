@@ -185,6 +185,58 @@ class GoodsController extends Yaf_Controller_Abstract
             jsonReturn('','-1002','数据获取失败');
         }
     }
+
+    /**
+     * sku新增/编辑  -- 总接口
+     * @author  klp  2017/7-13
+     */
+    public function editSkuAction()
+    {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->editSkuInfo($this->input);
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+    /**
+     * sku状态更改/删除  -- 总接口
+     * @author  klp  2017/7-13
+     */
+    public function modifySkuAction()
+    {
+        if(empty($this->input)){
+            return false;
+        }
+        //获取当前用户信息
+        $userInfo = getLoinInfo();
+        $this->input['update_by'] = $userInfo['name'];
+        $goodsModel = new GoodsModel();
+        if(isset($this->input['status']) && !empty($this->input['status'])){
+            $result = $goodsModel->modify($this->input);    //状态更改
+        } else{
+            $result = $goodsModel->deleteReal($this->input);//真实删除
+        }
+        if($result){
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        }else{
+            jsonReturn('','-1002','失败');
+        }
+        exit;
+    }
+
     /**
      * sku新增  -- 门户
      * @author  klp  2017/7-5
@@ -323,7 +375,7 @@ class GoodsController extends Yaf_Controller_Abstract
      * @author  klp  2017/7-5
      * sku lang
      */
-    public function modifySkuAction()
+    public function changSkuAction()
     {
         //$this->input = $this->test();//测试
         $goodsModel = new GoodsModel();
@@ -398,7 +450,7 @@ class GoodsController extends Yaf_Controller_Abstract
     }
 
     /**
-     * sku供应商信息  -- 门户
+     * sku供应商信息  -- 门户      待完善
      * @author  klp  2017/7-6
      */
     public function getSupplierInfoAction()
@@ -425,7 +477,7 @@ class GoodsController extends Yaf_Controller_Abstract
             "spu" => "spu001",
             "lang" => "en",
             'model'=> 'model',
-            'sku_name'=> 'sku_name2',
+            'name'=> 'sku_name2',
             'show_name'=> 'sku00002',
                 'goods_flag'=> [
                     'attr1'=> 'attr11',

@@ -85,6 +85,9 @@ class GoodsAttachModel extends PublicModel
      */
     public function createAttachSku($data)
     {
+        if(empty($data)) {
+            return false;
+        }
         $arr = $this->check_data($data);
 
         $res = $this->addAll($arr);
@@ -102,7 +105,7 @@ class GoodsAttachModel extends PublicModel
     public function updateAttachSku($data)
     {
 
-        $condition = $this->check_up($data);//var_dump($condition);die;
+        $condition = $this->check_up($data);
         if($condition){
             try{
                 foreach($condition as $v){
@@ -118,7 +121,7 @@ class GoodsAttachModel extends PublicModel
     }
 
     /**
-     * sku附件软删除[状态更改]（门户后台）
+     * sku附件[状态更改]（门户后台）
      * @author klp
      * @return bool
      */
@@ -131,7 +134,7 @@ class GoodsAttachModel extends PublicModel
             JsonReturn('','-1001','sku不能为空');
         }
         if(isset($delData['status'])) {
-            switch ($delData['status']) {
+            switch (strtoupper($delData['status'])) {
                 case self::STATUS_VALID:
                     $status['status'] = $delData['status'];
                     break;
@@ -189,15 +192,15 @@ class GoodsAttachModel extends PublicModel
      */
     public function check_data($data=[])
     {
-//        $condition['sku'] = $data['sku'] ? $data['sku']: '';
-//        $condition['attach_name'] = $data['attach_name'] ? $data['attach_name']: '';
-        $condition['sort_order'] = isset($data['sort_order']) ? $data['sort_order']: 0;
-        $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
+        if(empty($data))
+            return false;
+
         if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
         } else {
             JsonReturn('','-1001','sku编号不能为空');
         }
+        $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
         if(isset($data['status'])){
             switch ($data['status']) {
                 case self::STATUS_VALID:
@@ -215,42 +218,12 @@ class GoodsAttachModel extends PublicModel
         }
         //附件组处理
         $attachs = array();
-        if (isset($data['SMALL_IMAGE']) && is_array($data['SMALL_IMAGE'])) {
-            foreach ($data['SMALL_IMAGE'] as $k=>$v) {
-                $condition['attach_type'] = 'SMALL_IMAGE';
-                $condition['attach_name'] = $k;
-                if(isset($v)) {
-                    $condition['attach_url'] = $v;
-                }
-                $attachs[] = $condition;
-            }
-        } elseif (isset($data['BIG_IMAGE']) && is_array($data['BIG_IMAGE'])) {
-            foreach ($data['BIG_IMAGE'] as $k=>$v) {
-                $condition['attach_type'] = 'BIG_IMAGE';
-                $condition['attach_name'] = $k;
-                if(isset($v)) {
-                    $condition['attach_url'] = $v;
-                }
-                $attachs[] = $condition;
-            }
-        } elseif (isset($data['MIDDLE_IMAGE']) && is_array($data['MIDDLE_IMAGE'])) {
-            foreach ($data['MIDDLE_IMAGE'] as $k=>$v) {
-                $condition['attach_type'] = 'MIDDLE_IMAGE';
-                $condition['attach_name'] = $k;
-                if(isset($v)) {
-                    $condition['attach_url'] = $v;
-                }
-                $attachs[] = $condition;
-            }
-        } elseif (isset($data['DOC']) && is_array($data['DOC'])) {
-            foreach ($data['DOC'] as $k=>$v) {
-                $condition['attach_type'] = 'DOC';
-                $condition['attach_name'] = $k;
-                if(isset($v)) {
-                    $condition['attach_url'] = $v;
-                }
-                $attachs[] = $condition;
-            }
+        foreach ($data['attachs'] as $k=>$v) {
+            $condition['attach_type'] = isset($v['attach_type']) ? $v['attach_type'] : 'BIG_IMAGE';//默认
+            $condition['attach_name'] = isset($v['attach_name']) ? $v['attach_name']: '';
+            $condition['attach_url'] = $v['attach_url'];
+            $condition['sort_order'] = isset($v['sort_order']) ? $v['sort_order']: 0;
+            $attachs[] = $condition;
         }
         return $attachs;
     }
@@ -262,6 +235,9 @@ class GoodsAttachModel extends PublicModel
      */
     public function check_up($data)
     {
+        if(empty($data))
+            return false;
+
         $condition = [];
         if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
@@ -284,35 +260,20 @@ class GoodsAttachModel extends PublicModel
         }
         //附件组处理
         $attachs = array();
-        if (isset($data['SMALL_IMAGE']) && is_array($data['SMALL_IMAGE'])) {
-            foreach ($data['SMALL_IMAGE'] as $v) {
-                $condition['id'] = $v['id'];
-                $condition['attach_name'] = $v['attach_name'];
-                $condition['attach_url'] = $v['attach_url'];
-                $attachs[] = $condition;
+        foreach ($data['attachs'] as $k=>$v) {
+            if(!isset($v['id'])){
+                JsonReturn('','-1003','附件[id]不能为空');
             }
-        } elseif (isset($data['BIG_IMAGE']) && is_array($data['BIG_IMAGE'])) {
-            foreach ($data['BIG_IMAGE'] as $v) {
-                $condition['id'] = $v['id'];
-                $condition['attach_name'] = $v['attach_name'];
-                $condition['attach_url'] = $v['attach_url'];
-                $attachs[] = $condition;
-            }
-        } elseif (isset($data['MIDDLE_IMAGE']) && is_array($data['MIDDLE_IMAGE'])) {
-            foreach ($data['MIDDLE_IMAGE'] as $v) {
-                $condition['id'] = $v['id'];
-                $condition['attach_name'] = $v['attach_name'];
-                $condition['attach_url'] = $v['attach_url'];
-                $attachs[] = $condition;
-            }
-        } elseif (isset($data['DOC']) && is_array($data['DOC'])) {
-            foreach ($data['DOC'] as $v) {
-                $condition['id'] = $v['id'];
-                $condition['attach_name'] = $v['attach_name'];
-                $condition['attach_url'] = $v['attach_url'];
-                $attachs[] = $condition;
-            }
+            $condition['id'] = $v['id'];
+            if (isset($v['attach_type'])) {$condition['attach_type'] = $v['attach_type'];}
+            if (isset($v['attach_name'])) {$condition['attach_name'] = $v['attach_name'];}
+            if (isset($v['attach_url'])) {$condition['attach_url'] = $v['attach_url'];}
+            if (isset($v['sort_order'])) {$condition['sort_order'] = $v['sort_order'];}
+            $attachs[] = $condition;
         }
         return $attachs;
+
     }
+
+
 }
