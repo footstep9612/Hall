@@ -90,7 +90,7 @@ class LogisticsController extends PublicController {
     		$condition['total_quote_price'] = $logiData['total_quote_price'];
     		$condition['total_bank_fee'] = $logiData['total_bank_fee'];
 
-			$condition['export_credit_insu'] = sprintf("%.2f", ($quote['total_quote_price']*$condition['premium_rate']));
+			$condition['export_credit_insu'] = round($quote['total_quote_price']*$condition['premium_rate'], 8);
 
     		
     		$where['quote_no'] = $condition['quote_no'];
