@@ -95,6 +95,7 @@ class EsgoodsController extends ShopMallController {
         $row = $usersearchmodel->exist($condition);
         if ($row) {
           $search['search_count'] = intval($row['search_count']) + 1;
+          $search['id'] = $row['id'];
           $usersearchmodel->update_data($search);
         } else {
           $search['search_count'] = 1;

@@ -164,7 +164,7 @@ class BuyersearchhisModel extends PublicModel {
         $data = $this->create($upcondition);
         $id = $upcondition['id'];
         try {
-            return $this->where(['id' => $id])->create($data);
+            return $this->where(['id' => $id])->save($data);
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
