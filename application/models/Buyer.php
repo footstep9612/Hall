@@ -235,7 +235,7 @@ class BuyerModel extends PublicModel {
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
-            $zipCode = $buyerAddress->field('zipcode')
+            $zipCode = $buyerAddress->field('zipcode,address')
                                     ->where(array('customer_id' => $buyerInfo['customer_id']))
                                     ->find();
 
@@ -246,6 +246,7 @@ class BuyerModel extends PublicModel {
             $buyerInfo['last_name'] = $userInfo['last_name'];
             $buyerInfo['status'] = $userInfo['status'];
             $buyerInfo['zipcode'] = $zipCode['zipcode'];
+            $buyerInfo['address'] = $zipCode['address'];
 
             return $buyerInfo;
         } else{
