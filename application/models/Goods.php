@@ -412,7 +412,7 @@ class GoodsModel extends PublicModel
        * @param string $lang
        * @return array
        */
-      public function getSpecGoodsBySpu($spu = '', $lang = '') {
+      public function getSpecGoodsBySpu($spu = '', $lang = '',$spec_type=0) {
         if (empty($spu))
           return array();
 
@@ -432,13 +432,18 @@ class GoodsModel extends PublicModel
               //获取商品规格
               $gattr = new GoodsAttrModel();
               $spec = $gattr->getSpecBySku($item['sku'], $item['lang']);
-              $spec_str = '';
-              if ($spec) {
-                foreach ($spec as $r) {
-                  $spec_str .= $r['attr_name'] . ' : ' . $r['attr_value'] . $r['value_unit'] . ' ;';
+
+              if($spec_type){
+                $result[$k]['spec'] = $spec;
+              }else{
+                $spec_str = '';
+                if ($spec) {
+                  foreach ($spec as $r) {
+                    $spec_str .= $r['attr_name'] . ' : ' . $r['attr_value'] . $r['value_unit'] . ' ;';
+                  }
                 }
+                $result[$k]['spec'] = $spec_str;
               }
-              $result[$k]['spec'] = $spec_str;
             }
             redisHashSet('Sku', $spu . '_' . $lang, json_encode($result));
             return $result;
@@ -490,6 +495,7 @@ class GoodsModel extends PublicModel
         JsonReturn('','-1001','条件不能为空');
       }
     }
+
 
     /**
      * sku[状态更改]（门户后台）
