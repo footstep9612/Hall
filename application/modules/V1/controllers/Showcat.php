@@ -24,8 +24,7 @@ class ShowcatController extends PublicController {
       $arr = $this->_model->getlist($jsondata);
 
       if ($arr) {
-        $data['code'] = 0;
-        $data['message'] = '获取成功!';
+        $this->setCode(MSG::MSG_SUCCESS);
         foreach ($arr as $key => $val) {
           $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
 
@@ -37,31 +36,34 @@ class ShowcatController extends PublicController {
             }
           }
         }
-        $data['data'] = $arr;
+        redisSet($key, json_encode($arr), 86400);
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
       } else {
         $condition['level_no'] = 2;
         $arr = $this->_model->getlist($condition);
         if ($arr) {
-          $data['code'] = 0;
-          $data['message'] = '获取成功!';
+
           foreach ($arr[$key]['childs'] as $k => $item) {
             $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
           }
-          $data['data'] = $arr;
+          redisSet($key, json_encode($arr), 86400);
+          $this->setCode(MSG::MSG_SUCCESS);
+          $this->jsonReturn($arr);
         } else {
           $condition['level_no'] = 3;
           $arr = $this->_model->getlist($condition);
           if ($arr) {
-            $data['code'] = 0;
-            $data['message'] = '获取成功!';
-            $data['data'] = $arr;
+            redisSet($key, json_encode($arr), 86400);
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
           } else {
-            $data['code'] = -1;
-            $data['message'] = '数据为空!';
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
           }
         }
       }
-      redisSet($key, json_encode($data), 86400);
+
     }
     $this->jsonReturn($data);
   }
