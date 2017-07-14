@@ -382,7 +382,7 @@ class GoodsAttrModel extends PublicModel
     }
 
     /**
-     * sku属性软删除[状态更改]（门户后台）
+     * sku属性[状态更改]（门户后台）
      * @author klp
      * @return bool
      */
@@ -459,22 +459,15 @@ class GoodsAttrModel extends PublicModel
      */
     public function check_data($data=[])
     {
+        if(empty($data))
+            return false;
         $condition['lang'] = isset($data['lang']) ? $data['lang']: 'en';
-//        $condition['spu'] = $data['spu'] ? $data['spu']: '';
-//        $condition['sku'] = $data['sku'] ? $data['sku']: '';
-        $condition['attr_value_type'] = isset($data['attr_value_type']) ? $data['attr_value_type']: 'String';
-        $condition['attr_value'] = isset($data['attr_value']) ? $data['attr_value']: '';
-        $condition['value_unit'] = isset($data['value_unit']) ? $data['value_unit']: 'Empty String';
         $condition['required_flag'] = isset($data['required_flag']) ? $data['required_flag']: 'N';
         $condition['search_flag'] = isset($data['search_flag']) ? $data['search_flag']: 'Y';
         $condition['attr_group'] = isset($data['attr_group']) ? $data['attr_group']: '';
         $condition['sort_order'] = isset($data['sort_order']) ? $data['sort_order']: 1;
         $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
-        if (isset($data['spu'])) {
-            $condition['spu'] = $data['spu'];
-        } else {
-            JsonReturn('','-1001','spu编号不能为空');
-        }
+        if (isset($data['created_by'])) {$condition['created_by'] = $data['created_by'];}
         if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
         } else {
@@ -484,11 +477,6 @@ class GoodsAttrModel extends PublicModel
             $condition['attr_no'] = $data['attr_no'];
         } else {
             JsonReturn('','-1003','属性编码不能为空');
-        }
-        if (isset($data['created_by'])) {
-            $condition['created_by'] = $data['created_by'];
-        } else {
-            JsonReturn('','-1004','审核人不能为空');
         }
         if(isset($data['status'])){
             switch ($data['status']) {
@@ -507,46 +495,37 @@ class GoodsAttrModel extends PublicModel
         }
         //属性组处理
         $attrs = array();
-        if (isset($data['goods_flag']) && is_array($data['goods_flag'])) {
-            foreach ($data['goods_flag'] as $k=>$v) {
+        foreach ($data['attrs'] as $k=>$v) {
+            if(isset($v['goods_flag']) && 'Y' == $v['goods_flag']) {
                 $condition['goods_flag'] = 'Y';
                 $condition['spec_flag'] = 'N';
                 $condition['logi_flag'] = 'N';
                 $condition['hs_flag'] = 'N';
-                $condition['attr_value'] = $v ? $v: '';
-                $condition['attr_name'] = $k;
-                $attrs[] = $condition;
             }
-        } elseif (isset($data['spec_flag']) && is_array($data['spec_flag'])) {
-            foreach ($data['spec_flag'] as $k=>$v) {
-                $v['goods_flag'] = 'N';
-                $v['spec_flag'] = 'Y';
-                $v['logi_flag'] = 'N';
-                $v['hs_flag'] = 'N';
-                $condition['attr_value'] = $v ? $v: '';
-                $condition['attr_name'] = $k;
-                $attrs[] = $condition;
+            elseif(isset($v['spec_flag']) && 'Y' == $v['spec_flag']) {
+                $condition['spec_flag'] = 'Y';
+                $condition['goods_flag'] = 'N';
+                $condition['logi_flag'] = 'N';
+                $condition['hs_flag'] = 'N';
             }
-        } elseif (isset($data['logi_flag']) && is_array($data['logi_flag'])) {
-            foreach ($data['logi_flag'] as $k=>$v) {
-                $v['goods_flag'] = 'N';
-                $v['spec_flag'] = 'N';
-                $v['logi_flag'] = 'Y';
-                $v['hs_flag'] = 'N';
-                $condition['attr_value'] = $v ? $v: '';
-                $condition['attr_name'] = $k;
-                $attrs[] = $condition;
+            elseif(isset($v['logi_flag']) && 'Y' == $v['logi_flag']) {
+                $condition['logi_flag'] = 'Y';
+                $condition['spec_flag'] = 'N';
+                $condition['goods_flag'] = 'N';
+                $condition['hs_flag'] = 'N';
             }
-        } elseif (isset($data['hs_flag']) && is_array($data['hs_flag'])) {
-            foreach ($data['hs_flag'] as $k=>$v) {
-                $v['goods_flag'] = 'N';
-                $v['spec_flag'] = 'N';
-                $v['logi_flag'] = 'N';
-                $v['hs_flag'] = 'Y';
-                $condition['attr_value'] = $v ? $v: '';
-                $condition['attr_name'] = $k;
-                $attrs[] = $condition;
+            elseif(isset($v['hs_flag']) && 'Y' == $v['hs_flag']) {
+                $condition['hs_flag'] = 'Y';
+                $condition['spec_flag'] = 'N';
+                $condition['logi_flag'] = 'N';
+                $condition['goods_flag'] = 'N';
             }
+            $condition['attr_name'] =$v['attr_name'];
+            $condition['attr_value'] = isset($v['attr_value']) ? $v['attr_value']: '';
+            $condition['attr_value_type'] = isset($v['attr_value_type']) ? $v['attr_value_type']: 'String';
+            $condition['value_unit'] = isset($v['value_unit']) ? $v['value_unit']: ' ';
+            $attrs[] = $condition;
+
         }
         return $attrs;
     }
@@ -558,6 +537,9 @@ class GoodsAttrModel extends PublicModel
      */
     public function check_up($data)
     {
+        if(empty($data))
+            return false;
+
         $condition = [];
         if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
@@ -571,14 +553,12 @@ class GoodsAttrModel extends PublicModel
         }
         if (isset($data['spu'])) {$condition['spu'] = $data['spu'];}
         if (isset($data['attr_no'])) {$condition['attr_no'] = $data['attr_no'];}
-//        if (isset($data['attr_name'])) {$condition['attr_name'] = $data['attr_name'];}
-//        if (isset($data['attr_value_type'])) {$condition['attr_value_type'] = $data['attr_value_type'];}
-//        if (isset($data['attr_value'])) {$condition['attr_value'] = $data['attr_value'];}
         if (isset($data['value_unit'])) {$condition['value_unit'] = $data['value_unit'];}
         if (isset($data['required_flag'])) {$condition['required_flag'] = $data['required_flag'];}
         if (isset($data['search_flag'])) {$condition['search_flag'] = $data['search_flag'];}
         if (isset($data['attr_group'])) {$condition['attr_group'] = $data['attr_group'];}
         if (isset($data['sort_order'])) {$condition['sort_order'] = $data['sort_order'];}
+//        if (isset($data['updated_by'])) {$condition['updated_by'] = $data['updated_by'];}
         if (isset($data['status'])) {
             switch ($data['status']) {
                 case self::STATUS_VALID:
@@ -594,35 +574,14 @@ class GoodsAttrModel extends PublicModel
         }
         //属性组处理
         $attrs = array();
-        if (isset($data['goods_flag']) && is_array($data['goods_flag'])) {
-            foreach ($data['goods_flag'] as $k=>$v) {
-                $condition['id'] = $v['id'];
-                $condition['attr_value'] = $v['attr_value'];
-                $condition['attr_name'] = $v['attr_name'];
-                $attrs[] = $condition;
-            }
-        } elseif (isset($data['spec_flag']) && is_array($data['spec_flag'])) {
-            foreach ($data['spec_flag'] as $k=>$v) {
-                $condition['id'] = $v['id'];
-                $condition['attr_value'] = $v['attr_value'];
-                $condition['attr_name'] = $v['attr_name'];
-                $attrs[] = $condition;
-            }
-        } elseif (isset($data['logi_flag']) && is_array($data['logi_flag'])) {
-            foreach ($data['logi_flag'] as $k=>$v) {
-                $condition['id'] = $v['id'];
-                $condition['attr_value'] = $v['attr_value'];
-                $condition['attr_name'] = $v['attr_name'];
-                $attrs[] = $condition;
-            }
-        } elseif (isset($data['hs_flag']) && is_array($data['hs_flag'])) {
-            foreach ($data['hs_flag'] as $k=>$v) {
-                $condition['id'] = $v['id'];
-                $condition['attr_value'] = $v['attr_value'];
-                $condition['attr_name'] = $v['attr_name'];
-                $attrs[] = $condition;
-            }
+        foreach ($data['attrs'] as $k=>$v) {
+            $condition['id'] = $v['id'];
+            if (isset($v['attr_name'])) {$condition['attr_name'] = $v['attr_name'];}
+            if (isset($v['attr_value'])) {$condition['attr_value'] = $v['attr_value'];}
+            $attrs[] = $condition;
         }
         return $attrs;
     }
+
+
 }

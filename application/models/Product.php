@@ -382,6 +382,23 @@ class ProductModel extends PublicModel {
     }
 
     /**
+     * spu新增（门户后台）
+     * @author klp
+     * @return bool
+     */
+    public function createSpu($data)
+    {
+        $condition = $this->check_data($data);
+
+        $res = $this->add($condition);
+        if($res){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    /**
      * spu参数处理（门户后台）
      * @author klp
      * @return array
@@ -455,23 +472,6 @@ class ProductModel extends PublicModel {
             $condition['status'] = self::STATUS_VALID;
         }
         return $condition;
-    }
-
-    /**
-     * spu新增（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function createSpu($data)
-    {
-        $condition = $this->check_data($data);
-
-        $res = $this->add($condition);
-        if($res){
-            return true;
-        } else{
-            return false;
-        }
     }
 
     /**
