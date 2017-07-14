@@ -8,9 +8,9 @@
  */
 class ShowcatController extends PublicController {
 
-   public function init() {
-
-    parent::init();
+  public function init() {
+    $this->_model=new ShowCatModel();
+    //parent::init();
   }
 
   public function listAction() {
@@ -20,8 +20,10 @@ class ShowcatController extends PublicController {
     $condition = $jsondata;
     $key = 'Show_cat_list_' . $lang;
     $data = json_decode(redisGet($key), true);
-    if ($data) {
+    if (!$data) {
       $arr = $this->_model->getlist($jsondata);
+      print_r($arr);
+      die();
       if ($arr) {
         $data['code'] = 0;
         $data['message'] = '获取成功!';
@@ -70,7 +72,7 @@ class ShowcatController extends PublicController {
     $cat_no = $this->getPut('cat_no', '');
     $key = 'Show_cat_getlist_' . $lang;
     $data = json_decode(redisGet($key), true);
-    if ($data) {
+    if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
       if ($arr) {
         $data['code'] = 0;

@@ -18,7 +18,7 @@ class MaterialcatController extends PublicController {
     $condition = $jsondata;
     $key = 'Material_cat_list_' . $lang;
     $data = json_decode(redisGet($key), true);
-    if ($data) {
+    if (!$data) {
       $arr = $this->_model->getlist($jsondata);
       if ($arr) {
         $data['code'] = 0;
@@ -68,7 +68,7 @@ class MaterialcatController extends PublicController {
     $cat_no = $this->getPut('cat_no', '');
     $key = 'Material_cat_getlist_' . $lang;
     $data = json_decode(redisGet($key), true);
-    if ($data) {
+    if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
       if ($arr) {
         $data['code'] = 0;
