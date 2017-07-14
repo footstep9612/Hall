@@ -110,6 +110,22 @@ class ProductController extends PublicController {
     }
 
     /**
+     * SPU删除
+     */
+    public function deleteAction(){
+        if(!isset($this->input['spu']))
+            jsonReturn('',ErrorMsg::ERROR_PARAM);
+
+        $productModel = new ProductModel();
+        $result = $productModel->del($this->input);
+        if ($result) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
      * 展示分类 - SKU列表
      */
     public function listAction() {

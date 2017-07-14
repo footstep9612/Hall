@@ -58,6 +58,7 @@ class ShowCatModel extends PublicModel {
       return false;
     }
   }
+
   /**
    * 展示分类列表
    * @param array $condition  条件
@@ -71,13 +72,14 @@ class ShowCatModel extends PublicModel {
       $data = $this->field(['cat_no'])->where($condition)->order('sort_order DESC')
               ->group('cat_no')
               ->select();
-   
+
       return $data;
-    } catch (Exception $ex) {     
+    } catch (Exception $ex) {
       Log::write($ex->getMessage(), Log::ERR);
       return [];
     }
   }
+
   /**
    * 根据条件获取查询条件
    * @param mix $condition
@@ -96,7 +98,7 @@ class ShowCatModel extends PublicModel {
     }
 
     if (isset($condition['cat_no3'])) {
-      $where['level_no'] = 2;
+      $where['level_no'] = 3;
       $where['cat_no'] = $condition['cat_no3'];
     } elseif (isset($condition['cat_no2'])) {
       $where['level_no'] = 2;
@@ -104,7 +106,7 @@ class ShowCatModel extends PublicModel {
     } elseif (isset($condition['cat_no1'])) {
       $where['level_no'] = 1;
       $where['parent_cat_no'] = $condition['cat_no1'];
-    } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 2) {
+    } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
       $where['level_no'] = intval($condition['level_no']);
     } else {
       $where['level_no'] = 0;
@@ -227,6 +229,7 @@ class ShowCatModel extends PublicModel {
    */
   public function info($cat_no = '', $lang = 'en') {
     $where['cat_no'] = $cat_no;
+    $where['lang'] = $lang;
     return $this->where($where)
                     ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
                             . 'sort_order,created_at,created_by,big_icon,middle_icon,small_icon')

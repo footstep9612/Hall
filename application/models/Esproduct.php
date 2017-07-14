@@ -923,8 +923,6 @@ class EsproductModel extends PublicModel {
       $max_id = 0;
       echo '共有', $count, '条记录需要导入!', PHP_EOL;
       $k = 1;
-//            ob_flush();
-//            flush();
       for ($i = 0; $i < $count; $i += 100) {
         if ($i > $count) {
           $i = $count;
@@ -932,7 +930,7 @@ class EsproductModel extends PublicModel {
 
         $products = $this->where([
                             'lang' => $lang,
-                            'status' => 'VALID',
+                          //  'status' => 'VALID',
                             'id' => ['gt', $max_id]
                         ])
                         ->limit(0, 100)->order('id asc')->select();
@@ -978,6 +976,9 @@ class EsproductModel extends PublicModel {
               $body['sort_order'] = 100;
             } else {
               $body['sort_order'] = 1;
+            }
+            if (in_array($body['brand'], ['KERUI', '科瑞'])) {
+              $body['sort_order'] += 20;
             }
             if (isset($skus[$item['spu']])) {
               $json_skus = $skus[$item['spu']];
@@ -1038,8 +1039,8 @@ class EsproductModel extends PublicModel {
             if ($key === 99) {
               $max_id = $item['id'];
             }
-            $k++; //                        ob_flush();
-//                        flush();
+            $k++;
+            print_r($flag);
           }
         } else {
           return false;

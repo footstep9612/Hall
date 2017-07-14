@@ -232,10 +232,10 @@ class LogiPeriodModel extends Model{
         );
 
         if(redisHashExist('Port',md5(json_encode($where)))){
-            return json_decode(redisHashGet('Port',md5(json_encode($where))),true);
+           //return json_decode(redisHashGet('Port',md5(json_encode($where))),true);
         }
 
-        $field = "$t_port.bn,$t_port.name";
+        $field = "$thistable.clearance_loc,$t_port.bn,$t_port.name";
         try{
             $result = $this->field($field)->group("$t_port.bn")->join($t_port . " On $thistable.to_port = $t_port.bn AND $thistable.lang =$t_port.lang", 'LEFT')->where($where)->select();
             $data = array();

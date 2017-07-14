@@ -11,11 +11,15 @@ class ErrorMsg {
     //状态code
     const FAILED = 0;
     const SUCCESS = 1;
+    const ERROR_PARAM = 1000;
 
     //错误信息映射
     private static $message = array(
         '0' => '失败',
         '1' => '成功',
+
+        '1000' => '参数错误',
+
         /**
          * 买买提定义
          */
