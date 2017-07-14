@@ -435,7 +435,7 @@ class GoodsModel extends PublicModel
               $spec_str = '';
               if ($spec) {
                 foreach ($spec as $r) {
-                  $spec_str .= $r['attr_name'] . ':' . $r['attr_value'] . $r['value_unit'] . ';';
+                  $spec_str .= $r['attr_name'] . ' : ' . $r['attr_value'] . $r['value_unit'] . ' ;';
                 }
               }
               $result[$k]['spec'] = $spec_str;
