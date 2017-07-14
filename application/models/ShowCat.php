@@ -58,6 +58,7 @@ class ShowCatModel extends PublicModel {
       return false;
     }
   }
+
   /**
    * 展示分类列表
    * @param array $condition  条件
@@ -71,13 +72,14 @@ class ShowCatModel extends PublicModel {
       $data = $this->field(['cat_no'])->where($condition)->order('sort_order DESC')
               ->group('cat_no')
               ->select();
-   
+
       return $data;
-    } catch (Exception $ex) {     
+    } catch (Exception $ex) {
       Log::write($ex->getMessage(), Log::ERR);
       return [];
     }
   }
+
   /**
    * 根据条件获取查询条件
    * @param mix $condition
@@ -227,6 +229,7 @@ class ShowCatModel extends PublicModel {
    */
   public function info($cat_no = '', $lang = 'en') {
     $where['cat_no'] = $cat_no;
+    $where['lang'] = $lang;
     return $this->where($where)
                     ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
                             . 'sort_order,created_at,created_by,big_icon,middle_icon,small_icon')
