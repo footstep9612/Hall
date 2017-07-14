@@ -142,17 +142,16 @@ class EsproductController extends ShopMallController {
     return $show_cat_nos;
   }
 
+
   private function getcatlist($material_cat_nos, $material_cats) {
     ksort($material_cat_nos);
-    $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5($this->put_data['show_cat_no']));
-    $catlist =    json_decode(redisGet($catno_key), true);
+    $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5(json_encode($this->put_data)));
+    $catlist = json_decode(redisGet($catno_key), true);
     if (!$catlist) {
       $show_cat_nos = $this->getshowcatnos();
       $matshowcatmodel = new ShowmaterialcatModel();
       $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(), $show_cat_nos);
-      $new_showcats1 = $new_showcats2 = $new_showcats3 = [];
-      $new_showcat2_nos = [];
-      $new_showcat1_nos = [];
+      $new_showcats3 = [];
       foreach ($showcats as $showcat) {
         $material_cat_no = $showcat['material_cat_no'];
         unset($showcat['material_cat_no']);
@@ -166,7 +165,6 @@ class EsproductController extends ShopMallController {
         $model = new EsproductModel();
         $this->put_data['show_cat_no'] = $item['cat_no'];
         $item['count'] = $model->getcount($this->put_data, $this->getLang());
-
         $new_showcats3[$key] = $item;
       }
       redisSet($catno_key, json_encode($new_showcats3), 86400);
