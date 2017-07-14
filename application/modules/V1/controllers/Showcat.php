@@ -8,47 +8,92 @@
  */
 class ShowcatController extends PublicController {
 
-  private $input;
-
-  public function init() {
+   public function init() {
 
     parent::init();
   }
 
-  /**
-   * 分类联动
-   */
   public function listAction() {
-    $condition = array();
-    if ($this->put_data['lang']) {
-      $condition['lang'] = $this->put_data['lang'];
-    }
-    if ($this->put_data['parent_cat_no']) {
-      $condition['parent_cat_no'] = $this->put_data['parent_cat_no'];
-    }
+    $lang = $this->getPut('lang', 'en');
+    $jsondata = ['lang' => $lang];
+    $jsondata['level_no'] = 1;
+    $condition = $jsondata;
+    $key = 'Show_cat_list_' . $lang;
+    $data = json_decode(redisGet($key), true);
+    if ($data) {
+      $arr = $this->_model->getlist($jsondata);
+      if ($arr) {
+        $data['code'] = 0;
+        $data['message'] = '获取成功!';
+        foreach ($arr as $key => $val) {
+          $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
 
-    $showcat = new ShowCatModel();
-    $result = $showcat->get_list($condition, $this->getLang());
-
-    if ($result) {
-      $this->setCode(1);
-      jsonReturn($result);
-    } else {
-      jsonReturn(array('code' => '400', 'message' => '失败'));
+          if ($arr[$key]['childs']) {
+            foreach ($arr[$key]['childs'] as $k => $item) {
+              $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
+                  'level_no' => 3,
+                  'lang' => $lang]);
+            }
+          }
+        }
+        $data['data'] = $arr;
+      } else {
+        $condition['level_no'] = 2;
+        $arr = $this->_model->getlist($condition);
+        if ($arr) {
+          $data['code'] = 0;
+          $data['message'] = '获取成功!';
+          foreach ($arr[$key]['childs'] as $k => $item) {
+            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
+          }
+          $data['data'] = $arr;
+        } else {
+          $condition['level_no'] = 3;
+          $arr = $this->_model->getlist($condition);
+          if ($arr) {
+            $data['code'] = 0;
+            $data['message'] = '获取成功!';
+            $data['data'] = $arr;
+          } else {
+            $data['code'] = -1;
+            $data['message'] = '数据为空!';
+          }
+        }
+      }
+      redisSet($key, json_encode($data), 86400);
     }
-    exit;
+    $this->jsonReturn($data);
+  }
+
+  public function getlistAction() {
+    $lang = $this->getPut('lang', 'en');
+    $cat_no = $this->getPut('cat_no', '');
+    $key = 'Show_cat_getlist_' . $lang;
+    $data = json_decode(redisGet($key), true);
+    if ($data) {
+      $arr = $this->_model->get_list($cat_no, $lang);
+      if ($arr) {
+        $data['code'] = 0;
+        $data['message'] = '获取成功!';
+
+        $data['data'] = $arr;
+      } else {
+        $data['code'] = -1;
+        $data['message'] = '数据为空!';
+      }
+      redisSet($key, json_encode($data), 86400);
+    }
+    $this->jsonReturn($data);
   }
 
   /**
    * 分类联动
    */
   public function infoAction() {
-    $condition = array();
-    $showcat = new ShowCatModel();
-    $ret_en = $showcat->info($this->put_data['cat_no'], 'en');
-    $ret_zh = $showcat->info($this->put_data['cat_no'], 'zh');
-    $ret_es = $showcat->info($this->put_data['cat_no'], 'es');
-    $ret_ru = $showcat->info($this->put_data['cat_no'], 'ru');
+    $ret_en = $this->_model->info($this->put_data['cat_no'], 'en');
+    $ret_zh = $this->_model->info($this->put_data['cat_no'], 'zh');
+    $ret_es = $this->_model->info($this->put_data['cat_no'], 'es');
+    $ret_ru = $this->_model->info($this->put_data['cat_no'], 'ru');
     $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
     if ($ret_en) {
       $result['en']['name'] = $ret_en['name'];
@@ -64,94 +109,95 @@ class ShowcatController extends PublicController {
     }
     if ($result) {
       $this->setCode(1);
-      jsonReturn($result);
+      $this->jsonReturn($result);
     } else {
-      jsonReturn(array('code' => '400', 'message' => '失败'));
+      $this->setCode(-1);
+
+      $this->jsonReturn();
     }
     exit;
   }
 
-  /**
-   * 分类列表
-   */
-  public function listallAction() {
-    $showcat = new ShowCatModel();
-    $result = $showcat->getlist($this->put_data, $this->getLang());
-    if ($result) {
-      $this->setCode(1);
-      jsonReturn($result);
-    } else {
-      jsonReturn(array('code' => '400', 'message' => '失败'));
-    }
-    exit;
+  private function delcache() {
+    redisDel('show_cat_getlist_en');
+    redisDel('Show_cat_getlist_zh');
+    redisDel('Show_cat_getlist_es');
+    redisDel('Show_cat_getlist_ru');
+    redisDel('Show_cat_list_en');
+    redisDel('Show_cat_list_zh');
+    redisDel('Show_cat_list_es');
+    redisDel('Show_cat_list_ru');
   }
 
-  /**
-   * 更新分类
-   */
-  public function updateAction() {
-
-    $showcat = new ShowCatModel();
-    $result = $showcat->update_data($this->put_data, $this->user['name']);
-    if ($result) {
-      $this->setCode(1);
-      jsonReturn($result);
-    } else {
-      $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
-    }
-    exit;
-  }
-
-  /**
-   * 新增分类
-   */
   public function createAction() {
 
-    $showcat = new ShowCatModel();
-    $result = $showcat->create_data($this->put_data, $this->user['name']);
+    $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
+
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       jsonReturn();
     }
-    exit;
   }
 
-  /**
-   * 删除分类
-   */
+  public function updateAction() {
+
+    $result = $this->_model->update_data($this->put_data, $this->user['username']);
+    if ($result) {
+      $this->delcache();
+      $this->setCode(1);
+      jsonReturn($result);
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      jsonReturn();
+    }
+  }
+
   public function deleteAction() {
 
-    $showcat = new ShowCatModel();
-    $result = $showcat->delete_data($this->put_data['cat_no'], $this->getLang());
+    $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       jsonReturn();
     }
-    exit;
   }
 
-  /**
-   * 交换排序
-   */
-  public function changeorderAction() {
+  public function approvingAction() {
 
-    $showcat = new ShowCatModel();
-    $result = $showcat->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
+    $result = $this->_model->approving($this->put_data['id']);
     if ($result) {
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       jsonReturn();
     }
-    exit;
+  }
+
+  /* 交换顺序
+   * 
+   */
+
+  public function changeorderAction() {
+
+    $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
+    $this->setCode(1);
+    if ($result) {
+      $this->delcache();
+      $this->setCode(1);
+      jsonReturn($result);
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      jsonReturn();
+    }
   }
 
 }

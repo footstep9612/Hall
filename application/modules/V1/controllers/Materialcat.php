@@ -116,19 +116,23 @@ class MaterialcatController extends PublicController {
     exit;
   }
 
+  private function delcache() {
+    redisDel('Material_cat_getlist_en');
+    redisDel('Material_cat_getlist_zh');
+    redisDel('Material_cat_getlist_es');
+    redisDel('Material_cat_getlist_ru');
+    redisDel('Material_cat_list_en');
+    redisDel('Material_cat_list_zh');
+    redisDel('Material_cat_list_es');
+    redisDel('Material_cat_list_ru');
+  }
+
   public function createAction() {
 
     $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
 
-      redisDel('Material_cat_getlist_en');
-      redisDel('Material_cat_getlist_zh');
-      redisDel('Material_cat_getlist_es');
-      redisDel('Material_cat_getlist_ru');
-      redisDel('Material_cat_list_en');
-      redisDel('Material_cat_list_zh');
-      redisDel('Material_cat_list_es');
-      redisDel('Material_cat_list_ru');
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -141,14 +145,7 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->update_data($this->put_data, $this->user['username']);
     if ($result) {
-      redisDel('Material_cat_getlist_en');
-      redisDel('Material_cat_getlist_zh');
-      redisDel('Material_cat_getlist_es');
-      redisDel('Material_cat_getlist_ru');
-      redisDel('Material_cat_list_en');
-      redisDel('Material_cat_list_zh');
-      redisDel('Material_cat_list_es');
-      redisDel('Material_cat_list_ru');
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -161,14 +158,7 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
-      redisDel('Material_cat_getlist_en');
-      redisDel('Material_cat_getlist_zh');
-      redisDel('Material_cat_getlist_es');
-      redisDel('Material_cat_getlist_ru');
-      redisDel('Material_cat_list_en');
-      redisDel('Material_cat_list_zh');
-      redisDel('Material_cat_list_es');
-      redisDel('Material_cat_list_ru');
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -181,14 +171,7 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->approving($this->put_data['id']);
     if ($result) {
-      redisDel('Material_cat_getlist_en');
-      redisDel('Material_cat_getlist_zh');
-      redisDel('Material_cat_getlist_es');
-      redisDel('Material_cat_getlist_ru');
-      redisDel('Material_cat_list_en');
-      redisDel('Material_cat_list_zh');
-      redisDel('Material_cat_list_es');
-      redisDel('Material_cat_list_ru');
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -206,14 +189,7 @@ class MaterialcatController extends PublicController {
     $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
     $this->setCode(1);
     if ($result) {
-      redisDel('Material_cat_getlist_en');
-      redisDel('Material_cat_getlist_zh');
-      redisDel('Material_cat_getlist_es');
-      redisDel('Material_cat_getlist_ru');
-      redisDel('Material_cat_list_en');
-      redisDel('Material_cat_list_zh');
-      redisDel('Material_cat_list_es');
-      redisDel('Material_cat_list_ru');
+      $this->delcache();
       $this->setCode(1);
       jsonReturn($result);
     } else {
