@@ -16,6 +16,7 @@ class UserModel extends PublicModel {
     //put your code here
     protected $tableName = 'user';
     protected $g_table ='t_user';
+    Protected $autoCheckFields = false;
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
@@ -130,11 +131,13 @@ class UserModel extends PublicModel {
             echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
             exit();
         }
-
         if(!empty($data['password'])){
             $where['password_hash'] = md5($data['password']);
         }
         $where['status'] = 'NORMAL';
+        $this->where($where)
+            ->field('id,user_no,name,email,mobile,status')
+            ->find();
         $row = $this->where($where)
             ->field('id,user_no,name,email,mobile,status')
             ->find();

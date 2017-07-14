@@ -33,7 +33,7 @@ class Materialcatproduct extends PublicModel {
           'spu' => $spu,
           'status' => self::STATUS_VALID
       ];
-      return $this->where($where)->field('cat_no,supplier_id,supplier_name,brand,source')->find();
+      return $this->where($where)->field('cat_no')->find();
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);

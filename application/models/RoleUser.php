@@ -47,7 +47,6 @@ class RoleUserModel extends PublicModel {
         }
         return $this->query( $sql );
     }
-
     public function getRolesArray($where,$order='id desc') {
         $sql = 'SELECT GROUP_CONCAT(`t_url_perm`.`url`) as url';
         $sql .= ' FROM '.$this->table_name;
@@ -63,8 +62,7 @@ class RoleUserModel extends PublicModel {
         }
         return $this->query( $sql );
     }
-
-    /*
+    /**
      * 获取列表
      * @param  int  $id
      * @return array

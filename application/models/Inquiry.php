@@ -100,7 +100,7 @@ class InquiryModel extends PublicModel {
         $pagesize = isset($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            $count = $this->where($where)->count('id');
+            $count = $this->getcount($where);
             $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
@@ -330,22 +330,23 @@ class InquiryModel extends PublicModel {
      * 验证询单号是否存在
      * @author zhangyuliang
      */
-    public function checkInquiryNo() {
-        if(isset($createcondition['inquiry_no'])){
-            $where['inquiry_no'] = $createcondition['inquiry_no'];
+    public function checkInquiryNo($inquiryNo) {
+        if(!empty($inquiryNo)){
+            $where['inquiry_no'] = $inquiryNo;
         }else{
             return false;
         }
 
         try {
             $info = $this->field('id')->where($where)->find();
-            if(isset($info)){
-                $results['code'] = '1';
-                $results['message'] = '成功！';
-            }else{
+            if(!empty($info)){
                 $results['code'] = '-101';
-                $results['message'] = '没有找到相关信息!';
+                $results['message'] = '询单号已经存在！';
+            }else{
+                $results['code'] = '1';
+                $results['message'] = '没有找到询单号!';
             }
+            return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();

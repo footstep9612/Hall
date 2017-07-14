@@ -292,7 +292,7 @@ class GoodsAttrTplModel extends PublicModel
         //判断redis缓存
         if(redisHashExist('AttrTpl',$sku.'_'.$lang)){
             $redisInfo =redisHashGet('AttrTpl',$sku.'_'.$lang);
-            return json_decode($redisInfo);
+            //return json_decode($redisInfo);
         }
 
         $attrModel = new AttrModel();
@@ -314,7 +314,7 @@ class GoodsAttrTplModel extends PublicModel
                 ->where($where)->select();
             if($result){
                 //redis缓存
-                redisHashSet('AttrTpl', $sku.'_'.$lang, json_encode($result));
+                //redisHashSet('AttrTpl', $sku.'_'.$lang, json_encode($result));
                 return $result;
             }
         }catch (Exception $e){

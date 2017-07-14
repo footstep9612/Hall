@@ -8,10 +8,10 @@ class QuoteModel extends PublicModel {
     protected $dbName = 'erui_rfq';
     protected $tableName = 'quote';
     protected $joinInquiry = 'erui_rfq.t_inquiry b ON a.inquiry_no = b.inquiry_no';
-    protected $fieldJoin = 'a.*, b.inquiry_name, b.customer_id, b.buyer_name, b.inquirer, b.inquirer_email, b.agent, b.agent_email,
+	protected $fieldJoin = 'a.*, b.inquiry_name, b.customer_id, b.buyer_name, b.inquirer, b.inquirer_email, b.agent, b.agent_email,
 			    			b.inquiry_time, b.inquiry_region, b.inquiry_country, b.inquiry_lang, b.trans_mode, b.from_country, b.from_port,
-			    			b.to_country, b.clearance_loc, b.to_port, b.delivery_address, b.transfer_flag, b.delivery_date, b.currency, b.bid_flag,
-			    			b.lastest_quote_date, b.kerui_flag, b.project_name, b.project_basic_info, b.adhoc_request, b.first_name, b.last_name,
+			    			b.to_country, b.clearance_loc, b.to_port, b.delivery_address, b.transfer_flag, b.delivery_date, b.currency, b.payment_mode, b.bid_flag,
+			    			b.lastest_quote_date, b.kerui_flag, b.project_name, b.project_basic_info, b.quote_notes, b.adhoc_request, b.first_name, b.last_name,
 			    			b.gender, b.title, b.phone, b.email, b.inquiry_status';
 			    
     public function __construct() {
@@ -51,6 +51,9 @@ class QuoteModel extends PublicModel {
 		 if(!empty($condition['quote_no'])) {
 			 $where['a.quote_no'] = $condition['quote_no'];
     	 }
+		 if(!empty($condition['biz_quote_status'])) {
+			 $where['a.biz_quote_status'] = $condition['biz_quote_status'];
+		 }
 		 if(!empty($condition['logi_quote_status'])) {
 			 $where['a.logi_quote_status'] = array('in', $condition['logi_quote_status']);
 		 }
@@ -76,7 +79,7 @@ class QuoteModel extends PublicModel {
 			 $where['b.customer_id'] = $condition['customer_id'];
 		 }
 		 if(!empty($condition['start_time']) && !empty($condition['end_time'])){
-			 $where['b.created_at'] = array(
+			 $where['created_at'] = array(
 					 array('gt',date('Y-m-d H:i:s',$condition['start_time'])),
 					 array('lt',date('Y-m-d H:i:s',$condition['end_time']))
 			 );
@@ -147,7 +150,7 @@ class QuoteModel extends PublicModel {
     	$where = $this->getJoinWhere($condition);
     	
     	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-
+    		
     		return $this->alias('a')
 	    				 ->join($this->joinInquiry, 'LEFT')
 	    				 ->field($this->fieldJoin)
@@ -160,6 +163,7 @@ class QuoteModel extends PublicModel {
     					->join($this->joinInquiry, 'LEFT')
     					->field($this->fieldJoin)
     					->where($where)
+    					->page(1, 10)
     					->order('a.id DESC')
     					->select();
     	}

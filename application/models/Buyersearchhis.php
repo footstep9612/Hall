@@ -124,9 +124,9 @@ class BuyersearchhisModel extends PublicModel {
 
     public function exist($condition) {
         try {
-            $data = $this->create($data);
+            $data = $this->create($condition);
             $row = $this->where($data)->find();
-            return empty($row) ? false : $row['id'];
+            return empty($row) ? false : $row;
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
@@ -164,7 +164,7 @@ class BuyersearchhisModel extends PublicModel {
         $data = $this->create($upcondition);
         $id = $upcondition['id'];
         try {
-            return $this->where(['id' => $id])->create($data);
+            return $this->where(['id' => $id])->save($data);
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());

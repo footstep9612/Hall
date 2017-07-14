@@ -15,7 +15,6 @@ class UrlPermModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'url_perm';
-    protected $table_name = 't_url_perm';
     Protected $autoCheckFields = true;
 
     public function __construct($str = '') {
@@ -43,19 +42,7 @@ class UrlPermModel extends PublicModel {
                 ->select();
         }
     }
-    /**
-     * 获取列表
-     * @param data $data;
-     * @return array
-     * @author jhw
-     */
-    public function getRolesArray($where,$order='id desc') {
 
-
-          $sql = ' SELECT  GROUP_CONCAT(`url`) as url';
-        $sql .= ' FROM '.$this->table_name;
-        return $this->query( $sql );
-    }
     /**
      * 获取列表
      * @param  int  $id

@@ -43,12 +43,26 @@ class EsproductModel extends PublicModel {
       }
       $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $spus_arr]];
     }
-
     if (isset($condition['show_cat_no'])) {
       $show_cat_no = $condition['show_cat_no'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_cats' => $show_cat_no]];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['show_cats' => $show_cat_no,]];
     }
-
+    if (isset($condition['mcat_no1'])) {
+      $mcat_no1 = $condition['mcat_no1'];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['meterial_cat' => $mcat_no1]];
+    }
+    if (isset($condition['mcat_no2'])) {
+      $mcat_no2 = $condition['mcat_no2'];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['meterial_cat' => $mcat_no2]];
+    }
+    if (isset($condition['mcat_no3'])) {
+      $mcat_no3 = $condition['mcat_no3'];
+      $body['query']['bool']['must'][] = [ESClient::MATCH =>
+          ['meterial_cat' => $mcat_no3]];
+    }
     if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
       $created_at_start = $condition['created_at_start'];
       $created_at_end = $condition['created_at_end'];
@@ -110,7 +124,6 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['source'])) {
       $source = $condition['source'];
-
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['source' => $source]];
     }
     if (isset($condition['exe_standard'])) {
@@ -169,13 +182,17 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['checked_by'])) {
       $checked_by = $condition['checked_by'];
-
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
     }
 
     if (isset($condition['show_name'])) {
       $show_name = $condition['show_name'];
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name' => $show_name]];
+    }
+    if (isset($condition['name'])) {
+      $name = $condition['name'];
+      $body['query']['bool']['must'][] = [ESClient::MATCH => ['name' => ['query' => $name,
+                  'minimum_should_match' => '75%']]];
     }
     if (isset($condition['attrs'])) {
       $attrs = $condition['attrs'];
@@ -186,10 +203,10 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['keyword'])) {
       $show_name = $condition['keyword'];
-      $body['query'] = ['multi_match' => [
-              "query" => $show_name,
-              "type" => "most_fields",
-              "fields" => ["show_name", "attrs", 'specs']
+      $body['query']['bool']['must'][] = [ESClient::MULTI_MATCH => [
+              'query' => $show_name,
+              'type' => 'most_fields',
+              'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
       ]];
     }
     return $body;
@@ -208,10 +225,10 @@ class EsproductModel extends PublicModel {
       if (!$_source) {
         $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
             , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
-            'recommend_flag', 'supply_capabilitys', 'tech_paras'];
+            'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
+            'brand', 'supplier_name'];
       }
       $body = $this->getCondition($condition);
-
       $pagesize = 10;
       $current_no = 1;
       if (isset($condition['current_no'])) {
@@ -226,10 +243,10 @@ class EsproductModel extends PublicModel {
       $newbody = $this->getCondition($condition);
       $allcount = $es->setbody($newbody)
               ->count($this->dbName, $this->tableName . '_' . $lang);
-
       return [$es->setbody($body)
                   ->setfields($_source)
-                  ->setsort('spu', 'asc')
+                  ->setsort('sort_order', 'desc')
+                  ->setsort('_score', 'desc')
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {
@@ -237,6 +254,27 @@ class EsproductModel extends PublicModel {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
       return [];
+    }
+  }
+
+  public function getcount($condition, $lang = 'en') {
+
+    try {
+
+      $body = $this->getCondition($condition);
+      $es = new ESClient();
+      $ret = $es->setbody($body)
+              ->count($this->dbName, $this->tableName . '_' . $lang, '');
+      if (isset($ret['count'])) {
+        return $ret['count'];
+      } else {
+        return 0;
+      }
+    } catch (Exception $ex) {
+
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return 0;
     }
   }
 
@@ -279,7 +317,6 @@ class EsproductModel extends PublicModel {
   public function getshow_catlist($condition, $lang = 'en') {
 
     try {
-
       $data = $this->getmeterial_catlist($condition, $lang);
       $show_model = new ShowCatModel();
     } catch (Exception $ex) {
@@ -292,7 +329,7 @@ class EsproductModel extends PublicModel {
   /**
    * 根据spu获取sku数   (这里不包括删除的)
    * @author link
-   * @param string $spu spu编码
+   * @param string $spus spu编码
    * @param string $lang 语言
    * @retrun int
    */
@@ -322,8 +359,8 @@ class EsproductModel extends PublicModel {
   }
 
   /* 通过ES 获取数据列表
-   * @param string $name // 商品名称 属性名称或属性值
-   * @param string $show_cat_no // 展示分类编码
+   * @param string $sku // 商品名称 属性名称或属性值
+   * @param string $lang // 展示分类编码
    * @return mix  
    */
 
@@ -340,8 +377,8 @@ class EsproductModel extends PublicModel {
   }
 
   /* 通过ES 获取数据列表
-   * @param string $name // 商品名称 属性名称或属性值
-   * @param string $show_cat_no // 展示分类编码
+   * @param string $spu // 商品名称 属性名称或属性值
+   * @param string $lang // 展示分类编码
    * @return mix  
    */
 
@@ -359,7 +396,7 @@ class EsproductModel extends PublicModel {
 
   /*
    * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
-   * @param mix $cat_nos // 物料分类编码数组3f
+   * @param mix $cat_no // 物料分类编码数组3f
    * @param string $lang // 语言 zh en ru es 
    * @return mix  物料分类及上级和顶级信息
    */
@@ -578,13 +615,17 @@ class EsproductModel extends PublicModel {
   public function getshow_catsbyspus($spus, $lang = 'en') {
     try {
 
-      $show_cat_products = $this->table('erui_goods.t_show_cat_product')
-              ->field('cat_no,spu')
-              ->where(['spu' => ['in', $spus], 'status' => 'VALID'])
+      $show_cat_products = $this->table('erui_goods.t_show_cat_product scp')
+              ->join('erui_goods.t_show_cat sc on scp.cat_no=sc.cat_no')
+              ->field('scp.cat_no,scp.spu', 'left')
+              ->where(['scp.spu' => ['in', $spus],
+                  'scp.status' => 'VALID',
+                  'sc.status' => 'VALID',
+                  'sc.lang' => $lang,
+                  'sc.id>0',
+              ])
               ->select();
       $ret = [];
-
-
       foreach ($show_cat_products as $item) {
 
         $ret[$item['spu']] = $item['cat_no'];
@@ -608,7 +649,8 @@ class EsproductModel extends PublicModel {
     try {
       $product_attrs = $this->table('erui_goods.t_product_attr')
                       ->field('spu,attr_name,attr_value,attr_no')
-                      ->where(['spu' => ['in', $spus], 'lang' => $lang, 'spec_flag' => 'Y', 'status' => 'VALID'
+                      ->where(['spu' => ['in', $spus], 'lang' => $lang,
+                          'spec_flag' => 'Y', 'status' => 'VALID'
                       ])->select();
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -636,9 +678,15 @@ class EsproductModel extends PublicModel {
   public function getshow_material_cats($cat_nos, $lang = 'en') {
 
     try {
-      $show_material_cats = $this->table('erui_goods.t_show_material_cat')
+      $show_material_cats = $this->table('erui_goods.t_show_material_cat smc')
+              ->join('erui_goods.t_show_cat sc on smc.show_cat_no=sc.cat_no')
               ->field('show_cat_no,material_cat_no')
-              ->where(['material_cat_no' => ['in', $cat_nos], 'status' => 'VALID'])
+              ->where([
+                  'smc.material_cat_no' => ['in', $cat_nos],
+                  'sc.status' => 'VALID',
+                  'sc.lang' => $lang,
+                  'sc.id>0',
+                  'smc.status' => 'VALID'])
               ->select();
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -823,6 +871,7 @@ class EsproductModel extends PublicModel {
 
       $ret = [];
       foreach ($products as $item) {
+        $show_cat = [];
         $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
         if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
           foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
@@ -924,6 +973,12 @@ class EsproductModel extends PublicModel {
           foreach ($products as $key => $item) {
             $id = $item['spu'];
             $body = $item;
+
+            if ($body['source'] == 'ERUI') {
+              $body['sort_order'] = 100;
+            } else {
+              $body['sort_order'] = 1;
+            }
             if (isset($skus[$item['spu']])) {
               $json_skus = $skus[$item['spu']];
               rsort($json_skus);
@@ -931,15 +986,11 @@ class EsproductModel extends PublicModel {
             } else {
               $body['skus'] = '[]';
             }
-
             if (isset($specs[$item['spu']])) {
-
-
               $body['specs'] = json_encode($specs[$item['spu']], JSON_UNESCAPED_UNICODE);
             } else {
               $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
             }
-
             if (isset($attachs[$item['spu']])) {
               $body['attachs'] = json_encode($attachs[$item['spu']], 256);
             } else {
@@ -948,6 +999,11 @@ class EsproductModel extends PublicModel {
             $show_cat = [];
             if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {
               $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
+            }
+            if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
+              foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
+                $show_cat[$show_cat_no] = $scats[$show_cat_no];
+              }
             }
             if (isset($mcats[$item['meterial_cat_no']])) {
               $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
@@ -971,8 +1027,10 @@ class EsproductModel extends PublicModel {
             } else {
               $body['supply_capabilitys'] = json_encode([], JSON_UNESCAPED_UNICODE);
             }
+
+
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            echo $item['id'], '  ', $k, PHP_EOL;
+
 
             if ($flag['_shards']['successful'] !== 1) {
               LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
@@ -1230,7 +1288,7 @@ class EsproductModel extends PublicModel {
       $id = $data['spu'];
       $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
-        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
       } else {
         return false;
@@ -1258,7 +1316,7 @@ class EsproductModel extends PublicModel {
       $id = $spu;
       $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
-        LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
       } else {
         return false;
@@ -1300,7 +1358,7 @@ class EsproductModel extends PublicModel {
    */
 
   public function Updateshowcats($spu = null, $lang = 'en') {
-    $es = new ESClient();
+
     if (empty($spu)) {
       return false;
     }
@@ -1310,13 +1368,16 @@ class EsproductModel extends PublicModel {
     $show_cat_nos = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
     $scats = $this->getshow_cats($show_cat_nos, $lang);
     $data['show_cats'] = json_encode($scats, 256);
-    $es->update_document($this->dbName, $type, $data, $id);
+    $product = ['update' => [
+            "_id" => $id,
+            "_type" => $type,
+            "_index" => $this->dbName,
+        ]
+    ];
+    $product_doc['doc'] = $data;
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.show_cats=show_cats;",
-            "params" => [
-                "show_cats" => $data['show_cats'],
-            ]
+        "doc" => [
+            "show_cats" => $data['show_cats'],
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
@@ -1324,9 +1385,14 @@ class EsproductModel extends PublicModel {
             ]
         ]
     ];
-    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+    $goods = ['_update_by_query' => [
+            "_type" => 'goods_' . $lang,
+            "_index" => $this->dbName,
+        ]
+    ];
 
-    return true;
+
+    return [$product, $product_doc, $goods, $esgoodsdata];
   }
 
   /* 新增ES
@@ -1334,64 +1400,62 @@ class EsproductModel extends PublicModel {
    * $replacement 替换后的内容
    */
 
-  public function Replaceshowcats($cat_no, $substr, $replacement, $lang = 'en') {
-    $es = new ESClient();
-    if (empty($cat_no)) {
+  public function update_showcats($spus, $lang = 'en') {
+    if (empty($spus)) {
       return false;
     }
-    $data = [
-        "script" => [
-            "inline" => "ctx._source.show_cats.replace(substr,replacement);",
-            "params" => [
-                "substr" => $substr,
-                "replacement" => $replacement]
-        ],
-        "query" => [
-            ESClient::MATCH_PHRASE => [
-                "show_cats" => $cat_no
-            ]
-        ]
-    ];
-    $es->UpdateByQuery($this->dbName, 'product_' . $lang, $data);
-    $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $data);
-
-    return true;
+    $bulk = [];
+    foreach ($spus as $spu) {
+      $re = $this->Updateshowcats($spu, $lang);
+      if ($re) {
+        $bulk[] = $re[0];
+        $bulk[] = $re[1];
+        $bulk[] = $re[2];
+        $bulk[] = $re[3];
+      }
+    }
+    if ($bulk) {
+      $es = new ESClient();
+      $es->bulk($bulk);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /* 新增ES
    * 
    */
 
-  public function Updatemeterialcatno($material_cat_no, $spu = null, $lang = 'en') {
+  public function Updatemeterialcatno($material_cat_no, $spu = null, $lang = 'en', $new_cat_no = '') {
     $es = new ESClient();
     if (empty($material_cat_no)) {
       return false;
     }
+    if (!$new_cat_no) {
+      $new_cat_no = $material_cat_no;
+    }
     $type = $this->tableName . '_' . $lang;
     $mcatmodel = new MaterialcatModel();
-    $data['meterial_cat'] = json_encode($mcatmodel->getinfo($material_cat_no, $lang), 256);
+    $data['meterial_cat'] = json_encode($mcatmodel->getinfo($new_cat_no, $lang), 256);
     $smmodel = new ShowmaterialcatModel();
-    $show_cat_nos = $smmodel->getshowcatnosBymatcatno($material_cat_no, $lang);
+    $show_cat_nos = $smmodel->getshowcatnosBymatcatno($new_cat_no, $lang);
     $scats = $this->getshow_cats($show_cat_nos, $lang);
-    $data['show_cats'] = json_encode($scats[$material_cat_no], 256);
+    $data['show_cats'] = json_encode($scats[$new_cat_no], 256);
     $SupplycapabilityModel = new SupplycapabilityModel();
-    $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$material_cat_no], $lang);
-    $data['supply_capabilitys'] = json_encode($supply_capabilitys[$material_cat_no], 256);
-    $data['material_cat_no'] = $material_cat_no;
+    $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$new_cat_no], $lang);
+    $data['supply_capabilitys'] = json_encode($supply_capabilitys[$new_cat_no], 256);
+    $data['material_cat_no'] = $new_cat_no;
     if ($spu) {
       $id = $spu;
       $es->update_document($this->dbName, $type, $data, $id);
     } else {
       $es_product_data = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;"
-              . "ctx._source.show_cats=show_cats;"
-              . "ctx._source.supply_capabilitys=supply_capabilitys;",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-                  'material_cat_no' => $material_cat_no,
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
+              'material_cat_no' => $new_cat_no,
+              'supply_capabilitys' => $data['supply_capabilitys']
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1403,12 +1467,9 @@ class EsproductModel extends PublicModel {
     }
     if ($spu) {
       $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1418,12 +1479,9 @@ class EsproductModel extends PublicModel {
       ];
     } else {
       $esgoodsdata = [
-          "script" => [
-              "inline" => "ctx._source.meterial_cat=meterial_cat;ctx._source.show_cats=show_cats",
-              "params" => [
-                  "meterial_cat" => $data['meterial_cat'],
-                  "show_cats" => $data['show_cats'],
-              ]
+          "doc" => [
+              "meterial_cat" => $data['meterial_cat'],
+              "show_cats" => $data['show_cats'],
           ],
           "query" => [
               ESClient::MATCH_PHRASE => [
@@ -1526,11 +1584,8 @@ class EsproductModel extends PublicModel {
     $es->update_document($this->dbName, $type, $data, $id);
 
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.brand=brand;",
-            "params" => [
-                "brand" => $brand,
-            ]
+        "doc" => [
+            "brand" => $brand,
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [
@@ -1581,11 +1636,8 @@ class EsproductModel extends PublicModel {
     $es->update_document($this->dbName, $type, $data, $id);
 
     $esgoodsdata = [
-        "script" => [
-            "inline" => "ctx._source.brand=brand;",
-            "params" => [
-                "supplier_name" => $supplier_name,
-            ]
+        "doc" => [
+            "supplier_name" => $supplier_name,
         ],
         "query" => [
             ESClient::MATCH_PHRASE => [

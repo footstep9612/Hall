@@ -47,15 +47,27 @@ class QuoteFinalController extends PublicController {
         foreach ($quoteList as $quote) {
             $quoteFinal = $quote;
             unset($quoteFinal['id']);
+            unset($quoteFinal['logi_quote_status']);
+            unset($quoteFinal['biz_quote_status']);
+            unset($quoteFinal['logi_agent']);
+            unset($quoteFinal['logi_agent_email']);
+            unset($quoteFinal['logi_submit_at']);
+            unset($quoteFinal['logi_notes']);
+            unset($quoteFinal['logi_checker']);
+            unset($quoteFinal['logi_checker_email']);
+            unset($quoteFinal['logi_check_at']);
+            unset($quoteFinal['logi_check_notes']);
+            unset($quoteFinal['checker2']);
+            unset($quoteFinal['checker2_email']);
+            unset($quoteFinal['check2_at']);
+            unset($quoteFinal['check2_notes']);
             $quoteFinal['created_at'] = $time;
-            
             $quoteFinalList[] = $quoteFinal;
-            
+
             $inquiry_no_arr[] = $quote['inquiry_no'];
         }
-
         if ($this->finalQuoteModel->addAll($quoteFinalList)) {
-            
+
             $approveLog = array(
                 'inquiry_no' =>implode(',', $inquiry_no_arr),
                 'type' => '创建市场报价单'
@@ -196,7 +208,7 @@ class QuoteFinalController extends PublicController {
      * @return json
      */
     public function updateFinalQuoteAction() {
-        $finalQuote = $condition = $this->put_data;
+        $condition = $this->put_data;
 
         if (!empty($condition['quote_no'])) {
             $where['quote_no'] = $condition['quote_no'];
@@ -417,8 +429,9 @@ class QuoteFinalController extends PublicController {
         $totalWeight = 0;
         $totalPurchasePrice	= 0;
         foreach ($quoteItemList as $quoteItem) {
-            $totalWeight += $quoteItem['unit_weight'];
-            $itemRate = $this->exchangeRateModel->where(array('currency1' => $quoteItem['purchase_cur'], 'currency2' => $condition['purchase_cur']))->field('rate')->find();
+            $totalWeight += $quoteItem['unit_weight'] * $quoteItem['quote_quantity'];
+            //$itemRate = $this->exchangeRateModel->where(array('currency1' => $quoteItem['purchase_cur'], 'currency2' => $condition['purchase_cur']))->field('rate')->find();
+            $itemRate['rate'] = $exchangeRate;
 
             $exwData[] = array('busyer_unit_price' => $quoteItem['purchase_price'] * $exchangeRate, 'num' => $quoteItem['quote_quantity']);
             $totalPurchasePrice += $quoteItem['total_purchase_price'] * $itemRate['rate'];
