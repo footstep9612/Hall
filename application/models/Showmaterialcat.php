@@ -70,7 +70,7 @@ class ShowmaterialcatModel extends PublicModel {
               ->field('ms.material_cat_no,ms.show_cat_no as cat_no,'
                       . 'ms.status,s.name')
               ->group('cat_no')
-              ->limit(0, 30)
+              ->limit(0, 20)
               ->select();
    
       return $flag;

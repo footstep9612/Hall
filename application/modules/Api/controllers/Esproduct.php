@@ -133,42 +133,13 @@ class EsproductController extends PublicController {
     return $list;
   }
 
-  private function getshowcatnos() {
-    $show_cat_nos = $info = [];
-    if ($this->put_data['show_cat_no']) {
-      $show_cat_model = new ShowCatModel();
-      $info = $show_cat_model->info($this->put_data['show_cat_no'], $this->getLang());
-      if ($info['level_no'] == 1) {
-        $condition['level_no'] = 3;
-        $condition['top_no'] = $this->put_data['show_cat_no'];
-        $condition['lang'] = $this->getLang();
-        $cat_nos = $show_cat_model->getListByconandlang($condition, 'en');
-      } elseif ($info['level_no'] == 2) {
-        $condition['level_no'] = 3;
-        $condition['parent_cat_no'] = $this->put_data['show_cat_no'];
-        $condition['lang'] = $this->getLang();
-        $cat_nos = $show_cat_model->getListByconandlang($condition, 'en');
-      } elseif ($info['level_no'] == 3) {
-        $cat_nos = [['cat_no' => $this->put_data['show_cat_no']]];
-      }
-      if ($cat_nos) {
-        foreach ($cat_nos as $showcat) {
-          $show_cat_nos[] = $showcat['cat_no'];
-        }
-      }
-    }
-    return $show_cat_nos;
-  }
-
-
   private function getcatlist($material_cat_nos, $material_cats) {
     ksort($material_cat_nos);
     $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5(json_encode($this->put_data)));
     $catlist = json_decode(redisGet($catno_key), true);
     if (!$catlist) {
-      $show_cat_nos = $this->getshowcatnos();
       $matshowcatmodel = new ShowmaterialcatModel();
-      $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(), $show_cat_nos);
+      $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
       $new_showcats3 = [];
       foreach ($showcats as $showcat) {
         $material_cat_no = $showcat['material_cat_no'];
