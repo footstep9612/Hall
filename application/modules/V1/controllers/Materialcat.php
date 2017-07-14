@@ -15,16 +15,14 @@ class MaterialcatController extends PublicController {
     $jsondata = ['lang' => $lang];
     $jsondata['level_no'] = 1;
     $arr = $this->_model->getlist($jsondata);
-
     if ($arr) {
       $data['code'] = 0;
       $data['message'] = '获取成功!';
       foreach ($arr as $key => $val) {
-
-        $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level' => 1]);
+        $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 1]);
         if ($arr[$key]['childs']) {
           foreach ($arr[$key]['childs'] as $k => $item) {
-            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level' => 2]);
+            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 2]);
           }
         }
       }
@@ -40,7 +38,7 @@ class MaterialcatController extends PublicController {
 
         foreach ($arr[$key]['childs'] as $k => $item) {
 
-          $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level' => 2]);
+          $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 2]);
         }
         $data['data'] = $arr;
       } else {
