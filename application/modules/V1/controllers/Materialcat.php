@@ -12,7 +12,7 @@ class MaterialcatController extends PublicController {
   }
 
   public function listAction() {
-    $lang = $this->getPut('lang', 'zh');
+    $lang = $this->getPut('lang', 'en');
     $jsondata = ['lang' => $lang];
     $jsondata['level_no'] = 1;
     $condition = $jsondata;
