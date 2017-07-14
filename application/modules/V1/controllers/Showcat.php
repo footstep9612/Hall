@@ -9,7 +9,7 @@
 class ShowcatController extends PublicController {
 
   public function init() {
-    $this->_model=new ShowCatModel();
+    $this->_model = new ShowCatModel();
     parent::init();
   }
 
@@ -74,15 +74,13 @@ class ShowcatController extends PublicController {
     if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
       if ($arr) {
-        $data['code'] = 0;
-        $data['message'] = '获取成功!';
-
-        $data['data'] = $arr;
+        redisSet($key, json_encode($arr), 86400);
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
       } else {
-        $data['code'] = -1;
-        $data['message'] = '数据为空!';
+        $this->setCode(MSG::MSG_FAILED);
+        $this->jsonReturn();
       }
-      redisSet($key, json_encode($data), 86400);
     }
     $this->jsonReturn($data);
   }
@@ -109,14 +107,13 @@ class ShowcatController extends PublicController {
       $result['es']['name'] = $ret_es['name'];
     }
     if ($result) {
-      $this->setCode(1);
+
+      $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
-      $this->setCode(-1);
-
+      $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
-    exit;
   }
 
   private function delcache() {
@@ -134,13 +131,12 @@ class ShowcatController extends PublicController {
 
     $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
-
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -149,11 +145,11 @@ class ShowcatController extends PublicController {
     $result = $this->_model->update_data($this->put_data, $this->user['username']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -162,11 +158,11 @@ class ShowcatController extends PublicController {
     $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -175,11 +171,11 @@ class ShowcatController extends PublicController {
     $result = $this->_model->approving($this->put_data['id']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -190,14 +186,13 @@ class ShowcatController extends PublicController {
   public function changeorderAction() {
 
     $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
-    $this->setCode(1);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 

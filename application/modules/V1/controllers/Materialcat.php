@@ -21,8 +21,7 @@ class MaterialcatController extends PublicController {
     if (!$data) {
       $arr = $this->_model->getlist($jsondata);
       if ($arr) {
-        $data['code'] = 0;
-        $data['message'] = '获取成功!';
+        $this->setCode(MSG::MSG_SUCCESS);
         foreach ($arr as $key => $val) {
           $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
 
@@ -34,32 +33,36 @@ class MaterialcatController extends PublicController {
             }
           }
         }
-        $data['data'] = $arr;
+        redisSet($key, json_encode($arr), 86400);
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
       } else {
         $condition['level_no'] = 2;
         $arr = $this->_model->getlist($condition);
         if ($arr) {
-          $data['code'] = 0;
-          $data['message'] = '获取成功!';
+          $this->setCode(MSG::MSG_SUCCESS);
           foreach ($arr[$key]['childs'] as $k => $item) {
             $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
           }
-          $data['data'] = $arr;
+
+          redisSet($key, json_encode($arr), 86400);
+          $this->setCode(MSG::MSG_SUCCESS);
+          $this->jsonReturn($arr);
         } else {
           $condition['level_no'] = 3;
           $arr = $this->_model->getlist($condition);
           if ($arr) {
-            $data['code'] = 0;
-            $data['message'] = '获取成功!';
-            $data['data'] = $arr;
+            redisSet($key, json_encode($arr), 86400);
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
           } else {
-            $data['code'] = -1;
-            $data['message'] = '数据为空!';
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
           }
         }
       }
-      redisSet($key, json_encode($data), 86400);
     }
+    $this->setCode(MSG::MSG_SUCCESS);
     $this->jsonReturn($data);
   }
 
@@ -70,16 +73,14 @@ class MaterialcatController extends PublicController {
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
+      redisSet($key, json_encode($arr), 86400);
       if ($arr) {
-        $data['code'] = 0;
-        $data['message'] = '获取成功!';
-
-        $data['data'] = $arr;
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
       } else {
-        $data['code'] = -1;
-        $data['message'] = '数据为空!';
+        $this->setCode(MSG::MSG_FAILED);
+        $this->jsonReturn();
       }
-      redisSet($key, json_encode($data), 86400);
     }
     $this->jsonReturn($data);
   }
@@ -106,10 +107,10 @@ class MaterialcatController extends PublicController {
       $result['es']['name'] = $ret_es['name'];
     }
     if ($result) {
-      $this->setCode(1);
+      $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
-      $this->setCode(-1);
+      $this->setCode(MSG::MSG_FAILED);
 
       $this->jsonReturn();
     }
@@ -131,13 +132,12 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
-
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn();
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -146,11 +146,11 @@ class MaterialcatController extends PublicController {
     $result = $this->_model->update_data($this->put_data, $this->user['username']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn();
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -159,11 +159,11 @@ class MaterialcatController extends PublicController {
     $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn();
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -172,11 +172,11 @@ class MaterialcatController extends PublicController {
     $result = $this->_model->approving($this->put_data['id']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn();
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -187,14 +187,14 @@ class MaterialcatController extends PublicController {
   public function changeorderAction() {
 
     $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
-    $this->setCode(1);
+
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn();
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
