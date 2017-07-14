@@ -75,7 +75,6 @@ class EsproductController extends PublicController {
   public function listAction() {
     $model = new EsproductModel();
     $ret = $model->getproducts($this->put_data, null, $this->getLang());
-
     if ($ret) {
       $data = $ret[0];
       $list = $this->getdata($data);
@@ -87,13 +86,25 @@ class EsproductController extends PublicController {
       } else {
         $send['allcount'] = $send['count'];
       }
-      $material_cat_nos = [];
-      foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
-        $material_cats[$item['key']] = $item['doc_count'];
-        $material_cat_nos[] = $item['key'];
+      if (!$this->put_data['show_cat_no']) {
+        $material_cat_nos = [];
+        foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
+          $material_cats[$item['key']] = $item['doc_count'];
+          $material_cat_nos[] = $item['key'];
+        }
+      } else {
+        $condition = $this->put_data;
+        unset($condition['show_cat_no']);
+        $ret1 = $model->getproducts($condition, null, $this->getLang());
+        if ($ret1) {
+          $material_cat_nos = [];
+          foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
+            $material_cats[$item['key']] = $item['doc_count'];
+            $material_cat_nos[] = $item['key'];
+          }
+        }
       }
       $catlist = $this->getcatlist($material_cat_nos, $material_cats);
-
       $send['catlist'] = $catlist;
       $send['data'] = $list;
       $this->update_keywords();
