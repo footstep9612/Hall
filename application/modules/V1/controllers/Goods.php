@@ -122,7 +122,6 @@ class GoodsController extends Yaf_Controller_Abstract
         exit;
     }
 
-
     /**
      * spu列表(pc)
      * @author  link  2017/6/17
@@ -138,53 +137,6 @@ class GoodsController extends Yaf_Controller_Abstract
         }
         exit;
     }
-    /**
-     * 获取公共模板表
-     * @author  klp  2017/7/6
-     */
-    public function getCommonTplAction()
-    {
-        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
-        $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getCommonAttrTpl($lang);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','数据获取失败');
-        }
-    }
-
-    /**
-     * 获取sku模板表
-     * @author  klp  2017/7/6
-     */
-    public function getGoodsAttrTplAction()
-    {
-        //$this->input['sku'] = 3303060000010001;//测试
-        if(!empty($this->input['sku'])){
-            $sku = $this->input['sku'];
-        } else{
-            jsonReturn('','-1001','sku不可以为空');
-        }
-        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
-        $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getGoodsAttrTpl($sku,$lang);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','数据获取失败');
-        }
-    }
 
     /**
      * sku新增/编辑  -- 总接口
@@ -192,7 +144,7 @@ class GoodsController extends Yaf_Controller_Abstract
      */
     public function editSkuAction()
     {
-        //$this->input = $this->test();//测试
+        $this->input = $this->test();//测试
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSkuInfo($this->input);
         if($result){
@@ -428,7 +380,7 @@ class GoodsController extends Yaf_Controller_Abstract
      * sku附件状态更改及删除   -- 门户
      * @author  klp  2017/7-5
      */
-    public function modifySkuAttachAction()
+    public function deleteSkuAttachAction()
     {
 
         $goodsAttachModel = new GoodsAttachModel();
@@ -475,18 +427,18 @@ class GoodsController extends Yaf_Controller_Abstract
     {
         $data = [
             'en'=>[
-                "spu" => "spu003",
+                "spu" => "spu007",
                 "lang" => "en",
-                'model'=> 'model',
-                'name'=> 'sku_name4',
-                'show_name'=> 'sku00003',
+                'model'=> 'model7',
+                'name'=> 'sku_name7',
+                'show_name'=> 'sku00007',
                 'attrs'=> [
                     0=>[
                         'attr_name'=> 'attr1111',
                         'attr_value'=> 'attr1111',
                         'goods_flag'=> 'Y',
                     ],
-                    1=>[
+                   /* 1=>[
                         'attr_name'=> 'attr1222',
                         'attr_value'=> 'attr1222',
                         'spec_flag'=> 'Y',
@@ -500,7 +452,7 @@ class GoodsController extends Yaf_Controller_Abstract
                         'attr_name'=> 'attr1222',
                         'attr_value'=> 'attr1222',
                         'hs_flag'=> 'Y',
-                    ],
+                    ],*/
 
                 ],
                 'attachs'=>[
@@ -509,7 +461,7 @@ class GoodsController extends Yaf_Controller_Abstract
                         'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
                         'attach_type'=> 'BIG_IMAGE',
                     ],
-                    1=>[
+                  /*  1=>[
                         'attach_name'=> 'attr7',
                         'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
                         'attach_type'=> 'BIG_IMAGE',
@@ -518,7 +470,7 @@ class GoodsController extends Yaf_Controller_Abstract
                         'attach_name'=> 'attr9',
                         'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
                         'attach_type'=> 'SMALL_IMAGE',
-                    ],
+                    ],*/
                 ],
             ]
         ];
@@ -560,20 +512,17 @@ class GoodsController extends Yaf_Controller_Abstract
                 ],
                 'attachs'=>[
                     0=>[
-                        'id'=> 4,
-                        'attach_name'=> 'attr747',
-                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb1.jpg',
-                        'attach_type'=> 'SMALL_IMAGE',
+                        'attach_name'=> 'attr767',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
+                        'attach_type'=> 'BIG_IMAGE',
                     ],
                     1=>[
-                        'id'=> 5,
-                        'attach_name'=> 'attr75',
-                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb2.jpg',
+                        'attach_name'=> 'attr7',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
                         'attach_type'=> 'BIG_IMAGE',
                     ],
                     2=>[
-                        'id'=> 6,
-                        'attach_name'=> 'attr96',
+                        'attach_name'=> 'attr9',
                         'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
                         'attach_type'=> 'SMALL_IMAGE',
                     ],
@@ -585,8 +534,8 @@ class GoodsController extends Yaf_Controller_Abstract
             "spu" => "spu001",
             "status" => "INVALID",
         ];
-        //return $data;
-        return $up;
+        return $data;
+        //return $up;
         //return $del;
     }
 

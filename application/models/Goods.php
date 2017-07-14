@@ -679,7 +679,7 @@ class GoodsModel extends PublicModel
         $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
         //获取当前用户信息
         $userInfo = getLoinInfo();
-       // $userInfo['name'] = '张三';   //测试
+        $userInfo['name'] = '李四';   //测试
         $this->startTrans();
         try {
             foreach ($input as $key => $value) {
@@ -706,6 +706,10 @@ class GoodsModel extends PublicModel
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
                     if (isset($input['sku'])) {     //------编辑
+                        $result = $this->field('sku')->where(['sku'=>$input['sku'],'lang'=>$key])->find();
+                        if($result){
+                            JsonReturn('','-1009','[sku]已经存在');
+                        }
                       //  $data['updated_by'] = $userInfo['name'];
                        // $data['updated_at'] =  date('Y-m-d H:i:s', time());
                         $where = [
@@ -721,11 +725,6 @@ class GoodsModel extends PublicModel
                         $gattr = new GoodsAttrModel();
                         $resAttr = $gattr->updateAttrSku($checkout);        //属性更新
                         if (!$resAttr) {
-                            return false;
-                        }
-                        $gattach = new GoodsAttachModel();
-                        $resAttach = $gattach->updateAttachSku($checkout);  //附件更新
-                        if (!$resAttach) {
                             return false;
                         }
 
@@ -745,8 +744,12 @@ class GoodsModel extends PublicModel
                         if (!$resAttr) {
                             return false;
                         }
+                    }
+                } elseif('attachs' == $key){
+                    if(is_array($value['attachs']) && !empty($value['attachs'])){
+                        $value['sku'] = $sku;
                         $gattach = new GoodsAttachModel();
-                        $resAttach = $gattach->createAttachSku($checkout);  //附件新增
+                        $resAttach = $gattach->createAttachSku($value);  //附件新增
                         if (!$resAttach) {
                             return false;
                         }

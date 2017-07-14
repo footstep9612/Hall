@@ -476,7 +476,8 @@ class GoodsAttrModel extends PublicModel
         if (isset($data['attr_no'])) {
             $condition['attr_no'] = $data['attr_no'];
         } else {
-            JsonReturn('','-1003','属性编码不能为空');
+            $condition['attr_no'] = 123;
+           // JsonReturn('','-1003','属性编码不能为空');
         }
         if(isset($data['status'])){
             switch ($data['status']) {
