@@ -130,7 +130,7 @@ class MaterialcatModel extends PublicModel {
   public function getlist($condition = []) {
     $where = $this->getcondition($condition);
     if (isset($condition['page']) && isset($condition['countPerPage'])) {
-      $count = $this->getcount($condition);
+      // $count = $this->getcount($condition);
       return $this->where($where)
                       ->limit($condition['page'] . ',' . $condition['countPerPage'])
                       ->order('sort_order DESC')
