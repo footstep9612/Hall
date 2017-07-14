@@ -6,23 +6,29 @@
 class MaterialcatController extends PublicController {
 
   public function init() {
-    parent::init();
+  parent::init();
+
     $this->_model = new MaterialcatModel();
   }
 
   public function listAction() {
-    $lang = $this->getPut('lang', 'en');
+    $lang = $this->getPut('lang', 'zh');
     $jsondata = ['lang' => $lang];
     $jsondata['level_no'] = 1;
+    $condition = $jsondata;
     $arr = $this->_model->getlist($jsondata);
+
     if ($arr) {
       $data['code'] = 0;
       $data['message'] = '获取成功!';
       foreach ($arr as $key => $val) {
-        $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 1]);
+        $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
+
         if ($arr[$key]['childs']) {
           foreach ($arr[$key]['childs'] as $k => $item) {
-            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 2]);
+            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
+                'level_no' => 3,
+                'lang' => $lang]);
           }
         }
       }
@@ -30,7 +36,7 @@ class MaterialcatController extends PublicController {
       $data['data'] = $arr;
     } else {
       $condition['level_no'] = 2;
-      $arr = $this->_model->getlist($jsondata);
+      $arr = $this->_model->getlist($condition);
       if ($arr) {
         $data['code'] = 0;
         $data['message'] = '获取成功!';
@@ -38,13 +44,13 @@ class MaterialcatController extends PublicController {
 
         foreach ($arr[$key]['childs'] as $k => $item) {
 
-          $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 2]);
+          $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
         }
         $data['data'] = $arr;
       } else {
 
         $condition['level_no'] = 3;
-        $arr = $this->_model->getlist($jsondata);
+        $arr = $this->_model->getlist($condition);
         if ($arr) {
           $data['code'] = 0;
           $data['message'] = '获取成功!';
@@ -55,6 +61,7 @@ class MaterialcatController extends PublicController {
         }
       }
     }
+
     $this->jsonReturn($data);
   }
 
@@ -153,6 +160,10 @@ class MaterialcatController extends PublicController {
       jsonReturn();
     }
   }
+
+  /* 交换顺序
+   * 
+   */
 
   public function changeorderAction() {
 

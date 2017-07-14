@@ -44,7 +44,7 @@ class MaterialcatModel extends PublicModel {
     }
 
     if (isset($condition['cat_no3'])) {
-      $where['level_no'] = 2;
+      $where['level_no'] = 3;
       $where['cat_no'] = $condition['cat_no3'];
     } elseif (isset($condition['cat_no2'])) {
       $where['level_no'] = 2;
@@ -52,10 +52,10 @@ class MaterialcatModel extends PublicModel {
     } elseif (isset($condition['cat_no1'])) {
       $where['level_no'] = 1;
       $where['parent_cat_no'] = $condition['cat_no1'];
-    } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 2) {
+    } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
       $where['level_no'] = intval($condition['level_no']);
     } else {
-      $where['level_no'] = 0;
+      $where['level_no'] = 1;
     }
     if (isset($condition['parent_cat_no'])) {
       $where['parent_cat_no'] = $condition['parent_cat_no'];
