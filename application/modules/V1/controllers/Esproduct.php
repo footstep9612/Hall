@@ -35,7 +35,6 @@ class EsproductController extends ShopMallController {
         $tks = explode('.', $token);
         $tokeninfo = JwtInfo($token); //解析token
         $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
-
         if (empty($userinfo)) {
           $this->put_data['source'] = 'ERUI';
         } else {
@@ -74,7 +73,8 @@ class EsproductController extends ShopMallController {
         $material_cats[$item['key']] = $item['doc_count'];
         $material_cat_nos[] = $item['key'];
       }
-      $catlist = $this->getcatlist($material_cat_nos,$material_cats);
+      $catlist = $this->getcatlist($material_cat_nos, $material_cats);
+
       $send['catlist'] = $catlist;
       $send['data'] = $list;
       $this->update_keywords();
@@ -135,92 +135,40 @@ class EsproductController extends ShopMallController {
 
       if ($cat_nos) {
         foreach ($cat_nos as $showcat) {
-          $show_cat_nos = $showcat['cat_no'];
+          $show_cat_nos[] = $showcat['cat_no'];
         }
       }
-    }
-    return [$show_cat_nos, $info];
+    }  
+    return $show_cat_nos;
   }
 
-  private function getcatlist($material_cat_nos,$material_cats) {
-    $catlist = null;
+
+  private function getcatlist($material_cat_nos, $material_cats) {
     ksort($material_cat_nos);
-    $catno_key = 'show_cats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . $this->put_data['show_cat_no']);
+    $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5(json_encode($this->put_data)));
     $catlist = json_decode(redisGet($catno_key), true);
     if (!$catlist) {
-      list($show_cat_nos, $info) = $this->getshowcatnos();
+      $show_cat_nos = $this->getshowcatnos();
       $matshowcatmodel = new ShowmaterialcatModel();
-
       $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(), $show_cat_nos);
-      $new_showcats1 = $new_showcats2 = $new_showcats3 = [];
-      $new_showcat2_nos = [];
-      $new_showcat1_nos = [];
+      $new_showcats3 = [];
       foreach ($showcats as $showcat) {
         $material_cat_no = $showcat['material_cat_no'];
         unset($showcat['material_cat_no']);
-        $new_showcats3[$showcat['parent_cat_no']][$showcat['cat_no']] = $showcat;
+        $new_showcats3[$showcat['cat_no']] = $showcat;
         if (isset($material_cats[$material_cat_no])) {
-          $new_showcats3[$showcat['parent_cat_no']][$showcat['cat_no']]['count'] = $material_cats[$material_cat_no];
-        } else {
-          $new_showcats3[$showcat['parent_cat_no']][$showcat['cat_no']]['count'] = 0;
-        }
-        $new_showcat2_nos[] = $showcat['parent_cat_no'];
-      }
-
-      if ($info['level_no'] == 3) {
-        rsort($new_showcats3);
-        redisSet($catno_key, json_encode($new_showcats3), 86400);
-        return $new_showcats3;
-      }
-      $showcat2s = $matshowcatmodel->getshowcatsBycatno($new_showcat2_nos, $this->getLang());
-      foreach ($showcat2s as $showcat2) {
-
-        $new_showcats2[$showcat2['parent_cat_no']][$showcat2['cat_no']] = $showcat2;
-        if (isset($new_showcats3[$showcat2['cat_no']])) {
-          foreach ($new_showcats3[$showcat2['cat_no']] as $showcat3) {
-            $new_showcats2[$showcat2['parent_cat_no']][$showcat2['cat_no']]['count'] += $showcat3['count'];
-          }
-          $new_showcats2[$showcat2['parent_cat_no']][$showcat2['cat_no']]['childs'] = $new_showcats3[$showcat2['cat_no']];
-        }
-
-        $new_showcat1_nos[] = $showcat2['parent_cat_no'];
-      }
-      if ($info['level_no'] == 2) {
-        rsort($new_showcats2);
-        redisSet($catno_key, json_encode($new_showcats2), 86400);
-        return $new_showcats2;
-      }
-      $showcat1s = $matshowcatmodel->getshowcatsBycatno($new_showcat1_nos, $this->getLang());
-      foreach ($showcat1s as $showcat1) {
-
-        $new_showcats1[$showcat1['cat_no']] = $showcat1;
-        if (isset($new_showcats2[$showcat1['cat_no']])) {
-          foreach ($new_showcats2[$showcat1['cat_no']] as $showcat2) {
-
-            $new_showcats1[$showcat1['cat_no']]['count'] += $showcat2['count'];
-          }
-          $new_showcats1[$showcat1['cat_no']]['childs'] = $new_showcats2[$showcat1['cat_no']];
+          $new_showcats3[$showcat['cat_no']]['count'] = $material_cats[$material_cat_no];
         }
       }
-      $new_showcats = [];
-      if ($new_showcats1) {
-        foreach ($new_showcats1 as $cat1) {
-          $newcat1 = $cat1;
-          unset($newcat1['childs']);
-          foreach ($cat1['childs'] as $cat2) {
-            $newcat2 = $cat2;
-            unset($newcat2['childs']);
-            foreach ($cat2['childs'] as $cat3) {
-              $newcat2['childs'][] = $cat3;
-            }
-            $newcat1['childs'][] = $newcat2;
-          }
-          $new_showcats[] = $newcat1;
-        }
+      rsort($new_showcats3);
+      foreach ($new_showcats3 as $key => $item) {
+        $model = new EsproductModel();
+        $this->put_data['show_cat_no'] = $item['cat_no'];
+        $item['count'] = $model->getcount($this->put_data, $this->getLang());
+        $new_showcats3[$key] = $item;
       }
-      $catlist = $new_showcats;
-      redisSet($catno_key, json_encode($catlist), 86400);
-      return $catlist;
+      redisSet($catno_key, json_encode($new_showcats3), 86400);
+      return $new_showcats3;
     }
     return $catlist;
   }

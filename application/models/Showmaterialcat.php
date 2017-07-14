@@ -55,25 +55,27 @@ class ShowmaterialcatModel extends PublicModel {
 
     try {
       $material_cat_nos = array_values($material_cat_nos);
-
       $where = ['ms.material_cat_no' => ['in', $material_cat_nos]
           , 'ms.status' => 'VALID',
           's.status' => 'VALID',
           's.lang' => $lang,
       ];
-      
       if ($show_cat_nos) {
         $where['ms.show_cat_no'] = ['in', $show_cat_nos];
       }
+
       $flag = $this->alias('ms')
               ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ', 'left')
               ->where($where)
               ->field('ms.material_cat_no,ms.show_cat_no as cat_no,'
-                      . 'ms.status,s.name,s.parent_cat_no')
+                      . 'ms.status,s.name')
+              ->group('cat_no')
+              ->limit(0, 30)
               ->select();
-
+   
       return $flag;
     } catch (Exception $ex) {
+
       Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
       Log::write($ex->getMessage());
       return [];
