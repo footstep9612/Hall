@@ -6,7 +6,7 @@
 class MaterialcatController extends PublicController {
 
   public function init() {
-  parent::init();
+    parent::init();
 
     $this->_model = new MaterialcatModel();
   }
@@ -16,67 +16,70 @@ class MaterialcatController extends PublicController {
     $jsondata = ['lang' => $lang];
     $jsondata['level_no'] = 1;
     $condition = $jsondata;
-    $arr = $this->_model->getlist($jsondata);
-
-    if ($arr) {
-      $data['code'] = 0;
-      $data['message'] = '获取成功!';
-      foreach ($arr as $key => $val) {
-        $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
-
-        if ($arr[$key]['childs']) {
-          foreach ($arr[$key]['childs'] as $k => $item) {
-            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
-                'level_no' => 3,
-                'lang' => $lang]);
-          }
-        }
-      }
-
-      $data['data'] = $arr;
-    } else {
-      $condition['level_no'] = 2;
-      $arr = $this->_model->getlist($condition);
+    $key = 'Material_cat_list_' . $lang;
+    $data = json_decode(redisGet($key), true);
+    if ($data) {
+      $arr = $this->_model->getlist($jsondata);
       if ($arr) {
         $data['code'] = 0;
         $data['message'] = '获取成功!';
+        foreach ($arr as $key => $val) {
+          $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
 
-
-        foreach ($arr[$key]['childs'] as $k => $item) {
-
-          $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
+          if ($arr[$key]['childs']) {
+            foreach ($arr[$key]['childs'] as $k => $item) {
+              $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
+                  'level_no' => 3,
+                  'lang' => $lang]);
+            }
+          }
         }
         $data['data'] = $arr;
       } else {
-
-        $condition['level_no'] = 3;
+        $condition['level_no'] = 2;
         $arr = $this->_model->getlist($condition);
         if ($arr) {
           $data['code'] = 0;
           $data['message'] = '获取成功!';
+          foreach ($arr[$key]['childs'] as $k => $item) {
+            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
+          }
           $data['data'] = $arr;
         } else {
-          $data['code'] = -1;
-          $data['message'] = '数据为空!';
+          $condition['level_no'] = 3;
+          $arr = $this->_model->getlist($condition);
+          if ($arr) {
+            $data['code'] = 0;
+            $data['message'] = '获取成功!';
+            $data['data'] = $arr;
+          } else {
+            $data['code'] = -1;
+            $data['message'] = '数据为空!';
+          }
         }
       }
+      redisSet($key, json_encode($data), 86400);
     }
-
     $this->jsonReturn($data);
   }
 
   public function getlistAction() {
     $lang = $this->getPut('lang', 'en');
     $cat_no = $this->getPut('cat_no', '');
-    $arr = $this->_model->get_list($cat_no, $lang);
-    if ($arr) {
-      $data['code'] = 0;
-      $data['message'] = '获取成功!';
+    $key = 'Material_cat_getlist_' . $lang;
+    $data = json_decode(redisGet($key), true);
+    if ($data) {
+      $arr = $this->_model->get_list($cat_no, $lang);
+      if ($arr) {
+        $data['code'] = 0;
+        $data['message'] = '获取成功!';
 
-      $data['data'] = $arr;
-    } else {
-      $data['code'] = -1;
-      $data['message'] = '数据为空!';
+        $data['data'] = $arr;
+      } else {
+        $data['code'] = -1;
+        $data['message'] = '数据为空!';
+      }
+      redisSet($key, json_encode($data), 86400);
     }
     $this->jsonReturn($data);
   }
@@ -117,6 +120,15 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
+
+      redisDel('Material_cat_getlist_en');
+      redisDel('Material_cat_getlist_zh');
+      redisDel('Material_cat_getlist_es');
+      redisDel('Material_cat_getlist_ru');
+      redisDel('Material_cat_list_en');
+      redisDel('Material_cat_list_zh');
+      redisDel('Material_cat_list_es');
+      redisDel('Material_cat_list_ru');
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -129,6 +141,14 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->update_data($this->put_data, $this->user['username']);
     if ($result) {
+      redisDel('Material_cat_getlist_en');
+      redisDel('Material_cat_getlist_zh');
+      redisDel('Material_cat_getlist_es');
+      redisDel('Material_cat_getlist_ru');
+      redisDel('Material_cat_list_en');
+      redisDel('Material_cat_list_zh');
+      redisDel('Material_cat_list_es');
+      redisDel('Material_cat_list_ru');
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -141,6 +161,14 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
+      redisDel('Material_cat_getlist_en');
+      redisDel('Material_cat_getlist_zh');
+      redisDel('Material_cat_getlist_es');
+      redisDel('Material_cat_getlist_ru');
+      redisDel('Material_cat_list_en');
+      redisDel('Material_cat_list_zh');
+      redisDel('Material_cat_list_es');
+      redisDel('Material_cat_list_ru');
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -153,6 +181,14 @@ class MaterialcatController extends PublicController {
 
     $result = $this->_model->approving($this->put_data['id']);
     if ($result) {
+      redisDel('Material_cat_getlist_en');
+      redisDel('Material_cat_getlist_zh');
+      redisDel('Material_cat_getlist_es');
+      redisDel('Material_cat_getlist_ru');
+      redisDel('Material_cat_list_en');
+      redisDel('Material_cat_list_zh');
+      redisDel('Material_cat_list_es');
+      redisDel('Material_cat_list_ru');
       $this->setCode(1);
       jsonReturn($result);
     } else {
@@ -170,6 +206,14 @@ class MaterialcatController extends PublicController {
     $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
     $this->setCode(1);
     if ($result) {
+      redisDel('Material_cat_getlist_en');
+      redisDel('Material_cat_getlist_zh');
+      redisDel('Material_cat_getlist_es');
+      redisDel('Material_cat_getlist_ru');
+      redisDel('Material_cat_list_en');
+      redisDel('Material_cat_list_zh');
+      redisDel('Material_cat_list_es');
+      redisDel('Material_cat_list_ru');
       $this->setCode(1);
       jsonReturn($result);
     } else {

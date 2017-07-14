@@ -38,7 +38,6 @@ class MaterialcatModel extends PublicModel {
     if (isset($condition['id'])) {
       $where['id'] = $condition['id'];
     }
-    //id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by
     if (isset($condition['cat_no'])) {
       $where['cat_no'] = $condition['cat_no'];
     }
@@ -130,7 +129,6 @@ class MaterialcatModel extends PublicModel {
   public function getlist($condition = []) {
     $where = $this->getcondition($condition);
     if (isset($condition['page']) && isset($condition['countPerPage'])) {
-      // $count = $this->getcount($condition);
       return $this->where($where)
                       ->limit($condition['page'] . ',' . $condition['countPerPage'])
                       ->order('sort_order DESC')
