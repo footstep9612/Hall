@@ -257,6 +257,27 @@ class EsproductModel extends PublicModel {
     }
   }
 
+  public function getcount($condition, $lang = 'en') {
+
+    try {
+
+      $body = $this->getCondition($condition);
+      $es = new ESClient();
+      $ret = $es->setbody($body)
+              ->count($this->dbName, $this->tableName . '_' . $lang, '');
+      if (isset($ret['count'])) {
+        return $ret['count'];
+      } else {
+        return 0;
+      }
+    } catch (Exception $ex) {
+
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return 0;
+    }
+  }
+
   /* 通过搜索条件获取数据列表
    * @param mix $condition // 搜索条件
    * @param string $lang // 语言
