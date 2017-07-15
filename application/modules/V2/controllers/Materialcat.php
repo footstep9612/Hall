@@ -6,7 +6,7 @@
 class MaterialcatController extends PublicController {
 
   public function init() {
-     parent::init();
+    parent::init();
 
     $this->_model = new MaterialcatModel();
   }
@@ -170,25 +170,6 @@ class MaterialcatController extends PublicController {
   }
 
   public function createAction() {
-
-    $this->put_data = [
-        "token" => "token",
-        "sort_order" => 3,
-        "en" => [
-            "name" => "一级分类"
-        ],
-        "zh" => [
-            "name" => "一级分类"
-        ],
-        "es" => [
-            "name" => "一级分类"
-        ],
-        "ru" => [
-            "name" => "一级分类"
-        ],
-        "parent_cat_no" => "0102"
-    ];
-
     $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
       $this->delcache();
@@ -214,7 +195,7 @@ class MaterialcatController extends PublicController {
   }
 
   public function deleteAction() {
-  
+
     $result = $this->_model->delete_data($this->put_data['cat_no'], $this->getLang());
     if ($result) {
       $this->delcache();
@@ -245,7 +226,6 @@ class MaterialcatController extends PublicController {
 
   public function changeorderAction() {
     $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
-
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);

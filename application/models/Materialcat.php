@@ -546,12 +546,12 @@ class MaterialcatModel extends PublicModel {
     if ($level_no < 1) {
       $level_no = 1;
     } elseif ($level_no >= 3) {
-
       $level_no = 3;
     }
+
     if (empty($parent_cat_no) && $level_no == 1) {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
-      if ($re) {
+      if (!empty($re['max_cat_no'])) {
         return sprintf('%02d', intval($re['max_cat_no']) + 1);
       } else {
         return '01';
@@ -561,10 +561,11 @@ class MaterialcatModel extends PublicModel {
     } else {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['parent_cat_no' => $parent_cat_no])->find();
       $format = '%0' . ($level_no * 2) . 'd';
-      if ($re) {
 
+      if (!empty($re['max_cat_no'])) {
         return sprintf($format, (intval($re['max_cat_no']) + 1));
       } else {
+
         return sprintf($format, (intval($parent_cat_no) * 100 + 1));
       }
     }
@@ -582,7 +583,6 @@ class MaterialcatModel extends PublicModel {
    * @author zyg
    */
   public function create_data($createcondition = [], $username = '') {
-
 
     $condition = $this->create($createcondition);
     if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
@@ -613,8 +613,12 @@ class MaterialcatModel extends PublicModel {
         $data['cat_no'] = $cat_no;
       }
     }
+
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
+    if (!isset($condition['status'])) {
+      $condition['status'] = self::STATUS_APPROVING;
+    }
     switch ($condition['status']) {
       case self::STATUS_DELETED:
         $data['status'] = $condition['status'];
@@ -665,7 +669,7 @@ class MaterialcatModel extends PublicModel {
       $data['lang'] = 'es';
       $maxid++;
       $data['id'] = $maxid;
-      $data['name'] = $createcondition['zh']['name'];
+      $data['name'] = $createcondition['es']['name'];
       $flag = $this->add($data);
       if (!$flag) {
         $this->rollback();
@@ -676,7 +680,7 @@ class MaterialcatModel extends PublicModel {
       $data['lang'] = 'ru';
       $maxid++;
       $data['id'] = $maxid;
-      $data['name'] = $createcondition['zh']['name'];
+      $data['name'] = $createcondition['ru']['name'];
       $flag = $this->add($data);
       if (!$flag) {
         $this->rollback();

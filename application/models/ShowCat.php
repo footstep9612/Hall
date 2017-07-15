@@ -585,17 +585,16 @@ class ShowCatModel extends PublicModel {
     }
     if (empty($parent_cat_no) && $level_no == 1) {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
-      if ($re) {
+      if (!empty($re['max_cat_no'])) {
         return sprintf('%02d', intval($re['max_cat_no']) + 1);
       } else {
-
         return '01';
       }
     } elseif (empty($parent_cat_no)) {
       return false;
     } else {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['parent_cat_no' => $parent_cat_no])->find();
-      if ($re) {
+      if (!empty($re['max_cat_no'])) {
         return sprintf('%0' . ($level_no * 2) . 'd', intval($re['max_cat_no']) + 1);
       } else {
         return sprintf('%0' . ($level_no * 2) . 'd', intval($parent_cat_no) * 100 + 1);
