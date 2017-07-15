@@ -192,6 +192,7 @@ class GoodsController extends Yaf_Controller_Abstract
      */
     public function editSkuAction()
     {
+        //$this->input = $this->test();//测试
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSkuInfo($this->input);
         if($result){
@@ -429,7 +430,7 @@ class GoodsController extends Yaf_Controller_Abstract
      */
     public function modifySkuAttachAction()
     {
-        //$this->input = $this->test();//测试
+
         $goodsAttachModel = new GoodsAttachModel();
         if(isset($this->input['status']) && !empty($this->input['status'])){
             $result = $goodsAttachModel->modifySkuAttach($this->input);//状态更改
@@ -473,108 +474,111 @@ class GoodsController extends Yaf_Controller_Abstract
     public function test()
     {
         $data = [
-            "sku" => "sku001",
-            "spu" => "spu001",
-            "lang" => "en",
-            'model'=> 'model',
-            'name'=> 'sku_name2',
-            'show_name'=> 'sku00002',
-                'goods_flag'=> [
-                    'attr1'=> 'attr11',
-                    'attr2'=> 'attr22',
+            'en'=>[
+                "spu" => "spu003",
+                "lang" => "en",
+                'model'=> 'model',
+                'name'=> 'sku_name4',
+                'show_name'=> 'sku00003',
+                'attrs'=> [
+                    0=>[
+                        'attr_name'=> 'attr1111',
+                        'attr_value'=> 'attr1111',
+                        'goods_flag'=> 'Y',
+                    ],
+                    1=>[
+                        'attr_name'=> 'attr1222',
+                        'attr_value'=> 'attr1222',
+                        'spec_flag'=> 'Y',
+                    ],
+                    2=>[
+                        'attr_name'=> 'attr1222',
+                        'attr_value'=> 'attr1222',
+                        'logi_flag'=> 'Y',
+                    ],
+                    3=>[
+                        'attr_name'=> 'attr1222',
+                        'attr_value'=> 'attr1222',
+                        'hs_flag'=> 'Y',
+                    ],
+
                 ],
-                'spec_flag'=> [
-                    'attr4'=> 'attr44',
-                    'attr5'=> 'attr55',
+                'attachs'=>[
+                    0=>[
+                        'attach_name'=> 'attr767',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
+                        'attach_type'=> 'BIG_IMAGE',
+                    ],
+                    1=>[
+                        'attach_name'=> 'attr7',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
+                        'attach_type'=> 'BIG_IMAGE',
+                    ],
+                    2=>[
+                        'attach_name'=> 'attr9',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
+                        'attach_type'=> 'SMALL_IMAGE',
+                    ],
                 ],
-                'logi_flag'=> [
-                    'attr6'=> 'attr66',
-                    'attr7'=> 'attr77',
-                ],
-                'hs_flag'=> [
-                    'attr8'=> 'attr88',
-                    'attr9'=> 'attr99',
-                ],
-                'BIG_IMAGE'=>[
-                    'name1'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
-                    'name2'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
-                    'name3'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
-                ],
+            ]
         ];
 
         $up = [
-            "sku" => "sku001",
-            "spu" => "spu001",
-            "lang" => "en",
-            'model'=> 'model',
-            'name'=> 'sku_name2',
-            'show_name'=> 'sku00002',
-            'goods_flag'=> [
-                0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr1111',
-                    'attr_value'=> 'attr1111',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr1222',
-                    'attr_value'=> 'attr1222',
-                ],
+            "sku" => "sku003",
+            'en'=>[
+                "spu" => "spu004",
+                "lang" => "en",
+                'model'=> 'model2',
+                'name'=> 'sku_name4',
+                'show_name'=> 'sku00004',
+                'attrs'=> [
+                    0=>[
+                        'id'=> 16,
+                        'attr_name'=> 'attr1122',
+                        'attr_value'=> 'attr1122',
+                        'goods_flag'=> 'Y',
+                    ],
+                    1=>[
+                        'id'=> 17,
+                        'attr_name'=> 'attr3344',
+                        'attr_value'=> 'attr3344',
+                        'spec_flag'=> 'Y',
+                    ],
+                    2=>[
+                        'id'=> 18,
+                        'attr_name'=> 'attr5522',
+                        'attr_value'=> 'attr4422',
+                        'logi_flag'=> 'Y',
+                    ],
+                    3=>[
+                        'id'=> 2,
+                        'attr_name'=> 'attr6622',
+                        'attr_value'=> 'attr7722',
+                        'hs_flag'=> 'Y',
+                    ],
 
-            ],
-            'spec_flag'=> [
-                0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr22',
-                    'attr_value'=> 'attr222',
                 ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr33',
-                    'attr_value'=> 'attr333',
+                'attachs'=>[
+                    0=>[
+                        'id'=> 4,
+                        'attach_name'=> 'attr747',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb1.jpg',
+                        'attach_type'=> 'SMALL_IMAGE',
+                    ],
+                    1=>[
+                        'id'=> 5,
+                        'attach_name'=> 'attr75',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb2.jpg',
+                        'attach_type'=> 'BIG_IMAGE',
+                    ],
+                    2=>[
+                        'id'=> 6,
+                        'attach_name'=> 'attr96',
+                        'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
+                        'attach_type'=> 'SMALL_IMAGE',
+                    ],
                 ],
-            ],
-            'logi_flag'=> [
-                0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr444',
-                    'attr_value'=> 'attr4441',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr555',
-                    'attr_value'=> 'attr6666',
-                ],
-            ],
-            'hs_flag'=> [
-                0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr63',
-                    'attr_value'=> 'attr767',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr454',
-                    'attr_value'=> 'attr7879',
-                ],
-            ],
-            'BIG_IMAGE'=>[
-                0=>[
-                    'id'=> 1,
-                    'attach_name'=> 'attr767',
-                    'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attach_name'=> 'attr7',
-                    'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
-                ],
-                2=>[
-                    'id'=> 3,
-                    'attach_name'=> 'attr9',
-                    'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
-                ],
-            ],
+            ]
         ];
         $del = [
             "sku" => "sku001",
@@ -582,8 +586,8 @@ class GoodsController extends Yaf_Controller_Abstract
             "status" => "INVALID",
         ];
         //return $data;
-        //return $up;
-        return $del;
+        return $up;
+        //return $del;
     }
 
 }

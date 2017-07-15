@@ -244,7 +244,6 @@ class ProductModel extends PublicModel {
         //获取当前用户信息
         $userInfo = getLoinInfo();
 
-
         $spu = isset($input['spu']) ? trim($input['spu']) : createSpu();    //不存在生产spu
         $this->startTrans();
         try {
@@ -268,6 +267,16 @@ class ProductModel extends PublicModel {
 
                     //不存在添加，存在则为修改
                     if (!isset($input['spu'])) {
+                        //添加时判断同一语言，name,meterial_cat_no是否存在
+                        $exist_condition = array(
+                            'lang' => $key,
+                            'name' => $item['name'],
+                            'meterial_cat_no' => $item['meterial_cat_no'],
+                        );
+                        $exist = $this->find($exist_condition);
+                        if($exist)
+                            jsonReturn('', '400', '已存在');
+
                         $data['spu'] = $spu;
                         $data['qrcode'] = createQrcode($this_module . '/product/info/' . $spu);    //生成spu二维码    冗余字段这块还要看后期需求是否分语言
                         $data['created_by'] = $userInfo['name'];    //创建人                 
@@ -277,13 +286,11 @@ class ProductModel extends PublicModel {
                     } else {
 
                         $data['updated_by'] = $userInfo['name'];    //修改人
-
                         $data['updated_at'] = date('Y-m-d H:i:s', time());    //修改时间
                         $this->where(array('spu' => trim($input['spu']), 'lang' => $key))->save();
                     }
                 } elseif ($key == 'attachs') {
                     if ($item) {
-
                         //验证附件
                         if (!$this->checkAttachImage($item)) {
                             jsonReturn('', '1000', '产品图不能为空');
@@ -301,8 +308,7 @@ class ProductModel extends PublicModel {
                         }
                     }
                 } else {
-
-                    break;
+                    continue;
                 }
             }
             $this->commit();
@@ -313,6 +319,27 @@ class ProductModel extends PublicModel {
     }
 
     /**
+     * 删除
+     * @param array $input
+     * @return bool
+     */
+    public function del($input =[]){
+        if(!isset($input['spu']) || empty($input['spu']))
+            return false;
+
+        $where = array();
+        if (is_numeric($input['spu']) || is_string($input['spu'])) {
+            $where['spu'] = ''.$input['spu'];
+        }
+        if(is_array($input['spu'])){
+            $where['spu'] = array('IN', $input['spu']);
+        }
+        $result = $this->where($where)->delete();
+
+        return $result ? true : false;
+    }
+
+   /**
      * 参数校验    注：没有参数或没有规则，默认返回true（即不做验证）
      * @param array $param  参数
      * @param array $field  校验规则

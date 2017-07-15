@@ -412,7 +412,7 @@ class GoodsModel extends PublicModel
        * @param string $lang
        * @return array
        */
-      public function getSpecGoodsBySpu($spu = '', $lang = '') {
+      public function getSpecGoodsBySpu($spu = '', $lang = '',$spec_type=0) {
         if (empty($spu))
           return array();
 
@@ -432,13 +432,18 @@ class GoodsModel extends PublicModel
               //获取商品规格
               $gattr = new GoodsAttrModel();
               $spec = $gattr->getSpecBySku($item['sku'], $item['lang']);
-              $spec_str = '';
-              if ($spec) {
-                foreach ($spec as $r) {
-                  $spec_str .= $r['attr_name'] . ':' . $r['attr_value'] . $r['value_unit'] . ';';
+
+              if($spec_type){
+                $result[$k]['spec'] = $spec;
+              }else{
+                $spec_str = '';
+                if ($spec) {
+                  foreach ($spec as $r) {
+                    $spec_str .= $r['attr_name'] . ' : ' . $r['attr_value'] . $r['value_unit'] . ' ;';
+                  }
                 }
+                $result[$k]['spec'] = $spec_str;
               }
-              $result[$k]['spec'] = $spec_str;
             }
             redisHashSet('Sku', $spu . '_' . $lang, json_encode($result));
             return $result;
@@ -490,6 +495,7 @@ class GoodsModel extends PublicModel
         JsonReturn('','-1001','条件不能为空');
       }
     }
+
 
     /**
      * sku[状态更改]（门户后台）
@@ -679,6 +685,7 @@ class GoodsModel extends PublicModel
         $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
         //获取当前用户信息
         $userInfo = getLoinInfo();
+       // $userInfo['name'] = '张三';   //测试
         $this->startTrans();
         try {
             foreach ($input as $key => $value) {
@@ -705,8 +712,8 @@ class GoodsModel extends PublicModel
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
                     if (isset($input['sku'])) {     //------编辑
-                        $data['updated_by'] = $userInfo['name'];
-                        $data['updated_at'] =  date('Y-m-d H:i:s', time());
+                      //  $data['updated_by'] = $userInfo['name'];
+                       // $data['updated_at'] =  date('Y-m-d H:i:s', time());
                         $where = [
                             'lang' => $key,
                             'sku' => trim($input['sku'])
@@ -832,7 +839,7 @@ class GoodsModel extends PublicModel
     public function setupSku()
     {
         $rand = rand(0, 9999999);
-        return str_pad($rand, 7, "3", STR_PAD_LEFT);
+        return str_pad($rand, 7, "0", STR_PAD_LEFT);
     }
 
     /**
@@ -882,7 +889,7 @@ class GoodsModel extends PublicModel
                         break;
                 }
             }
-            $param[$k] = htmlspecialchars(trim($v));
+           // $param[$k] = htmlspecialchars(trim($v));
             continue;
         }
         return $param;

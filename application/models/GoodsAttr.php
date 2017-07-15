@@ -236,9 +236,9 @@ class GoodsAttrModel extends PublicModel
         $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit';
         $condition = array(
             'sku' => $sku,
-            'lang' =>$lang,
-            'spec_flag' =>'Y',
-            'status' =>self::STATUS_VALID
+            'lang' => $lang,
+            'spec_flag' => 'Y',
+            'status' => self::STATUS_VALID
         );
         try{
             $result = $this->field($field)->where($condition)->select();

@@ -75,7 +75,6 @@ class EsproductController extends PublicController {
   public function listAction() {
     $model = new EsproductModel();
     $ret = $model->getproducts($this->put_data, null, $this->getLang());
-
     if ($ret) {
       $data = $ret[0];
       $list = $this->getdata($data);
@@ -87,13 +86,25 @@ class EsproductController extends PublicController {
       } else {
         $send['allcount'] = $send['count'];
       }
-      $material_cat_nos = [];
-      foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
-        $material_cats[$item['key']] = $item['doc_count'];
-        $material_cat_nos[] = $item['key'];
+      if (!$this->put_data['show_cat_no']) {
+        $material_cat_nos = [];
+        foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
+          $material_cats[$item['key']] = $item['doc_count'];
+          $material_cat_nos[] = $item['key'];
+        }
+      } else {
+        $condition = $this->put_data;
+        unset($condition['show_cat_no']);
+        $ret1 = $model->getproducts($condition, null, $this->getLang());
+        if ($ret1) {
+          $material_cat_nos = [];
+          foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
+            $material_cats[$item['key']] = $item['doc_count'];
+            $material_cat_nos[] = $item['key'];
+          }
+        }
       }
       $catlist = $this->getcatlist($material_cat_nos, $material_cats);
-
       $send['catlist'] = $catlist;
       $send['data'] = $list;
       $this->update_keywords();
@@ -133,45 +144,14 @@ class EsproductController extends PublicController {
     return $list;
   }
 
-  private function getshowcatnos() {
-    $show_cat_nos = $info = [];
-    if ($this->put_data['show_cat_no']) {
-      $show_cat_model = new ShowCatModel();
-      $info = $show_cat_model->info($this->put_data['show_cat_no'], $this->getLang());
-      if ($info['level_no'] == 1) {
-        $condition['level_no'] = 3;
-        $condition['top_no'] = $this->put_data['show_cat_no'];
-        $condition['lang'] = $this->getLang();
-        $cat_nos = $show_cat_model->getListByconandlang($condition, 'en');
-      } elseif ($info['level_no'] == 2) {
-        $condition['level_no'] = 3;
-        $condition['parent_cat_no'] = $this->put_data['show_cat_no'];
-        $condition['lang'] = $this->getLang();
-        $cat_nos = $show_cat_model->getListByconandlang($condition, 'en');
-      } elseif ($info['level_no'] == 3) {
-        $cat_nos = [['cat_no' => $this->put_data['show_cat_no']]];
-      }
-      if ($cat_nos) {
-        foreach ($cat_nos as $showcat) {
-          $show_cat_nos[] = $showcat['cat_no'];
-        }
-      }
-    }
-    return $show_cat_nos;
-  }
-
   private function getcatlist($material_cat_nos, $material_cats) {
     ksort($material_cat_nos);
-    $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5($this->put_data['show_cat_no']));
-    $catlist = null;
-    json_decode(redisGet($catno_key), true);
+    $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5(json_encode($this->put_data)));
+    $catlist = json_decode(redisGet($catno_key), true);
     if (!$catlist) {
-      $show_cat_nos = $this->getshowcatnos();
       $matshowcatmodel = new ShowmaterialcatModel();
-      $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang(), $show_cat_nos);
-      $new_showcats1 = $new_showcats2 = $new_showcats3 = [];
-      $new_showcat2_nos = [];
-      $new_showcat1_nos = [];
+      $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
+      $new_showcats3 = [];
       foreach ($showcats as $showcat) {
         $material_cat_no = $showcat['material_cat_no'];
         unset($showcat['material_cat_no']);
@@ -184,8 +164,7 @@ class EsproductController extends PublicController {
       foreach ($new_showcats3 as $key => $item) {
         $model = new EsproductModel();
         $this->put_data['show_cat_no'] = $item['cat_no'];
-        $count = $model->getcount($this->put_data, $this->getLang());
- 
+        $item['count'] = $model->getcount($this->put_data, $this->getLang());
         $new_showcats3[$key] = $item;
       }
       redisSet($catno_key, json_encode($new_showcats3), 86400);
