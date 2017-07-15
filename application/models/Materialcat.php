@@ -151,9 +151,8 @@ class MaterialcatModel extends PublicModel {
     $condition['status'] = self::STATUS_VALID;
     $condition['lang'] = $lang;
 
-    $where = $this->getcondition($condition);
 
-    return $this->where($where)
+    return $this->where($condition)
                     ->field('id,cat_no,lang,name,status,sort_order')
                     ->order('sort_order DESC')
                     ->select();
@@ -167,8 +166,9 @@ class MaterialcatModel extends PublicModel {
    * @return mix
    * @author zyg
    */
-  public function info($cat_no = '') {
+  public function info($cat_no = '', $lang = 'en') {
     $where['cat_no'] = $cat_no;
+    $where['lang'] = $lang;
     return $this->where($where)
                     ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
                     ->find();
@@ -246,7 +246,16 @@ class MaterialcatModel extends PublicModel {
     if ($lang) {
       $where['lang'] = $lang;
     }
-    $info = $this->info($cat_no);
+    $info = $this->info($cat_no, 'en');
+    if (!$info) {
+      $info = $this->info($cat_no, 'zh');
+    }
+    if (!$info) {
+      $info = $this->info($cat_no, 'es');
+    }
+    if (!$info) {
+      $info = $this->info($cat_no, 'ru');
+    }
     $this->startTrans();
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
@@ -295,10 +304,10 @@ class MaterialcatModel extends PublicModel {
       $this->startTrans();
       $sort_order = $this->field('sort_order')->where(['cat_no' => $cat_no])->find();
       $sort_order1 = $this->field('sort_order')->where(['cat_no' => $chang_cat_no])->find();
-      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1]);
+      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1['sort_order']]);
       if ($flag) {
-        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order' => $sort_order]);
-
+        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order'
+            => $sort_order['sort_order']]);
         if ($flag1) {
           $this->commit();
           return true;

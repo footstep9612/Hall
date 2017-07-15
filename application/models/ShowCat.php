@@ -325,10 +325,9 @@ class ShowCatModel extends PublicModel {
       $this->startTrans();
       $sort_order = $this->field('sort_order')->where(['cat_no' => $cat_no])->find();
       $sort_order1 = $this->field('sort_order')->where(['cat_no' => $chang_cat_no])->find();
-      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1]);
+      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1['sort_order']]);
       if ($flag) {
-        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order' => $sort_order]);
-
+        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order' => $sort_order['sort_order']]);
         if ($flag1) {
           $this->commit();
           return true;
