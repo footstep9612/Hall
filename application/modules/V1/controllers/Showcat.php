@@ -63,7 +63,6 @@ class ShowcatController extends PublicController {
           }
         }
       }
-
     }
     $this->jsonReturn($data);
   }
@@ -71,7 +70,7 @@ class ShowcatController extends PublicController {
   public function getlistAction() {
     $lang = $this->getPut('lang', 'en');
     $cat_no = $this->getPut('cat_no', '');
-    $key = 'Show_cat_getlist_' . $lang;
+    $key = 'Show_cat_getlist_' . $lang . '_' . $cat_no;
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
@@ -119,14 +118,11 @@ class ShowcatController extends PublicController {
   }
 
   private function delcache() {
-    redisDel('show_cat_getlist_en');
-    redisDel('Show_cat_getlist_zh');
-    redisDel('Show_cat_getlist_es');
-    redisDel('Show_cat_getlist_ru');
-    redisDel('Show_cat_list_en');
-    redisDel('Show_cat_list_zh');
-    redisDel('Show_cat_list_es');
-    redisDel('Show_cat_list_ru');
+    $redis = new phpredis();
+    $keys = $redis->getKeys('show_cat_getlist_*');
+    $redis->delete($keys);
+    $listkeys = $redis->getKeys('Show_cat_list_*');
+    $redis->delete($listkeys);
   }
 
   public function createAction() {

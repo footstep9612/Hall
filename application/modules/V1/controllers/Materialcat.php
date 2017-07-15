@@ -6,13 +6,52 @@
 class MaterialcatController extends PublicController {
 
   public function init() {
-    parent::init();
+    // parent::init();
 
     $this->_model = new MaterialcatModel();
   }
 
+  /**
+   * 设置或者获取当前的Header
+   * @access public
+   * @param string|array  $name header名称
+   * @param string        $default 默认值
+   * @return string
+   */
+  public function header($name = '', $default = null) {
+    if (empty($this->header)) {
+      $header = [];
+      if (function_exists('apache_request_headers') && $result = apache_request_headers()) {
+        $header = $result;
+      } else {
+        $server = $this->server ?: $_SERVER;
+        foreach ($server as $key => $val) {
+          if (0 === strpos($key, 'HTTP_')) {
+            $key = str_replace('_', '-', strtolower(substr($key, 5)));
+            $header[$key] = $val;
+          }
+        }
+        if (isset($server['CONTENT_TYPE'])) {
+          $header['content-type'] = $server['CONTENT_TYPE'];
+        }
+        if (isset($server['CONTENT_LENGTH'])) {
+          $header['content-length'] = $server['CONTENT_LENGTH'];
+        }
+      }
+      $this->header = array_change_key_case($header);
+    }
+    if (is_array($name)) {
+      return $this->header = array_merge($this->header, $name);
+    }
+    if ('' === $name) {
+      return $this->header;
+    }
+    $name = str_replace('_', '-', strtolower($name));
+    return isset($this->header[$name]) ? $this->header[$name] : $default;
+  }
+
   public function listAction() {
-    $lang = $this->getPut('lang', 'en');
+    $lang = $this->get('lang', 'en');
     $jsondata = ['lang' => $lang];
     $jsondata['level_no'] = 1;
     $condition = $jsondata;
@@ -67,9 +106,9 @@ class MaterialcatController extends PublicController {
   }
 
   public function getlistAction() {
-    $lang = $this->getPut('lang', 'en');
-    $cat_no = $this->getPut('cat_no', '');
-    $key = 'Material_cat_getlist_' . $lang;
+    $lang = $this->get('lang', 'en');
+    $cat_no = $this->get('cat_no', '');
+    $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
@@ -89,10 +128,15 @@ class MaterialcatController extends PublicController {
    * 分类联动
    */
   public function infoAction() {
-    $ret_en = $this->_model->info($this->put_data['cat_no'], 'en');
-    $ret_zh = $this->_model->info($this->put_data['cat_no'], 'zh');
-    $ret_es = $this->_model->info($this->put_data['cat_no'], 'es');
-    $ret_ru = $this->_model->info($this->put_data['cat_no'], 'ru');
+    $cat_no = $this->get('cat_no');
+    if (!$cat_no) {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
+    $ret_en = $this->_model->info($cat_no, 'en');
+    $ret_zh = $this->_model->info($cat_no, 'zh');
+    $ret_es = $this->_model->info($cat_no, 'es');
+    $ret_ru = $this->_model->info($cat_no, 'ru');
     $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
     if ($ret_en) {
       $result['en']['name'] = $ret_en['name'];
@@ -118,14 +162,11 @@ class MaterialcatController extends PublicController {
   }
 
   private function delcache() {
-    redisDel('Material_cat_getlist_en');
-    redisDel('Material_cat_getlist_zh');
-    redisDel('Material_cat_getlist_es');
-    redisDel('Material_cat_getlist_ru');
-    redisDel('Material_cat_list_en');
-    redisDel('Material_cat_list_zh');
-    redisDel('Material_cat_list_es');
-    redisDel('Material_cat_list_ru');
+    $redis = new phpredis();
+    $keys = $redis->getKeys('Material_cat_getlist_*');
+    $redis->delete($keys);
+    $listkeys = $redis->getKeys('Material_cat_list_*');
+    $redis->delete($listkeys);
   }
 
   public function createAction() {
@@ -185,7 +226,8 @@ class MaterialcatController extends PublicController {
    */
 
   public function changeorderAction() {
-
+    $this->put_data['cat_no'] = '3308';
+    $this->put_data['chang_cat_no'] = '3307';
     $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
 
     if ($result) {
