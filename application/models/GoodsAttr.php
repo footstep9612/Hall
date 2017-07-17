@@ -15,6 +15,7 @@ class GoodsAttrModel extends PublicModel
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
+    const STATUS_CHECKING = 'CHECKING'; //审核；
 
     /**
      * 编辑商品属性查询p
@@ -398,14 +399,14 @@ class GoodsAttrModel extends PublicModel
             JsonReturn('','-1001','sku不能为空');
         }
         if(isset($delData['status'])) {
-            switch ($delData['status']) {
+            switch (strtoupper($delData['status'])) {
                 case self::STATUS_VALID:
                     $status['status'] = $delData['status'];
                     break;
                 case self::STATUS_INVALID:
                     $status['status'] = $delData['status'];
                     break;
-                case self::STATUS_DELETED:
+                case self::STATUS_CHECKING:
                     $status['status'] = $delData['status'];
                     break;
             }
@@ -476,7 +477,8 @@ class GoodsAttrModel extends PublicModel
         if (isset($data['attr_no'])) {
             $condition['attr_no'] = $data['attr_no'];
         } else {
-            JsonReturn('','-1003','属性编码不能为空');
+            $condition['attr_no'] = 123;
+           // JsonReturn('','-1003','属性编码不能为空');
         }
         if(isset($data['status'])){
             switch ($data['status']) {
@@ -486,7 +488,7 @@ class GoodsAttrModel extends PublicModel
                 case self::STATUS_INVALID:
                     $condition['status'] = $data['status'];
                     break;
-                case self::STATUS_DELETED:
+                case self::STATUS_CHECKING:
                     $condition['status'] = $data['status'];
                     break;
             }
@@ -567,7 +569,7 @@ class GoodsAttrModel extends PublicModel
                 case self::STATUS_INVALID:
                     $condition['status'] = $data['status'];
                     break;
-                case self::STATUS_DELETED:
+                case self::STATUS_CHECKING:
                     $condition['status'] = $data['status'];
                     break;
             }
