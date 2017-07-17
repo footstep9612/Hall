@@ -107,6 +107,20 @@ class SupplycapabilityModel extends PublicModel {
   }
 
   /**
+   * 判断是否存在
+   * @param  mix $where 搜索条件
+   * @return mix
+   * @author zyg
+   */
+  public function Exist($where) {
+
+    $row = $this->where($where)
+            ->field('id')
+            ->find();
+    return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
+  }
+
+  /**
    * 获取列表
    * @param  string $code 编码
    * @param  int $id id
@@ -309,6 +323,6 @@ class SupplycapabilityModel extends PublicModel {
       $this->rollback();
       return false;
     }
-  }  
+  }
 
 }

@@ -33,11 +33,39 @@ class BrandController extends PublicController {
     $this->jsonReturn($data);
   }
 
+  /*
+   * 验重
+   */
+
+  public function checknameAction() {
+    $name = $this->getPut('name');
+    $exclude = $this->getPut('exclude');
+
+    $lang = $this->getPut('lang', 'en');
+    if ($exclude == $name) {
+      $this->setCode(1);
+      $data = true;
+      $this->jsonReturn($data);
+    } else {
+      $info = $this->model->Exist(['name' => $name, 'lang' => $lang]);
+
+      if ($info) {
+        $this->setCode(1);
+        $data = false;
+        $this->jsonReturn($data);
+      } else {
+        $this->setCode(1);
+        $data = true;
+        $this->jsonReturn($data);
+      }
+    }
+  }
+
   /**
    * 分类联动
    */
   public function infoAction() {
-    $cat_no = $this->get('brand_no');
+    $cat_no = $this->getPut('brand_no');
     if (!$cat_no) {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();

@@ -39,6 +39,33 @@ class SupplycapabilityController extends PublicController {
     $this->jsonReturn($data);
   }
 
+  /*
+   * 验重
+   */
+
+  public function checknameAction() {
+    $name = $this->getPut('name');
+    $exclude = $this->getPut('exclude');
+
+    $lang = $this->getPut('lang', 'en');
+    if ($exclude == $name) {
+      $this->setCode(1);
+      $data = true;
+      $this->jsonReturn($data);
+    } else {
+      $info = $this->model->Exist(['name' => $name, 'lang' => $lang]);
+
+      if ($info) {
+        $this->setCode(1);
+        $data = false;
+        $this->jsonReturn($data);
+      } else {
+        $this->setCode(1);
+        $data = true;
+        $this->jsonReturn($data);
+      }
+    }
+  }
   /**
    * 详情
    */
