@@ -68,9 +68,18 @@ class ShowcatController extends PublicController {
   }
 
   public function getlistAction() {
-    $lang = $this->getPut('lang', 'en');
+
+    $lang = $this->getPut('lang', '');
     $cat_no = $this->getPut('cat_no', '');
+    if (!$cat_no) {
+      $cat_no = $this->get('cat_no', '');
+    }
+    if (!$lang) {
+      $lang = $this->get('lang', 'en');
+    }
+
     $key = 'Show_cat_getlist_' . $lang . '_' . $cat_no;
+
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
@@ -90,6 +99,7 @@ class ShowcatController extends PublicController {
    * 分类联动
    */
   public function infoAction() {
+
     $ret_en = $this->_model->info($this->put_data['cat_no'], 'en');
     $ret_zh = $this->_model->info($this->put_data['cat_no'], 'zh');
     $ret_es = $this->_model->info($this->put_data['cat_no'], 'es');
@@ -107,6 +117,7 @@ class ShowcatController extends PublicController {
     if ($ret_es) {
       $result['es']['name'] = $ret_es['name'];
     }
+    unset($result['lang']);
     if ($result) {
 
       $this->setCode(MSG::MSG_SUCCESS);

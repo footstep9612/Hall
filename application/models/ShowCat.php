@@ -21,7 +21,6 @@ class ShowCatModel extends PublicModel {
     $this->dbName = $config_db['name'];
     $this->tablePrefix = $config_db['tablePrefix'];
     $this->tableName = 'show_cat';
-
     parent::__construct();
   }
 
@@ -211,13 +210,12 @@ class ShowCatModel extends PublicModel {
     $condition['status'] = self::STATUS_VALID;
     $condition['lang'] = $lang;
 
-    $where = $this->getcondition($condition);
-
-    return $this->where($where)
+    return $this->where($condition)
                     ->field('id,cat_no,lang,name,status,sort_order')
                     ->order('sort_order DESC')
                     ->select();
   }
+
 
   /**
    * 获取列表
