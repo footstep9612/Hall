@@ -151,9 +151,8 @@ class MaterialcatModel extends PublicModel {
     $condition['status'] = self::STATUS_VALID;
     $condition['lang'] = $lang;
 
-    $where = $this->getcondition($condition);
 
-    return $this->where($where)
+    return $this->where($condition)
                     ->field('id,cat_no,lang,name,status,sort_order')
                     ->order('sort_order DESC')
                     ->select();
@@ -167,8 +166,15 @@ class MaterialcatModel extends PublicModel {
    * @return mix
    * @author zyg
    */
-  public function info($cat_no = '') {
-    $where['cat_no'] = $cat_no;
+  public function info($cat_no = '', $lang = 'en') {
+    if ($cat_no) {
+      $where['cat_no'] = $cat_no;
+    } else {
+      return [];
+    }
+    if ($lang) {
+      $where['lang'] = $lang;
+    }
     return $this->where($where)
                     ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
                     ->find();
@@ -246,7 +252,16 @@ class MaterialcatModel extends PublicModel {
     if ($lang) {
       $where['lang'] = $lang;
     }
-    $info = $this->info($cat_no);
+    $info = $this->info($cat_no, 'en');
+    if (!$info) {
+      $info = $this->info($cat_no, 'zh');
+    }
+    if (!$info) {
+      $info = $this->info($cat_no, 'es');
+    }
+    if (!$info) {
+      $info = $this->info($cat_no, 'ru');
+    }
     $this->startTrans();
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
@@ -295,10 +310,10 @@ class MaterialcatModel extends PublicModel {
       $this->startTrans();
       $sort_order = $this->field('sort_order')->where(['cat_no' => $cat_no])->find();
       $sort_order1 = $this->field('sort_order')->where(['cat_no' => $chang_cat_no])->find();
-      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1]);
+      $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1['sort_order']]);
       if ($flag) {
-        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order' => $sort_order]);
-
+        $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order'
+            => $sort_order['sort_order']]);
         if ($flag1) {
           $this->commit();
           return true;
@@ -329,7 +344,7 @@ class MaterialcatModel extends PublicModel {
 
     $where['cat_no'] = $cat_no;
     if ($lang) {
-      $condition['lang'] = $lang;
+      $where['lang'] = $lang;
     }
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_VALID]);
@@ -353,6 +368,8 @@ class MaterialcatModel extends PublicModel {
    */
   public function update_data($upcondition = [], $username = '') {
     $data = $this->getUpdateCondition($upcondition, $username);
+
+    $info = $this->info($upcondition['parent_cat_no'], null);
     if (!$data) {
       return false;
     }
@@ -376,7 +393,6 @@ class MaterialcatModel extends PublicModel {
       $where['lang'] = $data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
-
       if (!$flag) {
         $this->rollback();
         return false;
@@ -395,9 +411,9 @@ class MaterialcatModel extends PublicModel {
     }
     if (isset($upcondition['es'])) {
       $data['lang'] = 'es';
-      $data['name'] = $upcondition['zh']['name'];
+      $data['name'] = $upcondition['es']['name'];
       $where['lang'] = $data['lang'];
-      $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
+      $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
@@ -405,7 +421,7 @@ class MaterialcatModel extends PublicModel {
     }
     if (isset($upcondition['ru'])) {
       $data['lang'] = 'ru';
-      $data['name'] = $upcondition['zh']['name'];
+      $data['name'] = $upcondition['ru']['name'];
       $where['lang'] = $data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
@@ -414,7 +430,7 @@ class MaterialcatModel extends PublicModel {
         return false;
       }
     }
-    if ($upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
+    if (isset($upcondition['level_no']) && $upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
 
       $childs = $this->get_list($cat_no);
       foreach ($childs as $val) {
@@ -431,7 +447,7 @@ class MaterialcatModel extends PublicModel {
           return false;
         }
       }
-    } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
+    } elseif (isset($upcondition['level_no']) && $upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
       $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
       if (!$flag) {
         $this->rollback();
@@ -452,48 +468,55 @@ class MaterialcatModel extends PublicModel {
     $data = [];
     $where = [];
     $info = [];
-    if ($upcondition['cat_no']) {
+    if (isset($upcondition['cat_no']) && $upcondition['cat_no']) {
       $where['cat_no'] = $upcondition['cat_no'];
       $info = $this->getinfo($where['cat_no']);
     } else {
+
       return false;
     }
     if (isset($upcondition['parent_cat_no'])) {
       $data['parent_cat_no'] = $upcondition['parent_cat_no'];
     }
     if (isset($upcondition['level_no']) && $info['level_no'] != $upcondition['level_no']) {
+
       return false;
     }
-    if (isset($upcondition['level_no']) && in_array($upcondition['level_no'], [1, 2, 3]))
+    if (isset($upcondition['level_no']) && in_array($upcondition['level_no'], [1, 2, 3])) {
       $data['level_no'] = $upcondition['level_no'];
-
-
-    if ($upcondition['level_no'] == 1) {
+    }
+    if (isset($upcondition['level_no']) && $upcondition['level_no'] == 1) {
       $data['parent_cat_no'] = 0;
-    } elseif (isset($upcondition['parent_cat_no'])) {
+    } elseif (isset($upcondition['parent_cat_no']) && $upcondition['parent_cat_no']) {
       $data['parent_cat_no'] = $upcondition['parent_cat_no'];
     }
 
-    switch ($upcondition['status']) {
+    if (isset($upcondition['status'])) {
+      switch ($upcondition['status']) {
 
-      case self::STATUS_DELETED:
-        $data['status'] = $upcondition['status'];
-        break;
-      case self::STATUS_DRAFT:
-        $data['status'] = $upcondition['status'];
-        break;
-      case self::STATUS_APPROVING:
-        $data['status'] = $upcondition['status'];
-        break;
-      case self::STATUS_VALID:
-        $data['status'] = $upcondition['status'];
-        break;
+        case self::STATUS_DELETED:
+          $data['status'] = $upcondition['status'];
+          break;
+        case self::STATUS_DRAFT:
+          $data['status'] = $upcondition['status'];
+          break;
+        case self::STATUS_APPROVING:
+          $data['status'] = $upcondition['status'];
+          break;
+        case self::STATUS_VALID:
+          $data['status'] = $upcondition['status'];
+          break;
+        default:
+          $data['status'] = self::STATUS_APPROVING;
+          break;
+      }
     }
     if ($upcondition['sort_order']) {
       $data['sort_order'] = $upcondition['sort_order'];
     }
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
+    return $data;
   }
 
   public function updateothercat($old_cat_no, $new_cat_no) {
@@ -531,27 +554,34 @@ class MaterialcatModel extends PublicModel {
     if ($level_no < 1) {
       $level_no = 1;
     } elseif ($level_no >= 3) {
-
       $level_no = 3;
     }
+
     if (empty($parent_cat_no) && $level_no == 1) {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
-      if ($re) {
-        return printf('%02d', intval($re['max_cat_no']) + 1);
+      if (!empty($re['max_cat_no'])) {
+        return sprintf('%02d', intval($re['max_cat_no']) + 1);
       } else {
-
         return '01';
       }
     } elseif (empty($parent_cat_no)) {
       return false;
     } else {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['parent_cat_no' => $parent_cat_no])->find();
-      if ($re) {
-        return printf('%0' . ($level_no * 2) . 'd', intval($re['max_cat_no']) + 1);
+      $format = '%0' . ($level_no * 2) . 'd';
+
+      if (!empty($re['max_cat_no'])) {
+        return sprintf($format, (intval($re['max_cat_no']) + 1));
       } else {
-        return printf('%0' . ($level_no * 2) . 'd', intval($parent_cat_no) * 100 + 1);
+
+        return sprintf($format, (intval($parent_cat_no) * 100 + 1));
       }
     }
+  }
+
+  public function getMaxid() {
+    $row = $this->field('max(id) as maxid')->find();
+    return intval($row['maxid']);
   }
 
   /**
@@ -562,21 +592,27 @@ class MaterialcatModel extends PublicModel {
    */
   public function create_data($createcondition = [], $username = '') {
 
-
     $condition = $this->create($createcondition);
-
+    if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
+      $info = $this->info($condition['parent_cat_no'], null);
+      $condition['level_no'] = $info['level_no'] + 1;
+    } else {
+      $data['parent_cat_no'] = 0;
+      $condition['level_no'] = 1;
+    }
     if (isset($condition['cat_no'])) {
       $data['cat_no'] = $condition['cat_no'];
     }
     if (isset($condition['parent_cat_no']) && $condition['level_no'] == 1) {
       $data['parent_cat_no'] = 0;
-    } elseif (isset($condition['parent_cat_no'])) {
+    } elseif (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
       $data['parent_cat_no'] = $condition['parent_cat_no'];
     }
     if (isset($condition['level_no']) && in_array($condition['level_no'], [1, 2, 3])) {
       $data['level_no'] = $condition['level_no'];
+    } else {
+      $data['level_no'] = 1;
     }
-
     if (!isset($data['cat_no'])) {
       $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
       if (!$cat_no) {
@@ -586,8 +622,12 @@ class MaterialcatModel extends PublicModel {
       }
     }
 
+    $data['created_at'] = date('Y-m-d H:i:s');
+    $data['created_by'] = $username;
+    if (!isset($condition['status'])) {
+      $condition['status'] = self::STATUS_APPROVING;
+    }
     switch ($condition['status']) {
-
       case self::STATUS_DELETED:
         $data['status'] = $condition['status'];
         break;
@@ -607,44 +647,54 @@ class MaterialcatModel extends PublicModel {
       $data['sort_order'] = $condition['sort_order'];
     }
     $this->startTrans();
-    if (isset($condition['en'])) {
+    $maxid = $this->getMaxid();
+    if (isset($createcondition['en'])) {
       $data['lang'] = 'en';
-      $data['name'] = $condition['en']['name'];
+      $maxid++;
+      $data['id'] = $maxid;
+      $data['name'] = $createcondition['en']['name'];
       $flag = $this->add($data);
+
       if (!$flag) {
+
         $this->rollback();
         return false;
       }
     }
-    if (isset($condition['zh'])) {
+    if (isset($createcondition['zh'])) {
       $data['lang'] = 'zh';
-      $data['name'] = $condition['zh']['name'];
+      $maxid++;
+      $data['id'] = $maxid;
+      $data['name'] = $createcondition['zh']['name'];
       $flag = $this->add($data);
       if (!$flag) {
+
         $this->rollback();
         return false;
       }
     }
-    if (isset($condition['es'])) {
+    if (isset($createcondition['es'])) {
       $data['lang'] = 'es';
-      $data['name'] = $condition['zh']['name'];
+      $maxid++;
+      $data['id'] = $maxid;
+      $data['name'] = $createcondition['es']['name'];
       $flag = $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
       }
     }
-    if (isset($condition['ru'])) {
+    if (isset($createcondition['ru'])) {
       $data['lang'] = 'ru';
-      $data['name'] = $condition['zh']['name'];
-
+      $maxid++;
+      $data['id'] = $maxid;
+      $data['name'] = $createcondition['ru']['name'];
       $flag = $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
       }
     }
-
     $this->commit();
     return $flag;
   }
@@ -726,7 +776,6 @@ class MaterialcatModel extends PublicModel {
       $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->order('sort_order DESC')->select();
       if ($result)
         redisHashSet('Material', md5($cat_name), json_encode($result));
-
       return $result ? $result : array();
     } catch (Exception $e) {
       return array();

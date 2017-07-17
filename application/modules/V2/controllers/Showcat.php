@@ -1,64 +1,28 @@
 <?php
 
 /**
-  附件文档Controller
+ * 展示分类
+ * User: linkai
+ * Date: 2017/6/15
+ * Time: 11:09
  */
-class MaterialcatController extends PublicController {
+class ShowcatController extends PublicController {
 
   public function init() {
-     parent::init();
-
-    $this->_model = new MaterialcatModel();
-  }
-
-  /**
-   * 设置或者获取当前的Header
-   * @access public
-   * @param string|array  $name header名称
-   * @param string        $default 默认值
-   * @return string
-   */
-  public function header($name = '', $default = null) {
-    if (empty($this->header)) {
-      $header = [];
-      if (function_exists('apache_request_headers') && $result = apache_request_headers()) {
-        $header = $result;
-      } else {
-        $server = $this->server ?: $_SERVER;
-        foreach ($server as $key => $val) {
-          if (0 === strpos($key, 'HTTP_')) {
-            $key = str_replace('_', '-', strtolower(substr($key, 5)));
-            $header[$key] = $val;
-          }
-        }
-        if (isset($server['CONTENT_TYPE'])) {
-          $header['content-type'] = $server['CONTENT_TYPE'];
-        }
-        if (isset($server['CONTENT_LENGTH'])) {
-          $header['content-length'] = $server['CONTENT_LENGTH'];
-        }
-      }
-      $this->header = array_change_key_case($header);
-    }
-    if (is_array($name)) {
-      return $this->header = array_merge($this->header, $name);
-    }
-    if ('' === $name) {
-      return $this->header;
-    }
-    $name = str_replace('_', '-', strtolower($name));
-    return isset($this->header[$name]) ? $this->header[$name] : $default;
+    $this->_model = new ShowCatModel();
+    parent::init();
   }
 
   public function listAction() {
-    $lang = $this->get('lang', 'en');
+    $lang = $this->getPut('lang', 'en');
     $jsondata = ['lang' => $lang];
     $jsondata['level_no'] = 1;
     $condition = $jsondata;
-    $key = 'Material_cat_list_' . $lang;
+    $key = 'Show_cat_list_' . $lang;
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getlist($jsondata);
+
       if ($arr) {
         $this->setCode(MSG::MSG_SUCCESS);
         foreach ($arr as $key => $val) {
@@ -79,11 +43,10 @@ class MaterialcatController extends PublicController {
         $condition['level_no'] = 2;
         $arr = $this->_model->getlist($condition);
         if ($arr) {
-          $this->setCode(MSG::MSG_SUCCESS);
+
           foreach ($arr[$key]['childs'] as $k => $item) {
             $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
           }
-
           redisSet($key, json_encode($arr), 86400);
           $this->setCode(MSG::MSG_SUCCESS);
           $this->jsonReturn($arr);
@@ -101,19 +64,27 @@ class MaterialcatController extends PublicController {
         }
       }
     }
-    $this->setCode(MSG::MSG_SUCCESS);
     $this->jsonReturn($data);
   }
 
   public function getlistAction() {
-    $lang = $this->get('lang', 'en');
-    $cat_no = $this->get('cat_no', '');
-    $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
+
+    $lang = $this->getPut('lang', '');
+    $cat_no = $this->getPut('cat_no', '');
+    if (!$cat_no) {
+      $cat_no = $this->get('cat_no', '');
+    }
+    if (!$lang) {
+      $lang = $this->get('lang', 'en');
+    }
+
+    $key = 'Show_cat_getlist_' . $lang . '_' . $cat_no;
+
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
-      redisSet($key, json_encode($arr), 86400);
       if ($arr) {
+        redisSet($key, json_encode($arr), 86400);
         $this->setCode(MSG::MSG_SUCCESS);
         $this->jsonReturn($arr);
       } else {
@@ -128,15 +99,11 @@ class MaterialcatController extends PublicController {
    * 分类联动
    */
   public function infoAction() {
-    $cat_no = $this->get('cat_no');
-    if (!$cat_no) {
-      $this->setCode(MSG::MSG_FAILED);
-      $this->jsonReturn();
-    }
-    $ret_en = $this->_model->info($cat_no, 'en');
-    $ret_zh = $this->_model->info($cat_no, 'zh');
-    $ret_es = $this->_model->info($cat_no, 'es');
-    $ret_ru = $this->_model->info($cat_no, 'ru');
+
+    $ret_en = $this->_model->info($this->put_data['cat_no'], 'en');
+    $ret_zh = $this->_model->info($this->put_data['cat_no'], 'zh');
+    $ret_es = $this->_model->info($this->put_data['cat_no'], 'es');
+    $ret_ru = $this->_model->info($this->put_data['cat_no'], 'ru');
     $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
     if ($ret_en) {
       $result['en']['name'] = $ret_en['name'];
@@ -150,50 +117,32 @@ class MaterialcatController extends PublicController {
     if ($ret_es) {
       $result['es']['name'] = $ret_es['name'];
     }
+    unset($result['lang']);
     if ($result) {
+
       $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-
       $this->jsonReturn();
     }
-    exit;
   }
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('Material_cat_getlist_*');
+    $keys = $redis->getKeys('show_cat_getlist_*');
     $redis->delete($keys);
-    $listkeys = $redis->getKeys('Material_cat_list_*');
+    $listkeys = $redis->getKeys('Show_cat_list_*');
     $redis->delete($listkeys);
   }
 
   public function createAction() {
 
-    $this->put_data = [
-        "token" => "token",
-        "sort_order" => 3,
-        "en" => [
-            "name" => "一级分类"
-        ],
-        "zh" => [
-            "name" => "一级分类"
-        ],
-        "es" => [
-            "name" => "一级分类"
-        ],
-        "ru" => [
-            "name" => "一级分类"
-        ],
-        "parent_cat_no" => "0102"
-    ];
-
     $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
-      $this->jsonReturn();
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
@@ -206,7 +155,7 @@ class MaterialcatController extends PublicController {
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
-      $this->jsonReturn();
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
@@ -214,12 +163,12 @@ class MaterialcatController extends PublicController {
   }
 
   public function deleteAction() {
-  
-    $result = $this->_model->delete_data($this->put_data['cat_no'], $this->getLang());
+
+    $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
-      $this->jsonReturn();
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
@@ -228,11 +177,11 @@ class MaterialcatController extends PublicController {
 
   public function approvingAction() {
 
-    $result = $this->_model->approving($this->put_data['cat_no'], $this->getLang());
+    $result = $this->_model->approving($this->put_data['id']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
-      $this->jsonReturn();
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
@@ -244,12 +193,12 @@ class MaterialcatController extends PublicController {
    */
 
   public function changeorderAction() {
-    $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
 
+    $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
-      $this->jsonReturn();
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();

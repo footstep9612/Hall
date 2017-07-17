@@ -433,7 +433,7 @@ class ESClient {
 
     try {
 
-      $ret = $this->search($index, $type, $body['query']);
+      $ret = $this->setbody(['query' => $body['query']])->search($index, $type);
       if ($ret) {
         foreach ($ret['hits']['hits'] as $item) {
           $data = $body['doc'];

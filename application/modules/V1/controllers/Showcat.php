@@ -9,7 +9,7 @@
 class ShowcatController extends PublicController {
 
   public function init() {
-    $this->_model=new ShowCatModel();
+    $this->_model = new ShowCatModel();
     parent::init();
   }
 
@@ -24,8 +24,7 @@ class ShowcatController extends PublicController {
       $arr = $this->_model->getlist($jsondata);
 
       if ($arr) {
-        $data['code'] = 0;
-        $data['message'] = '获取成功!';
+        $this->setCode(MSG::MSG_SUCCESS);
         foreach ($arr as $key => $val) {
           $arr[$key]['childs'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
 
@@ -37,31 +36,33 @@ class ShowcatController extends PublicController {
             }
           }
         }
-        $data['data'] = $arr;
+        redisSet($key, json_encode($arr), 86400);
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
       } else {
         $condition['level_no'] = 2;
         $arr = $this->_model->getlist($condition);
         if ($arr) {
-          $data['code'] = 0;
-          $data['message'] = '获取成功!';
+
           foreach ($arr[$key]['childs'] as $k => $item) {
             $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
           }
-          $data['data'] = $arr;
+          redisSet($key, json_encode($arr), 86400);
+          $this->setCode(MSG::MSG_SUCCESS);
+          $this->jsonReturn($arr);
         } else {
           $condition['level_no'] = 3;
           $arr = $this->_model->getlist($condition);
           if ($arr) {
-            $data['code'] = 0;
-            $data['message'] = '获取成功!';
-            $data['data'] = $arr;
+            redisSet($key, json_encode($arr), 86400);
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
           } else {
-            $data['code'] = -1;
-            $data['message'] = '数据为空!';
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
           }
         }
       }
-      redisSet($key, json_encode($data), 86400);
     }
     $this->jsonReturn($data);
   }
@@ -69,20 +70,18 @@ class ShowcatController extends PublicController {
   public function getlistAction() {
     $lang = $this->getPut('lang', 'en');
     $cat_no = $this->getPut('cat_no', '');
-    $key = 'Show_cat_getlist_' . $lang;
+    $key = 'Show_cat_getlist_' . $lang . '_' . $cat_no;
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->get_list($cat_no, $lang);
       if ($arr) {
-        $data['code'] = 0;
-        $data['message'] = '获取成功!';
-
-        $data['data'] = $arr;
+        redisSet($key, json_encode($arr), 86400);
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
       } else {
-        $data['code'] = -1;
-        $data['message'] = '数据为空!';
+        $this->setCode(MSG::MSG_FAILED);
+        $this->jsonReturn();
       }
-      redisSet($key, json_encode($data), 86400);
     }
     $this->jsonReturn($data);
   }
@@ -109,38 +108,33 @@ class ShowcatController extends PublicController {
       $result['es']['name'] = $ret_es['name'];
     }
     if ($result) {
-      $this->setCode(1);
+
+      $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
-      $this->setCode(-1);
-
+      $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
-    exit;
   }
 
   private function delcache() {
-    redisDel('show_cat_getlist_en');
-    redisDel('Show_cat_getlist_zh');
-    redisDel('Show_cat_getlist_es');
-    redisDel('Show_cat_getlist_ru');
-    redisDel('Show_cat_list_en');
-    redisDel('Show_cat_list_zh');
-    redisDel('Show_cat_list_es');
-    redisDel('Show_cat_list_ru');
+    $redis = new phpredis();
+    $keys = $redis->getKeys('show_cat_getlist_*');
+    $redis->delete($keys);
+    $listkeys = $redis->getKeys('Show_cat_list_*');
+    $redis->delete($listkeys);
   }
 
   public function createAction() {
 
     $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
-
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -149,11 +143,11 @@ class ShowcatController extends PublicController {
     $result = $this->_model->update_data($this->put_data, $this->user['username']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -162,11 +156,11 @@ class ShowcatController extends PublicController {
     $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -175,11 +169,11 @@ class ShowcatController extends PublicController {
     $result = $this->_model->approving($this->put_data['id']);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 
@@ -190,14 +184,13 @@ class ShowcatController extends PublicController {
   public function changeorderAction() {
 
     $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
-    $this->setCode(1);
     if ($result) {
       $this->delcache();
-      $this->setCode(1);
-      jsonReturn($result);
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn($result);
     } else {
       $this->setCode(MSG::MSG_FAILED);
-      jsonReturn();
+      $this->jsonReturn();
     }
   }
 

@@ -27,15 +27,15 @@ class EsproductModel extends PublicModel {
   private function getCondition($condition) {
     $body = [];
     $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
-    if (isset($condition['sku'])) {
+    if (isset($condition['sku']) && $condition['sku']) {
       $sku = $condition['sku'];
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['skus' => $sku]];
     }
-    if (isset($condition['spu'])) {
+    if (isset($condition['spu']) && $condition['spu']) {
       $spu = $condition['spu'];
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
     }
-    if (isset($condition['spus'])) {
+    if (isset($condition['spus']) && $condition['spus']) {
       $spus = $condition['spus'];
       $spus_arr = [];
       foreach ($spus as $spu) {
@@ -43,67 +43,65 @@ class EsproductModel extends PublicModel {
       }
       $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $spus_arr]];
     }
-    if (isset($condition['show_cat_no'])) {
+    if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
       $show_cat_no = $condition['show_cat_no'];
       $body['query']['bool']['must'][] = [ESClient::MATCH =>
           ['show_cats' => $show_cat_no,]];
     }
-    if (isset($condition['mcat_no1'])) {
+    if (isset($condition['mcat_no1']) && $condition['mcat_no1']) {
       $mcat_no1 = $condition['mcat_no1'];
       $body['query']['bool']['must'][] = [ESClient::MATCH =>
           ['meterial_cat' => $mcat_no1]];
     }
-    if (isset($condition['mcat_no2'])) {
+    if (isset($condition['mcat_no2']) && $condition['mcat_no2']) {
       $mcat_no2 = $condition['mcat_no2'];
       $body['query']['bool']['must'][] = [ESClient::MATCH =>
           ['meterial_cat' => $mcat_no2]];
     }
-    if (isset($condition['mcat_no3'])) {
+    if (isset($condition['mcat_no3']) && $condition['mcat_no3']) {
       $mcat_no3 = $condition['mcat_no3'];
       $body['query']['bool']['must'][] = [ESClient::MATCH =>
           ['meterial_cat' => $mcat_no3]];
     }
-    if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
+    if (isset($condition['created_at_start']) && isset($condition['created_at_end']) && $condition['created_at_end'] && $condition['created_at_start']) {
       $created_at_start = $condition['created_at_start'];
       $created_at_end = $condition['created_at_end'];
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
-    } elseif (isset($condition['created_at_start'])) {
+    } elseif (isset($condition['created_at_start']) && $condition['created_at_start']) {
       $created_at_start = $condition['created_at_start'];
 
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start,]]];
-    } elseif (isset($condition['created_at_end'])) {
+    } elseif (isset($condition['created_at_end']) && $condition['created_at_end']) {
       $created_at_end = $condition['created_at_end'];
 
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gle' => $created_at_end,]]];
     }
-    if (isset($condition['checked_at_start']) && isset($condition['checked_at_end'])) {
+    if (isset($condition['checked_at_start']) && isset($condition['checked_at_end']) && $condition['checked_at_end'] && $condition['checked_at_start']) {
       $checked_at_start = $condition['checked_at_start'];
       $checked_at_end = $condition['checked_at_end'];
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start, 'gle' => $checked_at_end,]]];
-    } elseif (isset($condition['checked_at_start'])) {
+    } elseif (isset($condition['checked_at_start']) && $condition['checked_at_start']) {
       $checked_at_start = $condition['checked_at_start'];
-
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start,]]];
-    } elseif (isset($condition['created_at_end'])) {
+    } elseif (isset($condition['checked_at_end']) && $condition['checked_at_end']) {
       $checked_at_end = $condition['checked_at_end'];
 
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gle' => $checked_at_end,]]];
     }
-
-    if (isset($condition['updated_at_start']) && isset($condition['updated_at_end'])) {
+    if (isset($condition['updated_at_start']) && isset($condition['updated_at_end']) && $condition['updated_at_start'] && $condition['updated_at_end']) {
       $updated_at_start = $condition['updated_at_start'];
       $updated_at_end = $condition['updated_at_end'];
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,
                   'gle' => $updated_at_end,]]];
-    } elseif (isset($condition['updated_at_start'])) {
+    } elseif (isset($condition['updated_at_start']) && $condition['updated_at_start']) {
       $updated_at_start = $condition['updated_at_start'];
 
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,]]];
-    } elseif (isset($condition['updated_at_end'])) {
+    } elseif (isset($condition['updated_at_end']) && $condition['updated_at_end']) {
       $updated_at_end = $condition['updated_at_end'];
       $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gle' => $updated_at_end,]]];
     }
-    if (isset($condition['status'])) {
+    if (isset($condition['status']) && $condition['status']) {
       $status = $condition['status'];
       if (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
         $status = 'VALID';
@@ -113,95 +111,95 @@ class EsproductModel extends PublicModel {
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
     }
 
-    if (isset($condition['recommend_flag'])) {
+    if (isset($condition['recommend_flag']) && $condition['recommend_flag']) {
       $recommend_flag = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $recommend_flag]];
     }
-    if (isset($condition['brand'])) {
+    if (isset($condition['brand']) && $condition['brand']) {
       $brand = $condition['brand'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand]];
     }
-    if (isset($condition['source'])) {
+    if (isset($condition['source']) && $condition['source']) {
       $source = $condition['source'];
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['source' => $source]];
     }
-    if (isset($condition['exe_standard'])) {
+    if (isset($condition['exe_standard']) && $condition['exe_standard']) {
       $exe_standard = $condition['exe_standard'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['exe_standard' => $exe_standard]];
     }
-    if (isset($condition['app_scope'])) {
+    if (isset($condition['app_scope']) && $condition['app_scope']) {
       $app_scope = $condition['app_scope'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['app_scope' => $app_scope]];
     }
-    if (isset($condition['advantages'])) {
+    if (isset($condition['advantages']) && $condition['advantages']) {
       $advantages = $condition['advantages'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['advantages' => $advantages]];
     }
-    if (isset($condition['tech_paras'])) {
+    if (isset($condition['tech_paras']) && $condition['tech_paras']) {
       $tech_paras = $condition['tech_paras'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['tech_paras' => $tech_paras]];
     }
-    if (isset($condition['source_detail'])) {
+    if (isset($condition['source_detail']) && $condition['source_detail']) {
       $source_detail = $condition['source_detail'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['source_detail' => $source_detail]];
     }
 
-    if (isset($condition['keywords'])) {
+    if (isset($condition['keywords']) && $condition['keywords']) {
       $keywords = $condition['keywords'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['keywords' => $keywords]];
     }
-    if (isset($condition['supplier_id'])) {
+    if (isset($condition['supplier_id']) && $condition['supplier_id']) {
       $supplier_id = $condition['supplier_id'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['supplier_id' => $supplier_id]];
     }
 
-    if (isset($condition['supplier_name'])) {
-      $supplier_id = $condition['supplier_name'];
+    if (isset($condition['supplier_name']) && $condition['supplier_name']) {
+      $supplier_name = $condition['supplier_name'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['supplier_name' => $supplier_name]];
     }
 
-    if (isset($condition['created_by'])) {
+    if (isset($condition['created_by']) && $condition['created_by']) {
       $created_by = $condition['created_by'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
     }
 
-    if (isset($condition['updated_by'])) {
+    if (isset($condition['updated_by']) && $condition['updated_by']) {
       $updated_by = $condition['updated_by'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
     }
-    if (isset($condition['checked_by'])) {
+    if (isset($condition['checked_by']) && $condition['checked_by']) {
       $checked_by = $condition['checked_by'];
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
     }
 
-    if (isset($condition['show_name'])) {
+    if (isset($condition['show_name']) && $condition['show_name']) {
       $show_name = $condition['show_name'];
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name' => $show_name]];
     }
-    if (isset($condition['name'])) {
+    if (isset($condition['name']) && $condition['name']) {
       $name = $condition['name'];
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['name' => ['query' => $name,
                   'minimum_should_match' => '75%']]];
     }
-    if (isset($condition['attrs'])) {
+    if (isset($condition['attrs']) && $attrs = $condition['attrs']) {
       $attrs = $condition['attrs'];
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs' => $attrs]];
-    } if (isset($condition['specs'])) {
+    } if (isset($condition['specs']) && $condition['specs']) {
       $specs = $condition['specs'];
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['specs' => $specs]];
     }
-    if (isset($condition['keyword'])) {
+    if (isset($condition['keyword']) && $condition['keyword']) {
       $show_name = $condition['keyword'];
       $body['query']['bool']['must'][] = [ESClient::MULTI_MATCH => [
               'query' => $show_name,
@@ -229,6 +227,7 @@ class EsproductModel extends PublicModel {
             'brand', 'supplier_name'];
       }
       $body = $this->getCondition($condition);
+
       $pagesize = 10;
       $current_no = 1;
       if (isset($condition['current_no'])) {
@@ -250,7 +249,6 @@ class EsproductModel extends PublicModel {
                   ->setaggs('meterial_cat_no', 'meterial_cat_no')
                   ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
     } catch (Exception $ex) {
-
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
       LOG::write($ex->getMessage(), LOG::ERR);
       return [];
@@ -923,6 +921,8 @@ class EsproductModel extends PublicModel {
       $max_id = 0;
       echo '共有', $count, '条记录需要导入!', PHP_EOL;
       $k = 1;
+//            ob_flush();
+//            flush();
       for ($i = 0; $i < $count; $i += 100) {
         if ($i > $count) {
           $i = $count;
@@ -930,7 +930,7 @@ class EsproductModel extends PublicModel {
 
         $products = $this->where([
                             'lang' => $lang,
-                          //  'status' => 'VALID',
+                            //  'status' => 'VALID',
                             'id' => ['gt', $max_id]
                         ])
                         ->limit(0, 100)->order('id asc')->select();
