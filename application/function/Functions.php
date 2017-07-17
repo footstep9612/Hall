@@ -459,7 +459,7 @@ function errorrTipReturn($str) {
  * 跳转至父页面
  *
  * @param    string     $url    跳转地址
- * @param    string     $time   间隔时间
+ * @param    string     $mode   间隔时间
  */
 function refresh($url = '', $mode = '') {
   switch ($mode) {
@@ -863,7 +863,7 @@ function redisHashSet($name, $key, $value) {
 /*
  * 删除缓存
  *
- * @param str $name
+ * @param str $name 带*字 批量删除缓存
  * @param str $key
  * @param str $value
  * @return string
@@ -872,7 +872,12 @@ function redisHashSet($name, $key, $value) {
 
 function redisDel($name) {
   $reids = new phpredis();
-  if ($reids->delete($name)) {
+  if (strpos('*', $name) !== false) {
+    $keys = $reids->getKeys($name);
+  } else {
+    $keys = [$name];
+  }
+  if ($reids->delete($keys)) {
     return true;
   } else {
     return false;
@@ -1498,11 +1503,10 @@ function send_Mail($to, $title, $body, $name = null) {
  * @author 买买提
  * @param $var
  */
-function p($var)
-{
-    header('Content-type:text/html;charset=utf8');
-    echo "<pre style='background: #f3f3f3;padding:15px;'>";
-    print_r($var);
-    echo "</pre>";
-    die;
+function p($var) {
+  header('Content-type:text/html;charset=utf8');
+  echo "<pre style='background: #f3f3f3;padding:15px;'>";
+  print_r($var);
+  echo "</pre>";
+  die;
 }
