@@ -212,7 +212,7 @@ class ProductController extends PublicController {
         if(isset($this->input['lang']) && !in_array($this->input['lang'],array('zh','en','es','ru'))){
             jsonReturn('','1000');
         }elseif(!isset($this->input['lang'])){
-            $this->input['lang'] = browser_lang() ? browser_lang() : 'en';
+            $this->input['lang'] = 'en';
         }
         $this->input['spec_type'] = isset($this->input['spec_type'])?$this->input['spec_type']:0;
         $gmodel = new GoodsModel();

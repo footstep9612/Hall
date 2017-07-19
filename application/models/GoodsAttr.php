@@ -230,7 +230,7 @@ class GoodsAttrModel extends PublicModel
 
         //检查redis
         if(redisHashExist('spec','spec_'.$sku.'_'.$lang)){
-            return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang),true);
+            //return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang),true);
         }
 
         $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit';
