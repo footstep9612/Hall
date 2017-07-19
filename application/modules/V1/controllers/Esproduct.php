@@ -29,21 +29,14 @@ class EsproductController extends ShopMallController {
     if (!empty($jsondata["token"])) {
       $token = $jsondata["token"];
     }
-    $model = new UserModel();
     if (!empty($token)) {
       try {
-        $tks = explode('.', $token);
         $tokeninfo = JwtInfo($token); //解析token
         $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
         if (empty($userinfo)) {
           $this->put_data['source'] = 'ERUI';
         } else {
-          $this->user = array(
-              "id" => $userinfo["id"],
-              "name" => $tokeninfo["name"],
-              'email' => $tokeninfo["email"],
-              "token" => $token, //token
-          );
+          $this->user = $userinfo;
         }
       } catch (Exception $e) {
         $this->put_data['source'] = 'ERUI';
