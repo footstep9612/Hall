@@ -579,6 +579,18 @@ class MaterialcatModel extends PublicModel {
     }
   }
 
+  public function getcatnosbyparentcatno($catno, $lang = 'en') {
+    if (is_array($catno)) {
+      $where['parent_cat_no'] = ['in', $catno];
+    } else {
+      $where['parent_cat_no'] = $catno;
+    }
+    $where['lang'] = $lang;
+    $where['status'] = self::STATUS_VALID;
+    $rows = $this->field('cat_no')->select();
+    return $rows;
+  }
+
   public function getMaxid() {
     $row = $this->field('max(id) as maxid')->find();
     return intval($row['maxid']);
@@ -776,6 +788,7 @@ class MaterialcatModel extends PublicModel {
       $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->order('sort_order DESC')->select();
       if ($result)
         redisHashSet('Material', md5($cat_name), json_encode($result));
+
       return $result ? $result : array();
     } catch (Exception $e) {
       return array();

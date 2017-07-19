@@ -6,7 +6,7 @@
 class SupplycapabilityController extends PublicController {
 
   public function init() {
-    parent::init();
+  //  parent::init();
 
     $this->_model = new SupplycapabilityModel();
   }
@@ -151,7 +151,7 @@ class SupplycapabilityController extends PublicController {
 
   public function deleteAction() {
 
-    $result = $this->_model->delete_data($this->put_data['cat_no'], $this->getLang());
+    $result = $this->_model->delete_data($this->put_data['id'],$this->put_data['ids']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
