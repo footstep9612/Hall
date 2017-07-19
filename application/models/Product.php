@@ -258,6 +258,8 @@ class ProductModel extends PublicModel {
                         'meterial_cat_no' => $item['meterial_cat_no'],
                         // 'show_cat_no' => isset($item['show_cat_no']) ? $item['show_cat_no'] : '',    //后期实现
                         'brand' => $item['brand'],
+                        'advantages' => isset($item['advantages']) ? $item['advantages'] : '',   //产品优势
+                        'tech_paras' => isset($item['tech_paras']) ? $item['tech_paras'] : '',    //技术参数
                         'exe_standard' => isset($item['exe_standard']) ? $item['exe_standard'] : '', //执行标准
                         'profile' => isset($item['profile']) ? $item['profile'] : '', //产品简介
                         'keywords' => isset($item['keywords']) ? $item['profile'] : '', //简介
