@@ -170,6 +170,7 @@ class SupplycapabilityModel extends PublicModel {
     $condition = $this->create($createcondition);
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
+    $data['cat_no'] = $condition['cat_no'];
     if (!isset($condition['status'])) {
       $condition['status'] = self::STATUS_APPROVING;
     }
@@ -194,15 +195,17 @@ class SupplycapabilityModel extends PublicModel {
     }
     $this->startTrans();
     $maxid = $this->getMaxid();
+    $esproduct_model = new EsproductModel();
     if (isset($createcondition['en'])) {
       $data['lang'] = 'en';
       $maxid++;
       $data['id'] = $maxid;
-      $data['name'] = $createcondition['en']['name'];
+      $data['ability_name'] = $upcondition['en']['ability_name'];
+      $data['ability_value'] = $upcondition['en']['ability_value'];
       $flag = $this->add($data);
 
       if (!$flag) {
-
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
@@ -211,10 +214,11 @@ class SupplycapabilityModel extends PublicModel {
       $data['lang'] = 'zh';
       $maxid++;
       $data['id'] = $maxid;
-      $data['name'] = $createcondition['zh']['name'];
+      $data['ability_name'] = $upcondition['zh']['ability_name'];
+      $data['ability_value'] = $upcondition['zh']['ability_value'];
       $flag = $this->add($data);
       if (!$flag) {
-
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
@@ -223,9 +227,11 @@ class SupplycapabilityModel extends PublicModel {
       $data['lang'] = 'es';
       $maxid++;
       $data['id'] = $maxid;
-      $data['name'] = $createcondition['es']['name'];
+      $data['ability_name'] = $upcondition['es']['ability_name'];
+      $data['ability_value'] = $upcondition['es']['ability_value'];
       $flag = $this->add($data);
       if (!$flag) {
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
@@ -234,9 +240,11 @@ class SupplycapabilityModel extends PublicModel {
       $data['lang'] = 'ru';
       $maxid++;
       $data['id'] = $maxid;
-      $data['name'] = $createcondition['ru']['name'];
+      $data['ability_name'] = $upcondition['ru']['ability_name'];
+      $data['ability_value'] = $upcondition['ru']['ability_value'];
       $flag = $this->add($data);
       if (!$flag) {
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
@@ -259,47 +267,60 @@ class SupplycapabilityModel extends PublicModel {
     } else {
       return false;
     }
-
+    $esproduct_model = new EsproductModel();
     $this->startTrans();
     if (isset($upcondition['en'])) {
       $data['lang'] = 'en';
-      $data['name'] = $upcondition['en']['name'];
+      $data['ability_name'] = $upcondition['en']['ability_name'];
+      $data['ability_value'] = $upcondition['en']['ability_value'];
+      $where['id'] = $data['en']['id'];
       $where['lang'] = $data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
     }
     if (isset($upcondition['zh'])) {
       $data['lang'] = 'zh';
-      $data['name'] = $upcondition['zh']['name'];
+      $data['ability_name'] = $upcondition['zh']['ability_name'];
+      $data['ability_value'] = $upcondition['zh']['ability_value'];
+      $where['id'] = $data['zh']['id'];
       $where['lang'] = $data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
     }
     if (isset($upcondition['es'])) {
       $data['lang'] = 'es';
-      $data['name'] = $upcondition['es']['name'];
+
+      $data['ability_name'] = $upcondition['es']['ability_name'];
+      $data['ability_value'] = $upcondition['es']['ability_value'];
+      $where['id'] = $data['es']['id'];
       $where['lang'] = $data['lang'];
+      $exist_flag = $this->Exist($where);
       $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
     }
     if (isset($upcondition['ru'])) {
       $data['lang'] = 'ru';
-      $data['name'] = $upcondition['ru']['name'];
+      $data['ability_name'] = $upcondition['ru']['ability_name'];
+      $data['ability_value'] = $upcondition['ru']['ability_value'];
+      $where['id'] = $data['ru']['id'];
       $where['lang'] = $data['lang'];
-      $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
+        $esproduct_model->Updatemeterialcatno($data['cat_no'], null, $data['lang']);
         $this->rollback();
         return false;
       }
@@ -327,16 +348,25 @@ class SupplycapabilityModel extends PublicModel {
     if ($id && empty($id)) {
       $where['id'] = ['in', $id];
     }
+    $esproduct_model = new EsproductModel();
     $this->startTrans();
+    $supply_capabilitys = $this->getCatNos($where);
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
     if ($flag) {
+      foreach ($supply_capabilitys as $supply_capability) {
+        $esproduct_model->Updatemeterialcatno($supply_capability['cat_no'], null, $supply_capability['lang']);
+      }
       $this->commit();
       return $flag;
     } else {
       $this->rollback();
       return false;
     }
+  }
+
+  public function getCatNos($condition) {
+    return $this->field('id,cat_no,lang')->where($condition)->select();
   }
 
 }
