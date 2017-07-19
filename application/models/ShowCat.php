@@ -651,6 +651,7 @@ class ShowCatModel extends PublicModel {
     }
   }
 
+
   public function create_data($createcondition = [], $username = '') {
 
 
@@ -659,21 +660,22 @@ class ShowCatModel extends PublicModel {
     if (isset($condition['cat_no'])) {
       $data['cat_no'] = $condition['cat_no'];
     }
+    if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
+      $info = $this->info($condition['parent_cat_no'], null);
+      $condition['level_no'] = $info['level_no'] + 1;
+    } else {
+      $data['parent_cat_no'] = 0;
+      $condition['level_no'] = 1;
+    }
     if (isset($condition['parent_cat_no']) && $condition['level_no'] == 1) {
       $data['parent_cat_no'] = 0;
-    } elseif (isset($condition['parent_cat_no'])) {
+    } elseif (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
       $data['parent_cat_no'] = $condition['parent_cat_no'];
     }
     if (isset($condition['level_no']) && in_array($condition['level_no'], [1, 2, 3])) {
       $data['level_no'] = $condition['level_no'];
-    }
-    if ($condition['small_icon']) {
-      $data['small_icon'] = $condition['small_icon'];
-    }
-    if ($condition['middle_icon']) {
-      $data['middle_icon'] = $condition['middle_icon'];
-    } if ($condition['big_icon']) {
-      $data['big_icon'] = $condition['big_icon'];
+    } else {
+      $data['level_no'] = 1;
     }
     if (!isset($data['cat_no'])) {
       $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
