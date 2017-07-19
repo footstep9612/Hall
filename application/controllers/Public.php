@@ -15,7 +15,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     /*
      * 初始化
      */
-
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
