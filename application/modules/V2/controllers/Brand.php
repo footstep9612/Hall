@@ -98,6 +98,7 @@ class BrandController extends PublicController {
     exit;
   }
 
+  
   private function delcache() {
     $redis = new phpredis();
     $keys = $redis->getKeys('brand_*');
