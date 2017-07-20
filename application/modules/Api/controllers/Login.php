@@ -301,7 +301,7 @@ class LoginController extends Yaf_Controller_Abstract {
     }
     function checkKeyAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['key'])) {
+        if(empty($data['key'])) {
             jsonReturn('',-101,'key不可以为空!');
         }
         if(redisHashExist('rest_password_key',$data['key'])) {
@@ -312,7 +312,7 @@ class LoginController extends Yaf_Controller_Abstract {
     }
     function setPasswordAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['password'])) {
+        if(empty($data['password'])) {
             jsonReturn('',-101,'密码不可以为空!');
         }else{
             $user_arr['password_hash'] = $data['password'];
@@ -324,11 +324,13 @@ class LoginController extends Yaf_Controller_Abstract {
         if($id) {
             $buyer_account_model = new BuyerAccountModel();
             $check = $buyer_account_model->update_data($user_arr,['id'=>$id]);
-            if($id){
+            if($check){
+                redisHashDel('rest_password_key',$data['key']);
                 jsonReturn('',1,'操作成功');
             }
         }else{
             jsonReturn('',-101,'未获取到key!');
         }
     }
+
 }
