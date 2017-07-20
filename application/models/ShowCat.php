@@ -35,7 +35,6 @@ class ShowCatModel extends PublicModel {
     if (empty($condition)) {
       $condition['parent_cat_no'] = 0;
     }
-
     //语言默认取en 统一小写
     $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : ( browser_lang() ? browser_lang() : 'en');
     $condition['status'] = self::STATUS_VALID;
@@ -53,7 +52,9 @@ class ShowCatModel extends PublicModel {
         $data['count'] = count($resouce);
       }
       return $data;
-    } catch (Exception $e) {
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
       return false;
     }
   }
@@ -65,10 +66,38 @@ class ShowCatModel extends PublicModel {
    * @return array
    */
   public function getListByconandlang($condition = [], $lang = 'en') {
-    $condition['lang'] = $lang ? strtolower($lang) : 'en';
-    $condition['status'] = self::STATUS_VALID;
+    if (isset($condition['cat_no']) && $condition['cat_no']) {
+      $where['cat_no'] = $condition['cat_no'];
+    }
+    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+      $where['market_area_bn'] = $condition['market_area_bn'];
+    }
+    if (isset($condition['country_bn']) && $condition['country_bn']) {
+      $where['country_bn'] = $condition['country_bn'];
+    }
+    $where['lang'] = $lang ? strtolower($lang) : 'en';
+    if (isset($condition['status'])) {
+      switch ($condition['status']) {
+
+        case self::STATUS_DELETED:
+          $where['status'] = $condition['status'];
+          break;
+        case self::STATUS_DRAFT:
+          $where['status'] = $condition['status'];
+          break;
+        case self::STATUS_APPROVING:
+          $where['status'] = $condition['status'];
+          break;
+        case self::STATUS_VALID:
+          $where['status'] = $condition['status'];
+          break;
+        default : $where['status'] = self::STATUS_VALID;
+      }
+    } else {
+      $where['status'] = self::STATUS_VALID;
+    }
     try {
-      $data = $this->field(['cat_no'])->where($condition)->order('sort_order DESC')
+      $data = $this->field(['cat_no'])->where($where)->order('sort_order DESC')
               ->group('cat_no')
               ->select();
 
@@ -88,48 +117,55 @@ class ShowCatModel extends PublicModel {
    */
   protected function getcondition($condition = []) {
     $where = [];
-    if (isset($condition['id'])) {
+    if (isset($condition['id']) && $condition['id']) {
       $where['id'] = $condition['id'];
     }
     //id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by
-    if (isset($condition['cat_no'])) {
+    if (isset($condition['cat_no']) && $condition['cat_no']) {
       $where['cat_no'] = $condition['cat_no'];
     }
+    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+      $where['market_area_bn'] = $condition['market_area_bn'];
+    }
+    if (isset($condition['country_bn']) && $condition['country_bn']) {
+      $where['country_bn'] = $condition['country_bn'];
+    }
 
-    if (isset($condition['cat_no3'])) {
+
+    if (isset($condition['cat_no3']) && $condition['cat_no3']) {
       $where['level_no'] = 3;
       $where['cat_no'] = $condition['cat_no3'];
-    } elseif (isset($condition['cat_no2'])) {
+    } elseif (isset($condition['cat_no2']) && $condition['cat_no2']) {
       $where['level_no'] = 2;
       $where['parent_cat_no'] = $condition['cat_no2'];
-    } elseif (isset($condition['cat_no1'])) {
+    } elseif (isset($condition['cat_no1']) && $condition['cat_no1']) {
       $where['level_no'] = 1;
       $where['parent_cat_no'] = $condition['cat_no1'];
     } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
       $where['level_no'] = intval($condition['level_no']);
     } else {
-      $where['level_no'] = 0;
+      $where['level_no'] = 1;
     }
-    if (isset($condition['parent_cat_no'])) {
+    if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
       $where['parent_cat_no'] = $condition['parent_cat_no'];
     }
 
-    if (isset($condition['mobile'])) {
+    if (isset($condition['mobile']) && $condition['mobile']) {
       $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
     }
-    if (isset($condition['lang'])) {
+    if (isset($condition['lang']) && $condition['lang']) {
       $where['lang'] = $condition['lang'];
     }
     if (isset($condition['name'])) {
       $where['name'] = ['like', '%' . $condition['name'] . '%'];
     }
 
-    if (isset($condition['sort_order'])) {
+    if (isset($condition['sort_order']) && $condition['sort_order']) {
       $where['sort_order'] = $condition['sort_order'];
-    }if (isset($condition['created_at'])) {
+    }if (isset($condition['created_at']) && $condition['created_at']) {
       $where['created_at'] = $condition['created_at'];
     }
-    if (isset($condition['created_by'])) {
+    if (isset($condition['created_by']) && $condition['created_by']) {
       $where['created_by'] = $condition['created_by'];
     }
     if (isset($condition['status'])) {
@@ -201,7 +237,17 @@ class ShowCatModel extends PublicModel {
     }
   }
 
-  public function get_list($cat_no = '', $lang = 'en') {
+  public function get_list($market_area_bn, $country_bn, $cat_no = '', $lang = 'en') {
+    if ($market_area_bn) {
+      $where['market_area_bn'] = $market_area_bn;
+    } else {
+      return [];
+    }
+    if ($country_bn) {
+      $where['country_bn'] = $country_bn;
+    } else {
+      return [];
+    }
     if ($cat_no) {
       $condition['parent_cat_no'] = $cat_no;
     } else {
@@ -215,7 +261,6 @@ class ShowCatModel extends PublicModel {
                     ->order('sort_order DESC')
                     ->select();
   }
-
 
   /**
    * 获取列表
@@ -426,7 +471,7 @@ class ShowCatModel extends PublicModel {
     }
     if (isset($condition['es'])) {
       $data['lang'] = 'es';
-      $data['name'] = $condition['zh']['name'];
+      $data['name'] = $condition['es']['name'];
       $where['lang'] = $data['lang'];
       $cat_old = $this->getinfo($data['cat_no'], $data['lang']);
       $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
@@ -437,7 +482,7 @@ class ShowCatModel extends PublicModel {
     }
     if (isset($condition['ru'])) {
       $data['lang'] = 'ru';
-      $data['name'] = $condition['zh']['name'];
+      $data['name'] = $condition['ru']['name'];
       $where['lang'] = $data['lang'];
 
       $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
@@ -486,6 +531,12 @@ class ShowCatModel extends PublicModel {
     $info = [];
     $cat_no = '';
     $condition = $upcondition;
+    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+      $where['market_area_bn'] = $condition['market_area_bn'];
+    }
+    if (isset($condition['country_bn']) && $condition['country_bn']) {
+      $where['country_bn'] = $condition['country_bn'];
+    }
     if ($condition['cat_no']) {
       $where['cat_no'] = $condition['cat_no'];
       $info = $this->getinfo($where['cat_no']);
@@ -578,9 +629,9 @@ class ShowCatModel extends PublicModel {
     if ($level_no < 1) {
       $level_no = 1;
     } elseif ($level_no >= 3) {
-
       $level_no = 3;
     }
+
     if (empty($parent_cat_no) && $level_no == 1) {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
       if (!empty($re['max_cat_no'])) {
@@ -592,37 +643,38 @@ class ShowCatModel extends PublicModel {
       return false;
     } else {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['parent_cat_no' => $parent_cat_no])->find();
+      $format = '%0' . ($level_no * 2) . 'd';
+
       if (!empty($re['max_cat_no'])) {
-        return sprintf('%0' . ($level_no * 2) . 'd', intval($re['max_cat_no']) + 1);
+        return sprintf($format, (intval($re['max_cat_no']) + 1));
       } else {
-        return sprintf('%0' . ($level_no * 2) . 'd', intval($parent_cat_no) * 100 + 1);
+
+        return sprintf($format, (intval($parent_cat_no) * 100 + 1));
       }
     }
   }
 
   public function create_data($createcondition = [], $username = '') {
-
-
-    $condition = $this->create($createcondition);
-
+    $data = $condition = $this->create($createcondition);
     if (isset($condition['cat_no'])) {
       $data['cat_no'] = $condition['cat_no'];
     }
+    if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
+      $info = $this->info($condition['parent_cat_no'], null);
+      $condition['level_no'] = $info['level_no'] + 1;
+    } else {
+      $data['parent_cat_no'] = 0;
+      $condition['level_no'] = 1;
+    }
     if (isset($condition['parent_cat_no']) && $condition['level_no'] == 1) {
       $data['parent_cat_no'] = 0;
-    } elseif (isset($condition['parent_cat_no'])) {
+    } elseif (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
       $data['parent_cat_no'] = $condition['parent_cat_no'];
     }
     if (isset($condition['level_no']) && in_array($condition['level_no'], [1, 2, 3])) {
       $data['level_no'] = $condition['level_no'];
-    }
-    if ($condition['small_icon']) {
-      $data['small_icon'] = $condition['small_icon'];
-    }
-    if ($condition['middle_icon']) {
-      $data['middle_icon'] = $condition['middle_icon'];
-    } if ($condition['big_icon']) {
-      $data['big_icon'] = $condition['big_icon'];
+    } else {
+      $data['level_no'] = 1;
     }
     if (!isset($data['cat_no'])) {
       $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
@@ -632,7 +684,8 @@ class ShowCatModel extends PublicModel {
         $data['cat_no'] = $cat_no;
       }
     }
-
+    $data['created_by'] = $username;
+    $data['created_at'] = date('Y-m-d H:i:s');
     switch ($condition['status']) {
 
       case self::STATUS_DELETED:
@@ -654,36 +707,36 @@ class ShowCatModel extends PublicModel {
       $data['sort_order'] = $condition['sort_order'];
     }
     $this->startTrans();
-    if (isset($condition['en'])) {
+    if (isset($createcondition['en'])) {
       $data['lang'] = 'en';
-      $data['name'] = $condition['en']['name'];
+      $data['name'] = $createcondition['en']['name'];
       $flag = $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
       }
     }
-    if (isset($condition['zh'])) {
+    if (isset($createcondition['zh'])) {
       $data['lang'] = 'zh';
-      $data['name'] = $condition['zh']['name'];
+      $data['name'] = $createcondition['zh']['name'];
       $flag = $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
       }
     }
-    if (isset($condition['es'])) {
+    if (isset($createcondition['es'])) {
       $data['lang'] = 'es';
-      $data['name'] = $condition['zh']['name'];
+      $data['name'] = $createcondition['zh']['name'];
       $flag = $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
       }
     }
-    if (isset($condition['ru'])) {
+    if (isset($createcondition['ru'])) {
       $data['lang'] = 'ru';
-      $data['name'] = $condition['zh']['name'];
+      $data['name'] = $createcondition['zh']['name'];
 
       $flag = $this->add($data);
       if (!$flag) {
@@ -693,7 +746,7 @@ class ShowCatModel extends PublicModel {
     }
 
     $this->commit();
-    return $flag;
+    return $cat_no;
   }
 
   /**

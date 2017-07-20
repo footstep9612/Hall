@@ -51,7 +51,7 @@ class MaterialcatController extends PublicController {
   }
 
   public function listAction() {
-    $lang = $this->get('lang', 'en');
+    $lang = $this->getPut('lang', 'en');
     $jsondata = ['lang' => $lang];
     $jsondata['level_no'] = 1;
     $condition = $jsondata;
@@ -106,8 +106,8 @@ class MaterialcatController extends PublicController {
   }
 
   public function getlistAction() {
-    $lang = $this->get('lang', 'en');
-    $cat_no = $this->get('cat_no', '');
+    $lang = $this->getPut('lang', 'en');
+    $cat_no = $this->getPut('cat_no', '');
     $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
     $data = json_decode(redisGet($key), true);
     if (!$data) {
@@ -128,7 +128,7 @@ class MaterialcatController extends PublicController {
    * 分类联动
    */
   public function infoAction() {
-    $cat_no = $this->get('cat_no');
+    $cat_no = $this->getPut('cat_no');
     if (!$cat_no) {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
