@@ -258,4 +258,75 @@ class LoginController extends Yaf_Controller_Abstract {
         exit();
     }
 
+
+    function retrievalEmail(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!empty($data['user_name'])) {
+            $buyer_account_data['user_name'] = $data['user_name'];
+        }else{
+            jsonReturn('',-101,'用户名不可以为空!');
+        }
+        if(!empty($data['email'])) {
+            $buyer_account_data['email'] = $data['email'];
+            if(!isEmail($buyer_account_data['email'])){
+                jsonReturn('',-101,'邮箱格式不正确!');
+            }
+        }else{
+            jsonReturn('',-101,'邮箱不可以都为空!');
+        }
+        $model = new BuyerModel();
+        $buyer_account_model = new BuyerAccountModel();
+        $login_arr['email'] = $data['email'];
+        $login_arr['user_name'] = $data['user_name'];
+        $check = $buyer_account_model->Exist($login_arr,'and');
+        if($check){
+            //生成邮件验证码
+            $data_key['key'] =md5(uniqid());
+            $data_key['email'] = $login_arr['email'];
+            $data_key['name'] = $check[0]['first_name'];
+            redisHashSet('rest_password_key',$data_key['key'],$check[0]['id']);
+            $config_obj = Yaf_Registry::get("config");
+            $config_shop = $config_obj->shop->toArray();
+//            $email_arr['url'] = $config_shop['url'];
+//            $email_arr['key'] = $data_key['key'];
+//            $body = $this->getView()->render('login/email.html',$email_arr);
+//            send_Mail($data_key['email'],'Activation email for your registration on ERUI platform',$body,$data['first_name']);
+            jsonReturn($data_key,1,'发送成功');
+        }else{
+            jsonReturn('',-103,'The company email or user name non-existent.');
+        }
+    }
+    function checkKey(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!empty($data['key'])) {
+            jsonReturn('',-101,'key不可以为空!');
+        }
+
+        if(redisHashExist('rest_password_key',$data['key'])) {
+            jsonReturn('',1,'获取成功');
+        }else{
+            jsonReturn('',-101,'未获取到key!');
+        }
+    }
+    function setPassword(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!empty($data['password'])) {
+            jsonReturn('',-101,'密码不可以为空!');
+        }else{
+            $user_arr['password_hash'] = $data['password'];
+        }
+        if(!empty($data['key'])) {
+            jsonReturn('',-101,'key不可以为空!');
+        }
+        $id = redisHashGet('rest_password_key',$data['key']);
+        if($id) {
+            $buyer_account_model = new BuyerAccountModel();
+            $check = $buyer_account_model->update_data($user_arr,['id'=>$id]);
+            if($id){
+                jsonReturn('',1,'操作成功');
+            }
+        }else{
+            jsonReturn('',-101,'未获取到key!');
+        }
+    }
 }
