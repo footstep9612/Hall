@@ -53,27 +53,52 @@ class ProductModel extends PublicModel {
      * @param int $pagesize 每页显示条数
      */
     public function getList($condition = []) {
-        $field = "lang,spu,brand,name,created_by,created_at,meterial_cat_no";
+        $field = "id,lang,spu,brand,name,status,created_by,created_at,updated_by,updated_at,meterial_cat_no";
 
         $where = "status <> '" . self::STATUS_DELETED . "'";
         //语言 有传递取传递语言，没传递取浏览器，浏览器取不到取en英文
-        $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
-        $where .= " AND lang='" . $condition['lang'] . "'";
+        //$condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
+        //$where .= " AND lang='" . $condition['lang'] . "'";
+        if(isset($condition['lang'])){
+            $where .= " AND lang='" . $condition['lang'] . "'";
+        }
 
+        //来源
         if (isset($condition['source'])) {
             $where .= " AND source='" . $condition['source'] . "'";
         }
+
+        //品牌
         if (isset($condition['brand'])) {
             $where .= " AND brand='" . $condition['brand'] . "'";
         }
+
+        //物料分类
         if (isset($condition['meterial_cat_no'])) {
             $where .= " AND meterial_cat_no='" . $condition['meterial_cat_no'] . "'";
         }
+
+        //创建时间
         if (isset($condition['start_time'])) {
             $where .= " AND created_at >= '" . $condition['start_time'] . "'";
         }
         if (isset($condition['end_time'])) {
             $where .= " AND created_at <= '" . $condition['end_time'] . "'";
+        }
+
+        //spu
+        if(isset($condition['spu'])){
+            $where .= " AND spu ='" .$condition['spu'] . "'";
+        }
+
+        //status
+        if(isset($condition['status'])){
+            $where .= " AND status ='" .strtoupper($condition['status']) . "'";
+        }
+
+        //创建人
+        if(isset($condition['created_by'])){
+            $where .= " AND created_by = '".$condition['created_by']."'";
         }
 
         //处理keyword
@@ -96,18 +121,22 @@ class ProductModel extends PublicModel {
             $result = $this->field($field)->where($where)->order('created_at DESC')->page($current_num, $pagesize)->select();
             $count = $this->field('spu')->where($where)->count();
             if ($result) {
+                //总sku数
+                $sku_total = 0;
                 //遍历获取分类　　与ｓｋｕ统计
                 foreach ($result as $k => $r) {
                     //分类
                     $mcatModel = new MaterialcatModel();
-                    $mcatInfo = $mcatModel->getMeterialCatByNo($r['meterial_cat_no'], $condition['lang']);
+                    $mcatInfo = $mcatModel->getMeterialCatByNo($r['meterial_cat_no'], $r['lang']);
                     $result[$k]['meterial_cat'] = $mcatInfo ? $mcatInfo['name'] : '';
 
                     //sku统计
                     $goodsModel = new GoodsModel();
-                    $result[$k]['sku_count'] = $goodsModel->getCountBySpu($r['spu'], $condition['lang']);
+                    $result[$k]['sku_count'] = $goodsModel->getCountBySpu($r['spu'], $r['lang']);
+                    $sku_total += $result[$k]['sku_count'];
                 }
                 $return['count'] = $count;
+                $return['total_sku'] = $sku_total;
                 $return['data'] = $result;
                 return $return;
             } else {
@@ -213,7 +242,7 @@ class ProductModel extends PublicModel {
 
         //数据读取
         try {
-            $field = 'spu,lang,qrcode,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_id,supplier_name,recommend_flag,source,source_detail,created_at,customization_flag,customizability,availability,availability_ratings,resp_time,resp_rate,delivery_cycle,target_market,warranty';
+            $field = 'spu,lang,qrcode,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_id,supplier_name,recommend_flag,source,source_detail,created_by,created_at,updated_by,updated_at,checked_by,checked_at,customization_flag,customizability,availability,availability_ratings,resp_time,resp_rate,delivery_cycle,target_market,warranty';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
@@ -326,15 +355,15 @@ class ProductModel extends PublicModel {
      * @return bool
      */
     public function del($input =[]){
-        if(!isset($input['spu']) || empty($input['spu']))
+        if(!isset($input['id']) || empty($input['id']))
             return false;
 
         $where = array();
-        if (is_numeric($input['spu']) || is_string($input['spu'])) {
-            $where['spu'] = ''.$input['spu'];
+        if (is_numeric($input['id'])) {
+            $where['id'] = ''.$input['id'];
         }
-        if(is_array($input['spu'])){
-            $where['spu'] = array('IN', $input['spu']);
+        if(is_array($input['id'])){
+            $where['id'] = array('IN', $input['id']);
         }
         $result = $this->where($where)->delete();
 
@@ -343,6 +372,7 @@ class ProductModel extends PublicModel {
 
     /**
      * 修改状态
+     * @param int $spu   这里用的是表id
      * @param array $input
      */
     public function upStatus($spu = '',$status=''){
@@ -350,11 +380,11 @@ class ProductModel extends PublicModel {
             return false;
 
         $where = array();
-        if (is_numeric($spu) || is_string($spu)) {
-            $where['spu'] = ''.$spu;
+        if (is_numeric($spu)) {
+            $where['id'] = ''.$spu;
         }
         if(is_array($spu)){
-            $where['spu'] = array('IN', $spu);
+            $where['id'] = array('IN', $spu);
         }
         $result = $this->where($where)->save(array('status'=>$status));
 
