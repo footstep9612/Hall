@@ -115,6 +115,7 @@ class EsproductController extends ShopMallController {
       $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
       $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
+      $list[$key]['sku_num'] = count($list[$key]['skus']);
     }
     return $list;
   }
