@@ -86,7 +86,10 @@ class EsproductController extends PublicController {
       } else {
         $send['allcount'] = $send['count'];
       }
-
+     if (isset($this->put_data['sku_count']) &&$this->put_data['sku_count'] == 'Y') {
+        $es_goods_model = new EsgoodsModel();
+        $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
+      }
       $send['data'] = $list;
       $this->update_keywords();
       $this->setCode(MSG::MSG_SUCCESS);
