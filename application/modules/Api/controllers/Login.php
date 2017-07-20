@@ -289,10 +289,10 @@ class LoginController extends Yaf_Controller_Abstract {
             redisHashSet('rest_password_key',$data_key['key'],$check[0]['id']);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
-//            $email_arr['url'] = $config_shop['url'];
-//            $email_arr['key'] = $data_key['key'];
-//            $body = $this->getView()->render('login/email.html',$email_arr);
-//            send_Mail($data_key['email'],'Activation email for your registration on ERUI platform',$body,$data['first_name']);
+            $email_arr['url'] = $config_shop['url'];
+            $email_arr['key'] = $data_key['key'];
+            $body = $this->getView()->render('login/forgetemail.html',$email_arr);
+            send_Mail($data_key['email'],'Password retrieval on ERUI platform',$body,$data['first_name']);
             jsonReturn($data_key,1,'发送成功');
         }else{
             jsonReturn('',-103,'The company email or user name non-existent.');
