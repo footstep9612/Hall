@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsproductController extends ShopMallController {
+class EsproductController extends PublicController {
 
   protected $index = 'erui_goods';
   protected $es = '';
@@ -21,42 +21,18 @@ class EsproductController extends ShopMallController {
   //put your code here
   public function init() {
 
-    ini_set("display_errors", "On");
-    error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-    $lang = $this->getPut('lang', 'en');
-    $this->setLang($lang);
-    if (!empty($jsondata["token"])) {
-      $token = $jsondata["token"];
-    }
-    $model = new UserModel();
-    if (!empty($token)) {
-      try {
-        $tks = explode('.', $token);
-        $tokeninfo = JwtInfo($token); //解析token
-        $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
-        if (empty($userinfo)) {
-          $this->put_data['source'] = 'ERUI';
-        } else {
-          $this->user = array(
-              "id" => $userinfo["id"],
-              "name" => $tokeninfo["name"],
-              'email' => $tokeninfo["email"],
-              "token" => $token, //token
-          );
-        }
-      } catch (Exception $e) {
-        $this->put_data['source'] = 'ERUI';
-      }
-    } else {
-      $this->put_data['source'] = 'ERUI';
-    }
     $this->es = new ESClient();
+
+    parent::init();
   }
 
   public function listAction() {
     $model = new EsproductModel();
-    $ret = $model->getproducts($this->put_data, null, $this->getLang());
+    $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
+        , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
+        'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
+        'brand', 'supplier_name', 'created_by', 'created_at', 'updated_by', 'updated_at', 'status'];
+    $ret = $model->getproducts($this->put_data, $_source, $this->getLang());
     if ($ret) {
       $data = $ret[0];
       $list = $this->getdata($data);
@@ -72,26 +48,6 @@ class EsproductController extends ShopMallController {
         $es_goods_model = new EsgoodsModel();
         $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
       }
-      if (!$this->put_data['show_cat_no']) {
-        $material_cat_nos = [];
-        foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
-          $material_cats[$item['key']] = $item['doc_count'];
-          $material_cat_nos[] = $item['key'];
-        }
-      } else {
-        $condition = $this->put_data;
-        unset($condition['show_cat_no']);
-        $ret1 = $model->getproducts($condition, null, $this->getLang());
-        if ($ret1) {
-          $material_cat_nos = [];
-          foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
-            $material_cats[$item['key']] = $item['doc_count'];
-            $material_cat_nos[] = $item['key'];
-          }
-        }
-      }
-      $catlist = $this->getcatlist($material_cat_nos, $material_cats);
-      $send['catlist'] = $catlist;
       $send['data'] = $list;
       $this->update_keywords();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -170,7 +126,7 @@ class EsproductController extends ShopMallController {
         $search['user_email'] = '';
       }
       $search['search_time'] = date('Y-m-d H:i:s');
-      $usersearchmodel = new BuyersearchhisModel();
+      $usersearchmodel = new UsersearchhisModel();
       $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
       $row = $usersearchmodel->exist($condition);
       if ($row) {
@@ -181,6 +137,46 @@ class EsproductController extends ShopMallController {
         $search['search_count'] = 1;
         $usersearchmodel->add($search);
       }
+    }
+  }
+
+  public function getcatsAction() {
+    $model = new EsproductModel();
+    $ret = $model->getshow_catlist($this->put_data, $this->getLang());
+    if ($ret) {
+      $list = [];
+
+      $data = $ret[0];
+      $send['count'] = intval($data['hits']['total']);
+      $send['current_no'] = intval($ret[1]);
+      $send['pagesize'] = intval($ret[2]);
+      if (isset($ret[3]) && $ret[3] > 0) {
+
+        $send['allcount'] = $ret[3] > $send['count'] ? $ret[3] : $send['count'];
+      } else {
+        $send['allcount'] = $send['count'];
+      }
+      foreach ($data['hits']['hits'] as $key => $item) {
+        $list[$key] = $item["_source"];
+        $list[$key]['id'] = $item['_id'];
+      }
+      $send['list'] = $list;
+      $this->setCode(MSG::MSG_SUCCESS);
+      if ($this->put_data['keyword']) {
+        $search = [];
+        $search['keyword'] = $this->put_data['keyword'];
+        $search['user_email'] = $this->user['email'];
+        $search['search_time'] = date('Y-m-d H:i:s');
+        $usersearchmodel = new UsersearchhisModel();
+        if ($row = $usersearchmodel->exist($condition)) {
+          $search['search_count'] = intval($row['search_count']) + 1;
+          $usersearchmodel->update_data($search);
+        }
+      }
+      $this->jsonReturn($send);
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
     }
   }
 
