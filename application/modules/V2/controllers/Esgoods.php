@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsgoodsController extends ShopMallController {
+class EsgoodsController extends PublicModel {
 
   protected $index = 'erui_goods';
   protected $es = '';
