@@ -798,6 +798,7 @@ class GoodsModel extends PublicModel
                 if (!$res) {
                     return false;
                 }
+
                 $gattr = new GoodsAttrModel();
                 $resAttr = $gattr->modifySkuAttr($input);        //属性状态
                 if (!$resAttr) {
