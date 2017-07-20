@@ -12,9 +12,11 @@
  */
 class LoginController extends Yaf_Controller_Abstract {
 
-//    public function __init() {
-//        //   parent::__init();
-//    }
+    public function __init() {
+        ini_set("display_errors", "off");
+        error_reporting(E_ERROR);
+        //   parent::__init();
+    }
     /*
      * 用户登录
      * @created_date 2017-06-15
@@ -259,7 +261,7 @@ class LoginController extends Yaf_Controller_Abstract {
     }
 
 
-    function retrievalEmail(){
+    function retrievalEmailAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
@@ -296,7 +298,7 @@ class LoginController extends Yaf_Controller_Abstract {
             jsonReturn('',-103,'The company email or user name non-existent.');
         }
     }
-    function checkKey(){
+    function checkKeyActionAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['key'])) {
             jsonReturn('',-101,'key不可以为空!');
@@ -308,7 +310,7 @@ class LoginController extends Yaf_Controller_Abstract {
             jsonReturn('',-101,'未获取到key!');
         }
     }
-    function setPassword(){
+    function setPasswordAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['password'])) {
             jsonReturn('',-101,'密码不可以为空!');
