@@ -14,8 +14,9 @@
 class BrandModel extends PublicModel {
 
   //put your code here
-  protected $tableName = 'brand';
-  protected $dbName = 'erui_goods';
+
+  protected $tableName = 'supplier_brand';
+  protected $dbName = 'erui_supplier'; //数据库名称
   Protected $autoCheckFields = false;
 
   const STATUS_DRAFT = 'DRAFT'; //草稿

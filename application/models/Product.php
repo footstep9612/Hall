@@ -258,25 +258,27 @@ class ProductModel extends PublicModel {
                         'meterial_cat_no' => $item['meterial_cat_no'],
                         // 'show_cat_no' => isset($item['show_cat_no']) ? $item['show_cat_no'] : '',    //后期实现
                         'brand' => $item['brand'],
+                        'advantages' => isset($item['advantages']) ? $item['advantages'] : '',   //产品优势
+                        'tech_paras' => isset($item['tech_paras']) ? $item['tech_paras'] : '',    //技术参数
                         'exe_standard' => isset($item['exe_standard']) ? $item['exe_standard'] : '', //执行标准
-                        'profile' => isset($item['profile']) ? $item['profile'] : '', //产品简介
-                        'keywords' => isset($item['keywords']) ? $item['profile'] : '', //简介
-                        'description' => isset($item['description']) ? $item['description'] : '', //描述
+                        //'profile' => isset($item['profile']) ? $item['profile'] : '', //产品简介
+                        'keywords' => isset($item['keywords']) ? $item['profile'] : '', //关键词
+                        'description' => isset($item['description']) ? $item['description'] : '', //详情描述
                         'status' => self::STATUS_CHECKING,
                     );
 
+                    //添加时判断同一语言，name,meterial_cat_no是否存在
+                    $exist_condition = array(
+                        'lang' => $key,
+                        'name' => $item['name'],
+                        'meterial_cat_no' => $item['meterial_cat_no'],
+                    );
+                    $exist = $this->find($exist_condition);
+                    if($exist)
+                        jsonReturn('', '400', '已存在');
+
                     //不存在添加，存在则为修改
                     if (!isset($input['spu'])) {
-                        //添加时判断同一语言，name,meterial_cat_no是否存在
-                        $exist_condition = array(
-                            'lang' => $key,
-                            'name' => $item['name'],
-                            'meterial_cat_no' => $item['meterial_cat_no'],
-                        );
-                        $exist = $this->find($exist_condition);
-                        if($exist)
-                            jsonReturn('', '400', '已存在');
-
                         $data['spu'] = $spu;
                         $data['qrcode'] = createQrcode($this_module . '/product/info/' . $spu);    //生成spu二维码    冗余字段这块还要看后期需求是否分语言
                         $data['created_by'] = $userInfo['name'];    //创建人                 
@@ -338,6 +340,28 @@ class ProductModel extends PublicModel {
 
         return $result ? true : false;
     }
+
+    /**
+     * 修改状态
+     * @param array $input
+     */
+    public function upStatus($spu = '',$status=''){
+        if(empty($spu) || empty($status))
+            return false;
+
+        $where = array();
+        if (is_numeric($spu) || is_string($spu)) {
+            $where['spu'] = ''.$spu;
+        }
+        if(is_array($spu)){
+            $where['spu'] = array('IN', $spu);
+        }
+        $result = $this->where($where)->save(array('status'=>$status));
+
+        return $result ? true : false;
+    }
+
+
 
    /**
      * 参数校验    注：没有参数或没有规则，默认返回true（即不做验证）

@@ -104,7 +104,7 @@ class GoodsAttrTplModel extends PublicModel
      * @return array
      */
     public function getAttrTpl($input){
-        $lang = isset($input['lang']) ? strtolower($input['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $lang = isset($input['lang']) ? strtolower($input['lang']) : 'en';
         $attrTpl = $common = $categoryAtpl = $productAtpl = $goodsAtpl = [];    //初始化
 
         //获取公共属性模板
@@ -202,7 +202,7 @@ class GoodsAttrTplModel extends PublicModel
         //判断redis缓存
         if(redisHashExist('AttrTpl',$cat_no.'_'.$lang)){
             $redisInfo =redisHashGet('AttrTpl',$cat_no.'_'.$lang);
-            return json_decode($redisInfo);
+            return json_decode($redisInfo,true);
         }
 
         $attrModel = new AttrModel();

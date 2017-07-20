@@ -138,7 +138,7 @@ class ShowcatController extends PublicController {
 
   public function createAction() {
 
-    $result = $this->_model->create_data($this->put_data, $this->user['username']);
+    $result = $this->_model->create_data($this->put_data, $this->user['username']); 
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);

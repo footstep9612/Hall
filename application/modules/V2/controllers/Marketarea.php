@@ -3,27 +3,25 @@
 /**
   附件文档Controller
  */
-class SupplycapabilityController extends PublicController {
+class MarketareaController extends PublicController {
 
   public function init() {
-    parent::init();
+  //  parent::init();
 
-    $this->_model = new SupplycapabilityModel();
+    $this->_model = new MarketAreaModel();
   }
 
   /*
-   * 能力列表
+   * 营销区域列表
    */
 
   public function listAction() {
     $lang = $this->getPut('lang', 'en');
 
-    $current_no = $this->getPut('current_no', '1');
-    $pagesize = $this->getPut('pagesize', '10');
     $condition = $this->put_data;
     unset($condition['token']);
     rsort($condition);
-    $key = 'supply_capability_list_' . $lang . md5(json_encode($condition));
+    $key = 'market_area_list_' . $lang . md5(json_encode($condition));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getlist($this->put_data, $lang);
@@ -66,20 +64,19 @@ class SupplycapabilityController extends PublicController {
       }
     }
   }
-
   /**
    * 详情
    */
   public function infoAction() {
-    $cat_no = $this->get('cat_no');
-    if (!$cat_no) {
+    $bn = $this->getPut('bn');
+    if (!$bn) {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
-    $ret_en = $this->_model->info($cat_no, 'en');
-    $ret_zh = $this->_model->info($cat_no, 'zh');
-    $ret_es = $this->_model->info($cat_no, 'es');
-    $ret_ru = $this->_model->info($cat_no, 'ru');
+    $ret_en = $this->_model->info($bn, 'en');
+    $ret_zh = $this->_model->info($bn, 'zh');
+    $ret_es = $this->_model->info($bn, 'es');
+    $ret_ru = $this->_model->info($bn, 'ru');
     $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
     if ($ret_en) {
       $result['en']['name'] = $ret_en['name'];
@@ -110,7 +107,7 @@ class SupplycapabilityController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('supply_capability_list_*');
+    $keys = $redis->getKeys('market_area_list_*');
     $redis->delete($keys);
   }
 
@@ -119,7 +116,7 @@ class SupplycapabilityController extends PublicController {
    */
 
   public function createAction() {
-    $result = $this->_model->create_data($this->put_data, $this->user['username']);
+    $result = $this->_model->create_data($this->put_data);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -135,7 +132,7 @@ class SupplycapabilityController extends PublicController {
    */
 
   public function updateAction() {
-    $result = $this->_model->update_data($this->put_data, $this->user['username']);
+    $result = $this->_model->update_data($this->put_data);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -152,7 +149,7 @@ class SupplycapabilityController extends PublicController {
 
   public function deleteAction() {
 
-    $result = $this->_model->delete_data($this->put_data['id'], $this->put_data['ids']);
+    $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
