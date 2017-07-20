@@ -119,7 +119,7 @@ class ProductController extends PublicController {
      * SPU删除
      */
     public function deleteAction(){
-        if(!isset($this->input['spu']))
+        if(!isset($this->input['id']))
             jsonReturn('',ErrorMsg::ERROR_PARAM);
 
         $productModel = new ProductModel();
@@ -135,19 +135,17 @@ class ProductController extends PublicController {
      * 修改
      */
     public function updateAction(){
-        $this->input['spu'] = ['111','222'];
-        $this->input['update_type'] = 'declare';
         if(!isset($this->input['update_type']))
             jsonReturn('', ErrorMsg::ERROR_PARAM);
 
-        if(!isset($this->input['spu']))
+        if(!isset($this->input['id']))
             jsonReturn('',ErrorMsg::ERROR_PARAM);
 
         $result = '';
         switch($this->input['update_type']){
             case 'declare':    //SPU报审
                 $productModel = new ProductModel();
-                $result = $productModel->upStatus($this->input['spu'],$productModel::STATUS_CHECKING);
+                $result = $productModel->upStatus($this->input['id'],$productModel::STATUS_CHECKING);
                 break;
         }
         if ($result) {
