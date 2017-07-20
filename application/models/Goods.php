@@ -550,11 +550,7 @@ class GoodsModel extends PublicModel
               }
             try {
                 $result = $this->where($where)->save($status);
-                if(isset($result)){
-                  return true;
-                }else{
-                  return false;
-                }
+                return $result ? true : false;
             } catch (Exception $e) {
         //        $results['code'] = $e->getCode();
         //        $results['message'] = $e->getMessage();
@@ -578,12 +574,8 @@ class GoodsModel extends PublicModel
             JsonReturn('','-1001','sku不能为空');
           }
           try {
-            $result = $this->where($where)->save(['status' => 'DELETED']);
-            if(isset($result)){
-              return true;
-            }else{
-              return false;
-            }
+            $result = $this->where($where)->delete();
+            return $result ? true : false;
           } catch (Exception $e) {
     //        $results['code'] = $e->getCode();
     //        $results['message'] = $e->getMessage();
@@ -698,7 +690,7 @@ class GoodsModel extends PublicModel
             $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
             //获取当前用户信息
             $userInfo = getLoinInfo();
-            $userInfo['name'] = '李四';   //测试
+            //$userInfo['name'] = '李四';   //测试
             $this->startTrans();
             try {
                 foreach ($input as $key => $value) {
@@ -792,13 +784,23 @@ class GoodsModel extends PublicModel
             if(empty($input)){
                 return false;
             }
+            //新状态可以补充
+            switch($this->input['status_type']){
+              case 'declare':    //报审
+                $input['status'] = self::STATUS_CHECKING;
+                break;
+           }
             $this->startTrans();
             try {
                 $res = $this->modifySku($input);                //sku状态
                 if (!$res) {
                     return false;
                 }
-
+                $pModel = new ProductModel();                  //spu状态(报审)
+                $resp = $pModel->upStatus($input['spu'], $input['status']);
+                if (!$resp) {
+                  return false;
+                }
                 $gattr = new GoodsAttrModel();
                 $resAttr = $gattr->modifySkuAttr($input);        //属性状态
                 if (!$resAttr) {
