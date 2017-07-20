@@ -103,10 +103,11 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['status']) && $condition['status']) {
       $status = $condition['status'];
-      if (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+      if ($status == 'ALL') {        
+      } elseif (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
         $status = 'VALID';
+        $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
       }
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
     } else {
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
     }
