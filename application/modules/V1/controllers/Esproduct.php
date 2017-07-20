@@ -61,6 +61,10 @@ class EsproductController extends ShopMallController {
       } else {
         $send['allcount'] = $send['count'];
       }
+  if (isset($this->put_data['sku_count']) &&$this->put_data['sku_count'] == 'Y') {
+        $es_goods_model = new EsgoodsModel();
+        $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
+      }
       if (!$this->put_data['show_cat_no']) {
         $material_cat_nos = [];
         foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
@@ -115,6 +119,7 @@ class EsproductController extends ShopMallController {
       $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
       $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
+      $list[$key]['sku_num'] = count($list[$key]['skus']);
     }
     return $list;
   }
