@@ -18,10 +18,11 @@ class GoodsAttachModel extends PublicModel
         parent::__construct();
     }
 
-    //状态
+    //状态--INVALID,CHECKING,VALID,DELETED
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
+    const STATUS_CHECKING = 'CHECKING'; //审核；
     /**
      * 获取商品附件
      * @param array $condition
@@ -31,7 +32,7 @@ class GoodsAttachModel extends PublicModel
     {
         $sku = isset($condition['sku']) ? $condition['sku'] : '';
         if (empty($sku)) {
-            jsonReturn('', 1000);
+            jsonReturn('', 1000,'[sku]不可以为空');
         }
         $where = array(
             'sku' => $sku,
@@ -39,14 +40,14 @@ class GoodsAttachModel extends PublicModel
         $type = isset($condition['attach_type']) ? strtoupper($condition['attach_type']) : '';
         if($type){
             if(!in_array($type , array('SMALL_IMAGE','MIDDLE_IMAGE','BIG_IMAGE','DOC'))){
-                jsonReturn('',1000);
+                jsonReturn('',1000,'[type]不正确');
             }
             $where['attach_type'] = $type;
         }
         $status = isset($condition['status']) ? strtoupper($condition['status']) : '';
         if($status){
             if($status != '' && !in_array($status , array('VALID','INVALID','DELETED'))){
-                jsonReturn('',1000);
+                jsonReturn('',1000,'[status]不正确');
             }
             $where['status'] = $status;
         }
@@ -102,23 +103,23 @@ class GoodsAttachModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function updateAttachSku($data)
-    {
+    /*    public function updateAttachSku($data)
+        {
 
-        $condition = $this->check_up($data);
-        if($condition){
-            try{
-                foreach($condition as $v){
-                    $this->where("id =". $v['id'])->save($v);
+            $condition = $this->check_up($data);
+            if($condition){
+                try{
+                    foreach($condition as $v){
+                        $this->where("id =". $v['id'])->save($v);
+                    }
+                    return true;
+                } catch(\Kafka\Exception $e){
+                    return false;
                 }
-                return true;
-            } catch(\Kafka\Exception $e){
+            } else{
                 return false;
             }
-        } else{
-            return false;
-        }
-    }
+        }*/
 
     /**
      * sku附件[状态更改]（门户后台）
@@ -173,7 +174,7 @@ class GoodsAttachModel extends PublicModel
         if(isset($delData['sku'])){
             $where['sku'] = $delData['sku'];
         }else{
-            JsonReturn('','-1001','sku不能为空');
+            JsonReturn('','-1001','[sku]不能为空');
         }
         try{
             return $this->where($where)->save(['status' => 'DELETED']);
@@ -209,7 +210,7 @@ class GoodsAttachModel extends PublicModel
                 case self::STATUS_INVALID:
                     $condition['status'] = $data['status'];
                     break;
-                case self::STATUS_DELETED:
+                case self::STATUS_CHECKING:
                     $condition['status'] = $data['status'];
                     break;
             }
@@ -253,7 +254,7 @@ class GoodsAttachModel extends PublicModel
                 case self::STATUS_INVALID:
                     $condition['status'] = $data['status'];
                     break;
-                case self::STATUS_DELETED:
+                case self::STATUS_CHECKING:
                     $condition['status'] = $data['status'];
                     break;
             }

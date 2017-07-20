@@ -427,21 +427,27 @@ class ESClient {
    */
 
   public function UpdateByQuery($index, $type, $body) {
-    $updateParams = array();
-    $updateParams['index'] = $index;
-    $updateParams['type'] = $type;
+
 
     try {
-
-      $ret = $this->search($index, $type, $body['query']);
-      if ($ret) {
-        foreach ($ret['hits']['hits'] as $item) {
-          $data = $body['doc'];
-          $this->update_document($index, $type, $data, $item['_id']);
+      $count = $this->setbody(['query' => $body['query']])->count($index, $type);
+      for ($i = 0; $i < $count['count']; $i += 100) {
+        $ret = $this->setbody(['query' => $body['query']])->search($index, $type, $i, 100);
+        $updateParams = array();
+        $updateParams['index'] = $index;
+        $updateParams['type'] = $type;
+        if ($ret) {
+          foreach ($ret['hits']['hits'] as $item) {
+            $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
+            $updateParams['body'][] = ['doc' => $body['doc']];
+          }
+       
+          $this->bulk($updateParams);
         }
       }
-      //  return $this->server->updateByQuery($updateParams);
+      return true;
     } catch (Exception $ex) {
+      print_r($ex->getMessage());
       LOG::write($ex->getMessage(), LOG::ERR);
       return false;
     }
@@ -849,8 +855,10 @@ class ESClient {
         'type' => $type,
         'body' => $this->body,
     );
-    $searchParams['body']['from'] = $from;
-    $searchParams['body']['size'] = $size;
+    if ($from >= 0 && $size > 0) {
+      $searchParams['body']['from'] = $from;
+      $searchParams['body']['size'] = $size;
+    }
     try {
       return $this->server->search($searchParams);
     } catch (Exception $ex) {

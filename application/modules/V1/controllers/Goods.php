@@ -1,6 +1,6 @@
 <?php
-//class GoodsController extends PublicController
-class GoodsController extends Yaf_Controller_Abstract
+class GoodsController extends PublicController
+//class GoodsController extends Yaf_Controller_Abstract
 {
     private $input;
 
@@ -25,11 +25,7 @@ class GoodsController extends Yaf_Controller_Abstract
 
         $goods = new GoodsModel();
         $result = $goods->getInfoBase($this->input);
-        if($result){
-            jsonReturn(array('data'=>$result));
-        }else{
-            jsonReturn('',400,'');
-        }
+        $this->returnInfo($result);
     }
 
     /**
@@ -51,18 +47,7 @@ class GoodsController extends Yaf_Controller_Abstract
         }
         $goods = new GoodsAttrModel();
         $result = $goods->attrBySku($sku,$lang);
-
-        if(!empty($result)){
-            $data = array(
-                'code' => '1',
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','获取失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -81,17 +66,7 @@ class GoodsController extends Yaf_Controller_Abstract
         //获取商品属性
         $goods = new GoodsModel();
         $result = $goods->getInfo($sku,$lang);
-        if(!empty($result)){
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn(array('code' => -1003, 'message' => '获取失败'));
-        }
-        exit;
+        $this->returnInfo($result);
     }
     /**
      * sku查看详情p
@@ -109,81 +84,18 @@ class GoodsController extends Yaf_Controller_Abstract
         $goods = new GoodsModel();
         $result = $goods->getGoodsInfo($sku,$lang);
 
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','获取失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
-
     /**
-     * spu列表(pc)
-     * @author  link  2017/6/17
+     * sku管理列表
+     * @author
      */
     public function listAction()
     {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getList($this->input);
-        if($result){
-            jsonReturn($result);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
-    }
-    /**
-     * 获取公共模板表
-     * @author  klp  2017/7/6
-     */
-    public function getCommonTplAction()
-    {
-        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
-        $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getCommonAttrTpl($lang);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','数据获取失败');
-        }
-    }
-
-    /**
-     * 获取sku模板表
-     * @author  klp  2017/7/6
-     */
-    public function getGoodsAttrTplAction()
-    {
-        //$this->input['sku'] = 3303060000010001;//测试
-        if(!empty($this->input['sku'])){
-            $sku = $this->input['sku'];
-        } else{
-            jsonReturn('','-1001','sku不可以为空');
-        }
-        $lang = !empty($this->input['lang'])? $this->input['lang'] : 'en';
-        $goodsTplModel = new GoodsAttrTplModel();
-        $result = $goodsTplModel->getGoodsAttrTpl($sku,$lang);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','数据获取失败');
-        }
+        $this->returnInfo($result);
     }
 
     /**
@@ -192,22 +104,13 @@ class GoodsController extends Yaf_Controller_Abstract
      */
     public function editSkuAction()
     {
+        $this->input = $this->test();//测试
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSkuInfo($this->input);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
     /**
-     * sku状态更改/删除  -- 总接口
+     * sku状态更改(审核)/删除  -- 总接口
      * @author  klp  2017/7-13
      */
     public function modifySkuAction()
@@ -224,17 +127,7 @@ class GoodsController extends Yaf_Controller_Abstract
         } else{
             $result = $goodsModel->deleteReal($this->input);//真实删除
         }
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -246,17 +139,7 @@ class GoodsController extends Yaf_Controller_Abstract
 
         $goodsModel = new GoodsModel();
         $result = $goodsModel->createSku($this->input);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -268,17 +151,7 @@ class GoodsController extends Yaf_Controller_Abstract
 
         $goodsAttrModel = new GoodsAttrModel();
         $result = $goodsAttrModel->createAttrSku($this->input);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -290,17 +163,7 @@ class GoodsController extends Yaf_Controller_Abstract
 
         $goodsAttachModel = new GoodsAttachModel();
         $result = $goodsAttachModel->createAttachSku($this->input);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -313,17 +176,7 @@ class GoodsController extends Yaf_Controller_Abstract
 
         $goodsModel = new GoodsModel();
         $result = $goodsModel->updateSku($this->input);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -335,17 +188,7 @@ class GoodsController extends Yaf_Controller_Abstract
         //$this->input = $this->test();//测试
         $goodsAttrModel = new GoodsAttrModel();
         $result = $goodsAttrModel->updateAttrSku($this->input);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -357,17 +200,7 @@ class GoodsController extends Yaf_Controller_Abstract
         //$this->input = $this->test();//测试
         $goodsAttachModel = new GoodsAttachModel();
         $result = $goodsAttachModel->updateAttachSku($this->input);
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -384,17 +217,7 @@ class GoodsController extends Yaf_Controller_Abstract
        } else{
            $result = $goodsModel->deleteRealSku($this->input);//真实删除
        }
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -410,43 +233,23 @@ class GoodsController extends Yaf_Controller_Abstract
         } else{
             $result = $goodsAttrModel->deleteRealAttr($this->input);//真实删除
         }
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
      * sku附件状态更改及删除   -- 门户
      * @author  klp  2017/7-5
      */
-    public function modifySkuAttachAction()
+    public function deleteSkuAttachAction()
     {
-        //$this->input = $this->test();//测试
+
         $goodsAttachModel = new GoodsAttachModel();
         if(isset($this->input['status']) && !empty($this->input['status'])){
             $result = $goodsAttachModel->modifySkuAttach($this->input);//状态更改
         } else{
             $result = $goodsAttachModel->deleteRealAttach($this->input);//真实删除
         }
-        if($result){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $this->returnInfo($result);
     }
 
     /**
@@ -457,15 +260,19 @@ class GoodsController extends Yaf_Controller_Abstract
     {
         $SupplierAccountModel = new SupplierAccountModel();
         $result = $SupplierAccountModel->getInfo($this->input);
+        $this->returnInfo($result);
+    }
+    //统一回复调用方法
+    function returnInfo($result){
         if($result){
             $data = array(
                 'code' => 1,
-                'message' => '数据获取成功',
+                'message' => '成功',
                 'data' => $result
             );
             jsonReturn($data);
         }else{
-            jsonReturn('','-1002','数据获取失败');
+            jsonReturn('','-1002','失败');
         }
         exit;
     }
@@ -473,106 +280,106 @@ class GoodsController extends Yaf_Controller_Abstract
     public function test()
     {
         $data = [
-            "sku" => "sku001",
-            "spu" => "spu001",
-            "lang" => "en",
-            'model'=> 'model',
-            'name'=> 'sku_name2',
-            'show_name'=> 'sku00002',
-                'goods_flag'=> [
-                    'attr1'=> 'attr11',
-                    'attr2'=> 'attr22',
+            'en'=>[
+                "spu" => "spu007",
+                "lang" => "en",
+                'model'=> 'model7',
+                'name'=> 'sku_name7',
+                'show_name'=> 'sku00007',
+                'attrs'=> [
+                    0=>[
+                        'attr_name'=> 'attr1111',
+                        'attr_value'=> 'attr1111',
+                        'goods_flag'=> 'Y',
+                    ],
+                   /* 1=>[
+                        'attr_name'=> 'attr1222',
+                        'attr_value'=> 'attr1222',
+                        'spec_flag'=> 'Y',
+                    ],
+                    2=>[
+                        'attr_name'=> 'attr1222',
+                        'attr_value'=> 'attr1222',
+                        'logi_flag'=> 'Y',
+                    ],
+                    3=>[
+                        'attr_name'=> 'attr1222',
+                        'attr_value'=> 'attr1222',
+                        'hs_flag'=> 'Y',
+                    ],*/
+
                 ],
-                'spec_flag'=> [
-                    'attr4'=> 'attr44',
-                    'attr5'=> 'attr55',
+            ],
+             'attachs'=>[
+                0=>[
+                    'attach_name'=> 'attr767',
+                    'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
+                    'attach_type'=> 'BIG_IMAGE',
                 ],
-                'logi_flag'=> [
-                    'attr6'=> 'attr66',
-                    'attr7'=> 'attr77',
-                ],
-                'hs_flag'=> [
-                    'attr8'=> 'attr88',
-                    'attr9'=> 'attr99',
-                ],
-                'BIG_IMAGE'=>[
-                    'name1'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
-                    'name2'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
-                    'name3'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
-                ],
+                /*  1=>[
+                      'attach_name'=> 'attr7',
+                      'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
+                      'attach_type'=> 'BIG_IMAGE',
+                  ],
+                  2=>[
+                      'attach_name'=> 'attr9',
+                      'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
+                      'attach_type'=> 'SMALL_IMAGE',
+                  ],*/
+            ],
         ];
 
         $up = [
-            "sku" => "sku001",
-            "spu" => "spu001",
-            "lang" => "en",
-            'model'=> 'model',
-            'name'=> 'sku_name2',
-            'show_name'=> 'sku00002',
-            'goods_flag'=> [
-                0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr1111',
-                    'attr_value'=> 'attr1111',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr1222',
-                    'attr_value'=> 'attr1222',
-                ],
+            "sku" => "sku003",
+            'en'=>[
+                "spu" => "spu004",
+                "lang" => "en",
+                'model'=> 'model2',
+                'name'=> 'sku_name4',
+                'show_name'=> 'sku00004',
+                'attrs'=> [
+                    0=>[
+                        'id'=> 16,
+                        'attr_name'=> 'attr1122',
+                        'attr_value'=> 'attr1122',
+                        'goods_flag'=> 'Y',
+                    ],
+                    1=>[
+                        'id'=> 17,
+                        'attr_name'=> 'attr3344',
+                        'attr_value'=> 'attr3344',
+                        'spec_flag'=> 'Y',
+                    ],
+                    2=>[
+                        'id'=> 18,
+                        'attr_name'=> 'attr5522',
+                        'attr_value'=> 'attr4422',
+                        'logi_flag'=> 'Y',
+                    ],
+                    3=>[
+                        'id'=> 2,
+                        'attr_name'=> 'attr6622',
+                        'attr_value'=> 'attr7722',
+                        'hs_flag'=> 'Y',
+                    ],
 
-            ],
-            'spec_flag'=> [
-                0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr22',
-                    'attr_value'=> 'attr222',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr33',
-                    'attr_value'=> 'attr333',
                 ],
             ],
-            'logi_flag'=> [
+            'attachs'=>[
                 0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr444',
-                    'attr_value'=> 'attr4441',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr555',
-                    'attr_value'=> 'attr6666',
-                ],
-            ],
-            'hs_flag'=> [
-                0=>[
-                    'id'=> 1,
-                    'attr_name'=> 'attr63',
-                    'attr_value'=> 'attr767',
-                ],
-                1=>[
-                    'id'=> 2,
-                    'attr_name'=> 'attr454',
-                    'attr_value'=> 'attr7879',
-                ],
-            ],
-            'BIG_IMAGE'=>[
-                0=>[
-                    'id'=> 1,
                     'attach_name'=> 'attr767',
                     'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb6.jpg',
+                    'attach_type'=> 'BIG_IMAGE',
                 ],
                 1=>[
-                    'id'=> 2,
                     'attach_name'=> 'attr7',
                     'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb7.jpg',
+                    'attach_type'=> 'BIG_IMAGE',
                 ],
                 2=>[
-                    'id'=> 3,
                     'attach_name'=> 'attr9',
                     'attach_url'=> '/2016/12/12ad567b-6243-434f-ab12-334a4b54edb8.jpg',
+                    'attach_type'=> 'SMALL_IMAGE',
                 ],
             ],
         ];
@@ -581,9 +388,9 @@ class GoodsController extends Yaf_Controller_Abstract
             "spu" => "spu001",
             "status" => "INVALID",
         ];
-        //return $data;
+        return $data;
         //return $up;
-        return $del;
+        //return $del;
     }
 
 }

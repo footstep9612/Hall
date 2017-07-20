@@ -11,6 +11,7 @@ class ExcelController extends Yaf_Controller_Abstract
 {
     /**
      * 报价单Excel导出api接口
+     *
      * @author maimaiti
      */
     public function quoteAction()
@@ -1147,51 +1148,66 @@ class ExcelController extends Yaf_Controller_Abstract
 
     /**
      * 导出询单明细接口
-     * url：http://xx.com/V1/Excel/inquiryDetail
+     *
+     * @url：http://xx.com/V1/Excel/inquiryDetail
+     *
      * @author maimaiti
      */
     public function inquiryDetailAction()
     {
         //获取参数
         $request = json_decode(file_get_contents("php://input"),true);
-        //if (empty($request['serial_no'])) exit(json_encode(['code'=>-2107,'message'=>'缺少参数']));
-        //$serial_no = $request['serial_no'];//流水号
-        $serial_no = 'INQ_20170710_00291';//流水号
+        if (empty($request['serial_no'])) exit(json_encode(['code'=>-2107,'message'=>'缺少参数']));
+        $serial_no = $request['serial_no'];//流水号 就是询单号
+        //$serial_no = 'INQ_20170710_00291';//流水号
 
         //获取询单明细数据
         $inquiryDetailData = $this->getInquiryDetail($serial_no);
 
+        p($inquiryDetailData);
+
 
     }
 
+    /**
+     *
+     * 获取项目明细数据
+     *
+     * @param $serial_no    string      项目代码(流水号)
+     *
+     * @author maimaiti
+     *
+     * @return mixed
+     */
     protected function getInquiryDetail($serial_no)
     {
         //查找数据
         $inquiryModel = new QuoteItemModel();
         $quoteModel = new QuoteModel();
+
         $quote_no = $quoteModel->where(['serial_no'=>$serial_no])->getField('quote_no');
 
         $where = [ 'quote_no' =>  $quote_no ];
-        $field = [
+
+        $fields = [
             'id',//序号
-            'sku',//商品ID
-            'serial_no',//客户询单号
+            'quote_sku',//商品ID
             //商品数据来源
             'name_cn',//商品名称
             'name_en',//外文品名
-            'spec',//规格
-            'description',//客户需求描述
+            'quote_spec',//规格
+            'inquiry_desc',//客户需求描述
             //报价产品描述
-            'quantity',//数量
-            'unit',//单位
-            'brand',//品牌
+            'quote_quantity',//数量
+            'quote_unit',//单位
+            'quote_brand',//品牌
             //产品分类
-            '',//供应商单位
-            '',//供应商联系方式
+            //'',//供应商单位
+            //'',//供应商联系方式
             'purchase_price',//采购单价
             'exw_unit_price',//EXW单价
             'quote_unit_price',//报出单价
-            '',//贸易单价
+            //'',//贸易单价
             'unit_weight',//单重
             'package_size',//包装尺寸
             'delivery_period',//交货期(天)
@@ -1201,15 +1217,19 @@ class ExcelController extends Yaf_Controller_Abstract
             'quote_notes',//商务技术备注
             'period_of_validity'//报价有效期
         ];
-        $inquiryDetail = $inquiryModel->where($where)->select();
-        p($inquiryDetail);
+        $inquiryDetail = $inquiryModel->where($where)->field($fields)->select();
+        if (!$inquiryDetail)
+        {
+            exit(json_encode(['code'=>0,'message'=>'没有可以导出的项目明细数据']));
+        }
+        return $inquiryDetail;
     }
-    protected function exportInquiryDetailHandler()
-    {
 
-    }
     /**
      * 创建询单明细表格并填充数据
+     *
+     * @author maimaiti
+     *
      * @param $item array 当前询单明细数据
      */
     private function createInquiryDetailExcel($item)
@@ -1268,6 +1288,6 @@ class ExcelController extends Yaf_Controller_Abstract
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         //保存到服务器指定目录
-        return $this->export_to_disc($objWriter, "ExcelFiles", date('YmdHis')."_IQD.xls");
+        return $this->export_to_disc($objWriter, "ExcelFiles", "Q_I_D_".date('Ymd_His').".xls");
     }
 }
