@@ -1333,7 +1333,7 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function changestatus($spu,$status='VALID', $lang = 'en') {
+  public function changestatus($spu, $status = 'VALID', $lang = 'en') {
     try {
       $es = new ESClient();
       if (empty($spu)) {
@@ -1531,14 +1531,18 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function Update_skus($spu, $skus, $lang = 'en') {
+  public function Update_skus($spu, $skus = null, $lang = 'en') {
     $es = new ESClient();
     if (empty($spu)) {
       return false;
     }
-    $goodsmodel = new GoodsModel();
-
-    $skuinfos = $goodsmodel->getskusbyskus($skus, $lang);
+    if ($skus) {
+      $goodsmodel = new GoodsModel();
+      $skuinfos = $goodsmodel->getskusbyskus($skus, $lang);
+    } else {
+      $goodsmodel = new GoodsModel();
+      $skuinfos = $goodsmodel->getgetskubyspu($spu, $lang);
+    }
     if ($skuinfos) {
       $data['skus'] = json_encode($skuinfos, 256);
     } else {
@@ -1641,8 +1645,19 @@ class EsproductModel extends PublicModel {
     }
     $data['status'] = self::STATUS_DELETED;
     $id = $spu;
-    $type = $this->tableName . '_' . $lang;
-    $es->update_document($this->dbName, $type, $data, $id);
+    if ($lang) {
+      $type = $this->tableName . '_' . $lang;
+      $es->update_document($this->dbName, $type, $data, $id);
+    } else {
+      $type = $this->tableName . '_en';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_es';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_ru';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_es';
+      $es->update_document($this->dbName, $type, $data, $id);
+    }
     return true;
   }
 
