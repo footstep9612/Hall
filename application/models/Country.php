@@ -24,6 +24,85 @@ class CountryModel extends PublicModel {
     parent::__construct($str = '');
   }
 
+  /*
+   * 条件id,lang,bn,name,time_zone,region,pinyin
+   */
+
+  private function getCondition($condition) {
+    $data = [];
+    if (isset($condition['lang']) && $condition['lang']) {
+      $data['lang'] = $condition['lang'];
+    }
+    if (isset($condition['bn']) && $condition['bn']) {
+      $data['bn'] = $condition['bn'];
+    }
+
+    if (isset($condition['name']) && $condition['name']) {
+      $data['name'] = ['like', '%' . $condition['name'] . '%'];
+    }
+    if (isset($condition['time_zone']) && $condition['time_zone']) {
+      $data['time_zone'] = ['like', '%' . $condition['time_zone'] . '%'];
+    }
+    if (isset($condition['region']) && $condition['region']) {
+      $data['region'] = ['like', '%' . $condition['region'] . '%'];
+    }
+    if (isset($condition['pinyin']) && $condition['pinyin']) {
+      $data['pinyin'] = ['like', '%' . $condition['pinyin'] . '%'];
+    }
+    return $data;
+  }
+
+  /**
+   * 获取列表
+   * @param data $condition;
+   * @return array
+   * @author jhw
+   */
+  public function getlistBycodition($condition, $order = 'id desc', $type = true) {
+    try {
+      $data = $this->getCondition($condition);
+
+      if ($type) {
+        $pagesize = 10;
+        $current_no = 1;
+        if (isset($condition['current_no']) && $condition['current_no']) {
+          $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+        }
+        if (isset($condition['pagesize']) && $condition['pagesize']) {
+          $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        $from = ($current_no - 1) * $pagesize;
+      }
+      $this->field('id,lang,bn,name,time_zone,region,pinyin,'
+                      . '(select name from erui_dict.t_market_area '
+              . 'where erui_dict.t_market_area.bn=region and '
+              . 'erui_dict.t_market_area.lang=lang) as market_area_name ')
+              ->where($data);
+      if ($type) {
+        $this->limit($from . ',' . $pagesize);
+      }
+      return $this->order($order)
+                      ->select();
+    } catch (Exception $ex) {
+      print_r($ex);
+      return [];
+    }
+  }
+
+  /*
+   * 获取数据
+   */
+
+  public function getCount($condition) {
+    try {
+      $data = $this->getCondition($condition);
+      return $this->where($data)->count();
+    } catch (Exception $ex) {
+
+      return 0;
+    }
+  }
+
   /**
    * 获取列表
    * @param data $data;
@@ -114,7 +193,7 @@ class CountryModel extends PublicModel {
 
   /**
    * 新增数据
-   * @param  mix $createcondition 新增条件
+   * @param  mix $create 新增条件
    * @return bool
    * @author jhw
    */
@@ -152,25 +231,24 @@ class CountryModel extends PublicModel {
         'lang' => $lang
     );
 
-    if(redisExist(md5(json_encode($condition)))){
-      $result = json_decode(redisGet(md5(json_encode($condition))),true);
+    if (redisExist(md5(json_encode($condition)))) {
+      $result = json_decode(redisGet(md5(json_encode($condition))), true);
       return $result ? $result : array();
+    }
+    $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
+    if ($result) {
+      $data = array();
+      foreach ($result as $val) {
+        $sname = $val['name'];
+        $firstChar = $this->getFirstCharter($sname); //取出第一个汉字或者单词的首字母
+        $data[$firstChar][] = $val; //以这个首字母作为key
       }
-      $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
-      if ($result) {
-        $data = array();
-        foreach ($result as $val) {
-          $sname = $val['name'];
-          $firstChar = $this->getFirstCharter($sname); //取出第一个汉字或者单词的首字母
-          $data[$firstChar][] = $val; //以这个首字母作为key
-        }
-        ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
-        redisSet(md5(json_encode($condition)), $data);
-        return $data;
-      } else {
-        return array();
-      }
-
+      ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
+      redisSet(md5(json_encode($condition)), $data);
+      return $data;
+    } else {
+      return array();
+    }
   }
 
   /**
