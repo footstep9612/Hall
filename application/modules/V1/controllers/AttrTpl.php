@@ -32,4 +32,27 @@ class AttrTplController extends PublicController{
         }
         jsonReturn('','-1009','获取模板失败');
     }
+
+    /**
+     * 获取某物料分类的属性模板
+     * @param $cat_no 物料分类
+     * @param $lang 语言
+     */
+    public function materialcatAction(){
+        if(!isset($this->input['cat_no']) || empty($this->input['cat_no'])){
+            jsonReturn('','1000','cat_no不能为空');
+        }
+        $lang = isset($this->input['cat_no']) ? $this->input['cat_no'] : 'en';
+
+        $atplModel = new GoodsAttrTplModel();
+        $attrs = $atplModel ->getCategoryAttrTpl($this->input['cat_no'],$lang);
+
+        $data = array();
+        if(!empty($attrs)){
+            $data = $attrs;
+
+        }
+        jsonReturn($data);
+    }
+
 }

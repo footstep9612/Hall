@@ -29,21 +29,14 @@ class EsproductController extends ShopMallController {
     if (!empty($jsondata["token"])) {
       $token = $jsondata["token"];
     }
-    $model = new UserModel();
     if (!empty($token)) {
       try {
-        $tks = explode('.', $token);
         $tokeninfo = JwtInfo($token); //解析token
         $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
         if (empty($userinfo)) {
           $this->put_data['source'] = 'ERUI';
         } else {
-          $this->user = array(
-              "id" => $userinfo["id"],
-              "name" => $tokeninfo["name"],
-              'email' => $tokeninfo["email"],
-              "token" => $token, //token
-          );
+          $this->user = $userinfo;
         }
       } catch (Exception $e) {
         $this->put_data['source'] = 'ERUI';
@@ -67,6 +60,10 @@ class EsproductController extends ShopMallController {
         $send['allcount'] = $ret[3] > $send['count'] ? $ret[3] : $send['count'];
       } else {
         $send['allcount'] = $send['count'];
+      }
+  if (isset($this->put_data['sku_count']) &&$this->put_data['sku_count'] == 'Y') {
+        $es_goods_model = new EsgoodsModel();
+        $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
       }
       if (!$this->put_data['show_cat_no']) {
         $material_cat_nos = [];
@@ -122,6 +119,7 @@ class EsproductController extends ShopMallController {
       $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
       $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
+      $list[$key]['sku_num'] = count($list[$key]['skus']);
     }
     return $list;
   }

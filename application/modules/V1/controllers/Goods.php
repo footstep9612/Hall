@@ -122,8 +122,8 @@ class GoodsController extends PublicController
         $userInfo = getLoinInfo();
         $this->input['update_by'] = $userInfo['name'];
         $goodsModel = new GoodsModel();
-        if(isset($this->input['status']) && !empty($this->input['status'])){
-            $result = $goodsModel->modify($this->input);    //状态更改
+        if(isset($this->input['status_type']) && !empty($this->input['status_type'])){
+            $result = $goodsModel->modify($this->input);    //状态更改(暂为报审)
         } else{
             $result = $goodsModel->deleteReal($this->input);//真实删除
         }
@@ -280,6 +280,9 @@ class GoodsController extends PublicController
     public function test()
     {
         $data = [
+            'code' => MSG::MSG_SUCCESS,
+            'message' => MSG::getMessage(MSG::MSG_SUCCESS),
+
             'en'=>[
                 "spu" => "spu007",
                 "lang" => "en",

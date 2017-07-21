@@ -14,8 +14,9 @@
 class BrandModel extends PublicModel {
 
   //put your code here
-  protected $tableName = 'brand';
-  protected $dbName = 'erui_goods';
+
+  protected $tableName = 'supplier_brand';
+  protected $dbName = 'erui_supplier'; //数据库名称
   Protected $autoCheckFields = false;
 
   const STATUS_DRAFT = 'DRAFT'; //草稿
@@ -75,11 +76,34 @@ class BrandModel extends PublicModel {
       $pagesize = 10;
     }
     return $this->where($where)
+            ->field('id,name,supplier_id,logo,recommend_flag,created_by,created_at')
                     ->limit($row_start . ',' . $pagesize)
                     ->order('sort_order DESC')
                     ->select();
   }
+ /**
+   * 获取列表
+   * @param mix $condition
+   * @return mix
+   * @author zyg
+   */
+  public function listall($name, $lang = 'en') {
+    $where = $this->getcondition($name, $lang);
 
+    if (intval($current_no) <= 1) {
+      $row_start = 0;
+    } else {
+      $row_start = (intval($current_no) - 1) * $pagesize;
+    }
+    if ($pagesize < 1) {
+      $pagesize = 10;
+    }
+    return $this->where($where)
+            ->field('id,name,supplier_id')
+                    ->limit($row_start . ',' . $pagesize)
+                    ->order('sort_order DESC')
+                    ->select();
+  }
   /**
    * 获取列表
    * @param  string $code 编码

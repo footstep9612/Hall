@@ -100,7 +100,13 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $productModel->setModule(Yaf_Controller_Abstract::getModuleName());
 
-        $result = $productModel->editInfo($this->input);
+        //暂存跟保存存入nosql库
+        if(in_array($this->input['status'],array('',''))){
+
+        }else{    //待审核状态入库
+            $result = $productModel->editInfo($this->input);
+        }
+
         if ($result) {
             jsonReturn($result);
         } else {
@@ -113,11 +119,35 @@ class ProductController extends PublicController {
      * SPU删除
      */
     public function deleteAction(){
-        if(!isset($this->input['spu']))
+        if(!isset($this->input['id']))
             jsonReturn('',ErrorMsg::ERROR_PARAM);
 
         $productModel = new ProductModel();
         $result = $productModel->del($this->input);
+        if ($result) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 修改
+     */
+    public function updateAction(){
+        if(!isset($this->input['update_type']))
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+
+        if(!isset($this->input['id']))
+            jsonReturn('',ErrorMsg::ERROR_PARAM);
+
+        $result = '';
+        switch($this->input['update_type']){
+            case 'declare':    //SPU报审
+                $productModel = new ProductModel();
+                $result = $productModel->upStatus($this->input['id'],$productModel::STATUS_CHECKING);
+                break;
+        }
         if ($result) {
             jsonReturn($result);
         } else {
@@ -212,7 +242,7 @@ class ProductController extends PublicController {
         if(isset($this->input['lang']) && !in_array($this->input['lang'],array('zh','en','es','ru'))){
             jsonReturn('','1000');
         }elseif(!isset($this->input['lang'])){
-            $this->input['lang'] = browser_lang() ? browser_lang() : 'en';
+            $this->input['lang'] = 'en';
         }
         $this->input['spec_type'] = isset($this->input['spec_type'])?$this->input['spec_type']:0;
         $gmodel = new GoodsModel();

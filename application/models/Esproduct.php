@@ -103,10 +103,11 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['status']) && $condition['status']) {
       $status = $condition['status'];
-      if (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+      if ($status == 'ALL') {        
+      } elseif (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
         $status = 'VALID';
+        $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
       }
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
     } else {
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
     }
@@ -1333,7 +1334,7 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function changestatus($spu, $lang = 'en') {
+  public function changestatus($spu, $status = 'VALID', $lang = 'en') {
     try {
       $es = new ESClient();
       if (empty($spu)) {
@@ -1345,7 +1346,7 @@ class EsproductModel extends PublicModel {
         $data['status'] = 'CHECKING';
       }
       $id = $spu;
-      $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
+      $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
       return true;
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1358,42 +1359,16 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function Updateshowcats($spu = null, $lang = 'en') {
+  public function getshowcats($spu = null, $lang = 'en') {
 
     if (empty($spu)) {
       return false;
     }
-    $id = $spu;
-    $type = $this->tableName . '_' . $lang;
     $showcatproduct_model = new ShowCatProductModel();
     $show_cat_nos = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
     $scats = $this->getshow_cats($show_cat_nos, $lang);
-    $data['show_cats'] = json_encode($scats, 256);
-    $product = ['update' => [
-            "_id" => $id,
-            "_type" => $type,
-            "_index" => $this->dbName,
-        ]
-    ];
-    $product_doc['doc'] = $data;
-    $esgoodsdata = [
-        "doc" => [
-            "show_cats" => $data['show_cats'],
-        ],
-        "query" => [
-            ESClient::MATCH_PHRASE => [
-                "spu" => $spu
-            ]
-        ]
-    ];
-    $goods = ['_update_by_query' => [
-            "_type" => 'goods_' . $lang,
-            "_index" => $this->dbName,
-        ]
-    ];
-
-
-    return [$product, $product_doc, $goods, $esgoodsdata];
+    $show_cats = json_encode($scats, 256);
+    return $show_cats;
   }
 
   /* 新增ES
@@ -1401,27 +1376,37 @@ class EsproductModel extends PublicModel {
    * $replacement 替换后的内容
    */
 
-  public function update_showcats($spus, $lang = 'en') {
-    if (empty($spus)) {
+  public function update_showcats($old_cat_no, $lang = 'en') {
+    if (empty($old_cat_no)) {
       return false;
     }
-    $bulk = [];
-    foreach ($spus as $spu) {
-      $re = $this->Updateshowcats($spu, $lang);
-      if ($re) {
-        $bulk[] = $re[0];
-        $bulk[] = $re[1];
-        $bulk[] = $re[2];
-        $bulk[] = $re[3];
+    $index = $this->dbName;
+    $type = 'product_' . $lang;
+    $count = $this->setbody(['query' => [
+                    ESClient::MATCH_PHRASE => [
+                        "show_cats" => $old_cat_no
+                    ]
+        ]])->count($index, $type);
+    for ($i = 0; $i < $count['count']; $i += 100) {
+      $ret = $this->setbody(['query' => [
+                      ESClient::MATCH_PHRASE => [
+                          "show_cats" => $old_cat_no
+                      ]
+          ]])->search($index, $type, $i, 100);
+      $updateParams = array();
+      $updateParams['index'] = $this->dbName;
+      $updateParams['type'] = 'product_' . $lang;
+      if ($ret) {
+        foreach ($ret['hits']['hits'] as $item) {
+          $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
+          $updateParams['body'][] = ['doc' => $this->getshowcats($item['_source']['spu'], $lang)];
+        }
+        $this->bulk($updateParams);
       }
     }
-    if ($bulk) {
-      $es = new ESClient();
-      $es->bulk($bulk);
-      return true;
-    } else {
-      return false;
-    }
+    $esgoods = new EsgoodsModel();
+    $esgoods->update_showcats($old_cat_no, $lang);
+    return true;
   }
 
   /* 新增ES
@@ -1547,14 +1532,18 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function Update_skus($spu, $skus, $lang = 'en') {
+  public function Update_skus($spu, $skus = null, $lang = 'en') {
     $es = new ESClient();
     if (empty($spu)) {
       return false;
     }
-    $goodsmodel = new GoodsModel();
-
-    $skuinfos = $goodsmodel->getskusbyskus($skus, $lang);
+    if ($skus) {
+      $goodsmodel = new GoodsModel();
+      $skuinfos = $goodsmodel->getskusbyskus($skus, $lang);
+    } else {
+      $goodsmodel = new GoodsModel();
+      $skuinfos = $goodsmodel->getgetskubyspu($spu, $lang);
+    }
     if ($skuinfos) {
       $data['skus'] = json_encode($skuinfos, 256);
     } else {
@@ -1657,8 +1646,19 @@ class EsproductModel extends PublicModel {
     }
     $data['status'] = self::STATUS_DELETED;
     $id = $spu;
-    $type = $this->tableName . '_' . $lang;
-    $flag = $es->update_document($this->dbName, $type, $data, $id);
+    if ($lang) {
+      $type = $this->tableName . '_' . $lang;
+      $es->update_document($this->dbName, $type, $data, $id);
+    } else {
+      $type = $this->tableName . '_en';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_es';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_ru';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_es';
+      $es->update_document($this->dbName, $type, $data, $id);
+    }
     return true;
   }
 
