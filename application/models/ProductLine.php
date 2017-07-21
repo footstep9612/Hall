@@ -41,6 +41,9 @@ class ProductLineModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where['name'] = $condition['name'];
         }
+        if (!empty($condition['user_no'])) {
+            $where['user_no'] = $condition['user_no'];
+        }
 
         $where['status'] = !empty($condition['status'])?$condition['status']:"VALID";
 
