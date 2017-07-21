@@ -108,6 +108,7 @@ class TransmodeController extends PublicController {
       $this->jsonReturn();
     }
 
+    
     $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();

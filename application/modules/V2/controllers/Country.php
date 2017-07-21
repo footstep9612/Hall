@@ -198,11 +198,13 @@ class CountryController extends PublicController {
       } elseif (is_array($condition['id'])) {
         $where['id'] = ['in', $condition['id']];
       }
+    } elseif ($condition['bn']) {
+      $where['bn'] = $condition['bn'];
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
-    $result = $this->_model->delete_data($this->put_data['id']);
+    $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);

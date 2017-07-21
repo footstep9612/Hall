@@ -201,5 +201,26 @@ class TradeTermsModel extends PublicModel {
       return array();
     }
   }
+/**
+   * 配送时效列表
+   * 配送时效 不区分产品，只根据目的国（起始国、地点暂定为中国、东营），根据这三个条件查询，并按贸易术语分开展示
+   * @param string $to_country 目的国
+   * @param string $from_country 起始国
+   * @param string $warehouse 起始仓库
+   * @return array
+   */
+  public function getListallbycondition($condition = '') {
+    $where = $this->getCondition($condition);
+    try {
+      $field = 'id,terms,description,transport_mode,lang';
 
+      $result = $this->field($field)
+           
+              ->where($where)
+              ->select();
+      return $result;
+    } catch (Exception $e) {
+      return array();
+    }
+  }
 }

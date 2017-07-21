@@ -22,7 +22,7 @@ class DestdeliverylogiController extends PublicController {
   public function listAction() {
     $condtion = $this->put_data;
     unset($data['token']);
-    $key = 'logi_period_list_' . $lang . md5(json_encode($condtion));
+    $key = 'dest_delivery_logi_list_' . $lang . md5(json_encode($condtion));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getListbycondition($condtion);
@@ -66,10 +66,9 @@ class DestdeliverylogiController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('logi_period_list_*');
+    $keys = $redis->getKeys('dest_delivery_logi_*');
     $redis->delete($keys);
-    $LogiPeriods = $redis->getKeys('LogiPeriod*');
-    $redis->delete($LogiPeriods);
+
   }
 
   public function createAction() {

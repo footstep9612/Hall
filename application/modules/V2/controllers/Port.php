@@ -107,6 +107,7 @@ class PortController extends PublicController {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
+    
 
     $result = $this->_model->where($where)->delete();
     if ($result) {
