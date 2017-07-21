@@ -23,7 +23,23 @@ class ShowCatModel extends PublicModel {
     $this->tableName = 'show_cat';
     parent::__construct();
   }
-
+ /**
+   * 分类树形
+   * @param mix $condition
+   * @return mix
+   * @author zyg
+   */
+  public function tree($condition = []) {
+    $where = $this->getcondition($condition);
+    try {
+      return $this->where($where)
+                      ->order('sort_order DESC')
+                      ->field('cat_no as value,name as lable,parent_cat_no')
+                      ->select();
+    } catch (Exception $ex) {
+      return [];
+    }
+  }
   /**
    * 展示分类列表
    * @param array $condition  条件
@@ -631,25 +647,28 @@ class ShowCatModel extends PublicModel {
     } elseif ($level_no >= 3) {
       $level_no = 3;
     }
-
     if (empty($parent_cat_no) && $level_no == 1) {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
       if (!empty($re['max_cat_no'])) {
-        return sprintf('%02d', intval($re['max_cat_no']) + 1);
+        return sprintf('%06d', intval($re['max_cat_no']) + 10000);
       } else {
-        return '01';
+        return '010000';
       }
     } elseif (empty($parent_cat_no)) {
       return false;
     } else {
-      $re = $this->field('max(cat_no) as max_cat_no')->where(['parent_cat_no' => $parent_cat_no])->find();
-      $format = '%0' . ($level_no * 2) . 'd';
-
-      if (!empty($re['max_cat_no'])) {
+      $re = $this->field('max(cat_no) as max_cat_no')
+              ->where(['parent_cat_no' => $parent_cat_no])
+              ->find();
+      $format = '%06d';
+      if (!empty($re['max_cat_no']) && $level_no == 3) {
         return sprintf($format, (intval($re['max_cat_no']) + 1));
-      } else {
-
-        return sprintf($format, (intval($parent_cat_no) * 100 + 1));
+      } elseif ($level_no == 3) {
+        return sprintf($format, (intval($parent_cat_no) + 1));
+      } elseif (!empty($re['max_cat_no']) && $level_no == 2) {
+        return sprintf($format, (intval($re['max_cat_no']) + 100));
+      } elseif ($level_no == 2) {
+        return sprintf($format, (intval($parent_cat_no) + 100));
       }
     }
   }
