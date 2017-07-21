@@ -365,7 +365,6 @@ class GoodsAttrModel extends PublicModel
      */
     public function updateAttrSku($data)
     {
-
         $condition = $this->check_up($data);
         if($condition){
             try{
@@ -376,7 +375,6 @@ class GoodsAttrModel extends PublicModel
             } catch(\Kafka\Exception $e){
                 return false;
             }
-
         } else{
             return false;
         }

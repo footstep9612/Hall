@@ -47,6 +47,11 @@ class BuyerappapprovalModel extends PublicModel {
         if(isset($condition['approved_by'])){
             $data['approved_by'] = $condition['approved_by'];
         }
+        if(isset($condition['approved_name'])){
+            $data['approved_name'] = $condition['approved_name'];
+        } else{
+            JsonReturn('','-1003','[approved_name]不能为空');
+        }
         if(isset($condition['remarks'])){
             $data['remarks'] = $condition['remarks'];
         }
@@ -88,7 +93,7 @@ class BuyerappapprovalModel extends PublicModel {
         }
         $where['lang'] = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-        $field = 'buyer_app_serial_no,lang,status,remarks,approved_by,approved_at';
+        $field = 'buyer_app_serial_no,lang,approved_name,status,remarks,approved_by,approved_at';
 
         try {
             $result =  $this->field($field)->where($where)->select();

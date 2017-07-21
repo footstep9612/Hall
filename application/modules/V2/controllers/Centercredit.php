@@ -14,26 +14,15 @@ class CentercreditController extends ShopMallController
     }
 
     /**
-     * 企业/银行信息新建 - 门户
+     * 企业/银行信息新建/编辑 - 门户通用
      * @author klp
      */
     public function createAction()
     {
+        //jsonReturn(1213);
         $buyerModel = new BuyerModel();
-        $result1 = $buyerModel->createInfo($this->user,$this->input);
-        $buyerRegInfo = new BuyerreginfoModel();
-        $result2 = $buyerRegInfo->createInfo($this->user,$this->input);
-        if($result1 && $result2){
-            $data = array(
-                'code' => 1,
-                'message' => '成功',
-                'data' => $result2
-            );
-            jsonReturn($data);
-        }else{
-            jsonReturn('','-1002','失败');
-        }
-        exit;
+        $result = $buyerModel->createInfo($this->user,$this->put_data);
+        $this->returnInfo($result);
     }
 
     /**
@@ -43,7 +32,7 @@ class CentercreditController extends ShopMallController
     public function listAction()
     {
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getListCredit($this->input);
+        $result = $buyerModel->getListCredit($this->put_data);
         $this->returnInfo($result);
     }
 
@@ -82,6 +71,18 @@ class CentercreditController extends ShopMallController
         $result = $BuyerappapprovalModel->checkCredit($this->input);
         $this->returnInfo($result);
     }
+
+    /**
+     * 区域等级会员维护列表
+     * @author klp
+     */
+    public function gradeListAction()
+    {
+        $buyerModel = new BuyerModel();
+        $result = $buyerModel->getGradeList($this->put_data);
+        $this->returnInfo($result);
+    }
+
 
     //统一回复调用方法
     function returnInfo($result){

@@ -113,9 +113,6 @@ class BuyerModel extends PublicModel {
         }
 
     }
-
-
-
     /**
      * 判断用户是否存在
      * @param  string $name 用户名
@@ -431,16 +428,27 @@ class BuyerModel extends PublicModel {
         }
         $where['lang'] = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-        $field = 'serial_no,name,country,reg_date,bank_name,swift_code,bank_address,bank_account,remarks';
-        $buyerInfo =  $this->field($field)->where($where)->find();
-
-        $arr = [];
-        if($buyerInfo){
-            $buyerRegInfo = new BuyerreginfoModel();
-            $result = $buyerRegInfo->getBuyerRegInfo($where);
-            return $result ? array_merge($buyerInfo,$result) : $buyerInfo;
+        $field = 'serial_no,name,country,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,registered_time,capital_account,sales,official_phone,fax,official_url,employees,remarks';
+        try{
+            $buyerInfo =  $this->field($field)->where($where)->find();
+            if($buyerInfo){
+                //获取国家代码与企业邮箱与邮箱
+                $BuyerAddressModel = new BuyerAddressModel();
+                $addressInfo = $BuyerAddressModel->field('tel_country_code,official_email,zipcode')->where($where)->find();
+                $buyerInfo['tel_country_code'] = $buyerInfo['official_email'] = $buyerInfo['zipcode'] = '';
+                if($addressInfo){
+                    $buyerInfo['tel_country_code'] = $$addressInfo['tel_country_code'];
+                    $buyerInfo['official_email'] = $$addressInfo['official_email'];
+                    $buyerInfo['zipcode'] = $$addressInfo['zipcode'];
+                }
+                $buyerRegInfo = new BuyerreginfoModel();
+                $result = $buyerRegInfo->getBuyerRegInfo($where);
+                return $result ? array_merge($buyerInfo,$result) : $buyerInfo;
+            }
+            return array();
+        }catch (Exception $e){
+            return array();
         }
-        return false;
     }
 
     /**
@@ -453,10 +461,10 @@ class BuyerModel extends PublicModel {
             return false;
         $this->startTrans();
         try {
-            foreach ($input as $key => $value) {
+            foreach ($input as $key => $item) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    $checkout = $this->checkParam($input, $this->field);
+                    $checkout = $this->checkParam($item);
                     $data = [
                         'lang' => $key,
                         'customer_id' => $token['customer_id'],
@@ -465,6 +473,7 @@ class BuyerModel extends PublicModel {
                         'country' => $checkout['country'],
                         'bank_name' => $checkout['bank_name'],
                         'bank_address' =>  $checkout['bank_address'],
+                        'official_address' =>  $checkout['official_address'],
                         'bn' => isset($checkout['bn']) ? $checkout['bn'] : '',
                         'bank_account' => isset($checkout['bank_account']) ? $checkout['bank_account'] : '',
                         'profile' => isset($checkout['profile']) ? $checkout['profile'] : '',
@@ -472,8 +481,36 @@ class BuyerModel extends PublicModel {
                         'city' => isset($checkout['city']) ? $checkout['city'] : '',
                         'reg_date' => isset($checkout['reg_date']) ? $checkout['reg_date'] : '',
                         'swift_code' => isset($checkout['swift_code']) ? $checkout['swift_code'] : '',
+                        'listed_flag' => isset($checkout['listed_flag']) ? $checkout['listed_flag'] : 'N',
+                        'registered_time' => isset($checkout['registered_time']) ? $checkout['registered_time'] : '',
+                        'capital_account' => isset($checkout['capital_account']) ? $checkout['capital_account'] : 0,
+                        'sales' => isset($checkout['sales']) ? $checkout['sales'] : 0,
+                        'official_phone' => isset($checkout['official_phone']) ? $checkout['official_phone'] : '',
+                        'fax' => isset($checkout['fax']) ? $checkout['fax'] : '',
+                        'official_url' => isset($checkout['official_url']) ? $checkout['official_url'] : '',
+                        'employees' => isset($checkout['employees']) ? $checkout['employees'] : '',
+                        'credit_total' => isset($checkout['credit_total']) ? $checkout['credit_total'] : 0,
+                        'credit_available' => isset($checkout['credit_available']) ? $checkout['credit_available'] : 0,
                     ];
-                    $this->add($data);
+                    //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
+                    $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
+                    if ($result) {
+                        $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
+                    } else {
+                        $this->add($data);
+                    }
+                    //t_buyer_reg_info
+                    $buyerRegInfo = new BuyerreginfoModel();
+                    $result = $buyerRegInfo->createInfo($token,$input);
+                    if($result){
+                        return false;
+                    }
+                    //t_buyer_address
+                    $buyerAddressMode = new BuyerAddressModel();
+                    $res = $buyerAddressMode->createInfo($token,$input);
+                    if($res){
+                        return false;
+                    }
                 }
             }
             $this->commit();
@@ -494,6 +531,7 @@ class BuyerModel extends PublicModel {
         if(!isset($param['country']) && empty($param['country'])) { jsonReturn('','-1002','[country]不能为空');}
         if(!isset($param['bank_name']) && empty($param['bank_name'])) { jsonReturn('','-1002','[bank_name]不能为空');}
         if(!isset($param['bank_address']) && empty($param['bank_address'])) { jsonReturn('','-1002','[bank_address]不能为空');}
+        if(!isset($param['official_address']) && empty($param['official_address'])) { jsonReturn('','-1002','[official_address]不能为空');}
         return $param;
     }
 

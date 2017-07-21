@@ -29,6 +29,7 @@ class BuyerreginfoModel extends PublicModel {
     //定义校验规则
     protected $field = array(
         'registered_in' => array('required'),
+        'bank_country_code' => array('required'),
     );
 
     /**
@@ -47,11 +48,11 @@ class BuyerreginfoModel extends PublicModel {
             jsonReturn('','-1001','用户[id]不可以为空');
         }
         $where['lang'] = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
-        $field = 'legal_person_name,legal_person_gender,expiry_date,registered_in,reg_capital,reg_capital_cur,social_credit_code,biz_nature,biz_scope,biz_type,service_type';
+        $field = 'legal_person_name,legal_person_gender,expiry_date,registered_in,reg_capital,reg_capital_cur,social_credit_code,biz_nature,biz_scope,biz_type,service_type,bank_country_code,zipcode,bank_phone,bank_fax,turnover,profit,assets,own_capital,equity_ratio,branch_number,created_by,created_at';
         try{
             $buyerRegInfo =  $this->field($field)->where($where)->find();
             return $buyerRegInfo ? $buyerRegInfo : array();
-        } catch(\Kafka\Exception $e){
+        } catch(Exception $e){
             return false;
         }
     }
@@ -84,10 +85,25 @@ class BuyerreginfoModel extends PublicModel {
                         'biz_scope' => isset($checkout['biz_scope']) ? $checkout['biz_scope'] : '',
                         'biz_type' => isset($checkout['biz_type']) ? $checkout['biz_type'] : '',
                         'service_type' => isset($checkout['service_type']) ? $checkout['service_type'] : '',
-                        'created_by' => $token['user_name'],
-                        'created_at' => date('Y-m-d H:i:s', time())
+                        'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
+                        'bank_phone' => isset($checkout['bank_phone']) ? $checkout['bank_phone'] : '',
+                        'bank_fax' => isset($checkout['bank_fax']) ? $checkout['bank_fax'] : '',
+                        'turnover' => isset($checkout['turnover']) ? $checkout['turnover'] : 0,
+                        'profit' => isset($checkout['profit']) ? $checkout['profit'] : 0,
+                        'assets' => isset($checkout['assets']) ? $checkout['assets'] : 0,
+                        'equity_ratio' => isset($checkout['equity_ratio']) ? $checkout['equity_ratio'] : '',
+                        'own_capital' => isset($checkout['own_capital']) ? $checkout['own_capital'] : 0,
+                        'branch_number' => isset($checkout['branch_number']) ? $checkout['branch_number'] : ''
                     ];
-                    $this->add($data);
+                    //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
+                    $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
+                    if ($result) {
+                        $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
+                    } else {
+                        $data['created_by'] = $token['user_name'];
+                        $data['created_at'] = date('Y-m-d H:i:s', time());
+                        $this->add($data);
+                    }
                 }
             }
                 $this->commit();
