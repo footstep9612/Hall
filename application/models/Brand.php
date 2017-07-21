@@ -78,7 +78,7 @@ class BrandModel extends PublicModel {
     return $this->where($where)
             ->field('id,name,supplier_id,logo,recommend_flag,created_by,created_at')
                     ->limit($row_start . ',' . $pagesize)
-                    ->order('sort_order DESC')
+                  
                     ->select();
   }
  /**
@@ -101,7 +101,7 @@ class BrandModel extends PublicModel {
     return $this->where($where)
             ->field('id,name,supplier_id')
                     ->limit($row_start . ',' . $pagesize)
-                    ->order('sort_order DESC')
+                 
                     ->select();
   }
   /**
@@ -112,9 +112,9 @@ class BrandModel extends PublicModel {
    * @return mix
    * @author zyg
    */
-  public function info($cat_no = '', $lang = 'en') {
+  public function info($brand_no = '', $lang = 'en') {
     if ($cat_no) {
-      $where['cat_no'] = $cat_no;
+      $where['brand_no'] = $brand_no;
     } else {
       return [];
     }
