@@ -136,8 +136,7 @@ class ShowCatModel extends PublicModel {
     if (isset($condition['id']) && $condition['id']) {
       $where['id'] = $condition['id'];
     }
-    //id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by
-    if (isset($condition['cat_no']) && $condition['cat_no']) {
+       if (isset($condition['cat_no']) && $condition['cat_no']) {
       $where['cat_no'] = $condition['cat_no'];
     }
     if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
@@ -285,13 +284,13 @@ class ShowCatModel extends PublicModel {
    * @param  string $lang 语言
    * @return mix
    * @author zyg
-   */
+   */   
   public function info($cat_no = '', $lang = 'en') {
     $where['cat_no'] = $cat_no;
     $where['lang'] = $lang;
     return $this->where($where)
                     ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
-                            . 'sort_order,created_at,created_by,big_icon,middle_icon,small_icon')
+                            . 'sort_order,created_at,created_by,big_icon,middle_icon,small_icon,market_area_bn,country_bn')
                     ->find();
   }
 
@@ -305,7 +304,7 @@ class ShowCatModel extends PublicModel {
   public function getinfo($cat_no, $lang = 'en') {
     try {
       if ($cat_no) {
-        $cat3 = $this->field('id,cat_no,name')
+        $cat3 = $this->field('id,cat_no,name,market_area_bn,country_bn')
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
         if ($cat3) {

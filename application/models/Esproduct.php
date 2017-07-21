@@ -971,6 +971,7 @@ class EsproductModel extends PublicModel {
 
 
           $scats = $this->getshow_cats($show_cat_nos, $lang);
+		 
           $skus = $this->getskusbyspus($spus, $lang);
           $specs = $this->getproduct_specsbyskus($spus, $lang);
           $SupplycapabilityModel = new SupplycapabilityModel();
