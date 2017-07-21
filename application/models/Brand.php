@@ -31,12 +31,13 @@ class BrandModel extends PublicModel {
   public function getcondition($name, $lang = 'en') {
 
     $where = [];
-    if ($name) {
+    var_dump(!empty($name),$name);
+    if (!empty($name)) {
       $where['name'] = ['like', '%' . $name . '%'];
     }
-    if ($lang) {
-      $where['lang'] = $lang;
-    }
+//    if ($lang) {
+//      $where['lang'] = $lang;
+//    }
     return $where;
   }
 

@@ -6,7 +6,7 @@
 class CountryController extends PublicController {
 
   public function init() {
-    //  parent::init();
+    parent::init();
 
     $this->_model = new CountryModel();
   }
@@ -29,6 +29,7 @@ class CountryController extends PublicController {
       $arr = json_decode(redisGet('Country_list_' . md5(json_encode($data))), true);
     } else {
       $arr = $market_area->getlistBycodition($data); //($this->put_data);
+
       if ($arr) {
         redisSet('Country_list_' . md5(json_encode($data)), json_encode($arr));
       }
@@ -56,15 +57,14 @@ class CountryController extends PublicController {
     unset($data['token']);
     $market_area = new CountryModel();
     if (redisGet('Country_listall_' . md5(json_encode($data)))) {
-      $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
+      $arr = json_decode(redisGet('Country_listall_' . md5(json_encode($data))), true);
     } else {
-      $arr = $market_area->getlistBycodition($data); //($this->put_data);
+      $arr = $market_area->getlistBycodition($data, false);
       if ($arr) {
         redisSet('Country_listall_' . md5(json_encode($data)), json_encode($arr));
       }
     }
     if (!empty($arr)) {
-
       $this->setCode(MSG::MSG_SUCCESS);
     } else {
       $this->setCode(MSG::MSG_FAILED);
@@ -150,7 +150,7 @@ class CountryController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('Country_list_*');
+    $keys = $redis->getKeys('Country_*');
     $redis->delete($keys);
   }
 

@@ -31,23 +31,26 @@ class CountryModel extends PublicModel {
   private function getCondition($condition) {
     $data = [];
     if (isset($condition['lang']) && $condition['lang']) {
-      $data['lang'] = $condition['lang'];
+      $data['c.lang'] = $condition['lang'];
     }
     if (isset($condition['bn']) && $condition['bn']) {
-      $data['bn'] = $condition['bn'];
+      $data['c.bn'] = $condition['bn'];
     }
 
     if (isset($condition['name']) && $condition['name']) {
-      $data['name'] = ['like', '%' . $condition['name'] . '%'];
+      $data['c.name'] = ['like', '%' . $condition['name'] . '%'];
     }
     if (isset($condition['time_zone']) && $condition['time_zone']) {
-      $data['time_zone'] = ['like', '%' . $condition['time_zone'] . '%'];
+      $data['c.time_zone'] = ['like', '%' . $condition['time_zone'] . '%'];
     }
     if (isset($condition['region']) && $condition['region']) {
-      $data['region'] = ['like', '%' . $condition['region'] . '%'];
+      $data['c.region'] = ['like', '%' . $condition['region'] . '%'];
     }
-    if (isset($condition['pinyin']) && $condition['pinyin']) {
-      $data['pinyin'] = ['like', '%' . $condition['pinyin'] . '%'];
+
+
+
+    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+      $data['mac.market_area_bn'] = $condition['market_area_bn'];
     }
     return $data;
   }
@@ -58,7 +61,7 @@ class CountryModel extends PublicModel {
    * @return array
    * @author jhw
    */
-  public function getlistBycodition($condition, $order = 'id desc', $type = true) {
+  public function getlistBycodition($condition, $order = 'c.id desc', $type = true) {
     try {
       $data = $this->getCondition($condition);
 
@@ -73,10 +76,11 @@ class CountryModel extends PublicModel {
         }
         $from = ($current_no - 1) * $pagesize;
       }
-      $this->field('id,lang,bn,name,time_zone,region,pinyin,'
-                      . '(select name from erui_dict.t_market_area '
-              . 'where erui_dict.t_market_area.bn=region and '
-              . 'erui_dict.t_market_area.lang=lang) as market_area_name ')
+      $this->alias('c')
+              ->join('erui_dict.t_market_area_country mac on c.bn=mac.country_bn', 'left')
+              ->join('erui_dict.t_market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
+              ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region,c.pinyin,'
+                      . 'ma.name as market_area_name ,mac.market_area_bn')
               ->where($data);
       if ($type) {
         $this->limit($from . ',' . $pagesize);
@@ -174,6 +178,7 @@ class CountryModel extends PublicModel {
     }
     if (isset($data['name'])) {
       $arr['name'] = $data['name'];
+      $arr['pinyin'] = Pinyin($create['name']);
     }
     if (isset($data['time_zone'])) {
       $arr['time_zone'] = $data['time_zone'];
@@ -181,14 +186,29 @@ class CountryModel extends PublicModel {
     if (isset($data['region'])) {
       $arr['region'] = $data['region'];
     }
-    if (isset($data['pinyin'])) {
-      $arr['pinyin'] = $data['pinyin'];
-    }
+
     if (!empty($where)) {
-      return $this->where($where)->save($arr);
+      $flag = $this->where($where)->save($arr);
+
+
+      if ($flag && $data['market_area_bn'] && $arr['bn']) {
+
+        $update = ['market_area_bn' => $create['market_area_bn'],
+            'country_bn' => $arr['bn']];
+        if ($this->getmarket_area_countryexit($update)) {
+          $this->table('erui_dict.t_market_area_country')
+                  ->create($update);
+        }
+      }
+      return $flag;
     } else {
       return false;
     }
+  }
+
+  public function getmarket_area_countryexit($where) {
+
+    return $this->table('erui_dict.t_market_area_country')->where($where)->find();
   }
 
   /**
@@ -206,6 +226,7 @@ class CountryModel extends PublicModel {
     }
     if (isset($create['name'])) {
       $arr['name'] = $create['name'];
+      $arr['pinyin'] = Pinyin($create['name']);
     }
     if (isset($create['time_zone'])) {
       $arr['time_zone'] = $create['time_zone'];
@@ -213,11 +234,23 @@ class CountryModel extends PublicModel {
     if (isset($create['region'])) {
       $arr['region'] = $create['region'];
     }
-    if (isset($data['pinyin'])) {
-      $arr['pinyin'] = $data['pinyin'];
-    }
     $data = $this->create($arr);
-    return $this->add($data);
+    if ($data && $create['market_area_bn']) {
+      $update = ['market_area_bn' => $create['market_area_bn'],
+          'country_bn' => $arr['bn']];
+      $this->table('erui_dict.t_market_area_country')
+              ->create($update);
+    }
+    $flag = $this->add($data);
+    if ($flag && $create['market_area_bn']) {
+      $update = ['market_area_bn' => $create['market_area_bn'],
+          'country_bn' => $arr['bn']];
+      if ($this->getmarket_area_countryexit($update)) {
+        $this->table('erui_dict.t_market_area_country')
+                ->create($update);
+      }
+    }
+    return $flag;
   }
 
   /**

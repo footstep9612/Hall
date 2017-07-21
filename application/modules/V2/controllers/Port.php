@@ -6,7 +6,7 @@
 class PortController extends PublicController {
 
   public function init() {
-    //parent::init();
+    parent::init();
 
     $this->_model = new PortModel();
   }
