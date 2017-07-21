@@ -191,7 +191,17 @@ class CountryController extends PublicController {
    */
 
   public function deleteAction() {
-
+    $condition = $this->put_data;
+    if (isset($condition['id']) && $condition['id']) {
+      if (is_string($condition['id'])) {
+        $where['id'] = $condition['id'];
+      } elseif (is_array($condition['id'])) {
+        $where['id'] = ['in', $condition['id']];
+      }
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
     $result = $this->_model->delete_data($this->put_data['id']);
     if ($result) {
       $this->delcache();

@@ -14,7 +14,7 @@ class PortController extends PublicController {
   public function listAction() {
     $condtion = $this->put_data;
     unset($condtion['token']);
-    $key = 'Port_list_' .  md5(json_encode($condtion));
+    $key = 'Port_list_' . md5(json_encode($condtion));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getListbycondition($condtion);
@@ -60,7 +60,6 @@ class PortController extends PublicController {
     $redis = new phpredis();
     $keys = $redis->getKeys('Port_*');
     $redis->delete($keys);
-
   }
 
   public function createAction() {
@@ -96,10 +95,14 @@ class PortController extends PublicController {
   public function deleteAction() {
 
     $condition = $this->put_data;
-    if ($condition['bn']) {
+    if (isset($condition['id']) && $condition['id']) {
+      if (is_string($condition['id'])) {
+        $where['id'] = $condition['id'];
+      } elseif (is_array($condition['id'])) {
+        $where['id'] = ['in', $condition['id']];
+      }
+    } elseif ($condition['bn']) {
       $where['bn'] = $condition['bn'];
-    } elseif ($where['id']) {
-      $where['id'] = $condition['id'];
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();

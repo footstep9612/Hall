@@ -60,7 +60,6 @@ class PaymentmodeController extends PublicController {
     $redis = new phpredis();
     $keys = $redis->getKeys('Paymentmode_list_*');
     $redis->delete($keys);
-   
   }
 
   public function createAction() {
@@ -96,14 +95,19 @@ class PaymentmodeController extends PublicController {
   public function deleteAction() {
 
     $condition = $this->put_data;
-    if ($condition['bn']) {
+    if (isset($condition['id']) && $condition['id']) {
+      if (is_string($condition['id'])) {
+        $where['id'] = $condition['id'];
+      } elseif (is_array($condition['id'])) {
+        $where['id'] = ['in', $condition['id']];
+      }
+    } elseif ($condition['bn']) {
       $where['bn'] = $condition['bn'];
-    } elseif ($where['id']) {
-      $where['id'] = $condition['id'];
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
+
 
     $result = $this->_model->where($where)->delete();
     if ($result) {

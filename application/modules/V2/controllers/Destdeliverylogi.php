@@ -110,7 +110,19 @@ class DestdeliverylogiController extends PublicController {
   public function deleteAction() {
 
     $condition = $this->put_data;
-    $where['logi_no'] = $condition['logi_no'];
+    if (isset($condition['id']) && $condition['id']) {
+      if (is_string($condition['id'])) {
+        $where['id'] = $condition['id'];
+      } elseif (is_array($condition['id'])) {
+        $where['id'] = ['in', $condition['id']];
+      }
+    } elseif (isset($condition['logi_no']) && $condition['logi_no']) {
+      $where['logi_no'] = $condition['logi_no'];
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
+
     $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();

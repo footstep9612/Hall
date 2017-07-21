@@ -48,6 +48,15 @@ class LogiPeriodModel extends Model {
     if (isset($condition['to_port']) && $condition['to_port']) {
       $where['to_port'] = $condition['to_port'];
     }
+     if (isset($condition['status']) && $condition['status']) {
+      $where['status'] = $condition['status'];
+    }
+     if (isset($condition['created_by']) && $condition['created_by']) {
+      $where['created_by'] = $condition['created_by'];
+    }
+     if (isset($condition['created_at']) && $condition['created_at']) {
+      $where['created_at'] = $condition['created_at'];
+    }
     return $where;
   }
 
@@ -81,7 +90,7 @@ class LogiPeriodModel extends Model {
               . 'packing_period_max,collecting_period_min,collecting_period_max,'
               . 'declare_period_min,declare_period_max,loading_period_min,'
               . 'loading_period_max,int_trans_period_min,int_trans_period_max,'
-              . 'logi_notes,period_min,period_max,description';
+              . 'logi_notes,period_min,period_max,description,status,created_by,created_at';
 
       $pagesize = 10;
       $current_no = 1;
