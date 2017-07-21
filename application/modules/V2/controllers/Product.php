@@ -13,7 +13,6 @@ class ProductController extends PublicController {
      * 产品添加/编辑
      */
     public function editAction() {
-        $this->put_data['en'] = ['name'=>''];
         $productModel = new ProductModel();
         $productModel->setModule(Yaf_Controller_Abstract::getModuleName());
 
