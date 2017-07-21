@@ -34,6 +34,31 @@ class BrandController extends PublicController {
   }
 
   /*
+   * 获取所有品牌
+   */
+
+  public function ListAllAction() {
+    $lang = $this->getPut('lang', 'en');
+    $name = $this->getPut('name', 'en');
+
+
+    $key = 'brand_list_' . $lang . md5($name);
+    $data = json_decode(redisGet($key), true);
+    if (!$data) {
+      $arr = $this->_model->listall($name, $lang);
+      redisSet($key, json_encode($arr), 86400);
+      if ($arr) {
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
+      } else {
+        $this->setCode(MSG::MSG_FAILED);
+        $this->jsonReturn();
+      }
+    }
+    $this->jsonReturn($data);
+  }
+
+  /*
    * 验重
    */
 
