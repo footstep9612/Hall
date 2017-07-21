@@ -13,7 +13,7 @@ class ProductModel extends PublicModel {
     const STATUS_NORMAL = 'NORMAL'; //发布
     const STATUS_CLOSED = 'CLOSED';  //关闭
     const STATUS_VALID = 'VALID'; //有效
-    const STATUS_TEST = 'TEST'; //测试；
+    const STATUS_TEST = 'TEST'; //测试  暂存；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
     const STATUS_INVALID = 'INVALID';  //无效
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
@@ -266,62 +266,64 @@ class ProductModel extends PublicModel {
         if (empty($input))
             return false;
 
-        //获取当前模块地址
-        $config_obj = Yaf_Registry::get("config");
-        $this_module = $config_obj->myhost . $this->module;
-
         //获取当前用户信息
         $userInfo = getLoinInfo();
 
-        $spu = isset($input['spu']) ? trim($input['spu']) : createSpu();    //不存在生产spu
+        $spu = isset($input['spu']) ? trim($input['spu']) : '';
         $this->startTrans();
         try {
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    //字段校验
-                    $item = $this->checkParam($item, $this->field);
+                    if(empty($item)) continue;
                     $data = array(
                         'lang' => $key,
-                        'name' => $item['name'],
+                        'name' => isset($item['name']) ? $item['name'] : '',
                         'show_name' => isset($item['show_name']) ? $item['show_name'] : '',
-                        'meterial_cat_no' => $item['meterial_cat_no'],
-                        // 'show_cat_no' => isset($item['show_cat_no']) ? $item['show_cat_no'] : '',    //后期实现
-                        'brand' => $item['brand'],
+                        'meterial_cat_no' => isset($item['meterial_cat_no']) ? $item['meterial_cat_no'] : '',
+                        'brand' => isset($item['brand']) ? $item['brand'] : '',
                         'advantages' => isset($item['advantages']) ? $item['advantages'] : '',   //产品优势
                         'tech_paras' => isset($item['tech_paras']) ? $item['tech_paras'] : '',    //技术参数
-                        'exe_standard' => isset($item['exe_standard']) ? $item['exe_standard'] : '', //执行标准
-                        //'profile' => isset($item['profile']) ? $item['profile'] : '', //产品简介
+                        'exe_standard' => isset($item['exe_standard']) ? $item['exe_standard'] : '', //执行标准=
                         'keywords' => isset($item['keywords']) ? $item['profile'] : '', //关键词
                         'description' => isset($item['description']) ? $item['description'] : '', //详情描述
-                        'status' => self::STATUS_CHECKING,
                     );
 
-                    //添加时判断同一语言，name,meterial_cat_no是否存在
-                    $exist_condition = array(
-                        'lang' => $key,
-                        'name' => $item['name'],
-                        'meterial_cat_no' => $item['meterial_cat_no'],
-                    );
-                    $exist = $this->find($exist_condition);
-                    if($exist)
-                        jsonReturn('', '400', '已存在');
+                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']),array('TEST,CHECKING,VALID,DELETED,INVALID,CLOSED,NORMAL'))) ? strtoupper($input['status']) : 'TEST';
+                    if($input['status'] !='TEST'){
+                        //字段校验
+                        $item = $this->checkParam($data, $this->field);
+
+                        //添加时判断同一语言，name,meterial_cat_no是否存在
+                        $exist_condition = array(
+                            'lang' => $key,
+                            'name' => $item['name'],
+                            'meterial_cat_no' => $item['meterial_cat_no'],
+                        );
+                        $exist = $this->find($exist_condition);
+                        if($exist)
+                            jsonReturn('', '400', '已存在');
+                    }
+                    $data['status'] = $input['status'];
 
                     //不存在添加，存在则为修改
                     if (!isset($input['spu'])) {
-                        $data['spu'] = $spu;
-                        $data['qrcode'] = createQrcode($this_module . '/product/info/' . $spu);    //生成spu二维码    冗余字段这块还要看后期需求是否分语言
-                        $data['created_by'] = $userInfo['name'];    //创建人                 
+                        $spu_tmp = createSpu();    //不存在生产spu
+                        $data['spu'] = $spu_tmp;
+                        $data['qrcode'] = createQrcode('/product/info/' . $spu);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
+                        $data['created_by'] = isset($userInfo['name']) ? $userInfo['name'] : '';    //创建人
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['updated_at'] = date('Y-m-d H:i:s', time());    //修改时间
-                        $this->add($data);
+                        if($this->add($data)){
+                            $spu = $spu_tmp;
+                        }
                     } else {
-
-                        $data['updated_by'] = $userInfo['name'];    //修改人
+                        $data['updated_by'] = isset($userInfo['name']) ? $userInfo['name'] : '';    //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());    //修改时间
-                        $this->where(array('spu' => trim($input['spu']), 'lang' => $key))->save();
+                        $this->where(array('spu' => trim($input['spu']), 'lang' => $key))->save($data);
                     }
                 } elseif ($key == 'attachs') {
-                    if ($item) {
+                    if ($item && $spu) {
                         //验证附件
                         if (!$this->checkAttachImage($item)) {
                             jsonReturn('', '1000', '产品图不能为空');
@@ -334,6 +336,9 @@ class ProductModel extends PublicModel {
                                 'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
                             );
+                            if(empty($data['attach_url']))
+                                continue;
+
                             $pattach = new ProductAttachModel();
                             $pattach->addAttach($data);
                         }
@@ -342,7 +347,7 @@ class ProductModel extends PublicModel {
                     continue;
                 }
             }
-            $this->commit();
+            $spu ? $this->commit() : $this->rollback();
             return $spu;
         } catch (Exception $e) {
             $this->rollback();
