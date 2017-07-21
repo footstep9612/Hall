@@ -23,7 +23,23 @@ class ShowCatModel extends PublicModel {
     $this->tableName = 'show_cat';
     parent::__construct();
   }
-
+ /**
+   * 分类树形
+   * @param mix $condition
+   * @return mix
+   * @author zyg
+   */
+  public function tree($condition = []) {
+    $where = $this->getcondition($condition);
+    try {
+      return $this->where($where)
+                      ->order('sort_order DESC')
+                      ->field('cat_no as value,name as label,parent_cat_no')
+                      ->select();
+    } catch (Exception $ex) {
+      return [];
+    }
+  }
   /**
    * 展示分类列表
    * @param array $condition  条件
@@ -120,8 +136,7 @@ class ShowCatModel extends PublicModel {
     if (isset($condition['id']) && $condition['id']) {
       $where['id'] = $condition['id'];
     }
-    //id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by
-    if (isset($condition['cat_no']) && $condition['cat_no']) {
+       if (isset($condition['cat_no']) && $condition['cat_no']) {
       $where['cat_no'] = $condition['cat_no'];
     }
     if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
@@ -269,13 +284,13 @@ class ShowCatModel extends PublicModel {
    * @param  string $lang 语言
    * @return mix
    * @author zyg
-   */
+   */   
   public function info($cat_no = '', $lang = 'en') {
     $where['cat_no'] = $cat_no;
     $where['lang'] = $lang;
     return $this->where($where)
                     ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
-                            . 'sort_order,created_at,created_by,big_icon,middle_icon,small_icon')
+                            . 'sort_order,created_at,created_by,big_icon,middle_icon,small_icon,market_area_bn,country_bn')
                     ->find();
   }
 
@@ -289,7 +304,7 @@ class ShowCatModel extends PublicModel {
   public function getinfo($cat_no, $lang = 'en') {
     try {
       if ($cat_no) {
-        $cat3 = $this->field('id,cat_no,name')
+        $cat3 = $this->field('id,cat_no,name,market_area_bn,country_bn')
                 ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                 ->find();
         if ($cat3) {
@@ -631,25 +646,28 @@ class ShowCatModel extends PublicModel {
     } elseif ($level_no >= 3) {
       $level_no = 3;
     }
-
     if (empty($parent_cat_no) && $level_no == 1) {
       $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
       if (!empty($re['max_cat_no'])) {
-        return sprintf('%02d', intval($re['max_cat_no']) + 1);
+        return sprintf('%06d', intval($re['max_cat_no']) + 10000);
       } else {
-        return '01';
+        return '010000';
       }
     } elseif (empty($parent_cat_no)) {
       return false;
     } else {
-      $re = $this->field('max(cat_no) as max_cat_no')->where(['parent_cat_no' => $parent_cat_no])->find();
-      $format = '%0' . ($level_no * 2) . 'd';
-
-      if (!empty($re['max_cat_no'])) {
+      $re = $this->field('max(cat_no) as max_cat_no')
+              ->where(['parent_cat_no' => $parent_cat_no])
+              ->find();
+      $format = '%06d';
+      if (!empty($re['max_cat_no']) && $level_no == 3) {
         return sprintf($format, (intval($re['max_cat_no']) + 1));
-      } else {
-
-        return sprintf($format, (intval($parent_cat_no) * 100 + 1));
+      } elseif ($level_no == 3) {
+        return sprintf($format, (intval($parent_cat_no) + 1));
+      } elseif (!empty($re['max_cat_no']) && $level_no == 2) {
+        return sprintf($format, (intval($re['max_cat_no']) + 100));
+      } elseif ($level_no == 2) {
+        return sprintf($format, (intval($parent_cat_no) + 100));
       }
     }
   }

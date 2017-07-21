@@ -21,9 +21,8 @@ class EsproductController extends PublicController {
   //put your code here
   public function init() {
 
-    $this->es = new ESClient();
-
     parent::init();
+    $this->es = new ESClient();
   }
 
   public function listAction() {
@@ -48,6 +47,26 @@ class EsproductController extends PublicController {
         $es_goods_model = new EsgoodsModel();
         $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
       }
+      if (!$this->put_data['show_cat_no']) {
+        $material_cat_nos = [];
+        foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
+          $material_cats[$item['key']] = $item['doc_count'];
+          $material_cat_nos[] = $item['key'];
+        }
+      } else {
+        $condition = $this->put_data;
+        unset($condition['show_cat_no']);
+        $ret1 = $model->getproducts($condition, null, $this->getLang());
+        if ($ret1) {
+          $material_cat_nos = [];
+          foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
+            $material_cats[$item['key']] = $item['doc_count'];
+            $material_cat_nos[] = $item['key'];
+          }
+        }
+      }
+      $catlist = $this->getcatlist($material_cat_nos, $material_cats);
+      $send['catlist'] = $catlist;
       $send['data'] = $list;
       $this->update_keywords();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -126,7 +145,7 @@ class EsproductController extends PublicController {
         $search['user_email'] = '';
       }
       $search['search_time'] = date('Y-m-d H:i:s');
-      $usersearchmodel = new UsersearchhisModel();
+      $usersearchmodel = new BuyersearchhisModel();
       $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
       $row = $usersearchmodel->exist($condition);
       if ($row) {
@@ -137,46 +156,6 @@ class EsproductController extends PublicController {
         $search['search_count'] = 1;
         $usersearchmodel->add($search);
       }
-    }
-  }
-
-  public function getcatsAction() {
-    $model = new EsproductModel();
-    $ret = $model->getshow_catlist($this->put_data, $this->getLang());
-    if ($ret) {
-      $list = [];
-
-      $data = $ret[0];
-      $send['count'] = intval($data['hits']['total']);
-      $send['current_no'] = intval($ret[1]);
-      $send['pagesize'] = intval($ret[2]);
-      if (isset($ret[3]) && $ret[3] > 0) {
-
-        $send['allcount'] = $ret[3] > $send['count'] ? $ret[3] : $send['count'];
-      } else {
-        $send['allcount'] = $send['count'];
-      }
-      foreach ($data['hits']['hits'] as $key => $item) {
-        $list[$key] = $item["_source"];
-        $list[$key]['id'] = $item['_id'];
-      }
-      $send['list'] = $list;
-      $this->setCode(MSG::MSG_SUCCESS);
-      if ($this->put_data['keyword']) {
-        $search = [];
-        $search['keyword'] = $this->put_data['keyword'];
-        $search['user_email'] = $this->user['email'];
-        $search['search_time'] = date('Y-m-d H:i:s');
-        $usersearchmodel = new UsersearchhisModel();
-        if ($row = $usersearchmodel->exist($condition)) {
-          $search['search_count'] = intval($row['search_count']) + 1;
-          $usersearchmodel->update_data($search);
-        }
-      }
-      $this->jsonReturn($send);
-    } else {
-      $this->setCode(MSG::MSG_FAILED);
-      $this->jsonReturn();
     }
   }
 

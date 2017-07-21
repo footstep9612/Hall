@@ -6,10 +6,10 @@
  * Date: 2017/7/20
  * Time: 14:17
  */
-class ProductLineGroupModel extends PublicModel {
+class ProductLineBidderModel extends PublicModel {
 
     protected $dbName = 'erui_config'; //数据库名称
-    protected $tableName = 'product_line_group'; //数据表表名
+    protected $tableName = 'product_line_bidder'; //数据表表名
 
     public function __construct()
     {
@@ -27,11 +27,11 @@ class ProductLineGroupModel extends PublicModel {
         if (!empty($condition['line_no'])) {
             $where['line_no'] = $condition['line_no'];
         }
-        if (!empty($condition['group_no'])) {
-            $where['group_no'] = $condition['group_no'];
+        if (!empty($condition['user_no'])) {
+            $where['user_no'] = $condition['user_no'];
         }
-        if (!empty($condition['group_name'])) {
-            $where['group_name'] = $condition['group_name'];
+        if (!empty($condition['user_name'])) {
+            $where['user_name'] = $condition['user_name'];
         }
 
         return $where;
@@ -96,20 +96,21 @@ class ProductLineGroupModel extends PublicModel {
             $results['code'] = '-101';
             $results['message'] = '缺少产品线编码!';
         }
-        if(empty($condition['group_no'])){
-            $results['message'] = '缺少分组!';
+        if(empty($condition['bidder'])){
+            $results['code'] = '-101';
+            $results['message'] = '缺少报价人!';
         }
-        $groupno = explode(',',$condition['group_no']);
-        $linegroup = [];
-        foreach($groupno as $val){
+        $linebidder = [];
+        foreach($condition['bidder'] as $key=>$val){
             $test['line_no'] = $condition['line_no'];
-            $test['group_no'] = $val;
-            $test['create_at'] = $this->getTime();
-            $linegroup[] = $test;
+            $test['user_no'] = $key;
+            $test['user_name'] = $val;
+            $test['created_at'] = $this->getTime();
+            $linebidder[] = $test;
         }
 
         try {
-            $id = $this->addAll($linegroup);
+            $id = $this->addAll($linebidder);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';

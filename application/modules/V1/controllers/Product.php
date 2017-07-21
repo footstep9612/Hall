@@ -100,13 +100,7 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $productModel->setModule(Yaf_Controller_Abstract::getModuleName());
 
-        //暂存跟保存存入nosql库
-        if(in_array($this->input['status'],array('',''))){
-
-        }else{    //待审核状态入库
-            $result = $productModel->editInfo($this->input);
-        }
-
+        $result = $productModel->editInfo($this->input);
         if ($result) {
             jsonReturn($result);
         } else {

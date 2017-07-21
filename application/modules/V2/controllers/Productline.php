@@ -22,9 +22,19 @@ class ProductlineController extends PublicController {
     //产品线列表
     public function getListAction(){
         $productline = new ProductLineModel();
+        $productlinecat = new ProductLineCatModel();
         $createcondition = $this->put_data;
 
         $results = $productline->getlist($createcondition);
+
+        foreach($results['data'] as $key=>$val){
+            $catcount = $productlinecat->getCount($val);
+            if($catcount>0){
+                $results['data'][$key]['cat_select'] = '已选择';
+            }else{
+                $results['data'][$key]['cat_select'] = '未选择';
+            }
+        }
 
         $this->jsonReturn($results);
     }
@@ -32,9 +42,16 @@ class ProductlineController extends PublicController {
     //产品线详情
     public function getInfoAction(){
         $productline = new ProductLineModel();
+        $productlinecat = new ProductLineCatModel();
         $createcondition = $this->put_data;
 
         $results = $productline->getInfo($createcondition);
+        $materialcat = $productlinecat->getlist($results['data']);
+        $catlist = [];
+        foreach($materialcat as $val){
+            $catlist[] = $val['cat_no'];
+        }
+        $results['data']['material_cat'] = implode(',',$catlist);
 
         $this->jsonReturn($results);
     }
@@ -52,7 +69,7 @@ class ProductlineController extends PublicController {
 
                 $catid = $productlinecat->addData($createcondition);
 
-                if($catid){
+                if($catid['code']==1){
                     $productline->commit();
                 }else{
                     $productline->rollback();
@@ -82,11 +99,17 @@ class ProductlineController extends PublicController {
         if($results['code']==1){
             if(!empty($createcondition['material_cat'])){
 
-                $productlinecat->deleteDataAll($createcondition);
-                $catid = $productlinecat->addData($createcondition);
+                $delcat = $productlinecat->deleteDataAll($createcondition);
+                if($delcat['code']==1){
+                    $catid = $productlinecat->addData($createcondition);
 
-                if($catid){
-                    $productline->commit();
+                    if($catid['code']==1){
+                        $productline->commit();
+                    }else{
+                        $productline->rollback();
+                        $results['code'] = '-101';
+                        $results['message'] = '添加失败!';
+                    }
                 }else{
                     $productline->rollback();
                     $results['code'] = '-101';
@@ -105,7 +128,7 @@ class ProductlineController extends PublicController {
     }
 
     //删除产品线
-    public function deleteProductLine(){
+    public function deleteLine(){
         $productline = new ProductLineModel();
         $createcondition =  $this->put_data;
 
@@ -125,21 +148,36 @@ class ProductlineController extends PublicController {
     }
 
     //产品线报价人分组列表
-    public function getLineGroupAction(){
-        $productlinegroup = new ProductLineGroupModel();
+    public function getLinebidderAction(){
+        $productlinebidder = new ProductLinebidderModel();
         $createcondition =  $this->put_data;
 
-        $results = $productlinegroup->getList($createcondition);
+        $results = $productlinebidder->getList($createcondition);
 
         $this->jsonReturn($results);
     }
 
     //添加产品线报价人分组
-    public function createLineGroupAction(){
-        $productlinegroup = new ProductLineGroupModel();
+    public function createLinebidderAction(){
+        $productlinebidder = new ProductLinebidderModel();
         $createcondition =  $this->put_data;
 
-        $results = $productlinegroup->addDate($createcondition);
+        $productlinebidder->startTrans();
+        $deluser = $productlinebidder->deleteDataAll($createcondition);
+        if($deluser['code']==1){
+            $results = $productlinebidder->addData($createcondition);
+            if($results['code']==1){
+                $productlinebidder->commit();
+            }else{
+                $productlinebidder->rollback();
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
+            }
+        }else{
+            $productlinebidder->rollback();
+            $results['code'] = '-101';
+            $results['message'] = '添加失败!';
+        }
 
         $this->jsonReturn($results);
     }

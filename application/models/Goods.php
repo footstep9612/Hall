@@ -60,7 +60,6 @@ class GoodsModel extends PublicModel {
         if (redisHashExist('Sku', md5(json_encode($where)))) {
           return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
-
         $field = 'sku,spu,lang,name,show_name,qrcode,model,description,warranty,package_quantity,exw_day,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit,pricing_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at,shelves_status';
         try {
           $result = $this->field($field)->where($where)->select();
