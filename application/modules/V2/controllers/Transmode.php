@@ -3,18 +3,18 @@
 /**
   附件文档Controller
  */
-class LogiperiodController extends PublicController {
+class TransmodeController extends PublicController {
 
   public function init() {
     //parent::init();
 
-    $this->_model = new LogiPeriodModel();
+    $this->_model = new TransModeModel();
   }
 
   public function listAction() {
     $condtion = $this->put_data;
-    unset($data['token']);
-    $key = 'logi_period_list_' . $lang . md5(json_encode($condtion));
+    unset($condtion['token']);
+    $key = 'TransMode_list_' .  md5(json_encode($condtion));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getListbycondition($condtion);
@@ -58,19 +58,14 @@ class LogiperiodController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('logi_period_list_*');
+    $keys = $redis->getKeys('TransMode_*');
     $redis->delete($keys);
-    $LogiPeriods = $redis->getKeys('LogiPeriod*');
-    $redis->delete($LogiPeriods);
+
   }
 
   public function createAction() {
     $condition = $this->put_data;
     $data = $this->_model->create($condition);
-    $data['logi_no'] = $data['warehouse'] . '_' . substr($data['trans_mode'], 0, 1) . '_' . $data['trade_terms']
-            . '_' . $data['from_port'] . '_' . $data['to_port'];
-    $data['created_by'] = $this->user['name'];
-    $data['created_at'] = date('Y-m-d H:i:s');
     $result = $this->_model->add($data);
     if ($result) {
       $this->delcache();
@@ -101,7 +96,15 @@ class LogiperiodController extends PublicController {
   public function deleteAction() {
 
     $condition = $this->put_data;
-    $where['logi_no'] = $condition['logi_no'];
+    if ($condition['bn']) {
+      $where['bn'] = $condition['bn'];
+    } elseif ($where['id']) {
+      $where['id'] = $condition['id'];
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
+
     $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();

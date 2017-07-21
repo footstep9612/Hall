@@ -1,14 +1,22 @@
 <?php
 
-/**
-  附件文档Controller
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
-class LogiperiodController extends PublicController {
+
+/**
+ * Description of Destdeliverylogi
+ *
+ * @author zhongyg
+ */
+class DestdeliverylogiController extends PublicController {
 
   public function init() {
     //parent::init();
 
-    $this->_model = new LogiPeriodModel();
+    $this->_model = new DestdeliverylogiModel();
   }
 
   public function listAction() {
@@ -67,8 +75,9 @@ class LogiperiodController extends PublicController {
   public function createAction() {
     $condition = $this->put_data;
     $data = $this->_model->create($condition);
-    $data['logi_no'] = $data['warehouse'] . '_' . substr($data['trans_mode'], 0, 1) . '_' . $data['trade_terms']
-            . '_' . $data['from_port'] . '_' . $data['to_port'];
+    $data['logi_no'] = $data['from_loc'] . '_'
+            . substr($data['trans_mode'], 0, 1)
+            . '_' . $data['to_loc'];
     $data['created_by'] = $this->user['name'];
     $data['created_at'] = date('Y-m-d H:i:s');
     $result = $this->_model->add($data);

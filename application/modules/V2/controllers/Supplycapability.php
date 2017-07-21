@@ -3,12 +3,12 @@
 /**
   附件文档Controller
  */
-class SupplycapabilityController extends PublicController {
+class PaymentmodeController extends PublicController {
 
   public function init() {
     parent::init();
 
-    $this->_model = new SupplycapabilityModel();
+    $this->_model = new PaymentmodeModel();
   }
 
   /*
