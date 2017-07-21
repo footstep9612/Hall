@@ -22,9 +22,20 @@ class ProductlineController extends PublicController {
     //产品线列表
     public function getListAction(){
         $productline = new ProductLineModel();
+        $productlinecat = new ProductLineCatModel();
+        $productlinegroup = new ProductLineGroupModel();
         $createcondition = $this->put_data;
 
         $results = $productline->getlist($createcondition);
+
+        foreach($results['data'] as $key=>$val){
+            $catcount = $productlinecat->getCount($val['line_no']);
+            if($catcount>0){
+                $results['data'][$key]['cat_select'] = '已选择';
+            }else{
+                $results['data'][$key]['cat_select'] = '未选择';
+            }
+        }
 
         $this->jsonReturn($results);
     }
@@ -105,7 +116,7 @@ class ProductlineController extends PublicController {
     }
 
     //删除产品线
-    public function deleteProductLine(){
+    public function deleteLine(){
         $productline = new ProductLineModel();
         $createcondition =  $this->put_data;
 
@@ -139,7 +150,7 @@ class ProductlineController extends PublicController {
         $productlinegroup = new ProductLineGroupModel();
         $createcondition =  $this->put_data;
 
-        $results = $productlinegroup->addDate($createcondition);
+        $results = $productlinegroup->addData($createcondition);
 
         $this->jsonReturn($results);
     }
