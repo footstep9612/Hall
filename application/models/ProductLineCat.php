@@ -108,7 +108,7 @@ class ProductLineCatModel extends PublicModel {
         }
 
         try {
-            $id = $this->add($linecat);
+            $id = $this->addAll($linecat);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
