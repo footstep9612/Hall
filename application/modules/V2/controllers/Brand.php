@@ -6,14 +6,14 @@
 class BrandController extends PublicController {
 
   public function init() {
-    parent::init();
+    //parent::init();
 
     $this->_model = new BrandModel();
   }
 
   public function listAction() {
     $lang = $this->getPut('lang', 'en');
-    $name = $this->getPut('name', 'en');
+    $name = $this->getPut('name', '');
     $current_no = $this->getPut('current_no', '1');
     $pagesize = $this->getPut('pagesize', '10');
 
@@ -39,13 +39,14 @@ class BrandController extends PublicController {
 
   public function ListAllAction() {
     $lang = $this->getPut('lang', 'en');
-    $name = $this->getPut('name', 'en');
+    $name = $this->getPut('name', '');
 
 
     $key = 'brand_list_' . $lang . md5($name);
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->listall($name, $lang);
+  
       redisSet($key, json_encode($arr), 86400);
       if ($arr) {
         $this->setCode(MSG::MSG_SUCCESS);

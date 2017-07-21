@@ -31,12 +31,13 @@ class BrandModel extends PublicModel {
   public function getcondition($name, $lang = 'en') {
 
     $where = [];
-    if ($name) {
+    var_dump(!empty($name),$name);
+    if (!empty($name)) {
       $where['name'] = ['like', '%' . $name . '%'];
     }
-    if ($lang) {
-      $where['lang'] = $lang;
-    }
+//    if ($lang) {
+//      $where['lang'] = $lang;
+//    }
     return $where;
   }
 
@@ -76,12 +77,12 @@ class BrandModel extends PublicModel {
       $pagesize = 10;
     }
     return $this->where($where)
-            ->field('id,name,supplier_id,logo,recommend_flag,created_by,created_at')
+                    ->field('id,name,supplier_id,logo,recommend_flag,created_by,created_at')
                     ->limit($row_start . ',' . $pagesize)
-                    ->order('sort_order DESC')
                     ->select();
   }
- /**
+
+  /**
    * 获取列表
    * @param mix $condition
    * @return mix
@@ -89,21 +90,11 @@ class BrandModel extends PublicModel {
    */
   public function listall($name, $lang = 'en') {
     $where = $this->getcondition($name, $lang);
-
-    if (intval($current_no) <= 1) {
-      $row_start = 0;
-    } else {
-      $row_start = (intval($current_no) - 1) * $pagesize;
-    }
-    if ($pagesize < 1) {
-      $pagesize = 10;
-    }
     return $this->where($where)
-            ->field('id,name,supplier_id')
-                    ->limit($row_start . ',' . $pagesize)
-                    ->order('sort_order DESC')
+                    ->field('id,name,supplier_id')
                     ->select();
   }
+
   /**
    * 获取列表
    * @param  string $code 编码
@@ -112,9 +103,9 @@ class BrandModel extends PublicModel {
    * @return mix
    * @author zyg
    */
-  public function info($cat_no = '', $lang = 'en') {
+  public function info($brand_no = '', $lang = 'en') {
     if ($cat_no) {
-      $where['cat_no'] = $cat_no;
+      $where['brand_no'] = $brand_no;
     } else {
       return [];
     }

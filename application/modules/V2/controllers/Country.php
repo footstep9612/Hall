@@ -3,12 +3,12 @@
 /**
   附件文档Controller
  */
-class MarketareaController extends PublicController {
+class CountryController extends PublicController {
 
   public function init() {
-      parent::init();
+    parent::init();
 
-    $this->_model = new MarketAreaModel();
+    $this->_model = new CountryModel();
   }
 
   /*
@@ -24,13 +24,14 @@ class MarketareaController extends PublicController {
     if (isset($data['pagesize']) && $data['pagesize']) {
       $data['pagesize'] = intval($data['pagesize']) > 0 ? intval($data['pagesize']) : 2;
     }
-    $market_area = new MarketAreaModel();
-    if (redisGet('Market_Area_list_' . md5(json_encode($data)))) {
-      $arr = json_decode(redisGet('Market_Area_list_' . md5(json_encode($data))), true);
+    $market_area = new CountryModel();
+    if (redisGet('Country_list_' . md5(json_encode($data)))) {
+      $arr = json_decode(redisGet('Country_list_' . md5(json_encode($data))), true);
     } else {
       $arr = $market_area->getlistBycodition($data); //($this->put_data);
+
       if ($arr) {
-        redisSet('Market_Area_list_' . md5(json_encode($data)), json_encode($arr));
+        redisSet('Country_list_' . md5(json_encode($data)), json_encode($arr));
       }
     }
 
@@ -54,17 +55,16 @@ class MarketareaController extends PublicController {
   public function listallAction() {
     $data = $this->put_data;
     unset($data['token']);
-    $market_area = new MarketAreaModel();
-    if (redisGet('Market_Area_listall_' . md5(json_encode($data)))) {
-      $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
+    $market_area = new CountryModel();
+    if (redisGet('Country_listall_' . md5(json_encode($data)))) {
+      $arr = json_decode(redisGet('Country_listall_' . md5(json_encode($data))), true);
     } else {
-      $arr = $market_area->getlistBycodition($data); //($this->put_data);
+      $arr = $market_area->getlistBycodition($data, false);
       if ($arr) {
-        redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
+        redisSet('Country_listall_' . md5(json_encode($data)), json_encode($arr));
       }
     }
     if (!empty($arr)) {
-
       $this->setCode(MSG::MSG_SUCCESS);
     } else {
       $this->setCode(MSG::MSG_FAILED);
@@ -150,7 +150,7 @@ class MarketareaController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('market_area_list_*');
+    $keys = $redis->getKeys('Country_*');
     $redis->delete($keys);
   }
 
@@ -191,7 +191,7 @@ class MarketareaController extends PublicController {
    */
 
   public function deleteAction() {
-     $condition = $this->put_data;
+    $condition = $this->put_data;
     if (isset($condition['id']) && $condition['id']) {
       if (is_string($condition['id'])) {
         $where['id'] = $condition['id'];

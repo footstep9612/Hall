@@ -131,7 +131,7 @@ class MaterialcatModel extends PublicModel {
     try {
       return $this->where($where)
                       ->order('sort_order DESC')
-                      ->field('cat_no as value,name as lable,parent_cat_no')
+                      ->field('cat_no as value,name as label,parent_cat_no')
                       ->select();
     } catch (Exception $ex) {
       return [];
