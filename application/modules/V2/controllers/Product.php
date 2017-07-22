@@ -7,6 +7,7 @@
  */
 class ProductController extends PublicController{
     public function init() {
+        $this->put_data = $this->put_data ? $this->put_data : $_POST;
         parent::init();
     }
 
@@ -60,7 +61,7 @@ class ProductController extends PublicController{
      */
     public function deleteAction(){
         if(!isset($this->put_data['id']))
-            jsonReturn('id:'.$this->put_data['id'],1000,ErrorMsg::ERROR_PARAM);
+            jsonReturn('',ErrorMsg::ERROR_PARAM);
 
         $productModel = new ProductModel();
         $result = $productModel->del($this->put_data);
