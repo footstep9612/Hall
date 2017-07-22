@@ -265,11 +265,11 @@ class BuyerModel extends PublicModel {
             } else {
                 jsonReturn('', '-1001', '用户email不可以为空');
             }
-            $buyerInfo = $this->where("email='".$data['email']."'")
+            $buyerInfo = $this->where(array("email='".$data['email']."'"))
                               ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
                               ->find();
         } else{
-            $buyerInfo = $this->where("customer_id='".$data['customer_id']."'")
+            $buyerInfo = $this->where(array("customer_id='".$data['customer_id']."'"))
                               ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
                               ->find();
 
@@ -402,7 +402,7 @@ class BuyerModel extends PublicModel {
         $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
         $buyerLevel =  $this->field('buyer_level')
-                            ->where("customer_id='".$where['customer_id']."'")
+                            ->where($where)
                             ->find();
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
@@ -429,7 +429,7 @@ class BuyerModel extends PublicModel {
         $where['lang'] = $info['lang'] ? strtolower($info['lang']) :  'en';
         $field = 'serial_no,name,bn,country,profile,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,reg_date,capital_account,sales,official_phone,fax,official_website,employee_count,credit_total,credit_available,apply_at,approved_at,remarks';
         try{
-            $buyerInfo =  $this->field($field)->where($where)->find();var_dump($buyerInfo);echo 1213;die;
+            $buyerInfo =  $this->field($field)->where($where)->find();
             if($buyerInfo){
                 //获取国家代码与企业邮箱与邮箱
                 $BuyerAddressModel = new BuyerAddressModel();
