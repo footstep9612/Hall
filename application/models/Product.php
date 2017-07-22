@@ -369,7 +369,6 @@ class ProductModel extends PublicModel {
             try{
                 $model = new EsproductModel();
                 foreach($spu as $r){
-                    jsonReturn($r.$lang);
                     $where = array(
                         'spu' => $r,
                         'lang'=> $lang
