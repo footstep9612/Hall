@@ -32,8 +32,8 @@ class EsgoodsController extends PublicController {
     $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
         , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
         'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
-        'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'create_at',
-        'create_by'];
+        'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'created_at',
+        'created_by'];
     $ret = $model->getgoods($this->put_data, $_source, $lang);
     if ($ret) {
       $list = [];
