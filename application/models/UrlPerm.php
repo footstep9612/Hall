@@ -30,13 +30,13 @@ class UrlPermModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            return $this->field('id,url,description,parent_id,status,name')
+            return $this->field('id,url,description,parent_id,status')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,url,description,parent_id,status,name')
+            return $this->field('id,url,description,parent_id,status')
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -53,7 +53,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,url,parent_id,description,parent_id,status,name')
+                ->field('id,url,parent_id,description,parent_id,status')
                 ->find();
             return $row;
         }else{
@@ -96,9 +96,6 @@ class UrlPermModel extends PublicModel {
         if(isset($data['status'])){
             $arr['status'] = $data['status'];
         }
-        if(isset($data['name'])){
-            $arr['name'] = $data['name'];
-        }
         if(!empty($where)){
             return $this->where($where)->save($arr);
         }else{
@@ -126,9 +123,6 @@ class UrlPermModel extends PublicModel {
         }
         if(isset($create['description'])){
             $arr['description'] = $create['description'];
-        }
-        if(isset($create['name'])){
-            $arr['name'] = $create['name'];
         }
         $data = $this->create($arr);
         return $this->add($data);
