@@ -17,7 +17,7 @@ class BuyerreginfoModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer_reg_info';
     protected $dbName = 'erui_buyer';
-    Protected $autoCheckFields = false;
+//    Protected $autoCheckFields = false;
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_INVALID = 'INVALID'; //无效；

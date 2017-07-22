@@ -5,8 +5,7 @@
  * Date: 2017/7/20
  * Time: 14:46
  */
-
-class CentercreditController extends Yaf_Controller_Abstract//PublicController
+class CentercreditController extends Yaf_Controller_Abstract//ShopMallController
 {
     private $input;
     public function __init()
@@ -27,22 +26,12 @@ class CentercreditController extends Yaf_Controller_Abstract//PublicController
     }
 
     /**
-     * 会员授信列表
-     * @author klp
-     */
-    public function listAction()
-    {
-        $buyerModel = new BuyerModel();
-        $result = $buyerModel->getListCredit($this->put_data);
-        $this->returnInfo($result);
-    }
-
-    /**
      * 采购商企业银行信息
      * @author klp
      */
     public function getBuyerInfoAction()
     {
+        //jsonReturn(123);
         $buyerModel = new BuyerModel();
         $result = $buyerModel->getBuyerInfo($this->input);
         $this->returnInfo($result);
@@ -55,7 +44,7 @@ class CentercreditController extends Yaf_Controller_Abstract//PublicController
     public function getCheckInfoAction()
     {
         $BuyerappapprovalModel = new BuyerappapprovalModel();
-        $result = $BuyerappapprovalModel->getCheckInfo($this->input);
+        $result = $BuyerappapprovalModel->getCheckInfo($this->user);
         $this->returnInfo($result);
     }
 
@@ -66,15 +55,11 @@ class CentercreditController extends Yaf_Controller_Abstract//PublicController
     public function checkAction()
     {
         //获取当前用户信息
-       // $userInfo = getLoinInfo();
-       // $this->input['approved_by'] = $userInfo['name'];
-      //  $BuyerappapprovalModel = new BuyerappapprovalModel();
-      //  $result = $BuyerappapprovalModel->checkCredit($this->input);
-        //$this->returnInfo($result);
-        require_once('Edi.php');
-        $ediController = new EdiController();
-        $res = $ediController->testAction();
-        var_dump($res);die;
+        $userInfo = getLoinInfo();
+        $this->input['approved_by'] = $userInfo['name'];
+        $BuyerappapprovalModel = new BuyerappapprovalModel();
+        $result = $BuyerappapprovalModel->checkCredit($this->input);
+        $this->returnInfo($result);
     }
 
     /**

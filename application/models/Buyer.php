@@ -16,7 +16,7 @@ class BuyerModel extends PublicModel {
     protected $tableName = 'buyer';
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $g_table = 'erui_buyer.t_buyer';
-    Protected $autoCheckFields = false;
+//    protected $autoCheckFields = false;
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -420,17 +420,16 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerInfo($info)
     {
-        $where=array();
+        $where=array();$info['customer_id'] = '20170630000001'; $info['lang']='en';
         if(!empty($info['customer_id'])){
             $where['customer_id'] = $info['customer_id'];
         } else{
-            jsonReturn('','-1001','用户[id]不可以为空');
+            jsonReturn('','-1001','用户[customer_id]不可以为空');
         }
-        $where['lang'] = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
-
-        $field = 'serial_no,name,country,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,registered_time,capital_account,sales,official_phone,fax,official_url,employees,remarks';
+        $where['lang'] = $info['lang'] ? strtolower($info['lang']) :  'en';
+        $field = 'serial_no,name,bn,country,profile,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,reg_date,capital_account,sales,official_phone,fax,official_website,employee_count,credit_total,credit_available,apply_at,approved_at,remarks';
         try{
-            $buyerInfo =  $this->field($field)->where($where)->find();
+            $buyerInfo =  $this->field($field)->where($where)->find();var_dump($buyerInfo);echo 1213;die;
             if($buyerInfo){
                 //获取国家代码与企业邮箱与邮箱
                 $BuyerAddressModel = new BuyerAddressModel();
@@ -446,7 +445,7 @@ class BuyerModel extends PublicModel {
                 return $result ? array_merge($buyerInfo,$result) : $buyerInfo;
             }
             return array();
-        }catch (Exception $e){
+        }catch (Exception $e){var_dump($e);
             return array();
         }
     }
@@ -487,7 +486,7 @@ class BuyerModel extends PublicModel {
                         'sales' => isset($checkout['sales']) ? $checkout['sales'] : 0,
                         'official_phone' => isset($checkout['official_phone']) ? $checkout['official_phone'] : '',
                         'fax' => isset($checkout['fax']) ? $checkout['fax'] : '',
-                        'official_url' => isset($checkout['official_url']) ? $checkout['official_url'] : '',
+                        'website_url' => isset($checkout['website_url']) ? $checkout['website_url'] : '',
                         'employees' => isset($checkout['employees']) ? $checkout['employees'] : '',
                         'credit_total' => isset($checkout['credit_total']) ? $checkout['credit_total'] : 0,
                         'credit_available' => isset($checkout['credit_available']) ? $checkout['credit_available'] : 0,

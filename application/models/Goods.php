@@ -8,6 +8,8 @@
  */
 class GoodsModel extends PublicModel {
 
+    protected $tableName = 'goods';
+    protected $dbName = 'erui_goods'; //数据库名称
   //状态
       const STATUS_VALID = 'VALID'; //有效
       const STATUS_TEST = 'TEST'; //测试；
@@ -58,9 +60,9 @@ class GoodsModel extends PublicModel {
           $where['status'] = strtoupper($condition['status']);
         }
         if (redisHashExist('Sku', md5(json_encode($where)))) {
-          return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
+          //return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
-        $field = 'sku,spu,lang,name,show_name,qrcode,model,description,warranty,package_quantity,exw_day,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit,pricing_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at,shelves_status';
+        $field = 'sku,spu,lang,name,show_name,qrcode,model,description,warranty,package_quantity,exw_day,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit,pricing_flag,status,created_by,created_at,checked_by,checked_at,shelves_status';
         try {
           $result = $this->field($field)->where($where)->select();
           $data = array();
@@ -511,11 +513,8 @@ class GoodsModel extends PublicModel {
       public function modifySku($delData) {
         $where = [];
         $status = [];
-        if (isset($delData['lang'])) {
-          $where['lang'] = $delData['lang'];
-        }
-        if (isset($delData['sku'])) {
-          $where['sku'] = array('in', explode(',', $delData['sku']));
+        if (isset($delData['sku_id'])) {
+          $where['id'] = array('in', explode(',', $delData['sku_id']));
         } else {
           JsonReturn('', '-1001', 'sku不能为空');
         }
@@ -564,11 +563,8 @@ class GoodsModel extends PublicModel {
        */
       public function deleteRealSku($delData) {
         $where = [];
-        if (isset($delData['lang'])) {
-          $where['lang'] = $delData['lang'];
-        }
-        if (isset($delData['sku'])) {
-          $where['sku'] = array('in', explode(',', $delData['sku']));
+        if (isset($delData['sku_id'])) {
+          $where['id'] = array('in', explode(',', $delData['sku_id']));
         } else {
           JsonReturn('', '-1001', 'sku不能为空');
         }
@@ -811,7 +807,7 @@ class GoodsModel extends PublicModel {
             return false;
           }
           $pModel = new ProductModel();                  //spu状态(报审)
-          $resp = $pModel->upStatus($input['spu'], $input['status']);
+          $resp = $pModel->upStatus($input['spu_id'], $input['status']);
           if (!$resp) {
               return false;
           }
