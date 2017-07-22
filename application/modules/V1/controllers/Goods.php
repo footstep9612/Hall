@@ -19,13 +19,13 @@ class GoodsController extends PublicController
      * @author link 2017-06-26
      */
     public function infoBaseAction(){
+        $this->input['sku'] = '3303060000010003';
         if(empty($this->input['sku'])){
             jsonReturn('','1000');
         }
-
         $goods = new GoodsModel();
         $result = $goods->getInfoBase($this->input);
-        $this->returnInfo($result);
+       // $this->returnInfo($result);
     }
 
     /**
@@ -111,6 +111,7 @@ class GoodsController extends PublicController
     }
     /**
      * sku状态更改(审核)/删除  -- 总接口
+     * @param    status_type  sku_id  spu_id
      * @author  klp  2017/7-13
      */
     public function modifySkuAction()
