@@ -88,8 +88,8 @@ class GroupModel extends PublicModel {
         if(isset($data['parent_id'])){
             $arr['parent_id'] = $data['parent_id'];
         }
-        if(isset($data['parent_id'])){
-            $arr['parent_id'] = $data['parent_id'];
+        if(isset($data['group_no'])){
+            $arr['group_no'] = $data['group_no'];
         }
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
@@ -123,6 +123,9 @@ class GroupModel extends PublicModel {
         }
         if(isset($create['name'])){
             $arr['name'] = $create['name'];
+        }
+        if(isset($create['group_no'])){
+            $arr['group_no'] = $create['group_no'];
         }
         if(isset($create['description'])){
             $arr['description'] = $create['description'];
