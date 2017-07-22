@@ -103,7 +103,7 @@ class ProductLineCatModel extends PublicModel {
         foreach($matrialcat as $val){
             $test['line_no'] = $condition['line_no'];
             $test['cat_no'] = $val;
-            $test['create_at'] = $this->getTime();
+            $test['created_at'] = $this->getTime();
             $linecat[] = $test;
         }
 
