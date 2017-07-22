@@ -23,7 +23,8 @@ class ShowCatModel extends PublicModel {
     $this->tableName = 'show_cat';
     parent::__construct();
   }
- /**
+
+  /**
    * 分类树形
    * @param mix $condition
    * @return mix
@@ -40,6 +41,7 @@ class ShowCatModel extends PublicModel {
       return [];
     }
   }
+
   /**
    * 展示分类列表
    * @param array $condition  条件
@@ -136,7 +138,7 @@ class ShowCatModel extends PublicModel {
     if (isset($condition['id']) && $condition['id']) {
       $where['id'] = $condition['id'];
     }
-       if (isset($condition['cat_no']) && $condition['cat_no']) {
+    if (isset($condition['cat_no']) && $condition['cat_no']) {
       $where['cat_no'] = $condition['cat_no'];
     }
     if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
@@ -284,13 +286,14 @@ class ShowCatModel extends PublicModel {
    * @param  string $lang 语言
    * @return mix
    * @author zyg
-   */   
+   */
   public function info($cat_no = '', $lang = 'en') {
     $where['cat_no'] = $cat_no;
     $where['lang'] = $lang;
     return $this->where($where)
                     ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
-                            . 'sort_order,created_at,created_by,big_icon,middle_icon,small_icon,market_area_bn,country_bn')
+                            . 'sort_order,created_at,created_by,big_icon,middle_icon,'
+                            . 'small_icon,market_area_bn,country_bn')
                     ->find();
   }
 
@@ -368,6 +371,8 @@ class ShowCatModel extends PublicModel {
     }
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
+    $this->Table('erui_goods.t_show_material_cat')->where(['show_cat_no' => $cat_no])
+            ->delete();
     return $flag;
   }
 
@@ -499,15 +504,14 @@ class ShowCatModel extends PublicModel {
       $data['lang'] = 'ru';
       $data['name'] = $condition['ru']['name'];
       $where['lang'] = $data['lang'];
-
       $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
         $this->rollback();
         return false;
       }
     }
-    if ($upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
 
+    if ($upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
       $childs = $this->get_list($cat_no);
       foreach ($childs as $key => $val) {
         $child_cat_no = $this->getCatNo($data['cat_no'], 3);
@@ -522,9 +526,37 @@ class ShowCatModel extends PublicModel {
           $this->rollback();
           return false;
         }
+        if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
+          $this->Table('erui_goods.t_show_material_cat')->where(['show_cat_no' => $val['cat_no']])
+                  ->delete();
+          $dataList = [];
+          foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
+            $dataList[] = ['show_cat_no' => $child_cat_no,
+                'material_cat_no' => $material_cat_no,
+                'status' => 'VALID',
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $username
+            ];
+          }
+          $this->Table('erui_goods.t_show_material_cat')->addAll($dataList);
+        }
       }
     } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
       $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
+      if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
+        $this->Table('erui_goods.t_show_material_cat')->where(['show_cat_no' => $where['cat_no']])
+                ->delete();
+        $dataList = [];
+        foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
+          $dataList[] = ['show_cat_no' => $data['cat_no'],
+              'material_cat_no' => $material_cat_no,
+              'status' => 'VALID',
+              'created_at' => date('Y-m-d H:i:s'),
+              'created_by' => $username
+          ];
+        }
+        $this->Table('erui_goods.t_show_material_cat')->addAll($dataList);
+      }
       if (!$flag) {
         $this->rollback();
         return false;
@@ -762,7 +794,18 @@ class ShowCatModel extends PublicModel {
         return false;
       }
     }
-
+    if ($data['level_no'] == 3 && isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
+      $dataList = [];
+      foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
+        $dataList[] = ['show_cat_no' => $child_cat_no,
+            'material_cat_no' => $material_cat_no,
+            'status' => 'VALID',
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => $username
+        ];
+      }
+      $this->Table('erui_goods.t_show_material_cat')->addAll($dataList);
+    }
     $this->commit();
     return $cat_no;
   }

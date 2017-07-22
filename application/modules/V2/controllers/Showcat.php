@@ -12,7 +12,8 @@ class ShowcatController extends PublicController {
     $this->_model = new ShowCatModel();
     parent::init();
   }
- public function treeAction() {
+
+  public function treeAction() {
     $lang = $this->get('lang', '');
     if (!$lang) {
       $lang = $this->getPut('lang', 'zh');
@@ -73,6 +74,7 @@ class ShowcatController extends PublicController {
     $this->setCode(MSG::MSG_SUCCESS);
     $this->jsonReturn($data);
   }
+
   public function listAction() {
     $lang = $this->getPut('lang', 'en');
     $jsondata = ['lang' => $lang];
@@ -179,7 +181,15 @@ class ShowcatController extends PublicController {
     }
     unset($result['lang']);
     if ($result) {
-
+      if ($result['level_no'] == 3) {
+        $material_cat_nos = $this->Table('erui_goods.t_show_material_cat')
+                ->where(['show_cat_no' => $result['cat_no']])
+                ->field('material_cat_no')
+                ->select();
+        $es_product_model = new EsproductModel();
+        $material_cats = $es_product_model->getmaterial_cats($material_cat_nos, 'zh');
+        $result['material_cats'] = $material_cats;
+      }
       $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
@@ -196,12 +206,11 @@ class ShowcatController extends PublicController {
     $redis->delete($listkeys);
     $treekeys = $redis->getKeys('show_cat_tree_*');
     $redis->delete($treekeys);
-    
   }
 
   public function createAction() {
 
-    $result = $this->_model->create_data($this->put_data, $this->user['username']); 
+    $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
