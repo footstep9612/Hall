@@ -20,17 +20,17 @@ class EsproductController extends PublicController {
 
   //put your code here
   public function init() {
-
+  
     parent::init();
     $this->es = new ESClient();
   }
 
   public function listAction() {
     $model = new EsproductModel();
-    $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
+    $_source = ['id', 'skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
         , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
         'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
-        'brand', 'supplier_name', 'created_by', 'created_at', 'updated_by', 'updated_at', 'status'];
+        'brand', 'supplier_name', 'created_by', 'created_at', 'updated_by', 'updated_at', 'status',];
     $ret = $model->getproducts($this->put_data, $_source, $this->getLang());
     if ($ret) {
       $data = $ret[0];
@@ -47,7 +47,7 @@ class EsproductController extends PublicController {
         $es_goods_model = new EsgoodsModel();
         $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
       }
-      if (!$this->put_data['show_cat_no']) {
+      if (!isset($this->put_data['show_cat_no']) || !$this->put_data['show_cat_no']) {
         $material_cat_nos = [];
         foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
           $material_cats[$item['key']] = $item['doc_count'];
@@ -89,15 +89,19 @@ class EsproductController extends PublicController {
       } else {
         $list[$key]['img'] = null;
       }
-      $list[$key]['id'] = $item['_id'];
-      $show_cats = json_decode($item["_source"]["show_cats"], true);
+      $show_cats = [];
+      if (isset($item["_source"]["show_cats"])) {
+        $show_cats = json_decode($item["_source"]["show_cats"], true);
+      }
       if ($show_cats) {
         rsort($show_cats);
       }
       $list[$key]['show_cats'] = $show_cats;
       $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-      $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-      $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+      if (isset($list[$key]['specs']) && $list[$key]['specs']) {
+        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+      }
+
       $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
       $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
@@ -136,7 +140,7 @@ class EsproductController extends PublicController {
   }
 
   private function update_keywords() {
-    if ($this->put_data['keyword']) {
+    if (isset($this->put_data['keyword']) && $this->put_data['keyword']) {
       $search = [];
       $search['keywords'] = $this->put_data['keyword'];
       if ($this->user['email']) {

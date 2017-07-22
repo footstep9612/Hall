@@ -30,13 +30,13 @@ class UrlPermModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            return $this->field('id,url,description')
+            return $this->field('id,url,description,parent_id,status,name')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,url,description')
+            return $this->field('id,url,description,parent_id,status,name')
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -53,7 +53,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,url,description')
+                ->field('id,url,parent_id,description,parent_id,status,name')
                 ->find();
             return $row;
         }else{
@@ -90,6 +90,15 @@ class UrlPermModel extends PublicModel {
         if(isset($data['description'])){
             $arr['description'] = $data['description'];
         }
+        if(isset($data['parent_id'])){
+            $arr['parent_id'] = $data['parent_id'];
+        }
+        if(isset($data['status'])){
+            $arr['status'] = $data['status'];
+        }
+        if(isset($data['name'])){
+            $arr['name'] = $data['name'];
+        }
         if(!empty($where)){
             return $this->where($where)->save($arr);
         }else{
@@ -109,8 +118,17 @@ class UrlPermModel extends PublicModel {
         if(isset($create['url'])){
             $arr['url'] = $create['url'];
         }
+        if(isset($create['parent_id'])){
+            $arr['parent_id'] = $create['parent_id'];
+        }
+        if(isset($create['status'])){
+            $arr['status'] = $create['status'];
+        }
         if(isset($create['description'])){
             $arr['description'] = $create['description'];
+        }
+        if(isset($create['name'])){
+            $arr['name'] = $create['name'];
         }
         $data = $this->create($arr);
         return $this->add($data);

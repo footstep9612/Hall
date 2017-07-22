@@ -15,8 +15,8 @@ class BrandModel extends PublicModel {
 
   //put your code here
 
-  protected $tableName = 'supplier_brand';
-  protected $dbName = 'erui_supplier'; //数据库名称
+  protected $tableName = 'brand';
+  protected $dbName = 'erui_goods'; //数据库名称
   Protected $autoCheckFields = false;
 
   const STATUS_DRAFT = 'DRAFT'; //草稿
@@ -31,13 +31,13 @@ class BrandModel extends PublicModel {
   public function getcondition($name, $lang = 'en') {
 
     $where = [];
-    var_dump(!empty($name),$name);
+    var_dump(!empty($name), $name);
     if (!empty($name)) {
       $where['name'] = ['like', '%' . $name . '%'];
     }
-//    if ($lang) {
-//      $where['lang'] = $lang;
-//    }
+    if ($lang) {
+      $where['lang'] = $lang;
+    }
     return $where;
   }
 
@@ -51,7 +51,6 @@ class BrandModel extends PublicModel {
     $where = $this->getcondition($name, $lang);
     try {
       return $this->where($where)
-                      //  ->field('id,user_id,name,email,mobile,status')
                       ->count('id');
     } catch (Exception $ex) {
       Log::write($ex->getMessage(), Log::ERR);
@@ -67,7 +66,6 @@ class BrandModel extends PublicModel {
    */
   public function getlist($name, $lang = 'en', $current_no = 1, $pagesize = 10) {
     $where = $this->getcondition($name, $lang);
-
     if (intval($current_no) <= 1) {
       $row_start = 0;
     } else {
@@ -77,7 +75,9 @@ class BrandModel extends PublicModel {
       $pagesize = 10;
     }
     return $this->where($where)
-                    ->field('id,name,supplier_id,logo,recommend_flag,created_by,created_at')
+                    ->field('id,lang,name,logo,recommend_flag,mode,sort_order,created_by,'
+                            . 'created_at,brand_no')
+                    ->order('sort_order desc')
                     ->limit($row_start . ',' . $pagesize)
                     ->select();
   }
@@ -88,10 +88,11 @@ class BrandModel extends PublicModel {
    * @return mix
    * @author zyg
    */
-  public function listall($name, $lang = 'en') {
+  public function listall($name, $lang = 'zh') {
     $where = $this->getcondition($name, $lang);
     return $this->where($where)
-                    ->field('id,name,supplier_id')
+                    ->field('id,name,brand_no')
+                    ->order('sort_order desc')
                     ->select();
   }
 
@@ -104,7 +105,7 @@ class BrandModel extends PublicModel {
    * @author zyg
    */
   public function info($brand_no = '', $lang = 'en') {
-    if ($cat_no) {
+    if ($brand_no) {
       $where['brand_no'] = $brand_no;
     } else {
       return [];
@@ -137,11 +138,18 @@ class BrandModel extends PublicModel {
    * @return bool
    * @author zyg
    */
-  public function delete_data($brand_no = '', $lang = 'en') {
-    $where['brand_no'] = $brand_no;
-    if ($lang) {
-      $where['lang'] = $lang;
+  public function delete_data($brand_no = '', $brand_id = 0, $lang = 'en') {
+    if (!$brand_no && !$brand_id) {
+      return false;
+    } elseif ($brand_no) {
+      $where['brand_no'] = $brand_no;
+      if ($lang) {
+        $where['lang'] = $lang;
+      }
+    } elseif ($brand_id) {
+      $where['id'] = $brand_id;
     }
+
     $this->startTrans();
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
@@ -162,10 +170,16 @@ class BrandModel extends PublicModel {
    * @return bool
    * @author zyg
    */
-  public function batchdelete_data($brand_nos = '', $lang = 'en') {
-    $where['brand_no'] = ['in', $brand_nos];
-    if ($lang) {
-      $where['lang'] = $lang;
+  public function batchdelete_data($brand_nos = '', $brand_ids, $lang = 'en') {
+    if (!$brand_nos && !$brand_ids) {
+      return false;
+    } elseif ($brand_nos) {
+      $where['brand_no'] = ['in', $brand_nos];
+      if ($lang) {
+        $where['lang'] = $lang;
+      }
+    } elseif ($brand_ids) {
+      $where['id'] = ['in', $brand_ids];
     }
     $this->startTrans();
     $flag = $this->where($where)
@@ -188,7 +202,8 @@ class BrandModel extends PublicModel {
    */
   public function update_data($upcondition = [], $username = '') {
     $data = $this->create($upcondition);
-
+    $data['created_at'] = date('Y-m-d H:i:s');
+    $data['created_by'] = $username;
     $this->startTrans();
     if (isset($upcondition['en'])) {
       $data['lang'] = 'en';
@@ -249,6 +264,7 @@ class BrandModel extends PublicModel {
     $data = $condition = $this->create($createcondition);
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
+    $data['brand_no'] = $createcondition['en']['name'];
     if (!isset($condition['status'])) {
       $condition['status'] = self::STATUS_APPROVING;
     }

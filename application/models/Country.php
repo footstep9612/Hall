@@ -47,6 +47,14 @@ class CountryModel extends PublicModel {
       $data['c.region'] = ['like', '%' . $condition['region'] . '%'];
     }
 
+    if (isset($condition['status']) && $condition['status'] == 'ALL') {
+      
+    } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
+
+      $data['c.status'] = $condition['status'];
+    } else {
+      $data['c.status'] = 'VALID';
+    }
 
 
     if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {

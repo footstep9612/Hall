@@ -1,7 +1,7 @@
 <?php
-//header('Access-Control-Allow-Origin:*');
-//header('Access-Control-Allow-Headers:x-requested-with,content-type');
-//header('Access-Control-Allow-Methods GET,POST,PUT,DELETE,OPTIONS;');
+header('Access-Control-Allow-Origin:*');
+header('Access-Control-Allow-Headers:x-requested-with,content-type');
+header('Access-Control-Allow-Methods GET,POST,PUT,DELETE,OPTIONS;');
 
 /* INI配置文件支持常量替换 */
 define("APPLICATION_PATH", dirname(__FILE__) . "/application");
@@ -21,7 +21,8 @@ $application = new Yaf_Application("conf/application.ini");
  * 则$response会被自动输出, 此处也不需要再次输出Response
  */
 
-error_reporting(E_ALL & E_STRICT);
+//error_reporting(E_ALL & E_STRICT);
+error_reporting(E_ALL);
 $response = $application
         ->bootstrap()/* bootstrap是可选的调用 */
         ->run()/* 执行 */;

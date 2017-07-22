@@ -21,17 +21,19 @@ class EsgoodsController extends PublicController {
   //put your code here
   public function init() {
     $this->es = new ESClient();
-    parent::init();
+    error_reporting(E_ALL);
+    $this->setLang();
+    //parent::init();
   }
 
   public function listAction() {
     $lang = $this->getPut('lang', 'en');
     $model = new EsgoodsModel();
-    $_source = ['sku', 'spu', 'name', 'show_name', 'model'
+    $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
         , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
         'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
-        'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'create_at',
-        'create_by'];
+        'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'created_at',
+        'created_by'];
     $ret = $model->getgoods($this->put_data, $_source, $lang);
     if ($ret) {
       $list = [];
@@ -65,13 +67,17 @@ class EsgoodsController extends PublicController {
         }
 
         $list[$key]['show_cats'] = $show_cats;
-        $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        if (isset($list[$key]['attrs']) && $list[$key]['attrs']) {
+          $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
+        }
+
+        if (isset($list[$key]['specs']) && $list[$key]['specs']) {
+          $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        }
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       }
-      if ($this->put_data['keyword']) {
+      if (isset($this->put_data['keyword']) && $this->put_data['keyword']) {
         $search = [];
         $search['keywords'] = $this->put_data['keyword'];
         if ($this->user['email']) {

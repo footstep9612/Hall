@@ -237,7 +237,7 @@ class ProductModel extends PublicModel {
 
         //读取redis缓存
         if(redisHashExist('Spu',md5(json_encode($condition)))){
-            //return (array)json_decode(redisHashGet('Spu',md5(json_encode($condition))));
+            //return json_decode(redisHashGet('Spu',md5(json_encode($condition))),true);
         }
 
         //数据读取
@@ -370,6 +370,7 @@ class ProductModel extends PublicModel {
         if(is_array($input['id'])){
             $where['id'] = array('IN', $input['id']);
         }
+        jsonReturn($where);
         $result = $this->where($where)->delete();
 
         return $result ? true : false;
