@@ -55,7 +55,7 @@ class ShowCatGoodsModel extends PublicModel {
                 $test['spu'] = $condition['spu'];
                 $test['sku'] = $sku['sku'];
                 $test['cat_no'] = $val;
-                $test['show_name'] = $condition['show_name'];
+                $test['show_name'] = $sku['name'];
                 $test['created_by'] = $condition['created_by'];
                 $test['created_at'] = $this->getTime();
                 $linecat[] = $test;

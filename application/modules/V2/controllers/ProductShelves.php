@@ -19,6 +19,7 @@ class ProductshelvesController extends PublicController {
         $product = new ProductModel();
         $goods = new GoodsModel();
         $createcondition = $this->put_data;
+        $createcondition['created_by'] = $this->user['name'];
 
         $showcatproduct->startTrans();
         $results = $showcatproduct->addData($createcondition);
@@ -27,7 +28,7 @@ class ProductshelvesController extends PublicController {
             $where['lang'] = $createcondition['lang'];
             $where['spu'] = $createcondition['spu'];
             $where['status'] = 'VALID';
-            $goodslist = $goods->field('sku')->where($where)->select();
+            $goodslist = $goods->field('sku,name')->where($where)->select();
             $condition = $where;
             $condition['skus'] = $goodslist;
             $condition['show_cat'] = $createcondition['show_cat'];
