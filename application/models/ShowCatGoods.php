@@ -7,7 +7,7 @@
  * Time: 16:58
  */
 class ShowCatGoodsModel extends PublicModel {
-    protected $dbName = 'erui_config'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'show_cat_goods'; //数据表表名
 
     public function __construct()
@@ -57,7 +57,7 @@ class ShowCatGoodsModel extends PublicModel {
                 $test['cat_no'] = $val;
                 $test['show_name'] = $condition['show_name'];
                 $test['created_by'] = $condition['created_by'];
-                $test['create_at'] = $this->getTime();
+                $test['created_at'] = $this->getTime();
                 $linecat[] = $test;
             }
         }
@@ -76,5 +76,50 @@ class ShowCatGoodsModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
+    }
+
+    /**
+     * 产品下架删除数据
+     * @param array $condition
+     * @return array
+     * @author zhangyuliang
+     */
+    public function deleteData($condition = []){
+        if(!empty($condition['lang'])) {
+            $where['lang'] = $condition['lang'];
+        }else{
+            $results['code'] = '-101';
+            $results['message'] = '缺少lang!';
+        }
+        if(empty($condition['spu'])){
+            $where['spu'] = $condition['spu'];
+        }else{
+            $results['code'] = '-101';
+            $results['message'] = '缺少SPU!';
+        }
+
+        try {
+            $id = $this->where($where)->delete();
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
+     * 返回格式化时间
+     * @author zhangyuliang
+     */
+    public function getTime(){
+        return date('Y-m-d h:i:s',time());
     }
 }
