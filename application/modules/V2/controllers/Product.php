@@ -7,8 +7,8 @@
  */
 class ProductController extends PublicController{
     public function init() {
-        $this->put_data = $this->put_data ? $this->put_data : $_POST;
         parent::init();
+        $this->put_data = $this->put_data ? $this->put_data : $_POST;
     }
 
     /**
