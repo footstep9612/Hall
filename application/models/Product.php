@@ -369,13 +369,16 @@ class ProductModel extends PublicModel {
             try{
                 $model = new EsproductModel();
                 foreach($spu as $r){
+                    jsonReturn($r.$lang);
                     $where = array(
                         'spu' => $r,
                         'lang'=> $lang
                     );
                     $result = $this->where($where)->save(array('status'=>$status));
                     if($result){    //更新ES
-                        @$model->changestatus($r,$status,$lang);
+                        if($status == self::STATUS_DELETED){
+                            @$model->delete_data($r,$lang);
+                        }
                     }
                 }
                 $this->commit();
