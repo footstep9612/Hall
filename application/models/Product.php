@@ -356,28 +356,26 @@ class ProductModel extends PublicModel {
 
     /**
      * 修改状态
-     * @param int $spu   这里用的是表id
-     * @param array $input
+     * @param array $spu    spu编码数组['spu1','spu2']
+     * @param string $lang  语言（zh/en/ru/es）
+     * @param string $status 状态
      */
-    public function upStatus($item = '',$status=''){
-        if(empty($item) || empty($status))
+    public function upStatus($spu = '',$lang='',$status=''){
+        if(empty($spu) || empty($lang) || empty($status))
             return false;
 
-        if($item && is_array($item)){
+        if($spu && is_array($spu)){
             $this->startTrans();
             try{
                 $model = new EsproductModel();
-                foreach($item as $r){
-                    if(!isset($r['spu']) || !isset($r['lang']))
-                        jsonReturn('',ErrorMsg::ERROR_PARAM);
-
+                foreach($spu as $r){
                     $where = array(
-                        'spu' => $r['spu'],
-                        'lang'=> $r['lang']
+                        'spu' => $r,
+                        'lang'=> $lang
                     );
                     $result = $this->where($where)->save(array('status'=>$status));
                     if($result){    //更新ES
-                        $model->changestatus($r['spu'],$status,$r['lang']);
+                        @$model->changestatus($r,$status,$lang);
                     }
                 }
                 $this->commit();
