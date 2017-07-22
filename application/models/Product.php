@@ -375,9 +375,7 @@ class ProductModel extends PublicModel {
                     );
                     $result = $this->where($where)->save(array('status'=>$status));
                     if($result){    //更新ES
-                        if($status == self::STATUS_DELETED){
-                            @$model->delete_data($r,$lang);
-                        }
+                        @$model->changestatus($r,$status,$lang);
                     }
                 }
                 $this->commit();
