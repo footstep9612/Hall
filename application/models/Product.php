@@ -368,9 +368,8 @@ class ProductModel extends PublicModel {
             $where['id'] = ''.$input['id'];
         }
         if(is_array($input['id'])){
-            $where['id'] = array('IN', $input['id']);
+            $where['id'] = array('IN',$input['id']);
         }
-        jsonReturn($where);
         $result = $this->where($where)->delete();
 
         return $result ? true : false;
