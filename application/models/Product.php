@@ -355,45 +355,39 @@ class ProductModel extends PublicModel {
     }
 
     /**
-     * 删除
-     * @param array $input
-     * @return bool
-     */
-    public function del($input =[]){
-        if(!isset($input['id']) || empty($input['id']))
-            return false;
-
-        $where = array();
-        if (is_numeric($input['id'])) {
-            $where['id'] = ''.$input['id'];
-        }
-        if(is_array($input['id'])){
-            $where['id'] = array('IN',$input['id']);
-        }
-        $result = $this->where($where)->delete();
-
-        return $result ? true : false;
-    }
-
-    /**
      * 修改状态
      * @param int $spu   这里用的是表id
      * @param array $input
      */
-    public function upStatus($spu = '',$status=''){
-        if(empty($spu) || empty($status))
+    public function upStatus($item = '',$status=''){
+        if(empty($item) || empty($status))
             return false;
 
-        $where = array();
-        if (is_numeric($spu)) {
-            $where['id'] = ''.$spu;
-        }
-        if(is_array($spu)){
-            $where['id'] = array('IN', $spu);
-        }
-        $result = $this->where($where)->save(array('status'=>$status));
+        if($item && is_array($item)){
+            $this->startTrans();
+            try{
+                $model = new EsproductModel();
+                foreach($item as $r){
+                    if(!isset($r['spu']) || !isset($r['lang']))
+                        jsonReturn('',ErrorMsg::ERROR_PARAM);
 
-        return $result ? true : false;
+                    $where = array(
+                        'spu' => $r['spu'],
+                        'lang'=> $r['lang']
+                    );
+                    $result = $this->where($where)->save(array('status'=>$status));
+                    if($result){    //更新ES
+                        $model->changestatus($r['spu'],$status,$r['lang']);
+                    }
+                }
+                $this->commit();
+                return true;
+            }catch (Exception $e){
+                $this->rollback();
+                return false;
+            }
+        }
+        return false;
     }
 
 
