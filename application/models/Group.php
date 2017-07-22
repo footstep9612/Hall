@@ -54,7 +54,7 @@ class GroupModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,parent_id,name,description,status')
+                ->field('id,group_no,parent_id,name,description,status')
                 ->find();
             return $row;
         }else{

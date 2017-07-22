@@ -55,6 +55,26 @@ class GroupController extends PublicController {
         jsonReturn($datajson);
     }
 
+    public function infoAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $id = $data['id'];
+        if(empty($id)){
+            $datajson['code'] = -101;
+            $datajson['message'] = 'id不可以都为空!';
+            $this->jsonReturn($datajson);
+        }
+        $model_group = new GroupModel();
+        $data = $model_group->detail($id);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if(empty($data)){

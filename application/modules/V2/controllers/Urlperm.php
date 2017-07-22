@@ -22,7 +22,7 @@ class UrlpermController extends PublicController {
         $limit = [];
         $where = [];
         $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->getlist(['parent_id'=>0],$limit); //($this->put_data);
+        $data = $model_url_perm->getlist(['parent_id'=>0,'status'=>'NORMAL'],$limit); //($this->put_data);
         $count = count($data);
         $childrencount=0;
         for($i=0;$i<$count;$i++){
@@ -67,6 +67,7 @@ class UrlpermController extends PublicController {
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
+            $datajson['message'] = '获取成功!';
         }else{
             $datajson['code'] = -104;
             $datajson['data'] = $data;
@@ -80,6 +81,21 @@ class UrlpermController extends PublicController {
         if(empty($data)){
             $datajson['code'] = -101;
             $datajson['message'] = '数据不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        if(!isset($data['name'])){
+            $datajson['code'] = -101;
+            $datajson['message'] = '名字不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        if(!isset($data['url'])){
+            $datajson['code'] = -101;
+            $datajson['message'] = '地址不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        if(!isset($data['description'])){
+            $datajson['code'] = -101;
+            $datajson['message'] = '说明不可为空!';
             $this->jsonReturn($datajson);
         }
         $model_url_perm = new UrlPermModel();
