@@ -6,7 +6,7 @@
 class BrandController extends PublicController {
 
   public function init() {
-    //parent::init();
+    parent::init();
 
     $this->_model = new BrandModel();
   }
@@ -111,7 +111,6 @@ class BrandController extends PublicController {
    * 分类联动
    */
   public function infoAction() {
-    $brand_no = 'AMCS';
     $this->getPut('brand_no');
     if (!$brand_no) {
       $this->setCode(MSG::MSG_FAILED);

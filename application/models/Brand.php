@@ -17,7 +17,6 @@ class BrandModel extends PublicModel {
 
   protected $tableName = 'brand';
   protected $dbName = 'erui_goods'; //数据库名称
-  Protected $autoCheckFields = false;
 
   const STATUS_DRAFT = 'DRAFT'; //草稿
   const STATUS_APPROVING = 'APPROVING'; //审核；
@@ -35,7 +34,7 @@ class BrandModel extends PublicModel {
       $where['name'] = ['like', '%' . $name . '%'];
     }
     if ($lang) {
-      $where['lang'] = ['gt', $lang];
+      $where['lang'] = $lang;
     }
     return $where;
   }
@@ -105,12 +104,12 @@ class BrandModel extends PublicModel {
    */
   public function info($brand_no = '', $lang = 'en') {
     if ($brand_no) {
-      $where['brand_no'] = ['gt', $brand_no];
+      $where['brand_no'] =$brand_no;
     } else {
       return [];
     }
     if ($lang) {
-      $where['lang'] = ['gt', $lang];
+      $where['lang'] = $lang;
     }
     return $this->where($where)
                     ->find();
@@ -141,7 +140,7 @@ class BrandModel extends PublicModel {
     if (!$brand_id) {
       return false;
     } elseif ($brand_id) {
-      $where['id'] = ['gt' => $brand_id];
+      $where['id'] = $brand_id;
     }
 
     $this->startTrans();
@@ -217,6 +216,7 @@ class BrandModel extends PublicModel {
       $data['lang'] = 'en';
       $data['name'] = $upcondition['en']['name'];
       $where['lang'] = $data['lang'];
+
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
@@ -227,7 +227,7 @@ class BrandModel extends PublicModel {
     if (isset($upcondition['zh'])) {
       $data['lang'] = 'zh';
       $data['name'] = $upcondition['zh']['name'];
-      $where['lang'] = $data['lang'];
+      $where['lang'] =  $data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
@@ -248,7 +248,7 @@ class BrandModel extends PublicModel {
     if (isset($upcondition['ru'])) {
       $data['lang'] = 'ru';
       $data['name'] = $upcondition['ru']['name'];
-      $where['lang'] = $data['lang'];
+      $where['lang'] =$data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
@@ -257,14 +257,14 @@ class BrandModel extends PublicModel {
       }
     }
     if ($upcondition['supplier_ids']) {
-      $this->table('erui_supplier.t_supplier')->where(['name' => ['eq' => $where['brand_no']],
+      $this->table('erui_supplier.t_supplier')->where(['name' => $where['brand_no'],
           'supplier_id' => ['notin', $upcondition['supplier_ids']]
       ])->delete();
-      $this->table('erui_supplier.t_supplier')->where(['name' => ['eq' => $where['brand_no']],
+      $this->table('erui_supplier.t_supplier')->where(['name' => $where['brand_no'],
           'supplier_id' => ['in', $upcondition['supplier_ids']]
       ])->save(['name' => $data['brand_no']]);
       $datalist = [];
-      $supplier_ids = $this->fields('supplier_id')->table('erui_supplier.t_supplier')->where(['name' => ['eq' => $where['brand_no']],
+      $supplier_ids = $this->fields('supplier_id')->table('erui_supplier.t_supplier')->where(['name' => $where['brand_no'],
                   'supplier_id' => ['in', $upcondition['supplier_ids']]
               ])->select();
       foreach ($upcondition['supplier_ids'] as $supplier_id) {
