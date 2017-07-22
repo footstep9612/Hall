@@ -66,6 +66,7 @@ class ProductlineController extends PublicController {
         $results = $productline->addData($createcondition);
         if($results['code']==1){
             if(!empty($createcondition['material_cat'])){
+                $createcondition['line_no'] = $results['data']['line_no'];
 
                 $catid = $productlinecat->addData($createcondition);
 
@@ -147,7 +148,7 @@ class ProductlineController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //产品线报价人分组列表
+    //产品线报价人列表
     public function getLinebidderAction(){
         $productlinebidder = new ProductLinebidderModel();
         $createcondition =  $this->put_data;
@@ -157,27 +158,22 @@ class ProductlineController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //添加产品线报价人分组
+    //添加产品线报价人
     public function createLinebidderAction(){
         $productlinebidder = new ProductLinebidderModel();
         $createcondition =  $this->put_data;
 
-        $productlinebidder->startTrans();
-        $deluser = $productlinebidder->deleteDataAll($createcondition);
-        if($deluser['code']==1){
-            $results = $productlinebidder->addData($createcondition);
-            if($results['code']==1){
-                $productlinebidder->commit();
-            }else{
-                $productlinebidder->rollback();
-                $results['code'] = '-101';
-                $results['message'] = '添加失败!';
-            }
-        }else{
-            $productlinebidder->rollback();
-            $results['code'] = '-101';
-            $results['message'] = '添加失败!';
-        }
+        $results = $productlinebidder->addData($createcondition);
+
+        $this->jsonReturn($results);
+    }
+
+    //删除产品线报价人
+    public function deleteLinebidderAction(){
+        $productlinebidder = new ProductLinebidderModel();
+        $createcondition =  $this->put_data;
+
+        $results = $productlinebidder->deleteData($createcondition);
 
         $this->jsonReturn($results);
     }
