@@ -12,10 +12,10 @@ class ProductlinequoteController  extends PublicController
     /**
      * 构造方法
      */
-/*    public function init()
+    public function init()
     {
         parent::init();
-    }*/
+    }
     /**
      * @desc 产品线报价列表接口
      * @author 买买提
@@ -24,7 +24,30 @@ class ProductlinequoteController  extends PublicController
     {
         $productLineQuoteModel = new ProductLineQuoteModel();
         $data = $productLineQuoteModel->getList($this->put_data) ;
-        p(count($data));
+
+        if ($data)
+        {
+            $this->setCode(MSG::MSG_SUCCESS);
+
+            $response = [
+                'code'=> $this->getCode(),
+                'message'=> $this->getMessage(),
+                'totalCount'=> intval($data['totalCount'])
+            ];
+
+            if (isset($this->put_data['currentPage']) && $this->put_data['currentPage'] && isset($this->put_data['pageSize']) && $this->put_data['pageSize'])
+            {
+                $response['currentPage'] = isset($data['currentPage']) ? intval($data['currentPage']) : 1 ;
+                $response['pageSize'] = isset($data['pageSize']) ? intval($data['pageSize']) : 10 ;
+            }
+
+            $response['data'] = $data['data'] ;
+            $this->jsonReturn($response);
+
+        }else{
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
 
     }
 
