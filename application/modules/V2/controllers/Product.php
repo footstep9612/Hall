@@ -5,8 +5,10 @@
  * Date: 2017/7/21
  * Time: 15:40
  */
-class ProductController extends PublicController {
+class ProductController extends PublicController{
     public function init() {
+        $this->put_data = $this->put_data ? $this->put_data : $_POST;
+        parent::init();
     }
 
     /**
