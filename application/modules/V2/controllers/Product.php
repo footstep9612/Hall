@@ -5,8 +5,9 @@
  * Date: 2017/7/21
  * Time: 15:40
  */
-class ProductController extends PublicController {
+class ProductController extends PublicController{
     public function init() {
+        parent::init();
     }
 
     /**
@@ -59,7 +60,7 @@ class ProductController extends PublicController {
      */
     public function deleteAction(){
         if(!isset($this->put_data['id']))
-            jsonReturn('',ErrorMsg::ERROR_PARAM);
+            jsonReturn('id:'.$this->put_data['id']);
 
         $productModel = new ProductModel();
         $result = $productModel->del($this->put_data);
