@@ -21,7 +21,8 @@ $application = new Yaf_Application("conf/local.ini");
  * 则$response会被自动输出, 此处也不需要再次输出Response
  */
 
-error_reporting(E_ALL & E_STRICT);
+//error_reporting(E_ALL & E_STRICT);
+error_reporting(E_ALL);
 $response = $application
         ->bootstrap()/* bootstrap是可选的调用 */
         ->run()/* 执行 */;
