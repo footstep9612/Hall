@@ -129,6 +129,7 @@ class UrlpermController extends PublicController {
         $id = $model_url_perm->update_data($data,$where);
         if($id > 0){
             $datajson['code'] = 1;
+            $datajson['message'] = '修改成功!';
         }else{
             $datajson['code'] = -104;
             $datajson['message'] = '修改失败!';
