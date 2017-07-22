@@ -8,7 +8,7 @@
 class ProductLineQuoteModel extends PublicModel
 {
     protected $dbName = 'erui_rfq' ; //数据库名称
-    protected $tableName = 'quote' ; //数据表名称
+    protected $tableName = 'inquiry' ; //数据表名称
 
     public function __construct()
     {
@@ -18,40 +18,61 @@ class ProductLineQuoteModel extends PublicModel
     /**
      * 根据条件获取产品线报价列表
      */
-    public function getList(array $condition, $order='id desc', $type=true)
+    public function getList(array $condition, $order='id desc')
     {
         //过滤掉token
         unset($condition['token']);
 
-        //默认分页参数与
-        $current_no = 1;//当前页码
-        $pagesize = 10;//每页显示数量
-
+        //获取条件
         $where = $this->getCondition($condition);
 
+        //筛选字段
+        $fields = [
+            'id',
+            'serial_no',//流程编码
+            'inquiry_country',//国家
+            'buyer_name',//客户名称
+            'agent',//市场经办人
+            'created_at',//询价时间
+            'inquiry_status',//项目状态
+        ] ;
+        //总记录数
+        $totalCount = $this->getTotalCount($where);
+
         //有分页的情况
-        if ($type)
+        if (isset($condition['currentPage']) && $condition['currentPage'] && isset($condition['pageSize']) && $condition['pageSize'])
         {
+            //默认分页参数与
+            $currentPage = 1;//当前页码
+            $pageSize = 10;//每页显示数量
+
             //分页->当前页码
-            if (isset($condition['current_no']) && $condition['current_no'])
+            if (isset($condition['currentPage']) && $condition['currentPage'])
             {
-                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1 ;
+                $currentPage = intval($condition['currentPage']) > 0 ? intval($condition['currentPage']) : 1 ;
             }
 
             //分页->每页显示数量
-            if (isset($condition['pagesize']) && $condition['pagesize'])
+            if (isset($condition['pageSize']) && $condition['pageSize'])
             {
-                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10 ;
+                $pageSize = intval($condition['pageSize']) > 0 ? intval($condition['pageSize']) : 10 ;
             }
 
             //获取区间
-            $limit = ($current_no - 1) * $pagesize ;
+            $limit = ($currentPage - 1) * $pageSize ;
 
-            return $this->order($order)->where($where)->limit($limit)->select();
+            $data['totalCount'] = $totalCount ;
+            $data['currentPage'] = $currentPage ;
+            $data['pageSize'] = $pageSize ;
+            $data['data'] = $this->order($order)->where($where)->limit($limit.','.$pageSize)->field($fields)->select();
+
+            return $data;
         }
 
         //默认情况
-        return $this->where($where)->order($order)->select();
+        $data['totalCount'] = $totalCount ;
+        $data['data'] = $this->where($where)->order($order)->field($fields)->select() ;
+        return $data;
 
     }
 
@@ -62,9 +83,29 @@ class ProductLineQuoteModel extends PublicModel
      */
     protected function getCondition(array $condition=[])
     {
-        $data = [] ;
-        return $data;
+
+        $where = [] ;
+
+        //按时间
+        if(!empty($condition['start_time']) && !empty($condition['end_time']))
+        {
+            $where['created_at'] = array(
+                array('gt',$condition['start_time']),
+                array('lt',$condition['end_time'])
+            );
+        }
+        //p($where);
+        return $where;
     }
 
+    /**
+     * 根据条件获取总数
+     * @param array $condition
+     * @return mixed
+     */
+    protected function getTotalCount(array $condition = [])
+    {
+        return $this->where($condition)->count('id');
+    }
 
 }
