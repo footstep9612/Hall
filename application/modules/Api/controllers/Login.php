@@ -12,9 +12,11 @@
  */
 class LoginController extends Yaf_Controller_Abstract {
 
-//    public function __init() {
-//        //   parent::__init();
-//    }
+    public function __init() {
+        ini_set("display_errors", "off");
+        error_reporting(E_ERROR);
+        //   parent::__init();
+    }
     /*
      * 用户登录
      * @created_date 2017-06-15
@@ -259,7 +261,7 @@ class LoginController extends Yaf_Controller_Abstract {
     }
 
 
-    function retrievalEmail(){
+    function retrievalEmailAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
@@ -287,30 +289,30 @@ class LoginController extends Yaf_Controller_Abstract {
             redisHashSet('rest_password_key',$data_key['key'],$check[0]['id']);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
-//            $email_arr['url'] = $config_shop['url'];
-//            $email_arr['key'] = $data_key['key'];
-//            $body = $this->getView()->render('login/email.html',$email_arr);
-//            send_Mail($data_key['email'],'Activation email for your registration on ERUI platform',$body,$data['first_name']);
+            $email_arr['url'] = $config_shop['url'];
+            $email_arr['key'] = $data_key['key'];
+            $email_arr['first_name'] = $data['first_name'];
+            $body = $this->getView()->render('login/forgetemail.html',$email_arr);
+            send_Mail($data_key['email'],'Password retrieval on ERUI platform',$body,$data['first_name']);
             jsonReturn($data_key,1,'发送成功');
         }else{
             jsonReturn('',-103,'The company email or user name non-existent.');
         }
     }
-    function checkKey(){
+    function checkKeyAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['key'])) {
+        if(empty($data['key'])) {
             jsonReturn('',-101,'key不可以为空!');
         }
-
         if(redisHashExist('rest_password_key',$data['key'])) {
             jsonReturn('',1,'获取成功');
         }else{
             jsonReturn('',-101,'未获取到key!');
         }
     }
-    function setPassword(){
+    function setPasswordAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['password'])) {
+        if(empty($data['password'])) {
             jsonReturn('',-101,'密码不可以为空!');
         }else{
             $user_arr['password_hash'] = $data['password'];
@@ -322,11 +324,13 @@ class LoginController extends Yaf_Controller_Abstract {
         if($id) {
             $buyer_account_model = new BuyerAccountModel();
             $check = $buyer_account_model->update_data($user_arr,['id'=>$id]);
-            if($id){
+            if($check){
+                redisHashDel('rest_password_key',$data['key']);
                 jsonReturn('',1,'操作成功');
             }
         }else{
             jsonReturn('',-101,'未获取到key!');
         }
     }
+
 }

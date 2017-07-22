@@ -11,50 +11,44 @@
  *
  * @author zhongyg
  */
-class EsgoodsController extends PublicModel {
+class EsgoodsController extends PublicController {
 
   protected $index = 'erui_goods';
   protected $es = '';
   protected $langs = ['en', 'es', 'ru', 'zh'];
-  protected $version = '5';
+  protected $version = '1';
 
   //put your code here
   public function init() {
-
     $this->es = new ESClient();
-    parent::init();
+    error_reporting(E_ALL);
+    $this->setLang();
+    //parent::init();
   }
 
   public function listAction() {
     $lang = $this->getPut('lang', 'en');
     $model = new EsgoodsModel();
-    $ret = $model->getgoods($this->put_data, null, $lang);
+    $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
+        , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
+        'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
+        'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'created_at',
+        'created_by'];
+    $ret = $model->getgoods($this->put_data, $_source, $lang);
     if ($ret) {
       $list = [];
       $data = $ret[0];
       $send['count'] = intval($data['hits']['total']);
       $send['current_no'] = intval($ret[1]);
       $send['pagesize'] = intval($ret[2]);
-      $skus = [];
-      if ($lang != 'en') {
-        foreach ($data['hits']['hits'] as $key => $item) {
-          $skus[] = $item["_source"]['sku'];
-        }
-
-        $ret_en = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'en');
-
-        $list_en = [];
-        foreach ($ret_en[0]['hits']['hits'] as $item) {
-          $list_en[$item["_source"]['sku']] = $item["_source"]['name'];
-        }
-      }
       foreach ($data['hits']['hits'] as $key => $item) {
         $list[$key] = $item["_source"];
         $attachs = json_decode($item["_source"]['attachs'], true);
         if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
           $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
         } else {
-          $list[$key]['img'] = null;
+          $product_attach_model = new ProductAttachModel();
+          $list[$key]['img'] = $product_attach_model->getimgBySpu($item["_source"]['spu']);
         }
         $show_cats = json_decode($item["_source"]["show_cats"], true);
         if ($show_cats) {
@@ -65,20 +59,25 @@ class EsgoodsController extends PublicModel {
         if (isset($list_en[$sku])) {
           $list[$key]['name'] = $list_en[$sku];
           $list[$key]['name_' . $lang] = $item["_source"]['name'];
+        } elseif (isset($list_zh[$sku])) {
+          $list[$key]['name_zh'] = $item["_source"]['name'];
         } else {
           $list[$key]['name'] = $item["_source"]['name'];
           $list[$key]['name_' . $lang] = $item["_source"]['name'];
         }
 
         $list[$key]['show_cats'] = $show_cats;
-        $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-        $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        if (isset($list[$key]['attrs']) && $list[$key]['attrs']) {
+          $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
+        }
+
+        if (isset($list[$key]['specs']) && $list[$key]['specs']) {
+          $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+        }
         $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
       }
-
-      if ($this->put_data['keyword']) {
+      if (isset($this->put_data['keyword']) && $this->put_data['keyword']) {
         $search = [];
         $search['keywords'] = $this->put_data['keyword'];
         if ($this->user['email']) {
@@ -87,7 +86,7 @@ class EsgoodsController extends PublicModel {
           $search['user_email'] = '';
         }
         $search['search_time'] = date('Y-m-d H:i:s');
-        $usersearchmodel = new BuyersearchhisModel();
+        $usersearchmodel = new UsersearchhisModel();
         $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
         $row = $usersearchmodel->exist($condition);
         if ($row) {

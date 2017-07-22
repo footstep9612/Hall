@@ -13,7 +13,7 @@ class AttrTplController extends PublicController{
     }
 
     /**
-     * 获取属性模板sku
+     * 获取属性模板   --总接口
      * @param string lang  语言（可选，默认浏览器语言）
      * @param string spu  spu编码（可选）
      * @param string sku  sku编码（可续）

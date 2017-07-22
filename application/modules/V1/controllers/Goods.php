@@ -19,10 +19,10 @@ class GoodsController extends PublicController
      * @author link 2017-06-26
      */
     public function infoBaseAction(){
+
         if(empty($this->input['sku'])){
             jsonReturn('','1000');
         }
-
         $goods = new GoodsModel();
         $result = $goods->getInfoBase($this->input);
         $this->returnInfo($result);
@@ -111,6 +111,7 @@ class GoodsController extends PublicController
     }
     /**
      * sku状态更改(审核)/删除  -- 总接口
+     * @param    status_type  sku_id  spu_id
      * @author  klp  2017/7-13
      */
     public function modifySkuAction()
@@ -122,8 +123,8 @@ class GoodsController extends PublicController
         $userInfo = getLoinInfo();
         $this->input['update_by'] = $userInfo['name'];
         $goodsModel = new GoodsModel();
-        if(isset($this->input['status']) && !empty($this->input['status'])){
-            $result = $goodsModel->modify($this->input);    //状态更改
+        if(isset($this->input['status_type']) && !empty($this->input['status_type'])){
+            $result = $goodsModel->modify($this->input);    //状态更改(暂为报审)
         } else{
             $result = $goodsModel->deleteReal($this->input);//真实删除
         }
@@ -280,6 +281,9 @@ class GoodsController extends PublicController
     public function test()
     {
         $data = [
+            'code' => MSG::MSG_SUCCESS,
+            'message' => MSG::getMessage(MSG::MSG_SUCCESS),
+
             'en'=>[
                 "spu" => "spu007",
                 "lang" => "en",

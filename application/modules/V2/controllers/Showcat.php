@@ -13,6 +13,68 @@ class ShowcatController extends PublicController {
     parent::init();
   }
 
+  public function treeAction() {
+    $lang = $this->get('lang', '');
+    if (!$lang) {
+      $lang = $this->getPut('lang', 'zh');
+    }
+    $jsondata = ['lang' => $lang];
+    $jsondata['level_no'] = 1;
+    $condition = $jsondata;
+    $redis_key = 'show_cat_tree_' . $lang;
+    $data = json_decode(redisGet($redis_key), true);
+    if (!$data) {
+      $arr = $this->_model->tree($jsondata);
+
+      if ($arr) {
+        $this->setCode(MSG::MSG_SUCCESS);
+        foreach ($arr as $key => $val) {
+          $arr[$key]['children'] = $this->_model->tree(['parent_cat_no' => $val['value'], 'level_no' => 2, 'lang' => $lang]);
+
+          if ($arr[$key]['children']) {
+            foreach ($arr[$key]['children'] as $k => $item) {
+              $arr[$key]['children'][$k]['children'] = $this->_model->tree(['parent_cat_no' => $item['value'],
+                  'level_no' => 3,
+                  'lang' => $lang]);
+            }
+          }
+        }
+        redisSet($redis_key, json_encode($arr), 86400);
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn($arr);
+      } else {
+        $condition['level_no'] = 2;
+        $arr = $this->_model->getlist($condition);
+        if ($arr) {
+          $this->setCode(MSG::MSG_SUCCESS);
+          foreach ($arr[$key]['children'] as $k => $item) {
+            $arr[$key]['children'][$k]['children'] = $this->_model->tree([
+                'parent_cat_no' => $item['value'],
+                'level_no' => 3,
+                'lang' => $lang]);
+          }
+
+          redisSet($redis_key, json_encode($arr), 86400);
+          $this->setCode(MSG::MSG_SUCCESS);
+          $this->jsonReturn($arr);
+        } else {
+          $condition['level_no'] = 3;
+          $arr = $this->_model->tree($condition);
+          if ($arr) {
+            redisSet($redis_key, json_encode($arr), 86400);
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
+          } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+          }
+        }
+      }
+    }
+    $this->setCode(MSG::MSG_SUCCESS);
+    $this->jsonReturn($data);
+  }
+
   public function listAction() {
     $lang = $this->getPut('lang', 'en');
     $jsondata = ['lang' => $lang];
@@ -119,7 +181,15 @@ class ShowcatController extends PublicController {
     }
     unset($result['lang']);
     if ($result) {
-
+      if ($result['level_no'] == 3) {
+        $material_cat_nos = $this->Table('erui_goods.t_show_material_cat')
+                ->where(['show_cat_no' => $result['cat_no']])
+                ->field('material_cat_no')
+                ->select();
+        $es_product_model = new EsproductModel();
+        $material_cats = $es_product_model->getmaterial_cats($material_cat_nos, 'zh');
+        $result['material_cats'] = $material_cats;
+      }
       $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
@@ -134,11 +204,13 @@ class ShowcatController extends PublicController {
     $redis->delete($keys);
     $listkeys = $redis->getKeys('Show_cat_list_*');
     $redis->delete($listkeys);
+    $treekeys = $redis->getKeys('show_cat_tree_*');
+    $redis->delete($treekeys);
   }
 
   public function createAction() {
 
-    $result = $this->_model->create_data($this->put_data, $this->user['username']); 
+    $result = $this->_model->create_data($this->put_data, $this->user['username']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);

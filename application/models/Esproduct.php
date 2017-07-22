@@ -103,10 +103,12 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['status']) && $condition['status']) {
       $status = $condition['status'];
-      if (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
+      if ($status == 'ALL') {
+        
+      } elseif (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
         $status = 'VALID';
+        $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
       }
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
     } else {
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
     }
@@ -714,7 +716,7 @@ class EsproductModel extends PublicModel {
     try {
       if ($show_cat_nos) {
         $cat3s = $this->table('erui_goods.t_show_cat')
-                ->field('parent_cat_no,cat_no,name')
+                ->field('market_area_bn,country_bn,parent_cat_no,cat_no,name')
                 ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                 ->select();
         $cat1_nos = $cat2_nos = [];
@@ -739,7 +741,9 @@ class EsproductModel extends PublicModel {
         foreach ($cat3s as $val) {
           $newcat3s[$val['cat_no']] = [
               'cat_no3' => $val['cat_no'],
-              'cat_name3' => $val['name']
+              'cat_name3' => $val['name'],
+              'market_area_bn' => $val['market_area_bn'],
+              'country_bn' => $val['country_bn']
           ];
         }
         return $newcat3s;
@@ -762,8 +766,12 @@ class EsproductModel extends PublicModel {
           $newcat3s[$val['cat_no']] = [
               'cat_no3' => $val['cat_no'],
               'cat_name3' => $val['name'],
+              'market_area_bn' => $val['market_area_bn'],
+              'country_bn' => $val['country_bn'],
               'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
               'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+              'market_area_bn' => $val['market_area_bn'],
+              'country_bn' => $val['country_bn'],
           ];
         }
         return $newcat3s;
@@ -779,6 +787,8 @@ class EsproductModel extends PublicModel {
             'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
             'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
             'cat_no3' => $val['cat_no'],
+            'market_area_bn' => $val['market_area_bn'],
+            'country_bn' => $val['country_bn'],
             'cat_name3' => $val['name']];
       }
       return $newcat3s;
@@ -961,6 +971,7 @@ class EsproductModel extends PublicModel {
 
 
           $scats = $this->getshow_cats($show_cat_nos, $lang);
+		 
           $skus = $this->getskusbyspus($spus, $lang);
           $specs = $this->getproduct_specsbyskus($spus, $lang);
           $SupplycapabilityModel = new SupplycapabilityModel();
@@ -1333,7 +1344,7 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function changestatus($spu,$status='VALID', $lang = 'en') {
+  public function changestatus($spu, $status = 'VALID', $lang = 'en') {
     try {
       $es = new ESClient();
       if (empty($spu)) {
@@ -1531,14 +1542,18 @@ class EsproductModel extends PublicModel {
    * 
    */
 
-  public function Update_skus($spu, $skus, $lang = 'en') {
+  public function Update_skus($spu, $skus = null, $lang = 'en') {
     $es = new ESClient();
     if (empty($spu)) {
       return false;
     }
-    $goodsmodel = new GoodsModel();
-
-    $skuinfos = $goodsmodel->getskusbyskus($skus, $lang);
+    if ($skus) {
+      $goodsmodel = new GoodsModel();
+      $skuinfos = $goodsmodel->getskusbyskus($skus, $lang);
+    } else {
+      $goodsmodel = new GoodsModel();
+      $skuinfos = $goodsmodel->getgetskubyspu($spu, $lang);
+    }
     if ($skuinfos) {
       $data['skus'] = json_encode($skuinfos, 256);
     } else {
@@ -1641,8 +1656,19 @@ class EsproductModel extends PublicModel {
     }
     $data['status'] = self::STATUS_DELETED;
     $id = $spu;
-    $type = $this->tableName . '_' . $lang;
-    $es->update_document($this->dbName, $type, $data, $id);
+    if ($lang) {
+      $type = $this->tableName . '_' . $lang;
+      $es->update_document($this->dbName, $type, $data, $id);
+    } else {
+      $type = $this->tableName . '_en';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_es';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_ru';
+      $es->update_document($this->dbName, $type, $data, $id);
+      $type = $this->tableName . '_es';
+      $es->update_document($this->dbName, $type, $data, $id);
+    }
     return true;
   }
 

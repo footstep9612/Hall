@@ -24,19 +24,19 @@ class SupplierAccountModel extends PublicModel
     }
 
     /**
-     * 通过商品获取供应商信息
+     * 通过产品获取供应商信息
      * @return
      * @author
      */
     public function getInfo($data)
     {
         $where = array();
-        if(!empty($data['sku'])){
-            $where['sku'] = $data['sku'];
+        if(!empty($data['spu'])){
+            $where['spu'] = $data['spu'];
         } else{
-            jsonReturn('','-1001','sku不可以为空');
+            jsonReturn('','-1001','spu不可以为空');
         }
-        //通过sku查询供应商编号
+        //通过spu查询供应商编号
         $supplier_id = $this->where($where)
                             ->field('supplier_id')
                             ->select();

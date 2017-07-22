@@ -129,10 +129,10 @@ class GoodsAttachModel extends PublicModel
     public function modifySkuAttach($delData)
     {
         $where = []; $status = [];
-        if(isset($delData['sku'])){
-            $where['sku'] = array('in',explode(',',$delData['sku']));
+        if(isset($delData['sku_id'])){
+            $where['id'] = array('in',explode(',',$delData['sku_id']));
         }else{
-            JsonReturn('','-1001','sku不能为空');
+            JsonReturn('','-1001','sku_id不能为空');
         }
         if(isset($delData['status'])) {
             switch (strtoupper($delData['status'])) {
@@ -151,11 +151,7 @@ class GoodsAttachModel extends PublicModel
         }
         try {
             $result = $this->where($where)->save($status);
-            if(isset($result)){
-                return true;
-            }else{
-                return false;
-            }
+            return $result ? true : false;
         } catch (Exception $e) {
 //        $results['code'] = $e->getCode();
 //        $results['message'] = $e->getMessage();
@@ -171,13 +167,14 @@ class GoodsAttachModel extends PublicModel
     public function deleteRealAttach($delData)
     {
         $where = [];
-        if(isset($delData['sku'])){
-            $where['sku'] = $delData['sku'];
+        if(isset($delData['sku_id'])){
+            $where['id'] = array('in',explode(',',$delData['sku_id']));
         }else{
-            JsonReturn('','-1001','[sku]不能为空');
+            JsonReturn('','-1001','sku_id不能为空');
         }
         try{
-            return $this->where($where)->save(['status' => 'DELETED']);
+            $result =  $this->where($where)->delete();
+            return $result ? true : false;
         } catch(Exception $e){
 //            $results['code'] = $e->getCode();
 //            $results['message'] = $e->getMessage();

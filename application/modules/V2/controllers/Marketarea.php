@@ -6,7 +6,7 @@
 class MarketareaController extends PublicController {
 
   public function init() {
-  //  parent::init();
+      parent::init();
 
     $this->_model = new MarketAreaModel();
   }
@@ -16,25 +16,60 @@ class MarketareaController extends PublicController {
    */
 
   public function listAction() {
-    $lang = $this->getPut('lang', 'en');
-
-    $condition = $this->put_data;
-    unset($condition['token']);
-    rsort($condition);
-    $key = 'market_area_list_' . $lang . md5(json_encode($condition));
-    $data = json_decode(redisGet($key), true);
-    if (!$data) {
-      $arr = $this->_model->getlist($this->put_data, $lang);
-      redisSet($key, json_encode($arr), 86400);
+    $data = $this->put_data;
+    unset($data['token']);
+    if (isset($data['current_no']) && $data['current_no']) {
+      $data['current_no'] = intval($data['current_no']) > 0 ? intval($data['current_no']) : 1;
+    }
+    if (isset($data['pagesize']) && $data['pagesize']) {
+      $data['pagesize'] = intval($data['pagesize']) > 0 ? intval($data['pagesize']) : 2;
+    }
+    $market_area = new MarketAreaModel();
+    if (redisGet('Market_Area_list_' . md5(json_encode($data)))) {
+      $arr = json_decode(redisGet('Market_Area_list_' . md5(json_encode($data))), true);
+    } else {
+      $arr = $market_area->getlistBycodition($data); //($this->put_data);
       if ($arr) {
-        $this->setCode(MSG::MSG_SUCCESS);
-        $this->jsonReturn($arr);
-      } else {
-        $this->setCode(MSG::MSG_FAILED);
-        $this->jsonReturn();
+        redisSet('Market_Area_list_' . md5(json_encode($data)), json_encode($arr));
       }
     }
+
+    if (!empty($arr)) {
+      $data['code'] = MSG::MSG_SUCCESS;
+      $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS);
+      $data['data'] = $arr;
+    } else {
+      $data['code'] = MSG::MSG_FAILED;
+      $data['message'] = MSG::getMessage(MSG::MSG_FAILED);
+    }
+    $data['count'] = $market_area->getCount($data);
+
     $this->jsonReturn($data);
+  }
+
+  /*
+   * 营销区域列表
+   */
+
+  public function listallAction() {
+    $data = $this->put_data;
+    unset($data['token']);
+    $market_area = new MarketAreaModel();
+    if (redisGet('Market_Area_listall_' . md5(json_encode($data)))) {
+      $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
+    } else {
+      $arr = $market_area->getlistBycodition($data); //($this->put_data);
+      if ($arr) {
+        redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
+      }
+    }
+    if (!empty($arr)) {
+
+      $this->setCode(MSG::MSG_SUCCESS);
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+    }
+    $this->jsonReturn($arr);
   }
 
   /*
@@ -64,11 +99,13 @@ class MarketareaController extends PublicController {
       }
     }
   }
+
   /**
    * 详情
    */
   public function infoAction() {
     $bn = $this->getPut('bn');
+    $bn = 'Middle Asia';
     if (!$bn) {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
@@ -80,16 +117,22 @@ class MarketareaController extends PublicController {
     $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
     if ($ret_en) {
       $result['en']['name'] = $ret_en['name'];
+      $result['en']['id'] = $ret_en['id'];
     }
     if ($ret_zh) {
       $result['zh']['name'] = $ret_zh['name'];
+      $result['zh']['id'] = $ret_zh['id'];
     }
     if ($ret_ru) {
       $result['ru']['name'] = $ret_ru['name'];
+      $result['ru']['id'] = $ret_ru['id'];
     }
     if ($ret_es) {
       $result['es']['name'] = $ret_es['name'];
+      $result['es']['id'] = $ret_es['id'];
     }
+    unset($result['id']);
+    unset($result['lang']);
     if ($result) {
       $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
@@ -148,8 +191,20 @@ class MarketareaController extends PublicController {
    */
 
   public function deleteAction() {
-
-    $result = $this->_model->delete_data($this->put_data['id']);
+     $condition = $this->put_data;
+    if (isset($condition['id']) && $condition['id']) {
+      if (is_string($condition['id'])) {
+        $where['id'] = $condition['id'];
+      } elseif (is_array($condition['id'])) {
+        $where['id'] = ['in', $condition['id']];
+      }
+    } elseif ($condition['bn']) {
+      $where['bn'] = $condition['bn'];
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
+    $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);

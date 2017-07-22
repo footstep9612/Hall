@@ -365,7 +365,6 @@ class GoodsAttrModel extends PublicModel
      */
     public function updateAttrSku($data)
     {
-
         $condition = $this->check_up($data);
         if($condition){
             try{
@@ -376,7 +375,6 @@ class GoodsAttrModel extends PublicModel
             } catch(\Kafka\Exception $e){
                 return false;
             }
-
         } else{
             return false;
         }
@@ -390,11 +388,8 @@ class GoodsAttrModel extends PublicModel
     public function modifySkuAttr($delData)
     {
         $where = []; $status = [];
-        if(isset($delData['lang'])){
-            $where['lang'] = $delData['lang'];
-        }
-        if(isset($delData['sku'])){
-            $where['sku'] = array('in',explode(',',$delData['sku']));
+        if(isset($delData['sku_id'])){
+            $where['id'] = array('in',explode(',',$delData['sku_id']));
         }else{
             JsonReturn('','-1001','sku不能为空');
         }
@@ -415,11 +410,7 @@ class GoodsAttrModel extends PublicModel
         }
         try {
             $result = $this->where($where)->save($status);
-            if(isset($result)){
-                return true;
-            }else{
-                return false;
-            }
+            return $result ? true : false;
         } catch (Exception $e) {
 //        $results['code'] = $e->getCode();
 //        $results['message'] = $e->getMessage();
@@ -435,16 +426,14 @@ class GoodsAttrModel extends PublicModel
     public function deleteRealAttr($delData)
     {
         $where = [];
-        if(isset($delData['lang'])){
-            $where['lang'] = $delData['lang'];
-        }
-        if(isset($delData['sku'])){
-            $where['sku'] = array('in',explode(',',$delData['sku']));
+        if(isset($delData['sku_id'])){
+            $where['id'] = array('in',explode(',',$delData['sku_id']));
         }else{
-            JsonReturn('','-1001','sku不能为空');
+            JsonReturn('','-1001','sku_id不能为空');
         }
         try{
-            return $this->where($where)->save(['status' => 'DELETED']);
+            $result = $this->where($where)->delete();
+            return $result ? true : false;
         } catch(Exception $e){
 //            $results['code'] = $e->getCode();
 //            $results['message'] = $e->getMessage();

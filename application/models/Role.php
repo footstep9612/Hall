@@ -16,7 +16,9 @@ class RoleModel extends PublicModel {
     //put your code here
     protected $tableName = 'role';
     Protected $autoCheckFields = true;
-
+    protected $table_name ='t_role';
+    protected $permtable ='t_url_perm';
+    protected $rolepermtable ='t_role_access_perm';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -42,7 +44,29 @@ class RoleModel extends PublicModel {
                 ->select();
         }
     }
+    /**
+     * 获取列表
+     * @param data $data;
+     * @return array
+     * @author jhw
+     */
+    public function getRoleslist($id,$order='id desc') {
 
+        $sql = 'SELECT `t_role_access_perm`.`url_perm_id`,`t_url_perm`.`url`, `t_url_perm`.`description` , `t_url_perm`.`parent_id` ';
+        $sql .= ' FROM '.$this->table_name;
+        $sql .= ' LEFT JOIN  `t_role_access_perm` ON `t_role_access_perm`.`role_id` =`t_role`.`id`';
+        $sql .= ' LEFT JOIN  `t_url_perm` ON `t_url_perm`.`id` =`t_role_access_perm`.`url_perm_id`';
+        $sql_where = '';
+        if(!empty($id)) {
+            $sql_where .= ' WHERE `t_role`.`id` =' . $id;
+            $sql .=$sql_where;
+        }
+
+//        if ( $where ){
+//            $sql .= $sql_where;
+//        }
+        return $this->query( $sql );
+    }
     /**
      * 获取列表
      * @param  int  $id
