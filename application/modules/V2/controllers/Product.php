@@ -10,6 +10,35 @@ class ProductController extends PublicController {
     }
 
     /**
+     * 基本详情信息
+     */
+    public function infoAction(){
+        if(!isset($this->put_data['spu']) || empty($this->put_data['spu'])){
+            jsonReturn('','1000','参数[spu]有误');
+        }
+        $lang = !empty($this->put_data['lang']) ? $this->put_data['lang'] : '';
+        if($lang != '' && !in_array($lang,array('zh','en','es','ru'))) {
+            jsonReturn('','1000','参数[语言]有误');
+        }
+        $status = isset($this->put_data['status'])?strtoupper($this->put_data['status']):'';
+        if($status != '' && !in_array($status,array('NORMAL','CLOSED','VALID','TEST','CHECKING','INVALID','DELETED'))) {
+            jsonReturn('','1000','参数[状态]有误');
+        }
+
+        $productModel = new ProductModel();
+        $result = $productModel->getInfo($this->put_data['spu'], $lang,$status);
+        if (!empty($result)) {
+            $data = array(
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('',  ErrorMsg::FAILED);
+        }
+        exit;
+    }
+
+    /**
      * 产品添加/编辑
      */
     public function editAction() {
