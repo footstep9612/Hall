@@ -21,6 +21,79 @@ class MarketAreaModel extends PublicModel {
     parent::__construct($str = '');
   }
 
+  private function getCondition($condition) {
+    $data = [];
+    if (isset($condition['lang']) && $condition['lang']) {
+      $data['lang'] = $condition['lang'];
+    }
+    if (isset($condition['bn']) && $condition['bn']) {
+      $data['bn'] = $condition['bn'];
+    }
+    if (isset($condition['parent_bn']) && $condition['parent_bn']) {
+      $data['parent_bn'] = $condition['parent_bn'];
+    }
+
+    if (isset($condition['group_id']) && $condition['group_id']) {
+      $data['group_id'] = $condition['group_id'];
+    }
+    if (isset($condition['name']) && $condition['name']) {
+      $data['name'] = ['like', '%' . $condition['name'] . '%'];
+    }
+    if (isset($condition['url']) && $condition['url']) {
+      $data['url'] = ['like', '%' . $condition['url'] . '%'];
+    }
+    return $data;
+  }
+
+  /**
+   * 获取列表
+   * @param data $data;
+   * @return array
+   * @author jhw
+   */
+  public function getlistBycodition($condition, $order = 'id desc', $type = true) {
+    try {
+      $data = $this->getCondition($condition);
+
+      if ($type) {
+        $pagesize = 10;
+        $current_no = 1;
+        if (isset($condition['current_no']) && $condition['current_no']) {
+          $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+        }
+        if (isset($condition['pagesize']) && $condition['pagesize']) {
+          $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        $from = ($current_no - 1) * $pagesize;
+      }
+      $this->field('id,lang,bn,parent_bn,name,url,group_id,'
+                      . '(select name from erui_sys.t_group where erui_sys.t_group.id=group_id) as group_name ')
+              ->where($data);
+      if ($type) {
+        $this->limit($from . ',' . $pagesize);
+      }
+      return $this->order($order)
+                      ->select();
+    } catch (Exception $ex) {
+      print_r($ex);
+      return [];
+    }
+  }
+
+  /*
+   * 获取数据
+   */
+
+  public function getCount($condition) {
+    try {
+      $data = $this->getCondition($condition);
+      return $this->where($data)->count();
+    } catch (Exception $ex) {
+
+      return 0;
+    }
+  }
+
   /**
    * 获取列表
    * @param data $data;
@@ -28,17 +101,22 @@ class MarketAreaModel extends PublicModel {
    * @author jhw
    */
   public function getlist($data, $limit, $order = 'id desc') {
-    if (!empty($limit)) {
-      return $this->field('id,lang,bn,parent_bn,name,url,group_id')
-                      ->where($data)
-                      ->limit($limit['page'] . ',' . $limit['num'])
-                      ->order($order)
-                      ->select();
-    } else {
-      return $this->field('id,lang,bn,parent_bn,name,url,group_id')
-                      ->where($data)
-                      ->order($order)
-                      ->select();
+    try {
+      if (!empty($limit)) {
+        return $this->field('id,lang,bn,parent_bn,name,url,group_id')
+                        ->where($data)
+                        ->limit($limit['page'] . ',' . $limit['num'])
+                        ->order($order)
+                        ->select();
+      } else {
+        return $this->field('id,lang,bn,parent_bn,name,url,group_id')
+                        ->where($data)
+                        ->order($order)
+                        ->select();
+      }
+    } catch (Exception $ex) {
+
+      print_r($ex);
     }
   }
 

@@ -27,33 +27,18 @@ class EsgoodsController extends PublicController {
   public function listAction() {
     $lang = $this->getPut('lang', 'en');
     $model = new EsgoodsModel();
-    $ret = $model->getgoods($this->put_data, null, $lang);
+    $_source = ['sku', 'spu', 'name', 'show_name', 'model'
+        , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
+        'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
+        'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'create_at',
+        'create_by'];
+    $ret = $model->getgoods($this->put_data, $_source, $lang);
     if ($ret) {
       $list = [];
       $data = $ret[0];
       $send['count'] = intval($data['hits']['total']);
       $send['current_no'] = intval($ret[1]);
       $send['pagesize'] = intval($ret[2]);
-      $skus = [];
-      if ($lang != 'en') {
-        foreach ($data['hits']['hits'] as $key => $item) {
-          $skus[] = $item["_source"]['sku'];
-        }
-        $ret_en = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'en');
-        $list_en = [];
-        foreach ($ret_en[0]['hits']['hits'] as $item) {
-          $list_en[$item["_source"]['sku']] = $item["_source"]['name'];
-        }
-      } elseif ($lang == 'en') {
-        foreach ($data['hits']['hits'] as $key => $item) {
-          $skus[] = $item["_source"]['sku'];
-        }
-        $ret_zh = $model->getgoods(['skus' => $skus], ['sku', 'name'], 'zh');
-        $list_zh = [];
-        foreach ($ret_zh[0]['hits']['hits'] as $item) {
-          $list_zh[$item["_source"]['sku']] = $item["_source"]['name'];
-        }
-      }
       foreach ($data['hits']['hits'] as $key => $item) {
         $list[$key] = $item["_source"];
         $attachs = json_decode($item["_source"]['attachs'], true);

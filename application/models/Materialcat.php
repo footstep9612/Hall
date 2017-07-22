@@ -35,20 +35,20 @@ class MaterialcatModel extends PublicModel {
    */
   protected function getcondition($condition = []) {
     $where = [];
-    if (isset($condition['id'])) {
+    if (isset($condition['id']) && $condition['id']) {
       $where['id'] = $condition['id'];
     }
-    if (isset($condition['cat_no'])) {
+    if (isset($condition['cat_no']) && $condition['cat_no']) {
       $where['cat_no'] = $condition['cat_no'];
     }
 
-    if (isset($condition['cat_no3'])) {
+    if (isset($condition['cat_no3']) && $condition['cat_no3']) {
       $where['level_no'] = 3;
       $where['cat_no'] = $condition['cat_no3'];
-    } elseif (isset($condition['cat_no2'])) {
+    } elseif (isset($condition['cat_no2']) && $condition['cat_no2']) {
       $where['level_no'] = 2;
       $where['parent_cat_no'] = $condition['cat_no2'];
-    } elseif (isset($condition['cat_no1'])) {
+    } elseif (isset($condition['cat_no1']) && $condition['cat_no1']) {
       $where['level_no'] = 1;
       $where['parent_cat_no'] = $condition['cat_no1'];
     } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
@@ -56,26 +56,26 @@ class MaterialcatModel extends PublicModel {
     } else {
       $where['level_no'] = 1;
     }
-    if (isset($condition['parent_cat_no'])) {
+    if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
       $where['parent_cat_no'] = $condition['parent_cat_no'];
     }
 
-    if (isset($condition['mobile'])) {
+    if (isset($condition['mobile']) && $condition['mobile']) {
       $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
     }
-    if (isset($condition['lang'])) {
+    if (isset($condition['lang']) && $condition['lang']) {
       $where['lang'] = $condition['lang'];
     }
-    if (isset($condition['name'])) {
+    if (isset($condition['name']) && $condition['name']) {
       $where['name'] = ['like', '%' . $condition['name'] . '%'];
     }
 
-    if (isset($condition['sort_order'])) {
+    if (isset($condition['sort_order']) && $condition['sort_order']) {
       $where['sort_order'] = $condition['sort_order'];
-    }if (isset($condition['created_at'])) {
+    }if (isset($condition['created_at']) && $condition['created_at']) {
       $where['created_at'] = $condition['created_at'];
     }
-    if (isset($condition['created_by'])) {
+    if (isset($condition['created_by']) && $condition['created_by']) {
       $where['created_by'] = $condition['created_by'];
     }
     if (isset($condition['status'])) {
@@ -117,6 +117,24 @@ class MaterialcatModel extends PublicModel {
     } catch (Exception $ex) {
       Log::write($ex->getMessage(), Log::ERR);
       return false;
+    }
+  }
+
+  /**
+   * 分类树形
+   * @param mix $condition
+   * @return mix
+   * @author zyg
+   */
+  public function tree($condition = []) {
+    $where = $this->getcondition($condition);
+    try {
+      return $this->where($where)
+                      ->order('sort_order DESC')
+                      ->field('cat_no as value,name as label,parent_cat_no')
+                      ->select();
+    } catch (Exception $ex) {
+      return [];
     }
   }
 

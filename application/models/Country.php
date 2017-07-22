@@ -24,6 +24,97 @@ class CountryModel extends PublicModel {
     parent::__construct($str = '');
   }
 
+  /*
+   * 条件id,lang,bn,name,time_zone,region,pinyin
+   */
+
+  private function getCondition($condition) {
+    $data = [];
+    if (isset($condition['lang']) && $condition['lang']) {
+      $data['c.lang'] = $condition['lang'];
+    }
+    if (isset($condition['bn']) && $condition['bn']) {
+      $data['c.bn'] = $condition['bn'];
+    }
+
+    if (isset($condition['name']) && $condition['name']) {
+      $data['c.name'] = ['like', '%' . $condition['name'] . '%'];
+    }
+    if (isset($condition['time_zone']) && $condition['time_zone']) {
+      $data['c.time_zone'] = ['like', '%' . $condition['time_zone'] . '%'];
+    }
+    if (isset($condition['region']) && $condition['region']) {
+      $data['c.region'] = ['like', '%' . $condition['region'] . '%'];
+    }
+
+    if (isset($condition['status']) && $condition['status'] == 'ALL') {
+      
+    } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
+
+      $data['c.status'] = $condition['status'];
+    } else {
+      $data['c.status'] = 'VALID';
+    }
+
+
+    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+      $data['mac.market_area_bn'] = $condition['market_area_bn'];
+    }
+    return $data;
+  }
+
+  /**
+   * 获取列表
+   * @param data $condition;
+   * @return array
+   * @author jhw
+   */
+  public function getlistBycodition($condition, $order = 'c.id desc', $type = true) {
+    try {
+      $data = $this->getCondition($condition);
+
+      if ($type) {
+        $pagesize = 10;
+        $current_no = 1;
+        if (isset($condition['current_no']) && $condition['current_no']) {
+          $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+        }
+        if (isset($condition['pagesize']) && $condition['pagesize']) {
+          $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        $from = ($current_no - 1) * $pagesize;
+      }
+      $this->alias('c')
+              ->join('erui_dict.t_market_area_country mac on c.bn=mac.country_bn', 'left')
+              ->join('erui_dict.t_market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
+              ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region,c.pinyin,'
+                      . 'ma.name as market_area_name ,mac.market_area_bn')
+              ->where($data);
+      if ($type) {
+        $this->limit($from . ',' . $pagesize);
+      }
+      return $this->order($order)
+                      ->select();
+    } catch (Exception $ex) {
+      print_r($ex);
+      return [];
+    }
+  }
+
+  /*
+   * 获取数据
+   */
+
+  public function getCount($condition) {
+    try {
+      $data = $this->getCondition($condition);
+      return $this->where($data)->count();
+    } catch (Exception $ex) {
+
+      return 0;
+    }
+  }
+
   /**
    * 获取列表
    * @param data $data;
@@ -95,6 +186,7 @@ class CountryModel extends PublicModel {
     }
     if (isset($data['name'])) {
       $arr['name'] = $data['name'];
+      $arr['pinyin'] = Pinyin($create['name']);
     }
     if (isset($data['time_zone'])) {
       $arr['time_zone'] = $data['time_zone'];
@@ -102,19 +194,34 @@ class CountryModel extends PublicModel {
     if (isset($data['region'])) {
       $arr['region'] = $data['region'];
     }
-    if (isset($data['pinyin'])) {
-      $arr['pinyin'] = $data['pinyin'];
-    }
+
     if (!empty($where)) {
-      return $this->where($where)->save($arr);
+      $flag = $this->where($where)->save($arr);
+
+
+      if ($flag && $data['market_area_bn'] && $arr['bn']) {
+
+        $update = ['market_area_bn' => $create['market_area_bn'],
+            'country_bn' => $arr['bn']];
+        if ($this->getmarket_area_countryexit($update)) {
+          $this->table('erui_dict.t_market_area_country')
+                  ->create($update);
+        }
+      }
+      return $flag;
     } else {
       return false;
     }
   }
 
+  public function getmarket_area_countryexit($where) {
+
+    return $this->table('erui_dict.t_market_area_country')->where($where)->find();
+  }
+
   /**
    * 新增数据
-   * @param  mix $createcondition 新增条件
+   * @param  mix $create 新增条件
    * @return bool
    * @author jhw
    */
@@ -127,6 +234,7 @@ class CountryModel extends PublicModel {
     }
     if (isset($create['name'])) {
       $arr['name'] = $create['name'];
+      $arr['pinyin'] = Pinyin($create['name']);
     }
     if (isset($create['time_zone'])) {
       $arr['time_zone'] = $create['time_zone'];
@@ -134,11 +242,23 @@ class CountryModel extends PublicModel {
     if (isset($create['region'])) {
       $arr['region'] = $create['region'];
     }
-    if (isset($data['pinyin'])) {
-      $arr['pinyin'] = $data['pinyin'];
-    }
     $data = $this->create($arr);
-    return $this->add($data);
+    if ($data && $create['market_area_bn']) {
+      $update = ['market_area_bn' => $create['market_area_bn'],
+          'country_bn' => $arr['bn']];
+      $this->table('erui_dict.t_market_area_country')
+              ->create($update);
+    }
+    $flag = $this->add($data);
+    if ($flag && $create['market_area_bn']) {
+      $update = ['market_area_bn' => $create['market_area_bn'],
+          'country_bn' => $arr['bn']];
+      if ($this->getmarket_area_countryexit($update)) {
+        $this->table('erui_dict.t_market_area_country')
+                ->create($update);
+      }
+    }
+    return $flag;
   }
 
   /**
@@ -152,25 +272,24 @@ class CountryModel extends PublicModel {
         'lang' => $lang
     );
 
-    if(redisExist(md5(json_encode($condition)))){
-      $result = json_decode(redisGet(md5(json_encode($condition))),true);
+    if (redisExist(md5(json_encode($condition)))) {
+      $result = json_decode(redisGet(md5(json_encode($condition))), true);
       return $result ? $result : array();
+    }
+    $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
+    if ($result) {
+      $data = array();
+      foreach ($result as $val) {
+        $sname = $val['name'];
+        $firstChar = $this->getFirstCharter($sname); //取出第一个汉字或者单词的首字母
+        $data[$firstChar][] = $val; //以这个首字母作为key
       }
-      $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
-      if ($result) {
-        $data = array();
-        foreach ($result as $val) {
-          $sname = $val['name'];
-          $firstChar = $this->getFirstCharter($sname); //取出第一个汉字或者单词的首字母
-          $data[$firstChar][] = $val; //以这个首字母作为key
-        }
-        ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
-        redisSet(md5(json_encode($condition)), $data);
-        return $data;
-      } else {
-        return array();
-      }
-
+      ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
+      redisSet(md5(json_encode($condition)), $data);
+      return $data;
+    } else {
+      return array();
+    }
   }
 
   /**

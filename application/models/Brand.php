@@ -31,12 +31,13 @@ class BrandModel extends PublicModel {
   public function getcondition($name, $lang = 'en') {
 
     $where = [];
-    if ($name) {
+    var_dump(!empty($name),$name);
+    if (!empty($name)) {
       $where['name'] = ['like', '%' . $name . '%'];
     }
-    if ($lang) {
-      $where['lang'] = $lang;
-    }
+//    if ($lang) {
+//      $where['lang'] = $lang;
+//    }
     return $where;
   }
 
@@ -76,8 +77,21 @@ class BrandModel extends PublicModel {
       $pagesize = 10;
     }
     return $this->where($where)
+                    ->field('id,name,supplier_id,logo,recommend_flag,created_by,created_at')
                     ->limit($row_start . ',' . $pagesize)
-                    ->order('sort_order DESC')
+                    ->select();
+  }
+
+  /**
+   * 获取列表
+   * @param mix $condition
+   * @return mix
+   * @author zyg
+   */
+  public function listall($name, $lang = 'en') {
+    $where = $this->getcondition($name, $lang);
+    return $this->where($where)
+                    ->field('id,name,supplier_id')
                     ->select();
   }
 
@@ -89,9 +103,9 @@ class BrandModel extends PublicModel {
    * @return mix
    * @author zyg
    */
-  public function info($cat_no = '', $lang = 'en') {
+  public function info($brand_no = '', $lang = 'en') {
     if ($cat_no) {
-      $where['cat_no'] = $cat_no;
+      $where['brand_no'] = $brand_no;
     } else {
       return [];
     }

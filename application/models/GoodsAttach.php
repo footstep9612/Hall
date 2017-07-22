@@ -151,11 +151,7 @@ class GoodsAttachModel extends PublicModel
         }
         try {
             $result = $this->where($where)->save($status);
-            if(isset($result)){
-                return true;
-            }else{
-                return false;
-            }
+            return $result ? true : false;
         } catch (Exception $e) {
 //        $results['code'] = $e->getCode();
 //        $results['message'] = $e->getMessage();
@@ -177,7 +173,8 @@ class GoodsAttachModel extends PublicModel
             JsonReturn('','-1001','[sku]不能为空');
         }
         try{
-            return $this->where($where)->save(['status' => 'DELETED']);
+            $result =  $this->where($where)->delete();
+            return $result ? true : false;
         } catch(Exception $e){
 //            $results['code'] = $e->getCode();
 //            $results['message'] = $e->getMessage();
