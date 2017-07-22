@@ -7,8 +7,8 @@
  */
 class ProductController extends PublicController{
     public function init() {
-        $this->put_data = $this->put_data ? $this->put_data : $_POST;
         parent::init();
+        $this->put_data = $this->put_data ? $this->put_data : $_POST;
     }
 
     /**
@@ -60,11 +60,14 @@ class ProductController extends PublicController{
      * SPU删除
      */
     public function deleteAction(){
-        if(!isset($this->put_data['id']))
+        if(!isset($this->put_data['spu']))
+            jsonReturn('',ErrorMsg::ERROR_PARAM);
+
+        if(!isset($this->put_data['lang']))
             jsonReturn('',ErrorMsg::ERROR_PARAM);
 
         $productModel = new ProductModel();
-        $result = $productModel->del($this->put_data);
+        $result = $productModel->upStatus($this->put_data['spu'],$this->put_data['lang'],$productModel::STATUS_DELETED);
         if ($result) {
             jsonReturn($result);
         } else {
@@ -79,14 +82,17 @@ class ProductController extends PublicController{
         if(!isset($this->put_data['update_type']))
             jsonReturn('', ErrorMsg::ERROR_PARAM);
 
-        if(!isset($this->put_data['id']))
+        if(!isset($this->put_data['spu']))
+            jsonReturn('',ErrorMsg::ERROR_PARAM);
+
+        if(!isset($this->put_data['lang']))
             jsonReturn('',ErrorMsg::ERROR_PARAM);
 
         $result = '';
         switch($this->put_data['update_type']){
             case 'declare':    //SPU报审
                 $productModel = new ProductModel();
-                $result = $productModel->upStatus($this->put_data['id'],$productModel::STATUS_CHECKING);
+                $result = $productModel->upStatus($this->put_data['spu'],$this->put_data['lang'],$productModel::STATUS_CHECKING);
                 break;
         }
         if ($result) {

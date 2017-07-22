@@ -355,46 +355,37 @@ class ProductModel extends PublicModel {
     }
 
     /**
-     * 删除
-     * @param array $input
-     * @return bool
-     */
-    public function del($input =[]){
-        if(!isset($input['id']) || empty($input['id']))
-            return false;
-
-        $where = array();
-        if (is_numeric($input['id'])) {
-            $where['id'] = ''.$input['id'];
-        }
-        if(is_array($input['id'])){
-            $where['id'] = array('IN', $input['id']);
-        }
-        jsonReturn($where);
-        $result = $this->where($where)->delete();
-
-        return $result ? true : false;
-    }
-
-    /**
      * 修改状态
-     * @param int $spu   这里用的是表id
-     * @param array $input
+     * @param array $spu    spu编码数组['spu1','spu2']
+     * @param string $lang  语言（zh/en/ru/es）
+     * @param string $status 状态
      */
-    public function upStatus($spu = '',$status=''){
-        if(empty($spu) || empty($status))
+    public function upStatus($spu = '',$lang='',$status=''){
+        if(empty($spu) || empty($lang) || empty($status))
             return false;
 
-        $where = array();
-        if (is_numeric($spu)) {
-            $where['id'] = ''.$spu;
+        if($spu && is_array($spu)){
+            $this->startTrans();
+            try{
+                $model = new EsproductModel();
+                foreach($spu as $r){
+                    $where = array(
+                        'spu' => $r,
+                        'lang'=> $lang
+                    );
+                    $result = $this->where($where)->save(array('status'=>$status));
+                    if($result){    //更新ES
+                        @$model->changestatus($r,$status,$lang);
+                    }
+                }
+                $this->commit();
+                return true;
+            }catch (Exception $e){
+                $this->rollback();
+                return false;
+            }
         }
-        if(is_array($spu)){
-            $where['id'] = array('IN', $spu);
-        }
-        $result = $this->where($where)->save(array('status'=>$status));
-
-        return $result ? true : false;
+        return false;
     }
 
 
