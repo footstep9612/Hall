@@ -242,7 +242,7 @@ class ProductModel extends PublicModel {
 
         //数据读取
         try {
-            $field = 'spu,lang,qrcode,name,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_id,supplier_name,recommend_flag,source,source_detail,created_by,created_at,updated_by,updated_at,checked_by,checked_at,customization_flag,customizability,availability,availability_ratings,resp_time,resp_rate,delivery_cycle,target_market,warranty';
+            $field = 'spu,lang,qrcode,name,status,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_id,supplier_name,recommend_flag,source,source_detail,created_by,created_at,updated_by,updated_at,checked_by,checked_at,customization_flag,customizability,availability,availability_ratings,resp_time,resp_rate,delivery_cycle,target_market,warranty';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
@@ -387,7 +387,21 @@ class ProductModel extends PublicModel {
         }
         return false;
     }
-
+    /**
+     * 通过spu查询四种语言name
+     * @param ispu
+     * @param array
+     */
+    public function getName($spu){
+        if(empty($spu))
+            return false;
+        $where = array();
+        if(isset($spu)){
+            $where['spu'] = $spu;
+        }
+        $result = $this->field('name,show_name')->where($where)->select();
+        return $result ? $result : false;
+    }
 
 
    /**

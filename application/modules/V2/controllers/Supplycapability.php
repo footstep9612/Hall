@@ -71,7 +71,7 @@ class PaymentmodeController extends PublicController {
    * 详情
    */
   public function infoAction() {
-    $cat_no = $this->get('cat_no');
+    $cat_no = $this->getPut('cat_no');
     if (!$cat_no) {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();

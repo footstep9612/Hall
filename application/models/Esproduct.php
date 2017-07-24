@@ -45,24 +45,39 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
       $show_cat_no = $condition['show_cat_no'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['show_cats' => $show_cat_no,]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['show_cats.all' => '*"' . $show_cat_no . '"*']];
     }
+    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+      $market_area_bn = $condition['market_area_bn'];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['show_cats.all' => '*"' . $market_area_bn . '"*']];
+    }
+    if (isset($condition['country_bn']) && $condition['country_bn']) {
+      $country_bn = $condition['country_bn'];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['show_cats.all' => '*"' . $country_bn . '"*']];
+    }
+
+
     if (isset($condition['mcat_no1']) && $condition['mcat_no1']) {
       $mcat_no1 = $condition['mcat_no1'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['meterial_cat' => $mcat_no1]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['meterial_cat.all' => '*"' . $mcat_no1 . '"*']];
     }
     if (isset($condition['mcat_no2']) && $condition['mcat_no2']) {
       $mcat_no2 = $condition['mcat_no2'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['meterial_cat' => $mcat_no2]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['meterial_cat.all' => '*"' . $mcat_no2 . '"*']];
     }
     if (isset($condition['mcat_no3']) && $condition['mcat_no3']) {
       $mcat_no3 = $condition['mcat_no3'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['meterial_cat' => $mcat_no3]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['meterial_cat.all' => '*"' . $mcat_no3 . '"*'
+      ]];
     }
+
+
     if (isset($condition['created_at_start']) && isset($condition['created_at_end']) && $condition['created_at_end'] && $condition['created_at_start']) {
       $created_at_start = $condition['created_at_start'];
       $created_at_end = $condition['created_at_end'];
@@ -121,6 +136,10 @@ class EsproductModel extends PublicModel {
       $brand = $condition['brand'];
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand]];
+    }
+    if (isset($condition['real_name']) && $condition['real_name']) {
+      $real_name = trim($condition['real_name']);
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['name.all' => '*' . $real_name . '*']];
     }
     if (isset($condition['source']) && $condition['source']) {
       $source = $condition['source'];
@@ -229,7 +248,6 @@ class EsproductModel extends PublicModel {
             'brand', 'supplier_name'];
       }
       $body = $this->getCondition($condition);
-
       $pagesize = 10;
       $current_no = 1;
       if (isset($condition['current_no'])) {
@@ -971,7 +989,7 @@ class EsproductModel extends PublicModel {
 
 
           $scats = $this->getshow_cats($show_cat_nos, $lang);
-		 
+
           $skus = $this->getskusbyspus($spus, $lang);
           $specs = $this->getproduct_specsbyskus($spus, $lang);
           $SupplycapabilityModel = new SupplycapabilityModel();
@@ -1252,7 +1270,7 @@ class EsproductModel extends PublicModel {
     } else {
       $data['status'] = '';
     }
-    if (isset($condition['created_at'])) {
+    if (isset($condition['created_at']) && $condition['created_at']) {
       $data['created_at'] = $condition['created_at'];
     } else {
       $data['created_at'] = '';
@@ -1262,21 +1280,21 @@ class EsproductModel extends PublicModel {
     } else {
       $data['updated_by'] = '';
     }
-    if (isset($condition['updated_at'])) {
+    if (isset($condition['updated_at'])&& $condition['updated_at']) {
       $data['updated_at'] = $condition['updated_at'];
     } else {
-      $data['updated_at'] = '';
+      $data['updated_at'] = null;
     }
     if (isset($condition['checked_by'])) {
       $data['checked_by'] = $condition['checked_by'];
     } else {
-      $data['checked_by'] = '';
+      $data['checked_by'] = null;
     }
 
-    if (isset($condition['checked_at'])) {
+    if (isset($condition['checked_at']) && $condition['checked_at']) {
       $data['checked_at'] = $condition['checked_at'];
     } else {
-      $data['checked_at'] = '';
+      $data['checked_at'] = null;
     }
     if (isset($condition['skus'])) {
       $goodsmodel = new GoodsModel();
@@ -1326,7 +1344,7 @@ class EsproductModel extends PublicModel {
         return false;
       }
       $id = $spu;
-      $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+      $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
         LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
@@ -1357,6 +1375,45 @@ class EsproductModel extends PublicModel {
       }
       $id = $spu;
       $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
+      return true;
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+  /* 上下架
+   * 
+   */
+
+  public function changesShelvesstatus($spu, $status = 'VALID', $lang = 'en') {
+    try {
+      $es = new ESClient();
+      if (empty($spu)) {
+        return false;
+      }
+      if (in_array(strtoupper($status), ['VALID', 'INVALID'])) {
+        $data['shelves_status'] = strtoupper($status);
+      } else {
+        $data['shelves_status'] = 'INVALID';
+      }
+      $id = $spu;
+      $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
+      $esgoodsdata = [
+          "doc" => [
+              "shelves_status" => $data['shelves_status'],
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "spu" => $spu
+              ],
+              ESClient::MATCH_PHRASE => [
+                  "status" => 'VALID'
+              ]
+          ]
+      ];
+      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
       return true;
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1411,7 +1468,8 @@ class EsproductModel extends PublicModel {
           $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
           $updateParams['body'][] = ['doc' => $this->getshowcats($item['_source']['spu'], $lang)];
         }
-        $this->bulk($updateParams);
+        $es = new ESClient();
+        $es->bulk($updateParams);
       }
     }
     $esgoods = new EsgoodsModel();

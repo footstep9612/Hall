@@ -5,7 +5,7 @@
  * Date: 2017/7/20
  * Time: 14:46
  */
-class CentercreditController extends Yaf_Controller_Abstract//ShopMallController
+class CentercreditController extends ShopMallController
 {
     private $input;
     public function __init()
@@ -31,7 +31,6 @@ class CentercreditController extends Yaf_Controller_Abstract//ShopMallController
      */
     public function getBuyerInfoAction()
     {
-        //jsonReturn(123);
         $buyerModel = new BuyerModel();
         $result = $buyerModel->getBuyerInfo($this->input);
         $this->returnInfo($result);

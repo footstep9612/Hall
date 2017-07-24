@@ -153,12 +153,12 @@ class ESClient {
    * @return array     *
    */
 
-  public function create_index($index, $body) {
+  public function create_index($index, $body, $number_of_shards = 15, $number_of_replicas = 0) {
     $indexParams['index'] = $index;
     // $indexParams['type'] = $type;
     $indexParams['body'] = $body;
-    $indexParams['body']['settings']['number_of_shards'] = 15;
-    $indexParams['body']['settings']['number_of_replicas'] = 0;
+    $indexParams['body']['settings']['number_of_shards'] = $number_of_shards;
+    $indexParams['body']['settings']['number_of_replicas'] = $number_of_replicas;
     return $this->server->indices()->create($indexParams);
   }
 
@@ -441,7 +441,7 @@ class ESClient {
             $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
             $updateParams['body'][] = ['doc' => $body['doc']];
           }
-       
+
           $this->bulk($updateParams);
         }
       }
@@ -937,7 +937,7 @@ class ESClient {
     }
   }
 
-//    /putMapping
+//    /puting
   public function putMapping($index, $type, $mapParam) {
 
     $indexParam = array();
