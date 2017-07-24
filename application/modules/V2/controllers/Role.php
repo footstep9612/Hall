@@ -11,7 +11,7 @@
  *
  * @author zyg
  */
-class UrlpermController extends PublicController {
+class RoleController extends PublicController {
 
     public function __init() {
         //   parent::__init();
@@ -21,27 +21,17 @@ class UrlpermController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
-        $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->getlist(['parent_id'=>0,'status'=>'NORMAL'],$limit); //($this->put_data);
-        $count = count($data);
-        $childrencount=0;
-        for($i=0;$i<$count;$i++){
-            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id']],$limit);
-            $childrencount = count($data[$i]['children']);
-            if($childrencount>0){
-                for($j=0;$j<$childrencount;$j++){
-                    if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
-                        if(!$data[$i]['children'][$j]['children']){
-                            unset($data[$i]['children'][$j]['children']);
-                        }
-                    }
-                }
-            }else{
-                unset($data[$i]['children']);
-            }
-
+        if(!empty($data['name'])){
+            $where['name'] = $data['name'];
         }
+        if(!empty($data['page'])){
+            $limit['page'] = $data['page'];
+        }
+        if(!empty($data['countPerPage'])){
+            $limit['num'] = $data['countPerPage'];
+        }
+        $model_rolo = new RoleModel();
+        $data = $model_rolo->getlist($where,$limit);
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -62,12 +52,31 @@ class UrlpermController extends PublicController {
             $datajson['message'] = 'id不可以都为空!';
             $this->jsonReturn($datajson);
         }
-        $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->detail($id);
+        $model_rolo = new RoleModel();
+        $data = $model_rolo->detail($id);
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
-            $datajson['message'] = '获取成功!';
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    public function permlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $id = $data['id'];
+        if(empty($id)){
+            $datajson['code'] = -101;
+            $datajson['message'] = 'id不可以都为空!';
+            $this->jsonReturn($datajson);
+        }
+        $model_rolo = new RoleModel();
+        $data = $model_rolo->getRoleslist($id);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
         }else{
             $datajson['code'] = -104;
             $datajson['data'] = $data;
@@ -83,18 +92,8 @@ class UrlpermController extends PublicController {
             $datajson['message'] = '数据不可为空!';
             $this->jsonReturn($datajson);
         }
-        if(!isset($data['url'])){
-            $datajson['code'] = -101;
-            $datajson['message'] = '地址不可为空!';
-            $this->jsonReturn($datajson);
-        }
-        if(!isset($data['description'])){
-            $datajson['code'] = -101;
-            $datajson['message'] = '说明不可为空!';
-            $this->jsonReturn($datajson);
-        }
-        $model_url_perm = new UrlPermModel();
-        $id = $model_url_perm->create_data($data);
+        $model_rolo = new RoleModel();
+        $id = $model_rolo->create_data($data);
         if(!empty($id)){
             $datajson['code'] = 1;
             $datajson['data']['id'] = $id;
@@ -120,11 +119,10 @@ class UrlpermController extends PublicController {
         }else{
             $where['id'] = $data['id'];
         }
-        $model_url_perm = new UrlPermModel();
-        $id = $model_url_perm->update_data($data,$where);
+        $model_rolo = new RoleModel();
+        $id = $model_rolo->update_data($data,$where);
         if($id > 0){
             $datajson['code'] = 1;
-            $datajson['message'] = '修改成功!';
         }else{
             $datajson['code'] = -104;
             $datajson['message'] = '修改失败!';
@@ -132,7 +130,7 @@ class UrlpermController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
-    public function deleteAction(){
+    public function deleteAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];
         if(empty($id)){
@@ -140,8 +138,8 @@ class UrlpermController extends PublicController {
             $datajson['message'] = 'id不可以都为空!';
             $this->jsonReturn($datajson);
         }
-        $model_url_perm = new UrlPermModel();
-        $re = $model_url_perm->delete_data($id);
+        $model_rolo = new RoleModel();
+        $re = $model_rolo->delete_data($id);
         if($re > 0){
             $datajson['code'] = 1;
         }else{
@@ -150,6 +148,5 @@ class UrlpermController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
 
 }

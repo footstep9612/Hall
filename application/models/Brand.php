@@ -17,7 +17,6 @@ class BrandModel extends PublicModel {
 
   protected $tableName = 'brand';
   protected $dbName = 'erui_goods'; //数据库名称
-  Protected $autoCheckFields = false;
 
   const STATUS_DRAFT = 'DRAFT'; //草稿
   const STATUS_APPROVING = 'APPROVING'; //审核；
@@ -31,7 +30,6 @@ class BrandModel extends PublicModel {
   public function getcondition($name, $lang = 'en') {
 
     $where = [];
-    var_dump(!empty($name), $name);
     if (!empty($name)) {
       $where['name'] = ['like', '%' . $name . '%'];
     }
@@ -106,7 +104,7 @@ class BrandModel extends PublicModel {
    */
   public function info($brand_no = '', $lang = 'en') {
     if ($brand_no) {
-      $where['brand_no'] = $brand_no;
+      $where['brand_no'] =$brand_no;
     } else {
       return [];
     }
@@ -138,14 +136,9 @@ class BrandModel extends PublicModel {
    * @return bool
    * @author zyg
    */
-  public function delete_data($brand_no = '', $brand_id = 0, $lang = 'en') {
-    if (!$brand_no && !$brand_id) {
+  public function delete_data($brand_id = 0) {
+    if (!$brand_id) {
       return false;
-    } elseif ($brand_no) {
-      $where['brand_no'] = $brand_no;
-      if ($lang) {
-        $where['lang'] = $lang;
-      }
     } elseif ($brand_id) {
       $where['id'] = $brand_id;
     }
@@ -154,44 +147,50 @@ class BrandModel extends PublicModel {
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
     if ($flag) {
+      $info = $this->field('brand_no')->where($where)->select();
+
+      if (!$this->Exist(['brand_no' => $info['brand_no']])) {
+        $this->table('erui_supplier.t_supplier')->where(['brand' => $info['brand_no']])->delete();
+      }
+
+      $this->commit();
       return true;
     } else {
       $this->rollback();
       return false;
     }
-    $this->commit();
-    return $flag;
   }
 
   /**
    * 删除数据
-   * @param  string $brand_nos
-   * @param  string $lang 语言
+   * @param  string $brand_ids
    * @return bool
    * @author zyg
    */
-  public function batchdelete_data($brand_nos = '', $brand_ids, $lang = 'en') {
-    if (!$brand_nos && !$brand_ids) {
+  public function batchdelete_data($brand_ids = []) {
+    if (!$brand_ids) {
       return false;
-    } elseif ($brand_nos) {
-      $where['brand_no'] = ['in', $brand_nos];
-      if ($lang) {
-        $where['lang'] = $lang;
-      }
     } elseif ($brand_ids) {
       $where['id'] = ['in', $brand_ids];
     }
     $this->startTrans();
+
     $flag = $this->where($where)
             ->save(['status' => self::STATUS_DELETED]);
+
     if ($flag) {
+      $brands = $this->field('brand_no')->where($where)->select();
+      foreach ($brands as $info) {
+        if (!$this->Exist(['brand_no' => $info['brand_no']])) {
+          $this->table('erui_supplier.t_supplier')->where(['brand' => $info['brand_no']])->delete();
+        }
+      }
+      $this->commit();
       return true;
     } else {
       $this->rollback();
       return false;
     }
-    $this->commit();
-    return $flag;
   }
 
   /**
@@ -202,6 +201,14 @@ class BrandModel extends PublicModel {
    */
   public function update_data($upcondition = [], $username = '') {
     $data = $this->create($upcondition);
+    if (!$data['brand_no']) {
+      return false;
+    } else {
+      $where['brand_no'] = $data['brand_no'];
+    }
+    if (isset($upcondition['en']['name']) && $upcondition['en']['name']) {
+      $data['brand_no'] = $upcondition['en']['name'];
+    }
     $data['created_at'] = date('Y-m-d H:i:s');
     $data['created_by'] = $username;
     $this->startTrans();
@@ -209,6 +216,7 @@ class BrandModel extends PublicModel {
       $data['lang'] = 'en';
       $data['name'] = $upcondition['en']['name'];
       $where['lang'] = $data['lang'];
+
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
@@ -219,7 +227,7 @@ class BrandModel extends PublicModel {
     if (isset($upcondition['zh'])) {
       $data['lang'] = 'zh';
       $data['name'] = $upcondition['zh']['name'];
-      $where['lang'] = $data['lang'];
+      $where['lang'] =  $data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
@@ -240,7 +248,7 @@ class BrandModel extends PublicModel {
     if (isset($upcondition['ru'])) {
       $data['lang'] = 'ru';
       $data['name'] = $upcondition['ru']['name'];
-      $where['lang'] = $data['lang'];
+      $where['lang'] =$data['lang'];
       $exist_flag = $this->Exist($where);
       $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
       if (!$flag) {
@@ -248,7 +256,31 @@ class BrandModel extends PublicModel {
         return false;
       }
     }
-
+    if ($upcondition['supplier_ids']) {
+      $this->table('erui_supplier.t_supplier')->where(['name' => $where['brand_no'],
+          'supplier_id' => ['notin', $upcondition['supplier_ids']]
+      ])->delete();
+      $this->table('erui_supplier.t_supplier')->where(['name' => $where['brand_no'],
+          'supplier_id' => ['in', $upcondition['supplier_ids']]
+      ])->save(['name' => $data['brand_no']]);
+      $datalist = [];
+      $supplier_ids = $this->fields('supplier_id')->table('erui_supplier.t_supplier')->where(['name' => $where['brand_no'],
+                  'supplier_id' => ['in', $upcondition['supplier_ids']]
+              ])->select();
+      foreach ($upcondition['supplier_ids'] as $supplier_id) {
+        if (!in_array($supplier_id, $supplier_ids)) {
+          $datalist[] = ['name' => $data['brand_no'],
+              'supplier_id' => $supplier_id,
+              'created_by' => $username,
+              'logo' => $data['logo'],
+              'created_at' => date('Y-m-d H:i:s'),
+          ];
+        }
+      }
+      if ($datalist) {
+        $this->table('erui_supplier.t_supplier')->addAll($datalist);
+      }
+    }
     $this->commit();
     return $flag;
   }
@@ -333,6 +365,19 @@ class BrandModel extends PublicModel {
       if (!$flag) {
         $this->rollback();
         return false;
+      }
+    }
+    if ($createcondition['supplier_ids'] && $data['brand_no']) {
+      $dataList = [];
+      foreach ($createcondition['supplier_ids'] as $supplier_id) {
+        $dataList[] = ['name' => $data['brand_no'],
+            'supplier_id' => $supplier_id,
+            'created_by' => $username,
+            'logo' => $data['logo'],
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+      } if ($dataList) {
+        $this->table('erui_supplier.t_supplier')->addAll($dataList);
       }
     }
     $this->commit();
