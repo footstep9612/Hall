@@ -420,7 +420,8 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerInfo($info)
     {
-        $where=array();$info['customer_id'] = '20170630000001'; $info['lang']='en';
+       // $info['customer_id'] = '20170630000001'; $info['lang']='en';//测试
+        $where=array();
         if(!empty($info['customer_id'])){
             $where['customer_id'] = $info['customer_id'];
         } else{
@@ -445,7 +446,7 @@ class BuyerModel extends PublicModel {
                 return $result ? array_merge($buyerInfo,$result) : $buyerInfo;
             }
             return array();
-        }catch (Exception $e){var_dump($e);
+        }catch (Exception $e){
             return array();
         }
     }

@@ -506,44 +506,34 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku[状态更改](审核)（门户后台）
+       * sku[状态更改](报审/审核)（门户后台）
        * @author klp
        * @return bool
        */
       public function modifySku($delData) {
-        $where = [];
-        $status = [];
-        if (isset($delData['sku_id'])) {
-          $where['id'] = array('in', explode(',', $delData['sku_id']));
-        } else {
-          JsonReturn('', '-1001', 'sku不能为空');
-        }
-        if (isset($delData['checked_by'])) {
-          $status['checked_by'] = $delData['checked_by'];
-        } else {
-          JsonReturn('', '-1007', '[checked_by]不能为空');
-        }
-        $status['checked_at'] = date('Y-m-d H:i:s', time());
-        if (isset($delData['checked_desc'])) {
-          $status['checked_desc'] = $delData['checked_desc'];
-        }
-        if (isset($delData['status'])) {
-          switch (strtoupper($delData['status'])) {
-            case self::STATUS_VALID:
-              $status['status'] = $delData['status'];
-              break;
-            case self::STATUS_INVALID:
-              $status['status'] = $delData['status'];
-              break;
-            case self::STATUS_CHECKING:
-              $status['status'] = $delData['status'];
-              break;
-          }
-        } else {
-          JsonReturn('', '-1003', '[status]不能为空');
-        }
-        try {
-          $result = $this->where($where)->save($status);
+          if(empty($delData))
+              return false;
+          try {
+              if(isset($delData['checked_desc'])){
+                  foreach($delData as $del){
+                      $where = [
+                          "sku" => $del['sku'],
+                          "lang" => $del['lang'],
+                          "checked_by" => $delData['checked_by'],
+                          "checked_at" => date('Y-m-d H:i:s', time()),
+                          "checked_desc" => $del['checked_desc']
+                      ];
+                      $result = $this->where($where)->save(['status' => $delData['status']]);
+                  }
+              } else{
+                  foreach($delData as $del){
+                      $where = [
+                          "sku" => $del['sku'],
+                          "lang" => $del['lang'],
+                      ];
+                      $result = $this->where($where)->save(['status' => $delData['status']]);
+                  }
+              }
           if (isset($result)) {
             return true;
           } else {
@@ -562,14 +552,17 @@ class GoodsModel extends PublicModel {
        * @return bool
        */
       public function deleteRealSku($delData) {
-        $where = [];
-        if (isset($delData['sku_id'])) {
-          $where['id'] = array('in', explode(',', $delData['sku_id']));
-        } else {
-          JsonReturn('', '-1001', 'sku不能为空');
-        }
+
+         if(empty($delData))
+             return false;
         try {
-          $result = $this->where($where)->save(['status' => 'DELETED']);
+            foreach($delData as $del){
+                $where = [
+                  "sku" => $del['sku'],
+                  "lang" => $del['lang']
+                ];
+                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+            }
           if (isset($result)) {
             return true;
           } else {
@@ -799,6 +792,9 @@ class GoodsModel extends PublicModel {
             case 'declare':    //报审
                 $input['status'] = self::STATUS_CHECKING;
                 break;
+            case 'valid':    //审核
+                $input['status'] = self::STATUS_VALID;
+                break;
         }
         $this->startTrans();
         try {
@@ -842,6 +838,7 @@ class GoodsModel extends PublicModel {
           if (!$res) {
             return false;
           }
+
           $gattr = new GoodsAttrModel();
           $resAttr = $gattr->deleteRealAttr($input);        //属性删除
           if (!$resAttr) {
