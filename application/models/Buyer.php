@@ -497,6 +497,7 @@ class BuyerModel extends PublicModel {
                     if ($result) {
                         $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
                     } else {
+                        $data['apply_at'] = date('Y-m-d H:i:s', time());
                         $this->add($data);
                     }
                     //t_buyer_reg_info

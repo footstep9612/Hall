@@ -337,6 +337,10 @@ class GoodsAttrModel extends PublicModel
                 }
             }
             redisHashSet('Attr',md5(json_encode($where)),json_encode($data));
+            if(!isset($data['en'])){$data['en'] = array();}
+            if(!isset($data['zh'])){$data['zh'] = array();}
+            if(!isset($data['ru'])){$data['ru'] = array();}
+            if(!isset($data['es'])){$data['es'] = array();}
             return $data;
         }catch (Exception $e){
             return array();
