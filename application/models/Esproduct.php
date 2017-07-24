@@ -1270,7 +1270,7 @@ class EsproductModel extends PublicModel {
     } else {
       $data['status'] = '';
     }
-    if (isset($condition['created_at'])) {
+    if (isset($condition['created_at']) && $condition['created_at']) {
       $data['created_at'] = $condition['created_at'];
     } else {
       $data['created_at'] = '';
@@ -1280,21 +1280,21 @@ class EsproductModel extends PublicModel {
     } else {
       $data['updated_by'] = '';
     }
-    if (isset($condition['updated_at'])) {
+    if (isset($condition['updated_at'])&& $condition['updated_at']) {
       $data['updated_at'] = $condition['updated_at'];
     } else {
-      $data['updated_at'] = '';
+      $data['updated_at'] = null;
     }
     if (isset($condition['checked_by'])) {
       $data['checked_by'] = $condition['checked_by'];
     } else {
-      $data['checked_by'] = '';
+      $data['checked_by'] = null;
     }
 
-    if (isset($condition['checked_at'])) {
+    if (isset($condition['checked_at']) && $condition['checked_at']) {
       $data['checked_at'] = $condition['checked_at'];
     } else {
-      $data['checked_at'] = '';
+      $data['checked_at'] = null;
     }
     if (isset($condition['skus'])) {
       $goodsmodel = new GoodsModel();
