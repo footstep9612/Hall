@@ -29,46 +29,6 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku仅属性-详情-app
-     */
-    public function attrInfoAction()
-    {
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if(!empty($data['sku'])){
-            $sku = $data['sku'];
-        } else{
-            jsonReturn('','-1001','sku不可以为空');
-        }
-        if(!empty($data['lang'])){
-            $lang = $data['lang'];
-        } else{
-            jsonReturn('','-1001','lang不可以为空');
-        }
-        $goods = new GoodsAttrModel();
-        $result = $goods->attrBySku($sku,$lang);
-        $this->returnInfo($result);
-    }
-
-    /**
-     * sku基本信息编辑p
-     */
-    public function infoAction()
-    {
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if(!empty($data['sku'])){
-            $sku = $data['sku'];
-        } else{
-            jsonReturn('','-1001','sku不可以为空');
-        }
-        $lang = isset($data['lang']) ? $data['lang'] : '';
-        //获取商品属性
-        $goods = new GoodsModel();
-        $result = $goods->getInfo($sku,$lang);
-        $this->returnInfo($result);
-    }
-    /**
      * sku查看详情p
      */
     public function showGoodsAction()
@@ -116,9 +76,6 @@ class GoodsController extends PublicController
     public function test()
     {
         $data = [
-            'code' => MSG::MSG_SUCCESS,
-            'message' => MSG::getMessage(MSG::MSG_SUCCESS),
-
             'en'=>[
                 "spu" => "spu007",
                 "lang" => "en",

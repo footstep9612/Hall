@@ -5,9 +5,13 @@
  */
 class CountryController extends PublicController {
 
-  public function init() {
-    parent::init();
+  protected $langs = ['en', 'es', 'ru', 'zh'];
+  protected $index = 'erui_dict';
+  protected $es = '';
 
+  public function init() {
+//parent::init();
+    $this->es = new ESClient();
     $this->_model = new CountryModel();
   }
 
@@ -211,6 +215,82 @@ class CountryController extends PublicController {
       $this->jsonReturn();
     } else {
       $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
+  }
+
+  public function indexAction() {
+    $body['mappings'] = [];
+    foreach ($this->langs as $lang) {
+      $body['mappings']['country_' . $lang]['properties'] = $this->country($lang);
+      $body['mappings']['country_' . $lang]['_all'] = ['enabled' => false];
+    }
+    $this->es->create_index($this->index, $body, 5);
+    $this->setCode(1);
+    $this->setMessage('成功!');
+    $this->jsonReturn();
+  }
+
+  private function country($lang) {
+    if (!in_array($lang, $this->langs)) {
+      $lang = 'en';
+    }
+    $body = '{"id":{"type":"integer"},'
+            . '"time_zone":{"type":"integer"},'
+            . '"status":{"index":"not_analyzed","type":"string"},'
+            . '"letter":{"index":"not_analyzed","type":"string"},'
+            . '"lang":{"index":"not_analyzed","type":"string"},'
+            . '"market_area_bn":{"index":"not_analyzed","type":"string"},'
+            . '"bn":{"index":"not_analyzed","type":"string"},'
+            . '"name":{"index":"no","type":"string",'
+            . '"fields":{"all":{"index":"not_analyzed","type":"string"},'
+            . '"standard":{"analyzer":"standard","type":"string"},'
+            . '"ik":{"analyzer":"ik","type":"string"},'
+            . '"whitespace":{"analyzer":"whitespace","type":"string"}}},'
+            . '"region":{"index":"no","type":"string",'
+            . '"fields":{"all":{"index":"not_analyzed","type":"string"},'
+            . '"standard":{"analyzer":"standard","type":"string"},'
+            . '"ik":{"analyzer":"ik","type":"string"},'
+            . '"whitespace":{"analyzer":"whitespace","type":"string"}}},'
+            . '"pinyin":{"index":"no","type":"string",'
+            . '"fields":{"all":{"index":"not_analyzed","type":"string"},'
+            . '"standard":{"analyzer":"standard","type":"string"},'
+            . '"ik":{"analyzer":"ik","type":"string"},'
+            . '"whitespace":{"analyzer":"whitespace","type":"string"}}},'
+            . '"citys":{"index":"no","type":"string",'
+            . '"fields":{"all":{"index":"not_analyzed","type":"string"},'
+            . '"standard":{"analyzer":"standard","type":"string"},'
+            . '"ik":{"analyzer":"ik","type":"string"},'
+            . '"whitespace":{"analyzer":"whitespace","type":"string"}}},'
+            . '"ports":{"index":"no","type":"string",'
+            . '"fields":{"all":{"index":"not_analyzed","type":"string"},'
+            . '"standard":{"analyzer":"standard","type":"string"},'
+            . '"ik":{"analyzer":"ik","type":"string"},'
+            . '"whitespace":{"analyzer":"whitespace","type":"string"}}}}';
+
+    return json_decode($body, true);
+  }
+
+  /*
+   * product数据导入
+   */
+
+  public function importAction($lang = 'en') {
+    try {
+      set_time_limit(0);
+      ini_set('memory_limi', '1G');
+      foreach ($this->langs as $lang) {
+        $country_model = new CountryModel();
+        $country_model->import($lang);
+      }
+      $this->setCode(1);
+      $this->setMessage('成功!');
+      $this->jsonReturn();
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      $this->setCode(-2001);
+      $this->setMessage('系统错误!');
       $this->jsonReturn();
     }
   }

@@ -94,8 +94,6 @@ class ProductController extends PublicController {
     $productModel = new ProductModel();
     $result = $productModel->upStatus($this->put_data['spu'], $this->put_data['lang'], $productModel::STATUS_DELETED);
     if ($result) {
-      $es_product_model = new EsproductModel();
-      $es_product_model->changestatus($this->put_data['spu'], $productModel::STATUS_DELETED, $this->put_data['lang']);
       jsonReturn($result);
     } else {
       jsonReturn('', ErrorMsg::FAILED);
@@ -123,8 +121,6 @@ class ProductController extends PublicController {
         break;
     }
     if ($result) {
-      $es_product_model = new EsproductModel();
-      $es_product_model->changestatus($this->put_data['spu'], $productModel::STATUS_CHECKING, $this->put_data['lang']);
       jsonReturn($result);
     } else {
       jsonReturn('', ErrorMsg::FAILED);

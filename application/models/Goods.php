@@ -60,9 +60,9 @@ class GoodsModel extends PublicModel {
           $where['status'] = strtoupper($condition['status']);
         }
         if (redisHashExist('Sku', md5(json_encode($where)))) {
-          //return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
+          return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
-        $field = 'sku,spu,lang,name,show_name,qrcode,model,description,warranty,package_quantity,exw_day,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit,pricing_flag,status,created_by,created_at,checked_by,checked_at,shelves_status';
+        $field = 'sku,spu,lang,name,show_name,qrcode,model,description,warranty,package_quantity,exw_day,purchase_price1,purchase_price2,purchase_price_cur,purchase_unit,pricing_flag,status,created_by,created_at,checked_by,checked_at,update_by,update_at,shelves_status';
         try {
           $result = $this->field($field)->where($where)->select();
           $data = array();
@@ -346,8 +346,9 @@ class GoodsModel extends PublicModel {
           $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
         }
 
-        //status状态 (审核,通过,上架...)
-        if (isset($condition['status']) && !empty($condition['status'])) {
+        //status状态 (审核,通过,上架...) $where = "status <> '" . self::STATUS_DELETED . "'";
+        $where["$thistable.status"] =array('<>', self::STATUS_DELETED);
+        if (isset($condition['status']) && !empty($condition['status']) && self::STATUS_DELETED != $condition['status']) {
           $where["$thistable.status"] = $condition['status'];
         }
         //created_by 创建人
@@ -534,7 +535,7 @@ class GoodsModel extends PublicModel {
                       $result = $this->where($where)->save(['status' => $delData['status']]);
                   }
               }
-          if (isset($result)) {
+          if ($result) {
             return true;
           } else {
             return false;
@@ -552,7 +553,6 @@ class GoodsModel extends PublicModel {
        * @return bool
        */
       public function deleteRealSku($delData) {
-
          if(empty($delData))
              return false;
         try {
@@ -563,7 +563,7 @@ class GoodsModel extends PublicModel {
                 ];
                 $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
             }
-          if (isset($result)) {
+          if ($result) {
             return true;
           } else {
             return false;
@@ -803,7 +803,7 @@ class GoodsModel extends PublicModel {
             return false;
           }
           $pModel = new ProductModel();                  //spu状态(报审)
-          $resp = $pModel->upStatus($input['spu_id'], $input['status']);
+          $resp = $pModel->upStatus($input['spu'],$input['lang'], $input['status']);
           if (!$resp) {
               return false;
           }

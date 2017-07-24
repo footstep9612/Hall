@@ -293,7 +293,7 @@ class GoodsAttrModel extends PublicModel
 
         //redis获取
         if(redisHashExist('Attr',md5(json_encode($where)))){
-            return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
+            //return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
         }
         //查询
         try{
@@ -397,7 +397,7 @@ class GoodsAttrModel extends PublicModel
                 ];
                 $result = $this->where($where)->save(['status' => $delData['status']]);
             }
-            return empty($result) ? true : false;
+            return $result ? true : false;
         } catch (Exception $e) {
 //        $results['code'] = $e->getCode();
 //        $results['message'] = $e->getMessage();
@@ -420,9 +420,9 @@ class GoodsAttrModel extends PublicModel
                     "sku" => $del['sku'],
                     "lang" => $del['lang']
                 ];
-                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+                $result = $this->where($where)->save(['status' => self::STATUS_VALID]);
             }
-            return empty($result) ? true : false;
+            return $result ? true : false;
         } catch(Exception $e){
 //            $results['code'] = $e->getCode();
 //            $results['message'] = $e->getMessage();
