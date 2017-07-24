@@ -14,7 +14,7 @@ class ShowcatController extends PublicController {
   }
 
   public function treeAction() {
-    $lang = $this->get('lang', '');
+    $lang = $this->getPut('lang', '');
     if (!$lang) {
       $lang = $this->getPut('lang', 'zh');
     }
@@ -65,7 +65,7 @@ class ShowcatController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($arr);
           } else {
-            $this->setCode(MSG::MSG_FAILED);
+            $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
           }
         }
@@ -120,7 +120,7 @@ class ShowcatController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($arr);
           } else {
-            $this->setCode(MSG::MSG_FAILED);
+            $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
           }
         }
@@ -132,13 +132,8 @@ class ShowcatController extends PublicController {
   public function getlistAction() {
 
     $lang = $this->getPut('lang', '');
-    $cat_no = $this->getPut('cat_no', '');
-    if (!$cat_no) {
-      $cat_no = $this->get('cat_no', '');
-    }
-    if (!$lang) {
-      $lang = $this->get('lang', 'en');
-    }
+    $cat_no = $this->getPut('cat_no', 'en');
+
 
     $key = 'Show_cat_getlist_' . $lang . '_' . $cat_no;
 
@@ -150,7 +145,7 @@ class ShowcatController extends PublicController {
         $this->setCode(MSG::MSG_SUCCESS);
         $this->jsonReturn($arr);
       } else {
-        $this->setCode(MSG::MSG_FAILED);
+        $this->setCode(MSG::ERROR_EMPTY);
         $this->jsonReturn();
       }
     }
@@ -193,7 +188,7 @@ class ShowcatController extends PublicController {
       $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
-      $this->setCode(MSG::MSG_FAILED);
+      $this->setCode(MSG::ERROR_EMPTY);
       $this->jsonReturn();
     }
   }

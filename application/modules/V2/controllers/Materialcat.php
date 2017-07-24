@@ -61,7 +61,7 @@ class MaterialcatController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($arr);
           } else {
-            $this->setCode(MSG::MSG_FAILED);
+            $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
           }
         }
@@ -116,7 +116,7 @@ class MaterialcatController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($arr);
           } else {
-            $this->setCode(MSG::MSG_FAILED);
+            $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
           }
         }
@@ -138,7 +138,7 @@ class MaterialcatController extends PublicController {
         $this->setCode(MSG::MSG_SUCCESS);
         $this->jsonReturn($arr);
       } else {
-        $this->setCode(MSG::MSG_FAILED);
+        $this->setCode(MSG::ERROR_EMPTY);
         $this->jsonReturn();
       }
     }
@@ -175,8 +175,7 @@ class MaterialcatController extends PublicController {
       $this->setCode(MSG::MSG_SUCCESS);
       $this->jsonReturn($result);
     } else {
-      $this->setCode(MSG::MSG_FAILED);
-
+      $this->setCode(MSG::ERROR_EMPTY);
       $this->jsonReturn();
     }
     exit;
