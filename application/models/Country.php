@@ -197,10 +197,7 @@ class CountryModel extends PublicModel {
 
     if (!empty($where)) {
       $flag = $this->where($where)->save($arr);
-
-
       if ($flag && $data['market_area_bn'] && $arr['bn']) {
-
         $update = ['market_area_bn' => $create['market_area_bn'],
             'country_bn' => $arr['bn']];
         if ($this->getmarket_area_countryexit($update)) {
@@ -212,6 +209,28 @@ class CountryModel extends PublicModel {
     } else {
       return false;
     }
+  }
+
+  /**
+   * 批量更新状态
+   * @param  array $data 
+   * @return bool
+   * @author zyg
+   */
+  public function updatestatus($data) {
+    if (!is_array($data['countrys'])) {
+      return false;
+    }
+    $this->startTrans();
+    foreach ($data['countrys'] as $item) {
+      $flag = $this->where(['bn' => $item['bn']])->save(['status' => $item['status']]);
+      if (!$flag) {
+        $this->rollback();
+        return FALSE;
+      }
+    }
+    $this->commit();
+    return true;
   }
 
   public function getmarket_area_countryexit($where) {

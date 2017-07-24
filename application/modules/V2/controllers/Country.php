@@ -179,7 +179,39 @@ class CountryController extends PublicController {
    */
 
   public function updateAction() {
-    $result = $this->_model->update_data($this->put_data);
+    $where = [];
+    $bn = $this->getPut('bn');
+    $lang = $this->getPut('lang');
+    if (!$bn) {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
+    else{
+      $where['bn']=$bn;
+    }
+    if (!$lang) {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }else{
+      $where['lang']=$lang;
+    }
+    $result = $this->_model->update_data($this->put_data,$where );
+    if ($result) {
+      $this->delcache();
+      $this->setCode(MSG::MSG_SUCCESS);
+      $this->jsonReturn();
+    } else {
+      $this->setCode(MSG::MSG_FAILED);
+      $this->jsonReturn();
+    }
+  }
+
+  /*
+   * 更新能力值
+   */
+
+  public function updatestatusAction() {
+    $result = $this->_model->updatestatus($this->put_data);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);

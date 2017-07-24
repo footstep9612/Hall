@@ -45,24 +45,39 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
       $show_cat_no = $condition['show_cat_no'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['show_cats' => $show_cat_no,]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['show_cats.all' => '*"' . $show_cat_no . '"*']];
     }
+    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+      $market_area_bn = $condition['market_area_bn'];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['show_cats.all' => '*"' . $market_area_bn . '"*']];
+    }
+    if (isset($condition['country_bn']) && $condition['country_bn']) {
+      $country_bn = $condition['country_bn'];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['show_cats.all' => '*"' . $country_bn . '"*']];
+    }
+
+
     if (isset($condition['mcat_no1']) && $condition['mcat_no1']) {
       $mcat_no1 = $condition['mcat_no1'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['meterial_cat' => $mcat_no1]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['meterial_cat.all' => '*"' . $mcat_no1 . '"*']];
     }
     if (isset($condition['mcat_no2']) && $condition['mcat_no2']) {
       $mcat_no2 = $condition['mcat_no2'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['meterial_cat' => $mcat_no2]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['meterial_cat.all' => '*"' . $mcat_no2 . '"*']];
     }
     if (isset($condition['mcat_no3']) && $condition['mcat_no3']) {
       $mcat_no3 = $condition['mcat_no3'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH =>
-          ['meterial_cat' => $mcat_no3]];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
+          ['meterial_cat.all' => '*"' . $mcat_no3 . '"*'
+      ]];
     }
+
+
     if (isset($condition['created_at_start']) && isset($condition['created_at_end']) && $condition['created_at_end'] && $condition['created_at_start']) {
       $created_at_start = $condition['created_at_start'];
       $created_at_end = $condition['created_at_end'];
@@ -123,8 +138,8 @@ class EsproductModel extends PublicModel {
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand]];
     }
     if (isset($condition['real_name']) && $condition['real_name']) {
-      $real_name = $condition['real_name'];
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['name.all' => '*?' . $real_name . '*?']];
+      $real_name = trim($condition['real_name']);
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['name.all' => '*' . $real_name . '*']];
     }
     if (isset($condition['source']) && $condition['source']) {
       $source = $condition['source'];
@@ -233,7 +248,6 @@ class EsproductModel extends PublicModel {
             'brand', 'supplier_name'];
       }
       $body = $this->getCondition($condition);
-
       $pagesize = 10;
       $current_no = 1;
       if (isset($condition['current_no'])) {
@@ -1256,7 +1270,7 @@ class EsproductModel extends PublicModel {
     } else {
       $data['status'] = '';
     }
-    if (isset($condition['created_at'])) {
+    if (isset($condition['created_at']) && $condition['created_at']) {
       $data['created_at'] = $condition['created_at'];
     } else {
       $data['created_at'] = '';
@@ -1266,21 +1280,21 @@ class EsproductModel extends PublicModel {
     } else {
       $data['updated_by'] = '';
     }
-    if (isset($condition['updated_at'])) {
+    if (isset($condition['updated_at'])&& $condition['updated_at']) {
       $data['updated_at'] = $condition['updated_at'];
     } else {
-      $data['updated_at'] = '';
+      $data['updated_at'] = null;
     }
     if (isset($condition['checked_by'])) {
       $data['checked_by'] = $condition['checked_by'];
     } else {
-      $data['checked_by'] = '';
+      $data['checked_by'] = null;
     }
 
-    if (isset($condition['checked_at'])) {
+    if (isset($condition['checked_at']) && $condition['checked_at']) {
       $data['checked_at'] = $condition['checked_at'];
     } else {
-      $data['checked_at'] = '';
+      $data['checked_at'] = null;
     }
     if (isset($condition['skus'])) {
       $goodsmodel = new GoodsModel();
