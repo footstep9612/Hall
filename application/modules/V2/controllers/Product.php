@@ -47,11 +47,12 @@ class ProductController extends PublicController {
    */
   public function editAction() {
     $productModel = new ProductModel();
-    $productModel->setModule(Yaf_Controller_Abstract::getModuleName());
+    //$productModel->setModule(Yaf_Controller_Abstract::getModuleName());
 
     $result = $productModel->editInfo($this->put_data);
     if ($result) {
-      $this->updateEsproduct($this->put_data, $result);
+      //Log::write('[Product Edit] 成功',Log::INFO);
+      //$this->updateEsproduct($this->put_data, $result);
       jsonReturn($result);
     } else {
       jsonReturn('', ErrorMsg::FAILED);
@@ -64,19 +65,20 @@ class ProductController extends PublicController {
     $productModel = new ProductModel();
     if (isset($input['en']) && $input['en']) {
       $data = $productModel->getInfo($spu, 'en');
-      $es_product_model->create_data($data, 'en');
+      $es_product_model->create_data($data['en'], 'en');
     }
     if (isset($input['es']) && $input['es']) {
       $data = $productModel->getInfo($spu, 'es');
-      $es_product_model->create_data($data, 'es');
+      $es_product_model->create_data($data['es'], 'es');
     }
     if (isset($input['ru']) && $input['ru']) {
       $data = $productModel->getInfo($spu, 'ru');
-      $es_product_model->create_data($data, 'ru');
+      $es_product_model->create_data($data['ru'], 'ru');
     }
     if (isset($input['zh']) && $input['zh']) {
       $data = $productModel->getInfo($spu, 'zh');
-      $es_product_model->create_data($data, 'zh');
+      Log::write('[Es] Data:',json_encode($data['zh']),Log::INFO);
+      $es_product_model->create_data($data['zh'], 'zh');
     }
   }
 
@@ -93,8 +95,6 @@ class ProductController extends PublicController {
     $productModel = new ProductModel();
     $result = $productModel->upStatus($this->put_data['spu'], $this->put_data['lang'], $productModel::STATUS_DELETED);
     if ($result) {
-      $es_product_model = new EsproductModel();
-      $es_product_model->changestatus($this->put_data['spu'], $productModel::STATUS_DELETED, $this->put_data['lang']);
       jsonReturn($result);
     } else {
       jsonReturn('', ErrorMsg::FAILED);
@@ -122,8 +122,6 @@ class ProductController extends PublicController {
         break;
     }
     if ($result) {
-      $es_product_model = new EsproductModel();
-      $es_product_model->changestatus($this->put_data['spu'], $productModel::STATUS_CHECKING, $this->put_data['lang']);
       jsonReturn($result);
     } else {
       jsonReturn('', ErrorMsg::FAILED);

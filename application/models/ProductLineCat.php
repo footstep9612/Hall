@@ -59,12 +59,15 @@ class ProductLineCatModel extends PublicModel {
 
         $where = $this->getcondition($condition);
 
-        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+        //$page = !empty($condition['currentPage'])?$condition['currentPage']:1;
+        //$pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
             $count = $this->getcount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
+            $list = $this->where($where)
+                //->page($page, $pagesize)
+                ->order('created_at desc')
+                ->select();
             if(isset($list)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
