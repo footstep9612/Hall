@@ -38,6 +38,8 @@ class ShowCatModel extends PublicModel {
                       ->field('cat_no as value,name as label,parent_cat_no')
                       ->select();
     } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
       return [];
     }
   }
