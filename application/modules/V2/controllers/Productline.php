@@ -43,15 +43,19 @@ class ProductlineController extends PublicController {
     public function getInfoAction(){
         $productline = new ProductLineModel();
         $productlinecat = new ProductLineCatModel();
+        $materialcat = new MaterialcatModel();
         $createcondition = $this->put_data;
 
         $results = $productline->getInfo($createcondition);
-        $materialcat = $productlinecat->getlist($results['data']);
+        $catno = $productlinecat->getlist($results['data']);
         $catlist = [];
-        foreach($materialcat as $val){
-            $catlist[] = $val['cat_no'];
+        foreach($catno['data'] as $val){
+            $test = $materialcat->getinfo($val['cat_no'],'zh');
+            $cat_name = $test['cat_name1'].','.$test['cat_name2'].','.$test['cat_name3'];
+            $catlist[] = ['cat_no'=>$val['cat_no'],'cat_name'=>$cat_name];
+
         }
-        $results['data']['material_cat'] = implode(',',$catlist);
+        $results['data']['material_cat'] = $catlist;
 
         $this->jsonReturn($results);
     }
