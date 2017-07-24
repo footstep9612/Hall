@@ -1609,3 +1609,35 @@ function _Array_Combine($_Arr1, $_Arr2) {
     $_Res[$_Arr1[$i]] = $_Arr2[$i];
   return $_Res;
 }
+
+/* 查询条件判断
+ * @param array $where // 搜索条件
+ * @param array $condition // 搜索条件
+ * @param string $name // 查询的字段
+ * @param string $type // 默认值 string bool  like array
+ * @param string $field // 组合条件的字段
+ */
+
+function getValue(&$where, &$condition, $name, $type = 'string', $field = null) {
+  if (!$field) {
+    $field = $name;
+  }
+  if ($type === 'string') {
+    if (isset($condition[$name]) && trim($condition[$name])) {
+      $where[$field] = trim($condition[$name]);
+    }
+  } elseif ($type === 'bool') {
+    if (isset($condition[$name]) && trim($condition[$name])) {
+      $flag = trim($condition[$name]) == 'Y' ? 'Y' : 'N';
+      $where[$field] = $flag;
+    }
+  } elseif ($type === 'like') {
+    if (isset($condition[$name]) && trim($condition[$name])) {
+      $where[$field] = ['like', '%' . trim($condition[$name]) . '%'];
+    }
+  } elseif ($type === 'array') {
+    if (isset($condition[$name]) && is_array($condition[$name])) {
+      $where[$field] = ['in', $condition[$name]];
+    }
+  }
+}

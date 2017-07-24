@@ -35,13 +35,8 @@ class MaterialcatModel extends PublicModel {
    */
   protected function getcondition($condition = []) {
     $where = [];
-    if (isset($condition['id']) && $condition['id']) {
-      $where['id'] = $condition['id'];
-    }
-    if (isset($condition['cat_no']) && $condition['cat_no']) {
-      $where['cat_no'] = $condition['cat_no'];
-    }
-
+    getValue($where, $condition, 'id', 'string');
+    getValue($where, $condition, 'cat_no', 'string');
     if (isset($condition['cat_no3']) && $condition['cat_no3']) {
       $where['level_no'] = 3;
       $where['cat_no'] = $condition['cat_no3'];
@@ -56,28 +51,13 @@ class MaterialcatModel extends PublicModel {
     } else {
       $where['level_no'] = 1;
     }
-    if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
-      $where['parent_cat_no'] = $condition['parent_cat_no'];
-    }
-
-    if (isset($condition['mobile']) && $condition['mobile']) {
-      $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
-    }
-    if (isset($condition['lang']) && $condition['lang']) {
-      $where['lang'] = $condition['lang'];
-    }
-    if (isset($condition['name']) && $condition['name']) {
-      $where['name'] = ['like', '%' . $condition['name'] . '%'];
-    }
-
-    if (isset($condition['sort_order']) && $condition['sort_order']) {
-      $where['sort_order'] = $condition['sort_order'];
-    }if (isset($condition['created_at']) && $condition['created_at']) {
-      $where['created_at'] = $condition['created_at'];
-    }
-    if (isset($condition['created_by']) && $condition['created_by']) {
-      $where['created_by'] = $condition['created_by'];
-    }
+    getValue($where, $condition, 'parent_cat_no', 'string');
+    getValue($where, $condition, 'mobile', 'like');
+    getValue($where, $condition, 'lang', 'string');
+    getValue($where, $condition, 'name', 'like');
+    getValue($where, $condition, 'sort_order', 'string');
+    getValue($where, $condition, 'created_at', 'string');
+    getValue($where, $condition, 'created_by', 'string');
     if (isset($condition['status'])) {
       switch ($condition['status']) {
 
