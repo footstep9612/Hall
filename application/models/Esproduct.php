@@ -122,6 +122,10 @@ class EsproductModel extends PublicModel {
 
       $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand]];
     }
+    if (isset($condition['real_name']) && $condition['real_name']) {
+      $real_name = $condition['real_name'];
+      $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['name.all' => '*?' . $real_name . '*?']];
+    }
     if (isset($condition['source']) && $condition['source']) {
       $source = $condition['source'];
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['source' => $source]];
