@@ -434,7 +434,6 @@ class CountryModel extends PublicModel {
   public function getCountryByBn($bn = '', $lang = '') {
     if (empty($bn) || empty($lang))
       return '';
-
     if (redisHashExist('Country', $bn . '_' . $lang)) {
       return redisHashGet('Country', $bn . '_' . $lang);
     }
@@ -451,6 +450,52 @@ class CountryModel extends PublicModel {
       }
       return $result['name'];
     } catch (Exception $e) {
+      return '';
+    }
+  }
+
+  /**
+   * 根据简称与语言获取国家名称
+   * @param string $bn 简称
+   * @param string $lang 语言
+   * @param string
+   */
+  public function import($lang = 'en') {
+    if (empty($lang))
+      return '';
+    try {
+      $condition = array(
+          'lang' => $lang,
+      );
+      $result = $this->where($condition)->select();
+      if (!$result) {
+        return false;
+      }
+      $updateParams = array();
+      $updateParams['index'] = 'erui_dict';
+      $updateParams['type'] = 'country_' . $lang;
+      $city_model = new Model('erui_dict.city', 't_');
+      $port_model = new Model('erui_dict.port', 't_');
+      $market_area_country_model = new Model('erui_dict.market_area_country', 't_');
+      $es = new ESClient();
+      foreach ($result as $item) {
+        $updateParams['body'][] = ['create' => ['_id' => $item['bn']]];
+        $item['citys'] = json_encode($city_model
+                        ->field('id,bn,name')
+                        ->where(['country_bn' => $item['bn'], 'lang' => $lang])
+                        ->select(), 256);
+        $item['ports'] = json_encode($port_model
+                        ->field('id,bn,name,port_type,trans_mode')
+                        ->where(['country_bn' => $item['bn'], 'lang' => $lang])
+                        ->select(), 256);
+        $item['letter'] = strtoupper(mb_substr($item['pinyin'], 0, 1));
+        $market_area_country = $market_area_country_model->field('market_area_bn')->where(['country_bn' => $item['bn']])->find();
+        $item['market_area_bn'] = $market_area_country['market_area_bn'];
+        $es->add_document('erui_dict', 'country_' . $lang, $item, $item['bn']);
+      }
+    } catch (Exception $ex) {
+      var_dump($ex);
+
       return '';
     }
   }

@@ -26,7 +26,7 @@ class EsproductController extends PublicController {
       ini_set("display_errors", "On");
       error_reporting(E_ERROR | E_STRICT);
     } else {
-      parent::init();
+      //   parent::init();
     }
   }
 
@@ -60,12 +60,14 @@ class EsproductController extends PublicController {
 
     $body['mappings'] = [];
 
+    $product_properties = $this->productAction('en');
+    $goods_properties = $this->goodsAction('en');
     foreach ($this->langs as $lang) {
-      $body['mappings']['goods_' . $lang] = $this->goodsAction($lang);
-
-      $body['mappings']['product_' . $lang] = $this->productAction($lang);
+      $body['mappings']['goods_' . $lang]['properties'] = $goods_properties;
+      $body['mappings']['goods_' . $lang]['_all'] = ['enabled' => false];
+      $body['mappings']['product_' . $lang]['properties'] = $product_properties;
+      $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
     }
-
     $this->es->create_index($this->index, $body);
     $this->setCode(1);
     $this->setMessage('成功!');
@@ -86,7 +88,7 @@ class EsproductController extends PublicController {
       } else {
         $send['allcount'] = $send['count'];
       }
-     if (isset($this->put_data['sku_count']) &&$this->put_data['sku_count'] == 'Y') {
+      if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
         $es_goods_model = new EsgoodsModel();
         $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
       }
@@ -234,104 +236,92 @@ class EsproductController extends PublicController {
       $analyzer = 'ik';
     }
 
-    $body = ['properties' => [
-            'id' => [
-                'type' => 'integer',
-                "index" => "not_analyzed",
+    $fields = [
+        'no' => [
+            'index' => 'no',
+            'type' => 'string'
+        ],
+        'all' => [
+            'index' => 'not_analyzed',
+            'type' => 'string'
+        ],
+        'standard' => [
+            'analyzer' => 'standard',
+            'type' => 'string'
+        ],
+        'whitespace' => [
+            'analyzer' => 'whitespace',
+            'type' => 'string'
+        ]
+    ];
+    $ik_fields = [
+        'type' => $type_string,
+        "analyzer" => $analyzer,
+        "search_analyzer" => $analyzer,
+        "include_in_all" => "true",
+        "boost" => 8,
+        'fields' => $fields
+    ];
+    $not_analyzed = [
+        'type' => $type_string,
+        "index" => "not_analyzed",
+        'fields' => [
+            'no' => [
+                'index' => 'no',
+                'type' => 'string'
+            ]]
+    ];
+    $date_analyzed = [
+        'type' => 'date',
+        "index" => "not_analyzed",
+        "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd",
+        'fields' => [
+            'no' => [
+                'index' => 'no',
+                'type' => 'string'
             ],
-            'lang' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'package_quantity' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'exw_day' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'spu' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'sku' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'attachs' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'qrcode' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'model' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'name' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 8
-            ],
-            'show_name' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 8
-            ],
-            'purchase_price1' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'purchase_price2' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'purchase_price_cur' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'purchase_unit' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'pricing_flag' => [
-                'type' => $type_string, "index" => "not_analyzed",
-            ],
-            'created_by' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'created_at' => [
-                'type' => 'date',
-                "index" => "not_analyzed",
-                "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
-            ],
-            'meterial_cat' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],
-            'show_cats' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],
-            'attrs' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],
-            'specs' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],]];
+            'all' => [
+                'index' => 'not_analyzed',
+                'type' => 'string'
+            ]
+        ]
+    ];
+
+    $body = [
+        'id' => [
+            'type' => 'integer',
+            "index" => "not_analyzed",
+            'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => 'string'
+                ]
+            ]
+        ],
+        'lang' => $not_analyzed,
+        'package_quantity' => $not_analyzed,
+        'exw_day' => $not_analyzed,
+        'spu' => $not_analyzed,
+        'sku' => $not_analyzed,
+        'attachs' => $ik_fields,
+        'qrcode' => $not_analyzed,
+        'model' => $not_analyzed,
+        'name' => $ik_fields,
+        'show_name' => $ik_fields,
+        'purchase_price1' => $not_analyzed,
+        'purchase_price2' => $not_analyzed,
+        'purchase_price_cur' => $not_analyzed,
+        'purchase_unit' => $not_analyzed,
+        'pricing_flag' => $not_analyzed,
+        'created_by' => $not_analyzed,
+        'created_at' => $date_analyzed,
+        'meterial_cat' => $ik_fields,
+        'show_cats' => $ik_fields,
+        'attrs' => $ik_fields,
+        'specs' => $ik_fields,
+        'suppliers' => $ik_fields,
+        'status' => $not_analyzed,
+        'shelves_status' => $not_analyzed,];
 
     return $body;
   }
@@ -344,189 +334,102 @@ class EsproductController extends PublicController {
       $type_string = 'string';
       $analyzer = 'ik';
     }
-    $body = ['properties' => [
-            'id' => [
-                'type' => 'integer',
-                "index" => "not_analyzed",
+
+    $fields = [
+        'no' => [
+            'index' => 'no',
+            'type' => 'string'
+        ],
+        'all' => [
+            'index' => 'not_analyzed',
+            'type' => 'string'
+        ],
+        'standard' => [
+            'analyzer' => 'standard',
+            'type' => 'string'
+        ],
+        'whitespace' => [
+            'analyzer' => 'whitespace',
+            'type' => 'string'
+        ]
+    ];
+    $ik_fields = [
+        'type' => $type_string,
+        "analyzer" => $analyzer,
+        "search_analyzer" => $analyzer,
+        "include_in_all" => "true",
+        "boost" => 8,
+        'fields' => $fields
+    ];
+    $not_analyzed = [
+        'type' => $type_string,
+        "index" => "not_analyzed",
+        'fields' => [
+            'no' => [
+                'index' => 'no',
+                'type' => 'string'
+            ]]
+    ];
+    $date_analyzed = [
+        'type' => 'date',
+        "index" => "not_analyzed",
+        "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd",
+        'fields' => [
+            'no' => [
+                'index' => 'no',
+                'type' => 'string'
             ],
-            'lang' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'meterial_cat_no' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'spu' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'attachs' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'skus' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 8
-            ],
-            'qrcode' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'name' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 8
-            ],
-            'show_name' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 8
-            ],
-            'keywords' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'exe_standard' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'app_scope' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'tech_paras' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'advantages' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'profile' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'supplier_id' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'supplier_name' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'brand' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 2
-            ],
-            'source' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'source_detail' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 1
-            ],
-            'recommend_flag' => [
-                'type' => $type_string,
-                'analyzer' => 'whitespace'
-            ],
-            'status' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'created_by' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ], 'created_at' => [
-                'type' => 'date',
-                "index" => "not_analyzed",
-                "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
-            ], 'updated_by' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ], 'updated_at' => [
-                'type' => 'date',
-                "index" => "not_analyzed",
-                "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
-            ], 'checked_by' => [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ], 'checked_at' => [
-                'type' => 'date',
-                "index" => "not_analyzed",
-                "format" => "yyy-MM-dd HH:mm:ss||yyyy-MM-dd"
-            ],
-            'meterial_cat' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],
-            'supply_capabilitys' =>
-            [
-                'type' => $type_string,
-                "index" => "not_analyzed",
-            ],
-            'show_cats' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],
-            'attrs' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],
-            'specs' => [
-                'type' => $type_string,
-                "analyzer" => $analyzer,
-                "search_analyzer" => $analyzer,
-                "include_in_all" => "true",
-                "boost" => 4
-            ],]];
+            'all' => [
+                'index' => 'not_analyzed',
+                'type' => 'string'
+            ]
+        ]
+    ];
+
+    $body = [
+        'id' => [
+            'type' => 'integer',
+            "index" => "not_analyzed",
+            'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => 'string'
+                ]]
+        ],
+        'lang' => $not_analyzed,
+        'meterial_cat_no' => $not_analyzed,
+        'spu' => $not_analyzed,
+        'attachs' => $ik_fields,
+        'skus' => $ik_fields,
+        'qrcode' => $not_analyzed,
+        'name' => $ik_fields,
+        'show_name' => $ik_fields,
+        'keywords' => $ik_fields,
+        'exe_standard' => $ik_fields,
+        'app_scope' => $ik_fields,
+        'tech_paras' => $ik_fields,
+        'advantages' => $ik_fields,
+        'profile' => $ik_fields,
+        'supplier_id' => $not_analyzed,
+        'supplier_name' => $ik_fields,
+        'brand' => $ik_fields,
+        'source' => $ik_fields,
+        'source_detail' => $ik_fields,
+        'recommend_flag' => $not_analyzed,
+        'status' => $not_analyzed,
+        'shelves_status' => $not_analyzed,
+        'created_by' => $not_analyzed,
+        'created_at' => $date_analyzed,
+        'updated_by' => $not_analyzed,
+        'updated_at' => $date_analyzed,
+        'checked_by' => $not_analyzed,
+        'checked_at' => $date_analyzed,
+        'meterial_cat' => $ik_fields,
+        'supply_capabilitys' => $ik_fields,
+        'show_cats' => $ik_fields,
+        'attrs' => $ik_fields,
+        'suppliers' => $ik_fields,
+        'specs' => $ik_fields,];
     return $body;
   }
 

@@ -1450,7 +1450,8 @@ class EsproductModel extends PublicModel {
           $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
           $updateParams['body'][] = ['doc' => $this->getshowcats($item['_source']['spu'], $lang)];
         }
-        $this->bulk($updateParams);
+        $es = new ESClient();
+        $es->bulk($updateParams);
       }
     }
     $esgoods = new EsgoodsModel();
