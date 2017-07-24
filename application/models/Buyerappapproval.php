@@ -87,19 +87,19 @@ class BuyerappapprovalModel extends PublicModel {
         }
         $where=array();
         if(!empty($info['serial_no'])){
-            $where['buyer_app_serial_no'] = $info['serial_no'];
+            $where['buyer_app_serial_no'] = $condition['serial_no'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }
-        $where['lang'] = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $where['lang'] = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
 
         $field = 'buyer_app_serial_no,lang,approved_name,status,remarks,approved_by,approved_at';
 
         try {
             $result =  $this->field($field)->where($where)->select();
-            return $result ? true : false;
+            return $result ? $result : array();
         } catch(\Kafka\Exception $e){
-            return false;
+            return array();
         }
 
     }

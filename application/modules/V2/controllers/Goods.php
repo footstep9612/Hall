@@ -31,7 +31,7 @@ class GoodsController extends PublicController
      */
     public function editSkuAction()
     {
-        $this->input = $this->test();//测试
+        //$this->input = $this->test();//测试
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSkuInfo($this->input);
         $this->returnInfo($result);
@@ -48,7 +48,7 @@ class GoodsController extends PublicController
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
-        $this->input['update_by'] = $userInfo['name'];
+        $this->input['checked_by'] = $userInfo['name'];
         $goodsModel = new GoodsModel();
         if(isset($this->input['status_type']) && !empty($this->input['status_type'])){
             $result = $goodsModel->modify($this->input);    //状态更改(暂为报审)

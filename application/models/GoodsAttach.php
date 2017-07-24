@@ -138,7 +138,7 @@ class GoodsAttachModel extends PublicModel
                 ];
                 $result = $this->where($where)->save(['status' => $delData['status']]);
             }
-            return empty($result) ? true : false;
+            return $result ? true : false;
         } catch (Exception $e) {
 //        $results['code'] = $e->getCode();
 //        $results['message'] = $e->getMessage();
@@ -163,7 +163,7 @@ class GoodsAttachModel extends PublicModel
                 ];
                 $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
             }
-            return isset($result) ? true : false;
+            return $result ? true : false;
         } catch(Exception $e){
 //            $results['code'] = $e->getCode();
 //            $results['message'] = $e->getMessage();
