@@ -77,6 +77,7 @@ class ProductController extends PublicController {
     }
     if (isset($input['zh']) && $input['zh']) {
       $data = $productModel->getInfo($spu, 'zh');
+      Log::write('[Es] Data:',json_encode($data['zh']),Log::INFO);
       $es_product_model->create_data($data['zh'], 'zh');
     }
   }
