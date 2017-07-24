@@ -47,10 +47,11 @@ class ProductController extends PublicController {
    */
   public function editAction() {
     $productModel = new ProductModel();
-    $productModel->setModule(Yaf_Controller_Abstract::getModuleName());
+    //$productModel->setModule(Yaf_Controller_Abstract::getModuleName());
 
     $result = $productModel->editInfo($this->put_data);
     if ($result) {
+      Log::write('[Product Edit] 成功',Log::INFO);
       $this->updateEsproduct($this->put_data, $result);
       jsonReturn($result);
     } else {
