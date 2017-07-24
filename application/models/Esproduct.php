@@ -971,7 +971,7 @@ class EsproductModel extends PublicModel {
 
 
           $scats = $this->getshow_cats($show_cat_nos, $lang);
-		 
+
           $skus = $this->getskusbyspus($spus, $lang);
           $specs = $this->getproduct_specsbyskus($spus, $lang);
           $SupplycapabilityModel = new SupplycapabilityModel();
@@ -1326,7 +1326,7 @@ class EsproductModel extends PublicModel {
         return false;
       }
       $id = $spu;
-      $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+      $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
       if ($flag['_shards']['successful'] !== 1) {
         LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
         return true;
@@ -1357,6 +1357,45 @@ class EsproductModel extends PublicModel {
       }
       $id = $spu;
       $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
+      return true;
+    } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
+      return false;
+    }
+  }
+
+  /* 上下架
+   * 
+   */
+
+  public function changesShelvesstatus($spu, $status = 'VALID', $lang = 'en') {
+    try {
+      $es = new ESClient();
+      if (empty($spu)) {
+        return false;
+      }
+      if (in_array(strtoupper($status), ['VALID', 'INVALID'])) {
+        $data['shelves_status'] = strtoupper($status);
+      } else {
+        $data['shelves_status'] = 'INVALID';
+      }
+      $id = $spu;
+      $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
+      $esgoodsdata = [
+          "doc" => [
+              "shelves_status" => $data['shelves_status'],
+          ],
+          "query" => [
+              ESClient::MATCH_PHRASE => [
+                  "spu" => $spu
+              ],
+              ESClient::MATCH_PHRASE => [
+                  "status" => 'VALID'
+              ]
+          ]
+      ];
+      $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
       return true;
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
