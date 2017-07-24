@@ -420,14 +420,15 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerInfo($info)
     {
-        $where=array();$info['customer_id'] = '20170630000001'; $info['lang']='en';
+        //$info['customer_id'] = '20170630000001'; $info['lang']='en';//测试
+        $where=array();
         if(!empty($info['customer_id'])){
             $where['customer_id'] = $info['customer_id'];
         } else{
             jsonReturn('','-1001','用户[customer_id]不可以为空');
         }
         $where['lang'] = $info['lang'] ? strtolower($info['lang']) :  'en';
-        $field = 'serial_no,name,bn,country,profile,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,reg_date,capital_account,sales,official_phone,fax,official_website,employee_count,credit_total,credit_available,apply_at,approved_at,remarks';
+        $field = 'lang,serial_no,name,bn,country,profile,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,reg_date,capital_account,sales,official_phone,fax,official_website,employee_count,credit_total,credit_available,apply_at,approved_at,remarks';
         try{
             $buyerInfo =  $this->field($field)->where($where)->find();
             if($buyerInfo){
@@ -445,7 +446,7 @@ class BuyerModel extends PublicModel {
                 return $result ? array_merge($buyerInfo,$result) : $buyerInfo;
             }
             return array();
-        }catch (Exception $e){var_dump($e);
+        }catch (Exception $e){
             return array();
         }
     }

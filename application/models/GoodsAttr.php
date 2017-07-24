@@ -293,9 +293,8 @@ class GoodsAttrModel extends PublicModel
 
         //redis获取
         if(redisHashExist('Attr',md5(json_encode($where)))){
-            return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
+            //return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
         }
-
         //查询
         try{
             $field = 'id,lang,attr_no,attr_name,attr_value_type,attr_value,value_unit,attr_group,sort_order,goods_flag,logi_flag,hs_flag,spec_flag,status';
@@ -314,6 +313,7 @@ class GoodsAttrModel extends PublicModel
             if($attrs){
                 foreach($attrs as $item){
                     $group1 = '';
+                    $item['flag'] = true;
                     if ($item['goods_flag'] == 'Y') {
                         $group1 = 'goods_flag';
                         $data[$item['lang']][$group1][] = $item;
@@ -387,29 +387,16 @@ class GoodsAttrModel extends PublicModel
      */
     public function modifySkuAttr($delData)
     {
-        $where = []; $status = [];
-        if(isset($delData['sku_id'])){
-            $where['id'] = array('in',explode(',',$delData['sku_id']));
-        }else{
-            JsonReturn('','-1001','sku不能为空');
-        }
-        if(isset($delData['status'])) {
-            switch (strtoupper($delData['status'])) {
-                case self::STATUS_VALID:
-                    $status['status'] = $delData['status'];
-                    break;
-                case self::STATUS_INVALID:
-                    $status['status'] = $delData['status'];
-                    break;
-                case self::STATUS_CHECKING:
-                    $status['status'] = $delData['status'];
-                    break;
-            }
-        } else{
-            JsonReturn('','-1003','[status]不能为空');
-        }
+        if(empty($delData))
+            return false;
         try {
-            $result = $this->where($where)->save($status);
+            foreach($delData as $item){
+                $where = [
+                    "sku" => $item['sku'],
+                    "lang" => $item['lang']
+                ];
+                $result = $this->where($where)->save(['status' => $delData['status']]);
+            }
             return $result ? true : false;
         } catch (Exception $e) {
 //        $results['code'] = $e->getCode();
@@ -425,14 +412,16 @@ class GoodsAttrModel extends PublicModel
      */
     public function deleteRealAttr($delData)
     {
-        $where = [];
-        if(isset($delData['sku_id'])){
-            $where['id'] = array('in',explode(',',$delData['sku_id']));
-        }else{
-            JsonReturn('','-1001','sku_id不能为空');
-        }
+        if(empty($delData))
+            return false;
         try{
-            $result = $this->where($where)->delete();
+            foreach($delData as $del){
+                $where = [
+                    "sku" => $del['sku'],
+                    "lang" => $del['lang']
+                ];
+                $result = $this->where($where)->save(['status' => self::STATUS_VALID]);
+            }
             return $result ? true : false;
         } catch(Exception $e){
 //            $results['code'] = $e->getCode();
