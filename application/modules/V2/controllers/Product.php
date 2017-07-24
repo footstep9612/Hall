@@ -65,19 +65,19 @@ class ProductController extends PublicController {
     $productModel = new ProductModel();
     if (isset($input['en']) && $input['en']) {
       $data = $productModel->getInfo($spu, 'en');
-      $es_product_model->create_data($data, 'en');
+      $es_product_model->create_data($data['en'], 'en');
     }
     if (isset($input['es']) && $input['es']) {
       $data = $productModel->getInfo($spu, 'es');
-      $es_product_model->create_data($data, 'es');
+      $es_product_model->create_data($data['es'], 'es');
     }
     if (isset($input['ru']) && $input['ru']) {
       $data = $productModel->getInfo($spu, 'ru');
-      $es_product_model->create_data($data, 'ru');
+      $es_product_model->create_data($data['ru'], 'ru');
     }
     if (isset($input['zh']) && $input['zh']) {
       $data = $productModel->getInfo($spu, 'zh');
-      $es_product_model->create_data($data, 'zh');
+      $es_product_model->create_data($data['zh'], 'zh');
     }
   }
 
