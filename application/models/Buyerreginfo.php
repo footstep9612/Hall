@@ -17,7 +17,7 @@ class BuyerreginfoModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer_reg_info';
     protected $dbName = 'erui_buyer';
-//    Protected $autoCheckFields = false;
+
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_INVALID = 'INVALID'; //无效；
@@ -38,17 +38,17 @@ class BuyerreginfoModel extends PublicModel {
      * @return mix
      * @author
      */
-    protected function getBuyerRegInfo($condition=[]) {
+    public function getBuyerRegInfo($condition=[]) {
         if(empty($condition))
             return false;
         $where=array();
-        if(!empty($info['customer_id'])){
+        if(!empty($condition['customer_id'])){
             $where['customer_id'] = $condition['customer_id'];
         } else{
-            jsonReturn('','-1001','用户[id]不可以为空');
+            jsonReturn('','-1001','用户[customer_id]不可以为空');
         }
         $where['lang'] = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
-        $field = 'legal_person_name,legal_person_gender,expiry_date,registered_in,reg_capital,reg_capital_cur,social_credit_code,biz_nature,biz_scope,biz_type,service_type,bank_country_code,zipcode,bank_phone,bank_fax,turnover,profit,assets,own_capital,equity_ratio,branch_number,created_by,created_at';
+        $field = 'legal_person_name,legal_person_gender,expiry_date,registered_in,reg_capital,reg_capital_cur,social_credit_code,biz_nature,biz_scope,biz_type,service_type,bank_country_code,bank_phone,bank_fax,turnover,profit,assets,own_capital,equity_ratio,branch_count,created_by,created_at';
         try{
             $buyerRegInfo =  $this->field($field)->where($where)->find();
             return $buyerRegInfo ? $buyerRegInfo : array();

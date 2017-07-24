@@ -128,30 +128,17 @@ class GoodsAttachModel extends PublicModel
      */
     public function modifySkuAttach($delData)
     {
-        $where = []; $status = [];
-        if(isset($delData['sku_id'])){
-            $where['id'] = array('in',explode(',',$delData['sku_id']));
-        }else{
-            JsonReturn('','-1001','sku_id不能为空');
-        }
-        if(isset($delData['status'])) {
-            switch (strtoupper($delData['status'])) {
-                case self::STATUS_VALID:
-                    $status['status'] = $delData['status'];
-                    break;
-                case self::STATUS_INVALID:
-                    $status['status'] = $delData['status'];
-                    break;
-                case self::STATUS_DELETED:
-                    $status['status'] = $delData['status'];
-                    break;
-            }
-        } else{
-            JsonReturn('','-1003','[status]不能为空');
-        }
+        if(empty($delData))
+            return false;
         try {
-            $result = $this->where($where)->save($status);
-            return $result ? true : false;
+            foreach($delData as $item){
+                $where = [
+                    "sku" => $item['sku'],
+                    "lang" => $item['lang']
+                ];
+                $result = $this->where($where)->save(['status' => $delData['status']]);
+            }
+            return empty($result) ? true : false;
         } catch (Exception $e) {
 //        $results['code'] = $e->getCode();
 //        $results['message'] = $e->getMessage();
@@ -166,15 +153,17 @@ class GoodsAttachModel extends PublicModel
      */
     public function deleteRealAttach($delData)
     {
-        $where = [];
-        if(isset($delData['sku_id'])){
-            $where['id'] = array('in',explode(',',$delData['sku_id']));
-        }else{
-            JsonReturn('','-1001','sku_id不能为空');
-        }
+        if(empty($delData))
+            return false;
         try{
-            $result =  $this->where($where)->delete();
-            return $result ? true : false;
+            foreach($delData as $del){
+                $where = [
+                    "sku" => $del['sku'],
+                    "lang" => $del['lang']
+                ];
+                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+            }
+            return isset($result) ? true : false;
         } catch(Exception $e){
 //            $results['code'] = $e->getCode();
 //            $results['message'] = $e->getMessage();

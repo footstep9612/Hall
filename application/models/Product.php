@@ -396,7 +396,21 @@ class ProductModel extends PublicModel {
 
         return $result ? true : false;
     }
-
+    /**
+     * 通过spu查询四种语言name
+     * @param ispu
+     * @param array
+     */
+    public function getName($spu){
+        if(empty($spu))
+            return false;
+        $where = array();
+        if(isset($spu)){
+            $where['spu'] = $spu;
+        }
+        $result = $this->field('name,show_name')->where($where)->select();
+        return $result ? $result : false;
+    }
 
 
    /**
