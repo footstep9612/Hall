@@ -38,6 +38,8 @@ class ShowCatModel extends PublicModel {
                       ->field('cat_no as value,name as label,parent_cat_no')
                       ->select();
     } catch (Exception $ex) {
+      LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+      LOG::write($ex->getMessage(), LOG::ERR);
       return [];
     }
   }
@@ -135,20 +137,10 @@ class ShowCatModel extends PublicModel {
    */
   protected function getcondition($condition = []) {
     $where = [];
-    if (isset($condition['id']) && $condition['id']) {
-      $where['id'] = $condition['id'];
-    }
-    if (isset($condition['cat_no']) && $condition['cat_no']) {
-      $where['cat_no'] = $condition['cat_no'];
-    }
-    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
-      $where['market_area_bn'] = $condition['market_area_bn'];
-    }
-    if (isset($condition['country_bn']) && $condition['country_bn']) {
-      $where['country_bn'] = $condition['country_bn'];
-    }
-
-
+    getValue($where, $condition, 'id');
+    getValue($where, $condition, 'cat_no');
+    getValue($where, $condition, 'market_area_bn');
+    getValue($where, $condition, 'country_bn');
     if (isset($condition['cat_no3']) && $condition['cat_no3']) {
       $where['level_no'] = 3;
       $where['cat_no'] = $condition['cat_no3'];
@@ -163,28 +155,13 @@ class ShowCatModel extends PublicModel {
     } else {
       $where['level_no'] = 1;
     }
-    if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
-      $where['parent_cat_no'] = $condition['parent_cat_no'];
-    }
-
-    if (isset($condition['mobile']) && $condition['mobile']) {
-      $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
-    }
-    if (isset($condition['lang']) && $condition['lang']) {
-      $where['lang'] = $condition['lang'];
-    }
-    if (isset($condition['name'])) {
-      $where['name'] = ['like', '%' . $condition['name'] . '%'];
-    }
-
-    if (isset($condition['sort_order']) && $condition['sort_order']) {
-      $where['sort_order'] = $condition['sort_order'];
-    }if (isset($condition['created_at']) && $condition['created_at']) {
-      $where['created_at'] = $condition['created_at'];
-    }
-    if (isset($condition['created_by']) && $condition['created_by']) {
-      $where['created_by'] = $condition['created_by'];
-    }
+    getValue($where, $condition, 'parent_cat_no');
+    getValue($where, $condition, 'mobile', 'like');
+    getValue($where, $condition, 'lang', 'string');
+    getValue($where, $condition, 'name', 'like');
+    getValue($where, $condition, 'sort_order', 'string');
+    getValue($where, $condition, 'created_at', 'string');
+    getValue($where, $condition, 'created_by');
     if (isset($condition['status'])) {
       switch ($condition['status']) {
 
@@ -238,7 +215,7 @@ class ShowCatModel extends PublicModel {
     $where = $this->getcondition($condition);
     $where['lang'] = $lang;
     if (isset($condition['page']) && isset($condition['countPerPage'])) {
-      $count = $this->getcount($condition);
+      //  $count = $this->getcount($condition);
       return $this->where($where)
                       ->limit($condition['page'] . ',' . $condition['countPerPage'])
                       ->field('id,cat_no,parent_cat_no,level_no,lang,'
@@ -431,25 +408,25 @@ class ShowCatModel extends PublicModel {
     if ($flag && !$lang) {
       $cat_new_en = $this->getinfo($cat_no, 'en');
       if ($cat_new_en) {
-        $es_product_model->Replaceshowcats($data['cat_no'], ']', ',' . json_encode($cat_new_en, 256), 'en');
+        $es_product_model->Replaceshowcats($where['cat_no'], ']', ',' . json_encode($cat_new_en, 256), 'en');
       }
       $cat_new_zh = $this->getinfo($cat_no, 'en');
       if ($cat_new_zh) {
-        $es_product_model->Replaceshowcats($data['cat_no'], ']', ',' . json_encode($cat_new_zh, 256), 'zh');
+        $es_product_model->Replaceshowcats($where['cat_no'], ']', ',' . json_encode($cat_new_zh, 256), 'zh');
       }
       $cat_new_es = $this->getinfo($cat_no, 'es');
       if ($cat_new_es) {
-        $es_product_model->Replaceshowcats($data['cat_no'], ']', ',' . json_encode($cat_new_es, 256), 'es');
+        $es_product_model->Replaceshowcats($where['cat_no'], ']', ',' . json_encode($cat_new_es, 256), 'es');
       }
       $cat_new_ru = $this->getinfo($cat_no, 'ru');
       if ($cat_new_ru) {
-        $es_product_model->Replaceshowcats($data['cat_no'], ']', json_encode($cat_new_ru, 256), 'ru');
+        $es_product_model->Replaceshowcats($where['cat_no'], ']', json_encode($cat_new_ru, 256), 'ru');
       }
       return $flag;
     } elseif ($flag && $lang) {
       $cat_new = $this->getinfo($cat_no, $lang);
       if ($cat_new) {
-        $es_product_model->Replaceshowcats($data['cat_no'], ']', json_encode($cat_new, 256), $lang);
+        $es_product_model->Replaceshowcats($where['cat_no'], ']', json_encode($cat_new, 256), $lang);
       }
       return $flag;
     } else {

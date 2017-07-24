@@ -108,9 +108,6 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data,$where) {
-        if(isset($data['parent_id'])){
-            $arr['parent_id'] = $data['parent_id'];
-        }
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
         }
@@ -120,8 +117,13 @@ class RoleModel extends PublicModel {
         if(isset($data['status'])){
             $arr['status'] = $data['status'];
         }
-        if(!empty($where)){
-            return $this->where($where)->save($data);
+        if(!empty($where)&&isset($arr)){
+            $result =$this->where($where)->save($arr);
+            if (false === $result) {
+                return false;
+            }else{
+                return true;
+            }
         }else{
             return false;
         }

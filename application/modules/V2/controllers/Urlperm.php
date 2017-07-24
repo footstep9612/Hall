@@ -26,12 +26,12 @@ class UrlpermController extends PublicController {
         $count = count($data);
         $childrencount=0;
         for($i=0;$i<$count;$i++){
-            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id']],$limit);
+            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id'],'status'=>'NORMAL'],$limit);
             $childrencount = count($data[$i]['children']);
             if($childrencount>0){
                 for($j=0;$j<$childrencount;$j++){
                     if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
+                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id'],'status'=>'NORMAL'],$limit);
                         if(!$data[$i]['children'][$j]['children']){
                             unset($data[$i]['children'][$j]['children']);
                         }

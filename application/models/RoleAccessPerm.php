@@ -94,6 +94,18 @@ class RoleAccessPermModel extends PublicModel {
             return false;
         }
     }
+    public function update_datas($data) {
+        if($data['role_id']){
+           $this->where(['role_id'=>$data['role_id']])->delete();
+            if($data['url_perm_ids']){
+                $url_perm_id_arr = explode(',',$data['url_perm_ids']);
+                $count = count($url_perm_id_arr);
+                for($i=0;$i<$count;$i++){
+                    $this -> create_data(['role_id'=>$data['role_id'],'url_perm_id' =>$url_perm_id_arr[$i] ]);
+                }
+            }
+        }
+    }
 
 
 

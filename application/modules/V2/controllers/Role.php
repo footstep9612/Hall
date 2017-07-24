@@ -24,11 +24,11 @@ class RoleController extends PublicController {
         if(!empty($data['name'])){
             $where['name'] = $data['name'];
         }
-        if(!empty($data['page'])){
-            $limit['page'] = $data['page'];
+        if(!empty($data['currentPage'])){
+            $limit['page'] = $data['currentPage'];
         }
-        if(!empty($data['countPerPage'])){
-            $limit['num'] = $data['countPerPage'];
+        if(!empty($data['pageSize'])){
+            $limit['num'] = $data['pageSize'];
         }
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where,$limit);
@@ -42,6 +42,51 @@ class RoleController extends PublicController {
         }
 
         $this->jsonReturn($datajson);
+    }
+    public function roleuserAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        $id = $data['id'];
+        if(empty($id)){
+            $datajson['code'] = -101;
+            $datajson['message'] = 'id不可以都为空!';
+            $this->jsonReturn($datajson);
+        }
+        $model_role_user = new RoleUserModel();
+        $data = $model_role_user->getRolesUserlist($id);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+
+        $this->jsonReturn($datajson);
+
+    }
+    public function roleuserdeleteAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $id = $data['id'];
+        if(empty($id)){
+            $datajson['code'] = -101;
+            $datajson['message'] = 'id不可以都为空!';
+            $this->jsonReturn($datajson);
+        }
+        $model_role_user = new RoleUserModel();
+        $res = $model_role_user->delete_data($id);
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['message'] = '删除成功!';
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '删除失败!';
+        }
+
+        $this->jsonReturn($datajson);
+
     }
 
     public function infoAction() {
@@ -118,19 +163,31 @@ class RoleController extends PublicController {
             $this->jsonReturn($datajson);
         }else{
             $where['id'] = $data['id'];
+            $role_arr['role_id'] = $data['id'];
+
+        }
+        if(isset($data['name'])){
+            $arr['name'] = $data['name'];
+        }
+        if(isset($data['description'])){
+            $arr['description'] = $data['description'];
+        }
+        if(isset($data['status'])){
+            $arr['status'] = $data['status'];
         }
         $model_rolo = new RoleModel();
-        $id = $model_rolo->update_data($data,$where);
-        if($id > 0){
-            $datajson['code'] = 1;
-        }else{
-            $datajson['code'] = -104;
-            $datajson['message'] = '修改失败!';
+        $model_rolo->update_data($arr,$where);
+        $model_role_access_perm = new RoleAccessPermModel();
+        if($role_arr['url_perm_ids'] = $data['url_perm_ids']){
+            $role_arr['url_perm_ids'] = $data['url_perm_ids'];
+            $model_role_access_perm->update_datas($role_arr);
         }
+        $datajson['code'] = 1;
+        $datajson['message'] = '操作完成!';
         $this->jsonReturn($datajson);
     }
 
-    public function deleteAction() {
+    public function deleteAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];
         if(empty($id)){

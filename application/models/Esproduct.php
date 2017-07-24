@@ -20,6 +20,45 @@ class EsproductModel extends PublicModel {
     parent::__construct($str = '');
   }
 
+  private function getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null, $minimum_should_match = false) {
+    if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
+      if (isset($condition[$name]) && $condition[$name]) {
+        $value = $condition[$name];
+        if (!$field) {
+          $field = $name;
+        }
+        if (!$minimum_should_match) {
+          $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
+        } else {
+          $body['query']['bool']['must'][] = [$qurey_type => [$field => $value, 'minimum_should_match' => '75%']];
+        }
+      }
+    } elseif ($qurey_type == ESClient::WILDCARD) {
+
+      if (isset($condition[$name]) && $condition[$name]) {
+
+        $value = $condition[$name];
+        if (!$field) {
+          $field = $name;
+        }
+        $body['query']['bool']['must'][] = [$qurey_type => [$field => '*' . $value . '*']];
+      }
+    } elseif ($qurey_type == ESClient::RANGE) {
+      if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
+        $created_at_start = $condition[$name . '_start'];
+        $created_at_end = $condition[$name . '_end'];
+        $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
+      } elseif (isset($condition[$name . '_start']) && $condition[$field . '_start']) {
+        $created_at_start = $condition[$name . '_start'];
+
+        $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
+      } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
+        $created_at_end = $condition[$name . '_end'];
+        $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gle' => $created_at_end,]]];
+      }
+    }
+  }
+
   /* 条件组合
    * @param mix $condition // 搜索条件
    */
@@ -27,14 +66,9 @@ class EsproductModel extends PublicModel {
   private function getCondition($condition) {
     $body = [];
     $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
-    if (isset($condition['sku']) && $condition['sku']) {
-      $sku = $condition['sku'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['skus' => $sku]];
-    }
-    if (isset($condition['spu']) && $condition['spu']) {
-      $spu = $condition['spu'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
-    }
+    $this->getQurey($condition, $body, ESClient::MATCH, 'sku', 'skus');
+    $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
+
     if (isset($condition['spus']) && $condition['spus']) {
       $spus = $condition['spus'];
       $spus_arr = [];
@@ -43,79 +77,15 @@ class EsproductModel extends PublicModel {
       }
       $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $spus_arr]];
     }
-    if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
-      $show_cat_no = $condition['show_cat_no'];
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
-          ['show_cats.all' => '*"' . $show_cat_no . '"*']];
-    }
-    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
-      $market_area_bn = $condition['market_area_bn'];
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
-          ['show_cats.all' => '*"' . $market_area_bn . '"*']];
-    }
-    if (isset($condition['country_bn']) && $condition['country_bn']) {
-      $country_bn = $condition['country_bn'];
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
-          ['show_cats.all' => '*"' . $country_bn . '"*']];
-    }
-
-
-    if (isset($condition['mcat_no1']) && $condition['mcat_no1']) {
-      $mcat_no1 = $condition['mcat_no1'];
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
-          ['meterial_cat.all' => '*"' . $mcat_no1 . '"*']];
-    }
-    if (isset($condition['mcat_no2']) && $condition['mcat_no2']) {
-      $mcat_no2 = $condition['mcat_no2'];
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
-          ['meterial_cat.all' => '*"' . $mcat_no2 . '"*']];
-    }
-    if (isset($condition['mcat_no3']) && $condition['mcat_no3']) {
-      $mcat_no3 = $condition['mcat_no3'];
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD =>
-          ['meterial_cat.all' => '*"' . $mcat_no3 . '"*'
-      ]];
-    }
-
-
-    if (isset($condition['created_at_start']) && isset($condition['created_at_end']) && $condition['created_at_end'] && $condition['created_at_start']) {
-      $created_at_start = $condition['created_at_start'];
-      $created_at_end = $condition['created_at_end'];
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
-    } elseif (isset($condition['created_at_start']) && $condition['created_at_start']) {
-      $created_at_start = $condition['created_at_start'];
-
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start,]]];
-    } elseif (isset($condition['created_at_end']) && $condition['created_at_end']) {
-      $created_at_end = $condition['created_at_end'];
-
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gle' => $created_at_end,]]];
-    }
-    if (isset($condition['checked_at_start']) && isset($condition['checked_at_end']) && $condition['checked_at_end'] && $condition['checked_at_start']) {
-      $checked_at_start = $condition['checked_at_start'];
-      $checked_at_end = $condition['checked_at_end'];
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start, 'gle' => $checked_at_end,]]];
-    } elseif (isset($condition['checked_at_start']) && $condition['checked_at_start']) {
-      $checked_at_start = $condition['checked_at_start'];
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start,]]];
-    } elseif (isset($condition['checked_at_end']) && $condition['checked_at_end']) {
-      $checked_at_end = $condition['checked_at_end'];
-
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gle' => $checked_at_end,]]];
-    }
-    if (isset($condition['updated_at_start']) && isset($condition['updated_at_end']) && $condition['updated_at_start'] && $condition['updated_at_end']) {
-      $updated_at_start = $condition['updated_at_start'];
-      $updated_at_end = $condition['updated_at_end'];
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,
-                  'gle' => $updated_at_end,]]];
-    } elseif (isset($condition['updated_at_start']) && $condition['updated_at_start']) {
-      $updated_at_start = $condition['updated_at_start'];
-
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,]]];
-    } elseif (isset($condition['updated_at_end']) && $condition['updated_at_end']) {
-      $updated_at_end = $condition['updated_at_end'];
-      $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gle' => $updated_at_end,]]];
-    }
+    $this->getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
+    $this->getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
+    $this->getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
+    $this->getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'meterial_cat.all');
+    $this->getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'meterial_cat.all');
+    $this->getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'meterial_cat.all');
+    $this->getQurey($condition, $body, ESClient::RANGE, 'created_at');
+    $this->getQurey($condition, $body, ESClient::RANGE, 'checked_at');
+    $this->getQurey($condition, $body, ESClient::RANGE, 'updated_at');
     if (isset($condition['status']) && $condition['status']) {
       $status = $condition['status'];
       if ($status == 'ALL') {
@@ -127,99 +97,40 @@ class EsproductModel extends PublicModel {
     } else {
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
     }
-
     if (isset($condition['recommend_flag']) && $condition['recommend_flag']) {
       $recommend_flag = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
       $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $recommend_flag]];
     }
-    if (isset($condition['brand']) && $condition['brand']) {
-      $brand = $condition['brand'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand]];
+    if (isset($condition['shelves_status']) && $condition['shelves_status']) {
+      $shelves_status = $condition['shelves_status'];
+      if ($shelves_status == 'ALL') {
+        
+      } elseif (!in_array($shelves_status, ['VALID', 'INVALID'])) {
+        $shelves_status = 'VALID';
+        $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['shelves_status' => $status]];
+      }
+    } else {
+      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['shelves_status' => 'VALID']];
     }
-    if (isset($condition['real_name']) && $condition['real_name']) {
-      $real_name = trim($condition['real_name']);
-      $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['name.all' => '*' . $real_name . '*']];
-    }
-    if (isset($condition['source']) && $condition['source']) {
-      $source = $condition['source'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['source' => $source]];
-    }
-    if (isset($condition['exe_standard']) && $condition['exe_standard']) {
-      $exe_standard = $condition['exe_standard'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['exe_standard' => $exe_standard]];
-    }
-    if (isset($condition['app_scope']) && $condition['app_scope']) {
-      $app_scope = $condition['app_scope'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['app_scope' => $app_scope]];
-    }
-    if (isset($condition['advantages']) && $condition['advantages']) {
-      $advantages = $condition['advantages'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['advantages' => $advantages]];
-    }
-    if (isset($condition['tech_paras']) && $condition['tech_paras']) {
-      $tech_paras = $condition['tech_paras'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['tech_paras' => $tech_paras]];
-    }
-    if (isset($condition['source_detail']) && $condition['source_detail']) {
-      $source_detail = $condition['source_detail'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['source_detail' => $source_detail]];
-    }
-
-    if (isset($condition['keywords']) && $condition['keywords']) {
-      $keywords = $condition['keywords'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['keywords' => $keywords]];
-    }
-    if (isset($condition['supplier_id']) && $condition['supplier_id']) {
-      $supplier_id = $condition['supplier_id'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['supplier_id' => $supplier_id]];
-    }
-
-    if (isset($condition['supplier_name']) && $condition['supplier_name']) {
-      $supplier_name = $condition['supplier_name'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['supplier_name' => $supplier_name]];
-    }
-
-    if (isset($condition['created_by']) && $condition['created_by']) {
-      $created_by = $condition['created_by'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
-    }
-
-    if (isset($condition['updated_by']) && $condition['updated_by']) {
-      $updated_by = $condition['updated_by'];
-
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
-    }
-    if (isset($condition['checked_by']) && $condition['checked_by']) {
-      $checked_by = $condition['checked_by'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
-    }
-
-    if (isset($condition['show_name']) && $condition['show_name']) {
-      $show_name = $condition['show_name'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name' => $show_name]];
-    }
-    if (isset($condition['name']) && $condition['name']) {
-      $name = $condition['name'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['name' => ['query' => $name,
-                  'minimum_should_match' => '75%']]];
-    }
-    if (isset($condition['attrs']) && $attrs = $condition['attrs']) {
-      $attrs = $condition['attrs'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs' => $attrs]];
-    } if (isset($condition['specs']) && $condition['specs']) {
-      $specs = $condition['specs'];
-      $body['query']['bool']['must'][] = [ESClient::MATCH => ['specs' => $specs]];
-    }
+    $this->getQurey($condition, $body, ESClient::MATCH, 'brand');
+    $this->getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
+    $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'exe_standard');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'app_scope');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'advantages');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'tech_paras');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'source_detail');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'keywords');
+    $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'supplier_id');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'supplier_name');
+    $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
+    $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
+    $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'show_name');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'name', 'name', true);
+    $this->getQurey($condition, $body, ESClient::MATCH, 'attrs');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'specs');
+    $this->getQurey($condition, $body, ESClient::MATCH, 'warranty');
     if (isset($condition['keyword']) && $condition['keyword']) {
       $show_name = $condition['keyword'];
       $body['query']['bool']['must'][] = [ESClient::MULTI_MATCH => [
@@ -611,7 +522,7 @@ class EsproductModel extends PublicModel {
           $spu = $spec['spu'];
           $sku = $spec['sku'];
           unset($spec['spu']);
-          // unset($spec['sku']);
+// unset($spec['sku']);
           $ret[$spu][$sku] = $spec;
         } return $ret;
       }
@@ -860,8 +771,6 @@ class EsproductModel extends PublicModel {
       $products = $this->where(['spu' => ['in', $spus], 'lang' => $lang])
               ->field('spu,meterial_cat_no,brand,supplier_id,supplier_name,source,meterial_cat_no')
               ->select();
-
-
       $brands = [];
       $supplier_ids = [];
       $supplier_names = [];
@@ -1083,6 +992,54 @@ class EsproductModel extends PublicModel {
     }
   }
 
+  private function getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
+    if ($type === 'string') {
+      if (isset($condition[$name]) && $condition[$name]) {
+        $value = $condition[$name];
+        $condition = null;
+        unset($condition);
+        return $value;
+      } else {
+        $condition = null;
+        unset($condition);
+        return $default;
+      }
+    } elseif ($type === 'bool') {
+      if (isset($condition[$name]) && $condition[$name]) {
+        $flag = $condition[$name] == 'Y' ? 'Y' : 'N';
+        $condition = null;
+        unset($condition);
+        return $flag;
+      } else {
+        $condition = null;
+        unset($condition);
+        return 'N';
+      }
+    } elseif ($type === 'json') {
+      if (isset($condition[$name]) && $condition[$name]) {
+        $return = json_encode($condition[$name], 256);
+        $condition = null;
+        unset($condition);
+        return $flag;
+      } else {
+        $condition = null;
+        unset($condition);
+        return json_encode($default, 256);
+      }
+    } elseif ($type === 'in_array') {
+      if (isset($condition[$name]) && in_array($condition[$name], $arr)) {
+        $return = strtoupper($condition[$name]);
+        $condition = null;
+        unset($condition);
+        return $flag;
+      } else {
+        $condition = null;
+        unset($condition);
+        return $default;
+      }
+    }
+  }
+
   public function getInsertCodition($condition, $lang = 'en') {
     $data = [];
     if (isset($condition['id'])) {
@@ -1096,14 +1053,10 @@ class EsproductModel extends PublicModel {
       $smmodel = new ShowmaterialcatModel();
       $show_cat_nos = $smmodel->getshowcatnosBymatcatno($material_cat_no, $lang);
       $scats = $this->getshow_cats($show_cat_nos, $lang);
-      $data['show_cats'] = json_encode($scats[$material_cat_no], 256);
+      $data['show_cats'] = $this->getValue($scats, $material_cat_no, [], 'json');
       $SupplycapabilityModel = new SupplycapabilityModel();
       $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$material_cat_no], $lang);
-      if (isset($supply_capabilitys[$material_cat_no])) {
-        $data['supply_capabilitys'] = json_encode($supply_capabilitys[$material_cat_no], 256);
-      } else {
-        $data['supply_capabilitys'] = json_encode([]);
-      }
+      $data['supply_capabilitys'] = $this->getValue($supply_capabilitys, $material_cat_no, [], 'json');
     } else {
       $data['meterial_cat_no'] = '';
       $data['meterial_cat'] = json_encode(new \stdClass());
@@ -1112,196 +1065,55 @@ class EsproductModel extends PublicModel {
     }
     if (isset($condition['spu'])) {
       $spu = $data['spu'] = $condition['spu'];
-
       $product_attrs = $this->getproduct_attrbyspus([$spu], $lang);
       $specs = $this->getproduct_specsbyskus([$spu], $lang);
       $attachs = $this->getproduct_attachsbyspus([$spu], $lang);
-      if (isset($product_attrs[$spu])) {
-        $data['attrs'] = json_encode($product_attrs[$spu], 256);
-      } else {
-        $data['attrs'] = json_encode([], 256);
-      }
-      if (isset($specs[$spu])) {
-        $data['specs'] = json_encode($specs[$spu], 256);
-      } else {
-        $data['specs'] = json_encode([], 256);
-      }
-      if (isset($attachs[$spu])) {
-        $data['attachs'] = json_encode($attachs[$spu], 256);
-      } else {
-        $data['attachs'] = json_encode([], 256);
-      }
+      $data['attrs'] = $this->getValue($product_attrs, $spu, [], 'json');
+      $data['specs'] = $this->getValue($specs, $spu, [], 'json');
+      $data['specs'] = $this->getValue($attachs, $spu, [], 'json');
     } else {
       $data['spu'] = '';
       $data['attrs'] = json_encode([], 256);
       $data['specs'] = json_encode([], 256);
       $data['attachs'] = json_encode([], 256);
     }
-    if (isset($condition['qrcode'])) {
-      $data['qrcode'] = $condition['qrcode'];
-    } else {
-      $data['qrcode'] = null;
-    }
-    if (isset($condition['name'])) {
-      $data['name'] = $condition['name'];
-    } else {
-      $data['name'] = '';
-    }
-    if (isset($condition['show_name'])) {
-      $data['show_name'] = $condition['show_name'];
-    } else {
-      $data['show_name'] = '';
-    }
-    if (isset($condition['keywords'])) {
-      $data['keywords'] = $condition['keywords'];
-    } else {
-      $data['keywords'] = '';
-    }
+    $data['qrcode'] = $this->getValue($condition, 'qrcode');
+    $data['name'] = $this->getValue($condition, 'name');
+    $data['show_name'] = $this->getValue($condition, 'show_name');
+    $data['keywords'] = $this->getValue($condition, 'keywords');
+    $data['exe_standard'] = $this->getValue($condition, 'exe_standard');
+    $data['app_scope'] = $this->getValue($condition, 'app_scope');
+    $data['tech_paras'] = $this->getValue($condition, 'tech_paras');
+    $data['profile'] = $this->getValue($condition, 'profile');
+    $data['description'] = $this->getValue($condition, 'description');
+    $data['supplier_id'] = $this->getValue($condition, 'supplier_id');
+    $data['supplier_name'] = $this->getValue($condition, 'supplier_name');
+    $data['brand'] = $this->getValue($condition, 'brand');
+    $data['warranty'] = $this->getValue($condition, 'warranty');
+    $data['customization_flag'] = $this->getValue($condition, 'customization_flag');
+    $data['customization_flag'] = $this->getValue($condition, 'customization_flag');
+    $data['customization_flag'] = $this->getValue($condition, 'customization_flag', 'N', 'bool');
+    $data['customizability'] = $this->getValue($condition, 'customizability');
+    $data['availability'] = $this->getValue($condition, 'availability');
+    $data['resp_time'] = $this->getValue($condition, 'resp_time');
+    $data['resp_rate'] = $this->getValue($condition, 'resp_rate');
+    $data['delivery_cycle'] = $this->getValue($condition, 'delivery_cycle');
+    $data['target_market'] = $this->getValue($condition, 'target_market');
+    $data['source'] = $this->getValue($condition, 'source');
+    $data['source_detail'] = $this->getValue($condition, 'source_detail');
+    $data['recommend_flag'] = $this->getValue($condition, 'recommend_flag', 'N', 'bool');
+    $data['status'] = $this->getValue($condition, 'status', 'CHECKING', 'in_array');
+    $data['created_by'] = $this->getValue($condition, 'created_by');
+    $data['created_at'] = $this->getValue($condition, 'created_at');
+    $data['updated_by'] = $this->getValue($condition, 'updated_by');
+    $data['updated_at'] = $this->getValue($condition, 'updated_at');
+    $data['checked_by'] = $this->getValue($condition, 'checked_by');
+    $data['checked_at'] = $this->getValue($condition, 'checked_at');
+    $data['shelves_status'] = $this->getValue($condition, 'shelves_status', 'INVALID', 'in_array', ['INVALID', 'VALID']);
 
-    if ($condition['exe_standard']) {
-      $data['exe_standard'] = $condition['exe_standard'];
-    } else {
-      $data['exe_standard'] = '';
-    }
-    if (isset($condition['app_scope'])) {
-      $data['app_scope'] = $condition['app_scope'];
-    } else {
-      $data['app_scope'] = '';
-    }
-    if (isset($condition['tech_paras'])) {
-      $data['tech_paras'] = $condition['tech_paras'];
-    } else {
-      $data['tech_paras'] = '';
-    }
-    if (isset($condition['advantages'])) {
-      $data['advantages'] = $condition['advantages'];
-    } else {
-      $data['advantages'] = '';
-    }
-    if (isset($condition['profile'])) {
-      $data['profile'] = $condition['profile'];
-    } else {
-      $data['profile'] = '';
-    }
-    if ($condition['description']) {
-      $data['description'] = $condition['description'];
-    }
+    $skus = $this->getskusbyspus([$spu], $lang);
+    $data['skus'] = $this->getValue($skus, $spu, [], 'json');
 
-    if (isset($condition['supplier_id'])) {
-      $data['supplier_id'] = $condition['supplier_id'];
-    } else {
-      $data['supplier_id'] = '';
-    }
-    if (isset($condition['supplier_name'])) {
-      $data['supplier_name'] = $condition['supplier_name'];
-    } else {
-      $data['supplier_name'] = '';
-    }
-    if (isset($condition['brand'])) {
-      $data['brand'] = $condition['brand'];
-    } else {
-      $data['brand'] = '';
-    }
-    if (isset($condition['warranty'])) {
-      $data['warranty'] = $condition['warranty'];
-    } else {
-      $data['warranty'] = '';
-    }
-    if (isset($condition['customization_flag'])) {
-      $data['customization_flag'] = $condition['customization_flag'] == 'Y' ? 'Y' : 'N';
-    } else {
-      $data['customization_flag'] = 'N';
-    }
-    if (isset($condition['customizability'])) {
-      $data['customizability'] = $condition['customizability'];
-    } else {
-      $data['customizability'] = '';
-    }
-
-    if (isset($condition['availability'])) {
-      $data['availability'] = $condition['availability'];
-    } else {
-      $data['availability'] = '';
-    }
-    if (isset($condition['resp_time'])) {
-      $data['resp_time'] = $condition['resp_time'];
-    } else {
-      $data['resp_time'] = '';
-    }
-    if (isset($condition['resp_rate'])) {
-      $data['resp_rate'] = $condition['resp_rate'];
-    } else {
-      $data['resp_rate'] = '';
-    }
-    if (isset($condition['delivery_cycle'])) {
-      $data['delivery_cycle'] = $condition['delivery_cycle'];
-    } else {
-      $data['delivery_cycle'] = '';
-    }
-    if (isset($condition['target_market'])) {
-      $data['target_market'] = $condition['target_market'];
-    } else {
-      $data['target_market'] = '';
-    }
-
-    if (isset($condition['source'])) {
-      $data['source'] = $condition['source'];
-    } else {
-      $data['source'] = '';
-    }
-
-    if (isset($condition['source_detail'])) {
-      $data['source_detail'] = $condition['source_detail'];
-    } else {
-      $data['source_detail'] = '';
-    }
-    if (isset($condition['recommend_flag'])) {
-      $data['recommend_flag'] = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
-    } else {
-      $data['recommend_flag'] = 'N';
-    }
-    if (isset($condition['status']) && in_array($condition['status'], ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
-      $data['status'] = strtoupper($condition['status']);
-    } else {
-      $data['status'] = 'CHECKING';
-    }
-    if (isset($condition['created_by'])) {
-      $data['status'] = $condition['created_by'];
-    } else {
-      $data['status'] = '';
-    }
-    if (isset($condition['created_at'])) {
-      $data['created_at'] = $condition['created_at'];
-    } else {
-      $data['created_at'] = '';
-    }
-    if (isset($condition['updated_by'])) {
-      $data['updated_by'] = $condition['updated_by'];
-    } else {
-      $data['updated_by'] = '';
-    }
-    if (isset($condition['updated_at'])) {
-      $data['updated_at'] = $condition['updated_at'];
-    } else {
-      $data['updated_at'] = '';
-    }
-    if (isset($condition['checked_by'])) {
-      $data['checked_by'] = $condition['checked_by'];
-    } else {
-      $data['checked_by'] = '';
-    }
-
-    if (isset($condition['checked_at'])) {
-      $data['checked_at'] = $condition['checked_at'];
-    } else {
-      $data['checked_at'] = '';
-    }
-    if (isset($condition['skus'])) {
-      $goodsmodel = new GoodsModel();
-      $data['skus'] = $goodsmodel->getskusbyspu($data, $lang);
-    } else {
-      $data['skus'] = json_encode([]);
-    }
     return $data;
   }
 
@@ -1317,11 +1129,12 @@ class EsproductModel extends PublicModel {
       $body = $this->getInsertCodition($data);
       $id = $data['spu'];
       $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-      if ($flag['_shards']['successful'] !== 1) {
+      var_dump($flag);
+      if (!isset($flag['created'])) {
         LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
-        return true;
-      } else {
         return false;
+      } else {
+        return true;
       }
     } catch (Exception $ex) {
       LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1368,11 +1181,7 @@ class EsproductModel extends PublicModel {
       if (empty($spu)) {
         return false;
       }
-      if (in_array(strtoupper($status), ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
-        $data['status'] = strtoupper($status);
-      } else {
-        $data['status'] = 'CHECKING';
-      }
+      $data['status'] = $this->getValue($condition, 'status', 'CHECKING', 'in_array');
       $id = $spu;
       $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
       return true;
@@ -1393,11 +1202,7 @@ class EsproductModel extends PublicModel {
       if (empty($spu)) {
         return false;
       }
-      if (in_array(strtoupper($status), ['VALID', 'INVALID'])) {
-        $data['shelves_status'] = strtoupper($status);
-      } else {
-        $data['shelves_status'] = 'INVALID';
-      }
+      $data['shelves_status'] = $this->getValue($condition, 'status', 'INVALID', 'in_array', ['VALID', 'INVALID']);
       $id = $spu;
       $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
       $esgoodsdata = [
@@ -1495,10 +1300,10 @@ class EsproductModel extends PublicModel {
     $smmodel = new ShowmaterialcatModel();
     $show_cat_nos = $smmodel->getshowcatnosBymatcatno($new_cat_no, $lang);
     $scats = $this->getshow_cats($show_cat_nos, $lang);
-    $data['show_cats'] = json_encode($scats[$new_cat_no], 256);
+    $data['show_cats'] = $this->getValue($scats, $new_cat_no, [], 'json');
     $SupplycapabilityModel = new SupplycapabilityModel();
     $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$new_cat_no], $lang);
-    $data['supply_capabilitys'] = json_encode($supply_capabilitys[$new_cat_no], 256);
+    $data['supply_capabilitys'] = $this->getValue($supply_capabilitys, $new_cat_no, [], 'json');
     $data['material_cat_no'] = $new_cat_no;
     if ($spu) {
       $id = $spu;
@@ -1560,8 +1365,8 @@ class EsproductModel extends PublicModel {
     $product_attrs = $this->getproduct_attrbyspus([$spu], $lang);
     $specs = $this->getproduct_specsbyskus([$spu], $lang);
     $id = $spu;
-    $data['attrs'] = json_encode($product_attrs[$spu], 256);
-    $data['specs'] = json_encode($specs[$spu], 256);
+    $data['attrs'] = $this->getValue($product_attrs, $spu, [], 'json');
+    $data['specs'] = $this->getValue($specs, $spu, [], 'json');
     $type = $this->tableName . '_' . $lang;
     $es->update_document($this->dbName, $type, $data, $id);
     $goodsmodel = new GoodsModel();
@@ -1583,11 +1388,7 @@ class EsproductModel extends PublicModel {
       return false;
     }
     $attachs = $this->getproduct_attachsbyspus([$spu], $lang);
-    if (isset($attachs[$spu])) {
-      $data['attachs'] = json_encode($attachs[$spu], 256);
-    } else {
-      $data['attachs'] = '[]';
-    }
+    $data['attachs'] = $this->getValue($attachs, $spu, [], 'json');
     $id = $spu;
     $type = $this->tableName . '_' . $lang;
     $es->update_document($this->dbName, $type, $data, $id);
@@ -1632,6 +1433,7 @@ class EsproductModel extends PublicModel {
     if (empty($spu)) {
       return false;
     }
+
     if ($brand) {
       $data['brand'] = $brand;
     } else {

@@ -30,36 +30,23 @@ class CountryModel extends PublicModel {
 
   private function getCondition($condition) {
     $data = [];
-    if (isset($condition['lang']) && $condition['lang']) {
-      $data['c.lang'] = $condition['lang'];
-    }
+    getValue($data, $condition, 'lang', 'string', 'c.lang');
     if (isset($condition['bn']) && $condition['bn']) {
       $data['c.bn'] = $condition['bn'];
     }
-
-    if (isset($condition['name']) && $condition['name']) {
-      $data['c.name'] = ['like', '%' . $condition['name'] . '%'];
-    }
-    if (isset($condition['time_zone']) && $condition['time_zone']) {
-      $data['c.time_zone'] = ['like', '%' . $condition['time_zone'] . '%'];
-    }
-    if (isset($condition['region']) && $condition['region']) {
-      $data['c.region'] = ['like', '%' . $condition['region'] . '%'];
-    }
-
+    getValue($data, $condition, 'name', 'like', 'c.name');
+    getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
+    getValue($data, $condition, 'region', 'like', 'c.region');
     if (isset($condition['status']) && $condition['status'] == 'ALL') {
       
     } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
-
       $data['c.status'] = $condition['status'];
     } else {
       $data['c.status'] = 'VALID';
     }
-
-
-    if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
-      $data['mac.market_area_bn'] = $condition['market_area_bn'];
-    }
+    getValue($data, $condition, 'market_area_bn', 'like', 'mac.market_area_bn');
+    $condition = null;
+    unset($condition);
     return $data;
   }
 
