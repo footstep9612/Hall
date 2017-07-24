@@ -75,6 +75,7 @@ class BuyerreginfoModel extends PublicModel {
                         'lang' => $key,
                         'customer_id' => $token['customer_id'],
                         'registered_in' => $checkout['registered_in'],
+                        'bank_country_code' => $checkout['bank_country_code'],
                         'legal_person_name' => isset($checkout['legal_person_name']) ? $checkout['legal_person_name'] : '',
                         'legal_person_gender' => isset($checkout['legal_person_gender']) ? $checkout['legal_person_gender'] : '',
                         'expiry_date' => isset($checkout['expiry_date']) ? $checkout['expiry_date'] : '',
@@ -88,11 +89,11 @@ class BuyerreginfoModel extends PublicModel {
                         'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
                         'bank_phone' => isset($checkout['bank_phone']) ? $checkout['bank_phone'] : '',
                         'bank_fax' => isset($checkout['bank_fax']) ? $checkout['bank_fax'] : '',
-                        'turnover' => isset($checkout['turnover']) ? $checkout['turnover'] : 0,
-                        'profit' => isset($checkout['profit']) ? $checkout['profit'] : 0,
-                        'assets' => isset($checkout['assets']) ? $checkout['assets'] : 0,
+                        'turnover' => isset($checkout['turnover']) ? (int)$checkout['turnover'] : 0,
+                        'profit' => isset($checkout['profit']) ? (int)$checkout['profit'] : 0,
+                        'assets' => isset($checkout['assets']) ? (int)$checkout['assets'] : 0,
                         'equity_ratio' => isset($checkout['equity_ratio']) ? $checkout['equity_ratio'] : '',
-                        'own_capital' => isset($checkout['own_capital']) ? $checkout['own_capital'] : 0,
+                        'own_capital' => isset($checkout['own_capital']) ? (int)$checkout['own_capital'] : 0,
                         'branch_number' => isset($checkout['branch_number']) ? $checkout['branch_number'] : ''
                     ];
                     //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增

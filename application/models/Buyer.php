@@ -468,9 +468,9 @@ class BuyerModel extends PublicModel {
                     $data = [
                         'lang' => $key,
                         'customer_id' => $token['customer_id'],
-                        'serial_no' => $checkout['serial_no'],
+                        'serial_no' => $token['customer_id'],
                         'name' => $checkout['name'],
-                        'country' => $checkout['country'],
+//                        'country' => $checkout['country'],
                         'bank_name' => $checkout['bank_name'],
                         'bank_address' =>  $checkout['bank_address'],
                         'official_address' =>  $checkout['official_address'],
@@ -482,15 +482,13 @@ class BuyerModel extends PublicModel {
                         'reg_date' => isset($checkout['reg_date']) ? $checkout['reg_date'] : '',
                         'swift_code' => isset($checkout['swift_code']) ? $checkout['swift_code'] : '',
                         'listed_flag' => isset($checkout['listed_flag']) ? $checkout['listed_flag'] : 'N',
-                        'registered_time' => isset($checkout['registered_time']) ? $checkout['registered_time'] : '',
-                        'capital_account' => isset($checkout['capital_account']) ? $checkout['capital_account'] : 0,
-                        'sales' => isset($checkout['sales']) ? $checkout['sales'] : 0,
+                        'capital_account' => isset($checkout['capital_account']) ? (int)$checkout['capital_account'] : 0,
+                        'sales' => isset($checkout['sales']) ? (int)$checkout['sales'] : 0,
                         'official_phone' => isset($checkout['official_phone']) ? $checkout['official_phone'] : '',
-                        'fax' => isset($checkout['fax']) ? $checkout['fax'] : '',
-                        'website_url' => isset($checkout['website_url']) ? $checkout['website_url'] : '',
-                        'employees' => isset($checkout['employees']) ? $checkout['employees'] : '',
-                        'credit_total' => isset($checkout['credit_total']) ? $checkout['credit_total'] : 0,
-                        'credit_available' => isset($checkout['credit_available']) ? $checkout['credit_available'] : 0,
+                        'fax' => isset($checkout['fax']) ? (int)$checkout['fax'] : '',
+                        'official_website' => isset($checkout['official_website']) ? $checkout['official_website'] : '',
+                        'employee_count' => isset($checkout['employee_count']) ? $checkout['employee_count'] : '',
+                        'remarks' => isset($checkout['remarks']) ? $checkout['remarks'] : ''
                     ];
                     //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
                     $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
@@ -514,7 +512,7 @@ class BuyerModel extends PublicModel {
                     }
                 }
             }
-            $this->commit();
+            //$this->commit();
             return $token['customer_id'];
         } catch(\Kafka\Exception $e){
             $this->rollback();
@@ -529,7 +527,7 @@ class BuyerModel extends PublicModel {
         if (empty($param))
             return false;
         if(!isset($param['name']) && empty($param['name'])) { jsonReturn('','-1002','[name]不能为空');}
-        if(!isset($param['country']) && empty($param['country'])) { jsonReturn('','-1002','[country]不能为空');}
+//        if(!isset($param['country']) && empty($param['country'])) { jsonReturn('','-1002','[country]不能为空');}
         if(!isset($param['bank_name']) && empty($param['bank_name'])) { jsonReturn('','-1002','[bank_name]不能为空');}
         if(!isset($param['bank_address']) && empty($param['bank_address'])) { jsonReturn('','-1002','[bank_address]不能为空');}
         if(!isset($param['official_address']) && empty($param['official_address'])) { jsonReturn('','-1002','[official_address]不能为空');}
