@@ -22,9 +22,11 @@ class BuyerModel extends PublicModel {
     }
 
     //状态
-    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_VALID = 'VALID'; //有效,通过
     const STATUS_INVALID = 'INVALID'; //无效；
-    const STATUS_DELETE = 'DELETE'; //删除；
+    const STATUS_TEST = 'TEST'; //待报审；
+    const STATUS_CHECKING = 'STATUS_CHECKING'; //审核；
+    const STATUS_DELETED = 'DELETED'; //删除；
 
     /**
      * 获取列表
@@ -496,23 +498,24 @@ class BuyerModel extends PublicModel {
                         $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
                     } else {
                         $data['apply_at'] = date('Y-m-d H:i:s', time());
+                        $data['status'] = self::STATUS_CHECKING;//待报审状态
                         $this->add($data);
                     }
                     //t_buyer_reg_info
                     $buyerRegInfo = new BuyerreginfoModel();
                     $result = $buyerRegInfo->createInfo($token,$input);
-                    if($result){
+                    if(!$result){
                         return false;
                     }
                     //t_buyer_address
                     $buyerAddressMode = new BuyerAddressModel();
                     $res = $buyerAddressMode->createInfo($token,$input);
-                    if($res){
+                    if(!$res){
                         return false;
                     }
                 }
             }
-            //$this->commit();
+            $this->commit();
             return $token['customer_id'];
         } catch(\Kafka\Exception $e){
             $this->rollback();
@@ -534,4 +537,24 @@ class BuyerModel extends PublicModel {
         return $param;
     }
 
+    /**
+     * 提交易瑞   -- 待审核
+     * @author klp
+     */
+    public function subCheck($data)
+    {
+        if (empty($data)) {
+            return false;
+        }
+        //新状态可以补充
+        $status = [];
+        switch ($data['status_type']) {
+            case 'check':    //审核
+                $status['status'] = self::STATUS_CHECKING;
+                break;
+
+        }
+        $result = $this->where($token['customer_id'])->save(['status' => $status['status']]);
+        return $result ? true : false;
+    }
 }

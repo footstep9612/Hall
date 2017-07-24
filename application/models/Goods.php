@@ -838,18 +838,34 @@ class GoodsModel extends PublicModel {
           if (!$res) {
             return false;
           }
-
           $gattr = new GoodsAttrModel();
           $resAttr = $gattr->deleteRealAttr($input);        //属性删除
           if (!$resAttr) {
             return false;
           }
-          $gattach = new GoodsAttachModel();
-          $resAttach = $gattach->deleteRealAttach($input);  //附件删除
-          if (!$resAttach) {
-            return false;
+            if (isset($input['sku'])) {     //------判断属性是否存在
+                $gattr = new GoodsAttrModel();
+                $resatr = $gattr->field('sku')->where(['sku' => $input['sku']])->find();
+                if ($resatr) {
+                    $resAttr = $gattr->deleteRealAttr($input);        //属性删除
+                    if (!$resAttr) {
+                        return false;
+                    }
+                }
+            }
+          if (isset($input['sku'])) {     //------判断附件是否存在
+              $gattach = new GoodsAttachModel();
+              $resach = $gattach->field('sku')->where(['sku' => $input['sku']])->find();
+              if ($resach) {
+                  $resAttach = $gattach->deleteRealAttach($input);  //附件删除
+                  if (!$resAttach) {
+                      return false;
+                  }
+              }
           }
-        } catch (\Kafka\Exception $e) {
+            $this->commit();
+            return true;
+        } catch (Exception $e) {
           $this->rollback();
           //            $results['message'] = $e->getMessage();
           return false;

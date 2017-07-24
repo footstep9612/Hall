@@ -43,12 +43,18 @@ class GoodsController extends PublicController
      */
     public function modifySkuAction()
     {
+        $this->input = [
+                0=>[
+                    'sku'=>'3303060000010001',
+                    'lang'=>'en'
+                ],
+        ];
         if(empty($this->input)){
             return false;
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
-        $this->input['checked_by'] = $userInfo['name'];
+        //$this->input['checked_by'] = $userInfo['name'];
         $goodsModel = new GoodsModel();
         if(isset($this->input['status_type']) && !empty($this->input['status_type'])){
             $result = $goodsModel->modify($this->input);    //状态更改(暂为报审)
@@ -60,7 +66,7 @@ class GoodsController extends PublicController
 
 
     /**
-     * sku新增  -- 门户
+     * sku新增 (单独) -- 门户
      * @author  klp  2017/7-5
      */
     public function addSkuAction()
@@ -72,7 +78,7 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku属性新增  -- 门户
+     * sku属性新增 (单独) -- 门户
      * @author  klp  2017/7-5
      */
     public function addSkuAttrAction()
@@ -84,7 +90,7 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku附件新增  -- 门户
+     * sku附件新增 (单独) -- 门户
      * @author  klp  2017/7-5
      */
     public function addSkuAttachAction()
@@ -96,7 +102,7 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku更新  -- 门户
+     * sku更新  (单独)-- 门户
      * @author  klp  2017/7-5
      * sku lang
      */
@@ -109,7 +115,7 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku属性更新  -- 门户
+     * sku属性更新 (单独) -- 门户
      * @author  klp  2017/7-5
      */
     public function updateSkuAttrAction()
@@ -121,19 +127,7 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku附件更新  -- 门户
-     * @author  klp  2017/7-5
-     */
-    public function updateSkuAttachAction()
-    {
-        //$this->input = $this->test();//测试
-        $goodsAttachModel = new GoodsAttachModel();
-        $result = $goodsAttachModel->updateAttachSku($this->input);
-        $this->returnInfo($result);
-    }
-
-    /**
-     * sku状态更改及删除  -- 门户
+     * sku状态更改及删除 (单独) -- 门户
      * @author  klp  2017/7-5
      * sku lang
      */
@@ -150,7 +144,7 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku属性状态更改及删除   -- 门户
+     * sku属性状态更改及删除 (单独)  -- 门户
      * @author  klp  2017/7-5
      */
     public function modifySkuAttrAction()
@@ -166,12 +160,11 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku附件状态更改及删除   -- 门户
+     * sku附件状态更改及删除 (单独)  -- 门户
      * @author  klp  2017/7-5
      */
     public function deleteSkuAttachAction()
     {
-
         $goodsAttachModel = new GoodsAttachModel();
         if(isset($this->input['status']) && !empty($this->input['status'])){
             $result = $goodsAttachModel->modifySkuAttach($this->input);//状态更改

@@ -420,7 +420,7 @@ class GoodsAttrModel extends PublicModel
                     "sku" => $del['sku'],
                     "lang" => $del['lang']
                 ];
-                $result = $this->where($where)->save(['status' => self::STATUS_VALID]);
+                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
             }
             return $result ? true : false;
         } catch(Exception $e){

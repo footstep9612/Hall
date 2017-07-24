@@ -94,7 +94,7 @@ class BuyerreginfoModel extends PublicModel {
                         'assets' => isset($checkout['assets']) ? (int)$checkout['assets'] : 0,
                         'equity_ratio' => isset($checkout['equity_ratio']) ? $checkout['equity_ratio'] : '',
                         'own_capital' => isset($checkout['own_capital']) ? (int)$checkout['own_capital'] : 0,
-                        'branch_number' => isset($checkout['branch_number']) ? $checkout['branch_number'] : ''
+                        'branch_count' => isset($checkout['branch_count']) ? $checkout['branch_count'] : 0
                     ];
                     //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
                     $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();

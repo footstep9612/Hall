@@ -133,8 +133,7 @@ class GoodsAttachModel extends PublicModel
         try {
             foreach($delData as $item){
                 $where = [
-                    "sku" => $item['sku'],
-                    "lang" => $item['lang']
+                    "sku" => $item['sku']
                 ];
                 $result = $this->where($where)->save(['status' => $delData['status']]);
             }
@@ -158,8 +157,7 @@ class GoodsAttachModel extends PublicModel
         try{
             foreach($delData as $del){
                 $where = [
-                    "sku" => $del['sku'],
-                    "lang" => $del['lang']
+                    "sku" => $del['sku']
                 ];
                 $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
             }

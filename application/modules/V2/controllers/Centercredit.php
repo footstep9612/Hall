@@ -66,15 +66,15 @@ class CentercreditController extends Yaf_Controller_Abstract//PublicController
     public function checkAction()
     {
         //获取当前用户信息
-       // $userInfo = getLoinInfo();
-       // $this->input['approved_by'] = $userInfo['name'];
-      //  $BuyerappapprovalModel = new BuyerappapprovalModel();
-      //  $result = $BuyerappapprovalModel->checkCredit($this->input);
-        //$this->returnInfo($result);
-        require_once('Edi.php');
-        $ediController = new EdiController();
-        $res = $ediController->testAction();
-        var_dump($res);die;
+        $userInfo = getLoinInfo();
+        $this->input['approved_by'] = $userInfo['name'];
+        $BuyerappapprovalModel = new BuyerappapprovalModel();
+        $result = $BuyerappapprovalModel->checkCredit($this->input);
+        $this->returnInfo($result);
+//        require_once('Edi.php');
+//        $ediController = new EdiController();
+//        $res = $ediController->testAction();
+//        var_dump($res);die;
     }
 
     /**
