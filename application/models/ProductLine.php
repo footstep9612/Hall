@@ -226,7 +226,7 @@ class ProductLineModel extends PublicModel {
         }
 
         try {
-            $id = $this->where($where)->save(['inquiry_status' => 'DELETED']);
+            $id = $this->where($where)->save(['status' => 'DELETED']);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
