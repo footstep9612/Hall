@@ -545,8 +545,8 @@ class EsproductModel extends PublicModel {
     try {
 
       $show_cat_products = $this->table('erui_goods.t_show_cat_product scp')
-              ->join('erui_goods.t_show_cat sc on scp.cat_no=sc.cat_no')
-              ->field('scp.cat_no,scp.spu', 'left')
+              ->join('erui_goods.t_show_cat sc on scp.cat_no=sc.cat_no','left')
+              ->field('scp.cat_no,scp.spu')
               ->where(['scp.spu' => ['in', $spus],
                   'scp.status' => 'VALID',
                   'sc.status' => 'VALID',

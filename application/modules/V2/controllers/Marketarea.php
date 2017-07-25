@@ -117,19 +117,19 @@ class MarketareaController extends PublicController {
     $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
     if ($ret_en) {
       $result['en']['name'] = $ret_en['name'];
-      $result['en']['id'] = $ret_en['id'];
+      //$result['en']['id'] = $ret_en['id'];
     }
     if ($ret_zh) {
       $result['zh']['name'] = $ret_zh['name'];
-      $result['zh']['id'] = $ret_zh['id'];
+     // $result['zh']['id'] = $ret_zh['id'];
     }
     if ($ret_ru) {
       $result['ru']['name'] = $ret_ru['name'];
-      $result['ru']['id'] = $ret_ru['id'];
+     // $result['ru']['id'] = $ret_ru['id'];
     }
     if ($ret_es) {
       $result['es']['name'] = $ret_es['name'];
-      $result['es']['id'] = $ret_es['id'];
+     // $result['es']['id'] = $ret_es['id'];
     }
     unset($result['id']);
     unset($result['lang']);
