@@ -160,38 +160,24 @@ class CountryModel extends PublicModel {
 
   /**
    * 修改数据
-   * @param  int $id id
+   * @param  array $update id
    * @return bool
    * @author jhw
    */
-  public function update_data($data, $where) {
-    if (isset($data['lang'])) {
-      $arr['lang'] = $data['lang'];
-    }
-    if (isset($data['bn'])) {
-      $arr['bn'] = $data['bn'];
-    }
-    if (isset($data['name'])) {
-      $arr['name'] = $data['name'];
-      $arr['pinyin'] = Pinyin($create['name']);
-    }
-    if (isset($data['time_zone'])) {
-      $arr['time_zone'] = $data['time_zone'];
-    }
-    if (isset($data['region'])) {
-      $arr['region'] = $data['region'];
-    }
+  public function update_data($update) {
 
-    if (!empty($where)) {
-      $flag = $this->where($where)->save($arr);
-      if ($flag && $data['market_area_bn'] && $arr['bn']) {
-        $update = ['market_area_bn' => $create['market_area_bn'],
-            'country_bn' => $arr['bn']];
-        if ($this->getmarket_area_countryexit($update)) {
-          $this->table('erui_dict.t_market_area_country')
-                  ->create($update);
-        }
+    $data = $this->create($update);
+    $where['bn'] = $data['bn'];
+    $arr['status'] = $data['status'] == 'VALID' ? 'VALID' : 'INVALID';
+    $flag = $this->where($where)->save($arr);
+    if ($flag && $update['market_area_bn'] && $where['bn']) {
+      $update = ['market_area_bn' => $update['market_area_bn'],
+          'country_bn' => $arr['bn']];
+      if ($this->getmarket_area_countryexit($update)) {
+        $this->table('erui_dict.t_market_area_country')
+                ->add($update, [], true);
       }
+
       return $flag;
     } else {
       return false;

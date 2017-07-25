@@ -123,4 +123,90 @@ class PortModel extends PublicModel {
     }
   }
 
+  /**
+   * 修改数据
+   * @param  int $id id
+   * @return bool
+   * @author jhw
+   */
+  public function update_data($data, $where) {
+    if (!isset($data['bn']) || !$data['bn']) {
+      return false;
+    }
+    $where['bn'] = $data['bn'];
+
+    $newbn = ucwords($data['en']['name']);
+    $data['en']['name'] = ucwords($data['en']['name']);
+    $this->startTrans();
+    $langs = ['en', 'zh', 'es', 'ru'];
+    foreach ($langs as $lang) {
+      $flag = $this->updateandcreate($data, $lang, $newbn);
+      if (!$flag) {
+        $this->rollback();
+        return false;
+      }
+    }
+    $this->commit();
+    return true;
+  }
+  
+
+  private function updateandcreate($data, $lang, $newbn) {
+    if (isset($data[$lang]['name'])) {
+      $where['lang'] = $lang;
+      $where['bn'] = $data['bn'];
+      $arr['bn'] = $newbn;
+      $arr['lang'] = $lang;
+      $arr['name'] = $data[$lang]['name'];
+      $arr['country_bn'] = $data['country_bn'];
+      $arr['trans_mode'] = $data['trans_mode'];
+      $arr['port_type'] = $data['port_type'];
+      $arr['description'] = $data['description'];
+
+      if ($this->Exits($where)) {
+        $flag = $this->where($where)->save($arr);
+        return $flag;
+      } else {
+        $flag = $this->add($data);
+        return $flag;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  public function Exits($where) {
+
+    return $this->where($where)->find();
+  }
+
+  /**
+   * 新增数据
+   * @param  mix $create 新增条件
+   * @return bool
+   * @author jhw
+   */
+  public function create_data($create = []) {
+    if (isset($create['en']['name']) && isset($create['zh']['name'])) {
+      $datalist = [];
+      $arr['bn'] = ucwords($create['en']['name']);
+      $create['en']['name'] = ucwords($create['en']['name']);
+      $arr['country_bn'] = $create['country_bn'];
+      $arr['trans_mode'] = $create['trans_mode'];
+      $arr['port_type'] = $create['port_type'];
+      $arr['description'] = $create['description'];
+      $langs = ['en', 'zh', 'es', 'ru'];
+      foreach ($langs as $lang) {
+        if (isset($create[$lang]['name'])) {
+          $arr['lang'] = $lang;
+          $arr['name'] = $create[$lang]['name'];
+          $datalist[] = $arr;
+        }
+      }
+      return $this->addAll($datalist);
+    } else {
+      return false;
+    }
+  }
+
 }
