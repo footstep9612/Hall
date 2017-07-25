@@ -1,7 +1,7 @@
 <?php
 /**
- * name: ProductLineCat
- * desc: 产品线和物料分类关联表
+ * name: ShowCatGoods
+ * desc: 展示分类与商品映射
  * User: zhangyuliang
  * Date: 2017/7/21
  * Time: 16:58
