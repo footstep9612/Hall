@@ -9,7 +9,18 @@
 class ProductlinequoteController  extends PublicController
 //class ProductlinequoteController  extends Yaf_Controller_Abstract
 {
+    /**
+     * 产品线报价模型
+     * @var
+     */
     private $productLineQuoteModel;
+
+    /**
+     * 产品线报价详情模型
+     * @var
+     */
+    private $productLineQuoteItemModel;
+
     /**
      * 构造方法
      */
@@ -18,6 +29,7 @@ class ProductlinequoteController  extends PublicController
         parent::init();
 
         $this->productLineQuoteModel = new ProductLineQuoteModel();
+        $this->productLineQuoteItemModel = new ProductLineQuoteItemModel();
     }
     /**
      * @desc 产品线报价列表接口
@@ -52,43 +64,32 @@ class ProductlinequoteController  extends PublicController
         }
 
     }
-
-    /**
-     * mongo测试
-     */
-    public function mongoTestAction()
-    {
-        $server = "mongodb://localhost:27017";
-        $options = ['connect'=>TRUE];
-        $mongo = new MongoClient($server,$options);
-        $db = $mongo->oyghan->user;
-        //$doc = ['name'=>'php','description'=>'this is php insert data test'];
-        //$db->insert($doc);
-        $obj = $db->find();
-        $obj = $db->find()->count();
-        p($obj);
-        foreach ($obj as $key=>$value)
-        {
-            echo "<pre>";
-            var_dump($value);
-        }
-    }
-    /**
-     * @desc 产品线报价详情页接口
-     * @author 买买提
-     */
-    public function getInfoAction()
-    {
-        echo "产品线报价详情页";
-    }
-
     /**
      * @desc 产品线报价详情页询单信息接口
      * @author 买买提
      */
-    public function inquiryInfoAction()
+    public function getInquiryInfoAction()
     {
-        echo "产品线报价详情页询单信息接口";
+        if (empty($this->put_data['inquiry_no']))
+        {
+            $this->jsonReturn([
+                'code'=> '-101',
+                'message'=> '缺少参数'
+            ]);
+        }
+
+        //询单本身信息
+        $data = $this->productLineQuoteModel->getInquiryInfo($this->put_data);
+
+        //询单sku列表信息
+        $data['sku_list'] = $this->productLineQuoteItemModel->getSkuList($data['serial_no']);
+
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '成功',
+            'data'=> $data
+        ]);
+
     }
 
     /**
@@ -97,8 +98,8 @@ class ProductlinequoteController  extends PublicController
      */
     public function deleteInquirySkuAction()
     {
+        //这里的删除就是把状态改为DELETED
         $response = $this->productLineQuoteModel->deleteInquirySku($this->put_data);
-
         $this->jsonReturn($response);
     }
     /**
@@ -127,5 +128,24 @@ class ProductlinequoteController  extends PublicController
     {
         echo "产品线报价审核详情页";
     }
-
+    /**
+     * mongo测试
+     */
+    public function mongoTestAction()
+    {
+        $server = "mongodb://localhost:27017";
+        $options = ['connect'=>TRUE];
+        $mongo = new MongoClient($server,$options);
+        $db = $mongo->oyghan->user;
+        //$doc = ['name'=>'php','description'=>'this is php insert data test'];
+        //$db->insert($doc);
+        $obj = $db->find();
+        $obj = $db->find()->count();
+        p($obj);
+        foreach ($obj as $key=>$value)
+        {
+            echo "<pre>";
+            var_dump($value);
+        }
+    }
 }

@@ -77,6 +77,20 @@ class ProductLineQuoteModel extends PublicModel
     }
 
     /**
+     * @desc 获取询单信息
+     * @param array $condition
+     * @author  买买提
+     */
+    public function getInquiryInfo(array $condition)
+    {
+        $where = $this->getCondition($condition);
+        $inquiryFields = ['serial_no','inquiry_no','inquiry_name','payment_mode'];
+
+        //询单本身信息
+        return  $this->where($where)->field($inquiryFields)->find();
+
+    }
+    /**
      * @desc 删除询单信息sku
      * @param array $condition
      */
