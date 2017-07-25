@@ -182,6 +182,7 @@ class ShowcatController extends PublicController {
                 ->field('material_cat_no')
                 ->select();
         $es_product_model = new EsproductModel();
+        $material_cat_nos= array_values($material_cat_nos);
         $material_cats = $es_product_model->getmaterial_cats($material_cat_nos, 'zh');
       } else {
         $material_cats = null;
