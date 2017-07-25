@@ -20,7 +20,26 @@ abstract class PublicController extends Yaf_Controller_Abstract {
   public function init() {
     ini_set("display_errors", "On");
     error_reporting(E_ERROR | E_STRICT);
-    $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
+
+    $this->put_data = $jsondata = $data = [
+        "token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjMzMyIsImV4dCI6MTUwMDk1MTQ4NywiaWF0IjoxNTAwOTUxNDg3LCJuYW1lIjoiXHU2NzMxXHU3ZWEyXHU5NmU4In0.5Ck1Hhu4vTjUHo7XYKOeEMGNRDx-FdDHzOg5IlITo0E",
+        "cat_no" => "090179",
+        'level_no' => 3,
+        "sort_order" => 512,
+        "en" => [
+            "name" => "Oil displacement agent"
+        ],
+        "zh" => [
+            "name" => "驱油剂"
+        ],
+        "es" => [
+            "name" => "Agente de desplazamiento"
+        ],
+        "ru" => [
+            "name" => "вытесняющий агент"
+        ],
+        "parent_cat_no" => "0902"
+    ]; // json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
     if ($this->getRequest()->getModuleName() == 'V1' &&
@@ -86,8 +105,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
   public function __call($method, $args) {
     $data['code'] = -1;
-    $data['message'] = 'Action :There is no method ' . $method;
-    ;
+    $data['message'] = 'Action :There is no method  ' . $method;
     $this->jsonReturn($data);
   }
 
