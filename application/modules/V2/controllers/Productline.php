@@ -133,7 +133,7 @@ class ProductlineController extends PublicController {
     }
 
     //删除产品线
-    public function deleteLine(){
+    public function deleteAction(){
         $productline = new ProductLineModel();
         $createcondition =  $this->put_data;
 
