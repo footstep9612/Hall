@@ -163,8 +163,6 @@ class EsproductModel extends PublicModel {
                     'brand', 'supplier_name'];
             }
             $body = $this->getCondition($condition);
-            var_dump($body);
-            die();
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
@@ -1135,7 +1133,6 @@ class EsproductModel extends PublicModel {
             $body = $this->getInsertCodition($data);
             $id = $data['spu'];
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            var_dump($flag);
             if (!isset($flag['created'])) {
                 LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
                 return false;
