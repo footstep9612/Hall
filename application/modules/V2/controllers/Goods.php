@@ -1,4 +1,10 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: klp
+ * Date: 2017/7/20
+ * Time: 9:34
+ */
 class GoodsController extends PublicController
 //class GoodsController extends Yaf_Controller_Abstract
 {
@@ -43,18 +49,12 @@ class GoodsController extends PublicController
      */
     public function modifySkuAction()
     {
-        $this->input = [
-                0=>[
-                    'sku'=>'3303060000010001',
-                    'lang'=>'en'
-                ],
-        ];
         if(empty($this->input)){
             return false;
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
-        //$this->input['checked_by'] = $userInfo['name'];
+        $this->input['checked_by'] = $userInfo['name'];
         $goodsModel = new GoodsModel();
         if(isset($this->input['status_type']) && !empty($this->input['status_type'])){
             $result = $goodsModel->modify($this->input);    //状态更改(暂为报审)
@@ -120,7 +120,6 @@ class GoodsController extends PublicController
      */
     public function updateSkuAttrAction()
     {
-        //$this->input = $this->test();//测试
         $goodsAttrModel = new GoodsAttrModel();
         $result = $goodsAttrModel->updateAttrSku($this->input);
         $this->returnInfo($result);
@@ -133,7 +132,6 @@ class GoodsController extends PublicController
      */
     public function changSkuAction()
     {
-        //$this->input = $this->test();//测试
         $goodsModel = new GoodsModel();
        if(isset($this->input['status']) && !empty($this->input['status'])){
            $result = $goodsModel->modifySku($this->input);//状态更改
@@ -149,7 +147,6 @@ class GoodsController extends PublicController
      */
     public function modifySkuAttrAction()
     {
-        //$this->input = $this->test();//测试
         $goodsAttrModel = new GoodsAttrModel();
         if(isset($this->input['status']) && !empty($this->input['status'])){
             $result = $goodsAttrModel->modifySkuAttr($this->input);//状态更改

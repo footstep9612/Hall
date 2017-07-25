@@ -809,6 +809,9 @@ class GoodsModel extends PublicModel {
             case 'valid':    //审核
                 $input['status'] = self::STATUS_VALID;
                 break;
+            case 'invalid':    //驳回
+                $input['status'] = self::STATUS_INVALID;
+                break;
         }
         $this->startTrans();
         try {

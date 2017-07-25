@@ -6,7 +6,8 @@
  * Time: 14:46
  */
 
-class CentercreditController extends Yaf_Controller_Abstract//PublicController
+class CentercreditController extends PublicController
+//class CentercreditController extends Yaf_Controller_Abstract
 {
     private $input;
     public function __init()
