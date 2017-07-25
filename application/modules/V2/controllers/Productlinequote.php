@@ -9,12 +9,15 @@
 class ProductlinequoteController  extends PublicController
 //class ProductlinequoteController  extends Yaf_Controller_Abstract
 {
+    private $productLineQuoteModel;
     /**
      * 构造方法
      */
     public function init()
     {
         parent::init();
+
+        $this->productLineQuoteModel = new ProductLineQuoteModel();
     }
     /**
      * @desc 产品线报价列表接口
@@ -22,8 +25,7 @@ class ProductlinequoteController  extends PublicController
      */
     public function getListAction()
     {
-        $productLineQuoteModel = new ProductLineQuoteModel();
-        $data = $productLineQuoteModel->getList($this->put_data) ;
+        $data = $this->productLineQuoteModel->getList($this->put_data) ;
 
         if ($data)
         {
@@ -81,14 +83,24 @@ class ProductlinequoteController  extends PublicController
     }
 
     /**
-     * @desc 产品线报价详情页项目信息接口
+     * @desc 产品线报价详情页询单信息接口
      * @author 买买提
      */
-    public function getProjectInfoAction()
+    public function inquiryInfoAction()
     {
-        echo "产品线报价详情页项目信息";
+        echo "产品线报价详情页询单信息接口";
     }
 
+    /**
+     * @desc 产品线报价详情页->询单信息->删除sku
+     * @author 买买提
+     */
+    public function deleteInquirySkuAction()
+    {
+        $response = $this->productLineQuoteModel->deleteInquirySku($this->put_data);
+
+        $this->jsonReturn($response);
+    }
     /**
      * @desc 产品线报价详情页商品信息接口
      * @author 买买提

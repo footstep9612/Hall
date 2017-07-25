@@ -77,6 +77,47 @@ class ProductLineQuoteModel extends PublicModel
     }
 
     /**
+     * @desc 删除询单信息sku
+     * @param array $condition
+     */
+    public function deleteInquirySku(array $condition)
+    {
+        $where = $this->getCondition($condition);
+
+        if(empty($where['inquiry_no']))
+        {
+            return $response = [
+                'code'=> '-101' ,
+                'message'=> '缺少询单号参数'
+            ];
+        }
+
+        try{
+
+            $modify = $this->where($where)->save([
+                'inquiry_status'=> 'DELETED'
+            ]);
+            if (isset($modify))
+            {
+                return $result = [
+                    'code' => '1',
+                    'message' => '成功!'
+                ] ;
+            }else{
+                return $result = [
+                    'code' => '-101',
+                    'message' => '删除失败!'
+                ] ;
+            }
+        }catch (Exception $exception)
+        {
+            return $result = [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ] ;
+        }
+    }
+    /**
      * 设置条件
      * @param array $condition 条件数据
      * @return array 重组后的条件
@@ -93,6 +134,11 @@ class ProductLineQuoteModel extends PublicModel
                 array('gt',$condition['start_time']),
                 array('lt',$condition['end_time'])
             );
+        }
+        //删除条件
+        if(!empty($condition['inquiry_no']))
+        {
+            $where['inquiry_no'] = $condition['inquiry_no'];
         }
         //p($where);
         return $where;
