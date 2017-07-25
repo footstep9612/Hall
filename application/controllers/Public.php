@@ -19,8 +19,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
   public function init() {
     ini_set("display_errors", "On");
-    //error_reporting(E_ERROR | E_STRICT);
-    error_reporting(E_ALL);
+    error_reporting(E_ERROR | E_STRICT);
     $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
     $lang = $this->getPut('lang', 'en');
     $this->setLang($lang);
@@ -87,7 +86,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
   public function __call($method, $args) {
     $data['code'] = -1;
-    $data['message'] = 'Action :There is no method ' . $method;;
+    $data['message'] = 'Action :There is no method ' . $method;
+    ;
     $this->jsonReturn($data);
   }
 
