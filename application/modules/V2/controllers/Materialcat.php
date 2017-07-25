@@ -6,7 +6,7 @@
 class MaterialcatController extends PublicController {
 
   public function init() {
-    //parent::init();
+    parent::init();
 
     $this->_model = new MaterialcatModel();
   }
@@ -158,8 +158,6 @@ class MaterialcatController extends PublicController {
     $langs = ['en', 'zh', 'es', 'ru'];
     foreach ($langs as $lang) {
       $result = $this->_model->info($cat_no, $lang);
-      echo $this->_model->_sql();
-      var_dump($result);
       if ($result) {
         $data = $result;
         $data['name'] = $data['id'] = null;

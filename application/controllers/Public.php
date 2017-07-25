@@ -87,7 +87,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
   public function __call($method, $args) {
     $data['code'] = -1;
-    $data['message'] = 'Action :There is no method list4Action ';
+    $data['message'] = 'Action :There is no method ' . $method;;
     $this->jsonReturn($data);
   }
 

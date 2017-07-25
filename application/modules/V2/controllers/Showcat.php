@@ -9,8 +9,8 @@
 class ShowcatController extends PublicController {
 
   public function init() {
+     parent::init();
     $this->_model = new ShowCatModel();
-    parent::init();
   }
 
   public function treeAction() {
@@ -149,11 +149,12 @@ class ShowcatController extends PublicController {
     }
     $this->jsonReturn($data);
   }
+
   /**
    * 分类详情
    */
   public function infoAction() {
-    $cat_no = $this->getPut('cat_no');
+    $cat_no =  $this->getPut('cat_no');
     if (!$cat_no) {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
@@ -176,17 +177,16 @@ class ShowcatController extends PublicController {
       $this->setvalue('top_cats', $top_cats);
       $this->setvalue('parent_cats', $parent_cats);
       if ($data['level_no'] == 3) {
-        $material_cat_nos = $this->Table('erui_goods.t_show_material_cat')
+        $material_cat_nos = $this->_model->Table('erui_goods.t_show_material_cat')
                 ->where(['show_cat_no' => $data['cat_no']])
                 ->field('material_cat_no')
                 ->select();
         $es_product_model = new EsproductModel();
         $material_cats = $es_product_model->getmaterial_cats($material_cat_nos, 'zh');
-     
       } else {
         $material_cats = null;
       }
-       $this->setvalue('material_cats', $material_cats);
+      $this->setvalue('material_cats', $material_cats);
       $this->jsonReturn($data);
     } else {
       $this->setCode(MSG::ERROR_EMPTY);
