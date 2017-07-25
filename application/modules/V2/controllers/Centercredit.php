@@ -6,24 +6,13 @@
  * Time: 14:46
  */
 
-class CentercreditController extends Yaf_Controller_Abstract//PublicController
+class CentercreditController extends PublicController
+//class CentercreditController extends Yaf_Controller_Abstract
 {
     private $input;
     public function __init()
     {
         $this->input = json_decode(file_get_contents("php://input"), true);
-    }
-
-    /**
-     * 企业/银行信息新建/编辑 - 门户通用
-     * @author klp
-     */
-    public function createAction()
-    {
-        //jsonReturn(1213);
-        $buyerModel = new BuyerModel();
-        $result = $buyerModel->createInfo($this->user,$this->put_data);
-        $this->returnInfo($result);
     }
 
     /**
@@ -33,7 +22,7 @@ class CentercreditController extends Yaf_Controller_Abstract//PublicController
     public function listAction()
     {
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getListCredit($this->put_data);
+        $result = $buyerModel->getListCredit($this->input);
         $this->returnInfo($result);
     }
 

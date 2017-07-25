@@ -21,9 +21,7 @@ class EsgoodsController extends PublicController {
   //put your code here
   public function init() {
     $this->es = new ESClient();
-    error_reporting(E_ALL);
-    $this->setLang();
-    //parent::init();
+    parent::init();
   }
 
   public function listAction() {

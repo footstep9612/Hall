@@ -6,55 +6,54 @@
  */
 abstract class PublicController extends Yaf_Controller_Abstract {
 
+  protected $user;
+  protected $put_data = [];
+  protected $code = "1";
+  protected $send = [];
+  protected $message = '';
+  protected $lang = '';
 
-    protected $user;
-    protected $put_data = [];
-    protected $code = "1";
-    protected $message = '';
-    protected $lang = '';
+  /*
+   * 初始化
+   */
 
-    /*
-     * 初始化
-     */
+  public function init() {
+    ini_set("display_errors", "On");
+    error_reporting(E_ERROR | E_STRICT);
+    $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
+    $lang = $this->getPut('lang', 'en');
+    $this->setLang($lang);
+    if ($this->getRequest()->getModuleName() == 'V1' &&
+            $this->getRequest()->getControllerName() == 'User' &&
+            in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+      
+    } else {
 
-    public function init() {
-        ini_set("display_errors", "On");
-        //error_reporting(E_ERROR | E_STRICT);
-        error_reporting(E_ALL);
-        $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
-        if ($this->getRequest()->getModuleName() == 'V1' &&
-                $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+      if (!empty($jsondata["token"])) {
+        $token = $jsondata["token"];
+      }
+      $data = $this->getRequest()->getPost();
 
-        } else {
-
-            if (!empty($jsondata["token"])) {
-                $token = $jsondata["token"];
-            }
-            $data = $this->getRequest()->getPost();
-
-            if (!empty($data["token"])) {
-                $token = $data["token"];
-            }
-            $model = new UserModel();
-            if (!empty($token)) {
-                try {
-                    $tks = explode('.', $token);
-                    $tokeninfo = JwtInfo($token); //解析token
-                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
-                    if (empty($userinfo)) {
-                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
-                        exit;
-                    } else {
-                        $this->user = array(
-                            "id" => $userinfo["id"],
-                            "name" => $tokeninfo["name"],
-                            "token" => $token, //token
-                        );
-                    }
-                    //权限控制
+      if (!empty($data["token"])) {
+        $token = $data["token"];
+      }
+      $model = new UserModel();
+      if (!empty($token)) {
+        try {
+          $tks = explode('.', $token);
+          $tokeninfo = JwtInfo($token); //解析token
+          $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
+          if (empty($userinfo)) {
+            echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+            exit;
+          } else {
+            $this->user = array(
+                "id" => $userinfo["id"],
+                "name" => $tokeninfo["name"],
+                "token" => $token, //token
+            );
+          }
+          //权限控制
 //                        if(redisExist('role_user_'.$userinfo['id'])){
 //                            $arr = json_decode(redisGet('role_user_'.$userinfo['user_id']),true);
 //                        }else{
@@ -87,7 +86,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
   public function __call($method, $args) {
     $data['code'] = -1;
-    $data['message'] = 'Action :There is no method list4Action ';
+    $data['message'] = 'Action :There is no method ' . $method;
+    ;
     $this->jsonReturn($data);
   }
 
@@ -97,6 +97,10 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
   public function setLang($lang = 'en') {
     $this->lang = $lang;
+  }
+
+  public function setvalue($name, $value) {
+    $this->send[$name] = $value;
   }
 
   /*
@@ -161,20 +165,20 @@ abstract class PublicController extends Yaf_Controller_Abstract {
       exit(json_encode($data, JSON_UNESCAPED_UNICODE));
     } else {
       if ($data) {
-        $send['data'] = $data;
+        $this->send['data'] = $data;
       }
 
-      $send['code'] = $this->getCode();
+      $this->send['code'] = $this->getCode();
 
-      if ($send['code'] == "1" && !$this->getMessage()) {
-        $send['message'] = '成功!';
+      if ($this->send['code'] == "1" && !$this->getMessage()) {
+        $this->send['message'] = '成功!';
       } elseif (!$this->getMessage()) {
-        $send['message'] = '未知错误!';
+        $this->send['message'] = '未知错误!';
       } else {
-        $send['message'] = $this->getMessage();
+        $this->send['message'] = $this->getMessage();
       }
 
-      exit(json_encode($send, JSON_UNESCAPED_UNICODE));
+      exit(json_encode($this->send, JSON_UNESCAPED_UNICODE));
     }
   }
 

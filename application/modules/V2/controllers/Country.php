@@ -181,21 +181,12 @@ class CountryController extends PublicController {
   public function updateAction() {
     $where = [];
     $bn = $this->getPut('bn');
-    $lang = $this->getPut('lang');
-    if (!$bn) {
+    $market_area_bn = $this->getPut('market_area_bn');
+    if (!$bn || !$market_area_bn) {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
-    else{
-      $where['bn']=$bn;
-    }
-    if (!$lang) {
-      $this->setCode(MSG::MSG_FAILED);
-      $this->jsonReturn();
-    }else{
-      $where['lang']=$lang;
-    }
-    $result = $this->_model->update_data($this->put_data,$where );
+    $result = $this->_model->update_data($this->put_data);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
