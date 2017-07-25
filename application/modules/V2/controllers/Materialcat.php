@@ -6,7 +6,7 @@
 class MaterialcatController extends PublicController {
 
   public function init() {
-    parent::init();
+    //parent::init();
 
     $this->_model = new MaterialcatModel();
   }
@@ -61,7 +61,7 @@ class MaterialcatController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($arr);
           } else {
-            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
           }
         }
@@ -154,31 +154,68 @@ class MaterialcatController extends PublicController {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
-    $ret_en = $this->_model->info($cat_no, 'en');
-    $ret_zh = $this->_model->info($cat_no, 'zh');
-    $ret_es = $this->_model->info($cat_no, 'es');
-    $ret_ru = $this->_model->info($cat_no, 'ru');
-    $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
-    if ($ret_en) {
-      $result['en']['name'] = $ret_en['name'];
+    $data = [];
+    $langs = ['en', 'zh', 'es', 'ru'];
+    foreach ($langs as $lang) {
+      $result = $this->_model->info($cat_no, $lang);
+      echo $this->_model->_sql();
+      var_dump($result);
+      if ($result) {
+        $data = $result;
+        $data['name'] = $data['id'] = null;
+        unset($data['name'], $data['id']);
+        $data[$lang]['name'] = $result['name'];
+      }
     }
-    if ($ret_zh) {
-      $result['zh']['name'] = $ret_zh['name'];
-    }
-    if ($ret_ru) {
-      $result['ru']['name'] = $ret_ru['name'];
-    }
-    if ($ret_es) {
-      $result['es']['name'] = $ret_es['name'];
-    }
-    if ($result) {
+
+    if ($data) {
+      list($top_cats, $parent_cats) = $this->getparentcats($data);
       $this->setCode(MSG::MSG_SUCCESS);
-      $this->jsonReturn($result);
+      $this->setvalue('top_cats', $top_cats);
+      $this->setvalue('parent_cats', $parent_cats);
+      $this->jsonReturn($data);
     } else {
       $this->setCode(MSG::ERROR_EMPTY);
+
       $this->jsonReturn();
     }
     exit;
+  }
+
+  private function getparentcats($data) {
+    $parent_cats = $top_cats = null;
+    if ($data['level_no'] == 3) {
+      $result = $this->_model->info($data['parent_cat_no'], 'zh');
+      $parent_cats = $this->_model->get_list($result['parent_cat_no'], 'zh');
+      $top_cats = $this->_model->get_list(0, 'zh');
+      foreach ($parent_cats as $key => $item) {
+        if ($item['cat_no'] == $result['cat_no']) {
+          $item['checked'] = true;
+        } else {
+          $item['checked'] = false;
+        }
+        $parent_cats[$key] = $item;
+      }
+      foreach ($top_cats as $key => $item) {
+        if ($item['cat_no'] == $result['parent_cat_no']) {
+          $item['checked'] = true;
+        } else {
+          $item['checked'] = false;
+        }
+        $top_cats[$key] = $item;
+      }
+    } elseif ($data['level_no'] == 2) {
+      $top_cats = $this->_model->get_list($data['parent_cat_no'], 'zh');
+      foreach ($top_cats as $key => $item) {
+        if ($item['cat_no'] == $data['parent_cat_no']) {
+          $item['checked'] = true;
+        } else {
+          $item['checked'] = false;
+        }
+        $top_cats[$key] = $item;
+      }
+    }
+    return [$top_cats, $parent_cats];
   }
 
   private function delcache() {
