@@ -59,44 +59,62 @@ class BuyerModel extends PublicModel {
     public function getListCredit($condition) {
         if(empty($condition))
             return false;
+        //取buyer_app_approvel表名
+        $approvalModel = new BuyerappapprovalModel();
+        $apptable = $approvalModel->getTableName();
+
+        //获取当前表名
+        $thistable = $this->getTableName();
+
         $where = array();
         $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
         $pagesize = isset($condition['pagesize']) ? $condition['pagesize'] : 10;     //默认每页10条记录
 
-        //编号
+        //语言
         if (isset($condition['lang']) && !empty($condition['lang'])) {
-            $where["lang"] = $condition['lang'];
+            $where["$thistable.lang"] = $condition['lang'];
+            $where["$apptable..lang"] = $condition['lang'];
         }
         //编号
         if (isset($condition['customer_id']) && !empty($condition['customer_id'])) {
-            $where["customer_id"] = $condition['customer_id'];
+            $where["$thistable.customer_id"] = $condition['customer_id'];
         }
         //审核人
         if (isset($condition['approved_by']) && !empty($condition['approved_by'])) {
-            $where["approved_by"] = $condition['approved_by'];
+            $where["$apptable.approved_by"] = $condition['approved_by'];
         }
         //公司名称
         if (isset($condition['name']) && !empty($condition['name'])) {
-            $where["name"] = $condition['name'];
+            $where["$thistable.name"] = $condition['name'];
         }
         //审核状态
         if (isset($condition['status']) && !empty($condition['status'])) {
-            $where["status"] = $condition['status'];
+            $where["$thistable.status"] = strtoupper($condition['status']);
+            $where["$apptable.status"] = strtoupper($condition['status']);
         }
         //授信额度(暂无字段,待完善)
-        if (isset($condition['credit']) && !empty($condition['credit'])) {
-            $where["credit"] = $condition['credit'];
+        if (isset($condition['credit_star']) && !empty($condition['credit_start']) && isset($condition['credit_end']) && !empty($condition['credit_end'])) {
+            $where["$thistable.credit_total"] = array('egt', $condition['credit_start']);
+            $where["$thistable.credit_total"] = array('elt', $condition['credit_end']);
         }
         //信保审核时间段(暂无,待完善)
-        if (isset($condition['credit']) && !empty($condition['credit'])) {
-            $where["credit"] = $condition['credit'];
-        }
+//        if (isset($condition['approved_start']) && !empty($condition['approved_start'])) {
+//            $where["$thistable.approved_at"] = array('egt', $condition['approved_start']);
+//        }
+//        if (isset($condition['approved_end']) && !empty($condition['approved_end'])) {
+//            $where["$thistable.approved_at"] = array('elt', $condition['approved_end']);
+//        }
+
         //易瑞审核时间段
-        if (isset($condition['approved_start']) && isset($condition['approved_end'])  && !empty($condition['approved_start'])  && !empty($condition['approved_end'])) {
-            $where["approved_at"] = array('egt', $condition['approved_start']);
-            $where["approved_at"] = array('elt', $condition['approved_end']);
+        if (isset($condition['approved_start']) && !empty($condition['approved_start'])) {
+            $where["$thistable.approved_at"] = array('egt', $condition['approved_start']);
         }
-        $field = 'serial_no,customer_id,lang,name,bn,status,apply_at,approved_at';
+        if (isset($condition['approved_end']) && !empty($condition['approved_end'])) {
+            $where["$thistable.approved_at"] = array('elt', $condition['approved_end']);
+        }
+//字段待完善
+        $field = "$thistable.id,$thistable.serial_no,$thistable.customer_id,$thistable.lang,$thistable.name,$thistable.bn,$thistable.status,$thistable.apply_at,$thistable.approved_at,$apptable.approved_by,$apptable.approved_at";
+
 //        $field .='profile,country,province,city,reg_date,logo,official_website,brand,bank_name,swift_code,bank_address,bank_account,buyer_level,credit_level,finance_level,logi_level,qa_level,steward_level,remarks';
         try {
             $result = $this->field($field)->order("id")->page($current_no, $pagesize)->where($where)->select();
@@ -498,7 +516,7 @@ class BuyerModel extends PublicModel {
                         $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
                     } else {
                         $data['apply_at'] = date('Y-m-d H:i:s', time());
-                        $data['status'] = self::STATUS_CHECKING;//待报审状态
+                        $data['status'] = self::STATUS_CHECKING;//待审状态
                         $this->add($data);
                     }
                     //t_buyer_reg_info
