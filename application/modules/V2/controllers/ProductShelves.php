@@ -2,7 +2,7 @@
 
 /**
  * Name: ProductShelves
- * Desc: 产品线管理
+ * Desc: 产品上下架
  * User: zhangyuliag
  * Date: 2017/7/21
  * Time: 14:28
@@ -39,8 +39,11 @@ class ProductshelvesController extends PublicController {
       $goodsres = $showcatgoods->addData($condition);
 
       if ($goodsres['code'] == 1) {
-        $productstatus = $product->where($where)->save(['shelves_status' => 'VALID']);
-        $goodsstatus = $goods->where($where)->save(['shelves_status' => 'VALID']);
+        $shelvesdata['shelves_by'] = $createcondition['created_by'];
+        $shelvesdata['shelves_at'] = date('Y-m-d H:i:s');
+        $shelvesdata['shelves_status'] = 'VALID';
+        $productstatus = $product->where($where)->save($shelvesdata);
+        $goodsstatus = $goods->where($where)->save($shelvesdata);
         if ($productstatus && $goodsstatus) {
           $this->change_ProductShelvesStatus($where['spu'], 'VALID', $where['lang']);
           $showcatproduct->commit();
