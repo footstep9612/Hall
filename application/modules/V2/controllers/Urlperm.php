@@ -18,6 +18,7 @@ class UrlpermController extends PublicController {
     }
 
     public function listAction() {
+
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];

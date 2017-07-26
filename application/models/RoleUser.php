@@ -61,6 +61,19 @@ class RoleUserModel extends PublicModel {
             return false;
         }
     }
+
+    public function update_datas($data) {
+        if($data['role_id']){
+            $this->where(['role_id'=>$data['role_id']])->delete();
+            if($data['role_user_ids']){
+                $user_arr = explode(',',$data['role_user_ids']);
+                $count = count($user_arr);
+                for($i=0;$i<$count;$i++){
+                    $this -> create_data(['role_id'=>$data['role_id'],'user_id' =>$user_arr[$i] ]);
+                }
+            }
+        }
+    }
     /**
      * 新增数据
      * @param  mix $createcondition 新增条件
@@ -68,17 +81,11 @@ class RoleUserModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['parent_id'])){
-            $arr['parent_id'] = $create['parent_id'];
+        if(isset($create['role_id'])){
+            $arr['role_id'] = $create['role_id'];
         }
-        if(isset($create['name'])){
-            $arr['name'] = $create['name'];
-        }
-        if(isset($create['description'])){
-            $arr['description'] = $create['description'];
-        }
-        if(isset($create['status'])){
-            $arr['status'] = $create['status'];
+        if(isset($create['user_id'])){
+            $arr['user_id'] = $create['user_id'];
         }
         $data = $this->create($arr);
         return $this->add($data);

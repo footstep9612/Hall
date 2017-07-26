@@ -20,7 +20,7 @@ class UserModel extends PublicModel {
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
-
+    private $db_config ='mysql://usrregi:regiusr@172.18.18.61:3306/regi?#utf8';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -95,7 +95,27 @@ class UserModel extends PublicModel {
         }
         return $this->query( $sql );
     }
+    /**
+     * 获取列表
+     * @param data $data;
+     * @return array
+     * @author jhw
+     */
+    public function getlistnewdb($data,$limit,$order='user_main_id desc') {
+        $sql = 'SELECT `user_main_id`,`username`,`nick_name`,`email`,`mobile`';
+        $sql .= ' FROM regi.user_main';
+//        if ( !empty($condition['where']) ){
+//            $sql .= ' AND '.$condition['where'];
+//        }
+//        $sql .= ' Order By '.$order;
+//        if ( $condition['page'] ){
+//            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
+//        }
+//return $this->query( $sql );
+        $db =db_Db::getInstance($this->db_config);
+        return $db->query($sql);
 
+    }
     /**
      * 获取列表
      * @param  string $code 编码
