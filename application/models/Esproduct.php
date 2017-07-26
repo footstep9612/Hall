@@ -86,7 +86,8 @@ class EsproductModel extends PublicModel {
         $this->getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->getQurey($condition, $body, ESClient::RANGE, 'updated_at');
-
+        $this->getQurey($condition, $body, ESClient::RANGE, 'shelves_at');
+        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'shelves_by');
         if (isset($condition['status']) && $condition['status']) {
             $status = $condition['status'];
             if ($status == 'ALL') {
