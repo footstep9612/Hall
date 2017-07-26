@@ -257,8 +257,18 @@ class MaterialcatController extends PublicController {
     }
 
     public function deleteAction() {
+        $cat_no = $this->getPut('cat_no');
+        $lang = $this->getPut('lang');
+        $product_model = new ProductModel();
+        $data = $product_model->where(['meterial_cat_no' => ['like', $cat_no . '%']])
+                ->find();
 
-        $result = $this->_model->delete_data($this->put_data['cat_no'], $this->getLang());
+        if ($data) {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('该分类下存在产品,不能删除');
+            $this->jsonReturn();
+        }
+        $result = $this->_model->delete_data($cat_no, $lang);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
