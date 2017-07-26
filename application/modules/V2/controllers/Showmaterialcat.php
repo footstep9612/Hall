@@ -16,13 +16,12 @@ class ShowmaterialcatController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        parent::init();
     }
 
     public function getlistAction() {
         $model = new ShowmaterialcatModel();
-        $material_cat_no = '140245';
-        //$this->getPut('material_cat_no');
+        $material_cat_no = $this->getPut('material_cat_no');
         if (!$material_cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
