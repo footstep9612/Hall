@@ -59,7 +59,7 @@ class BuyerappapprovalModel extends PublicModel {
         //新状态可以补充
         if(isset($condition['status_type'])) {
             switch (strtoupper($condition['status_type'])) {
-                case 'declare':    //报审(暂用)
+                case 'checked':    //审核(暂用)
                     $data['status'] = self::STATUS_CHECKING;
                     break;
             }
@@ -69,7 +69,7 @@ class BuyerappapprovalModel extends PublicModel {
         try {
             $result = $this->add($condition);
             return $result ? true : false;
-        } catch(\Kafka\Exception $e){
+        } catch(Exception $e){
             return false;
         }
 

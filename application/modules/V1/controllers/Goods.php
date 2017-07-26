@@ -1,4 +1,10 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: klp
+ * Date: 2017/7/9
+ * Time: 9:34
+ */
 class GoodsController extends PublicController
 //class GoodsController extends Yaf_Controller_Abstract
 {

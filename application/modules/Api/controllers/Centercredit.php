@@ -32,7 +32,7 @@ class CentercreditController extends ShopMallController
     public function getBuyerInfoAction()
     {
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getBuyerInfo($this->input);
+        $result = $buyerModel->getBuyerInfo($this->user);
         $this->returnInfo($result);
     }
 
@@ -48,18 +48,18 @@ class CentercreditController extends ShopMallController
     }
 
     /**
-     * 审核会员授信(待完善,触发中信保审核)
+     * 易瑞审核会员授信(待完善,触发中信保审核)
      * @author klp
      */
-    public function checkAction()
-    {
-        //获取当前用户信息
-        $userInfo = getLoinInfo();
-        $this->input['approved_by'] = $userInfo['name'];
-        $BuyerappapprovalModel = new BuyerappapprovalModel();
-        $result = $BuyerappapprovalModel->checkCredit($this->input);
-        $this->returnInfo($result);
-    }
+//    public function checkAction()
+//    {
+//        //获取当前用户信息
+//        $userInfo = getLoinInfo();
+//        $this->input['approved_by'] = $userInfo['name'];
+//        $BuyerappapprovalModel = new BuyerappapprovalModel();
+//        $result = $BuyerappapprovalModel->checkCredit($this->put_data);
+//        $this->returnInfo($result);
+//    }
 
     /**
      * 区域等级会员维护列表(未写)

@@ -293,7 +293,7 @@ class GoodsAttrModel extends PublicModel
 
         //redis获取
         if(redisHashExist('Attr',md5(json_encode($where)))){
-            //return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
+            return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
         }
         //查询
         try{
@@ -337,10 +337,6 @@ class GoodsAttrModel extends PublicModel
                 }
             }
             redisHashSet('Attr',md5(json_encode($where)),json_encode($data));
-            if(!isset($data['en'])){$data['en'] = array();}
-            if(!isset($data['zh'])){$data['zh'] = array();}
-            if(!isset($data['ru'])){$data['ru'] = array();}
-            if(!isset($data['es'])){$data['es'] = array();}
             return $data;
         }catch (Exception $e){
             return array();
@@ -424,7 +420,7 @@ class GoodsAttrModel extends PublicModel
                     "sku" => $del['sku'],
                     "lang" => $del['lang']
                 ];
-                $result = $this->where($where)->save(['status' => self::STATUS_VALID]);
+                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
             }
             return $result ? true : false;
         } catch(Exception $e){

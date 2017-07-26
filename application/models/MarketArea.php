@@ -27,7 +27,7 @@ class MarketAreaModel extends PublicModel {
       $data['lang'] = $condition['lang'];
     }
     if (isset($condition['bn']) && $condition['bn']) {
-      $data['bn'] = $condition['bn'];
+      $data['bn'] = ucwords($condition['bn']);
     }
     if (isset($condition['parent_bn']) && $condition['parent_bn']) {
       $data['parent_bn'] = $condition['parent_bn'];
@@ -66,8 +66,8 @@ class MarketAreaModel extends PublicModel {
         }
         $from = ($current_no - 1) * $pagesize;
       }
-      $this->field('id,lang,bn,parent_bn,name,url,group_id,'
-                      . '(select name from erui_sys.t_group where erui_sys.t_group.id=group_id) as group_name ')
+      $this->field('id,lang,bn,parent_bn,name as zh_name,url,group_id,'
+                      . '(select ma.name from erui_dict.t_market_area as ma where ma.bn=bn) as en_name ')
               ->where($data);
       if ($type) {
         $this->limit($from . ',' . $pagesize);
@@ -181,36 +181,39 @@ class MarketAreaModel extends PublicModel {
    * @author jhw
    */
   public function update_data($data, $where) {
-    if (isset($data['lang'])) {
-      $arr['lang'] = $data['lang'];
-    }
-    if (isset($data['bn'])) {
-      $arr['bn'] = $data['bn'];
-    }
-    if (isset($data['name'])) {
-      $arr['name'] = $data['name'];
-    }
-
-    if (isset($data['group_id']) && $data['group_id']) {
-      $arr['group_id'] = $data['group_id'];
-    } else {
-      $arr['group_id'] = 0;
-    }
-    if (isset($data['url']) && $data['url']) {
-      $arr['url'] = $data['url'];
-    } else {
-      $arr['url'] = '';
-    }
-    if (isset($data['parent_bn']) && $data['parent_bn']) {
-      $arr['parent_bn'] = $data['parent_bn'];
-    } else {
-      $arr['parent_bn'] = '';
-    }
-    if (!empty($where)) {
-      return $this->where($where)->save($arr);
-    } else {
+    if (!isset($data['bn']) || !$data['bn']) {
       return false;
     }
+    $where['bn'] = $data['bn'];
+
+    $arr['bn'] = ucwords($data['en']['name']);
+    $data['en']['name'] = ucwords($data['en']['name']);
+    $this->startTrans();
+    foreach ($data as $key => $name) {
+      $arr['lang'] = $key;
+      $arr['name'] = $name;
+      $where['lang'] = $key;
+      if ($this->Exits($where)) {
+        $flag = $this->where($where)->save($arr);
+        if (!$flag) {
+          $this->rollback();
+          return false;
+        }
+      } else {
+        $flag = $this->add($arr);
+        if (!$flag) {
+          $this->rollback();
+          return false;
+        }
+      }
+    }
+    $this->commit();
+    return true;
+  }
+
+  public function Exits($where) {
+
+    return $this->where($where)->find();
   }
 
   /**
@@ -220,40 +223,19 @@ class MarketAreaModel extends PublicModel {
    * @author jhw
    */
   public function create_data($create = []) {
-    if (isset($create['lang']) && $create['lang']) {
-      $arr['lang'] = $create['lang'];
+    if (isset($create['en']['name']) && isset($create['zh']['name'])) {
+      $datalist = [];
+      $arr['bn'] = ucwords($create['en']['name']);
+      $create['en']['name'] = ucwords($create['en']['name']);
+      foreach ($create as $key => $name) {
+        $arr['lang'] = $key;
+        $arr['name'] = $name;
+        $datalist[] = $arr;
+      }
+      return $this->addAll($datalist);
     } else {
       return false;
     }
-    if (isset($create['bn']) && $create['bn']) {
-      $arr['bn'] = $create['bn'];
-    } else {
-      $create['bn'] = '';
-    }
-    if (isset($create['name']) && $create['name']) {
-      $arr['name'] = $create['name'];
-    } else {
-      return false;
-    }
-
-    if (isset($create['group_id']) && $create['group_id']) {
-      $arr['group_id'] = $create['group_id'];
-    } else {
-      $arr['group_id'] = 0;
-    }
-    if (isset($create['url']) && $create['url']) {
-      $arr['url'] = $create['url'];
-    } else {
-      $arr['url'] = '';
-    }
-    if (isset($create['parent_bn']) && $create['parent_bn']) {
-      $arr['parent_bn'] = $create['parent_bn'];
-    } else {
-      $arr['parent_bn'] = '';
-    }
-
-    $data = $this->create($arr);
-    return $this->add($data);
   }
 
 }

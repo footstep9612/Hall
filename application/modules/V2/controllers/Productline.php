@@ -48,13 +48,17 @@ class ProductlineController extends PublicController {
 
         $results = $productline->getInfo($createcondition);
         $catno = $productlinecat->getlist($results['data']);
-        $catlist = [];
-        foreach($catno['data'] as $val){
-            $test = $materialcat->getinfo($val['cat_no'],'zh');
-            $cat_name = $test['cat_name1'].','.$test['cat_name2'].','.$test['cat_name3'];
-            $catlist[] = ['cat_no'=>$val['cat_no'],'cat_name'=>$cat_name];
 
+        if($catno){
+            $catlist = [];
+            foreach($catno['data'] as $val){
+                $test = $materialcat->getinfo($val['cat_no'],'zh');
+                $cat_name = $test['cat_name1'].','.$test['cat_name2'].','.$test['cat_name3'];
+                $catlist[] = ['cat_no'=>$val['cat_no'],'cat_name'=>$cat_name];
+
+            }
         }
+
         $results['data']['material_cat'] = $catlist;
 
         $this->jsonReturn($results);
@@ -133,7 +137,7 @@ class ProductlineController extends PublicController {
     }
 
     //删除产品线
-    public function deleteLine(){
+    public function deleteAction(){
         $productline = new ProductLineModel();
         $createcondition =  $this->put_data;
 
