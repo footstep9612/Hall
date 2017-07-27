@@ -37,11 +37,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($data["token"])) {
                 $token = $data["token"];
             }
-            $model = new UserModel();
-            $tokeninfo = JwtInfo($token); //解析token
-                $user_modle =new UserModel();
-                $info =$user_modle->findInfo($tokeninfo['sub']);
-                var_dump($info);die;
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
