@@ -28,9 +28,10 @@ class EsproductModel extends PublicModel {
                     $field = $name;
                 }
                 if (!$minimum_should_match) {
-                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value, 'operator' => 'and',]];
+                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
                 } else {
-                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value, 'minimum_should_match' => '75%', 'operator' => 'and',]];
+                    $body['query']['bool']['minimum_should_match'] = "75%";
+                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
                 }
             }
         } elseif ($qurey_type == ESClient::WILDCARD) {
