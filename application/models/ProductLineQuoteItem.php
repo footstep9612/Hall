@@ -1,9 +1,8 @@
 <?php
 
 /**
- * @desc 产品线报价详情
- * Class ProductLineQuoteItemModel
- * @author 买买提
+ * @desc    产品线报价详情模型
+ * @author    买买提
  */
 class ProductLineQuoteItemModel extends PublicModel
 {
@@ -17,10 +16,10 @@ class ProductLineQuoteItemModel extends PublicModel
 
 
     /**
-     * @desc 获取询单sku列表
-     * @param string $serial_no
-     * @author 买买提
-     * @return mixed
+     * @desc    获取询单sku列表
+     * @param    string    $serial_no   询单号
+     * @author    买买提
+     * @return    mixed
      */
     public function getSkuList($serial_no)
     {

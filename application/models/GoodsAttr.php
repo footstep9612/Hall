@@ -5,8 +5,7 @@
  *  @author  klp
  */
 
-class GoodsAttrModel extends PublicModel
-{
+class GoodsAttrModel extends PublicModel{
 
     protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
@@ -261,9 +260,9 @@ class GoodsAttrModel extends PublicModel
      * @return array
      */
     public function getAttr($condition=[]){
-        if(!isset($condition['sku']))
+        if(!isset($condition['sku'])) {
             return array();
-
+        }
         //组装条件
         $where = array(
             'sku' => trim($condition['sku']),
@@ -348,8 +347,7 @@ class GoodsAttrModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function createAttrSku($data)
-    {
+    public function createAttrSku($data){
         $arr = $this->check_data($data);
         $res = $this->addAll($arr);
         if($res){
@@ -363,13 +361,12 @@ class GoodsAttrModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function updateAttrSku($data)
-    {
+    public function updateAttrSku($data){
         $condition = $this->check_up($data);
         if($condition){
             try{
                 foreach($condition as $v){
-                    $this->where("id =". $v['id'])->save($v);
+                    $this->where(array('sku'=>$v['sku'],'lang'=>$v['lang']))->save($v);
                 }
                 return true;
             } catch(\Kafka\Exception $e){
@@ -385,17 +382,22 @@ class GoodsAttrModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function modifySkuAttr($delData)
-    {
-        if(empty($delData))
+    public function modifySkuAttr($delData){
+        if(empty($delData)) {
             return false;
+        }
+        $status = $delData['status'];
+        unset($delData['status']);
         try {
             foreach($delData as $item){
                 $where = [
                     "sku" => $item['sku'],
                     "lang" => $item['lang']
                 ];
-                $result = $this->where($where)->save(['status' => $delData['status']]);
+//                $resatr = $this->field('sku')->where($where)->find();
+//                if($resatr) {
+                    $result = $this->where($where)->save(['status' => $status]);
+//                }
             }
             return $result ? true : false;
         } catch (Exception $e) {
@@ -410,8 +412,7 @@ class GoodsAttrModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function deleteRealAttr($delData)
-    {
+    public function deleteRealAttr($delData){
         if(empty($delData))
             return false;
         try{
@@ -436,8 +437,7 @@ class GoodsAttrModel extends PublicModel
      * @author klp
      * @return array
      */
-    public function check_data($data=[])
-    {
+    public function check_data($data=[]){
         if(empty($data))
             return false;
         $condition['lang'] = isset($data['lang']) ? $data['lang']: 'en';
@@ -455,8 +455,7 @@ class GoodsAttrModel extends PublicModel
         if (isset($data['attr_no'])) {
             $condition['attr_no'] = $data['attr_no'];
         } else {
-            $condition['attr_no'] = 123;
-           // JsonReturn('','-1003','属性编码不能为空');
+            JsonReturn('','-1003','属性编码不能为空');
         }
         if(isset($data['status'])){
             switch ($data['status']) {
@@ -515,8 +514,7 @@ class GoodsAttrModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function check_up($data)
-    {
+    public function check_up($data){
         if(empty($data))
             return false;
 

@@ -28,9 +28,9 @@ class EsproductModel extends PublicModel {
                     $field = $name;
                 }
                 if (!$minimum_should_match) {
-                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
+                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value, 'operator' => 'and',]];
                 } else {
-                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value, 'minimum_should_match' => '75%']];
+                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value, 'minimum_should_match' => '75%', 'operator' => 'and',]];
                 }
             }
         } elseif ($qurey_type == ESClient::WILDCARD) {
@@ -131,6 +131,7 @@ class EsproductModel extends PublicModel {
         $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+
         $this->getQurey($condition, $body, ESClient::MATCH, 'show_name');
         $this->getQurey($condition, $body, ESClient::MATCH, 'name', 'name', true);
         $this->getQurey($condition, $body, ESClient::MATCH, 'attrs');
@@ -141,6 +142,7 @@ class EsproductModel extends PublicModel {
             $body['query']['bool']['must'][] = [ESClient::MULTI_MATCH => [
                     'query' => $show_name,
                     'type' => 'most_fields',
+                    'operator' => 'and',
                     'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
             ]];
         }
@@ -183,7 +185,7 @@ class EsproductModel extends PublicModel {
                         ->setsort('sort_order', 'desc')
                         ->setsort('_score', 'desc')
                         ->setaggs('meterial_cat_no', 'meterial_cat_no')
-                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize, $allcount['count']];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

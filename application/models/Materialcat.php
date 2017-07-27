@@ -38,18 +38,15 @@ class MaterialcatModel extends PublicModel {
         getValue($where, $condition, 'id', 'string');
         getValue($where, $condition, 'cat_no', 'string');
         if (isset($condition['cat_no3']) && $condition['cat_no3']) {
-            $where['level_no'] = 3;
             $where['cat_no'] = $condition['cat_no3'];
         } elseif (isset($condition['cat_no2']) && $condition['cat_no2']) {
-            $where['level_no'] = 2;
+            $where['level_no'] = 3;
             $where['parent_cat_no'] = $condition['cat_no2'];
         } elseif (isset($condition['cat_no1']) && $condition['cat_no1']) {
-            $where['level_no'] = 1;
+            $where['level_no'] = 2;
             $where['parent_cat_no'] = $condition['cat_no1'];
         } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
             $where['level_no'] = intval($condition['level_no']);
-        } else {
-            $where['level_no'] = 1;
         }
         getValue($where, $condition, 'parent_cat_no', 'string');
         getValue($where, $condition, 'mobile', 'like');
@@ -121,6 +118,25 @@ class MaterialcatModel extends PublicModel {
     }
 
     /**
+     * 分页处理
+     * @param array $condition 条件
+     * @return null
+     * @author zyg
+     *
+     */
+    private function _getPage($condition) {
+        $pagesize = 10;
+        $start_no = 0;
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        if (isset($condition['current_no'])) {
+            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
+        }
+        return [$start_no, $pagesize];
+    }
+
+    /**
      * 获取列表
      * @param mix $condition
      * @return mix
@@ -129,18 +145,12 @@ class MaterialcatModel extends PublicModel {
     public function getlist($condition = []) {
         try {
             $where = $this->getcondition($condition);
-            if (isset($condition['page']) && isset($condition['countPerPage'])) {
-                return $this->where($where)
-                                ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                                ->order('sort_order DESC')
-                                ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
-                                ->select();
-            } else {
-                return $this->where($where)
-                                ->order('sort_order DESC')
-                                ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
-                                ->select();
-            }
+            list($start_no, $pagesize) = $this->_getPage($condition);
+            return $this->where($where)
+                            ->limit($start_no, $pagesize)
+                            ->order('sort_order DESC')
+                            ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
+                            ->select();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -266,58 +276,19 @@ class MaterialcatModel extends PublicModel {
      * @author zyg
      */
     public function delete_data($cat_no = '', $lang = '') {
-
         if (!$cat_no) {
+
             return false;
         }
-        $where['cat_no'] = $cat_no;
+        $where['cat_no'] = ['like', $cat_no . '%'];
         if ($lang) {
             $where['lang'] = $lang;
         }
-        $info = $this->info($cat_no, 'en');
-        if (!$info) {
-            $info = $this->info($cat_no, 'zh');
-        }
-        if (!$info) {
-            $info = $this->info($cat_no, 'es');
-        }
-        if (!$info) {
-            $info = $this->info($cat_no, 'ru');
-        }
         try {
-            $this->startTrans();
+
             $flag = $this->where($where)
                     ->save(['status' => self::STATUS_DELETED]);
-            if ($flag && $info['level_no'] == 1) {
-                $flag = $this->where(['parent_cat_no' => $cat_no])
-                        ->save(['status' => self::STATUS_DELETED]);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-            }
-            if ($flag && $info['level_no'] == 2) {
-                $flag = $this->where(['parent_cat_no' => $cat_no])
-                        ->save(['status' => self::STATUS_DELETED]);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-            }
-            if ($flag && $cat_no && $info['level_no'] == 3 && !$lang) {
-                $es_product_model = new EsproductModel();
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
-            } elseif ($flag && $cat_no && $info['level_no'] == 3 && $lang) {
-                $es_product_model = new EsproductModel();
-                $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
-            } else {
-                $this->rollback();
-                return false;
-            }
-            $this->commit();
+
             return $flag;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
