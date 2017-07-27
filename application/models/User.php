@@ -19,7 +19,7 @@ class UserModel extends PublicModel {
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
-    private $db_config ='mysql://usrregi:regiusr@172.18.18.61:3306/regi?#utf8';
+    private $db_config ='mysqli://usrregi:regiusr@172.18.18.61:3306/regi?#utf8';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
