@@ -388,6 +388,7 @@ class GoodsAttrModel extends PublicModel{
         }
         $status = $delData['status'];
         unset($delData['status']);
+        $this->startTrans();
         try {
             foreach($delData as $item){
                 $where = [
@@ -396,13 +397,13 @@ class GoodsAttrModel extends PublicModel{
                 ];
 //                $resatr = $this->field('sku')->where($where)->find();
 //                if($resatr) {
-                    $result = $this->where($where)->save(['status' => $status]);
+                    $this->where($where)->save(['status' => $status]);
 //                }
             }
-            return $result ? true : false;
+            $this->commit();
+            return true;
         } catch (Exception $e) {
-//        $results['code'] = $e->getCode();
-//        $results['message'] = $e->getMessage();
+            $this->rollback();
             return false;
         }
     }
@@ -413,20 +414,22 @@ class GoodsAttrModel extends PublicModel{
      * @return bool
      */
     public function deleteRealAttr($delData){
-        if(empty($delData))
+        if(empty($delData)) {
             return false;
+        }
+        $this->startTrans();
         try{
             foreach($delData as $del){
                 $where = [
                     "sku" => $del['sku'],
                     "lang" => $del['lang']
                 ];
-                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+                $this->where($where)->save(['status' => self::STATUS_DELETED]);
             }
-            return $result ? true : false;
+            $this->commit();
+            return true;
         } catch(Exception $e){
-//            $results['code'] = $e->getCode();
-//            $results['message'] = $e->getMessage();
+            $this->rollback();
             return false;
         }
 

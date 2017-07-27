@@ -47,13 +47,13 @@ class GoodsModel extends PublicModel {
        * @return array
        */
       public function getInfoBase($condition = []) {
-        if (!isset($condition['sku']))
-          return array();
-
+        if (!isset($condition['sku'])) {
+            return array();
+        }
         $where = array(
-            'sku' => trim($condition['sku']),
+            'sku' => trim($condition['sku'])
         );
-        if (isset($condition['lang'])) {
+        if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
           $where['lang'] = strtolower($condition['lang']);
         }
         if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
@@ -481,7 +481,7 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku新增（门户后台）
+       * sku新增（BOSS后台）
        * @author klp
        * @return bool
        */
@@ -532,7 +532,7 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku更新（门户后台）
+       * sku更新（BOSS后台）
        * @author klp
        * @return bool
        */
@@ -556,7 +556,7 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku[状态更改](报审/审核)（门户后台）
+       * sku[状态更改](报审/审核)（BOSS后台）
        * @author klp
        * @return bool
        */
@@ -566,6 +566,7 @@ class GoodsModel extends PublicModel {
           }
           $status = $delData['status'];
           unset($delData['status']);
+          $this->startTrans();
           try {
               foreach($delData as $del) {
                   if(isset($del['checked_desc'])){
@@ -576,29 +577,25 @@ class GoodsModel extends PublicModel {
                           "checked_at" => date('Y-m-d H:i:s', time()),
                           "checked_desc" => $del['checked_desc']
                       ];
-                      $result = $this->where($where)->save(['status' => $status]);
+                      $this->where($where)->save(['status' => $status]);
                   } else {
                       $where = [
                           "sku" => $del['sku'],
                           "lang" => $del['lang']
                       ];
-                      $result = $this->where($where)->save(['status' => $status]);
+                      $this->where($where)->save(['status' => $status]);
                   }
               }
-          if ($result) {
-            return true;
-          } else {
-            return false;
-          }
+              $this->commit();
+              return true;
         } catch (Exception $e) {
-          //        $results['code'] = $e->getCode();
-          //        $results['message'] = $e->getMessage();
-          return false;
+            $this->rollback();
+            return false;
         }
       }
 
       /**
-       * sku真实删除（门户后台）
+       * sku真实删除（BOSS后台）
        * @author klp
        * @return bool
        */
@@ -611,22 +608,18 @@ class GoodsModel extends PublicModel {
                   "sku" => $del['sku'],
                   "lang" => $del['lang']
                 ];
-                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+                $this->where($where)->save(['status' => self::STATUS_DELETED]);
             }
-          if ($result) {
+            $this->commit();
             return true;
-          } else {
-            return false;
-          }
         } catch (Exception $e) {
-          //        $results['code'] = $e->getCode();
-          //        $results['message'] = $e->getMessage();
-          return false;
+           $this->rollback();
+           return false;
         }
       }
 
       /**
-       * sku参数处理（门户后台）
+       * sku参数处理（BOSS后台）
        * @author klp
        * @return array
        */
@@ -683,7 +676,7 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku更新参数处理（门户后台）
+       * sku更新参数处理（BOSS后台）
        * @author klp
        * @return bool
        */
@@ -736,7 +729,7 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku新增/编辑-（门户后台）
+       * sku新增/编辑-（BOSS后台）
        * @author klp
        */
       public function editSkuInfo($input) {
@@ -830,7 +823,7 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku状态变更-（门户后台）
+       * sku状态变更-（BOSS后台）
        * @author klp
        */
       public function modify($input) {
@@ -884,7 +877,7 @@ class GoodsModel extends PublicModel {
       }
 
       /**
-       * sku真实删除-（门户后台）
+       * sku真实删除-（BOSS后台）
        * @author klp
        */
       public function deleteReal($input) {
@@ -921,16 +914,17 @@ class GoodsModel extends PublicModel {
 
 
       /**
-       * 生成sku编码-（门户后台）
+       * 生成sku编码-（BOSS后台）
+       * SKU编码：8位数字组成（如12345678）
        * @author klp
        */
       public function setupSku() {
-        $rand = rand(0, 9999999);
-        return str_pad($rand, 7, "0", STR_PAD_LEFT);
+        $rand = rand(1, 99999999);
+        return str_pad($rand, 8, "0", STR_PAD_LEFT);
       }
 
       /**
-       * 生成sku二维码-（门户后台）
+       * 生成sku二维码-（BOSS后台） --待以后添加
        * @author klp
        */
       public function setupQrcode() {

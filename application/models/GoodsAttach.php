@@ -128,6 +128,7 @@ class GoodsAttachModel extends PublicModel{
         }
         $status = $delData['status'];
         unset($delData['status']);
+        $this->startTrans();
         try {
             foreach($delData as $item){
                 $where = [
@@ -135,13 +136,13 @@ class GoodsAttachModel extends PublicModel{
                 ];
                 $resach = $this->field('sku')->where($where)->find();
                 if ($resach) {
-                    $result = $this->where($where)->save(['status' => $status]);
+                    $this->where($where)->save(['status' => $status]);
                 }
             }
-            return $result ? true : false;
+            $this->commit();
+            return true;
         } catch (Exception $e) {
-//        $results['code'] = $e->getCode();
-//        $results['message'] = $e->getMessage();
+            $this->rollback();
             return false;
         }
     }
@@ -155,6 +156,7 @@ class GoodsAttachModel extends PublicModel{
         if(empty($delData)) {
             return false;
         }
+        $this->startTrans();
         try{
             foreach($delData as $del){
                 $where = [
@@ -162,13 +164,13 @@ class GoodsAttachModel extends PublicModel{
                 ];
                 $resach = $this->field('sku')->where($where)->find();
                 if ($resach) {
-                    $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+                    $this->where($where)->save(['status' => self::STATUS_DELETED]);
                 }
             }
-            return $result ? true : false;
-        } catch(Exception $e){
-//            $results['code'] = $e->getCode();
-//            $results['message'] = $e->getMessage();
+            $this->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->rollback();
             return false;
         }
     }
@@ -183,14 +185,14 @@ class GoodsAttachModel extends PublicModel{
         if(empty($data))
             return false;
 
-        if (isset($data['sku'])) {
+        if (isset($data['sku']) && !empty($data['sku'])) {
             $condition['sku'] = $data['sku'];
         } else {
             JsonReturn('','-1001','sku编号不能为空');
         }
         $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
         if(isset($data['status'])){
-            switch ($data['status']) {
+            switch (strtoupper($data['status'])) {
                 case self::STATUS_VALID:
                     $condition['status'] = $data['status'];
                     break;

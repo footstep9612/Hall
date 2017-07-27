@@ -17,11 +17,11 @@ class CentercreditController extends ShopMallController
      * 企业/银行信息新建/编辑 - 门户通用
      * @author klp
      */
-    public function createAction()
+    public function editAction()
     {
         //jsonReturn(1213);
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->createInfo($this->user,$this->put_data);
+        $result = $buyerModel->editInfo($this->user,$this->put_data);
         $this->returnInfo($result);
     }
 
