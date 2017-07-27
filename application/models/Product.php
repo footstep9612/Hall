@@ -301,14 +301,15 @@ class ProductModel extends PublicModel {
                             'meterial_cat_no' => $item['meterial_cat_no'],
                         );
                         $exist = $this->find($exist_condition);
-                        if($exist)
+                        if($exist) {
                             jsonReturn('', '400', '已存在');
+                        }
                     }
                     $data['status'] = $input['status'];
 
                     //不存在添加，存在则为修改
                     if (!isset($input['spu'])) {
-                        $spu_tmp = createSpu();    //不存在生产spu
+                        $spu_tmp = $this->createSpu();    //不存在生产spu
                         $data['spu'] = $spu_tmp;
                         $data['qrcode'] = createQrcode('/product/info/' . $spu);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
                         $data['created_by'] = isset($userInfo['name']) ? $userInfo['name'] : '';    //创建人
@@ -473,4 +474,19 @@ class ProductModel extends PublicModel {
         $this->module = $module;
     }
 
+    /**
+     * 生成ｓｐｕ编码
+     * @return string
+     */
+    public function createSpu() {
+        $spu = randNumber(6);
+        $condition = array(
+            'spu' => $spu
+        );
+        $exit = $this->find($condition);
+        if($exit) {
+            $this->createSpu();
+        }
+        return $spu;
+    }
 }

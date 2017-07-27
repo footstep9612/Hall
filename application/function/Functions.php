@@ -1316,18 +1316,18 @@ function freightage_insurance($data) {
  * @return string
  */
 function browser_lang() {
-  $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 4); //只取前4位，这样只判断最优先的语言。如果取前5位，可能出现en,zh的情况，影响判断。
-  $language = '';
-  if (preg_match("/zh-c|zh/i", $lang)) {
-    $language = 'zh';
-  } else if (preg_match("/en/i", $lang)) {
-    $language = 'en';
-  } else if (preg_match("/es/i", $lang)) {
-    $language = 'es';
-  } else if (preg_match("/ru/i", $lang)) {
-    $language = 'ru';
-  }
-  return $language;
+    $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 4); //只取前4位，这样只判断最优先的语言。如果取前5位，可能出现en,zh的情况，影响判断。
+    $language = '';
+    if (preg_match("/zh-c|zh/i", $lang)) {
+        $language = 'zh';
+    } else if (preg_match("/en/i", $lang)) {
+        $language = 'en';
+    } else if (preg_match("/es/i", $lang)) {
+        $language = 'es';
+    } else if (preg_match("/ru/i", $lang)) {
+        $language = 'ru';
+    }
+    return $language;
 }
 
 /**
@@ -1339,27 +1339,33 @@ function browser_lang() {
  * @param string $type
  */
 function jsonReturn($data, $code = 1, $message = '', $type = 'JSON') {
-  header('Content-Type:application/json; charset=utf-8');
-  if ($data) {
-    if (!is_array($data)) {
-      $data = array('data' => $data);
+    header('Content-Type:application/json; charset=utf-8');
+    if ($data) {
+        if (!is_array($data)) {
+            $data = array('data' => $data);
+        }
+        $data['code'] = $code;
+        $data['message'] = ErrorMsg::getMessage($code, $message);
+        exit(json_encode($data));
+    } else {
+        exit(json_encode(array('code' => $code, 'message' => ErrorMsg::getMessage($code, $message))));
     }
-    $data['code'] = $code;
-    $data['message'] = ErrorMsg::getMessage($code, $message);
-    exit(json_encode($data));
-  } else {
-    exit(json_encode(array('code' => $code, 'message' => ErrorMsg::getMessage($code, $message))));
-  }
 }
 
 /**
- * 生成spu编码
- * 这里临时生成七位数字，后期根据具体需求改动
- * @author link  2017-06-22
+ * 生成随机数
+ * @example    randNumber(6)   6位随机数
+ * @author    link    2017-06-22
+ * @param int $len 数字   生成的随机数长度
+ * @param string $prefix  前缀
+ * @return string
  */
-function createSpu() {
-  $rand = rand(0, 9999999);
-  return str_pad($rand, 7, "0", STR_PAD_LEFT);
+function randNumber($len = 6 , $prefix = '') {
+    $code = '';
+    for($i=0 ; $i<$len ; $i++) {
+        $code .= rand(0, 9);
+    }
+    return $prefix.str_pad($code, $len, "0", STR_PAD_LEFT);
 }
 
 /**
@@ -1373,10 +1379,11 @@ function createSpu() {
  * @param string 二维码地址
  */
 function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
-  if (empty($url))
-    return '';
+    if (empty($url)) {
+        return '';
+    }
 
-  return '';
+    return '';
 }
 
 /**
@@ -1385,16 +1392,17 @@ function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
  * @return array|bool
  */
 function getLoinInfo() {
-  $jsondata = json_decode(file_get_contents("php://input"), true);
-  $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
-  $token = (isset($jsondata['token']) && !empty($jsondata['token'])) ? $jsondata['token'] : '';
-  if (isset($post['token']) && !empty($post['token'])) {
-    $token = $post['token'];
-  }
-  if (empty($token))
-    return array();
-  $tokeninfo = JwtInfo($token); //解析token
-  return $tokeninfo;
+    $jsondata = json_decode(file_get_contents("php://input"), true);
+    $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
+    $token = (isset($jsondata['token']) && !empty($jsondata['token'])) ? $jsondata['token'] : '';
+    if (isset($post['token']) && !empty($post['token'])) {
+        $token = $post['token'];
+    }
+    if (empty($token)) {
+        return array();
+    }
+    $tokeninfo = JwtInfo($token); //解析token
+    return $tokeninfo;
 }
 
 /**
