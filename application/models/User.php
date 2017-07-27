@@ -101,8 +101,7 @@ class UserModel extends PublicModel {
      * @author jhw
      */
     public function getListNewdb($data,$limit,$order='user_main_id desc') {
-        $sql = 'SELECT `user_main_id`,`username`,`nick_name`,`email`,`mobile`';
-        $sql .= ' FROM regi.user_main';
+        $sql = 'SELECT * FROM regi.user_main';
 //        if ( !empty($condition['where']) ){
 //            $sql .= ' AND '.$condition['where'];
 //        }
