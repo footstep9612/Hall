@@ -183,7 +183,7 @@ class EsproductModel extends PublicModel {
                         ->setsort('sort_order', 'desc')
                         ->setsort('_score', 'desc')
                         ->setaggs('meterial_cat_no', 'meterial_cat_no')
-                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $from, $pagesize, $allcount['count']];
+                        ->search($this->dbName, $this->tableName . '_' . $lang, $current_no, $pagesize), $from, $pagesize, $allcount['count']];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
