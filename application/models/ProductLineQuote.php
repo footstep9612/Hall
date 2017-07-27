@@ -5,7 +5,8 @@
  * @desc    产品线报价模型
  * @auhtor    买买提
  */
-class ProductLineQuoteModel extends PublicModel{
+class ProductLineQuoteModel extends PublicModel
+{
 
     protected $dbName = 'erui_rfq' ; //数据库名称
     protected $tableName = 'inquiry' ; //数据表名称
@@ -14,7 +15,8 @@ class ProductLineQuoteModel extends PublicModel{
      * ProductLineQuoteModel constructor.
      * @desc    构造方法
      */
-    public function __construct(){
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -24,8 +26,8 @@ class ProductLineQuoteModel extends PublicModel{
      * @param    string    $order    排序方式
      * @return    mixed
      */
-    public function getList(array $condition, $order='id desc'){
-
+    public function getList(array $condition, $order='id desc')
+    {
         //获取条件
         $where = $this->getCondition($condition);
 
@@ -82,10 +84,31 @@ class ProductLineQuoteModel extends PublicModel{
      * @param    array    $condition    条件
      * @return    mixed
      */
-    public function getInquiryInfo(array $condition){
-
+    public function getInquiryInfo(array $condition)
+    {
         $where = $this->getCondition($condition);
-        $inquiryFields = ['serial_no','inquiry_no','inquiry_name','payment_mode'];
+
+        //筛选字段
+        $inquiryFields = [
+            'serial_no',
+            'inquiry_no',
+            'agent',//经办人
+            'inquiry_region',//所属地区
+            'inquiry_country',//国家
+            'kerui_flag',//手否科瑞设备所用配件
+            'bid_flag',//是否投标
+            'inquiry_name',
+            'payment_mode',//付款方式
+            'trade_terms',//贸易术语
+            'trans_mode',//运输方式
+            'from_port',//起运港
+            'from_country',//起运国
+            'to_port',//目的港
+            'to_country',//目的国
+            'project_basic_info',//项目背景描述
+            'quote_notes',//报价备注
+            'adhoc_request',//客户检验要求
+        ];
 
         //询单本身信息
         return  $this->where($where)->field($inquiryFields)->find();
@@ -93,12 +116,43 @@ class ProductLineQuoteModel extends PublicModel{
     }
 
     /**
+     * @desc    保存询单
+     * @param    array    $data
+     * @return    bool
+     */
+    public function saveInquiryInfo(array $data)
+    {
+        $where = ['inquiry_no'=>$data['inquiry_no']];
+        $update = $this->filterInquiryFields($data);
+        return $this->where($where)->save($update);
+    }
+
+    /**
+     * 重组前段提交的询单数据
+     * @param    array    $data    前段提交的字段数组
+     * @return    array    重组后的字段数组
+     */
+    private function filterInquiryFields(array $data)
+    {
+        $fields =[];
+
+        if (isset($data['payment_mode']) && $data['payment_mode']){
+            $fields['payment_mode'] = $data['payment_mode'] ;
+        }
+
+        //市场状态改为待提交
+        $fields['inquiry_status'] = 'TOSUBMIT' ;
+
+        return $fields;
+    }
+
+    /**
      * @desc    删除询单信息sku
      * @param    array    $condition    条件
      * @return    array
      */
-    public function deleteInquirySku(array $condition){
-
+    public function deleteInquirySku(array $condition)
+    {
         $where = $this->getCondition($condition);
 
         if(empty($where['inquiry_no'])){
@@ -134,7 +188,8 @@ class ProductLineQuoteModel extends PublicModel{
      * @param    array    $condition    条件
      * @return    array    重组后的条件
      */
-    protected function getCondition(array $condition=[]){
+    protected function getCondition(array $condition=[])
+    {
 
         $where = [] ;
 
@@ -159,8 +214,8 @@ class ProductLineQuoteModel extends PublicModel{
      * @param    array    $condition    条件
      * @return    mixed
      */
-    protected function getTotalCount(array $condition = []){
-
+    protected function getTotalCount(array $condition = [])
+    {
         return $this->where($condition)->count('id');
     }
 
