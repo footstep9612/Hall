@@ -7,7 +7,6 @@
  */
 include_once MYPATH . "/vendor/autoload.php";
 
-
 use Elasticsearch\ClientBuilder;
 
 /**
