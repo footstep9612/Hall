@@ -5,8 +5,7 @@
  * Date: 2017/6/24
  * Time: 15:26
  */
-class GoodsAttachModel extends PublicModel
-{
+class GoodsAttachModel extends PublicModel{
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
         $config_obj = Yaf_Registry::get("config");
@@ -28,8 +27,7 @@ class GoodsAttachModel extends PublicModel
      * @param array $condition
      * @return array|mixed
      */
-    public function getAttach($condition=[])
-    {
+    public function getAttach($condition=[]){
         $sku = isset($condition['sku']) ? $condition['sku'] : '';
         if (empty($sku)) {
             jsonReturn('', 1000,'[sku]不可以为空');
@@ -84,8 +82,7 @@ class GoodsAttachModel extends PublicModel
      * @author klp
      * @return bool
      */
-    public function createAttachSku($data)
-    {
+    public function createAttachSku($data){
         if(empty($data)) {
             return false;
         }
@@ -103,8 +100,7 @@ class GoodsAttachModel extends PublicModel
      * @author klp
      * @return bool
      */
-    /*    public function updateAttachSku($data)
-        {
+    /*    public function updateAttachSku($data){
 
             $condition = $this->check_up($data);
             if($condition){
@@ -124,18 +120,23 @@ class GoodsAttachModel extends PublicModel
     /**
      * sku附件[状态更改]（门户后台）
      * @author klp
-     * @return bool
+     * @return id
      */
-    public function modifySkuAttach($delData)
-    {
-        if(empty($delData))
+    public function modifySkuAttach($delData){
+        if(empty($delData)) {
             return false;
+        }
+        $status = $delData['status'];
+        unset($delData['status']);
         try {
             foreach($delData as $item){
                 $where = [
                     "sku" => $item['sku']
                 ];
-                $result = $this->where($where)->save(['status' => $delData['status']]);
+                $resach = $this->field('sku')->where($where)->find();
+                if ($resach) {
+                    $result = $this->where($where)->save(['status' => $status]);
+                }
             }
             return $result ? true : false;
         } catch (Exception $e) {
@@ -148,18 +149,21 @@ class GoodsAttachModel extends PublicModel
     /**
      * sku附件删除（门户后台）
      * @author klp
-     * @return bool
+     * @return id
      */
-    public function deleteRealAttach($delData)
-    {
-        if(empty($delData))
+    public function deleteRealAttach($delData){
+        if(empty($delData)) {
             return false;
+        }
         try{
             foreach($delData as $del){
                 $where = [
                     "sku" => $del['sku']
                 ];
-                $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+                $resach = $this->field('sku')->where($where)->find();
+                if ($resach) {
+                    $result = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+                }
             }
             return $result ? true : false;
         } catch(Exception $e){
@@ -175,8 +179,7 @@ class GoodsAttachModel extends PublicModel
      * @author klp
      * @return array
      */
-    public function check_data($data=[])
-    {
+    public function check_data($data=[]){
         if(empty($data))
             return false;
 
@@ -216,10 +219,9 @@ class GoodsAttachModel extends PublicModel
     /**
      * sku附件更新参数处理（门户后台）
      * @author klp
-     * @return bool
+     * @return arr
      */
-    public function check_up($data)
-    {
+    public function check_up($data){
         if(empty($data))
             return false;
 
