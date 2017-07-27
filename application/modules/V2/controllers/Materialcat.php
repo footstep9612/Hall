@@ -1,7 +1,8 @@
 <?php
 
 /**
-  附件文档Controller
+ * 产品与物料分类对应表
+ * zyg
  */
 class MaterialcatController extends PublicController {
 
@@ -9,6 +10,10 @@ class MaterialcatController extends PublicController {
         parent::init();
         $this->_model = new MaterialcatModel();
     }
+
+    /*
+     * 获取分类树形数据
+     */
 
     public function treeAction() {
         $lang = $this->getPut('lang', 'zh');
@@ -48,7 +53,7 @@ class MaterialcatController extends PublicController {
     }
 
     /**
-     * 根据条件获取查询条件
+     * 根据条件获取分类数量
      * @param string $lang 语言
      * @return null
      * @author zyg
@@ -77,7 +82,7 @@ class MaterialcatController extends PublicController {
     }
 
     /**
-     * 根据条件获取查询条件
+     * 根据条件获取分类对应的产品数量
      * @param array $cat_no 分类编码
      * @return null
      * @author zyg
@@ -99,10 +104,13 @@ class MaterialcatController extends PublicController {
         return $data;
     }
 
-    /*
-     * 获取SPU 数量
+    /**
+     * 根据分类编码获取SPU数量
+     * @param array $cats 分类数据
+     * @return null
+     * @author zyg
+     *
      */
-
     private function _getSpuCount(&$cats = []) {
 
         foreach ($cats AS $key => $one) {
@@ -111,18 +119,22 @@ class MaterialcatController extends PublicController {
         }
     }
 
+    /**
+     * 根据条件获取分类列表
+     * @return null
+     * @author zyg
+     *
+     */
     public function listAction() {
 
         $condition = $this->put_data;
         $condition['token'] = null;
         unset($condition['token']);
         $key = 'Material_cat_list_' . md5(json_encode($condition));
-        $data = false;
-        json_decode(redisGet($key), true);
+        $data = json_decode(redisGet($key), true);
 
         if (!$data) {
             $arr = $this->_model->getlist($condition);
-
             if ($arr) {
                 $this->_getSpuCount($arr);
                 redisSet($key, json_encode($arr), 86400);
@@ -134,9 +146,16 @@ class MaterialcatController extends PublicController {
             }
         }
         $this->setCode(MSG::MSG_SUCCESS);
+
         $this->jsonReturn($data);
     }
 
+    /**
+     * 分类联动
+     * @return null
+     * @author zyg
+     *
+     */
     public function getlistAction() {
         $lang = $this->getPut('lang', 'en');
         $cat_no = $this->getPut('cat_no', '');
@@ -157,7 +176,10 @@ class MaterialcatController extends PublicController {
     }
 
     /**
-     * 分类联动
+     * 分类详情
+     * @return null
+     * @author zyg
+     *
      */
     public function infoAction() {
         $cat_no = $this->getPut('cat_no');
@@ -191,6 +213,13 @@ class MaterialcatController extends PublicController {
         exit;
     }
 
+    /**
+     * 获取详情的父类和顶级分类数据
+     * @param array $data 详情数据
+     * @return null
+     * @author zyg
+     *
+     */
     private function getparentcats($data) {
         $parent_cats = $top_cats = null;
         if ($data['level_no'] == 3) {
@@ -227,20 +256,27 @@ class MaterialcatController extends PublicController {
         return [$top_cats, $parent_cats];
     }
 
-    private function delcache() {
+    /*
+     * 删除缓存
+     * @author zyg
+     */
+
+    private function _delCache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Material_cat_getlist_*');
+        $keys = $redis->getKeys('Material_cat*');
+        var_dump($keys);
         $redis->delete($keys);
-        $listkeys = $redis->getKeys('Material_cat_list_*');
-        $redis->delete($listkeys);
-        $treekeys = $redis->getKeys('Material_cat_tree_*');
-        $redis->delete($treekeys);
     }
+
+    /*
+     * 新建分类
+     * @author zyg
+     */
 
     public function createAction() {
         $result = $this->_model->create_data($this->put_data, $this->user['username']);
         if ($result) {
-            $this->delcache();
+            $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -248,12 +284,17 @@ class MaterialcatController extends PublicController {
             $this->jsonReturn();
         }
     }
+
+    /*
+     * 修改分类
+     * @author zyg
+     */
 
     public function updateAction() {
         $result = $this->_model->update_data($this->put_data, $this->user['username']);
 
         if ($result) {
-            $this->delcache();
+            $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -261,6 +302,11 @@ class MaterialcatController extends PublicController {
             $this->jsonReturn();
         }
     }
+
+    /*
+     * 删除分类
+     * @author zyg
+     */
 
     public function deleteAction() {
         $cat_no = $this->getPut('cat_no');
@@ -276,7 +322,7 @@ class MaterialcatController extends PublicController {
         }
         $result = $this->_model->delete_data($cat_no, $lang);
         if ($result) {
-            $this->delcache();
+            $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -284,12 +330,17 @@ class MaterialcatController extends PublicController {
             $this->jsonReturn();
         }
     }
+
+    /*
+     * 审核分类
+     * @author zyg
+     */
 
     public function approvingAction() {
 
         $result = $this->_model->approving($this->put_data['cat_no'], $this->getLang());
         if ($result) {
-            $this->delcache();
+            $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -298,14 +349,15 @@ class MaterialcatController extends PublicController {
         }
     }
 
-    /* 交换顺序
-     * 
+    /*
+     * 交换分类顺序
+     * @author zyg
      */
 
     public function changeorderAction() {
         $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
         if ($result) {
-            $this->delcache();
+            $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
