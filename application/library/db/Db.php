@@ -48,6 +48,7 @@ class db_Db {
      */
     public static function getInstance($db_config='') {
 		$config_str=$db_config;
+
 		if (is_object($config_str) && function_exists('spl_object_hash')) {
          		$guid= spl_object_hash($config_str);
     	} elseif (is_resource($config_str)) {
@@ -58,7 +59,7 @@ class db_Db {
    		$guid= md5($config_str);
 		if(!isset(self::$_instance[$guid])){
 			$obj	=	new db_Db();
-			self::$_instance[$guid]	=	$obj->factory($db_config);
+         	self::$_instance[$guid]	=	$obj->factory($db_config);
 		}
 		return self::$_instance[$guid];
     }
@@ -72,7 +73,7 @@ class db_Db {
     public function factory($db_config='') {
         // 读取数据库配置
         $db_config = $this->parseConfig($db_config);
-        if(empty($db_config['dbms']))
+              if(empty($db_config['dbms']))
             throw new Exception('没有dbms');
             //E(L('_NO_DB_CONFIG_'));
         // 数据库类型
@@ -222,7 +223,7 @@ class db_Db {
     public function parseDSN($dsnStr) {
         if( empty($dsnStr) ){return false;}
         $info = parse_url($dsnStr);
-        if($info['scheme']){
+          if($info['scheme']){
             $dsn = array(
             'dbms'      =>  $info['scheme'],
             'username'  =>  isset($info['user']) ? $info['user'] : '',

@@ -266,58 +266,19 @@ class MaterialcatModel extends PublicModel {
      * @author zyg
      */
     public function delete_data($cat_no = '', $lang = '') {
-
         if (!$cat_no) {
+
             return false;
         }
-        $where['cat_no'] = $cat_no;
+        $where['cat_no'] = ['like', $cat_no . '%'];
         if ($lang) {
             $where['lang'] = $lang;
         }
-        $info = $this->info($cat_no, 'en');
-        if (!$info) {
-            $info = $this->info($cat_no, 'zh');
-        }
-        if (!$info) {
-            $info = $this->info($cat_no, 'es');
-        }
-        if (!$info) {
-            $info = $this->info($cat_no, 'ru');
-        }
         try {
-            $this->startTrans();
+
             $flag = $this->where($where)
                     ->save(['status' => self::STATUS_DELETED]);
-            if ($flag && $info['level_no'] == 1) {
-                $flag = $this->where(['parent_cat_no' => $cat_no])
-                        ->save(['status' => self::STATUS_DELETED]);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-            }
-            if ($flag && $info['level_no'] == 2) {
-                $flag = $this->where(['parent_cat_no' => $cat_no])
-                        ->save(['status' => self::STATUS_DELETED]);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-            }
-            if ($flag && $cat_no && $info['level_no'] == 3 && !$lang) {
-                $es_product_model = new EsproductModel();
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
-                $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
-            } elseif ($flag && $cat_no && $info['level_no'] == 3 && $lang) {
-                $es_product_model = new EsproductModel();
-                $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
-            } else {
-                $this->rollback();
-                return false;
-            }
-            $this->commit();
+
             return $flag;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
