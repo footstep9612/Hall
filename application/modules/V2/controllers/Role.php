@@ -23,7 +23,7 @@ class RoleController extends PublicController {
         $limit = [];
         $where = [];
         if(!empty($data['name'])){
-            $where['name'] = $data['name'];
+            $where['name'] = array('like','%'.$data['name'].'%');
         }
         if(!empty($data['currentPage'])){
             $limit['page'] = $data['currentPage'];
@@ -33,6 +33,10 @@ class RoleController extends PublicController {
         }
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where,$limit);
+        if($limit){
+            $count = $model_rolo->getcount($where);
+            $datajson['count'] = $count;
+        }
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -135,6 +139,11 @@ class RoleController extends PublicController {
         if(empty($data)){
             $datajson['code'] = -101;
             $datajson['message'] = '数据不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        if(empty($data['name'])){
+            $datajson['code'] = -101;
+            $datajson['message'] = '权限名称不可为空!';
             $this->jsonReturn($datajson);
         }
         $model_rolo = new RoleModel();
