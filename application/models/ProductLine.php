@@ -22,7 +22,7 @@ class ProductLineModel extends PublicModel {
     public function getLineNo() {
         $lineno = $this->field('line_no')->order('line_no desc')->find();
         if($lineno){
-            $number = intval($lineno)+1;
+            $number = substr($lineno['line_no'],2)+1;
             $results = 'pl'.str_pad($number,6,'0',STR_PAD_LEFT);
         }else{
             $results = 'pl000001';
@@ -226,7 +226,7 @@ class ProductLineModel extends PublicModel {
         }
 
         try {
-            $id = $this->where($where)->save(['inquiry_status' => 'DELETED']);
+            $id = $this->where($where)->save(['status' => 'DELETED']);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';

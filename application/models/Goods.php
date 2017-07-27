@@ -287,7 +287,7 @@ class GoodsModel extends PublicModel {
         //获取当前表名
         $thistable = $this->getTableName();
 
-        $field = "$thistable.pricing_flag,$ptable.meterial_cat_no,$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.name,$thistable.show_name,$thistable.model,$thistable.created_by,$thistable.created_at,$thistable.updated_at,$thistable.updated_by,$thistable.checked_at,$thistable.checked_by";
+        $field = "$thistable.pricing_flag,$ptable.meterial_cat_no,$ptable.source,$ptable.supplier_name,$ptable.brand,$ptable.name as spu_name,$thistable.lang,$thistable.id,$thistable.sku,$thistable.spu,$thistable.status,$thistable.shelves_status,$thistable.name,$thistable.show_name,$thistable.model,$thistable.created_by,$thistable.created_at,$thistable.updated_at,$thistable.updated_by,$thistable.checked_at,$thistable.checked_by";
 
         $where = array();
         $current_no = isset($condition['current_no']) ? $condition['current_no'] : 1;
@@ -346,11 +346,24 @@ class GoodsModel extends PublicModel {
           $where["$thistable.pricing_flag"] = $condition['pricing_flag'];
         }
 
-        //status状态 (审核,通过,上架...) $where = "status <> '" . self::STATUS_DELETED . "'";
+        //status状态 (审核,通过) $where = "status <> '" . self::STATUS_DELETED . "'";
         $where["$thistable.status"] =array('<>', self::STATUS_DELETED);
         if (isset($condition['status']) && !empty($condition['status']) && self::STATUS_DELETED != $condition['status']) {
           $where["$thistable.status"] = $condition['status'];
         }
+          //上架状态
+          if (isset($condition['shelves_status']) && !empty($condition['shelves_status']) ) {
+              $where["$thistable.shelves_status"] = $condition['shelves_status'];
+          }
+          //上架人
+          if (isset($condition['shelves_by']) && !empty($condition['shelves_by'])) {
+              $where["$thistable.shelves_by"] = array('like', $condition['shelves_by']);
+          }
+          //上架时间
+          if (isset($condition['shelves_start']) && isset($condition['shelves_start']) && !empty($condition['shelves_end']) && !empty($condition['shelves_end'])) {
+              $where["$thistable.shelves_at"] = array('egt', $condition['shelves_start']);
+              $where["$thistable.shelves_at"] = array('elt', $condition['shelves_end']);
+          }
         //created_by 创建人
         if (isset($condition['created_by']) && !empty($condition['created_by'])) {
           $where["$thistable.created_by"] = array('like', $condition['created_by']);
@@ -387,12 +400,13 @@ class GoodsModel extends PublicModel {
               'data' => array(),
           );
           if ($result) {
-    //              foreach($result as $k=> $item){
-    //               $res[] = $result['status'];
-    //               }
-    //                $count_no = array_count_values($res);
-    //                $data['count_up'] = $count_no[''];//上架状态数量
-    //                $data['count_down'] = $count_no[''];//下架状态数量
+              $res = [];
+              foreach($result as $k=> $item){
+               $res[] = $result['shelves_status'];
+               }
+            $count_no = array_count_values($res);
+            $data['count_up'] = $count_no['VALID'];//上架状态数量
+            $data['count_down'] = $count_no['INVALID'];//下架状态数量
             $data['count'] = count($result); //$count;
             $data['data'] = $result;
           }
@@ -471,15 +485,50 @@ class GoodsModel extends PublicModel {
        * @author klp
        * @return bool
        */
-      public function createSku($data) {
-        $condition = $this->check_data($data);
+      public function createSku($input) {
+          if (!isset($input)) {
+              return false;
+          }
+          //不存在生成sku
+          $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
+          //获取当前用户信息
+          $userInfo = getLoinInfo();
+          $this->startTrans();
+          try {
+              foreach ($input as $key => $value) {
+                  $arr = ['zh', 'en', 'ru', 'es'];
+                  if (in_array($key, $arr)) {
 
-        $res = $this->add($condition);
-        if ($res) {
-          return true;
-        } else {
-          return false;
-        }
+                      $checkout = $this->checkParam($value, $this->field);
+                      $data = [
+                          'lang' => $key,
+                          'spu' => $checkout['spu'],
+                          'name' => $checkout['name'],
+                          'show_name' => $checkout['show_name'],
+                          'model' => isset($checkout['model']) ? $checkout['model'] : '',
+                          'description' => isset($checkout['description']) ? $checkout['description'] : '',
+                          'package_quantity' => isset($checkout['package_quantity']) ? $checkout['package_quantity'] : '',
+                          'exw_day' => isset($checkout['exw_day']) ? $checkout['exw_day'] : '',
+                          'purchase_price1' => isset($checkout['purchase_price1']) ? $checkout['purchase_price1'] : 0,
+                          'purchase_price2' => isset($checkout['purchase_price2']) ? $checkout['purchase_price2'] : 0,
+                          'purchase_price_cur' => isset($checkout['purchase_price_cur']) ? $checkout['purchase_price_cur'] : 0,
+                          'purchase_unit' => isset($checkout['purchase_unit']) ? $checkout['purchase_unit'] : '',
+                          'pricing_flag' => isset($checkout['pricing_flag']) ? $checkout['pricing_flag'] : 'N',
+                      ];
+
+                          $data['sku'] = $sku;
+                          //                    $data['qrcode'] = setupQrcode();                  //二维码字段
+                          $data['created_by'] = $userInfo['name'];
+                          $data['created_at'] = date('Y-m-d H:i:s', time());
+                          $this->add($data);
+                  }
+              }
+              $this->commit();
+              return $sku;
+          } catch (\Kafka\Exception $e) {
+              $this->rollback();
+              return false;
+          }
       }
 
       /**
@@ -512,11 +561,14 @@ class GoodsModel extends PublicModel {
        * @return bool
        */
       public function modifySku($delData) {
-          if(empty($delData))
+          if(empty($delData)) {
               return false;
+          }
+          $status = $delData['status'];
+          unset($delData['status']);
           try {
-              if(isset($delData['checked_desc'])){
-                  foreach($delData as $del){
+              foreach($delData as $del) {
+                  if(isset($del['checked_desc'])){
                       $where = [
                           "sku" => $del['sku'],
                           "lang" => $del['lang'],
@@ -524,15 +576,13 @@ class GoodsModel extends PublicModel {
                           "checked_at" => date('Y-m-d H:i:s', time()),
                           "checked_desc" => $del['checked_desc']
                       ];
-                      $result = $this->where($where)->save(['status' => $delData['status']]);
-                  }
-              } else{
-                  foreach($delData as $del){
+                      $result = $this->where($where)->save(['status' => $status]);
+                  } else {
                       $where = [
                           "sku" => $del['sku'],
-                          "lang" => $del['lang'],
+                          "lang" => $del['lang']
                       ];
-                      $result = $this->where($where)->save(['status' => $delData['status']]);
+                      $result = $this->where($where)->save(['status' => $status]);
                   }
               }
           if ($result) {
@@ -615,7 +665,7 @@ class GoodsModel extends PublicModel {
           JsonReturn('', '-1004', '商品展示名称不能为空');
         }
         if (isset($data['status'])) {
-          switch ($data['status']) {
+          switch (strtoupper($data['status'])) {
             case self::STATUS_VALID:
               $condition['status'] = $data['status'];
               break;
@@ -690,9 +740,9 @@ class GoodsModel extends PublicModel {
        * @author klp
        */
       public function editSkuInfo($input) {
-        if (!isset($input))
-          return false;
-
+        if (!isset($input)) {
+            return false;
+        }
         //不存在需要生成sku
         $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
         //获取当前用户信息
@@ -788,35 +838,44 @@ class GoodsModel extends PublicModel {
           return false;
         }
       //新状态可以补充
-        switch($this->input['status_type']){
+        switch($input['status_type']){
             case 'declare':    //报审
                 $input['status'] = self::STATUS_CHECKING;
                 break;
             case 'valid':    //审核
                 $input['status'] = self::STATUS_VALID;
                 break;
+            case 'invalid':    //驳回
+                $input['status'] = self::STATUS_INVALID;
+                break;
         }
+        unset($input['status_type']);
         $this->startTrans();
         try {
           $res = $this->modifySku($input);                //sku状态
           if (!$res) {
             return false;
           }
-          $pModel = new ProductModel();                  //spu状态(报审)
-          $resp = $pModel->upStatus($input['spu'],$input['lang'], $input['status']);
-          if (!$resp) {
-              return false;
-          }
-          $gattr = new GoodsAttrModel();
-          $resAttr = $gattr->modifySkuAttr($input);        //属性状态
-          if (!$resAttr) {
-            return false;
-          }
-          $gattach = new GoodsAttachModel();
-          $resAttach = $gattach->modifySkuAttach($input);  //附件状态
-          if (!$resAttach) {
-            return false;
-          }
+//          $pModel = new ProductModel();                  //spu状态(报审)
+//          $resp = $pModel->upStatus($input['spu'],$input['lang'], $input['status']);
+//          if (!$resp) {
+//              return false;
+//          }
+
+            $gattr = new GoodsAttrModel();
+            $resAttr = $gattr->modifySkuAttr($input);        //属性状态
+            if (!$resAttr) {
+                return false;
+            }
+
+            $gattach = new GoodsAttachModel();
+            $resAttach = $gattach->modifySkuAttach($input);  //附件状态
+            if (!$resAttach) {
+                return false;
+            }
+
+            $this->commit();
+            return true;
         } catch (\Kafka\Exception $e) {
           $this->rollback();
           //            $results['message'] = $e->getMessage();
@@ -842,14 +901,18 @@ class GoodsModel extends PublicModel {
           $gattr = new GoodsAttrModel();
           $resAttr = $gattr->deleteRealAttr($input);        //属性删除
           if (!$resAttr) {
-            return false;
+              return false;
           }
+
           $gattach = new GoodsAttachModel();
           $resAttach = $gattach->deleteRealAttach($input);  //附件删除
           if (!$resAttach) {
-            return false;
+              return false;
           }
-        } catch (\Kafka\Exception $e) {
+
+          $this->commit();
+          return true;
+        } catch (Exception $e) {
           $this->rollback();
           //            $results['message'] = $e->getMessage();
           return false;

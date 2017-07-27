@@ -138,9 +138,6 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['parent_id'])){
-            $arr['parent_id'] = $create['parent_id'];
-        }
         if(isset($create['name'])){
             $arr['name'] = $create['name'];
         }

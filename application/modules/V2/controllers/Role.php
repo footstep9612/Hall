@@ -15,6 +15,7 @@ class RoleController extends PublicController {
 
     public function __init() {
         //   parent::__init();
+
     }
 
     public function listAction() {
@@ -40,7 +41,6 @@ class RoleController extends PublicController {
             $datajson['data'] = $data;
             $datajson['message'] = '数据为空!';
         }
-
         $this->jsonReturn($datajson);
     }
     public function roleuserAction() {
@@ -139,7 +139,20 @@ class RoleController extends PublicController {
         }
         $model_rolo = new RoleModel();
         $id = $model_rolo->create_data($data);
+
         if(!empty($id)){
+            if($data['url_perm_ids']){
+                $model_role_access_perm = new RoleAccessPermModel();
+                $role_arr['url_perm_ids'] = $data['url_perm_ids'];
+                $role_arr['role_id'] = $id;
+                $model_role_access_perm->update_datas($role_arr);
+            }
+            if( $data['role_user_ids']){
+                $model_role_user = new RoleUserModel();
+                $role_user_arr['role_user_ids'] = $data['role_user_ids'];
+                $role_user_arr['role_id'] = $id;
+                $model_role_user->update_datas($role_arr);
+            }
             $datajson['code'] = 1;
             $datajson['data']['id'] = $id;
         }else{
@@ -178,7 +191,7 @@ class RoleController extends PublicController {
         $model_rolo = new RoleModel();
         $model_rolo->update_data($arr,$where);
         $model_role_access_perm = new RoleAccessPermModel();
-        if($role_arr['url_perm_ids'] = $data['url_perm_ids']){
+        if( $data['url_perm_ids']){
             $role_arr['url_perm_ids'] = $data['url_perm_ids'];
             $model_role_access_perm->update_datas($role_arr);
         }

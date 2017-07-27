@@ -21,9 +21,7 @@ class EsgoodsController extends PublicController {
   //put your code here
   public function init() {
     $this->es = new ESClient();
-    error_reporting(E_ALL);
-    $this->setLang();
-    //parent::init();
+    parent::init();
   }
 
   public function listAction() {
@@ -33,7 +31,7 @@ class EsgoodsController extends PublicController {
         , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
         'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
         'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'created_at',
-        'created_by'];
+        'created_by','checked_by','checked_at','update_by','update_at','shelves_by','shelves_at','shelves_status','checked_desc',];
     $ret = $model->getgoods($this->put_data, $_source, $lang);
     if ($ret) {
       $list = [];
