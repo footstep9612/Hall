@@ -39,7 +39,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             }
             $model = new UserModel();
             $tokeninfo = JwtInfo($token); //解析token
-            var_dump($tokeninfo = JwtInfo($token));die;
+
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
@@ -48,6 +48,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     if (!$userinfo){
                         $user_modle =new UserModel();
                         $info =$user_modle->findInfo($tokeninfo['sub']);
+                        var_dump($info);die;
                         if (empty($info)) {
                             echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                             exit;
