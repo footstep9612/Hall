@@ -22,7 +22,12 @@ class RoleModel extends PublicModel {
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
-
+     public function getcount($data,$limit,$order='id desc'){
+         $count =  $this->field('id,name,description,status')
+             ->where($data)
+             ->count('id');
+         return $count;
+     }
 
     /**
      * 获取列表
@@ -32,11 +37,13 @@ class RoleModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            return $this->field('id,name,description,status')
+            $res= $this->field('id,name,description,status')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
+
+            return $res;
         }else{
             return $this->field('id,name,description,status')
                 ->where($data)

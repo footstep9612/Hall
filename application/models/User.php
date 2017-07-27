@@ -16,7 +16,6 @@ class UserModel extends PublicModel {
     //put your code here
     protected $tableName = 'user';
     protected $g_table ='t_user';
-    Protected $autoCheckFields = false;
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
@@ -101,7 +100,7 @@ class UserModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlistnewdb($data,$limit,$order='user_main_id desc') {
+    public function getListNewdb($data,$limit,$order='user_main_id desc') {
         $sql = 'SELECT `user_main_id`,`username`,`nick_name`,`email`,`mobile`';
         $sql .= ' FROM regi.user_main';
 //        if ( !empty($condition['where']) ){
@@ -132,6 +131,27 @@ class UserModel extends PublicModel {
     }
 
     /**
+     * 获取列表
+     * @param  string $code 编码
+     * @param  int $id id
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function findInfo($where) {
+        $sql = 'SELECT * FROM regi.user_main where username = '.$where;
+//        if ( !empty($condition['where']) ){
+//            $sql .= ' AND '.$condition['where'];
+//        }
+//        $sql .= ' Order By '.$order;
+//        if ( $condition['page'] ){
+//            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
+//        }
+//return $this->query( $sql );
+        $db =db_Db::getInstance($this->db_config);
+        return $db->query($sql);
+    }
+    /**
      * 登录
      * @param  string $name 用户名
      * @param  string$enc_password 密码
@@ -155,9 +175,6 @@ class UserModel extends PublicModel {
             $where['password_hash'] = md5($data['password']);
         }
         $where['status'] = 'NORMAL';
-        $this->where($where)
-            ->field('id,user_no,name,email,mobile,status')
-            ->find();
         $row = $this->where($where)
             ->field('id,user_no,name,email,mobile,status')
             ->find();
