@@ -76,55 +76,61 @@ class MaterialcatController extends PublicController {
         }
     }
 
-    public function listAction() {
-        $lang = $this->getPut('lang', 'zh');
-        $jsondata = ['lang' => $lang];
-        $jsondata['level_no'] = 1;
-        $condition = $jsondata;
-        $key = 'Material_cat_list_' . $lang;
-        $data = json_decode(redisGet($key), true);
+    /**
+     * 根据条件获取查询条件
+     * @param array $cat_no 分类编码
+     * @return null
+     * @author zyg
+     *
+     */
+    private function _getCount($cat_no) {
+        $redis_key = 'Material_cat_spucount_' . md5(json_encode($cat_no));
+        $data = json_decode(redisGet($redis_key), true);
+        $materialcat_product_model = new MaterialcatproductModel();
         if (!$data) {
-            $arr = $this->_model->getlist($jsondata);
+            $arr = $materialcat_product_model->getCount($cat_no);
             if ($arr) {
-                $this->setCode(MSG::MSG_SUCCESS);
-                foreach ($arr as $key => $val) {
-                    $arr[$key]['children'] = $this->_model->getlist(['parent_cat_no' => $val['cat_no'], 'level_no' => 2, 'lang' => $lang]);
+                redisSet($redis_key, $arr, 86400);
+                return $arr;
+            } else {
+                return 0;
+            }
+        }
+        return $data;
+    }
 
-                    if ($arr[$key]['children']) {
-                        foreach ($arr[$key]['children'] as $k => $item) {
-                            $arr[$key]['children'][$k]['children'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
-                                'level_no' => 3,
-                                'lang' => $lang]);
-                        }
-                    }
-                }
+    /*
+     * 获取SPU 数量
+     */
+
+    private function _getSpuCount(&$cats = []) {
+
+        foreach ($cats AS $key => $one) {
+            $one['spucount'] = $this->_getCount($one['cat_no']);
+            $cats[$key] = $one;
+        }
+    }
+
+    public function listAction() {
+
+        $condition = $this->put_data;
+        $condition['token'] = null;
+        unset($condition['token']);
+        $key = 'Material_cat_list_' . md5(json_encode($condition));
+        $data = false;
+        json_decode(redisGet($key), true);
+
+        if (!$data) {
+            $arr = $this->_model->getlist($condition);
+
+            if ($arr) {
+                $this->_getSpuCount($arr);
                 redisSet($key, json_encode($arr), 86400);
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
             } else {
-                $condition['level_no'] = 2;
-                $arr = $this->_model->getlist($condition);
-                if ($arr) {
-                    $this->setCode(MSG::MSG_SUCCESS);
-                    foreach ($arr[$key]['children'] as $k => $item) {
-                        $arr[$key]['children'][$k]['children'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'], 'level_no' => 3, 'lang' => $lang]);
-                    }
-
-                    redisSet($key, json_encode($arr), 86400);
-                    $this->setCode(MSG::MSG_SUCCESS);
-                    $this->jsonReturn($arr);
-                } else {
-                    $condition['level_no'] = 3;
-                    $arr = $this->_model->getlist($condition);
-                    if ($arr) {
-                        redisSet($key, json_encode($arr), 86400);
-                        $this->setCode(MSG::MSG_SUCCESS);
-                        $this->jsonReturn($arr);
-                    } else {
-                        $this->setCode(MSG::ERROR_EMPTY);
-                        $this->jsonReturn();
-                    }
-                }
+                $this->setCode(MSG::ERROR_EMPTY);
+                $this->jsonReturn();
             }
         }
         $this->setCode(MSG::MSG_SUCCESS);
