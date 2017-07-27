@@ -38,6 +38,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $token = $data["token"];
             }
             $model = new UserModel();
+            $tokeninfo = JwtInfo($token); //解析token
+            var_dump($tokeninfo = JwtInfo($token));die;
             if (!empty($token)) {
                 try {
                     $tks = explode('.', $token);
