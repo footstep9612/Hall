@@ -22,6 +22,8 @@ class GoodsController extends PublicController
 
     /**
      * 商品（sku）基本信息  --- 公共接口
+     * @param     sku编码(必传)
+     * @return 按lang分组的arr
      * @author link 2017-06-26
      */
     public function infoBaseAction(){
@@ -35,26 +37,9 @@ class GoodsController extends PublicController
     }
 
     /**
-     * sku查看详情p
-     */
-    public function showGoodsAction()
-    {
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if(!empty($data['sku'])){
-            $sku = $data['sku'];
-        } else{
-            jsonReturn('','-1001','sku不可以为空');
-        }
-        $lang = isset($data['lang']) ? $data['lang'] : '';
-        $goods = new GoodsModel();
-        $result = $goods->getGoodsInfo($sku,$lang);
-
-        $this->returnInfo($result);
-    }
-
-    /**
      * sku管理列表
+     * @pararm 适用于:关联sku列表  审核列表  上架列表
+     * @return array
      * @author
      */
     public function listAction()
@@ -78,7 +63,7 @@ class GoodsController extends PublicController
         }
         exit;
     }
-
+    //测试用数组
     public function test()
     {
         $data = [

@@ -485,15 +485,50 @@ class GoodsModel extends PublicModel {
        * @author klp
        * @return bool
        */
-      public function createSku($data) {
-        $condition = $this->check_data($data);
+      public function createSku($input) {
+          if (!isset($input)) {
+              return false;
+          }
+          //不存在生成sku
+          $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
+          //获取当前用户信息
+          $userInfo = getLoinInfo();
+          $this->startTrans();
+          try {
+              foreach ($input as $key => $value) {
+                  $arr = ['zh', 'en', 'ru', 'es'];
+                  if (in_array($key, $arr)) {
 
-        $res = $this->add($condition);
-        if ($res) {
-          return true;
-        } else {
-          return false;
-        }
+                      $checkout = $this->checkParam($value, $this->field);
+                      $data = [
+                          'lang' => $key,
+                          'spu' => $checkout['spu'],
+                          'name' => $checkout['name'],
+                          'show_name' => $checkout['show_name'],
+                          'model' => isset($checkout['model']) ? $checkout['model'] : '',
+                          'description' => isset($checkout['description']) ? $checkout['description'] : '',
+                          'package_quantity' => isset($checkout['package_quantity']) ? $checkout['package_quantity'] : '',
+                          'exw_day' => isset($checkout['exw_day']) ? $checkout['exw_day'] : '',
+                          'purchase_price1' => isset($checkout['purchase_price1']) ? $checkout['purchase_price1'] : 0,
+                          'purchase_price2' => isset($checkout['purchase_price2']) ? $checkout['purchase_price2'] : 0,
+                          'purchase_price_cur' => isset($checkout['purchase_price_cur']) ? $checkout['purchase_price_cur'] : 0,
+                          'purchase_unit' => isset($checkout['purchase_unit']) ? $checkout['purchase_unit'] : '',
+                          'pricing_flag' => isset($checkout['pricing_flag']) ? $checkout['pricing_flag'] : 'N',
+                      ];
+
+                          $data['sku'] = $sku;
+                          //                    $data['qrcode'] = setupQrcode();                  //二维码字段
+                          $data['created_by'] = $userInfo['name'];
+                          $data['created_at'] = date('Y-m-d H:i:s', time());
+                          $this->add($data);
+                  }
+              }
+              $this->commit();
+              return $sku;
+          } catch (\Kafka\Exception $e) {
+              $this->rollback();
+              return false;
+          }
       }
 
       /**
@@ -526,11 +561,14 @@ class GoodsModel extends PublicModel {
        * @return bool
        */
       public function modifySku($delData) {
-          if(empty($delData))
+          if(empty($delData)) {
               return false;
+          }
+          $status = $delData['status'];
+          unset($delData['status']);
           try {
-              if(isset($delData['checked_desc'])){
-                  foreach($delData as $del){
+              foreach($delData as $del) {
+                  if(isset($del['checked_desc'])){
                       $where = [
                           "sku" => $del['sku'],
                           "lang" => $del['lang'],
@@ -538,15 +576,13 @@ class GoodsModel extends PublicModel {
                           "checked_at" => date('Y-m-d H:i:s', time()),
                           "checked_desc" => $del['checked_desc']
                       ];
-                      $result = $this->where($where)->save(['status' => $delData['status']]);
-                  }
-              } else{
-                  foreach($delData as $del){
+                      $result = $this->where($where)->save(['status' => $status]);
+                  } else {
                       $where = [
                           "sku" => $del['sku'],
-                          "lang" => $del['lang'],
+                          "lang" => $del['lang']
                       ];
-                      $result = $this->where($where)->save(['status' => $delData['status']]);
+                      $result = $this->where($where)->save(['status' => $status]);
                   }
               }
           if ($result) {
@@ -629,7 +665,7 @@ class GoodsModel extends PublicModel {
           JsonReturn('', '-1004', '商品展示名称不能为空');
         }
         if (isset($data['status'])) {
-          switch ($data['status']) {
+          switch (strtoupper($data['status'])) {
             case self::STATUS_VALID:
               $condition['status'] = $data['status'];
               break;
@@ -704,9 +740,9 @@ class GoodsModel extends PublicModel {
        * @author klp
        */
       public function editSkuInfo($input) {
-        if (!isset($input))
-          return false;
-
+        if (!isset($input)) {
+            return false;
+        }
         //不存在需要生成sku
         $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
         //获取当前用户信息
@@ -802,7 +838,7 @@ class GoodsModel extends PublicModel {
           return false;
         }
       //新状态可以补充
-        switch($this->input['status_type']){
+        switch($input['status_type']){
             case 'declare':    //报审
                 $input['status'] = self::STATUS_CHECKING;
                 break;
@@ -813,37 +849,31 @@ class GoodsModel extends PublicModel {
                 $input['status'] = self::STATUS_INVALID;
                 break;
         }
+        unset($input['status_type']);
         $this->startTrans();
         try {
           $res = $this->modifySku($input);                //sku状态
           if (!$res) {
             return false;
           }
-          $pModel = new ProductModel();                  //spu状态(报审)
-          $resp = $pModel->upStatus($input['spu'],$input['lang'], $input['status']);
-          if (!$resp) {
-              return false;
-          }
-          if($input['sku']){
-              $gattr = new GoodsAttrModel();
-              $resatr = $gattr->field('sku')->where(['sku' => $input['sku'],'lang'=>$input['lang']])->find();
-              if($resatr){
-                  $resAttr = $gattr->modifySkuAttr($input);        //属性状态
-                  if (!$resAttr) {
-                      return false;
-                  }
-              }
-          }
-            if (isset($input['sku'])) {     //------判断附件是否存在
-                $gattach = new GoodsAttachModel();
-                $resach = $gattach->field('sku')->where(['sku' => $input['sku']])->find();
-                if ($resach) {
-                    $resAttach = $gattach->modifySkuAttach($input);  //附件状态
-                    if (!$resAttach) {
-                        return false;
-                    }
-                }
+//          $pModel = new ProductModel();                  //spu状态(报审)
+//          $resp = $pModel->upStatus($input['spu'],$input['lang'], $input['status']);
+//          if (!$resp) {
+//              return false;
+//          }
+
+            $gattr = new GoodsAttrModel();
+            $resAttr = $gattr->modifySkuAttr($input);        //属性状态
+            if (!$resAttr) {
+                return false;
             }
+
+            $gattach = new GoodsAttachModel();
+            $resAttach = $gattach->modifySkuAttach($input);  //附件状态
+            if (!$resAttach) {
+                return false;
+            }
+
             $this->commit();
             return true;
         } catch (\Kafka\Exception $e) {
@@ -867,28 +897,21 @@ class GoodsModel extends PublicModel {
           if (!$res) {
             return false;
           }
-          if (isset($input['sku'])) {     //------判断属性是否存在
-              $gattr = new GoodsAttrModel();
-              $resatr = $gattr->field('sku')->where(['sku' => $input['sku'],'lang'=>$input['lang']])->find();
-              if ($resatr) {
-                  $resAttr = $gattr->deleteRealAttr($input);        //属性删除
-                  if (!$resAttr) {
-                      return false;
-                  }
-              }
+
+          $gattr = new GoodsAttrModel();
+          $resAttr = $gattr->deleteRealAttr($input);        //属性删除
+          if (!$resAttr) {
+              return false;
           }
-          if (isset($input['sku'])) {     //------判断附件是否存在
-              $gattach = new GoodsAttachModel();
-              $resach = $gattach->field('sku')->where(['sku' => $input['sku']])->find();
-              if ($resach) {
-                  $resAttach = $gattach->deleteRealAttach($input);  //附件删除
-                  if (!$resAttach) {
-                      return false;
-                  }
-              }
+
+          $gattach = new GoodsAttachModel();
+          $resAttach = $gattach->deleteRealAttach($input);  //附件删除
+          if (!$resAttach) {
+              return false;
           }
-            $this->commit();
-            return true;
+
+          $this->commit();
+          return true;
         } catch (Exception $e) {
           $this->rollback();
           //            $results['message'] = $e->getMessage();
