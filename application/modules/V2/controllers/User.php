@@ -27,12 +27,14 @@ class UserController extends PublicController {
         if(!empty($data['username'])){
             $where['username'] = $data['username'];
         }
-        if(!empty($data['currentPage'])){
-            $limit['page'] = $data['currentPage'];
-        }
+
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
+        if(!empty($data['currentPage'])){
+            $limit['page'] = $data['currentPage'];
+        }
+
         $user_modle =new UserModel();
         $data =$user_modle->getListNewdb($where,$limit);
         if(!empty($data)){

@@ -40,7 +40,7 @@ class RoleModel extends PublicModel {
         if(!empty($limit)){
             $res= $this->field('id,name,description,status')
                             ->where($data)
-                            ->limit($limit['page'] . ',' . $limit['num'])
+                            ->limit( $limit['page']. ','. $limit['num'] )
                             ->order($order)
                             ->select();
 

@@ -25,11 +25,11 @@ class RoleController extends PublicController {
         if(!empty($data['name'])){
             $where['name'] = array('like','%'.$data['name'].'%');
         }
-        if(!empty($data['currentPage'])){
-            $limit['page'] = $data['currentPage'];
-        }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
+        }
+        if(!empty($data['currentPage'])){
+            $limit['page'] = ($data['currentPage']-1)* $limit['num'];
         }
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where,$limit);
