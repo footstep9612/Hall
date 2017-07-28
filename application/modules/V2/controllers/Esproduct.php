@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsproductController extends PublicController {
+class EsproductController extends ShopMallController {
 
     protected $index = 'erui_goods';
     protected $es = '';
@@ -20,20 +20,39 @@ class EsproductController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+
+        ini_set("display_errors", "On");
+        error_reporting(E_ERROR | E_STRICT);
+        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
+        $lang = $this->getPut('lang', 'en');
+        $this->setLang($lang);
+        if (!empty($jsondata["token"])) {
+            $token = $jsondata["token"];
+        }
+        if (!empty($token)) {
+            try {
+                $tokeninfo = JwtInfo($token); //解析token
+                $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+                if (empty($userinfo)) {
+                    $this->put_data['source'] = 'ERUI';
+                } else {
+                    $this->user = $userinfo;
+                }
+            } catch (Exception $e) {
+                $this->put_data['source'] = 'ERUI';
+            }
+        } else {
+            $this->put_data['source'] = 'ERUI';
+        }
         $this->es = new ESClient();
     }
 
     public function listAction() {
         $model = new EsproductModel();
-        $_source = ['id', 'skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
-            , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
-            'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
-            'brand', 'supplier_name', 'created_by', 'created_at', 'updated_by', 'updated_at', 'status',
-            'shelves_by', 'shelves_at', 'shelves_status', 'checked_by', 'checked_at'];
-        $ret = $model->getproducts($this->put_data, $_source, $this->getLang());
+        $ret = $model->getproducts($this->put_data, null, $this->getLang());
         if ($ret) {
             $data = $ret[0];
+
             $list = $this->getdata($data);
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
@@ -44,29 +63,28 @@ class EsproductController extends PublicController {
                 $send['allcount'] = $send['count'];
             }
             if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
-                $es_goods_model = new EsgoodsModel();
-                $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
+                $send['sku_count'] = $data['aggregations']['sku_num']['value'];
             }
-            if (!isset($this->put_data['show_cat_no']) || !$this->put_data['show_cat_no']) {
-                $material_cat_nos = [];
-                foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
-                    $material_cats[$item['key']] = $item['doc_count'];
-                    $material_cat_nos[] = $item['key'];
-                }
-            } else {
-                $condition = $this->put_data;
-                unset($condition['show_cat_no']);
-                $ret1 = $model->getproducts($condition, null, $this->getLang());
-                if ($ret1) {
-                    $material_cat_nos = [];
-                    foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
-                        $material_cats[$item['key']] = $item['doc_count'];
-                        $material_cat_nos[] = $item['key'];
-                    }
-                }
-            }
-            $catlist = $this->getcatlist($material_cat_nos, $material_cats);
-            $send['catlist'] = $catlist;
+//            if (!$this->put_data['show_cat_no']) {
+//                $material_cat_nos = [];
+//                foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
+//                    $material_cats[$item['key']] = $item['doc_count'];
+//                    $material_cat_nos[] = $item['key'];
+//                }
+//            } else {
+//                $condition = $this->put_data;
+//                unset($condition['show_cat_no']);
+//                $ret1 = $model->getproducts($condition, null, $this->getLang());
+//                if ($ret1) {
+//                    $material_cat_nos = [];
+//                    foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
+//                        $material_cats[$item['key']] = $item['doc_count'];
+//                        $material_cat_nos[] = $item['key'];
+//                    }
+//                }
+//            }
+//            $catlist = $this->getcatlist($material_cat_nos, $material_cats);
+//            $send['catlist'] = $catlist;
             $send['data'] = $list;
             $this->update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -89,30 +107,28 @@ class EsproductController extends PublicController {
             } else {
                 $list[$key]['img'] = null;
             }
-            $show_cats = [];
-            if (isset($item["_source"]["show_cats"])) {
-                $show_cats = json_decode($item["_source"]["show_cats"], true);
-            }
+            $list[$key]['id'] = $item['_id'];
+            $show_cats = json_decode($item["_source"]["show_cats"], true);
             if ($show_cats) {
                 rsort($show_cats);
             }
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-            if (isset($list[$key]['specs']) && $list[$key]['specs']) {
-                $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-            }
-
+            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
             $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
-            $list[$key]['sku_num'] = count($list[$key]['skus']);
         }
         return $list;
     }
 
     private function getcatlist($material_cat_nos, $material_cats) {
         ksort($material_cat_nos);
-        $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5(json_encode($this->put_data)));
+        $condition = $this->put_data;
+        $condition['token'] = $condition['show_cat_no'] = null;
+        unset($condition['token'], $condition['show_cat_no']);
+        $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . http_build_query($condition));
         $catlist = json_decode(redisGet($catno_key), true);
         if (!$catlist) {
             $matshowcatmodel = new ShowmaterialcatModel();
@@ -129,8 +145,8 @@ class EsproductController extends PublicController {
             rsort($new_showcats3);
             foreach ($new_showcats3 as $key => $item) {
                 $model = new EsproductModel();
-                $this->put_data['show_cat_no'] = $item['cat_no'];
-                $item['count'] = $model->getcount($this->put_data, $this->getLang());
+                $condition['show_cat_no'] = $item['cat_no'];
+                $item['count'] = $model->getcount($condition, $this->getLang());
                 $new_showcats3[$key] = $item;
             }
             redisSet($catno_key, json_encode($new_showcats3), 86400);
@@ -140,7 +156,7 @@ class EsproductController extends PublicController {
     }
 
     private function update_keywords() {
-        if (isset($this->put_data['keyword']) && $this->put_data['keyword']) {
+        if ($this->put_data['keyword']) {
             $search = [];
             $search['keywords'] = $this->put_data['keyword'];
             if ($this->user['email']) {

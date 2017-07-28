@@ -192,7 +192,7 @@ class EsproductModel extends PublicModel {
                 $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
                     , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
                     'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
-                    'brand', 'supplier_name'];
+                    'brand', 'supplier_name','sku_num'];
             }
             $body = $this->getCondition($condition);
             $redis_key = 'es_product_' . md5(json_encode($body));
@@ -212,12 +212,14 @@ class EsproductModel extends PublicModel {
                 $newbody = $this->getCondition($condition);
                 $allcount = $es->setbody($newbody)
                         ->count($this->dbName, $this->tableName . '_' . $lang);
-                $data = [$es->setbody($body)
-                            ->setfields($_source)
-                            ->setsort('sort_order', 'desc')
-                            ->setsort('_id', 'desc')
-                            ->setaggs('meterial_cat_no', 'meterial_cat_no')
-                            ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize, $allcount['count']];
+                $es->setbody($body)->setfields($_source)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
+
+                if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
+                    $es->setaggs('sku_num', 'sku_num', 'sum');
+                } else {
+                    $es->setaggs('meterial_cat_no', 'meterial_cat_no');
+                }
+                $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize, $allcount['count']];
                 redisSet($redis_key, json_encode($data), 3600);
                 return $data;
             }
@@ -228,6 +230,10 @@ class EsproductModel extends PublicModel {
             return [];
         }
     }
+
+    /*
+     * 获取产品总数
+     */
 
     public function getcount($condition, $lang = 'en') {
 
@@ -242,6 +248,27 @@ class EsproductModel extends PublicModel {
             } else {
                 return 0;
             }
+        } catch (Exception $ex) {
+
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
+        }
+    }
+
+    /*
+     * 
+     */
+
+    public function getksucount($condition, $lang = 'en') {
+
+        try {
+            $es = new ESClient();
+            $body = $this->getCondition($condition);
+            return $es->setbody($body)
+                            ->setfields('spu')
+                            ->setaggs('sku_num', 'sku_num', 'sum')
+                            ->search($this->dbName, $this->tableName . '_' . $lang);
         } catch (Exception $ex) {
 
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
