@@ -61,18 +61,18 @@ class GoodsController extends Yaf_Controller_Abstract{
      * @param    status_type(状态flag ) 存在为修改状态,反之为删除
      *           标志: declare(报审)    valid(通过)     invalid(驳回)
      * @param     sku编码  spu编码   lang语言
-     *
-     * @return id
+     * @example   $this->input=[
+                            'status_type'=> 'declare',
+                            0=>[
+                                'sku'=> '3303060000010001',
+                                'lang'=> 'en'
+                                ],
+                            1=>[],...
+                        ];
+     * @return true or false
      * @author  klp  2017/7-13
      */
     public function modifySkuAction(){
-//        $this->input=[
-//            'status_type'=> 'declare',
-//            0=>[
-//                'sku'=> '3303060000010001',
-//                'lang'=> 'en'
-//            ]
-//        ];
         if(empty($this->input)){
             return false;
         }
@@ -90,7 +90,7 @@ class GoodsController extends Yaf_Controller_Abstract{
 
 
     /**
-     * sku新增 (单独) -- 门户
+     * sku新增 (单独) -- BOSS后端
      * @param  sku[]: (必传项) spu(编码)  name(名称)  show_name(展示名称) lang(语言)
      * @return sku编码
      * @author  klp  2017/7-5
@@ -103,7 +103,7 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku属性新增 (单独) -- 门户
+     * sku属性新增 (单独) -- BOSS后端
      * @param  attr[]:  attr_no(属性编码) attr_name(属性名称)
      *                 goods_flag(商品属性)   spec_flag(规格型号)  logi_flag(物流属性)  hs_flag(申报要素)
      *                注:属性添加时带其中一个flag
@@ -118,7 +118,7 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku附件新增 (单独) -- 门户
+     * sku附件新增 (单独) -- BOSS后端
      * @param  attach[]:  attach_url(文件地址)
      * @author  klp  2017/7-5
      */
@@ -130,7 +130,7 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku更新  (单独)-- 门户
+     * sku更新  (单独)-- BOSS后端
      * @param  sku[]: (必传项) spu(编码)  name(名称)  show_name(展示名称)
      * @author  klp  2017/7-5
      */
@@ -142,7 +142,7 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku属性更新 (单独) -- 门户
+     * sku属性更新 (单独) -- BOSS后端
      * @param  attr[]:  attr_no(属性编码) attr_name(属性名称)
      *                 goods_flag(商品属性)   spec_flag(规格型号)  logi_flag(物流属性)  hs_flag(申报要素)
      *                注:属性添加时带其中一个flag
@@ -155,7 +155,7 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku状态更改及删除 (单独) -- 门户
+     * sku状态更改及删除 (单独) -- BOSS后端
      * @param  []:  status_type(状态flag ) 存在为修改状态,反之为删除
      *           标志: declare(报审)    valid(通过)     invalid(驳回)
      * @param     sku编码    lang语言    checked_desc(审核描述)
@@ -187,7 +187,7 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku属性状态更改及删除 (单独)  -- 门户
+     * sku属性状态更改及删除 (单独)  -- BOSS后端
      * @param  []:  status_type(状态flag ) 存在为修改状态,反之为删除
      *           标志: declare(报审)    valid(通过)     invalid(驳回)
      * @param     sku编码    lang语言
@@ -219,7 +219,7 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku附件状态更改及删除 (单独)  -- 门户
+     * sku附件状态更改及删除 (单独)  -- BOSS后端
      * @param  []:  status_type(状态flag ) 存在为修改状态,反之为删除
      *           标志: declare(报审)    valid(通过)     invalid(驳回)
      * @param     sku编码
@@ -248,14 +248,15 @@ class GoodsController extends Yaf_Controller_Abstract{
     }
 
     /**
-     * sku供应商信息  -- 门户      待完善
+     * sku供应商  -- BOSS后端      待完善
      * @author  klp  2017/7-6
      */
-    public function getSupplierInfoAction(){
+    public function listSupplierAction(){
         $SupplierAccountModel = new SupplierAccountModel();
         $result = $SupplierAccountModel->getInfo($this->input);
         $this->returnInfo($result);
     }
+
 
     /**
      *   通过spu查询四种语言name

@@ -20,19 +20,19 @@ class EsproductModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-    private function getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null, $minimum_should_match = false) {
+    /*
+     * 判断搜索条件是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null, $minimum_should_match = false) {
         if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];
                 if (!$field) {
                     $field = $name;
                 }
-                if (!$minimum_should_match) {
-                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
-                } else {
-                    $body['query']['bool']['minimum_should_match'] = "75%";
-                    $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
-                }
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
             }
         } elseif ($qurey_type == ESClient::WILDCARD) {
 
@@ -43,6 +43,19 @@ class EsproductModel extends PublicModel {
                     $field = $name;
                 }
                 $body['query']['bool']['must'][] = [$qurey_type => [$field => '*' . $value . '*']];
+            }
+        } elseif ($qurey_type == ESClient::MULTI_MATCH) {
+            if (isset($condition[$name]) && $condition[$name]) {
+                $value = $condition[$name];
+                if (!$field) {
+                    $field = [$name];
+                }
+                $body['query']['bool']['must'][] = [$qurey_type => [
+                        'query' => $value,
+                        'type' => 'most_fields',
+                        'operator' => 'and',
+                        'fields' => $field
+                ]];
             }
         } elseif ($qurey_type == ESClient::RANGE) {
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
@@ -60,6 +73,64 @@ class EsproductModel extends PublicModel {
         }
     }
 
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getStatus(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = '', $array = [], $default = 'VALID') {
+        if (!$field) {
+            $field = [$name];
+        }
+        if (isset($condition[$name]) && $condition[$name]) {
+            $status = $condition[$name];
+            if ($status == 'ALL') {
+                
+            } elseif (in_array($status, $array)) {
+
+                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
+            } else {
+                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+            }
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getQureyByArr(&$condition, &$body, $qurey_type = ESClient::MATCH_PHRASE, $names = '', $field = '') {
+        if (!$field) {
+            $field = [$names];
+        }
+        if (isset($condition[$names]) && $condition[$names]) {
+            $name_arr = $condition[$names];
+            $bool = [];
+            foreach ($name_arr as $name) {
+                $bool[] = [$qurey_type => [$field => $name]];
+            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getQureyByBool(&$condition, &$body, $qurey_type = ESClient::MATCH_PHRASE, $name = '', $field = '', $default = 'N') {
+        if (!$field) {
+            $field = $name;
+        }
+        if (isset($condition[$name]) && $condition[$name]) {
+            $recommend_flag = $condition[$name] == 'Y' ? 'Y' : $default;
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $recommend_flag]];
+        }
+    }
+
     /* 条件组合
      * @param mix $condition // 搜索条件
      */
@@ -67,86 +138,43 @@ class EsproductModel extends PublicModel {
     private function getCondition($condition) {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
-        $this->getQurey($condition, $body, ESClient::MATCH, 'sku', 'skus');
-        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
-
-        if (isset($condition['spus']) && $condition['spus']) {
-            $spus = $condition['spus'];
-            $spus_arr = [];
-            foreach ($spus as $spu) {
-                $spus_arr[] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
-            }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $spus_arr]];
-        }
-        $this->getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
-        $this->getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
-        $this->getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
-        $this->getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'meterial_cat.all');
-        $this->getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'meterial_cat.all');
-        $this->getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'meterial_cat.all');
-        $this->getQurey($condition, $body, ESClient::RANGE, 'created_at');
-        $this->getQurey($condition, $body, ESClient::RANGE, 'checked_at');
-        $this->getQurey($condition, $body, ESClient::RANGE, 'updated_at');
-        $this->getQurey($condition, $body, ESClient::RANGE, 'shelves_at');
-        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'shelves_by');
-        if (isset($condition['status']) && $condition['status']) {
-            $status = $condition['status'];
-            if ($status == 'ALL') {
-                
-            } elseif (in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
-
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
-            } else {
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
-            }
-        } else {
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
-        }
-        if (isset($condition['recommend_flag']) && $condition['recommend_flag']) {
-            $recommend_flag = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $recommend_flag]];
-        }
-        if (isset($condition['shelves_status']) && $condition['shelves_status']) {
-            $shelves_status = $condition['shelves_status'];
-            if ($shelves_status == 'ALL') {
-                
-            } elseif (in_array($shelves_status, ['VALID', 'INVALID'])) {
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['shelves_status' => $status]];
-            } else {
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['shelves_status' => 'VALID']];
-            }
-        } else {
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['shelves_status' => 'VALID']];
-        }
-        $this->getQurey($condition, $body, ESClient::MATCH, 'brand');
-        $this->getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
-        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'exe_standard');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'app_scope');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'advantages');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'tech_paras');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'source_detail');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'keywords');
-        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'supplier_id');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'supplier_name');
-        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
-        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
-        $this->getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
-
-        $this->getQurey($condition, $body, ESClient::MATCH, 'show_name');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'name', 'name', true);
-        $this->getQurey($condition, $body, ESClient::MATCH, 'attrs');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'specs');
-        $this->getQurey($condition, $body, ESClient::MATCH, 'warranty');
-        if (isset($condition['keyword']) && $condition['keyword']) {
-            $show_name = $condition['keyword'];
-            $body['query']['bool']['must'][] = [ESClient::MULTI_MATCH => [
-                    'query' => $show_name,
-                    'type' => 'most_fields',
-                    'operator' => 'and',
-                    'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
-            ]];
-        }
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'sku', 'skus');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
+        $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'meterial_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'meterial_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'meterial_cat.all');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'shelves_at');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'shelves_by');
+        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
+        $this->_getQureyByBool($condition, $body, ESClient::MATCH_PHRASE, 'recommend_flag', 'recommend_flag', 'N');
+        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand');
+        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'real_name', 'name');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'supplier_id');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'supplier_name');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name');
+        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'name', 'name');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'specs');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty');
+        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']);
         return $body;
     }
 

@@ -447,7 +447,11 @@ class BuyerModel extends PublicModel {
         } else{
             jsonReturn('','-1001','用户[customer_id]不可以为空');
         }
-        $where['lang'] = $info['lang'] ? strtolower($info['lang']) :  'en';
+        if (isset($info['lang']) && in_array($info['lang'], array('zh', 'en', 'es', 'ru'))) {
+            $where['lang'] = strtolower($info['lang']);
+        } else{
+            $where['lang'] = 'en';
+        }
         $field = 'lang,serial_no,name,bn,country,profile,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,reg_date,capital_account,sales,official_phone,fax,official_website,employee_count,credit_total,credit_available,apply_at,approved_at,remarks';
         try{
             $buyerInfo =  $this->field($field)->where($where)->find();
@@ -475,7 +479,7 @@ class BuyerModel extends PublicModel {
      * 企业信息新建-门户
      * @author klp
      */
-    public function createInfo($token,$input)
+    public function editInfo($token,$input)
     {
         if (!isset($input))
             return false;
