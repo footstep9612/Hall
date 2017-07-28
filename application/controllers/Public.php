@@ -24,11 +24,22 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
+
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             
         } else {
+
+            if (!empty($jsondata["token"])) {
+                $token = $jsondata["token"];
+            }
+            $data = $this->getRequest()->getPost();
+
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            $model = new UserModel();
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
             }
@@ -41,22 +52,16 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 try {
                     $tks = explode('.', $token);
                     $tokeninfo = JwtInfo($token); //解析token
-                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['sub']), true);
-                    if (!$userinfo){
-                        $user_modle =new UserModel();
-                        $info =$user_modle->findInfo($tokeninfo['sub']);
-                        if (empty($info)) {
-                            echo json_encode(array("code" => "-104", "message" => "用户不存在"));
-                            exit;
-                        } else {
-                            redisSet('user_info_' . $tokeninfo['sub'],$info[0],18000);
-                            $userinfo=$info[0];
-                            $this->user = array(
-                                "id" => $userinfo["user_main_id"],
-                                "name" => $tokeninfo["sub"],
-                                "token" => $token, //token
-                            );
-                        }
+                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
+                    if (empty($userinfo)) {
+                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+                        exit;
+                    } else {
+                        $this->user = array(
+                            "id" => $userinfo["id"],
+                            "name" => $tokeninfo["name"],
+                            "token" => $token, //token
+                        );
                     }
                     //权限控制
 //                        if(redisExist('role_user_'.$userinfo['id'])){
