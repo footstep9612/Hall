@@ -22,7 +22,8 @@ class RoleModel extends PublicModel {
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
-     public function getcount($data,$limit,$order='id desc'){
+
+     public function getcount($data,$order='id desc'){
          $count =  $this->field('id,name,description,status')
              ->where($data)
              ->count('id');
