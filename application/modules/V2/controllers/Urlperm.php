@@ -18,10 +18,8 @@ class UrlpermController extends PublicController {
     }
 
     public function listAction() {
-
-        $data = json_decode(file_get_contents("php://input"), true);
+        //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
-        $where = [];
         $model_url_perm = new UrlPermModel();
         $data = $model_url_perm->getlist(['parent_id'=>0,'status'=>'NORMAL'],$limit); //($this->put_data);
         $count = count($data);
@@ -41,7 +39,6 @@ class UrlpermController extends PublicController {
             }else{
                 unset($data[$i]['children']);
             }
-
         }
         if(!empty($data)){
             $datajson['code'] = 1;

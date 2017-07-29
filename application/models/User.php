@@ -19,7 +19,7 @@ class UserModel extends PublicModel {
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
-    private $db_config ='mysqli://usrregi:regiusr@172.18.18.61:3306/regi?#utf8';
+    //private $db_config ='mysqli://usrregi:regiusr@172.18.18.61:3306/regi?#utf8';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -81,39 +81,47 @@ class UserModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getlist($condition = [],$order=" id desc") {
-        $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`,`description`';
-        $sql .= ' FROM '.$this->g_table;
-        $sql .= ' WHERE `status`= "NORMAL"';
-        if ( !empty($condition['where']) ){
-            $sql .= ' AND '.$condition['where'];
+    public function getlist($condition = [],$order=" t_user.id desc") {
+        $sql = 'SELECT `t_user`.`id`,`user_no`,`t_user`.`name`,`email`,`mobile`,`t_user`.`description` ,group_concat(`t_group`.`name`) as group_name,group_concat(`t_role`.`name`) as role_name';
+        $sql .= ' FROM t_user';
+        $sql .= ' left join  t_group_user on t_user.id = t_group_user.user_id ';
+        $sql .= ' left join  t_group on t_group_user.group_id = t_group.id ';
+        $sql .= ' left join  t_role_user on t_user.id = t_role_user.user_id ';
+        $sql .= ' left join  t_role on t_role_user.role_id = t_role.id ';
+        $sql .= ' WHERE `t_user`.`status`= "NORMAL"';
+        if ( !empty($condition['group_id']) ){
+            $sql .= ' AND t_group_user.group_id ='.$condition['group_id'];
         }
-        $sql .= ' Order By '.$order;
+        if ( !empty($condition['role_id']) ){
+            $sql .= ' AND t_role_user.role_id ='.$condition['role_id'];
+        }
+        //$sql .= ' Order By '.$order;
         if ( $condition['page'] ){
             $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
         }
+        $sql .= ' group by `t_user`.`id`';
         return $this->query( $sql );
     }
-    /**
-     * 获取列表
-     * @param data $data;
-     * @return array
-     * @author jhw
-     */
-    public function getListNewdb($data,$limit,$order='user_main_id desc') {
-        $sql = 'SELECT * FROM regi.user_main';
-//        if ( !empty($condition['where']) ){
-//            $sql .= ' AND '.$condition['where'];
-//        }
-//        $sql .= ' Order By '.$order;
-//        if ( $condition['page'] ){
-//            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
-//        }
-//return $this->query( $sql );
-        $db =db_Db::getInstance($this->db_config);
-        return $db->query($sql);
-
-    }
+//    /**
+//     * 获取列表
+//     * @param data $data;
+//     * @return array
+//     * @author jhw
+//     */
+//    public function getListNewdb($data,$limit,$order='user_main_id desc') {
+//        $sql = 'SELECT * FROM regi.user_main';
+////        if ( !empty($condition['where']) ){
+////            $sql .= ' AND '.$condition['where'];
+////        }
+////        $sql .= ' Order By '.$order;
+////        if ( $condition['page'] ){
+////            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
+////        }
+////return $this->query( $sql );
+//        $db =db_Db::getInstance($this->db_config);
+//        return $db->query($sql);
+//
+//    }
     /**
      * 获取列表
      * @param  string $code 编码

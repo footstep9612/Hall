@@ -43,7 +43,6 @@ class RoleModel extends PublicModel {
                             ->limit( $limit['page']. ','. $limit['num'] )
                             ->order($order)
                             ->select();
-
             return $res;
         }else{
             return $this->field('id,name,description,status')

@@ -19,7 +19,6 @@ class UserController extends PublicController {
 
 
     }
-
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
@@ -27,16 +26,17 @@ class UserController extends PublicController {
         if(!empty($data['username'])){
             $where['username'] = $data['username'];
         }
-
+        if(!empty($data['group_id'])){
+            $where['group_id'] = $data['group_id'];
+        }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
         if(!empty($data['currentPage'])){
-            $limit['page'] = $data['currentPage'];
+            $limit['page'] = ($data['currentPage']-1)*$limit['num'];
         }
-
         $user_modle =new UserModel();
-        $data =$user_modle->getListNewdb($where,$limit);
+        $data =$user_modle->getlist($where,$limit);
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -45,7 +45,6 @@ class UserController extends PublicController {
             $datajson['data'] = $data;
             $datajson['message'] = '数据为空!';
         }
-
         $this->jsonReturn($datajson);
     }
 
