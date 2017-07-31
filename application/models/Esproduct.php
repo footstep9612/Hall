@@ -192,7 +192,7 @@ class EsproductModel extends PublicModel {
                 $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
                     , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
                     'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
-                    'brand', 'supplier_name','sku_num'];
+                    'brand', 'supplier_name', 'sku_num'];
             }
             $body = $this->getCondition($condition);
             $redis_key = 'es_product_' . md5(json_encode($body));
@@ -916,8 +916,23 @@ class EsproductModel extends PublicModel {
     }
 
     /*
-     * 批量导入产品数据到ES
+     * 将数组中的null值转换为空值
+     * @author zyg 2017-07-31
+     * @param array $item // 语言 zh en ru es 
+     * @return mix 
+     */
 
+    private function _findnulltoempty(&$item) {
+        foreach ($item as $key => $val) {
+            if (is_null($val)) {
+                $item[$key] = '';
+            }
+        }
+    }
+
+    /*
+     * 批量导入产品数据到ES
+     * @author zyg 2017-07-31
      * @param string $lang // 语言 zh en ru es 
      * @return mix  
      */
@@ -1057,14 +1072,23 @@ class EsproductModel extends PublicModel {
                 }
             }
         } catch (Exception $ex) {
-
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
     }
 
-    private function getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
+    /* 条件判断
+     * @author zyg 2017-07-31
+     * @param array $condition  条件
+     * @param string $name需要判断的键值
+     * @param string $default 默认值
+     * @param string $type 判断的类型
+     * @param array $arr 状态判断时状态数组
+     * @return mix  
+     */
+
+    private function _getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
         if ($type === 'string') {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];
@@ -1125,10 +1149,10 @@ class EsproductModel extends PublicModel {
             $smmodel = new ShowmaterialcatModel();
             $show_cat_nos = $smmodel->getshowcatnosBymatcatno($material_cat_no, $lang);
             $scats = $this->getshow_cats($show_cat_nos, $lang);
-            $data['show_cats'] = $this->getValue($scats, $material_cat_no, [], 'json');
+            $data['show_cats'] = $this->_getValue($scats, $material_cat_no, [], 'json');
             $SupplycapabilityModel = new SupplycapabilityModel();
             $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$material_cat_no], $lang);
-            $data['supply_capabilitys'] = $this->getValue($supply_capabilitys, $material_cat_no, [], 'json');
+            $data['supply_capabilitys'] = $this->_getValue($supply_capabilitys, $material_cat_no, [], 'json');
         } else {
             $data['meterial_cat_no'] = '';
             $data['meterial_cat'] = json_encode(new \stdClass());
@@ -1140,51 +1164,51 @@ class EsproductModel extends PublicModel {
             $product_attrs = $this->getproduct_attrbyspus([$spu], $lang);
             $specs = $this->getproduct_specsbyskus([$spu], $lang);
             $attachs = $this->getproduct_attachsbyspus([$spu], $lang);
-            $data['attrs'] = $this->getValue($product_attrs, $spu, [], 'json');
-            $data['specs'] = $this->getValue($specs, $spu, [], 'json');
-            $data['specs'] = $this->getValue($attachs, $spu, [], 'json');
+            $data['attrs'] = $this->_getValue($product_attrs, $spu, [], 'json');
+            $data['specs'] = $this->_getValue($specs, $spu, [], 'json');
+            $data['specs'] = $this->_getValue($attachs, $spu, [], 'json');
         } else {
             $data['spu'] = '';
             $data['attrs'] = json_encode([], 256);
             $data['specs'] = json_encode([], 256);
             $data['attachs'] = json_encode([], 256);
         }
-        $data['qrcode'] = $this->getValue($condition, 'qrcode');
-        $data['name'] = $this->getValue($condition, 'name');
-        $data['show_name'] = $this->getValue($condition, 'show_name');
-        $data['keywords'] = $this->getValue($condition, 'keywords');
-        $data['exe_standard'] = $this->getValue($condition, 'exe_standard');
-        $data['app_scope'] = $this->getValue($condition, 'app_scope');
-        $data['tech_paras'] = $this->getValue($condition, 'tech_paras');
-        $data['profile'] = $this->getValue($condition, 'profile');
-        $data['description'] = $this->getValue($condition, 'description');
-        $data['supplier_id'] = $this->getValue($condition, 'supplier_id');
-        $data['supplier_name'] = $this->getValue($condition, 'supplier_name');
-        $data['brand'] = $this->getValue($condition, 'brand');
-        $data['warranty'] = $this->getValue($condition, 'warranty');
-        $data['customization_flag'] = $this->getValue($condition, 'customization_flag');
-        $data['customization_flag'] = $this->getValue($condition, 'customization_flag');
-        $data['customization_flag'] = $this->getValue($condition, 'customization_flag', 'N', 'bool');
-        $data['customizability'] = $this->getValue($condition, 'customizability');
-        $data['availability'] = $this->getValue($condition, 'availability');
-        $data['resp_time'] = $this->getValue($condition, 'resp_time');
-        $data['resp_rate'] = $this->getValue($condition, 'resp_rate');
-        $data['delivery_cycle'] = $this->getValue($condition, 'delivery_cycle');
-        $data['target_market'] = $this->getValue($condition, 'target_market');
-        $data['source'] = $this->getValue($condition, 'source');
-        $data['source_detail'] = $this->getValue($condition, 'source_detail');
-        $data['recommend_flag'] = $this->getValue($condition, 'recommend_flag', 'N', 'bool');
-        $data['status'] = $this->getValue($condition, 'status', 'CHECKING', 'in_array');
-        $data['created_by'] = $this->getValue($condition, 'created_by');
-        $data['created_at'] = $this->getValue($condition, 'created_at');
-        $data['updated_by'] = $this->getValue($condition, 'updated_by');
-        $data['updated_at'] = $this->getValue($condition, 'updated_at');
-        $data['checked_by'] = $this->getValue($condition, 'checked_by');
-        $data['checked_at'] = $this->getValue($condition, 'checked_at');
-        $data['shelves_status'] = $this->getValue($condition, 'shelves_status', 'INVALID', 'in_array', ['INVALID', 'VALID']);
+        $data['qrcode'] = $this->_getValue($condition, 'qrcode');
+        $data['name'] = $this->_getValue($condition, 'name');
+        $data['show_name'] = $this->_getValue($condition, 'show_name');
+        $data['keywords'] = $this->_getValue($condition, 'keywords');
+        $data['exe_standard'] = $this->_getValue($condition, 'exe_standard');
+        $data['app_scope'] = $this->_getValue($condition, 'app_scope');
+        $data['tech_paras'] = $this->_getValue($condition, 'tech_paras');
+        $data['profile'] = $this->_getValue($condition, 'profile');
+        $data['description'] = $this->_getValue($condition, 'description');
+        $data['supplier_id'] = $this->_getValue($condition, 'supplier_id');
+        $data['supplier_name'] = $this->_getValue($condition, 'supplier_name');
+        $data['brand'] = $this->_getValue($condition, 'brand');
+        $data['warranty'] = $this->_getValue($condition, 'warranty');
+        $data['customization_flag'] = $this->_getValue($condition, 'customization_flag');
+        $data['customization_flag'] = $this->_getValue($condition, 'customization_flag');
+        $data['customization_flag'] = $this->_getValue($condition, 'customization_flag', 'N', 'bool');
+        $data['customizability'] = $this->_getValue($condition, 'customizability');
+        $data['availability'] = $this->_getValue($condition, 'availability');
+        $data['resp_time'] = $this->_getValue($condition, 'resp_time');
+        $data['resp_rate'] = $this->_getValue($condition, 'resp_rate');
+        $data['delivery_cycle'] = $this->_getValue($condition, 'delivery_cycle');
+        $data['target_market'] = $this->_getValue($condition, 'target_market');
+        $data['source'] = $this->_getValue($condition, 'source');
+        $data['source_detail'] = $this->_getValue($condition, 'source_detail');
+        $data['recommend_flag'] = $this->_getValue($condition, 'recommend_flag', 'N', 'bool');
+        $data['status'] = $this->_getValue($condition, 'status', 'CHECKING', 'in_array');
+        $data['created_by'] = $this->_getValue($condition, 'created_by');
+        $data['created_at'] = $this->_getValue($condition, 'created_at');
+        $data['updated_by'] = $this->_getValue($condition, 'updated_by');
+        $data['updated_at'] = $this->_getValue($condition, 'updated_at');
+        $data['checked_by'] = $this->_getValue($condition, 'checked_by');
+        $data['checked_at'] = $this->_getValue($condition, 'checked_at');
+        $data['shelves_status'] = $this->_getValue($condition, 'shelves_status', 'INVALID', 'in_array', ['INVALID', 'VALID']);
 
         $skus = $this->getskusbyspus([$spu], $lang);
-        $data['skus'] = $this->getValue($skus, $spu, [], 'json');
+        $data['skus'] = $this->_getValue($skus, $spu, [], 'json');
 
         return $data;
     }
@@ -1252,7 +1276,7 @@ class EsproductModel extends PublicModel {
             if (empty($spu)) {
                 return false;
             }
-            $data['status'] = $this->getValue($condition, 'status', 'CHECKING', 'in_array');
+            $data['status'] = $this->_getValue($condition, 'status', 'CHECKING', 'in_array');
             $id = $spu;
             $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
             return true;
@@ -1273,7 +1297,7 @@ class EsproductModel extends PublicModel {
             if (empty($spu)) {
                 return false;
             }
-            $data['shelves_status'] = $this->getValue($condition, 'status', 'INVALID', 'in_array', ['VALID', 'INVALID']);
+            $data['shelves_status'] = $this->_getValue($condition, 'status', 'INVALID', 'in_array', ['VALID', 'INVALID']);
             $id = $spu;
             $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
             $esgoodsdata = [
@@ -1371,10 +1395,10 @@ class EsproductModel extends PublicModel {
         $smmodel = new ShowmaterialcatModel();
         $show_cat_nos = $smmodel->getshowcatnosBymatcatno($new_cat_no, $lang);
         $scats = $this->getshow_cats($show_cat_nos, $lang);
-        $data['show_cats'] = $this->getValue($scats, $new_cat_no, [], 'json');
+        $data['show_cats'] = $this->_getValue($scats, $new_cat_no, [], 'json');
         $SupplycapabilityModel = new SupplycapabilityModel();
         $supply_capabilitys = $SupplycapabilityModel->getlistbycat_nos([$new_cat_no], $lang);
-        $data['supply_capabilitys'] = $this->getValue($supply_capabilitys, $new_cat_no, [], 'json');
+        $data['supply_capabilitys'] = $this->_getValue($supply_capabilitys, $new_cat_no, [], 'json');
         $data['material_cat_no'] = $new_cat_no;
         if ($spu) {
             $id = $spu;
@@ -1436,8 +1460,8 @@ class EsproductModel extends PublicModel {
         $product_attrs = $this->getproduct_attrbyspus([$spu], $lang);
         $specs = $this->getproduct_specsbyskus([$spu], $lang);
         $id = $spu;
-        $data['attrs'] = $this->getValue($product_attrs, $spu, [], 'json');
-        $data['specs'] = $this->getValue($specs, $spu, [], 'json');
+        $data['attrs'] = $this->_getValue($product_attrs, $spu, [], 'json');
+        $data['specs'] = $this->_getValue($specs, $spu, [], 'json');
         $type = $this->tableName . '_' . $lang;
         $es->update_document($this->dbName, $type, $data, $id);
         $goodsmodel = new GoodsModel();
@@ -1459,7 +1483,7 @@ class EsproductModel extends PublicModel {
             return false;
         }
         $attachs = $this->getproduct_attachsbyspus([$spu], $lang);
-        $data['attachs'] = $this->getValue($attachs, $spu, [], 'json');
+        $data['attachs'] = $this->_getValue($attachs, $spu, [], 'json');
         $id = $spu;
         $type = $this->tableName . '_' . $lang;
         $es->update_document($this->dbName, $type, $data, $id);
