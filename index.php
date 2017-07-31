@@ -22,8 +22,8 @@ define('COMMON_PATH', MYPATH . DS . 'common');
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节
  * 另外在配置文件中, 可以替换PHP的常量, 比如此处的APPLICATION_PATH
  */
-if (file_exists(MYPATH . DS . $out[1]) && file_exists(MYPATH . DS . 'app' . $out[1] . DS . 'conf' . DS . 'application.ini')) {
-    $application = new Yaf_Application(MYPATH . DS . 'app' . $out[1] . DS . 'conf' . DS . 'application.ini');
+if (file_exists(MYPATH . DS . $module) && file_exists(MYPATH . DS . 'app' . $module. DS . 'conf' . DS . 'application.ini')) {
+    $application = new Yaf_Application(MYPATH . DS . 'app' .$module . DS . 'conf' . DS . 'application.ini');
 } else {
     $application = new Yaf_Application(MYPATH . '/conf/application.ini');
 }
