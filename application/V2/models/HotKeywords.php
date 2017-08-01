@@ -68,14 +68,7 @@ class HotKeywordsModel extends PublicModel {
     public function getlist($condition = []) {
         $data = $this->_getcondition($condition);
         try {
-            $pagesize = 10;
-            $current_no = 1;
-            if (isset($condition['current_no'])) {
-                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-            }
-            if (isset($condition['pagesize'])) {
-                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-            }
+            list($current_no, $pagesize) = $this->_getPage($condition);
             return $this->where($data)->limit($current_no, $pagesize)
                             ->order('search_count desc,search_time desc')->select();
         } catch (Exception $ex) {

@@ -135,8 +135,7 @@ class RateModel extends PublicModel {
     public function update_data($update) {
         $data = $this->create($update);
         $where['id'] = $data['id'];
-        $arr['status'] = $data['status'] == 'VALID' ? 'VALID' : 'INVALID';
-        $flag = $this->where($where)->save($arr);
+        $flag = $this->where($where)->save($data);
         if ($flag) {
             return $flag;
         } else {
@@ -153,6 +152,7 @@ class RateModel extends PublicModel {
     public function create_data($create = []) {
 
         $data = $this->create($create);
+        $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $flag = $this->add($data);
         if ($flag) {
             return $flag;
