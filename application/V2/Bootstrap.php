@@ -39,6 +39,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
             $ControllerName = $this->parseName($out[2], 1);
             $Request->setControllerName($ControllerName);
             $Request->setModuleName('Index');
+       
             //创建一个路由协议实例
             $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => 'Index',
                 'controller' => $ControllerName,
@@ -54,6 +55,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
             preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
             $ControllerName = $this->parseName($out[2], 1);
             $Request->setControllerName($ControllerName);
+
             $Request->setModuleName('Index');
             //创建一个路由协议实例
             $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => 'Index',

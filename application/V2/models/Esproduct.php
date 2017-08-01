@@ -14,7 +14,7 @@ class EsproductModel extends PublicModel {
 
 //put your code here
     protected $tableName = 'product';
-    protected $dbName = 'erui_goods'; //数据库名称
+    protected $dbName = 'erui2_goods'; //数据库名称
 
     public function __construct($str = '') {
         parent::__construct($str = '');
@@ -402,15 +402,15 @@ class EsproductModel extends PublicModel {
 
     public function getmaterial_cat($cat_no, $lang = 'en') {
         try {
-            $cat3 = $this->table('erui_goods.t_material_cat')
+            $cat3 = $this->table('erui2_goods.material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                     ->find();
-            $cat2 = $this->table('erui_goods.t_material_cat')
+            $cat2 = $this->table('erui2_goods.material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                     ->find();
-            $cat1 = $this->table('erui_goods.t_material_cat')
+            $cat1 = $this->table('erui2_goods.material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                     ->find();
@@ -434,7 +434,7 @@ class EsproductModel extends PublicModel {
             return[];
         }
         try {
-            $cat3s = $this->table('erui_goods.t_material_cat')
+            $cat3s = $this->table('erui2_goods.material_cat')
                     ->field('id,cat_no,name,parent_cat_no')
                     ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
@@ -449,7 +449,7 @@ class EsproductModel extends PublicModel {
             foreach ($cat3s as $cat) {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
-            $cat2s = $this->table('erui_goods.t_material_cat')
+            $cat2s = $this->table('erui2_goods.material_cat')
                     ->field('id,cat_no,name,parent_cat_no')
                     ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
@@ -468,7 +468,7 @@ class EsproductModel extends PublicModel {
                 $cat1_nos[] = $cat2['parent_cat_no'];
             }
 
-            $cat1s = $this->table('erui_goods.t_material_cat')
+            $cat1s = $this->table('erui2_goods.material_cat')
                     ->field('id,cat_no,name')
                     ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
@@ -522,7 +522,7 @@ class EsproductModel extends PublicModel {
 
     public function getgoods_specsbyspus($spus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_goods.t_goods_attr')
+            $product_attrs = $this->table('erui2_goods.goods_attr')
 //  ->field('spu,attr_name,attr_value,attr_no')
                     ->where(['spu' => ['in', $spus],
                         'lang' => $lang,
@@ -553,7 +553,7 @@ class EsproductModel extends PublicModel {
 
     public function getproduct_attrbyspus($spus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_goods.t_product_attr')
+            $product_attrs = $this->table('erui2_goods.product_attr')
                     ->field('*')
                     ->where(['spu' => ['in', $spus], 'lang' => $lang,
                         'spec_flag' => 'N',
@@ -583,7 +583,7 @@ class EsproductModel extends PublicModel {
 
     public function getskusbyspus($spus, $lang = 'en') {
         try {
-            $specs = $this->table('erui_goods.t_goods')->field('sku,spu,`name`,`model`,`show_name`')
+            $specs = $this->table('erui2_goods.goods')->field('sku,spu,`name`,`model`,`show_name`')
                     ->where(['spu' => ['in', $spus], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
             $ret = [];
@@ -614,8 +614,8 @@ class EsproductModel extends PublicModel {
     public function getshow_catsbyspus($spus, $lang = 'en') {
         try {
 
-            $show_cat_products = $this->table('erui_goods.t_show_cat_product scp')
-                    ->join('erui_goods.t_show_cat sc on scp.cat_no=sc.cat_no', 'left')
+            $show_cat_products = $this->table('erui2_goods.show_cat_product scp')
+                    ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                     ->field('scp.cat_no,scp.spu')
                     ->where(['scp.spu' => ['in', $spus],
                         'scp.status' => 'VALID',
@@ -646,7 +646,7 @@ class EsproductModel extends PublicModel {
 
     public function getproduct_specsbyskus($spus, $lang = 'en') {
         try {
-            $product_attrs = $this->table('erui_goods.t_product_attr')
+            $product_attrs = $this->table('erui2_goods.product_attr')
                             ->field('spu,attr_name,attr_value,attr_no')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang,
                                 'spec_flag' => 'Y', 'status' => 'VALID'
@@ -677,8 +677,8 @@ class EsproductModel extends PublicModel {
     public function getshow_material_cats($cat_nos, $lang = 'en') {
 
         try {
-            $show_material_cats = $this->table('erui_goods.t_show_material_cat smc')
-                    ->join('erui_goods.t_show_cat sc on smc.show_cat_no=sc.cat_no')
+            $show_material_cats = $this->table('erui2_goods.show_material_cat smc')
+                    ->join('erui2_goods.show_cat sc on smc.show_cat_no=sc.cat_no')
                     ->field('show_cat_no,material_cat_no')
                     ->where([
                         'smc.material_cat_no' => ['in', $cat_nos],
@@ -714,7 +714,7 @@ class EsproductModel extends PublicModel {
 
         try {
             if ($show_cat_nos) {
-                $cat3s = $this->table('erui_goods.t_show_cat')
+                $cat3s = $this->table('erui2_goods.show_cat')
                         ->field('market_area_bn,country_bn,parent_cat_no,cat_no,name')
                         ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                         ->select();
@@ -731,7 +731,7 @@ class EsproductModel extends PublicModel {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
             if ($cat2_nos) {
-                $cat2s = $this->table('erui_goods.t_show_cat')
+                $cat2s = $this->table('erui2_goods.show_cat')
                                 ->field('id,cat_no,name,parent_cat_no')
                                 ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
@@ -751,7 +751,7 @@ class EsproductModel extends PublicModel {
                 $cat1_nos[] = $cat2['parent_cat_no'];
             }
             if ($cat1_nos) {
-                $cat1s = $this->table('erui_goods.t_show_cat')->field('id,cat_no,name')
+                $cat1s = $this->table('erui2_goods.show_cat')->field('id,cat_no,name')
                                 ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
 
@@ -807,7 +807,7 @@ class EsproductModel extends PublicModel {
     public function getproduct_attachsbyspus($spus, $lang = 'en') {
 
         try {
-            $product_attachs = $this->table('erui_goods.t_product_attach')
+            $product_attachs = $this->table('erui2_goods.product_attach')
                     ->field('id,attach_type,attach_url,attach_name,attach_url,spu')
                     ->where(['spu' => ['in', $spus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],

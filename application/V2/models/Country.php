@@ -17,7 +17,7 @@ class CountryModel extends PublicModel {
 
   //put your code here
 
-  protected $dbName = 'erui_dict';
+  protected $dbName = 'erui2_dict';
   protected $tableName = 'country';
 
   public function __construct($str = '') {
@@ -72,8 +72,8 @@ class CountryModel extends PublicModel {
         $from = ($current_no - 1) * $pagesize;
       }
       $this->alias('c')
-              ->join('erui_dict.t_market_area_country mac on c.bn=mac.country_bn', 'left')
-              ->join('erui_dict.t_market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
+              ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
+              ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
               ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region,c.pinyin,'
                       . 'ma.name as market_area_name ,mac.market_area_bn')
               ->where($data);
@@ -174,7 +174,7 @@ class CountryModel extends PublicModel {
       $update = ['market_area_bn' => $update['market_area_bn'],
           'country_bn' => $arr['bn']];
       if ($this->getmarket_area_countryexit($update)) {
-        $this->table('erui_dict.t_market_area_country')
+        $this->table('erui2_operation.market_area_country')
                 ->add($update, [], true);
       }
 
@@ -208,7 +208,7 @@ class CountryModel extends PublicModel {
 
   public function getmarket_area_countryexit($where) {
 
-    return $this->table('erui_dict.t_market_area_country')->where($where)->find();
+    return $this->table('erui2_operation.market_area_country')->where($where)->find();
   }
 
   /**
@@ -238,7 +238,7 @@ class CountryModel extends PublicModel {
     if ($data && $create['market_area_bn']) {
       $update = ['market_area_bn' => $create['market_area_bn'],
           'country_bn' => $arr['bn']];
-      $this->table('erui_dict.t_market_area_country')
+      $this->table('erui2_operation.market_area_country')
               ->create($update);
     }
     $flag = $this->add($data);
@@ -246,7 +246,7 @@ class CountryModel extends PublicModel {
       $update = ['market_area_bn' => $create['market_area_bn'],
           'country_bn' => $arr['bn']];
       if ($this->getmarket_area_countryexit($update)) {
-        $this->table('erui_dict.t_market_area_country')
+        $this->table('erui2_operation.market_area_country')
                 ->create($update);
       }
     }

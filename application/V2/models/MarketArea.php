@@ -14,7 +14,7 @@
 class MarketAreaModel extends PublicModel {
 
   //put your code here
-  protected $dbName = 'erui_dict';
+  protected $dbName = 'erui2_dict';
   protected $tableName = 'market_area';
 
   public function __construct($str = '') {
@@ -67,7 +67,7 @@ class MarketAreaModel extends PublicModel {
         $from = ($current_no - 1) * $pagesize;
       }
       $this->field('id,lang,bn,parent_bn,name as zh_name,url,group_id,'
-                      . '(select ma.name from erui_dict.t_market_area as ma where ma.bn=bn) as en_name ')
+                      . '(select ma.name from erui2_operation.market_area as ma where ma.bn=bn) as en_name ')
               ->where($data);
       if ($type) {
         $this->limit($from . ',' . $pagesize);

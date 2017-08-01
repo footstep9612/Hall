@@ -11,10 +11,10 @@
  *
  * @author zyg
  */
-class MaterialcatModel extends PublicModel {
+class MaterialCatModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui_goods'; //数据库名称
+    protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'material_cat'; //数据表表名
 
     const STATUS_DRAFT = 'DRAFT'; //草稿
