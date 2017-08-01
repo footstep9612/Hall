@@ -1,20 +1,28 @@
 <?php
 
-/**
-  附件文档Controller
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
-class PaymentmodeController extends PublicController {
 
+/**
+ * Description of Cxchangerate
+ *
+ * @author zhongyg
+ */
+class ExchangeRateController extends PublicController {
+
+  //put your code here
   public function init() {
     parent::init();
-
-    $this->_model = new PaymentmodeModel();
+    $this->_model = new ExchangeRateModel();
   }
 
   public function listAction() {
     $condtion = $this->put_data;
     unset($condtion['token']);
-    $key = 'Paymentmode_list_' . md5(json_encode($condtion));
+    $key = 'Exchange_rate_' . md5(json_encode($condtion));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getListbycondition($condtion);
@@ -42,7 +50,6 @@ class PaymentmodeController extends PublicController {
       $result = $this->_model->where(['id' => $id])->find();
     } else {
       $this->setCode(MSG::MSG_FAILED);
-
       $this->jsonReturn();
     }
     if ($result) {
@@ -58,14 +65,13 @@ class PaymentmodeController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('Paymentmode_list_*');
+    $keys = $redis->getKeys('Exchange_rate_*');
     $redis->delete($keys);
   }
 
   public function createAction() {
     $condition = $this->put_data;
-    $data = $this->_model->create($condition);
-    $result = $this->_model->add($data);
+    $result = $this->_model->create_data($condition, $this->user['name']);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -79,9 +85,8 @@ class PaymentmodeController extends PublicController {
   public function updateAction() {
 
     $condition = $this->put_data;
-    $data = $this->_model->create($condition);
     $where['id'] = $condition['id'];
-    $result = $this->_model->where($where)->update($data);
+    $result = $this->_model->where($where)->update_data($condition, $where);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -96,19 +101,11 @@ class PaymentmodeController extends PublicController {
 
     $condition = $this->put_data;
     if (isset($condition['id']) && $condition['id']) {
-      if (is_string($condition['id'])) {
-        $where['id'] = $condition['id'];
-      } elseif (is_array($condition['id'])) {
-        $where['id'] = ['in', $condition['id']];
-      }
-    } elseif ($condition['bn']) {
-      $where['bn'] = $condition['bn'];
+      $where['id'] = $condition['id'];
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
-
-
     $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();

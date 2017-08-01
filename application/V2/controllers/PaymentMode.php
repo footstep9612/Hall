@@ -1,28 +1,20 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- * Description of Cxchangerate
- *
- * @author zhongyg
+  附件文档Controller
  */
-class ExchangerateController extends PublicController {
+class PaymentModeController extends PublicController {
 
-  //put your code here
   public function init() {
     parent::init();
-    $this->_model = new ExchangeRateModel();
+
+    $this->_model = new PaymentmodeModel();
   }
 
   public function listAction() {
     $condtion = $this->put_data;
     unset($condtion['token']);
-    $key = 'Exchange_rate_' . md5(json_encode($condtion));
+    $key = 'Paymentmode_list_' . md5(json_encode($condtion));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getListbycondition($condtion);
@@ -50,6 +42,7 @@ class ExchangerateController extends PublicController {
       $result = $this->_model->where(['id' => $id])->find();
     } else {
       $this->setCode(MSG::MSG_FAILED);
+
       $this->jsonReturn();
     }
     if ($result) {
@@ -65,13 +58,14 @@ class ExchangerateController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('Exchange_rate_*');
+    $keys = $redis->getKeys('Paymentmode_list_*');
     $redis->delete($keys);
   }
 
   public function createAction() {
     $condition = $this->put_data;
-    $result = $this->_model->create_data($condition, $this->user['name']);
+    $data = $this->_model->create($condition);
+    $result = $this->_model->add($data);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -85,8 +79,9 @@ class ExchangerateController extends PublicController {
   public function updateAction() {
 
     $condition = $this->put_data;
+    $data = $this->_model->create($condition);
     $where['id'] = $condition['id'];
-    $result = $this->_model->where($where)->update_data($condition, $where);
+    $result = $this->_model->where($where)->update($data);
     if ($result) {
       $this->delcache();
       $this->setCode(MSG::MSG_SUCCESS);
@@ -101,11 +96,19 @@ class ExchangerateController extends PublicController {
 
     $condition = $this->put_data;
     if (isset($condition['id']) && $condition['id']) {
-      $where['id'] = $condition['id'];
+      if (is_string($condition['id'])) {
+        $where['id'] = $condition['id'];
+      } elseif (is_array($condition['id'])) {
+        $where['id'] = ['in', $condition['id']];
+      }
+    } elseif ($condition['bn']) {
+      $where['bn'] = $condition['bn'];
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
+
+
     $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();

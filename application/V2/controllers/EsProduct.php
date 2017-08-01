@@ -11,9 +11,9 @@
  *
  * @author zhongyg
  */
-class EsproductController extends ShopMallController {
+class EsProductController extends ShopMallController {
 
-    protected $index = 'erui_goods';
+    protected $index = 'erui2_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
     protected $version = '1';

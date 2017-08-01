@@ -3,7 +3,7 @@
 /**
   附件文档Controller
  */
-class MarketareaController extends PublicController {
+class MarketAreaController extends PublicController {
 
   public function init() {
       parent::init();

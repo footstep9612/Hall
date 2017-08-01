@@ -4,7 +4,7 @@
  * 产品与物料分类对应表
  * zyg
  */
-class MaterialcatController extends PublicController {
+class MaterialCatController extends PublicController {
 
     public function init() {
         parent::init();

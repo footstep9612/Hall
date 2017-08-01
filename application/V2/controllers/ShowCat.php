@@ -6,7 +6,7 @@
  * Date: 2017/6/15
  * Time: 11:09
  */
-class ShowcatController extends PublicController {
+class ShowCatController extends PublicController {
 
     public function init() {
         parent::init();

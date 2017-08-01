@@ -1,4 +1,5 @@
 <?php
+
 error_reporting(E_ERROR);
 header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
@@ -11,7 +12,7 @@ preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $ou
 $module = ucfirst($out[1]);
 if (file_exists(MYPATH . DS . 'application' . DS . $module)) {
     define('APPLICATION_PATH', MYPATH . DS . 'application' . DS . $module);
-	define('CONF_PATH', MYPATH . DS . 'application' . DS . $module . DS . 'conf');
+    define('CONF_PATH', MYPATH . DS . 'application' . DS . $module . DS . 'conf');
 } else {
     die('{"code":"-1","message":"系统错误!"}');
 }
