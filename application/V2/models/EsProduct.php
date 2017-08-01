@@ -10,7 +10,7 @@
  *
  * @author zhongyg
  */
-class EsproductModel extends PublicModel {
+class EsProductModel extends Model {
 
 //put your code here
     protected $tableName = 'product';
@@ -185,7 +185,7 @@ class EsproductModel extends PublicModel {
      * @return mix  
      */
 
-    public function getproducts($condition, $_source, $lang = 'en') {
+    public function getProducts($condition, $_source, $lang = 'en') {
 
         try {
             if (!$_source) {
@@ -235,7 +235,7 @@ class EsproductModel extends PublicModel {
      * 获取产品总数
      */
 
-    public function getcount($condition, $lang = 'en') {
+    public function getCount($condition, $lang = 'en') {
 
         try {
 
@@ -260,7 +260,7 @@ class EsproductModel extends PublicModel {
      * 
      */
 
-    public function getksucount($condition, $lang = 'en') {
+    public function getKsucount($condition, $lang = 'en') {
 
         try {
             $es = new ESClient();
@@ -1089,7 +1089,7 @@ class EsproductModel extends PublicModel {
      * @return mix  
      */
 
-    private function _getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
+    protected function _getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
         if ($type === 'string') {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];

@@ -6,7 +6,7 @@ header('Access-Control-Allow-Headers:x-requested-with,content-type');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS;');
 define('DS', DIRECTORY_SEPARATOR);
 /* INI配置文件支持常量替换 */
-define('MYPATH',dirname(__FILE__));
+define('MYPATH', dirname(__FILE__));
 $uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_SPECIAL_CHARS);
 preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $out);
 $module = ucfirst($out[1]);
@@ -22,10 +22,10 @@ define('COMMON_PATH', MYPATH . DS . 'common');
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节
  * 另外在配置文件中, 可以替换PHP的常量, 比如此处的APPLICATION_PATH
  */
-if (file_exists(MYPATH . DS . $module) && file_exists(MYPATH . DS . 'app' . $module . DS . 'conf' . DS . 'application.ini')) {
-    $application = new Yaf_Application(MYPATH . DS . 'app' . $module . DS . 'conf' . DS . 'application.ini');
+if (file_exists(APPLICATION_PATH) && file_exists(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini')) {
+    $application = new Yaf_Application(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini');
 } else {
-    $application = new Yaf_Application(MYPATH . '/conf/application.ini');
+    die('{"code":"-1","message":"系统错误!"}');
 }
 
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端

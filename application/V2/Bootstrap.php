@@ -7,44 +7,6 @@
  */
 class Bootstrap extends Yaf_Bootstrap_Abstract {
 
-    /**
-     * @var bool 是否初始化过
-     */
-    protected static $init = false;
-
-    /**
-     * @var string 当前模块路径
-     */
-    public static $modulePath;
-
-    /**
-     * @var bool 应用调试模式
-     */
-    public static $debug = true;
-
-    /**
-     * @var string 应用类库命名空间
-     */
-    public static $namespace = 'app';
-
-    /**
-     * @var bool 应用类库后缀
-     */
-    public static $suffix = false;
-
-    /**
-     * @var bool 应用路由检测
-     */
-    protected static $routeCheck;
-
-    /**
-     * @var bool 严格路由检测
-     */
-    protected static $routeMust;
-    protected static $dispatch;
-    protected static $file = [];
-    protected $config;
-
     public function _initSession($dispatcher) {
         Yaf_Session::getInstance()->start();
     }
@@ -103,15 +65,17 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
                     break;
                 default : $action = ':Action';
             }
-            if ($action && $action != ':Action') {
+            if ($action && $action != ':Action' && isset($out[3])) {
                 $Request->setActionName($action);
                 $Request->setRequestUri('/index/' . $ControllerName . '/' . $action . $out[3]);
+            } else {
+                $Request->setActionName($action);
+                $Request->setRequestUri('/index/' . $ControllerName . '/' . $action);
             }
             //创建一个路由协议实例
             $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => 'Index',
                 'controller' => $ControllerName,
                 'action' => $action]);
-
             //使用路由器装载路由协议
             $router->addRoute('routes', $route);
         } else {
