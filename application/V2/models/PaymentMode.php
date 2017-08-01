@@ -6,9 +6,9 @@
  * Date: 2017/6/30
  * Time: 21:33
  */
-class PaymentmodeModel extends PublicModel {
+class PaymentModeModel extends PublicModel {
 
-  protected $dbName = 'erui_dict'; //数据库名称
+  protected $dbName = 'erui2_dict'; //数据库名称
   protected $tableName = 'payment_mode'; //数据表表名
 
   public function __construct() {

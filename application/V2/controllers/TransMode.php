@@ -3,7 +3,7 @@
 /**
   附件文档Controller
  */
-class TransmodeController extends PublicController {
+class TransModeController extends PublicController {
 
   public function init() {
     parent::init();

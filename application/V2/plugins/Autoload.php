@@ -4,6 +4,7 @@
  * @author zqf
  * Autoload.php
  */
+
 class AutoloadPlugin extends Yaf_Plugin_Abstract {
 
     //在路由之前触发，这个是7个事件中, 最早的一个. 但是一些全局自定的工作, 还是应该放在Bootstrap中去完成

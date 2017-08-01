@@ -36,87 +36,12 @@ class PublicModel extends Model {
 //put your code here
 // 数据表前缀
 
-    protected $tablePrefix = 't_';
+    protected $tablePrefix = '';
     protected $tableName = '';
 
-    public function __construct($str='') {
+    public function __construct($str = '') {
         parent::__construct($str);
     }
-
-//
-//    /**
-//     * 根据条件获取查询条件
-//     * @param mix $condition
-//     * @return mix
-//     * @author zyg
-//     */
-//    protected function getcondition($condition = []) {
-//
-//    }
-//
-//    /**
-//     * 获取数据条数
-//     * @param mix $condition
-//     * @return mix
-//     * @author zyg
-//     */
-//    public function getcount($condition = []) {
-//
-//    }
-//
-//    /**
-//     * 获取列表
-//     * @param mix $condition
-//     * @return mix
-//     * @author zyg
-//     */
-//    public function getlist($condition = []) {
-//
-//    }
-//
-//    /**
-//     * 获取列表
-//     * @param  string $code 编码
-//     * @param  int $id id
-//     * @param  string $lang 语言
-//     * @return mix
-//     * @author zyg
-//     */
-//    public function info($code = '', $id = '', $lang = '') {
-//
-//    }
-//
-//    /**
-//     * 删除数据
-//     * @param  string $code 编码
-//     * @param  int $id id
-//     * @param  string $lang 语言
-//     * @return bool
-//     * @author zyg
-//     */
-//    public function delete_data($code = '', $id = '', $lang = '') {
-//
-//    }
-//
-//    /**
-//     * 更新数据
-//     * @param  mix $upcondition 更新条件
-//     * @return bool
-//     * @author zyg
-//     */
-//    public function update_data($upcondition = []) {
-//
-//    }
-//
-//    /**
-//     * 新增数据
-//     * @param  mix $createcondition 新增条件
-//     * @return bool
-//     * @author zyg
-//     */
-//    public function create_data($createcondition = []) {
-//
-//    }
 
     public function getMessage($code) {
         switch ($code) {
@@ -181,6 +106,79 @@ class PublicModel extends Model {
             default :
                 return ['code' => self::MSG_OTHER_ERR,
                     'message' => '其他错误!'];
+        }
+    }
+
+    /* 查询条件判断
+     * @param array $where //引用 返回的where条件
+     * @param array $condition //引用 搜索条件
+     * @param string $name // 查询的字段
+     * @param string $type // 默认值 string bool  like array
+     * @param string $field // 组合条件的字段
+     * @date  2017-8-1 9:13:41
+     * @return null
+     */
+
+    protected function _getValue(&$where, &$condition, $name, $type = 'string', $field = null) {
+        if (!$field) {
+            $field = $name;
+        }
+        if ($type === 'string') {
+            if (isset($condition[$name]) && trim($condition[$name])) {
+                $where[$field] = trim($condition[$name]);
+            }
+        } elseif ($type === 'bool') {
+            if (isset($condition[$name]) && trim($condition[$name])) {
+                $flag = trim($condition[$name]) == 'Y' ? 'Y' : 'N';
+                $where[$field] = $flag;
+            }
+        } elseif ($type === 'like') {
+            if (isset($condition[$name]) && trim($condition[$name])) {
+                $where[$field] = ['like', '%' . trim($condition[$name]) . '%'];
+            }
+        } elseif ($type === 'array') {
+            if (isset($condition[$name]) && is_array($condition[$name])) {
+                $where[$field] = ['in', $condition[$name]];
+            }
+        }
+    }
+
+    /**
+     * 分页处理
+     * @param array $condition 条件
+     * @return array
+     * @author zyg
+     *
+     */
+    protected function _getPage($condition) {
+        $pagesize = 10;
+        $start_no = 0;
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        if (isset($condition['current_no'])) {
+            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
+        }
+        return [$start_no, $pagesize];
+    }
+
+    /**
+     * 判断是否存在
+     * @param  mix $where 搜索条件
+     * @return mix
+     * @date 2017-08-01
+     * @author zyg
+     */
+    protected function _exist($where) {
+        try {
+            $row = $this->where($where)
+                    ->field('id')
+                    ->find();
+            return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
         }
     }
 

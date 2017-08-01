@@ -1,19 +1,28 @@
 <?php
 
-/**
-  附件文档Controller
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
-class CityController extends PublicController {
+
+/**
+ * Description of Destdeliverylogi
+ *
+ * @author zhongyg
+ */
+class DestDeliveryLogiController extends PublicController {
 
     public function init() {
         parent::init();
 
-        $this->_model = new CityModel();
+        $this->_model = new DestDeliveryLogiModel();
     }
 
     public function listAction() {
         $condtion = $this->get();
-        $key = 'City_list_' . md5(json_encode($condtion));
+        unset($data['token']);
+        $key = 'dest_delivery_logi_list_' . $lang . md5(json_encode($condtion));
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->getListbycondition($condtion);
@@ -57,13 +66,18 @@ class CityController extends PublicController {
 
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('City*');
+        $keys = $redis->getKeys('dest_delivery_logi_*');
         $redis->delete($keys);
     }
 
     public function createAction() {
         $condition = $this->put_data;
         $data = $this->_model->create($condition);
+        $data['logi_no'] = $data['from_loc'] . '_'
+                . substr($data['trans_mode'], 0, 1)
+                . '_' . $data['to_loc'];
+        $data['created_by'] = $this->user['name'];
+        $data['created_at'] = date('Y-m-d H:i:s');
         $result = $this->_model->add($data);
         if ($result) {
             $this->delcache();
@@ -79,7 +93,7 @@ class CityController extends PublicController {
 
         $condition = $this->put_data;
         $data = $this->_model->create($condition);
-        $where['id'] = $this->get('id');
+        $where['id'] = $condition['id'];
         $result = $this->_model->where($where)->update($data);
         if ($result) {
             $this->delcache();
@@ -100,8 +114,8 @@ class CityController extends PublicController {
             } elseif (is_array($condition['id'])) {
                 $where['id'] = ['in', $condition['id']];
             }
-        } elseif ($condition['bn']) {
-            $where['bn'] = $condition['bn'];
+        } elseif (isset($condition['logi_no']) && $condition['logi_no']) {
+            $where['logi_no'] = $condition['logi_no'];
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();

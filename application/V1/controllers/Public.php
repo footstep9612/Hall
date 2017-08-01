@@ -202,6 +202,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function getPut($name, $default = null) {
         $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
         // return array_walk_recursive($data, 'think_filter');
+    
         return $data;
     }
 

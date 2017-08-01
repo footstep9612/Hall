@@ -8,8 +8,8 @@
  */
 class CityModel extends Model {
 
-  protected $dbName = 'erui_dict'; //数据库名称
-  protected $tableName = 't_city';
+  protected $dbName = 'erui2_dict'; //数据库名称
+  protected $tableName = 'city';
 
   /**
    * 根据简称获取城市名称
