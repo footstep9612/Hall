@@ -82,7 +82,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
                     if (isset($out[3]) && $out[3] === 'getlist') {
                         $action = 'getlist';
                     }
-                    if (isset($out[3])) {
+                    if (isset($out[3]) && $out[3] !== 'list') {
                         $action = 'info';
                         $Request->setParam('id', $out[3]);
                     } else {
