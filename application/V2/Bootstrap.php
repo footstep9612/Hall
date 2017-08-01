@@ -29,61 +29,57 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
     }
 
     public function _initRoute(Yaf_Dispatcher $dispatcher) {
-
-
         $router = Yaf_Dispatcher::getInstance()->getRouter();
-
         $dispatcher->disableView();
-
         $Request = $dispatcher->getRequest();
         if (!$Request->isCli()) {
             $config_obj = Yaf_Registry::get("config");
-            $modules = $config_obj->application->modules;
-            $modules = str_replace(',', '|', $modules);
-
-
+            $out = null;
             preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
-
-            $ControllerName = ucfirst($out[2]);
-            $ControllerName = str_replace('_', '', $ControllerName);
+            $ControllerName = $this->parseName($out[2], 1);
+            $Request->setControllerName($ControllerName);
+            $Request->setModuleName('Index');
             //创建一个路由协议实例
-            if ($ControllerName) {
-                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
-                    'controller' => $ControllerName,
-                    'action' => ':Action']);
-            } else {
-                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
-                    'controller' => ':Controller',
-                    'action' => ':Action']);
-            }
-
+            $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => 'Index',
+                'controller' => $ControllerName,
+                'action' => ':Action']);
             //使用路由器装载路由协议
-            $router->addRoute('Materialcat', $route);
+            $router->addRoute('routes', $route);
         } else {
             $config_obj = Yaf_Registry::get("config");
-            $modules = $config_obj->application->modules;
-            $modules = str_replace(',', '|', $modules);
-
-            global $argc, $argv;
+            global $argv;
             $uri = $argv [1];
+            $out = null;
             $Request->setRequestUri($uri);
             preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $Request->getRequestUri(), $out);
-
-            $ControllerName = ucfirst($out[2]);
-            $ControllerName = str_replace('_', '', $ControllerName);
+            $ControllerName = $this->parseName($out[2], 1);
+            $Request->setControllerName($ControllerName);
+            $Request->setModuleName('Index');
             //创建一个路由协议实例
-            if ($ControllerName) {
-                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
-                    'controller' => $ControllerName,
-                    'action' => ':Action']);
-            } else {
-                $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => ':module',
-                    'controller' => ':Controller',
-                    'action' => ':Action']);
-            }
-
+            $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => 'Index',
+                'controller' => $ControllerName,
+                'action' => ':Action']);
             //使用路由器装载路由协议
-            $router->addRoute('Materialcat', $route);
+            $router->addRoute('routes', $route);
+        }
+    }
+
+    /**
+     * 字符串命名风格转换
+     * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
+     * @param string  $name 字符串
+     * @param integer $type 转换类型
+     * @param bool    $ucfirst 首字母是否大写（驼峰规则）
+     * @return string
+     */
+    public static function parseName($name, $type = 0, $ucfirst = true) {
+        if ($type) {
+            $name = preg_replace_callback('/_([a-zA-Z])/', function ($match) {
+                return strtoupper($match[1]);
+            }, $name);
+            return $ucfirst ? ucfirst($name) : lcfirst($name);
+        } else {
+            return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
         }
     }
 
