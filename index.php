@@ -1,17 +1,17 @@
 <?php
-
 error_reporting(E_ERROR);
 header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS;');
 define('DS', DIRECTORY_SEPARATOR);
 /* INI配置文件支持常量替换 */
-define('MYPATH', dirname(__FILE__));
+define('MYPATH', dirname(dirname(__FILE__)));
 $uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_SPECIAL_CHARS);
-preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)([\/.*?]?)$/ie', $uri, $out);
+preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $out);
 $module = ucfirst($out[1]);
 if (file_exists(MYPATH . DS . 'application' . DS . $module)) {
     define('APPLICATION_PATH', MYPATH . DS . 'application' . DS . $module);
+	define('CONF_PATH', MYPATH . DS . 'application' . DS . $module . DS . 'conf');
 } else {
     die('{"code":"-1","message":"系统错误!"}');
 }
@@ -37,7 +37,6 @@ if (file_exists(MYPATH . DS . $module) && file_exists(MYPATH . DS . 'app' . $mod
  */
 
 //error_reporting(E_ALL & E_STRICT);
-
 $response = $application
         ->bootstrap()/* bootstrap是可选的调用 */
         ->run()/* 执行 */;
