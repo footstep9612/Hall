@@ -7,8 +7,12 @@
 class MaterialCatController extends PublicController {
 
     public function init() {
-        parent::init();
-        $this->_model = new MaterialcatModel();
+        // parent::init();
+        if (!method_exists($this, $this->getRequest()->getActionName() . 'Action')) {
+            $this->setCode(MSG::MSG_ERROR_ACTION);
+            $this->jsonReturn();
+        }
+        $this->_model = new MaterialCatModel();
     }
 
     /*
@@ -16,7 +20,7 @@ class MaterialCatController extends PublicController {
      */
 
     public function treeAction() {
-        $lang = $this->getPut('lang', 'zh');
+        $lang = $this->get('lang', 'zh');
 
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
@@ -127,7 +131,7 @@ class MaterialCatController extends PublicController {
      */
     public function listAction() {
 
-        $condition = $this->put_data;
+        $condition = $this->get();
         $condition['token'] = null;
         unset($condition['token']);
         $key = 'Material_cat_list_' . md5(json_encode($condition));
@@ -157,8 +161,8 @@ class MaterialCatController extends PublicController {
      *
      */
     public function getlistAction() {
-        $lang = $this->getPut('lang', 'en');
-        $cat_no = $this->getPut('cat_no', '');
+        $lang = $this->get('lang', 'en');
+        $cat_no = $this->get('cat_no', '');
         $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
         $data = json_decode(redisGet($key), true);
         if (!$data) {
@@ -182,7 +186,7 @@ class MaterialCatController extends PublicController {
      *
      */
     public function infoAction() {
-        $cat_no = $this->getPut('cat_no');
+        $cat_no = $this->get('id');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -200,7 +204,7 @@ class MaterialCatController extends PublicController {
         }
 
         if ($data) {
-            list($top_cats, $parent_cats) = $this->getparentcats($data);
+            list($top_cats, $parent_cats) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setvalue('top_cats', $top_cats);
             $this->setvalue('parent_cats', $parent_cats);
@@ -220,7 +224,7 @@ class MaterialCatController extends PublicController {
      * @author zyg
      *
      */
-    private function getparentcats($data) {
+    private function _getparentcats($data) {
         $parent_cats = $top_cats = null;
         if ($data['level_no'] == 3) {
             $result = $this->_model->info($data['parent_cat_no'], 'zh');
@@ -309,8 +313,8 @@ class MaterialCatController extends PublicController {
      */
 
     public function deleteAction() {
-        $cat_no = $this->getPut('cat_no');
-        $lang = $this->getPut('lang');
+        $cat_no = $this->get('id');
+        $lang = $this->get('lang');
         $product_model = new ProductModel();
         $data = $product_model->where(['meterial_cat_no' => ['like', $cat_no . '%']])
                 ->find();

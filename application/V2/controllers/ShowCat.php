@@ -14,12 +14,12 @@ class ShowCatController extends PublicController {
     }
 
     public function treeAction() {
-        $lang = $this->getPut('lang', '');
+        $lang = $this->get('lang', '');
         if (!$lang) {
-            $lang = $this->getPut('lang', 'zh');
+            $lang = $this->get('lang', 'zh');
         }
-        $country_bn = $this->getPut('country_bn', '');
-        $market_area_bn = $this->getPut('market_area_bn', '');
+        $country_bn = $this->get('country_bn', '');
+        $market_area_bn = $this->get('market_area_bn', '');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $jsondata['market_area_bn'] = $market_area_bn;
@@ -91,11 +91,11 @@ class ShowCatController extends PublicController {
     }
 
     public function listAction() {
-        $lang = $this->getPut('lang', 'en');
+        $lang = $this->get('lang', 'en');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
-        $country_bn = $this->getPut('country_bn', '');
-        $market_area_bn = $this->getPut('market_area_bn', '');
+        $country_bn = $this->get('country_bn', '');
+        $market_area_bn = $this->get('market_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['market_area_bn'] = $market_area_bn;
         $condition = $jsondata;
@@ -162,10 +162,10 @@ class ShowCatController extends PublicController {
 
     public function getlistAction() {
 
-        $lang = $this->getPut('lang', 'en');
-        $cat_no = $this->getPut('cat_no', '');
-        $country_bn = $this->getPut('country_bn', '');
-        $market_area_bn = $this->getPut('market_area_bn', '');
+        $lang = $this->get('lang', 'en');
+        $cat_no = $this->get('cat_no', '');
+        $country_bn = $this->get('country_bn', '');
+        $market_area_bn = $this->get('market_area_bn', '');
         $key = 'Show_cat_getlist_' . $lang . '_' . $cat_no;
 
         $data = json_decode(redisGet($key), true);
@@ -187,7 +187,7 @@ class ShowCatController extends PublicController {
      * 分类详情
      */
     public function infoAction() {
-        $cat_no = $this->getPut('cat_no');
+        $cat_no = $this->get('id');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();

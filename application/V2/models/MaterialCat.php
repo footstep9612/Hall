@@ -33,10 +33,10 @@ class MaterialCatModel extends PublicModel {
      * @author zyg
      *
      */
-    protected function getcondition($condition = []) {
+    protected function _getcondition($condition = []) {
         $where = [];
-        getValue($where, $condition, 'id', 'string');
-        getValue($where, $condition, 'cat_no', 'string');
+        $this->_getValue($where, $condition, 'id', 'string');
+        $this->_getValue($where, $condition, 'cat_no', 'string');
         if (isset($condition['cat_no3']) && $condition['cat_no3']) {
             $where['cat_no'] = $condition['cat_no3'];
         } elseif (isset($condition['cat_no2']) && $condition['cat_no2']) {
@@ -48,13 +48,13 @@ class MaterialCatModel extends PublicModel {
         } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
             $where['level_no'] = intval($condition['level_no']);
         }
-        getValue($where, $condition, 'parent_cat_no', 'string');
-        getValue($where, $condition, 'mobile', 'like');
-        getValue($where, $condition, 'lang', 'string');
-        getValue($where, $condition, 'name', 'like');
-        getValue($where, $condition, 'sort_order', 'string');
-        getValue($where, $condition, 'created_at', 'string');
-        getValue($where, $condition, 'created_by', 'string');
+        $this->_getValue($where, $condition, 'parent_cat_no', 'string');
+        $this->_getValue($where, $condition, 'mobile', 'like');
+        $this->_getValue($where, $condition, 'lang', 'string');
+        $this->_getValue($where, $condition, 'name', 'like');
+        $this->_getValue($where, $condition, 'sort_order', 'string');
+        $this->_getValue($where, $condition, 'created_at', 'string');
+        $this->_getValue($where, $condition, 'created_by', 'string');
         if (isset($condition['status'])) {
             switch ($condition['status']) {
 
@@ -117,24 +117,7 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
-    /**
-     * 分页处理
-     * @param array $condition 条件
-     * @return null
-     * @author zyg
-     *
-     */
-    private function _getPage($condition) {
-        $pagesize = 10;
-        $start_no = 0;
-        if (isset($condition['pagesize'])) {
-            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-        }
-        if (isset($condition['current_no'])) {
-            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
-        }
-        return [$start_no, $pagesize];
-    }
+
 
     /**
      * 获取列表

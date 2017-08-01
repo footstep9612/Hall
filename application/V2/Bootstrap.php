@@ -33,7 +33,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
         if (!$Request->isCli()) {
 
             $out = null;
-            preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)([\/|?].*?)?$/ie', $Request->getRequestUri(), $out);
+            preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)(\/(.*?))?$/ie', $Request->getRequestUri(), $out);
             $ControllerName = $this->parseName($out[2], 1);
             $Request->setControllerName($ControllerName);
             $Request->setModuleName('Index');
@@ -41,12 +41,13 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
             $action = ':Action';
             switch ($method) {
                 case 'GET':
-                    if (isset($out[3]) && $out[3] === 'getlist') {
+                    if (isset($out[4]) && $out[4] === '/getlist') {
                         $action = 'getlist';
                     }
-                    if (isset($out[3]) && $out[3] !== 'list') {
+                    if (isset($out[4]) && $out[4] !== 'list') {
                         $action = 'info';
-                        $Request->setParam('id', $out[3]);
+
+                        $Request->setParam('id', $out[4]);
                     } else {
                         $action = 'list';
                     }

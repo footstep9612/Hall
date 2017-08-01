@@ -23,6 +23,10 @@ class EsProductController extends PublicController {
 
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
+        if (!method_exists($this, $this->getRequest()->getActionName() . 'Action')) {
+            $this->setCode(MSG::MSG_ERROR_ACTION);
+            $this->jsonReturn();
+        }
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
