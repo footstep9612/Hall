@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class EsProductController extends ShopMallController {
+class EsProductController extends PublicController {
 
     protected $index = 'erui2_goods';
     protected $es = '';
@@ -32,7 +32,7 @@ class EsProductController extends ShopMallController {
         if (!empty($token)) {
             try {
                 $tokeninfo = JwtInfo($token); //解析token
-                $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+                $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
                 if (empty($userinfo)) {
                     $this->put_data['source'] = 'ERUI';
                 } else {
