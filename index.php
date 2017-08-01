@@ -5,11 +5,10 @@ header('Access-Control-Allow-Headers:x-requested-with,content-type');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS;');
 define('DS', DIRECTORY_SEPARATOR);
 /* INI配置文件支持常量替换 */
-define('MYPATH',  dirname(dirname(__FILE__)));
+define('MYPATH',  dirname(__FILE__));
 $uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_SPECIAL_CHARS);
 preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)\/(.*?)$/ie', $uri, $out);
 $module=ucfirst( $out[1]);
-
 if (file_exists(MYPATH . DS . 'application' . DS . $module)) {
     define('APPLICATION_PATH', MYPATH . DS . 'application' . DS . $module);
 }
