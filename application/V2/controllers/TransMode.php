@@ -3,43 +3,21 @@
 /**
   附件文档Controller
  */
-class TradetermsController extends PublicController {
+class TransModeController extends PublicController {
 
   public function init() {
     parent::init();
 
-    $this->_model = new TradetermsModel();
+    $this->_model = new TransModeModel();
   }
 
   public function listAction() {
     $condtion = $this->put_data;
     unset($condtion['token']);
-    $key = 'Tradeterms_list_' . md5(json_encode($condtion));
+    $key = 'TransMode_list_' . md5(json_encode($condtion));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getListbycondition($condtion);
-      if ($arr) {
-        $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-        $data['code'] = MSG::MSG_SUCCESS;
-        $data['data'] = $arr;
-        $data['count'] = $this->_model->getCount($condtion);
-        redisSet($key, json_encode($data), 86400);
-        $this->jsonReturn($data);
-      } else {
-        $this->setCode(MSG::MSG_FAILED);
-        $this->jsonReturn();
-      }
-    }
-    $this->jsonReturn($data);
-  }
-
-  public function listallAction() {
-    $condtion = $this->put_data;
-    unset($condtion['token']);
-    $key = 'Tradeterms_listall_' . md5(json_encode($condtion));
-    $data = json_decode(redisGet($key), true);
-    if (!$data) {
-      $arr = $this->_model->getListallbycondition($condtion);
       if ($arr) {
         $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
         $data['code'] = MSG::MSG_SUCCESS;
@@ -80,7 +58,7 @@ class TradetermsController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('Tradeterms_*');
+    $keys = $redis->getKeys('TransMode_*');
     $redis->delete($keys);
   }
 
@@ -123,13 +101,14 @@ class TradetermsController extends PublicController {
       } elseif (is_array($condition['id'])) {
         $where['id'] = ['in', $condition['id']];
       }
-    } elseif ($condition['terms']) {
-      $where['terms'] = $condition['terms'];
+    } elseif ($condition['bn']) {
+      $where['bn'] = $condition['bn'];
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();
     }
 
+    
     $result = $this->_model->where($where)->delete();
     if ($result) {
       $this->delcache();
