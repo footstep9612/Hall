@@ -72,6 +72,16 @@ class QuoteBizLineModel extends PublicModel
     }
 
     /**
+     * 产品线负责人退回产品线报价人重新报价
+     * @param $quote_id 报价id
+     *
+     * @return bool
+     */
+    public function sendback($quote_id)
+    {
+        return $this->where(['quote_id'=>$quote_id])->save(['status'=>'SUBMIT']);
+    }
+    /**
      * 过滤条件
      * @param array $param
      *

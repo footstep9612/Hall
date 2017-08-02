@@ -42,4 +42,24 @@ class QuoteItemBizLineModel extends PublicModel
 
         return $this->where(['quote_id'=>$quote_id])->field($field)->select();
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 产品线报价->产品线负责人退回产品线报价人重新报价   角色:产品线负责人
+    |--------------------------------------------------------------------------
+    |
+    | 操作说明
+    | 查找所有该报价单说书的sku状态改为被驳回状态
+    |
+    */
+    public function sendback($quote_id)
+    {
+        $data = $this->where(['quote_id'=>$quote_id])->field(['id','quote_id','status'])->select();
+
+        foreach ($data as $k=>$v){
+            $this->where(['quote_id'=>$v['quote_id']])->save(['status'=>'REJECTED']);
+        }
+
+        return true;
+    }
 }
