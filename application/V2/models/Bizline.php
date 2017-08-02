@@ -1,39 +1,24 @@
 <?php
 /**
- * name: ProductLine
+ * name: Bizline
  * desc: 产品线表
- * User: zhangyuliang
- * Date: 2017/7/20
- * Time: 10:00
+ * User: 张玉良
+ * Date: 2017/8/1
+ * Time: 10:02
  */
-class ProductLineModel extends PublicModel {
+class BizlineModel extends PublicModel {
 
-    protected $dbName = 'erui_config'; //数据库名称
-    protected $tableName = 'product_line'; //数据表表名
+    protected $dbName = 'erui2_operation'; //数据库名称
+    protected $tableName = 'bizline'; //数据表表名
 
     public function __construct() {
         parent::__construct();
     }
 
     /**
-     * 返回最新产品线编码
-     * @author zhangyuliang
-     */
-    public function getLineNo() {
-        $lineno = $this->field('line_no')->order('line_no desc')->find();
-        if($lineno){
-            $number = substr($lineno['line_no'],2)+1;
-            $results = 'pl'.str_pad($number,6,'0',STR_PAD_LEFT);
-        }else{
-            $results = 'pl000001';
-        }
-        return $results;
-    }
-
-    /**
      * 根据条件获取查询条件
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function  getCondition($condition = []) {
@@ -41,10 +26,6 @@ class ProductLineModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where['name'] = $condition['name'];
         }
-        if (!empty($condition['user_no'])) {
-            $where['user_no'] = $condition['user_no'];
-        }
-
         $where['status'] = !empty($condition['status'])?$condition['status']:"VALID";
 
         return $where;
@@ -52,8 +33,8 @@ class ProductLineModel extends PublicModel {
 
     /**
      * 获取数据条数
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function getCount($condition = []) {
@@ -63,8 +44,8 @@ class ProductLineModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function getlist($condition = []) {
@@ -75,7 +56,7 @@ class ProductLineModel extends PublicModel {
 
         try {
             $count = $this->getcount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
+            $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
@@ -96,16 +77,16 @@ class ProductLineModel extends PublicModel {
 
     /**
      * 获取详情信息
-     * @param  int $line_no 产品线编码
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function getInfo($condition = []) {
-        if(!empty($condition['line_no'])){
-            $where['line_no'] = $condition['line_no'];
+        if(!empty($condition['id'])){
+            $where['id'] = $condition['id'];
         }else{
-            $results['code'] = '-101';
-            $results['message'] = '没有产品线编码!';
+            $results['code'] = '-103';
+            $results['message'] = '没有产品线id!';
             return $results;
         }
 
@@ -131,17 +112,23 @@ class ProductLineModel extends PublicModel {
 
     /**
      * 添加数据
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function addData($condition = []) {
-        $data['line_no'] = $this->getLineNo();
-
         if(!empty($condition['name'])){
             $data['name'] = $condition['name'];
         }else{
-            $results['code'] = '-101';
+            $results['code'] = '-103';
             $results['message'] = '缺少名称!';
+            return $results;
+        }
+        if(!empty($condition['userid'])){
+            $data['userid'] = $condition['userid'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少添加人员id!';
             return $results;
         }
         if(!empty($condition['description'])){
@@ -149,14 +136,17 @@ class ProductLineModel extends PublicModel {
         }
 
         $data['status'] = 'VALID';
+        $data['created_by'] = $condition['userid'];
         $data['created_at'] = $this->getTime();
+        $data['updated_by'] = $condition['userid'];
+        $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->add($data);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-                $results['data'] = $data;
+                $results['data'] = $id;
             }else{
                 $results['code'] = '-101';
                 $results['message'] = '添加失败!';
@@ -171,17 +161,16 @@ class ProductLineModel extends PublicModel {
 
     /**
      * 更新数据
-     * @param  mix $createcondition 更新数据
-     * @param  int $serial_no 询单号
-     * @return bool
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function updateData($condition = []) {
-        if(!empty($condition['line_no'])){
-            $where['line_no'] = $condition['line_no'];
+        if(!empty($condition['id'])){
+            $where['id'] = $condition['id'];
         }else{
-            $results['code'] = '-101';
-            $results['message'] = '缺少产品线编码!';
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线id!';
             return $results;
         }
         if(!empty($condition['name'])){
@@ -190,9 +179,8 @@ class ProductLineModel extends PublicModel {
         if(!empty($condition['description'])){
             $data['description'] = $condition['description'];
         }
-        if(!empty($condition['user_no'])){
-            $data['user_no'] = $condition['user_no'];
-        }
+        $data['updated_by'] = $condition['userid'];
+        $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->where($where)->save($data);
@@ -213,16 +201,16 @@ class ProductLineModel extends PublicModel {
 
     /**
      * 删除数据
-     * @param  int $serial_no 询单号
-     * @return bool
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function deleteData($condition = []) {
-        if(!empty($condition['line_no'])){
-            $where['line_no'] = array('in',explode(',',$condition['line_no']));
+        if(!empty($condition['id'])){
+            $where['id'] = array('in',explode(',',$condition['id']));
         }else{
-            $results['code'] = '-101';
-            $results['message'] = '缺少产品线编码!';
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线id!';
         }
 
         try {
@@ -245,7 +233,7 @@ class ProductLineModel extends PublicModel {
      * 返回格式化时间
      * @author zhangyuliang
      */
-    public function getTime(){
+    public function getTime() {
         return date('Y-m-d h:i:s',time());
     }
 }

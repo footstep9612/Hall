@@ -6,10 +6,10 @@
  * Date: 2017/7/20
  * Time: 14:17
  */
-class ProductLineBidderModel extends PublicModel {
+class BizlinegroupModel extends PublicModel {
 
-    protected $dbName = 'erui_config'; //数据库名称
-    protected $tableName = 'product_line_bidder'; //数据表表名
+    protected $dbName = 'erui2_operation'; //数据库名称
+    protected $tableName = 'bizline_group'; //数据表表名
 
     public function __construct()
     {
@@ -18,29 +18,30 @@ class ProductLineBidderModel extends PublicModel {
 
     /**
      * 根据条件获取查询条件
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function  getCondition($condition = []) {
         $where = [];
-        if (!empty($condition['line_no'])) {
-            $where['line_no'] = $condition['line_no'];
+        if (!empty($condition['bizline_id'])) {
+            $where['bizline_id'] = $condition['bizline_id'];
         }
-        if (!empty($condition['user_no'])) {
-            $where['user_no'] = $condition['user_no'];
+        if (!empty($condition['group_id'])) {
+            $where['group_id'] = $condition['group_id'];
         }
-        if (!empty($condition['user_name'])) {
-            $where['user_name'] = $condition['user_name'];
+        if (!empty($condition['group_role'])) {
+            $where['group_role'] = $condition['group_role'];
         }
+        $where['status'] = !empty($condition['status'])?$condition['status']:"VALID";
 
         return $where;
     }
 
     /**
      * 获取数据条数
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function getCount($condition = []) {
@@ -50,14 +51,14 @@ class ProductLineBidderModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function getlist($condition = []) {
-        if(empty($condition['line_no'])){
-            $results['code'] = '-101';
-            $results['message'] = '缺少产品线编码!';
+        if(empty($condition['bizline_id'])){
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线id!';
         }
         $where = $this->getcondition($condition);
 
@@ -87,30 +88,34 @@ class ProductLineBidderModel extends PublicModel {
 
     /**
      * 添加数据
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function addData($condition = []) {
 
-        if(empty($condition['line_no'])){
-            $results['code'] = '-101';
-            $results['message'] = '缺少产品线编码!';
+        if(empty($condition['bizline_id'])){
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线id!';
         }
-        if(empty($condition['bidder'])){
-            $results['code'] = '-101';
-            $results['message'] = '缺少报价人!';
+        if(empty($condition['group_id'])){
+            $results['code'] = '-103';
+            $results['message'] = '缺少群组id!';
         }
-        $linebidder = [];
-        foreach($condition['bidder'] as $key=>$val){
-            $test['line_no'] = $condition['line_no'];
-            $test['user_no'] = $key;
-            $test['user_name'] = $val;
+        $groupid = explode(',',$condition['group_id']);
+        $linegroup = [];
+        foreach($groupid as $val) {
+            $test['bizline_id'] = $condition['bizline_id'];
+            $test['group_id'] = $val;
+            $test['group_role'] = $condition['group_role'];
+            $test['created_by'] = $condition['userid'];
             $test['created_at'] = $this->getTime();
-            $linebidder[] = $test;
+            $linegroup[] = $test;
         }
 
+
         try {
-            $id = $this->addAll($linebidder);
+            $id = $this->addAll($linegroup);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
@@ -127,16 +132,53 @@ class ProductLineBidderModel extends PublicModel {
     }
 
     /**
+     * 更新数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function updateData($condition = []) {
+        if(!empty($condition['id'])){
+            $where['id'] = $condition['id'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少id!';
+            return $results;
+        }
+        if(empty($condition['group_id'])){
+            $results['code'] = '-103';
+            $results['message'] = '缺少群组id!';
+        }
+        $data['group_id'] = $condition['group_id'];
+
+        try {
+            $id = $this->where($where)->save($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '修改失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
      * 删除数据
-     * @param  int $serial_no 询单号
-     * @return bool
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
     public function deleteData($condition = []) {
         if(!empty($condition['id'])){
             $where['id'] = array('in',explode(',',$condition['id']));
         }else{
-            $results['code'] = '-101';
+            $results['code'] = '-103';
             $results['message'] = '缺少id!';
         }
 
@@ -157,17 +199,17 @@ class ProductLineBidderModel extends PublicModel {
     }
 
     /**
-     * 删除全部数据
-     * @param  int $serial_no 询单号
-     * @return bool
+     * 根据产品线删除数据
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
-    public function deleteDataAll($condition = []) {
-        if(!empty($condition['line_no'])){
-            $where['line_no'] = $condition['line_no'];
+    public function deleteBizlineGroup($condition = []) {
+        if(!empty($condition['bizline_id'])){
+            $where['bizline_id'] = $condition['bizline_id'];
         }else{
-            $results['code'] = '-101';
-            $results['message'] = '缺少产品线编码!';
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线id!';
         }
 
         try {
@@ -190,7 +232,7 @@ class ProductLineBidderModel extends PublicModel {
      * 返回格式化时间
      * @author zhangyuliang
      */
-    public function getTime(){
+    public function getTime() {
         return date('Y-m-d h:i:s',time());
     }
 }
