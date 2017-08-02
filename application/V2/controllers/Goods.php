@@ -34,7 +34,6 @@ class GoodsController extends PublicController{
      * @author klp
      */
     public function skuInfoAction(){
-        //echo 123;die;
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getSkuInfo($this->input);
         $this->returnInfo($result);
@@ -164,7 +163,7 @@ class GoodsController extends PublicController{
 
     //统一回复调用方法
     function returnInfo($result){
-        if($result && empty($result['code'])){
+        if($result && !isset($result['code'])){
             jsonReturn($result);
         }else{
             jsonReturn('',MSG::MSG_FAILED,'失败');

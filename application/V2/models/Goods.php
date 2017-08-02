@@ -816,17 +816,17 @@ class GoodsModel extends PublicModel {
         if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
             $where['status'] = strtoupper($condition['status']);
         } else{
-            $where['status'] = array('<>', self::STATUS_DELETED);
+            $where['status'] = array('neq', self::STATUS_DELETED);
         }
         //redis
         if (redisHashExist('Sku', md5(json_encode($where)))) {
-            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
+//            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
-        $field = 'lang, spu, sku, qrcode, name, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at';
+        $field = 'lang, spu, sku, qrcode, name, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, source, source_detail, deleted_flag,';
         //固定商品属性
-        $field .='exw_days, min_pack_naked_qty, nude_cargo_unit, min_pack_unit, min_order_qty, purchase_price, purchase_price_cur_bn, nude_cargo_l_mm';
+        $field .='exw_days, min_pack_naked_qty, nude_cargo_unit, min_pack_unit, min_order_qty, purchase_price, purchase_price_cur_bn, nude_cargo_l_mm,';
         //固定物流属性
-        $field .= 'nude_cargo_w_mm, nude_cargo_h_mm, min_pack_l_mm, min_pack_w_mm, min_pack_h_mm, net_weight_kg, gross_weight_kg, compose_require_pack, pack_type';
+        $field .= 'nude_cargo_w_mm, nude_cargo_h_mm, min_pack_l_mm, min_pack_w_mm, min_pack_h_mm, net_weight_kg, gross_weight_kg, compose_require_pack, pack_type,';
         //固定申报要素属性
         $field .= 'name_customs, hs_code, tx_unit, tax_rebates_pct, regulatory_conds, commodity_ori_place';
         try {

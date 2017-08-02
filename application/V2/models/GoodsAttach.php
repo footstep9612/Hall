@@ -233,7 +233,7 @@ class GoodsAttachModel extends PublicModel{
         if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
             $where['status'] = strtoupper($condition['status']);
         } else{
-            $where['status'] = array('<>', self::STATUS_DELETED);
+            $where['status'] = array('neq', self::STATUS_DELETED);
         }
         if(!empty($condition['attach_type']) && !in_array($condition['attach_type'] , array('SMALL_IMAGE','MIDDLE_IMAGE','BIG_IMAGE','DOC'))){
             $where['status'] = strtoupper($condition['attach_type']);
