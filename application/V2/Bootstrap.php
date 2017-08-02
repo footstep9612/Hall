@@ -31,48 +31,48 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
         $dispatcher->disableView();
         $Request = $dispatcher->getRequest();
         if (!$Request->isCli()) {
-
             $out = null;
             preg_match('/\/([a-zA-Z0-9\_\-]+)\/([a-zA-Z0-9\_\-]+)(\/(.*?))?$/ie', $Request->getRequestUri(), $out);
             $ControllerName = $this->parseName($out[2], 1);
             $Request->setControllerName($ControllerName);
             $Request->setModuleName('Index');
-            $method = $Request->getMethod();
+           // $method = $Request->getMethod();
+            
             $action = ':Action';
-            switch ($method) {
-                case 'GET':
-                    if (isset($out[4]) && $out[4] === '/getlist') {
-                        $action = 'getlist';
-                    }
-                    if (isset($out[4]) && $out[4] !== 'list') {
-                        $action = 'info';
-
-                        $Request->setParam('id', $out[4]);
-                    } else {
-                        $action = 'list';
-                    }
-                    break;
-                case 'POST':
-                    $action = 'create';
-                    break;
-                case 'PUT':
-                    $action = 'update';
-                    break;
-                case 'PATCH':
-                    $action = 'update';
-                    break;
-                case 'DELETE ':
-                    $action = 'delete';
-                    break;
-                default : $action = ':Action';
-            }
-            if ($action && $action != ':Action' && isset($out[3])) {
-                $Request->setActionName($action);
-                $Request->setRequestUri('/index/' . $ControllerName . '/' . $action . $out[3]);
-            } else {
-                $Request->setActionName($action);
-                $Request->setRequestUri('/index/' . $ControllerName . '/' . $action);
-            }
+//            switch ($method) {
+//                case 'GET':
+//                    if (isset($out[4]) && $out[4] === '/getlist') {
+//                        $action = 'getlist';
+//                    }
+//                    if (isset($out[4]) && $out[4] !== 'list') {
+//                        $action = 'info';
+//
+//                        $Request->setParam('id', $out[4]);
+//                    } else {
+//                        $action = 'list';
+//                    }
+//                    break;
+//                case 'POST':
+//                    $action = 'create';
+//                    break;
+//                case 'PUT':
+//                    $action = 'update';
+//                    break;
+//                case 'PATCH':
+//                    $action = 'update';
+//                    break;
+//                case 'DELETE ':
+//                    $action = 'delete';
+//                    break;
+//                default : $action = ':Action';
+//            }
+//            if ($action && $action != ':Action' && isset($out[3])) {
+//                $Request->setActionName($action);
+//                $Request->setRequestUri('/index/' . $ControllerName . '/' . $action . $out[3]);
+//            } else {
+//                $Request->setActionName($action);
+//                $Request->setRequestUri('/index/' . $ControllerName . '/' . $action);
+//            }
             //创建一个路由协议实例
             $route = new Yaf_Route_Rewrite('/:module/:Controller/:Action', ['module' => 'Index',
                 'controller' => $ControllerName,
@@ -80,7 +80,6 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
             //使用路由器装载路由协议
             $router->addRoute('routes', $route);
         } else {
-
             global $argv;
             $uri = $argv [1];
             $out = null;

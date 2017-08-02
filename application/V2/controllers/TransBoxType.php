@@ -17,7 +17,7 @@ class TransBoxTypeController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        // parent::init();
     }
 
     /*
@@ -26,7 +26,7 @@ class TransBoxTypeController extends PublicController {
 
     public function listAction() {
         $data = $this->get();
-
+        $data['lang'] = $this->get('lang', 'zh');
         $trans_box_type_model = new TransBoxTypeModel();
         if (redisGet('TransBoxType_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('TransBoxType_' . md5(json_encode($data))), true);

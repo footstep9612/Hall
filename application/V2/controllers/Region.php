@@ -17,7 +17,7 @@ class RegionController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        //parent::init();
     }
 
     /*
@@ -26,7 +26,7 @@ class RegionController extends PublicController {
 
     public function listAction() {
         $data = $this->get();
-        unset($data['token']);
+        $data['lang']=$this->get('lang','zh');
         $region_model = new RegionModel();
         if (redisGet('Region_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('Region_' . md5(json_encode($data))), true);

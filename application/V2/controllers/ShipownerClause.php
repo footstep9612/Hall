@@ -17,7 +17,7 @@ class ShipownerClauseController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        //parent::init();
     }
 
     /*
@@ -26,12 +26,13 @@ class ShipownerClauseController extends PublicController {
 
     public function listAction() {
         $data = $this->get();
-        unset($data['token']);
+        $data['lang'] = $this->get('lang', 'zh');
+
         $shipowner_clause_model = new ShipownerClauseModel();
         if (redisGet('ShipownerClause_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('ShipownerClause_' . md5(json_encode($data))), true);
         } else {
-            $arr = $fee_type_model->getlist($data);
+            $arr = $shipowner_clause_model->getlist($data);
             if ($arr) {
                 redisSet('ShipownerClause_' . md5(json_encode($data)), json_encode($arr));
             }

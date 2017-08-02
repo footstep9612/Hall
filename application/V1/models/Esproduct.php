@@ -10,11 +10,12 @@
  *
  * @author zhongyg
  */
-class EsproductModel extends PublicModel {
+class EsproductModel extends Model {
 
 //put your code here
     protected $tableName = 'product';
     protected $dbName = 'erui_goods'; //数据库名称
+    protected $tablePrefix = 't_';
 
     public function __construct($str = '') {
         parent::__construct($str = '');
