@@ -21,16 +21,16 @@ class UrlpermController extends PublicController {
         //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->getlist(['parent_id'=>0,'status'=>'NORMAL'],$limit); //($this->put_data);
+        $data = $model_url_perm->getlist(['parent_id'=>0],$limit); //($this->put_data);
         $count = count($data);
         $childrencount=0;
         for($i=0;$i<$count;$i++){
-            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id'],'status'=>'NORMAL'],$limit);
+            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id']],$limit);
             $childrencount = count($data[$i]['children']);
             if($childrencount>0){
                 for($j=0;$j<$childrencount;$j++){
                     if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id'],'status'=>'NORMAL'],$limit);
+                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
                         if(!$data[$i]['children'][$j]['children']){
                             unset($data[$i]['children'][$j]['children']);
                         }
@@ -86,11 +86,12 @@ class UrlpermController extends PublicController {
             $datajson['message'] = '地址不可为空!';
             $this->jsonReturn($datajson);
         }
-        if(!isset($data['description'])){
+        if(!isset($data['fn'])){
             $datajson['code'] = -101;
-            $datajson['message'] = '说明不可为空!';
+            $datajson['message'] = '方法名不可为空!';
             $this->jsonReturn($datajson);
         }
+
         $model_url_perm = new UrlPermModel();
         $id = $model_url_perm->create_data($data);
         if(!empty($id)){

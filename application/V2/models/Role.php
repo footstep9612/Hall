@@ -16,17 +16,15 @@ class RoleModel extends PublicModel {
     //put your code here
     protected $tableName = 'role';
     Protected $autoCheckFields = true;
-    protected $table_name ='t_role';
-    protected $permtable ='t_url_perm';
-    protected $rolepermtable ='t_role_access_perm';
+    protected $table_name ='role';
+    protected $permtable ='func_perm';
+    protected $rolepermtable ='role_access_perm';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
 
      public function getcount($data,$order='id desc'){
-         $count =  $this->field('id,name,description,status')
-             ->where($data)
-             ->count('id');
+         $count =  $this->where($data)->count('id');
          return $count;
      }
 
@@ -38,14 +36,14 @@ class RoleModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            $res= $this->field('id,name,description,status')
+            $res= $this->field('id,name,name_en,remarks,created_by,created_at,status')
                             ->where($data)
                             ->limit( $limit['page']. ','. $limit['num'] )
                             ->order($order)
                             ->select();
             return $res;
         }else{
-            return $this->field('id,name,description,status')
+            return $this->field('id,name,name_en,remarks,created_by,created_at,status')
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -84,7 +82,7 @@ class RoleModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,name,description,status')
+                ->field('id,name,name_en,remarks,created_by,created_at,status')
                 ->find();
             return $row;
         }else{
@@ -102,7 +100,7 @@ class RoleModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             return $this->where($where)
-                ->save(['status' => 'DELETED']);
+                ->save(['deleted_flag' => 'Y']);
         }else{
             return false;
         }
@@ -148,11 +146,20 @@ class RoleModel extends PublicModel {
         if(isset($create['name'])){
             $arr['name'] = $create['name'];
         }
-        if(isset($create['description'])){
-            $arr['description'] = $create['description'];
+        if(isset($create['name_en'])){
+            $arr['name_en'] = $create['name_en'];
+        }
+        if(isset($create['name_en'])){
+            $arr['name_en'] = $create['name_en'];
         }
         if(isset($create['status'])){
             $arr['status'] = $create['status'];
+        }
+        if(isset($create['created_by'])){
+            $arr['created_by'] = $create['created_by'];
+        }
+        if(isset($arr)){
+            $arr['created_at'] = date("Y-m-d H:i:s");
         }
         $data = $this->create($arr);
         return $this->add($data);
