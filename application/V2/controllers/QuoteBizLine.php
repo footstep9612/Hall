@@ -241,10 +241,10 @@ class QuoteBizLineController extends PublicController
         $sendBackQuoteSku = $this->_quoteItemBizLine->sendback($this->_requestParams['quote_id']);
 
         if ($sendBackQuote && $sendBackQuoteSku){
-            $this->jsonReturn(
+            $this->jsonReturn([
                 'code' => 1,
                 'message' => '成功'
-            );
+            ]);
         }
 
         $this->jsonReturn([
