@@ -30,13 +30,13 @@ class ExchangeRateModel extends PublicModel {
      */
     public function getlist($data, $limit, $order = 'id desc') {
         if (!empty($limit)) {
-            return $this->field('id,effective_date,currency1,currency2,rate')
+            return $this->field('id,effective_date,cur_bn1,cur_bn2,rate')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         } else {
-            return $this->field('id,effective_date,currency1,currency2,rate')
+            return $this->field('id,effective_date,cur_bn1,cur_bn2,rate')
                             ->where($data)
                             ->order($order)
                             ->select();
@@ -53,7 +53,7 @@ class ExchangeRateModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             $row = $this->where($where)
-                    ->field('id,effective_date,currency1,currency2,rate')
+                    ->field('id,effective_date,cur_bn1,cur_bn2,rate')
                     ->find();
             return $row;
         } else {
@@ -113,17 +113,17 @@ class ExchangeRateModel extends PublicModel {
         if (isset($create['effective_date'])) {
             $arr['effective_date'] = $create['effective_date'];
         }
-        if (isset($create['currency1'])) {
-            $arr['currency1'] = $create['currency1'];
+        if (isset($create['cur_bn1'])) {
+            $arr['cur_bn1'] = $create['cur_bn1'];
         }
-        if (isset($create['currency2'])) {
-            $arr['currency2'] = $create['currency2'];
+        if (isset($create['cur_bn2'])) {
+            $arr['cur_bn2'] = $create['cur_bn2'];
         }
         if (isset($create['rate'])) {
             $arr['rate'] = $create['rate'];
         }
-        $arr['create_at'] = date('Y-m-d H:i:s');
-        $arr['create_by'] = $username;
+        $arr['created_at'] = date('Y-m-d H:i:s');
+        $arr['created_by'] = $username;
         $data = $this->create($arr);
         return $this->add($data);
     }
@@ -137,11 +137,11 @@ class ExchangeRateModel extends PublicModel {
         if (isset($condition['effective_date']) && $condition['effective_date']) {
             $where['effective_date'] = $condition['effective_date'];
         }
-        if (isset($condition['currency1']) && $condition['currency1']) {
-            $where['currency1'] = $condition['currency1'];
+        if (isset($condition['cur_bn1']) && $condition['cur_bn1']) {
+            $where['cur_bn1'] = $condition['cur_bn1'];
         }
-        if (isset($condition['currency2']) && $condition['currency2']) {
-            $where['currency2'] = $condition['currency2'];
+        if (isset($condition['cur_bn2']) && $condition['cur_bn2']) {
+            $where['cur_bn2'] = $condition['cur_bn2'];
         }
 
         return $where;
@@ -172,9 +172,9 @@ class ExchangeRateModel extends PublicModel {
     public function getListbycondition($condition = '') {
         $where = $this->getCondition($condition);
         try {
-            $field = 'id,effective_date,currency1,currency2,rate,create_by,create_at';
+            $field = 'id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at';
 
-            $pagesize = 50;
+            $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
                 $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;

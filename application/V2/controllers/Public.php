@@ -174,6 +174,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         } else {
             if ($data) {
                 $this->send['data'] = $data;
+            } elseif ($data === null) {
+                $this->send['data'] = null;
             }
             $this->send['code'] = $this->getCode();
 
@@ -184,7 +186,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             } else {
                 $this->send['message'] = $this->getMessage();
             }
-
             exit(json_encode($this->send, JSON_UNESCAPED_UNICODE));
         }
     }

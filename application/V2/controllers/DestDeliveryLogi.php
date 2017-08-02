@@ -14,23 +14,25 @@
 class DestDeliveryLogiController extends PublicController {
 
     public function init() {
-        parent::init();
+        // parent::init();
 
         $this->_model = new DestDeliveryLogiModel();
     }
 
     public function listAction() {
-        $condtion = $this->get();
-        unset($data['token']);
-        $key = 'dest_delivery_logi_list_' . $lang . md5(json_encode($condtion));
+        $country = $this->getPut('country');
+        $lang = $this->getPut('lang', 'zh');
+
+        $key = 'dest_delivery_logi_list_' . $lang . md5($country . $lang);
         $data = json_decode(redisGet($key), true);
         if (!$data) {
-            $arr = $this->_model->getListbycondition($condtion);
+            $arr = $this->_model->getList($country, $lang);
+            echo $this->_model->_sql();
             if ($arr) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::MSG_SUCCESS;
                 $data['data'] = $arr;
-                $data['count'] = $this->_model->getCount($condtion);
+               
                 redisSet($key, json_encode($data), 86400);
                 $this->jsonReturn($data);
             } else {

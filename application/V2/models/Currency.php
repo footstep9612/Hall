@@ -2,7 +2,7 @@
 
 /**
  * Created by PhpStorm.
- * User: klp
+ * User: zyg
  * Date: 2017/6/28
  * Time: 11:32
  */
@@ -25,7 +25,7 @@ class CurrencyModel extends PublicModel {
       return $result ? json_decode($result) : array();
     }
     try {
-      $field = 'bn,name,dollar_symbol';
+      $field = 'bn,name,symbol';
       $result = $this->field($field)->select();
       if ($result) {
         redisSet($key_redis, $result);
@@ -47,7 +47,7 @@ class CurrencyModel extends PublicModel {
       return json_decode(redisHashGet('Currency', 'currency'), true);
     }
     try {
-      $field = 'bn,dollar_symbol,name';
+      $field = 'bn,symbol,name';
       $result = $this->field($field)->order('bn')->select();
       if ($result) {
         redisHashSet('Currency', 'currency', json_encode($result));
@@ -68,7 +68,7 @@ class CurrencyModel extends PublicModel {
   public function getlist() {
 
     try {
-      $field = 'bn,dollar_symbol,name';
+      $field = 'bn,symbol,name';
       $result = $this->field($field)->order('bn')->select();
       if ($result) {
 
