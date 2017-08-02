@@ -36,7 +36,7 @@ class PublicModel extends Model {
 //put your code here
 // 数据表前缀
 
-    protected $tablePrefix = 't_';
+   # protected $tablePrefix = 't_';
     protected $tableName = '';
 
     public function __construct($str='') {

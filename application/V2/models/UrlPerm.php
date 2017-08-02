@@ -14,7 +14,7 @@
 class UrlPermModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'url_perm';
+    protected $tableName = 'func_perm';
     Protected $autoCheckFields = true;
 
     public function __construct($str = '') {
@@ -30,13 +30,13 @@ class UrlPermModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            return $this->field('id,url,description,parent_id,status')
+            return $this->field('id,fn,url,remarks,parent_id,grant_flag,created_by,created_at')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,url,description,parent_id,status')
+            return $this->field('id,fn,url,remarks,parent_id,grant_flag,created_by,created_at')
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -53,7 +53,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,url,parent_id,description,parent_id,status')
+                ->field('id,fn,url,remarks,parent_id,grant_flag,created_by,created_at')
                 ->find();
             return $row;
         }else{
@@ -118,11 +118,20 @@ class UrlPermModel extends PublicModel {
         if(isset($create['parent_id'])){
             $arr['parent_id'] = $create['parent_id'];
         }
-        if(isset($create['status'])){
-            $arr['status'] = $create['status'];
+        if(isset($create['grant_flag'])){
+            $arr['grant_flag'] = $create['grant_flag'];
         }
-        if(isset($create['description'])){
-            $arr['description'] = $create['description'];
+        if(isset($create['fn'])){
+            $arr['fn'] = $create['fn'];
+        }
+        if(isset($create['remarks'])){
+            $arr['remarks'] = $create['remarks'];
+        }
+        if(isset($create['created_at'])){
+            $arr['created_at'] = date("Y-m-d H:i:s");
+        }
+        if(isset($create['created_by'])){
+            $arr['created_by'] = $create['created_by'];
         }
         $data = $this->create($arr);
         return $this->add($data);

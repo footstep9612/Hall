@@ -9,119 +9,49 @@
 /**
  * Description of User
  *
- * @author zyg
+ * @author jhw
  */
 class UserModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'user';
-    protected $g_table ='t_user';
+    protected $tableName = 'employee';
+    protected $g_table ='employee';
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
-    //private $db_config ='mysqli://usrregi:regiusr@172.18.18.61:3306/regi?#utf8';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
 
     /**
-     * 根据条件获取查询条件
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     *
-     */
-    protected function getcondition($condition = []) {
-        $where = [];
-        if ($condition['id']) {
-            $where['id'] = $condition['id'];
-        }
-        if ($condition['user_id']) {
-            $where['user_id'] = $condition['user_id'];
-        }
-        if ($condition['name']) {
-            $where['name'] = ['LIKE', '%' . $condition['name'] . '%'];
-        }
-        if ($condition['email']) {
-            $where['email'] = ['LIKE', '%' . $condition['email'] . '%'];
-        }
-        if ($condition['mobile']) {
-            $where['mobile'] = ['LIKE', '%' . $condition['mobile'] . '%'];
-        }
-        if ($condition['enc_password']) {
-            $where['enc_password'] = md5($condition['enc_password']);
-        }
-        if ($condition['status']) {
-            $where['status'] = $condition['status'];
-        }
-        return $where;
-    }
-
-    /**
-     * 获取数据条数
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
-    public function getcount($condition = []) {
-        $where = $this->getcondition($condition);
-        try {
-            return $this->where($where)
-                            ->field('id,user_no,name,email,mobile,status')
-                            ->count('id');
-        } catch (Exception $ex) {
-            Log::write($ex->getMessage());
-            return false;
-        }
-    }
-
-    /**
      * 获取列表
-     * @param mix $condition
-     * @return mix
-     * @author zyg
+     * @param  array $condition;
+     * @return array
+     * @author jhw
      */
-    public function getlist($condition = [],$order=" t_user.id desc") {
-        $sql = 'SELECT `t_user`.`id`,`user_no`,`t_user`.`name`,`email`,`mobile`,`t_user`.`description` ,group_concat(`t_group`.`name`) as group_name,group_concat(`t_role`.`name`) as role_name';
-        $sql .= ' FROM t_user';
-        $sql .= ' left join  t_group_user on t_user.id = t_group_user.user_id ';
-        $sql .= ' left join  t_group on t_group_user.group_id = t_group.id ';
-        $sql .= ' left join  t_role_user on t_user.id = t_role_user.user_id ';
-        $sql .= ' left join  t_role on t_role_user.role_id = t_role.id ';
-        $sql .= ' WHERE `t_user`.`status`= "NORMAL"';
+    public function getlist($condition = [],$order=" employee.id desc") {
+        $sql = 'SELECT `employee`.`id`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
+        $sql .= ' FROM '.$this->g_table;
+        $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
+        $sql .= ' left join  org on org_member.org_id = org.id ';
+        $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
+        $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .= ' WHERE `employee`.`status`= "NORMAL"';
         if ( !empty($condition['group_id']) ){
-            $sql .= ' AND t_group_user.group_id ='.$condition['group_id'];
+            $sql .= ' AND org_member.employee_id ='.$condition['group_id'];
         }
         if ( !empty($condition['role_id']) ){
-            $sql .= ' AND t_role_user.role_id ='.$condition['role_id'];
+            $sql .= ' AND role_member.role_id ='.$condition['role_id'];
         }
-        //$sql .= ' Order By '.$order;
-        if ( $condition['page'] ){
-            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
+        if ( !empty($condition['username']) ){
+            $sql .= ' AND employee.name like %'.$condition['role_id'].'%';
         }
-        $sql .= ' group by `t_user`.`id`';
+        $sql .= ' group by `employee`.`id`';
+        if ( $condition['num'] ){
+            $sql .= ' LIMIT '.$condition['page'].','.$condition['num'];
+        }
         return $this->query( $sql );
     }
-//    /**
-//     * 获取列表
-//     * @param data $data;
-//     * @return array
-//     * @author jhw
-//     */
-//    public function getListNewdb($data,$limit,$order='user_main_id desc') {
-//        $sql = 'SELECT * FROM regi.user_main';
-////        if ( !empty($condition['where']) ){
-////            $sql .= ' AND '.$condition['where'];
-////        }
-////        $sql .= ' Order By '.$order;
-////        if ( $condition['page'] ){
-////            $sql .= ' LIMIT '.$condition['page'].','.$condition['countPerPage'];
-////        }
-////return $this->query( $sql );
-//        $db =db_Db::getInstance($this->db_config);
-//        return $db->query($sql);
-//
-//    }
     /**
      * 获取列表
      * @param  string $code 编码
@@ -132,9 +62,7 @@ class UserModel extends PublicModel {
      */
     public function info($id = '') {
         $where['id'] = $id;
-        return $this->where($where)
-                        ->field('id,user_no,name,email,mobile,status')
-                        ->find();
+        return $this->where($where)->find();
     }
 
     /**
@@ -197,7 +125,7 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function Exist($data) {
-        $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`,`description`';
+        $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`';
         $sql .= ' FROM '.$this->g_table;
         $where = '';
         if ( !empty($data['email']) ){
@@ -211,6 +139,14 @@ class UserModel extends PublicModel {
             }
 
         }
+        if ( !empty($data['user_no']) ){
+            if($where){
+                $where .= " or user_no = '" .$data['user_no']."'";
+            }else{
+                $where .= " where user_no = '" .$data['user_no']."'";
+            }
+        }
+
         if ( $where){
             $sql .= $where;
         }
@@ -237,48 +173,68 @@ class UserModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function update_data($upcondition = []) {
-        $data = [];
-        $where = [];
-        if ($condition['id']) {
-            $where['id'] = $condition['id'];
+    public function update_data($create = [],$where) {
+        if(isset($create['user_no'])){
+            $data['user_no']=$create['user_no'];
         }
-        if ($condition['user_id']) {
-            $data['user_id'] = $condition['user_id'];
+        if(isset($create['name'])){
+            $data['name']=$create['name'];
         }
-        if ($condition['name']) {
-            $data['name'] = $condition['name'];
+        if(isset($create['email'])){
+            $data['email']=$create['email'];
         }
-        if ($condition['email']) {
-            $data['email'] = $condition['email'];
+        if(isset($create['mobile'])){
+            $data['mobile']=$create['mobile'];
         }
-        if ($condition['mobile']) {
-            $data['mobile'] = $condition['mobile'];
+        if(isset($create['password_hash'])){
+            $data['password_hash']=$create['password_hash'];
         }
-        if ($condition['enc_password']) {
-            $data['enc_password'] = md5($condition['enc_password']);
+        if(isset($create['name_en'])){
+            $data['name_en']=$create['name_en'];
         }
-        switch ($condition['status']) {
+        if(isset($create['gender'])){
+            $data['gender']=$create['gender'];
+        }
+        if(isset($create['mobile2'])){
+            $data['mobile2']=$create['mobile2'];
+        }
+        if(isset($create['phone'])){
+            $data['phone']=$create['phone'];
+        }
+        if(isset($create['ext'])){
+            $data['ext']=$create['ext'];
+        }
+        if(isset($create['remarks'])){
+            $data['remarks']=$create['remarks'];
+        }
+        if(isset($data)){
+            $data['created_at']=date("Y-m-d H:i:s");
+        }
+        switch ($data['status']) {
             case self::STATUS_DELETED:
-                $data['status'] = $condition['status'];
+                $data['status'] = $data['status'];
                 break;
             case self::STATUS_DISABLED:
-                $data['status'] = $condition['status'];
+                $data['status'] = $data['status'];
                 break;
             case self::STATUS_NORMAL:
-                $data['status'] = $condition['status'];
+                $data['status'] = $data['status'];
                 break;
         }
+        if(!$where){
+            return false;
+        }else{
 
+            return $this->where($where)->save($data);
+        }
 
-        return $this->where($where)->save($data);
     }
 
     /**
      * 新增数据
-     * @param  mix $createcondition 新增条件
+     * @param  array $create 新增条件
      * @return bool
-     * @author zyg
+     * @author jhw
      */
     public function create_data($create = []) {
         if(isset($create['user_no'])){
@@ -296,8 +252,26 @@ class UserModel extends PublicModel {
         if(isset($create['password_hash'])){
             $data['password_hash']=$create['password_hash'];
         }
-        if(isset($create['description'])){
-            $data['description']=$create['description'];
+        if(isset($create['name_en'])){
+            $data['name_en']=$create['name_en'];
+        }
+        if(isset($create['gender'])){
+            $data['gender']=$create['gender'];
+        }
+        if(isset($create['mobile2'])){
+            $data['mobile2']=$create['mobile2'];
+        }
+        if(isset($create['phone'])){
+            $data['phone']=$create['phone'];
+        }
+        if(isset($create['ext'])){
+            $data['ext']=$create['ext'];
+        }
+        if(isset($create['remarks'])){
+            $data['remarks']=$create['remarks'];
+        }
+        if(isset($data)){
+            $data['created_at']=date("Y-m-d H:i:s");
         }
         $datajson = $this->create($data);
         return $this->add($datajson);
