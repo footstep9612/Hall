@@ -388,6 +388,59 @@ class ProductModel extends PublicModel {
         }
         return false;
     }
+
+    /**
+     * spu[状态更改]（BOSS后台）
+     * @author klp
+     * @return bool
+     */
+    public function modifySpu($data,$status) {
+        if(empty($data) || empty($status)) {
+            return false;
+        }
+        $results = array();
+        //获取当前用户信息
+        $userInfo = getLoinInfo();
+
+        if($data && is_array($data)) {
+            try {
+                foreach ($data as $item) {
+                    if (self::STATUS_CHECKING == $status) {
+                        $where = [
+                            'spu' => $item['spu'],
+                            'lang' => $item['lang']
+                        ];
+                        $result = $this->where($where)->save(['status' => $status]);
+                    } else {
+                        $where = [
+                            'spu' => $item['spu'],
+                            'lang' => $item['lang']
+                        ];
+                        $save = [
+                            'status' => $status,
+                            'checked_by' => $userInfo['id'],
+                            'checked_at' => date('Y-m-d H:i:s', time())
+                        ];
+                        $result = $this->where($where)->save($save);
+                    }
+                }
+                if ($result) {
+                    $results['code'] = '1';
+                    $results['message'] = '成功！';
+                } else {
+                    $results['code'] = '-101';
+                    $results['message'] = '失败!';
+                }
+                return $results;
+            } catch (Exception $e) {
+                $results['code'] = $e->getCode();
+                $results['message'] = $e->getMessage();
+                return $results;
+            }
+        }
+        return false;
+    }
+
     /**
      * 通过spu查询四种语言name
      * @param ispu

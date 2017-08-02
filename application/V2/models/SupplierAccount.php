@@ -24,39 +24,6 @@ class SupplierAccountModel extends PublicModel
     }
 
     /**
-     * 通过商品获取供应商信息
-     * @return
-     * @author
-     */
-    public function getInfo($data)
-    {
-        $where = array();
-        if(!empty($data['sku'])){
-            $where['sku'] = $data['sku'];
-        } else{
-            jsonReturn('','-1001','sku不可以为空');
-        }
-        //通过spu查询供应商编号
-        $supplier_id = $this->where($where)
-                            ->field('supplier_id')
-                            ->select();
-
-        $field = 'id,customer_id,email,user_name,mobile,role,first_name,last_name,phone,status,login_count,last_login_time,login_failure_count,created_by,created_at';
-        $group = array();
-        $SupplierBrandModel = new SupplierBrandModel();
-        foreach ($supplier_id as $v) {
-            $info = $SupplierBrandModel->field($field)->where(array('supplier_id' => $v['supplier_id']))->select();
-            $group[] = $info;
-        }
-        if(!empty($group)){
-            return $group;
-        } else {
-            return array();
-        }
-    }
-
-
-    /**
      * 判断用户是否存在
      * @param  string $name 用户名
      * @param  string $lang 语言

@@ -11,7 +11,7 @@ class GoodsController extends PublicController{
 
     public function init()
     {
-        $this->input = json_decode(file_get_contents("php://input"), true);
+//        $this->input = json_decode(file_get_contents("php://input"), true);
 
     }
 
@@ -23,7 +23,7 @@ class GoodsController extends PublicController{
      */
     public function listAction(){
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->getList($this->input);
+        $result = $goodsModel->getList($this->put_data);
         $this->returnInfo($result);
     }
 
@@ -35,7 +35,7 @@ class GoodsController extends PublicController{
      */
     public function skuInfoAction(){
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->getSkuInfo($this->input);
+        $result = $goodsModel->getSkuInfo($this->put_data);
         $this->returnInfo($result);
     }
     /**
@@ -46,7 +46,7 @@ class GoodsController extends PublicController{
      */
     public function skuAttrsInfoAction(){
         $goodsModel = new GoodsAttrModel();
-        $result = $goodsModel->getSkuAttrsInfo($this->input);
+        $result = $goodsModel->getSkuAttrsInfo($this->put_data);
         $this->returnInfo($result);
     }
     /**
@@ -57,7 +57,18 @@ class GoodsController extends PublicController{
      */
     public function skuAttachsInfoAction(){
         $goodsModel = new GoodsAttachModel();
-        $result = $goodsModel->getSkuAttachsInfo($this->input);
+        $result = $goodsModel->getSkuAttachsInfo($this->put_data);
+        $this->returnInfo($result);
+    }
+
+    /**
+     * 商品进货价格/供应商查询
+     * @param   sku
+     * @author  klp  2017/8/2
+     */
+    public function supplierCostInfoAction(){
+        $GoodsCostPriceModel = new GoodsCostPriceModel();
+        $result = $GoodsCostPriceModel->getInfo($this->put_data);
         $this->returnInfo($result);
     }
 
@@ -69,6 +80,7 @@ class GoodsController extends PublicController{
      *                 goods_flag(商品属性)   spec_flag(规格型号)  logi_flag(物流属性)  hs_flag(申报要素)
      *                注:属性添加时带其中一个flag
      * @param  attach:  attach_url(文件地址)
+     * @param  supplier_cost:  supplier_id(供应商ID)
      * @example [
      *           sku:'',
      *           en=>[
@@ -77,13 +89,76 @@ class GoodsController extends PublicController{
      *           ],
      *          zh=>[],...
      *          attachs=>[]
+     *          supplier_cost=>[]
      * ]
      *  @return sku编号
      * @author  klp  2017/7-13
      */
     public function editSkuAction(){
+       /* $this->put_data = [
+            "sku"=>'37518005',
+            "zh"=>[
+                'lang'        =>'zh',
+                'spu'		  =>'8832211',
+                'name'		  =>'123',
+                'show_name'   =>'123',
+                "attrs"=>[
+                        'spec_attrs'	  =>[
+                            0=>[
+                                'attr_name' =>'8121',
+                                'attr_value' =>'1',
+                                'value_unit' =>'1',
+                                'spec_flag' =>'Y',
+                            ],
+
+                        ],
+                        'ex_goods_attrs'  =>[
+                            0=>[
+                                'attr_name' =>'9212',
+                                'attr_value' =>'2',
+                                'value_unit' =>'2',
+                                'goods_flag' =>'Y',
+                            ],
+                        ],
+                        'ex_hs_attrs'	  =>[
+                            0=>[
+                                'attr_name' =>'333',
+                                'attr_value' =>'3',
+                                'value_unit' =>'3',
+                                'hs_flag' =>'Y',
+                            ]
+                        ],
+                        'other_attrs'	  =>[
+                            0=>[
+                                'attr_name' =>'444',
+                                'attr_value' =>'4',
+                                'value_unit' =>'4',
+                            ]
+                        ],
+                    ],
+                ],
+            "attachs"=>[
+                0=>[
+                    'id'=>150,
+                    'supplier_id'    =>'11223',
+                    'attach_type'	 =>'',
+                    'attach_name'	 =>'',
+                    'attach_url'     =>'a/b/c.png',
+                    'sort_order'     =>'0',
+                ],
+
+            ],
+            'supplier_cost'=>[
+                0=>[
+                    'id'=>1,
+                    'supplier_id'	     =>'112123',
+                    'min_purchase_qty'	 =>1
+                ]
+            ],
+
+        ];*/
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->editSku($this->input);
+        $result = $goodsModel->editSku($this->put_data);
         $this->returnInfo($result);
     }
     /**
@@ -91,12 +166,13 @@ class GoodsController extends PublicController{
      * @param    status_type(状态flag ) 存在为修改状态
      *           标志: check(报审)    valid(通过)     invalid(驳回)
      * @param     sku编码  spu编码   lang语言
-     * @example   $this->input=[
+     * @example   $this->put_data=[
      *                      'status_type'=> 'check',
      *                      0 => [
      *                           'sku'=> '3303060000010001',
      *                           'spu'=> '340306010001',
-     *                           'lang'=> 'zh
+     *                           'lang'=> 'zh',
+     *                           'remarks' =>  '',
      *                           ],
      *                      1 => [],...
      *                  ];
@@ -104,22 +180,31 @@ class GoodsController extends PublicController{
      * @author  klp  2017/8/1
      */
     public function modifySkuAction(){
-        if(empty($this->input)){
+       /* $this->put_data = [
+                'status_type'=> 'valid',
+                 0 => [
+                      'sku'=> '37518005',
+                      'spu'=> '8832211',
+                      'lang'=> 'zh',
+                      'remarks' =>  ''
+                      ],
+                 ];*/
+        if(empty($this->put_data)){
             return false;
         }
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->modifySkuStatus($this->input);
+        $result = $goodsModel->modifySkuStatus($this->put_data);
         $this->returnInfo($result);
     }
 
     /**
      * sku删除  -- 总接口
      * @param     sku编码  spu编码   lang语言
-     * @example   $this->input=[
+     * @example   $this->put_data=[
      *                  0  => [
      *                       'sku'=> '3303060000010001',
      *                      'spu'=> '340306010001',
-     *                       'lang'=> 'en'
+     *                       'lang'=> 'zh'
      *                       ],
      *                      1  => [],...
      *                  ];
@@ -127,22 +212,40 @@ class GoodsController extends PublicController{
      * @author  klp  2017/8/1
      */
     public function deleteRealSkuAction(){
-        if(empty($this->input)){
+        $this->put_data=[
+                     0  => [
+                          'sku'=> '37518005',
+                          'spu'=> '8832211',
+                          'lang'=> 'zh'
+                        ]
+                     ];
+        if(empty($this->put_data)){
             return false;
         }
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->deleteSku($this->input);
+        $result = $goodsModel->deleteSkuReal($this->put_data);
         $this->returnInfo($result);
     }
 
 
     /**
-     * sku供应商  -- BOSS后端      待完善
+     * sku供应商  -- 通过生产商ID或名称获取供应商信息
      * @author  klp  2017/7-6
      */
     public function listSupplierAction(){
-        $SupplierAccountModel = new SupplierAccountModel();
-        $result = $SupplierAccountModel->getInfo($this->input);
+        $SupplierModel = new SupplierModel();
+        $result = $SupplierModel->getlist($this->put_data);
+        $this->returnInfo($result);
+    }
+
+    /**
+     * 审核记录查询
+     * @param sku
+     * @author  klp  2017/8/2
+     */
+    public function checkInfoAction(){
+        $ProductChecklogModel = new ProductChecklogModel();
+        $result = $ProductChecklogModel->getRecord($this->put_data);
         $this->returnInfo($result);
     }
 
@@ -303,6 +406,15 @@ class GoodsController extends PublicController{
 
                 ],
             ],
+            'supplier_cost'=>[
+                'supplier_id'	     =>'',
+                'price'	             =>'',
+                'price_unit'	     =>'',
+                'price_cur_bn'	     =>'',
+                'min_purchase_qty'	 =>'',
+                'pricing_date'	     =>'',
+                'price_validity'	 =>'',
+            ]
         ];
     }
 
