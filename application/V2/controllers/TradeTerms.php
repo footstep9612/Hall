@@ -1,31 +1,45 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- * Description of Destdeliverylogi
- *
- * @author zhongyg
+  附件文档Controller
  */
-class DestdeliverylogiController extends PublicController {
+class TradeTermsController extends PublicController {
 
   public function init() {
     parent::init();
 
-    $this->_model = new DestdeliverylogiModel();
+    $this->_model = new TradeTermsModel();
   }
 
   public function listAction() {
     $condtion = $this->put_data;
-    unset($data['token']);
-    $key = 'dest_delivery_logi_list_' . $lang . md5(json_encode($condtion));
+    unset($condtion['token']);
+    $key = 'Tradeterms_list_' . md5(json_encode($condtion));
     $data = json_decode(redisGet($key), true);
     if (!$data) {
       $arr = $this->_model->getListbycondition($condtion);
+      if ($arr) {
+        $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+        $data['code'] = MSG::MSG_SUCCESS;
+        $data['data'] = $arr;
+        $data['count'] = $this->_model->getCount($condtion);
+        redisSet($key, json_encode($data), 86400);
+        $this->jsonReturn($data);
+      } else {
+        $this->setCode(MSG::MSG_FAILED);
+        $this->jsonReturn();
+      }
+    }
+    $this->jsonReturn($data);
+  }
+
+  public function listallAction() {
+    $condtion = $this->put_data;
+    unset($condtion['token']);
+    $key = 'Tradeterms_listall_' . md5(json_encode($condtion));
+    $data = json_decode(redisGet($key), true);
+    if (!$data) {
+      $arr = $this->_model->getListallbycondition($condtion);
       if ($arr) {
         $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
         $data['code'] = MSG::MSG_SUCCESS;
@@ -66,19 +80,13 @@ class DestdeliverylogiController extends PublicController {
 
   private function delcache() {
     $redis = new phpredis();
-    $keys = $redis->getKeys('dest_delivery_logi_*');
+    $keys = $redis->getKeys('Tradeterms_*');
     $redis->delete($keys);
-
   }
 
   public function createAction() {
     $condition = $this->put_data;
     $data = $this->_model->create($condition);
-    $data['logi_no'] = $data['from_loc'] . '_'
-            . substr($data['trans_mode'], 0, 1)
-            . '_' . $data['to_loc'];
-    $data['created_by'] = $this->user['name'];
-    $data['created_at'] = date('Y-m-d H:i:s');
     $result = $this->_model->add($data);
     if ($result) {
       $this->delcache();
@@ -115,8 +123,8 @@ class DestdeliverylogiController extends PublicController {
       } elseif (is_array($condition['id'])) {
         $where['id'] = ['in', $condition['id']];
       }
-    } elseif (isset($condition['logi_no']) && $condition['logi_no']) {
-      $where['logi_no'] = $condition['logi_no'];
+    } elseif ($condition['terms']) {
+      $where['terms'] = $condition['terms'];
     } else {
       $this->setCode(MSG::MSG_FAILED);
       $this->jsonReturn();

@@ -3,7 +3,7 @@
 /**
   附件文档Controller
  */
-class PaymentmodeController extends PublicController {
+class PaymentModeController extends PublicController {
 
   public function init() {
     parent::init();

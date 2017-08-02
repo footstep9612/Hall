@@ -7,251 +7,15 @@
 
 class GoodsAttrModel extends PublicModel{
 
-    protected $dbName = 'erui_goods'; //数据库名称
+    protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
     const STATUS_VALID = 'VALID'; //有效
-    const STATUS_INVALID = 'INVALID'; //无效；
-    const STATUS_DELETED = 'DELETED'; //删除；
-    const STATUS_CHECKING = 'CHECKING'; //审核；
-
-    /**
-     * 编辑商品属性查询p
-     * @param null $where string 条件
-     * @return mixed
-     */
-
-    public function getAttrBySku($sku, $lang = '') {
-        if($lang!=''){
-            $where['lang'] = $lang;
-        }
-        $where = array(
-            'sku' => $sku,
-            'lang'=> $lang,
-            'status' => self::STATUS_VALID
-        );
-
-        //缓存数据redis查询
-        $key_redis = md5(json_encode($where));
-        if(redisExist($key_redis)){
-            $result = redisGet($key_redis);
-            return $result ? json_decode($result,true) : array();
-        } else {
-            $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,sort_order,goods_flag,logi_flag,hs_flag,spec_flag';
-
-            $gattrs = $this->field($field)
-                           ->where($where)
-                           ->select();
-
-            //查询产品对应属性
-            $productAttr = new ProductAttrModel();
-            $spu = $gattrs[0]['spu'];
-            $condition = array(
-                'spu' => $spu,
-                'lang' => $lang,
-                'status' => self::STATUS_VALID
-            );
-            $pattrs = $productAttr->field($field)->where($condition)->select();
-
-            $data = array_merge($pattrs, $gattrs);
-            //进行属性分组
-            /**
-             * * 属性分类:一级
-             *   goods_flag - 商品属性
-             *   spec_flag - 规格型号
-             *   logi_flag  - 物流属性
-             *   hs_flag  - 申报要素
-             *   Others - 其他　
-             * * 属性分组:二级
-             *   Specs - 规格
-             *   Technical Parameters - 技术参数
-             *   Executive Standard - 技术标准
-             *   Product Information - 简要信息
-             *   Quatlity Warranty - 质量保证
-             *   Others - 其他属性
-             *  Image - 附件
-             *  Documentation - 技术文档　
-             */
-            $attrs = array();
-            foreach ($data as $item) {
-                $group1 = '';
-                $group2 = 'others';
-                switch ($item['attr_group']) {
-                    case 'Specs':
-                        $group2 = 'Specs';
-                        break;
-                    case 'TechnicalParameters':
-                        $group2 = 'TechnicalParameters';
-                        break;
-                    case 'ExecutiveStandard':
-                        $group2 = 'ExecutiveStandard';
-                        break;
-                    case 'ProductInformation':
-                        $group2 = 'ProductInformation';
-                        break;
-                    case 'QuatlityWarranty':
-                        $group2 = 'QuatlityWarranty';
-                        break;
-                    case 'Image':
-                        $group2 = 'Image';
-                        break;
-                    case 'Documentation':
-                        $group2 = 'Documentation';
-                        break;
-                    default:
-                        $group2 = 'others';
-                        break;
-                }
-                if ($item['goods_flag'] == 'Y') {
-                    $group1 = 'goods_flag';
-                    $attrs[$item['lang']][$group1][$group2][] = $item;
-                }
-                if ($item['logi_flag'] == 'Y') {
-                    $group1 = 'logi_flag';
-                    $attrs[$item['lang']][$group1][$group2][] = $item;
-                }
-                if ($item['hs_flag'] == 'Y') {
-                    $group1 = 'hs_flag';
-                    $attrs[$item['lang']][$group1][$group2][] = $item;
-                }
-                if ($item['spec_flag'] == 'Y') {
-                    $group1 = 'spec_flag';
-                    $attrs[$item['lang']][$group1][$group2][] = $item;
-                }
-                if ($group1 == '') {
-                    $group1 = 'others';
-                    $attrs[$item['lang']][$group1][$group2][] = $item;
-                }
-
-                if ($attrs) {
-                    redisSet($key_redis, json_encode($attrs));
-                    return $attrs;
-                } else {
-                    return array();
-                }
-            }
-        }
-    }
-    /**
-     * 编辑商品属性查询a
-     * @param null $where string 条件
-     * @return
-     */
-    public function attrBySku($sku='', $lang = '') {
-        if($sku='') {
-            return false;
-        }
-        if($lang='') {
-            return false;
-        }
-        $where = array(
-            'sku' => $sku,
-            'lang'=> $lang,
-            'status' => self::STATUS_VALID
-        );
-
-        //缓存数据redis查询
-        $key_redis = md5(json_encode($where));
-        if(redisExist($key_redis)){
-            $result = redisGet($key_redis);
-            return $result ? json_decode($result,true) : array();
-        } else {
-            $field = 'lang,spu,attr_group,attr_name,attr_value_type,attr_value,value_unit,sort_order,goods_flag,logi_flag,hs_flag,spec_flag';
-
-            $gattrs = $this->field($field)
-                           ->where($where)
-                           ->select();
-
-            //查询产品对应属性
-            $productAttr = new ProductAttrModel();
-            $spu = $gattrs[0]['spu'];
-            $condition = array(
-                'spu' => $spu,
-                'lang' => $lang,
-                'status' => self::STATUS_VALID
-            );
-            $pattrs = $productAttr->field($field)->where($condition)->select();
-
-            $data = array_merge($pattrs, $gattrs);
-            //进行属性分组
-            /**
-             * * 属性分类:一级
-             *   goods_flag - 商品属性
-             *   spec_flag - 规格型号
-             *   logi_flag  - 物流属性
-             *   hs_flag  - 申报要素
-             *   Others - 其他　
-             */
-            $attrs = array();
-            foreach ($data as $item) {
-                $group1 = '';
-                if ($item['goods_flag'] == 'Y') {
-                    $group1 = 'goods_flag';
-                    $attrs[$group1][] = $item;
-                }
-                if ($item['logi_flag'] == 'Y') {
-                    $group1 = 'logi_flag';
-                    $attrs[$group1][] = $item;
-                }
-                if ($item['hs_flag'] == 'Y') {
-                    $group1 = 'hs_flag';
-                    $attrs[$group1][] = $item;
-                }
-                if ($item['spec_flag'] == 'Y') {
-                    $group1 = 'spec_flag';
-                    $attrs[$group1][] = $item;
-                }
-                if ($group1 == '') {
-                    $group1 = 'others';
-                    $attrs[$group1][] = $item;
-                }
-                if ($attrs) {
-                    redisSet($key_redis,json_encode($attrs));
-                    return $attrs;
-                } else {
-                    return array();
-                }
-            }
-        }
-    }
-
-
-    /**
-     * 获取sku的规格属性
-     * @author link 2017-06-23
-     * @param string $sku
-     * @param string $lang
-     * @return array|mixed
-     */
-    public function getSpecBySku($sku='',$lang =''){
-        if(empty($sku) || empty($lang))
-            return array();
-
-        //检查redis
-        if(redisHashExist('spec','spec_'.$sku.'_'.$lang)){
-            //return json_decode(redisHashGet('spec', 'spec_'.$sku.'_'.$lang),true);
-        }
-
-        $field = 'attr_no,attr_name,attr_value_type,attr_value,value_unit';
-        $condition = array(
-            'sku' => $sku,
-            'lang' => $lang,
-            'spec_flag' => 'Y',
-            'status' => self::STATUS_VALID
-        );
-        try{
-            $result = $this->field($field)->where($condition)->select();
-            if($result){
-                redisHashSet('spec','spec_'.$sku.'_'.$lang, json_encode($result));
-                return $result;
-            }
-        }catch (Exception $e){
-            return array();
-        }
-        return array();
-    }
-
+    const STATUS_INVALID = 'INVALID'; //无效
+    const STATUS_DELETED = 'DELETED'; //删除
+    const STATUS_CHECKING = 'CHECKING'; //审核
+    const STATUS_DRAFT = 'DRAFT'; //草稿
 
     /**
      * 商品属性 -- 公共
@@ -377,63 +141,6 @@ class GoodsAttrModel extends PublicModel{
         }
     }
 
-    /**
-     * sku属性[状态更改]（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function modifySkuAttr($delData){
-        if(empty($delData)) {
-            return false;
-        }
-        $status = $delData['status'];
-        unset($delData['status']);
-        $this->startTrans();
-        try {
-            foreach($delData as $item){
-                $where = [
-                    "sku" => $item['sku'],
-                    "lang" => $item['lang']
-                ];
-//                $resatr = $this->field('sku')->where($where)->find();
-//                if($resatr) {
-                    $this->where($where)->save(['status' => $status]);
-//                }
-            }
-            $this->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->rollback();
-            return false;
-        }
-    }
-
-    /**
-     * sku属性删除[真实]（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function deleteRealAttr($delData){
-        if(empty($delData)) {
-            return false;
-        }
-        $this->startTrans();
-        try{
-            foreach($delData as $del){
-                $where = [
-                    "sku" => $del['sku'],
-                    "lang" => $del['lang']
-                ];
-                $this->where($where)->save(['status' => self::STATUS_DELETED]);
-            }
-            $this->commit();
-            return true;
-        } catch(Exception $e){
-            $this->rollback();
-            return false;
-        }
-
-    }
 
     /**
      * sku属性参数处理（门户后台）
@@ -518,9 +225,9 @@ class GoodsAttrModel extends PublicModel{
      * @return bool
      */
     public function check_up($data){
-        if(empty($data))
+        if(empty($data)) {
             return false;
-
+        }
         $condition = [];
         if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
@@ -564,5 +271,171 @@ class GoodsAttrModel extends PublicModel{
         return $attrs;
     }
 
+    //-----------------------------------BOSS.V2------------------------------------------------------//
+    /**
+     * sku属性查询 -- 公共
+     * @author klp
+     * @return array
+     */
+    public function getSkuAttrsInfo($condition) {
+        if (!isset($condition)) {
+            return false;
+        }
+        if (isset($condition['sku']) && !empty($condition['sku'])) {
+            $where = array('sku' => trim($condition['sku']));
+        }
+        if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
+            $where['lang'] = strtolower($condition['lang']);
+        }
+        if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
+            $where['status'] = strtoupper($condition['status']);
+        } else{
+            $where['status'] = array('<>', self::STATUS_DELETED);
+        }
+
+        //redis
+        if (redisHashExist('SkuAttrs', md5(json_encode($where)))) {
+            return json_decode(redisHashGet('SkuAttrs', md5(json_encode($where))), true);
+        }
+        $field = 'lang, spu, sku, spec_attrs, ex_goods_attrs, ex_hs_attrs, other_attrs, status, created_by,  created_at';
+        //spec_attrs--规格属性   ex_goods_attrs--其它商品属性  ex_hs_attrs--其它申报要素  other_attrs--其它属性
+        try {
+            $result = $this->field($field)->where($where)->select();
+
+            $data = $attrs = array();
+            if($result){
+                //获取产品属性
+                $product = new ProductAttrModel();
+                $pattr = $product->getAttr($result['spu'] ? $result['spu'] : '',isset($where['lang'])?$where['lang']:'',isset($where['status'])?$where['status']:'');
+                $attrs = array_merge($result,$pattr);
+                //按语言分组,类型分组
+                foreach ($attrs as $item){
+                    if ('spec_attrs' == $item['spec_attrs']) {
+                        $data[$item['lang']]['spec_attrs'][] = $item;
+                    }
+                    if ('ex_goods_attrs' == $item['ex_goods_attrs']) {
+                        $data[$item['lang']]['ex_goods_attrs'][] = $item;
+                    }
+                    if ('ex_hs_attrs' == $item['ex_hs_attrs']) {
+                        $data[$item['lang']]['ex_hs_attrs'][] = $item;
+                    }
+                    if ('other_attrs' == $item['other_attrs']) {
+                        $data[$item['lang']]['other_attrs'][] = $item;
+                    }
+                }
+                redisHashSet('SkuAttrs', md5(json_encode($where)), json_encode($data));
+            }
+            return $data;
+        } catch (Exception $e){
+            return array();
+        }
+    }
+
+    /**
+     * sku属性新增/编辑 -- 公共
+     * @author klp
+     * @params 条件:sku lang
+     * @return bool
+     */
+    public function createAttach($input){
+        if(empty($input)) {
+            return false;
+        }
+        if(empty($input['sku']) || empty($input['lang'])) {
+            jsonReturn('',MSG::ERROR_PARAM,MSG::ERROR_PARAM);
+        }
+        //获取当前用户信息
+        $userInfo = getLoinInfo();
+        $this->startTrans();
+        try {
+            foreach ($input['attrs']  as $key => $checkout) {
+//                $checkout = $this->checkParam($value,$this->field);
+                $data = [
+                    'spu' => $checkout['spu'],
+                    'spec_attrs'      => isset($checkout['attach_type']) ? json_encode($checkout['attach_type']) : '',
+                    'ex_goods_attrs'  => isset($checkout['attach_name']) ? json_encode($checkout['attach_name']) : '',
+                    'ex_hs_attrs'     => isset($checkout['default_flag']) ? json_encode($checkout['default_flag']) : '',
+                    'other_attrs'     => isset($checkout['default_flag']) ? json_encode($checkout['default_flag']) : ''
+                ];
+                //存在sku编辑,反之新增,后续扩展性
+                $result = $this->field('sku')->where(['sku' => $input['sku'],'lang'=>$input['lang']])->find();
+                if ($result) {
+                    $where = [
+                        'sku' => trim($input['sku']),
+                        'lang'=> $input['lang']
+                    ];
+                    $this->where($where)->save($data);
+                } else {
+                    $data['status'] = self::STATUS_DRAFT;
+                    $data['sku'] = $input['sku'];
+                    $data['lang'] = $input['lang'];
+                    $data['created_by'] = $userInfo['id'];
+                    $data['created_at'] = date('Y-m-d H:i:s', time());
+                    $this->add($data);
+                }
+            }
+            $this->commit();
+            return true;
+        }catch (Exception $e) {
+            $this->rollback();
+            return false;
+        }
+    }
+
+    /**
+     * sku属性[状态更改]
+     * @author klp
+     * @return bool
+     */
+    public function modifyAttr($data,$status) {
+        if(empty($data) || empty($status)) {
+            return false;
+        }
+        $this->startTrans();
+        try {
+            foreach($data as $item){
+                $where = [
+                    "sku" => $item['sku'],
+                    "lang" => $item['lang']
+                ];
+                $resatr = $this->field('sku')->where($where)->find();
+                if($resatr) {
+                     $this->where($where)->save(['status' => $status]);
+                }
+            }
+            $this->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->rollback();
+            return false;
+        }
+    }
+
+    /**
+     * sku属性删除[真实]
+     * @author klp
+     * @return bool
+     */
+    public function deleteSkuAttr($delData){
+        if(empty($delData)) {
+            return false;
+        }
+        $this->startTrans();
+        try{
+            foreach($delData as $del){
+                $where = [
+                    "sku" => $del['sku'],
+                    "lang" => $del['lang']
+                ];
+                $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
+            }
+            $this->commit();
+            return true;
+        } catch(Exception $e){
+            $this->rollback();
+            return false;
+        }
+
+    }
 
 }

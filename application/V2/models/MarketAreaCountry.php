@@ -14,7 +14,7 @@
 class MarketAreaCountryModel extends PublicModel {
 
     //put your code here
-    protected $dbName='erui_dict';
+    protected $dbName='erui2_operation';
     protected $tableName = 'market_area_country';
     public function __construct($str = '') {
         parent::__construct($str = '');
@@ -109,7 +109,7 @@ class MarketAreaCountryModel extends PublicModel {
 
     /**
      * 新增数据
-     * @param  mix $createcondition 新增条件
+     * @param  mix $create 新增条件
      * @return bool
      * @author jhw
      */

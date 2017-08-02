@@ -8,7 +8,7 @@
  */
 class PortModel extends PublicModel {
 
-  protected $dbName = 'erui_dict'; //数据库名称
+  protected $dbName = 'erui2_dict'; //数据库名称
   protected $tableName = 'port'; //数据表表名
 
   public function __construct() {

@@ -12,10 +12,6 @@ class GoodsController extends Yaf_Controller_Abstract{
     public function init()
     {
         $this->input = json_decode(file_get_contents("php://input"), true);
-        $this->lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
-        if(!in_array($this->lang,array('en','ru','es','zh'))){
-            $this->lang = 'en';
-        }
 
     }
 
@@ -65,6 +61,7 @@ class GoodsController extends Yaf_Controller_Abstract{
                             'status_type'=> 'declare',
                             0=>[
                                 'sku'=> '3303060000010001',
+                                'spu'=> '3403060000010001',
                                 'lang'=> 'en'
                                 ],
                             1=>[],...
@@ -285,6 +282,142 @@ class GoodsController extends Yaf_Controller_Abstract{
             jsonReturn('','-1002','失败');
         }
         exit;
+    }
+
+    public function ediAction(){
+//        $edi = new Edi();
+//        $data = $edi->test();var_dump($data);die;
+    }
+
+    public function testInput()
+    {
+        $data=[
+            "sku"=>'',
+            "en"=>[
+                'lang'        =>'',
+                'spu'		  =>'',
+                'sku'		  =>'',
+                'qrcode'      =>'',
+                'name'	      =>'',
+                'show_name'   =>'',
+                'model'		  =>'',
+                'description' =>'',
+
+                'status'        =>'',
+                'created_by'    =>'',
+                'created_at'    =>'',
+                'updated_by'    =>'',
+                'updated_at'    =>'',
+                'checked_by'    =>'',
+                'checked_at'    =>'',
+
+                //固定商品属性
+                'exw_days'            =>'',
+                'min_pack_naked_qty'  =>'',
+                'nude_cargo_unit'     =>'',
+                'min_pack_unit'       =>'',
+                'min_order_qty'       =>'',
+                'purchase_price'      =>'',
+                'purchase_price_cur_bn'=>'',
+                'nude_cargo_l_mm'     =>'',
+                //固定物流属性
+                'nude_cargo_w_mm'     =>'',
+                'nude_cargo_h_mm'     =>'',
+                'min_pack_l_mm'       =>'',
+                'min_pack_w_mm'       =>'',
+                'min_pack_h_mm'       =>'',
+                'net_weight_kg'       =>'',
+                'gross_weight_kg'     =>'',
+                'compose_require_pack'=>'',
+                'pack_type'=>'',
+                //固定申报要素属性
+                'name_customs'        =>'',
+                'hs_code'             =>'',
+                'tx_unit'             =>'',
+                'tax_rebates_pct'     =>'',
+                'regulatory_conds'    =>'',
+                'commodity_ori_place' =>'',
+
+                'attrs' =>[
+                    'spec_attrs'	  =>[
+                        0=>[
+                            'attr_name' =>'',
+                            'attr_value' =>'',
+                            'value_unit' =>'',
+                            'spec_flag' =>'Y',
+
+                            'attr_group' =>'',
+                            'attr_no' =>'',
+                            'attr_value_type' =>'',
+                            'goods_flag' =>'N',
+                            'logi_flag' =>'N',
+                            'hs_flag' =>'N',
+                            'required_flag' =>'',
+                            'search_flag' =>'',
+                            'sort_order' =>'',
+                            'status' =>'',
+                        ],
+                        1=>[
+
+                        ],
+                    ],
+                    'ex_goods_attrs'  =>[
+                        0=>[
+                            'attr_name' =>'',
+                            'attr_value' =>'',
+                            'value_unit' =>'',
+                            'goods_flag' =>'Y',
+                        ],
+                    ],
+                    'ex_hs_attrs'	  =>[
+                        0=>[
+                            'attr_name' =>'',
+                            'attr_value' =>'',
+                            'value_unit' =>'',
+                            'hs_flag' =>'Y',
+                        ]
+                    ],
+                    'other_attrs'	  =>[
+                        0=>[
+                            'attr_name' =>'',
+                            'attr_value' =>'',
+                            'value_unit' =>'',
+                        ]
+                    ],
+
+                ]
+            ],
+            "zh"=>[
+
+            ],
+            "es"=>[
+
+            ],
+            "ru"=>[
+
+            ],
+            "attachs"=>[
+                0=>[
+                    'supplier_id'    =>'',
+                    'attach_type'	 =>'',
+                    'attach_name'	 =>'',
+                    'attach_url'     =>'',
+                    'sort_order'     =>'',
+                    'status'         =>'',
+                    'created_by'	 =>'',
+                    'created_at'	 =>'',
+
+                    'updated_by'	 =>'',
+                    'updated_at'	 =>'',
+                    'checked_by'	 =>'',
+                    'checked_at'	 =>'',
+
+                ],
+                1=>[
+
+                ],
+            ],
+        ];
     }
 
 }

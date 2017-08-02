@@ -227,9 +227,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function get($name, $default = null) {
-
-        return $this->getRequest()->get($name, $default);
+    public function get($name = null, $default = null) {
+        if ($name) {
+            return $this->getRequest()->get($name, $default);
+        } else {
+            return $this->getRequest()->getParams();
+        }
     }
 
     /**

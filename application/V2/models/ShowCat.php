@@ -13,14 +13,10 @@ class ShowCatModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING'; //审核；
     const STATUS_VALID = 'VALID'; //生效；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
-
+    protected $dbName = 'erui2_goods';
+    protected $tableName = 'show_cat';
     public function __construct() {
-        //动态读取配置中的数据库配置   便于后期维护
-        $config_obj = Yaf_Registry::get("config");
-        $config_db = $config_obj->database->config->goods->toArray();
-        $this->dbName = $config_db['name'];
-        $this->tablePrefix = $config_db['tablePrefix'];
-        $this->tableName = 'show_cat';
+
         parent::__construct();
     }
 
@@ -348,7 +344,7 @@ class ShowCatModel extends PublicModel {
         }
         $flag = $this->where($where)
                 ->save(['status' => self::STATUS_DELETED]);
-        $this->Table('erui_goods.t_show_material_cat')->where(['show_cat_no' => $cat_no])
+        $this->Table('erui2_goods.show_material_cat')->where(['show_cat_no' => $cat_no])
                 ->delete();
         return $flag;
     }
@@ -735,7 +731,7 @@ class ShowCatModel extends PublicModel {
                     'created_by' => $username
                 ];
             }
-            $this->Table('erui_goods.t_show_material_cat')->addAll($dataList);
+            $this->Table('erui2_goods.show_material_cat')->addAll($dataList);
         }
         $this->commit();
         return $cat_no;
@@ -840,9 +836,9 @@ class ShowCatModel extends PublicModel {
 
         try {
             if ($show_cat_nos) {
-                $cat3s = $this->table('erui_goods.t_show_cat')
-                        ->field('(select name from erui_dict.t_market_area where bn=market_area_bn and lang=\'' . $lang . '\') as market_area_name,'
-                                . '(select name from erui_dict.t_country where bn=country_bn and lang=\'' . $lang . '\') as country_name,'
+                $cat3s = $this->table('erui2_goods.show_cat')
+                        ->field('(select name from erui_dict.market_area where bn=market_area_bn and lang=\'' . $lang . '\') as market_area_name,'
+                                . '(select name from erui2_dict.country where bn=country_bn and lang=\'' . $lang . '\') as country_name,'
                                 . 'parent_cat_no,cat_no,name')
                         ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                         ->select();

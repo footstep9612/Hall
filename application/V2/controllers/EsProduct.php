@@ -11,9 +11,9 @@
  *
  * @author zhongyg
  */
-class EsproductController extends ShopMallController {
+class EsProductController extends PublicController {
 
-    protected $index = 'erui_goods';
+    protected $index = 'erui2_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
     protected $version = '1';
@@ -23,6 +23,10 @@ class EsproductController extends ShopMallController {
 
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
+        if (!method_exists($this, $this->getRequest()->getActionName() . 'Action')) {
+            $this->setCode(MSG::MSG_ERROR_ACTION);
+            $this->jsonReturn();
+        }
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
@@ -32,7 +36,7 @@ class EsproductController extends ShopMallController {
         if (!empty($token)) {
             try {
                 $tokeninfo = JwtInfo($token); //解析token
-                $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+                $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
                 if (empty($userinfo)) {
                     $this->put_data['source'] = 'ERUI';
                 } else {
@@ -47,13 +51,17 @@ class EsproductController extends ShopMallController {
         $this->es = new ESClient();
     }
 
+    /*
+     * 获取列表
+     */
+
     public function listAction() {
-        $model = new EsproductModel();
-        $ret = $model->getproducts($this->put_data, null, $this->getLang());
+        $model = new EsProductModel();
+        $ret = $model->getProducts($this->put_data, null, $this->getLang());
         if ($ret) {
             $data = $ret[0];
 
-            $list = $this->getdata($data);
+            $list = $this->_getdata($data);
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
@@ -65,28 +73,8 @@ class EsproductController extends ShopMallController {
             if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
                 $send['sku_count'] = $data['aggregations']['sku_num']['value'];
             }
-//            if (!$this->put_data['show_cat_no']) {
-//                $material_cat_nos = [];
-//                foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
-//                    $material_cats[$item['key']] = $item['doc_count'];
-//                    $material_cat_nos[] = $item['key'];
-//                }
-//            } else {
-//                $condition = $this->put_data;
-//                unset($condition['show_cat_no']);
-//                $ret1 = $model->getproducts($condition, null, $this->getLang());
-//                if ($ret1) {
-//                    $material_cat_nos = [];
-//                    foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
-//                        $material_cats[$item['key']] = $item['doc_count'];
-//                        $material_cat_nos[] = $item['key'];
-//                    }
-//                }
-//            }
-//            $catlist = $this->getcatlist($material_cat_nos, $material_cats);
-//            $send['catlist'] = $catlist;
             $send['data'] = $list;
-            $this->update_keywords();
+            $this->_update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
             $send['code'] = $this->getCode();
             $send['message'] = $this->getMessage();
@@ -97,7 +85,11 @@ class EsproductController extends ShopMallController {
         }
     }
 
-    private function getdata($data) {
+    /*
+     * 处理ES 数据
+     */
+
+    private function _getdata($data) {
 
         foreach ($data['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
@@ -123,7 +115,11 @@ class EsproductController extends ShopMallController {
         return $list;
     }
 
-    private function getcatlist($material_cat_nos, $material_cats) {
+    /* 获取分类列表
+     * @
+     */
+
+    private function _getcatlist($material_cat_nos, $material_cats) {
         ksort($material_cat_nos);
         $condition = $this->put_data;
         $condition['token'] = $condition['show_cat_no'] = null;
@@ -155,7 +151,11 @@ class EsproductController extends ShopMallController {
         return $catlist;
     }
 
-    private function update_keywords() {
+    /*
+     * 更新关键词表
+     */
+
+    private function _update_keywords() {
         if ($this->put_data['keyword']) {
             $search = [];
             $search['keywords'] = $this->put_data['keyword'];

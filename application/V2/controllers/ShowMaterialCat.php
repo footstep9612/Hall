@@ -12,7 +12,7 @@
  * @author zhongyg
  * @date 2017-07-26 10:16
  */
-class ShowmaterialcatController extends PublicController {
+class ShowMaterialCatController extends PublicController {
 
     //put your code here
     public function init() {

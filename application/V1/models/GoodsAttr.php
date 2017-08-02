@@ -377,36 +377,7 @@ class GoodsAttrModel extends PublicModel{
         }
     }
 
-    /**
-     * sku属性[状态更改]（门户后台）
-     * @author klp
-     * @return bool
-     */
-    public function modifySkuAttr($delData){
-        if(empty($delData)) {
-            return false;
-        }
-        $status = $delData['status'];
-        unset($delData['status']);
-        $this->startTrans();
-        try {
-            foreach($delData as $item){
-                $where = [
-                    "sku" => $item['sku'],
-                    "lang" => $item['lang']
-                ];
-//                $resatr = $this->field('sku')->where($where)->find();
-//                if($resatr) {
-                    $this->where($where)->save(['status' => $status]);
-//                }
-            }
-            $this->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->rollback();
-            return false;
-        }
-    }
+
 
     /**
      * sku属性删除[真实]（门户后台）
