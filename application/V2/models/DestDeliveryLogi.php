@@ -34,20 +34,23 @@ class DestDeliveryLogiModel extends Model {
                 'lang' => $lang,
                 'status' => self::STATUS_VALID
             );
-            $field = 'lang,logi_no,trans_mode,country,from_loc,to_loc,logi_notes,description';
+            $field = 'lang,logi_no,trans_mode_bn,country,from_port,to_loc,remarks,'
+                    . 'clearance_days_min,clearance_days_max,delivery_time_min,delivery_time_max';
             $result = $this->field($field)->where($condition)->select();
 
             if ($result) {
                 redisHashSet('DDL', md5($country . '_' . $lang), json_encode($result));
             }
             return $result;
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return '';
         }
     }
 
     /*
-     * id,lang,logi_no,trans_mode,country,from_loc,to_loc,clearance_days_min,clearance_days_max,delivery_time_min,delivery_time_max,logi_notes,description,status,created_by,created_at
+     * id,lang,logi_no,trans_mode_bn,country,from_port,to_loc,clearance_days_min,clearance_days_max,delivery_time_min,delivery_time_max,remarks,status,created_by,created_at
      */
 
     function getCondition($condition) {
@@ -61,14 +64,14 @@ class DestDeliveryLogiModel extends Model {
         if (isset($condition['logi_no']) && $condition['logi_no']) {
             $where['logi_no'] = $condition['logi_no'];
         }
-        if (isset($condition['trans_mode']) && $condition['trans_mode']) {
-            $where['trans_mode'] = $condition['trans_mode'];
+        if (isset($condition['trans_mode_bn']) && $condition['trans_mode_bn']) {
+            $where['trans_mode_bn'] = $condition['trans_mode_bn'];
         }
         if (isset($condition['country']) && $condition['country']) {
             $where['country'] = $condition['country'];
         }
-        if (isset($condition['from_loc']) && $condition['from_loc']) {
-            $where['from_loc'] = $condition['from_loc'];
+        if (isset($condition['from_port']) && $condition['from_port']) {
+            $where['from_port'] = $condition['from_port'];
         }
         if (isset($condition['to_loc']) && $condition['to_loc']) {
             $where['to_loc'] = $condition['to_loc'];
@@ -111,9 +114,9 @@ class DestDeliveryLogiModel extends Model {
     public function getListbycondition($condition = '') {
         $where = $this->getCondition($condition);
         try {
-            $field = 'id,lang,logi_no,trans_mode,country,from_loc,to_loc,clearance_days_min,'
+            $field = 'id,lang,logi_no,trans_mode_bn,country,from_port,to_loc,clearance_days_min,'
                     . 'clearance_days_max,delivery_time_min,delivery_time_max,'
-                    . 'logi_notes,description,status,created_by,created_at';
+                    . 'remarks,status,created_by,created_at';
 
             $pagesize = 10;
             $current_no = 1;

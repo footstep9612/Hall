@@ -52,7 +52,7 @@ class BizlinecatModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    public function getlist($condition = []) {
+    public function getList($condition = []) {
         if(empty($condition['bizline_id'])){
             $results['code'] = '-103';
             $results['message'] = '缺少产品线id!';

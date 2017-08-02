@@ -55,11 +55,7 @@ class EsproductController extends PublicController {
   }
 
   public function indexAction() {
-    // $this->es->delete($this->index);
-    //$model = new EsgoodsModel();
-
     $body['mappings'] = [];
-
     $product_properties = $this->productAction('en');
     $goods_properties = $this->goodsAction('en');
     foreach ($this->langs as $lang) {
