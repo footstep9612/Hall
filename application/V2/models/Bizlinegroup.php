@@ -55,23 +55,18 @@ class BizlinegroupModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    public function getlist($condition = []) {
+    public function getList($condition = []) {
         if(empty($condition['bizline_id'])){
             $results['code'] = '-103';
             $results['message'] = '缺少产品线id!';
         }
-        $where = $this->getcondition($condition);
-
-        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+        $where = $this->getCondition($condition);
 
         try {
-            $count = $this->getcount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
+            $list = $this->where($where)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-                $results['count'] = $count;
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
