@@ -14,8 +14,8 @@
 class BuyerModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer';
-    protected $dbName = 'erui_buyer'; //数据库名称
-    protected $g_table = 'erui_buyer.t_buyer';
+    protected $dbName = 'erui_buyer2'; //数据库名称
+    protected $g_table = 'erui_buyer2.t_buyer';
 //    protected $autoCheckFields = false;
     public function __construct($str = '') {
         parent::__construct($str = '');

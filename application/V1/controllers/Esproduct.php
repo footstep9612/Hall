@@ -22,7 +22,7 @@ class EsproductController extends ShopMallController {
     public function init() {
 
         ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
+        error_reporting(E_ALL | E_STRICT);
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);

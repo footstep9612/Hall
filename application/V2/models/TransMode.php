@@ -10,11 +10,12 @@
  * Description of User
  *
  * @author jhw
+ * @desc 运输方式
  */
 class TransModeModel extends PublicModel {
 
   //put your code here
-  protected $dbName = 'erui_dict';
+  protected $dbName = 'erui2_dict';
   protected $tableName = 'trans_mode';
 
   public function __construct($str = '') {

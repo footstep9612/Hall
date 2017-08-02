@@ -168,15 +168,15 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
 
     public function jsonReturn($data = [], $type = 'JSON') {
-
         header('Content-Type:application/json; charset=utf-8');
         if (isset($data['code'])) {
             exit(json_encode($data, JSON_UNESCAPED_UNICODE));
         } else {
             if ($data) {
                 $this->send['data'] = $data;
+            } elseif ($data === null) {
+                $this->send['data'] = null;
             }
-
             $this->send['code'] = $this->getCode();
 
             if ($this->send['code'] == "1" && !$this->getMessage()) {
@@ -186,7 +186,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             } else {
                 $this->send['message'] = $this->getMessage();
             }
-
             exit(json_encode($this->send, JSON_UNESCAPED_UNICODE));
         }
     }
@@ -229,9 +228,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function get($name, $default = null) {
-
-        return $this->getRequest()->get($name, $default);
+    public function get($name = null, $default = null) {
+        if ($name) {
+            return $this->getRequest()->get($name, $default);
+        } else {
+            return $this->getRequest()->getParams();
+        }
     }
 
     /**
