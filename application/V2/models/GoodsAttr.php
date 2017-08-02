@@ -283,6 +283,8 @@ class GoodsAttrModel extends PublicModel{
         }
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
+        } else{
+            jsonReturn('',MSG::MSG_FAILED,MSG::ERROR_PARAM);
         }
         if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($condition['lang']);
@@ -351,11 +353,11 @@ class GoodsAttrModel extends PublicModel{
             foreach ($input['attrs']  as $key => $checkout) {
 //                $checkout = $this->checkParam($value,$this->field);
                 $data = [
-                    'spu' => $checkout['spu'],
-                    'spec_attrs'      => isset($checkout['attach_type']) ? json_encode($checkout['attach_type']) : '',
-                    'ex_goods_attrs'  => isset($checkout['attach_name']) ? json_encode($checkout['attach_name']) : '',
-                    'ex_hs_attrs'     => isset($checkout['default_flag']) ? json_encode($checkout['default_flag']) : '',
-                    'other_attrs'     => isset($checkout['default_flag']) ? json_encode($checkout['default_flag']) : ''
+                    'spu'             => $input['spu'],
+                    'spec_attrs'      => isset($checkout['spec_attrs']) ? json_encode($checkout['spec_attrs']) : '',
+                    'ex_goods_attrs'  => isset($checkout['ex_goods_attrs']) ? json_encode($checkout['ex_goods_attrs']) : '',
+                    'ex_hs_attrs'     => isset($checkout['ex_hs_attrs']) ? json_encode($checkout['ex_hs_attrs']) : '',
+                    'other_attrs'     => isset($checkout['other_attrs']) ? json_encode($checkout['other_attrs']) : ''
                 ];
                 //存在sku编辑,反之新增,后续扩展性
                 $result = $this->field('sku')->where(['sku' => $input['sku'],'lang'=>$input['lang']])->find();

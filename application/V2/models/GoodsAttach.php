@@ -221,12 +221,14 @@ class GoodsAttachModel extends PublicModel{
      * @author klp
      * @return array
      */
-    public function getAuto($condition) {
+    public function getSkuAttachsInfo($condition) {
         if (!isset($condition)) {
             return false;
         }
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
+        } else{
+            jsonReturn('',MSG::MSG_FAILED,MSG::ERROR_PARAM);
         }
         if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
             $where['status'] = strtoupper($condition['status']);

@@ -807,6 +807,8 @@ class GoodsModel extends PublicModel {
         }
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
+        } else{
+            jsonReturn('',MSG::MSG_FAILED,MSG::ERROR_PARAM);
         }
         if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($condition['lang']);
@@ -816,6 +818,7 @@ class GoodsModel extends PublicModel {
         } else{
             $where['status'] = array('<>', self::STATUS_DELETED);
         }
+        //redis
         if (redisHashExist('Sku', md5(json_encode($where)))) {
             return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
@@ -838,7 +841,9 @@ class GoodsModel extends PublicModel {
             }
             return $data;
         } catch (Exception $e){
-            return array();
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -870,13 +875,6 @@ class GoodsModel extends PublicModel {
                         'description' => isset($checkout['description']) ? $checkout['description'] : '',
                         'source' => isset($checkout['source']) ? $checkout['source'] : '',
                         'source_detail' => isset($checkout['source_detail']) ? $checkout['source_detail'] : '',
-//                        'status'        =>'',
-//                        'created_by'    =>'',
-//                        'created_at'    =>'',
-//                        'updated_by'    =>'',
-//                        'updated_at'    =>'',
-//                        'checked_by'    =>'',
-//                        'checked_at'    =>'',
                         //固定商品属性
                         'exw_days'            => isset($checkout['exw_days']) ? $checkout['exw_days'] : '',
                         'min_pack_naked_qty'  => isset($checkout['min_pack_naked_qty']) ? $checkout['min_pack_naked_qty'] : '',
