@@ -204,8 +204,8 @@ class BuyerModel extends PublicModel {
         if(isset($create['profile'])){
             $data['profile'] = $create['profile'];
         }
-        if(isset($create['country'])){
-            $data['country'] = $create['country'];
+        if(isset($create['country_bn'])){
+            $data['country_bn'] = $create['country_bn'];
         }
         if(isset($create['province'])){
             $data['province'] = $create['province'];
@@ -342,7 +342,7 @@ class BuyerModel extends PublicModel {
             $data['profile']=$condition['profile'];
         }
         if(isset($condition['country'])){
-            $data['country']=$condition['country'];
+            $data['country_bn']=$condition['country'];
         }
         if(isset($condition['province'])){
             $data['province']=$condition['province'];
