@@ -17,7 +17,7 @@ class FeeTypeController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        //  parent::init();
     }
 
     /*
@@ -26,7 +26,7 @@ class FeeTypeController extends PublicController {
 
     public function listAction() {
         $data = $this->get();
-        unset($data['token']);
+        $data['lang'] = $this->get('lang','zh');
         $fee_type_model = new FeeTypeModel();
         if (redisGet('FeeType_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('FeeType_' . md5(json_encode($data))), true);

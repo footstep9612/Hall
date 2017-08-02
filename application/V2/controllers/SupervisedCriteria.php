@@ -7,33 +7,32 @@
  */
 
 /**
- * Description of ChargeUnit
+ * Description of FeeType
  * @author  zhongyg
- * @date    2017-8-1 17:32:49
+ * @date    2017-8-1 17:34:40
  * @version V2.0
  * @desc   
  */
-class ChargeUnitController extends PublicController {
+class SupervisedCriteriaController extends PublicController {
 
     //put your code here
     public function init() {
-        // parent::init();
+        //parent::init();
     }
 
     /*
-     * 所有计费单位
+     * 监管条件
      */
 
     public function listAction() {
         $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
-        $charge_unit_model = new ChargeUnitModel();
-        if (redisGet('ChargeUnit_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('ChargeUnit_' . md5(json_encode($data))), true);
+        $shipowner_clause_model = new SupervisedCriteriaModel();
+        if (redisGet('SupervisedCriteria_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('SupervisedCriteria' . md5(json_encode($data))), true);
         } else {
-            $arr = $charge_unit_model->getlist($data);
+            $arr = $shipowner_clause_model->getlist($data);
             if ($arr) {
-                redisSet('ChargeUnit_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('SupervisedCriteria_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {
