@@ -61,16 +61,11 @@ class InquiryitemModel extends PublicModel {
     public function getList($condition = []) {
         $where = $this->getCondition($condition);
 
-        //$page = isset($condition['page']) ? $condition['page'] : 1;
-        //$pagesize = isset($condition['countPerPage']) ? $condition['countPerPage'] : 10;
-
         try {
-            //$count = $this->getcCount($condition);
-            $list = $this->where($where)->order('')->select();
+            $list = $this->where($where)->order('created_at desc')->select();
             if($list){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
-                //$results['count'] = $count;
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
@@ -135,7 +130,6 @@ class InquiryitemModel extends PublicModel {
         }
 
         $data = $this->create($condition);
-
         $data['created_at'] = $this->getTime();
 
         try {

@@ -60,7 +60,7 @@ class InquiryitemattachModel extends PublicModel {
         $where = $this->getCondition($condition);
 
         try {
-            $list = $this->where($where)->select();
+            $list = $this->where($where)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
@@ -106,6 +106,7 @@ class InquiryitemattachModel extends PublicModel {
             $results['message'] = '没有附件URL!';
             return $results;
         }
+        $data['created_at'] = $this->getTime();
 
         try {
             $id = $this->add($data);

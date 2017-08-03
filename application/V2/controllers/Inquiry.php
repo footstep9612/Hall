@@ -13,7 +13,7 @@ class InquiryController extends PublicController {
     }
 
     //返回询价单流水号
-    public function getSerialNooAction() {
+    public function getSerialNoAction() {
         $data['serial_no'] = $this->getInquirySerialNo();
         if(!empty($data)){
             $this->setCode('1');
@@ -27,7 +27,7 @@ class InquiryController extends PublicController {
     }
 
     //查询询单流程编码是否存在
-    public function checkInquiryNoAction() {
+    public function checkSerialNoAction() {
         $inquiry = new InquiryModel();
         $where = $this->put_data;
 
@@ -39,27 +39,37 @@ class InquiryController extends PublicController {
     //询价单列表
     public function getListAction(){
         $inquiry = new InquiryModel();
-        $user = new UserModel();
-        $area = new MarketAreaModel();
-        $country = new MarketAreaCountryModel();
+        $employee = new EmployeeModel();
 
         $where = $this->put_data;
+        //如果搜索条件有经办人，转换成id
+        if($where['agent_name']){
+            $agent = $employee-file('id')->where('name='.$where['agent_name'])->find();
+            if($agent){
+                $where['agent_id']=$agent['id'];
+            }
+        }
+        //如果搜索条件有项目经理，转换成id
+        if($where['pm_name']){
+            $pm = $employee-file('id')->where('name='.$where['agent_name'])->find();
+            if($agent){
+                $where['pm_id']=$pm['id'];
+            }
+        }
 
-        $results = $inquiry->getlist($where);
+        $results = $inquiry->getList($where);
+        //把经办人和项目经理转换成名称显示
         if($results['code'] == '1'){
             foreach($results['data'] as $key=>$val){
-                if(!empty($val['agent'])){
-                    $userId = json_decode($val['agent']);
-                    $userInfo = $user->where('id='.$userId['1'])->find();
-                    $results['data'][$key]['agent'] = $userInfo['name'];
+                //经办人
+                if(!empty($val['agent_id'])){
+                    $rs1 = $employee->where('id='.$val['agent_id'])->find();
+                    $results['data'][$key]['agent_name'] = $rs1['name'];
                 }
-                if(!empty($val['inquiry_region'])){
-                    $areaInfo = $area->where('id='.$val['inquiry_region'])->find();
-                    $results['data'][$key]['inquiry_region'] = $areaInfo['bn'];
-                }
-                if(!empty($val['inquiry_country'])){
-                    $areaInfo = $country->where('id='.$val['inquiry_country'])->find();
-                    $results['data'][$key]['inquiry_country'] = $areaInfo['country_bn'];
+                //项目经理
+                if(!empty($val['pm_id'])){
+                    $rs2 = $employee->where('id='.$val['pm_id'])->find();
+                    $results['data'][$key]['pm_name'] = $rs2['name'];
                 }
             }
         }
@@ -70,9 +80,20 @@ class InquiryController extends PublicController {
     //询价单详情
     public function getInfoAction() {
         $inquiry = new InquiryModel();
+        $employee = new EmployeeModel();
         $where = $this->put_data;
 
-        $results = $inquiry->getinfo($where);
+        $results = $inquiry->getInfo($where);
+        //经办人
+        if(!empty($results['data']['agent_id'])){
+            $rs1 = $employee->where('id='.$results['data']['agent_id'])->find();
+            $results['data']['agent_name'] = $rs1['name'];
+        }
+        //项目经理
+        if(!empty($results['data']['pm_id'])){
+            $rs2 = $employee->where('id='.$results['data']['pm_id'])->find();
+            $results['data']['pm_name'] = $rs2['name'];
+        }
 
         $this->jsonReturn($results);
     }
@@ -81,8 +102,9 @@ class InquiryController extends PublicController {
     public function addAction(){
         $inquiry = new InquiryModel();
         $data =  $this->put_data;
+        $data['created_by'] = $this->user['id'];
 
-        $results = $inquiry->add_data($data);
+        $results = $inquiry->addData($data);
         if($results['code'] == '1'){
             $approveLog['inquiry_no'] = $results['data']['inquiry_no'];
             $approveLog['type'] = '创建市场报价单';
@@ -95,8 +117,9 @@ class InquiryController extends PublicController {
     public function updateAction(){
         $inquiry = new InquiryModel();
         $data =  $this->put_data;
+        $data['updated_by'] = $this->user['id'];
 
-        $results = $inquiry->update_data($data);
+        $results = $inquiry->updateData($data);
         $this->jsonReturn($results);
     }
 
@@ -104,8 +127,9 @@ class InquiryController extends PublicController {
     public function updateStatusAction(){
         $inquiry = new InquiryModel();
         $data =  $this->put_data;
+        $data['updated_by'] = $this->user['id'];
 
-        $results = $inquiry->update_status($data);
+        $results = $inquiry->updateStatus($data);
         $this->jsonReturn($results);
     }
 
@@ -113,91 +137,95 @@ class InquiryController extends PublicController {
     public function deleteAction() {
         $inquiry = new InquiryModel();
         $where =  $this->put_data;
-        //$where['inquiry_no'] = '10001';
-        $results = $inquiry->delete_data($where);
+
+        $results = $inquiry->deleteData($where);
         $this->jsonReturn($results);
     }
 
     //附件列表
     public function getListAttachAction() {
-        $attach = new InquiryAttachModel();
+        $attach = new InquiryattachModel();
         $where =  $this->put_data;
 
-        $results = $attach->getlist($where);
-        //var_dump($data);die;
+        $results = $attach->getList($where);
+
         $this->jsonReturn($results);
     }
 
     //添加附件
     public function addAttachAction() {
-        $attach = new InquiryAttachModel();
+        $attach = new InquiryattachModel();
         $data =  $this->put_data;
+        $data['created_by'] = $this->user['id'];
 
-        $results = $attach->add_data($data);
+        $results = $attach->addData($data);
 
         $this->jsonReturn($results);
     }
 
     //删除附件
     public function delAttachAction() {
-        $attach = new InquiryAttachModel();
+        $attach = new InquiryattachModel();
         $data =  $this->put_data;
+        $data['updated_by'] = $this->user['id'];
 
-        $results = $attach->delete_data($data);
+        $results = $attach->deleteData($data);
         $this->jsonReturn($results);
     }
 
     //明细列表
     public function getListItemAction() {
-        $Item = new InquiryItemModel();
+        $Item = new InquiryitemModel();
 
         $where =  $this->put_data;
 
-        $results = $Item->getlist($where);
+        $results = $Item->getList($where);
         $this->jsonReturn($results);
     }
 
-    //明细列表
+    //明细详情
     public function getInfoItemAction() {
-        $Item = new InquiryItemModel();
+        $Item = new InquiryitemModel();
 
         $where =  $this->put_data;
 
-        $results = $Item->getinfo($where);
+        $results = $Item->getInfo($where);
         $this->jsonReturn($results);
     }
 
     //添加明细
     public function addItemAction() {
-        $Item = new InquiryItemModel();
+        $Item = new InquiryitemModel();
         $data =  $this->put_data;
+        $data['created_by'] = $this->user['id'];
 
-        $results = $Item->add_data($data);
+        $results = $Item->addData($data);
         $this->jsonReturn($results);
     }
 
-    //添加明细
+    //修改明细
     public function updateItemAction() {
-        $Item = new InquiryItemModel();
+        $Item = new InquiryitemModel();
         $data =  $this->put_data;
+        $data['updated_by'] = $this->user['id'];
 
-        $results = $Item->update_data($data);
+        $results = $Item->updateData($data);
         $this->jsonReturn($results);
     }
 
     //删除明细
     public function delItemAction() {
-        $Item = new InquiryItemModel();
+        $Item = new InquiryitemModel();
         $data =  $this->put_data;
 
-        $results = $Item->delete_data($data);
+        $results = $Item->deleteData($data);
         $this->jsonReturn($results);
     }
 
     //明细附件列表
     public function getListItemAttachAction()
     {
-        $ItemAttach = new InquiryItemAttachModel();
+        $ItemAttach = new InquiryitemattachModel();
 
         $where =  $this->put_data;
 
@@ -207,19 +235,20 @@ class InquiryController extends PublicController {
 
     //添加明细附件
     public function addItemAttachAction() {
-        $ItemAttach = new InquiryItemAttachModel();
+        $ItemAttach = new InquiryitemattachModel();
         $data =  $this->put_data;
+        $data['created_by'] = $this->user['id'];
 
-        $results = $ItemAttach->add_data($data);
+        $results = $ItemAttach->addData($data);
         $this->jsonReturn($results);
     }
 
     //删除明细附件
     public function delItemAttachAction() {
-        $ItemAttach = new InquiryItemAttachModel();
+        $ItemAttach = new InquiryitemattachModel();
         $data =  $this->put_data;
 
-        $results = $ItemAttach->delete_data($data);
+        $results = $ItemAttach->deleteData($data);
         $this->jsonReturn($results);
     }
 }
