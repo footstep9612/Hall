@@ -23,57 +23,50 @@ class MarketAreaModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-    private function getCondition($condition) {
+    /**
+     * Description of 条件处理
+     * @param array $condition 条件
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   营销区域
+     */
+    private function _getCondition($condition) {
         $data = [];
-        if (isset($condition['lang']) && $condition['lang']) {
-            $data['lang'] = $condition['lang'];
+        $data['zh.lang'] = 'zh';
+        //$this->_getValue($data, $condition, 'lang', 'string');
+        $this->_getValue($data, $condition, 'bn', 'string', 'zh.bn');
+        $this->_getValue($data, $condition, 'parent_bn', 'string', 'zh.parent_bn');
+        $this->_getValue($data, $condition, 'name', 'like', 'zh.name');
+        $this->_getValue($data, $condition, 'status', 'string', 'zh.status');
+        if (!$data['zh.status']) {
+            $data['zh.status'] = 'VALID';
         }
-        if (isset($condition['bn']) && $condition['bn']) {
-            $data['bn'] = ucwords($condition['bn']);
-        }
-        if (isset($condition['parent_bn']) && $condition['parent_bn']) {
-            $data['parent_bn'] = $condition['parent_bn'];
-        }
+        $this->_getValue($data, $condition, 'url', 'like', 'zh.url');
 
-        if (isset($condition['group_id']) && $condition['group_id']) {
-            $data['group_id'] = $condition['group_id'];
-        }
-        if (isset($condition['name']) && $condition['name']) {
-            $data['name'] = ['like', '%' . $condition['name'] . '%'];
-        }
-        if (isset($condition['url']) && $condition['url']) {
-            $data['url'] = ['like', '%' . $condition['url'] . '%'];
-        }
         return $data;
     }
 
     /**
-     * 获取列表
-     * @param data $data;
-     * @return array
-     * @author jhw
+     * Description of 条件处理
+     * @param array $condition 条件
+     * @param string $order 排序
+     * @param bool $type 是否分页
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   营销区域
      */
-    public function getlistBycodition($condition, $order = 'id desc', $type = true) {
+    public function getlist($condition, $order = 'zh.id desc') {
         try {
-            $data = $this->getCondition($condition);
+            $data = $this->_getCondition($condition);
 
-            if ($type) {
-                $pagesize = 10;
-                $current_no = 1;
-                if (isset($condition['current_no']) && $condition['current_no']) {
-                    $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-                }
-                if (isset($condition['pagesize']) && $condition['pagesize']) {
-                    $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-                }
-                $from = ($current_no - 1) * $pagesize;
-            }
-            $this->field('id,lang,bn,parent_bn,name as zh_name,url,group_id,'
-                            . '(select ma.name from erui2_operation.market_area as ma where ma.bn=bn) as en_name ')
+            $this->alias('zh')
+                    ->join('erui2_operation.market_area as en on '
+                            . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'left')
+                    ->field('zh.bn,zh.parent_bn,zh.name as zh_name,zh.url,en.name as en_name ')
                     ->where($data);
-            if ($type) {
-                $this->limit($from . ',' . $pagesize);
-            }
+
             return $this->order($order)
                             ->select();
         } catch (Exception $ex) {
@@ -82,10 +75,14 @@ class MarketAreaModel extends PublicModel {
         }
     }
 
-    /*
-     * 获取数据
+    /**
+     * Description of 获取总数
+     * @param array $condition 条件
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   营销区域
      */
-
     public function getCount($condition) {
         try {
             $data = $this->getCondition($condition);
@@ -97,62 +94,20 @@ class MarketAreaModel extends PublicModel {
     }
 
     /**
-     * 获取列表
-     * @param data $data;
-     * @return array
-     * @author jhw
-     */
-    public function getlist($data, $limit, $order = 'id desc') {
-        try {
-            if (!empty($limit)) {
-                return $this->field('id,lang,bn,parent_bn,name,url,group_id')
-                                ->where($data)
-                                ->limit($limit['page'] . ',' . $limit['num'])
-                                ->order($order)
-                                ->select();
-            } else {
-                return $this->field('id,lang,bn,parent_bn,name,url,group_id')
-                                ->where($data)
-                                ->order($order)
-                                ->select();
-            }
-        } catch (Exception $ex) {
-
-            print_r($ex);
-        }
-    }
-
-    /**
-     * 获取列表
-     * @param  string  $bn
-     * @param  string  $lang
-     * @return array
-     * @author jhw
+     * Description of 详情
+     * @param string $bn 区域简码
+     * @param string $lang 语言 默认英文
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   营销区域
      */
     public function info($bn = '', $lang = 'en') {
         $where['bn'] = $bn;
         $where['lang'] = $lang;
         if (!empty($where)) {
             $row = $this->where($where)
-                    ->field('id,lang,bn,name,url,group_id')
-                    ->find();
-            return $row;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 获取列表
-     * @param  int  $id
-     * @return array
-     * @author jhw
-     */
-    public function detail($id = '') {
-        $where['id'] = $id;
-        if (!empty($where['id'])) {
-            $row = $this->where($where)
-                    ->field('id,lang,bn,name,url,group_id')
+                    ->field('id,lang,bn,name,url')
                     ->find();
             return $row;
         } else {
@@ -177,52 +132,25 @@ class MarketAreaModel extends PublicModel {
     }
 
     /**
-     * 修改数据
-     * @param  int $id id
-     * @return bool
-     * @author jhw
+     * Description of 判断数据是否存在
+     * @param array $where 条件
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   营销区域
      */
-    public function update_data($data, $where) {
-        if (!isset($data['bn']) || !$data['bn']) {
-            return false;
-        }
-        $where['bn'] = $data['bn'];
-
-        $arr['bn'] = ucwords($data['en']['name']);
-        $data['en']['name'] = ucwords($data['en']['name']);
-        $this->startTrans();
-        foreach ($data as $key => $name) {
-            $arr['lang'] = $key;
-            $arr['name'] = $name;
-            $where['lang'] = $key;
-            if ($this->Exits($where)) {
-                $flag = $this->where($where)->save($arr);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-            } else {
-                $flag = $this->add($arr);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-            }
-        }
-        $this->commit();
-        return true;
-    }
-
     public function Exits($where) {
 
         return $this->_exist($where);
     }
 
     /**
-     * 新增数据
-     * @param  mix $create 新增条件
-     * @return bool
-     * @author jhw
+     * Description of 增
+     * @param array $create 新增的数据
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   营销区域
      */
     public function create_data($create = []) {
         if (isset($create['en']['name']) && isset($create['zh']['name'])) {

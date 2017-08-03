@@ -2,18 +2,15 @@
 
 /**
  * name: InquiryItem
- * desc: 询价单明细表
- * User: zhangyuliang
- * Date: 2017/6/17
+ * desc: 询单明细表
+ * User: 张玉良
+ * Date: 2017/8/2
  * Time: 10:54
  */
-class InquiryItemModel extends PublicModel {
+class InquiryitemModel extends PublicModel {
 
-    protected $dbName = 'erui_rfq'; //数据库名称
+    protected $dbName = 'erui2_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
-
-    const STATUS_INVALID = 'INVALID'; //NORMAL-有效；
-    const STATUS_DELETE = 'DELETED'; //DISABLED-删除；
 
     public function __construct() {
         parent::__construct();
@@ -21,85 +18,65 @@ class InquiryItemModel extends PublicModel {
 
     /**
      * 根据条件获取查询条件
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      *
      */
-    protected function getcondition($condition = []) {
+    protected function getCondition($condition = []) {
         $where = [];
         if (!empty($condition['id'])) {
-            $where['id'] = $condition['id'];
+            $where['id'] = $condition['id'];    //明细id
         }
-        if (!empty($condition['serial_no'])) {
-            $where['serial_no'] = $condition['serial_no'];
+        if (!empty($condition['inquiry_id'])) {
+            $where['inquiry_id'] = $condition['inquiry_id'];    //询单id
         }
         if (!empty($condition['sku'])) {
-            $where['sku'] = $condition['sku'];
-        }
-        if (!empty($condition['model'])) {
-            $where['model'] = $condition['model'];
-        }
-        if (!empty($condition['spec'])) {
-            $where['spec'] = $condition['spec'];
+            $where['sku'] = $condition['sku'];  //商品SKU
         }
         if (!empty($condition['brand'])) {
-            $where['brand'] = $condition['brand'];
+            $where['brand'] = $condition['brand'];  //品牌
         }
-        $where['status'] = isset($condition['status'])?$condition['status']:self::STATUS_INVALID;
+        $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N';
         return $where;
     }
 
     /**
      * 获取数据条数
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
-    public function getcount($condition = []) {
-        $where = $this->getcondition($condition);
+    public function getCount($condition = []) {
+        $where = $this->getCondition($condition);
         return $this->where($where)->count('id');
     }
 
     /**
      * 获取列表
-     * @param mix $condition
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
-    public function getlist($condition = []) {
-        $where = $this->getcondition($condition);
+    public function getList($condition = []) {
+        $where = $this->getCondition($condition);
 
         //$page = isset($condition['page']) ? $condition['page'] : 1;
         //$pagesize = isset($condition['countPerPage']) ? $condition['countPerPage'] : 10;
 
         try {
-            if (isset($page) && isset($pagesize)) {
-                //$count = $this->getcount($condition);
-                $list = $this->where($where)->select();
-                                //->page($page, $pagesize)
-                                //->select();
-                if(isset($list)){
-                    $results['code'] = '1';
-                    $results['messaage'] = '成功！';
-                    $results['data'] = $list;
-                }else{
-                    $results['code'] = '-101';
-                    $results['messaage'] = '没有找到相关信息!';
-                }
-                return $results;
-            } else {
-                $list = $this->where($where)->select();
-                if(isset($list)){
-                    $results['code'] = '1';
-                    $results['messaage'] = '成功！';
-                    $results['data'] = $list;
-                }else{
-                    $results['code'] = '-101';
-                    $results['messaage'] = '没有找到相关信息!';
-                }
-                return $results;
+            //$count = $this->getcCount($condition);
+            $list = $this->where($where)->order('')->select();
+            if($list){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+                //$results['count'] = $count;
+                $results['data'] = $list;
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '没有找到相关信息!';
             }
+            return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['messaage'] = $e->getMessage();
@@ -109,26 +86,23 @@ class InquiryItemModel extends PublicModel {
 
     /**
      * 获取详情信息
-     * @param  int $serial_no 询单号
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
-    public function getinfo($condition = []) {
-        if(isset($condition['id'])){
+    public function getInfo($condition = []) {
+        if(!empty($condition['id'])){
             $where['id'] = $condition['id'];
         }else{
-            return false;
-        }
-        if(isset($condition['serial_no'])){
-            $where['serial_no'] = $condition['serial_no'];
-        }else{
-            return false;
+            $results['code'] = '-103';
+            $results['message'] = '没有ID!';
+            return $results;
         }
 
         try {
             $info = $this->where($where)->find();
 
-            if(isset($info)){
+            if($info){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
                 $results['data'] = $info;
@@ -147,28 +121,69 @@ class InquiryItemModel extends PublicModel {
 
     /**
      * 添加数据
-     * @return mix
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
-    public function add_data($createcondition = []) {
-        if (isset($createcondition['serial_no'])) {
-            $data['serial_no'] = $createcondition['serial_no'];
+    public function addData($condition = []) {
+        if (!empty($condition['inquiry_id'])) {
+            $data['inquiry_id'] = $condition['inquiry_id'];
         } else {
-            return false;
+            $results['code'] = '-103';
+            $results['message'] = '没有询单ID!';
+            return $results;
         }
-        /*if (isset($createcondition['quantity'])) {
-            $data['quantity'] = $createcondition['quantity'];
-        } else {
-            return false;
-        }*/
 
-        $data = $this->create($createcondition);
+        $data = $this->create($condition);
 
-        $data['status'] = self::STATUS_INVALID;
         $data['created_at'] = $this->getTime();
 
         try {
             $id = $this->add($data);
+            if($id){
+                $results['code'] = '1';
+                $results['messaage'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['messaage'] = '添加失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['messaage'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
+     * 批量添加数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function addItemData($condition = []) {
+        if (empty($condition['inquiry_id'])) {
+            $results['code'] = '-103';
+            $results['message'] = '没有询单ID!';
+            return $results;
+        }
+        if (empty($condition['inquiry_rows'])) {
+            $results['code'] = '-103';
+            $results['message'] = '没有询单ID!';
+            return $results;
+        }
+
+        $inquirydata = [];
+        for($i = 0; $i < $condition['inquiry_rows']; $i++){
+            $test['inquiry_id'] = $condition['inquiry_id'];
+
+            $test['created_by'] = $condition['user_id'];
+            $test['created_at'] = $this->getTime();
+            $inquirydata[] = $test;
+        }
+
+        try {
+            $id = $this->addAll($inquirydata);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
@@ -186,25 +201,22 @@ class InquiryItemModel extends PublicModel {
 
     /**
      * 更新数据
-     * @param  mix $data 更新数据
-     * @param  int $inquiry_no 询单号
-     * @return bool
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
-    public function update_data($createcondition = []) {
-        if(isset($createcondition['id'])){
-            $where['id'] = $createcondition['id'];
+    public function updateData($condition = []) {
+        if(isset($condition['id'])){
+            $where['id'] = $condition['id'];
         }else{
-            return false;
-        }
-        if(isset($createcondition['serial_no'])){
-            $where['serial_no'] = $createcondition['serial_no'];
-        }else{
-            return false;
+            $results['code'] = '-103';
+            $results['message'] = '没有询单ID!';
+            return $results;
         }
 
-        $data = $this->create($createcondition);
-        $data['status'] = isset($createcondition['status']) ? $createcondition['status'] : self::STATUS_INVALID;
+        $data = $this->create($condition);
+        $data['status'] = !empty($createcondition['status']) ? $createcondition['status'] :'VALID';
+        $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->where($where)->save($data);
@@ -225,24 +237,19 @@ class InquiryItemModel extends PublicModel {
 
     /**
      * 删除数据
-     * @param  int $id id
-     * @return bool
+     * @param Array $condition
+     * @return Array
      * @author zhangyuliang
      */
-    public function delete_data($createcondition = []) {
-        if(isset($createcondition['id'])){
-            $where['id'] = $createcondition['id'];
-        }else{
-            return false;
-        }
-        if(isset($createcondition['serial_no'])){
-            $where['serial_no'] = $createcondition['serial_no'];
+    public function deleteData($condition = []) {
+        if(isset($condition['id'])){
+            $where['id'] = array('in',explode(',',$condition['id']));
         }else{
             return false;
         }
 
         try {
-            $id = $this->where($where)->save(['status' => 'DELETED']);
+            $id = $this->where($where)->delete();
             if(isset($id)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';

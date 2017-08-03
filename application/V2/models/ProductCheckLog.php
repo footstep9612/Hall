@@ -1,57 +1,79 @@
 <?php
 /**
- * 产品审核日志
- * User: linkai
- * Date: 2017/8/3
- * Time: 11:41
+ * Created by PhpStorm.
+ * User: klp
+ * Date: 2017/8/1
+ * Time: 14:56
  */
-class ProductCheckLogModel extends PublicModel{
-    const STATUS_PASS = 'PASS';    //-通过；
-    const STATUS_CHANGED = 'TO_BE_CHANGED';    //-通过，但需要修改；
-    const STATUS_REJECTED = 'REJECTED';  //-不通过
+class ProductChecklogModel extends PublicModel{
+    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $tableName = 'product_check_log'; //数据表表名
+
 
     /**
-     * 构造方法
-     * 初始化数据库表
+     * 商品审核记录写入
+     * @param array $condition
+     * @return bool
      */
-    public function __construct() {
-        //动态读取配置中的数据库配置   便于后期维护
-        $config_obj = Yaf_Registry::get("config");
-        $config_db = $config_obj->database->config->goods->toArray();
-        $this->dbName = $config_db['name'];
-        $this->tablePrefix = $config_db['tablePrefix'];
-        $this->tableName = 'product_check_log';
+    public function takeRecord($condition,$status) {
+        if(empty($condition) || empty($status)) {
+            return false;
+        }
+        //获取当前用户信息
+        $userInfo = getLoinInfo();
 
-        parent::__construct();
+        $arr = array();
+        $results = array();
+        if($condition && is_array($condition)) {
+            try {
+                foreach ($condition as $item) {
+                    $data = [
+                        'sku' => $item['sku'],
+                        'status' => $status,
+                        'spu' => isset($item['spu']) ? $item['spu'] : '',
+                        'remarks' => isset($item['remarks']) ? $item['remarks'] : '',
+                        'approved_by' => $userInfo['id'],
+                        'approved_at' => date('Y-m-d H:i:s', time())
+                    ];
+                    $arr[] = $data;
+                }
+                $res = $this->addAll($arr);
+                if ($res) {
+                    $results['code'] = '1';
+                    $results['message'] = '成功！';
+                } else {
+                    $results['code'] = '-101';
+                    $results['message'] = '失败!';
+                }
+                return $results;
+            } catch (Exception $e) {
+                $results['code'] = $e->getCode();
+                $results['message'] = $e->getMessage();
+                return $results;
+            }
+        }
+        return false;
     }
 
     /**
-     * 添加审核日志
-     * @param string $spu
-     * @param string $sku
-     * @param string $status 审核状态
-     * @param string $remarks 审核评语
-     * @return int/null
+     * 商品审核记录查询
+     * @param  $sku
+     * @return array
      */
-    public function addLog($spu='', $sku='',$lang='', $status='OTHER', $remarks='') {
-        if(empty($spu)) {
-            return false;
+    public function getRecord($sku){
+        if(empty($sku)) {
+            jsonReturn('',MSG::ERROR_PARAM,MSG::ERROR_PARAM);
         }
-
+        $where = array('sku'=>$sku);
+        $fields = 'spu, sku, status, remarks, approved_by, approved_at';
         try{
-            $userInfo = getLoinInfo();
-            $data = array(
-                'spu' => $spu,
-                'sku' => $sku,
-                'lang' => $lang,
-                'status' => $status,
-                'remarks' => $remarks,
-                'approved_by' => isset($userInfo['id']) ? $userInfo['id'] : '',
-                'approved_at' => date('Y-m-d H:i:s',time()),
-            );
-            return $this->add($data);
-        }catch (Exception $e){
-            return ;
+            $result = $this->field($fields)->where($where)->order('approved_at DESC')->select();
+            if($result){
+                return $result;
+            }
+            return array();
+        }catch (Exception $e) {
+            return false;
         }
     }
 

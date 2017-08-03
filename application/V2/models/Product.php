@@ -340,7 +340,7 @@ class ProductModel extends PublicModel {
         return false;
     }
 
-    /**
+	/*
      * 删除
      * @param string $spu
      * @param string $lang

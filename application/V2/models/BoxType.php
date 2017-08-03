@@ -33,7 +33,7 @@ class BoxTypeModel extends PublicModel {
         $data = [];
         $this->_getValue($data, $condition, 'lang');
         $this->_getValue($data, $condition, 'bn');
-        $this->_getValue($data, $condition, 'box_type_name');
+        $this->_getValue($data, $condition, 'box_type_name','like');
         $this->_getValue($data, $condition, 'status');
         if (!isset($data['status'])) {
             $data['status'] = 'VALID';

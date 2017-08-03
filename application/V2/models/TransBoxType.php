@@ -32,13 +32,21 @@ class TransBoxTypeModel extends PublicModel {
      */
     private function _getCondition(&$condition) {
         $data = [];
-
-        $this->_getValue($data, $condition, 'box_type_bn'); //名称
-        $this->_getValue($data, $condition, 'trans_mode'); //贸易术语简称
-
-        if (!isset($data['status'])) {
-            $data['status'] = 'VALID';
+        $this->_getValue($data, $condition, 'status', 'string', 'tbt.status'); //状态
+        if (!isset($data['tbt.status'])) {
+            $data['tbt.status'] = 'VALID';
         }
+        $this->_getValue($data, $condition, 'box_type_bn'); //名称
+        $this->_getValue($data, $condition, 'trans_mode_bn'); //贸易术语简称
+        if (isset($condition['keyword']) && $condition['keyword']) {
+            $map = [];
+
+            $this->_getValue($map, $condition, 'keyword', 'like', 'bt.box_type_name');
+            $this->_getValue($map, $condition, 'keyword', 'like', 'tm.trans_mode');
+            $map['_logic'] = 'or';
+            $data['_complex'] = $map;
+        }
+
 
         return $data;
     }
@@ -50,14 +58,15 @@ class TransBoxTypeModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function getlist($condition, $order = 'id desc') {
+    public function getlist($condition, $order = 'tbt.id desc') {
         try {
             $data = $this->_getCondition($condition);
-            $this->field('id,'
-                            . '(select box_type_name from erui2_dict.box_type where bn= box_type and lang=\'zh\')  as box_type_name,'
-                            . '(select trans_mode from erui2_dict.trans_mode where bn= trans_mode_bn and lang=\'zh\') as trans_mode')
-                    ->where($data);
-            return $this->order($order)
+            return $this->alias('tbt')
+                            ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
+                            ->join('erui2_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
+                            ->field('tbt.id,bt.box_type_name,tm.trans_mode ')
+                            ->order($order)
+                            ->where($data)
                             ->select();
         } catch (Exception $ex) {
             print_r($ex);
@@ -74,7 +83,7 @@ class TransBoxTypeModel extends PublicModel {
      */
     public function info($id = '') {
         $where['id'] = $id;
- 
+
         return $this->where($where)
                         ->field('id,box_type_bn,trans_mode_bn')
                         ->find();
@@ -94,7 +103,7 @@ class TransBoxTypeModel extends PublicModel {
         }
 
         $flag = $this->where($where)
-                ->save(['status' => 'INVALID','deleted_flag'=>'Y']);
+                ->save(['status' => 'INVALID', 'deleted_flag' => 'Y']);
 
         return $flag;
     }
@@ -125,6 +134,8 @@ class TransBoxTypeModel extends PublicModel {
     public function create_data($create = []) {
 
         $data = $this->create($create);
+
+        unset($data['id']);
         $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $flag = $this->add($data);
         if ($flag) {

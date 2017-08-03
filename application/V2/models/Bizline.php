@@ -48,7 +48,7 @@ class BizlineModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    public function getlist($condition = []) {
+    public function getList($condition = []) {
         $where = $this->getcondition($condition);
 
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
@@ -214,7 +214,7 @@ class BizlineModel extends PublicModel {
         }
 
         try {
-            $id = $this->where($where)->save(['status' => 'DELETED']);
+            $id = $this->where($where)->save(['deleted_flag' => 'Y']);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';

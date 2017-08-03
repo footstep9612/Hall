@@ -221,17 +221,19 @@ class GoodsAttachModel extends PublicModel{
      * @author klp
      * @return array
      */
-    public function getAuto($condition) {
+    public function getSkuAttachsInfo($condition) {
         if (!isset($condition)) {
             return false;
         }
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
+        } else{
+            jsonReturn('',MSG::MSG_FAILED,MSG::ERROR_PARAM);
         }
         if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
             $where['status'] = strtoupper($condition['status']);
         } else{
-            $where['status'] = array('<>', self::STATUS_DELETED);
+            $where['status'] = array('neq', self::STATUS_DELETED);
         }
         if(!empty($condition['attach_type']) && !in_array($condition['attach_type'] , array('SMALL_IMAGE','MIDDLE_IMAGE','BIG_IMAGE','DOC'))){
             $where['status'] = strtoupper($condition['attach_type']);
@@ -263,48 +265,56 @@ class GoodsAttachModel extends PublicModel{
      * @author klp
      * @return array
      */
-    public function createAttach($input){
+    public function editSkuAttach($input){
        if(empty($input)) {
            return false;
        }
-        //获取当前用户信息
-        $userInfo = getLoinInfo();
-        $this->startTrans();
-        try {
-            foreach ($input['attachs']  as $key => $value) {
-                $checkout = $this->checkParam($value,$this->field);
-                $data = [
-                    'supplier_id' => isset($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
-                    'attach_type' => isset($checkout['attach_type']) ? $checkout['attach_type'] : '',
-                    'attach_name' => isset($checkout['attach_name']) ? $checkout['attach_name'] : '',
-                    'attach_url' => $checkout['attach_url'],
-                    'default_flag' => isset($checkout['default_flag']) ? $checkout['default_flag'] : 'N',
-                    'sort_order' => isset($checkout['sort_order']) ? $checkout['sort_order'] : 0
-                ];
-                //存在sku编辑,反之新增,后续扩展性
-                $result = $this->field('sku')->where(['sku' => $input['sku']])->find();
-                if ($result) {
-                    $data['updated_by'] = $userInfo['id'];
-                    $data['updated_at'] =  date('Y-m-d H:i:s', time());
-                    $where = [
-                        'sku' => trim($input['sku']),
-                        'id' => $checkout['id']
+        $results = array();
+        if($input && is_array($input)) {
+            try {
+                foreach ($input['attachs'] as $key => $value) {
+                    $checkout = $this->checkParam($value, $this->field);
+                    $data = [
+                        'supplier_id' => isset($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
+                        'attach_type' => isset($checkout['attach_type']) ? $checkout['attach_type'] : '',
+                        'attach_name' => isset($checkout['attach_name']) ? $checkout['attach_name'] : '',
+                        'attach_url' => $checkout['attach_url'],
+                        'default_flag' => isset($checkout['default_flag']) ? $checkout['default_flag'] : 'N',
+                        'sort_order' => isset($checkout['sort_order']) ? $checkout['sort_order'] : 0
                     ];
-                    $this->where($where)->save($data);
-                } else {
-                    $data['status'] = self::STATUS_DRAFT;
-                    $data['sku'] = $input['sku'];
-                    $data['created_by'] = $userInfo['id'];
-                    $data['created_at'] = date('Y-m-d H:i:s', time());
-                    $this->add($data);
+                    //存在sku编辑,反之新增,后续扩展性
+                    $result = $this->field('sku')->where(['id' => $checkout['id']])->find();
+                    if ($result) {
+                        $data['updated_by'] = $input['user_id'];
+                        $data['updated_at'] = date('Y-m-d H:i:s', time());
+                        $where = [
+                            'sku' => trim($input['sku']),
+                            'id' => $checkout['id']
+                        ];
+                        $res = $this->where($where)->save($data);
+                    } else {
+                        $data['status'] = self::STATUS_DRAFT;
+                        $data['sku'] = $input['sku'];
+                        $data['created_by'] = $input['user_id'];
+                        $data['created_at'] = date('Y-m-d H:i:s', time());
+                        $res = $this->add($data);
+                    }
                 }
+                if ($res) {
+                    $results['code'] = '1';
+                    $results['message'] = '成功！';
+                } else {
+                    $results['code'] = '-101';
+                    $results['message'] = '失败!';
+                }
+                return $results;
+            } catch (Exception $e) {
+                $results['code'] = $e->getCode();
+                $results['message'] = $e->getMessage();
+                return $results;
             }
-            $this->commit();
-            return true;
-        }catch (Exception $e) {
-            $this->rollback();
-            return false;
         }
+        return false;
     }
 
     /**
@@ -318,7 +328,7 @@ class GoodsAttachModel extends PublicModel{
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
-        $this->startTrans();
+        $results = array();
         try {
             foreach($data as $item) {
                 if(self::STATUS_CHECKING == $status){
@@ -327,7 +337,7 @@ class GoodsAttachModel extends PublicModel{
                     ];
                     $resach = $this->field('sku')->where($where)->find();
                     if ($resach) {
-                        $this->where($where)->save(['status' => $status]);
+                        $res = $this->where($where)->save(['status' => $status]);
                     }
                 } else {
                     $where = [
@@ -340,15 +350,22 @@ class GoodsAttachModel extends PublicModel{
                     ];
                     $resach = $this->field('sku')->where($where)->find();
                     if ($resach) {
-                        $this->where($where)->save($save);
+                        $res = $this->where($where)->save($save);
                     }
                 }
             }
-            $this->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->rollback();
-            return false;
+            if($res) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '失败!';
+            }
+            return $results;
+        }catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
         }
     }
 
@@ -361,21 +378,30 @@ class GoodsAttachModel extends PublicModel{
         if(empty($delData)) {
             return false;
         }
-        $this->startTrans();
-        try{
-            $where = [
-                "sku" => $delData
-            ];
-            $resach = $this->field('sku')->where($where)->find();
-            if ($resach) {
-                $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
+        $results = array();
+        if($delData && is_array($delData)) {
+            try {
+                foreach($delData as $del){
+                    $where = [
+                        'sku' => $del['sku']
+                    ];
+                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
+                }
+                if ($res) {
+                    $results['code'] = '1';
+                    $results['message'] = '成功！';
+                } else {
+                    $results['code'] = '-101';
+                    $results['message'] = '失败!';
+                }
+                return $results;
+            } catch (Exception $e) {
+                $results['code'] = $e->getCode();
+                $results['message'] = $e->getMessage();
+                return $results;
             }
-            $this->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->rollback();
-            return false;
         }
+        return false;
     }
 
 
