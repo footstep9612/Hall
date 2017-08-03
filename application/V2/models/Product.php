@@ -7,27 +7,30 @@
  * Time: 18:52
  */
 class ProductModel extends PublicModel {
-
-    protected $module = '';
-    //状态
     const STATUS_NORMAL = 'NORMAL'; //发布
-    const STATUS_CLOSED = 'CLOSED';  //关闭
+    const STATUS_CLOSED = 'CLOSED'; //关闭
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试  暂存；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
-    const STATUS_INVALID = 'INVALID';  //无效
+    const STATUS_INVALID = 'INVALID'; //无效
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
-    //推荐状态
-    const RECOMMEND_Y = 'Y';
-    const RECOMMEND_N = 'N';
+    const RECOMMEND_Y = 'Y'; //推荐
+    const RECOMMEND_N = 'N'; //未推荐
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     //定义校验规则
     protected $field = array(
+        //'lang' => array('method','checkLang'),
+        'material_cat_no' => array('required'),
         'name' => array('required'),
-        'meterial_cat_no' => array('required'),
-        'brand' => array('required'),
+        'show_name' => array('required'),
     );
 
+    /**
+     * 构造方法
+     * 初始化数据库跟表
+     */
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
         $config_obj = Yaf_Registry::get("config");
@@ -39,297 +42,190 @@ class ProductModel extends PublicModel {
         parent::__construct();
     }
 
+
     /**
-     * spu列表
-     * @param array $condition = array('lang'=>'',    语言
-     *                  'source'=>'',    来源
-     *                  'brand' =>'',    品牌
-     *                  'meterial_cat_no'=>''    分类
-     *                  'keyword'=>''    名称/创建者/spu编码
-     *                  'start_time'=>''    创建开始时间
-     *                  'end_time' =>''    创建结束时间
-     *             )  均为选择型
-     * @param int $current_num 当前页
-     * @param int $pagesize 每页显示条数
+     * 获取操作数据
+     * @param array $input 请求数据
+     * @param string $type 操作类型（INSERT/UPDATE）
      */
-    public function getList($condition = []) {
-        $field = "id,lang,spu,brand,name,status,created_by,created_at,updated_by,updated_at,meterial_cat_no";
-
-        $where = "status <> '" . self::STATUS_DELETED . "'";
-        //语言 有传递取传递语言，没传递取浏览器，浏览器取不到取en英文
-        //$condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
-        //$where .= " AND lang='" . $condition['lang'] . "'";
-        if(isset($condition['lang'])){
-            $where .= " AND lang='" . $condition['lang'] . "'";
+    public function getData($input = [],$type = 'INSERT') {
+        $data = array();
+        //展示分类
+        if (isset($input['material_cat_no'])) {
+            $data['material_cat_no'] = trim($input['material_cat_no']);
+        } elseif($type == 'INSERT') {
+            $data['material_cat_no'] = '';
         }
 
-        //来源
-        if (isset($condition['source'])) {
-            $where .= " AND source='" . $condition['source'] . "'";
+        //name名称
+        if (isset($input['name'])) {
+            $data['name'] = htmlspecialchars($input['name']);
+        } elseif($type == 'INSERT') {
+            $data['name'] = '';
         }
 
-        //品牌
-        if (isset($condition['brand'])) {
-            $where .= " AND brand='" . $condition['brand'] . "'";
+        //展示名称
+        if (isset($input['show_name'])) {
+            $data['show_name'] = htmlspecialchars($input['show_name']);
+        } elseif($type == 'INSERT') {
+            $data['show_name'] = '';
         }
 
-        //物料分类
-        if (isset($condition['meterial_cat_no'])) {
-            $where .= " AND meterial_cat_no='" . $condition['meterial_cat_no'] . "'";
+        //关键字
+        if (isset($input['keywords'])) {
+            $data['keywords'] = removeXSS($input['keywords']);
+        } elseif($type == 'INSERT') {
+            $data['keywords'] = '';
         }
 
-        //创建时间
-        if (isset($condition['start_time'])) {
-            $where .= " AND created_at >= '" . $condition['start_time'] . "'";
-        }
-        if (isset($condition['end_time'])) {
-            $where .= " AND created_at <= '" . $condition['end_time'] . "'";
-        }
-
-        //spu
-        if(isset($condition['spu'])){
-            $where .= " AND spu ='" .$condition['spu'] . "'";
+        //执行标准
+        if(isset($input['exe_standard'])) {
+            $data['exe_standard'] = removeXSS($input['exe_standard']);
+        } elseif($type == 'INSERT') {
+            $data['exe_standard'] = '';
         }
 
-        //status
-        if(isset($condition['status'])){
-            $where .= " AND status ='" .strtoupper($condition['status']) . "'";
+        //技术参数
+        if(isset($input['tech_paras'])) {
+            $data['tech_paras'] = removeXSS($input['tech_paras']);
+        } elseif($type == 'INSERT') {
+            $data['tech_paras'] = '';
         }
 
-        //创建人
-        if(isset($condition['created_by'])){
-            $where .= " AND created_by = '".$condition['created_by']."'";
+        //产品优势
+        if(isset($input['advantages'])) {
+            $data['advantages'] = removeXSS($input['advantages']);
+        } elseif($type == 'INSERT') {
+            $data['advantages'] = '';
         }
 
-        //处理keyword
-        if (isset($condition['keyword'])) {
-            $where .= " AND (name like '%" . $condition['keyword'] . "%'
-                            OR show_name like '%" . $condition['keyword'] . "%'
-                            OR created_by like '%" . $condition['keyword'] . "%'
-                            OR spu = '" . $condition['keyword'] . "'
-                          )";
+        //详情
+        if(isset($input['description'])) {
+            $data['description'] = removeXSS($input['description']);
+        } elseif($type == 'INSERT') {
+            $data['description'] = '';
         }
 
-        $current_num = isset($condition['current_no']) ? $condition['current_no'] : 1;
-        $pagesize = isset($condition['pagesize']) ? $condition['pagesize'] : 10;
-        try {
-            $return = array(
-                'count' => 0,
-                'current_no' => $current_num,
-                'pagesize' => $pagesize
-            );
-            $result = $this->field($field)->where($where)->order('created_at DESC')->page($current_num, $pagesize)->select();
-            $count = $this->field('spu')->where($where)->count();
-            if ($result) {
-                //总sku数
-                $sku_total = 0;
-                //遍历获取分类　　与ｓｋｕ统计
-                foreach ($result as $k => $r) {
-                    //分类
-                    $mcatModel = new MaterialcatModel();
-                    $mcatInfo = $mcatModel->getMeterialCatByNo($r['meterial_cat_no'], $r['lang']);
-                    $result[$k]['meterial_cat'] = $mcatInfo ? $mcatInfo['name'] : '';
+        //简介
+        if(isset($input['profile'])) {
+            $data['profile'] = removeXSS($input['profile']);
+        } elseif($type == 'INSERT') {
+            $data['profile'] = '';
+        }
 
-                    //sku统计
-                    $goodsModel = new GoodsModel();
-                    $result[$k]['sku_count'] = $goodsModel->getCountBySpu($r['spu'], $r['lang']);
-                    $sku_total += $result[$k]['sku_count'];
-                }
-                $return['count'] = $count;
-                $return['total_sku'] = $sku_total;
-                $return['data'] = $result;
-                return $return;
-            } else {
-                $return['count'] = 0;
-                $return['data'] = array();
-                return $return;
-            }
-        } catch (Exception $e) {
+        //工作原理
+        if(isset($input['principle'])) {
+            $data['principle'] = removeXSS($input['principle']);
+        } elseif($type == 'INSERT') {
+            $data['principle'] = '';
+        }
+
+        //适用范围
+        if(isset($input['app_scope'])) {
+            $data['app_scope'] = removeXSS($input['app_scope']);
+        } elseif($type == 'INSERT') {
+            $data['app_scope'] = '';
+        }
+
+        //使用特点
+        if(isset($input['properties'])) {
+            $data['properties'] = removeXSS($input['properties']);
+        } elseif($type == 'INSERT') {
+            $data['properties'] = '';
+        }
+
+        //质保期
+        if(isset($input['warranty'])) {
+            $data['warranty'] = $input['warranty'];
+        } elseif($type == 'INSERT') {
+            $data['warranty'] = '';
+        }
+
+        //供应能力
+        if(isset($input['supply_ability'])) {
+            $data['supply_ability'] = $input['supply_ability'];
+        } elseif($type == 'INSERT') {
+            $data['supply_ability'] = '';
+        }
+
+        $userInfo = getLoinInfo(); //获取当前用户信息
+        if($type == 'INSERT') {
+            $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
+            $data['created_at'] = date('Y-m-d H:i:s', time());
+        }else{
+            $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+            $data['updated_at'] = date('Y-m-d H:i:s', time());
+        }
+
+        return $data;
+    }
+
+    /**
+     * 添加/编辑
+     * @param object $input 操作集
+     */
+    public function editInfo($input=[]){
+        if (empty($input)) {
             return false;
         }
-    }
-
-    /**
-     * 根据SPU获取品牌,供应商,分类
-     * @param string $spu
-     * @param $lang
-     * @return string
-     */
-    public function getBrandBySpu($spu, $lang) {
-        if (empty($spu))
-            return '';
-        $condition = array(
-            'spu' => $spu,
-            'lang' => $lang,
-            'status' => self::STATUS_VALID
-        );
-        $result = $this->field('lang,brand,meterial_cat_no,supplier_name')->where($condition)->select();
-
-        if ($result) {
-            return $result;
-        }
-        return '';
-    }
-
-    /**
-     * 根据SPU获取品牌,供应商,分类
-     * @param string $spu
-     * @param $lang
-     * @return string
-     */
-    public function getNameBySpu($spu, $lang = '') {
-        if (empty($spu))
-            return '';
-        $condition = array(
-            'spu' => $spu,
-            'lang' => $lang,
-            'status' => self::STATUS_VALID
-        );
-        $result = $this->field('name')->where($condition)->select();
-
-        if ($result) {
-            return $result;
-        }
-        return '';
-    }
-
-    /**
-     * 根据SPU获取物料分类
-     * @param string $spu
-     * @param $lang
-     * @return string
-     */
-    public function getMcatBySpu($spu = '', $lang) {
-        if (empty($spu))
-            return false;
-
-        $condition = array(
-            'spu' => $spu,
-            'status' => self::STATUS_NORMAL,
-            'lang' => $lang
-        );
-        $result = $this->field('meterial_cat_no')->where($condition)->find();
-        if ($result) {
-            return $result['meterial_cat_no'];
-        }
-        return false;
-    }
-
-    /**
-     * spu 详情    --公共
-     * @param string $spu    spu编码
-     * @param string $lang    语言
-     * return array
-     */
-    public function getInfo($spu = '', $lang = '',$status = '') {
-        if (empty($spu))
-            return array();
-
-        $condition = array(
-            'spu' => $spu,
-        );
-        if(!empty($lang)){
-            $condition['lang'] = $lang;
-        }
-        if(!empty($status)){
-            $condition['status'] = $status;
-        }
-
-        //读取redis缓存
-        if(redisHashExist('Spu',md5(json_encode($condition)))){
-            //return json_decode(redisHashGet('Spu',md5(json_encode($condition))),true);
-        }
-
-        //数据读取
-        try {
-            $field = 'spu,lang,qrcode,name,status,show_name,meterial_cat_no,brand,keywords,description,exe_standard,app_scope,tech_paras,advantages,profile,supplier_id,supplier_name,recommend_flag,source,source_detail,created_by,created_at,updated_by,updated_at,checked_by,checked_at,customization_flag,customizability,availability,availability_ratings,resp_time,resp_rate,delivery_cycle,target_market,warranty';
-            $result = $this->field($field)->where($condition)->select();
-            $data = array();
-            if ($result) {
-                foreach ($result as $item) {
-                    //语言分组
-                    $data[$item['lang']] = $item;
-                }
-                redisHashSet('Spu',md5(json_encode($condition)),json_encode($data));
-            }
-            return $data;
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * 编辑spu详情
-     * @param array $input 参数
-     */
-    public function editInfo($input) {
-        if (empty($input))
-            return false;
-
-        //获取当前用户信息
-        $userInfo = getLoinInfo();
 
         $spu = isset($input['spu']) ? trim($input['spu']) : '';
         $this->startTrans();
         try {
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    if(empty($item)) continue;
-                    $data = array(
-                        'lang' => $key,
-                        'name' => isset($item['name']) ? $item['name'] : '',
-                        'show_name' => isset($item['show_name']) ? $item['show_name'] : '',
-                        'meterial_cat_no' => isset($item['meterial_cat_no']) ? $item['meterial_cat_no'] : '',
-                        'brand' => isset($item['brand']) ? $item['brand'] : '',
-                        'advantages' => isset($item['advantages']) ? $item['advantages'] : '',   //产品优势
-                        'tech_paras' => isset($item['tech_paras']) ? $item['tech_paras'] : '',    //技术参数
-                        'exe_standard' => isset($item['exe_standard']) ? $item['exe_standard'] : '', //执行标准=
-                        'keywords' => isset($item['keywords']) ? $item['profile'] : '', //关键词
-                        'description' => isset($item['description']) ? $item['description'] : '', //详情描述
-                    );
+                    $data = $this->getData($item, $spu ? 'UPDATE' : 'INSERT');
+                    $data['lang'] = $key;
+                    if(empty($data)) {
+                        continue;
+                    }
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']),array('TEST,CHECKING,VALID,DELETED,INVALID,CLOSED,NORMAL'))) ? strtoupper($input['status']) : 'TEST';
-                    if($input['status'] !='TEST'){
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']),array('DRAFT,TEST,CHECKING'))) ? strtoupper($input['status']) : 'CHECKING';
+                    if($input['status'] !='DRAFT'){
                         //字段校验
-                        $item = $this->checkParam($data, $this->field);
+                        $this->checkParam($data, $this->field);
 
-                        //添加时判断同一语言，name,meterial_cat_no是否存在
-                        $exist_condition = array(
+                        $exist_condition = array(    //添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
-                            'name' => $item['name'],
-                            'meterial_cat_no' => $item['meterial_cat_no'],
+                            'name' => $data['name'],
                         );
-                        $exist = $this->find($exist_condition);
+                        if($spu) {
+                            $exist_condition['spu'] = array('neq',$spu);
+                        }
+                        $exist = $this->where($exist_condition)->find();
                         if($exist) {
-                            jsonReturn('', '400', '已存在');
+                            jsonReturn('', ErrorMsg::EXIST);
                         }
                     }
                     $data['status'] = $input['status'];
-
-                    //不存在添加，存在则为修改
-                    if (!isset($input['spu'])) {
-                        $spu_tmp = $this->createSpu();    //不存在生产spu
+                    $data['brand'] = ''; //品牌：看前台传什么如果传id则需要查询brand表，否则直至存json
+                    if (empty($spu)) { //不存在添加
+                        $spu_tmp = $this->createSpu(); //不存在生产spu
                         $data['spu'] = $spu_tmp;
-                        $data['qrcode'] = createQrcode('/product/info/' . $spu);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
-                        $data['created_by'] = isset($userInfo['name']) ? $userInfo['name'] : '';    //创建人
-                        $data['created_at'] = date('Y-m-d H:i:s', time());
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());    //修改时间
-                        if($this->add($data)){
+                        $data['qrcode'] = createQrcode('/product/info/' .  $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
+                        if($this->add($data)) {
                             $spu = $spu_tmp;
+                        }else{
+                            $this->rollback();
+                            return false;
                         }
-                    } else {
-                        $data['updated_by'] = isset($userInfo['name']) ? $userInfo['name'] : '';    //修改人
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());    //修改时间
-                        $this->where(array('spu' => trim($input['spu']), 'lang' => $key))->save($data);
+                    } else {    //修改
+                        $data['spu'] = $spu;
+                        if($this->where(array('spu' => $spu, 'lang' => $key))->save($data)) {
+                            $spu = $spu;
+                        } else{
+                            $this->rollback();
+                            return false;
+                        }
                     }
                 } elseif ($key == 'attachs') {
                     if ($item && $spu) {
-                        //验证附件
-                        if (!$this->checkAttachImage($item)) {
-                            jsonReturn('', '1000', '产品图不能为空');
+                        if (!isset($input['spu'])){
+                             if (!$this->checkAttachImage($item)) {
+                                 jsonReturn('', '1000', '产品图不能为空');
+                             }
                         }
-
                         foreach ($item as $atta) {
                             $data = array(
                                 'spu' => $spu,
@@ -337,11 +233,16 @@ class ProductModel extends PublicModel {
                                 'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
                             );
-                            if(empty($data['attach_url']))
+                            if(empty($data['attach_url'])) {
                                 continue;
+                            }
 
                             $pattach = new ProductAttachModel();
-                            $pattach->addAttach($data);
+                            $attach = $pattach->addAttach($data);
+                            if(!$attach) {
+                                $this->rollback();
+                                return false;
+                            }
                         }
                     }
                 } else {
@@ -360,25 +261,68 @@ class ProductModel extends PublicModel {
      * @param array $spu    spu编码数组['spu1','spu2']
      * @param string $lang  语言（zh/en/ru/es）
      * @param string $status 状态
+     * @param string $remark 评语
+     * @example: updateStatus(array('111','222'),'','CHECKING')    #不分语言处理
      */
-    public function upStatus($spu = '',$lang='',$status=''){
-        if(empty($spu) || empty($lang) || empty($status))
+    public function updateStatus($spu = '',$lang='',$status='',$remark=''){
+        if(empty($spu) || empty($status))
             return false;
 
-        if($spu && is_array($spu)){
+        if($spu) {
             $this->startTrans();
             try{
-                $model = new EsproductModel();
-                foreach($spu as $r){
+               // $model = new EsproductModel();
+                $spuary = [];
+                if(is_array($spu)) {
+                    foreach($spu as $r){
+                        $where = array(
+                            'spu' => $r,
+                        );
+                        if(!empty($lang)) {
+                            $where['lang'] = $lang;
+                        }
+                        $result = $this->where($where)->save(array('status'=>$status));
+                        if($result){
+                            $spuary[]=array('spu'=>$r, 'lang'=>$lang,'remarks'=>$remark);
+                            /**
+                             * 更新ES
+                             */
+                            //$model->changestatus($r,$status,$lang);
+                        }else{
+                            $this->rollback();
+                            return false;
+                        }
+                    }
+                } else {
                     $where = array(
-                        'spu' => $r,
-                        'lang'=> $lang
+                        'spu' => $spu,
                     );
+                    if(!empty($lang)) {
+                        $where['lang'] = $lang;
+                    }
                     $result = $this->where($where)->save(array('status'=>$status));
-                    if($result){    //更新ES
-                        @$model->changestatus($r,$status,$lang);
+                    if($result){
+                        $spuary[]=array('spu'=>$spu, 'lang'=>$lang,'remarks'=>$remark);
+                        /**
+                         * 更新ES
+                         */
+                        //$model->changestatus($r,$status,$lang);
+                    }else{
+                        $this->rollback();
+                        return false;
                     }
                 }
+                switch($status){
+                    case self::STATUS_VALID:
+                        $pclog = new ProductCheckLogModel();
+                        $pclog->takeRecord($spuary,$pclog::STATUS_PASS);
+                        break;
+                    case self::STATUS_INVALID:
+                        $pclog = new ProductCheckLogModel();
+                        $pclog->takeRecord($spuary,$pclog::STATUS_REJECTED);
+                        break;
+                }
+
                 $this->commit();
                 return true;
             }catch (Exception $e){
@@ -389,76 +333,165 @@ class ProductModel extends PublicModel {
         return false;
     }
 
-    /**
-     * spu[状态更改]（BOSS后台）
-     * @author klp
-     * @return bool
+	/*
+     * 删除
+     * @param string $spu
+     * @param string $lang
      */
-    public function modifySpu($data,$status) {
-        if(empty($data) || empty($status)) {
+    public function deleteInfo($spu = '', $lang = '') {
+        if(empty($spu)) {
             return false;
         }
-        $results = array();
-        //获取当前用户信息
-        $userInfo = getLoinInfo();
 
-        if($data && is_array($data)) {
-            try {
-                foreach ($data as $item) {
-                    if (self::STATUS_CHECKING == $status) {
-                        $where = [
-                            'spu' => $item['spu'],
-                            'lang' => $item['lang']
-                        ];
-                        $result = $this->where($where)->save(['status' => $status]);
-                    } else {
-                        $where = [
-                            'spu' => $item['spu'],
-                            'lang' => $item['lang']
-                        ];
-                        $save = [
-                            'status' => $status,
-                            'checked_by' => $userInfo['id'],
-                            'checked_at' => date('Y-m-d H:i:s', time())
-                        ];
-                        $result = $this->where($where)->save($save);
+        if($spu) {
+            $this->startTrans();
+            try{
+                //$model = new EsproductModel();
+                if(is_array($spu)) {
+                    foreach($spu as $r){
+                        $where = array(
+                            'spu' => $r,
+                        );
+                        if(!empty($lang)) {
+                            $where['lang'] = $lang;
+                        }
+                        $result = $this->where($where)->save(array('deleted_flag'=>self::DELETE_Y));
+                        if($result) {
+                            /**
+                             * 更新ES
+                             */
+                            //@$model->changestatus($r,$status,$lang);
+                        }else{
+                            $this->rollback();
+                            return false;
+                        }
+                    }
+                }else{
+                    $where = array(
+                        'spu' => $spu,
+                    );
+                    if(!empty($lang)) {
+                        $where['lang'] = $lang;
+                    }
+                    $result = $this->where($where)->save(array('deleted_flag'=>self::DELETE_Y));
+                    if($result) {
+                        /**
+                         * 更新ES
+                         */
+                        //@$model->changestatus($r,$status,$lang);
+                    }else{
+                        $this->rollback();
+                        return false;
                     }
                 }
-                if ($result) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                } else {
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
-                }
-                return $results;
-            } catch (Exception $e) {
-                $results['code'] = $e->getCode();
-                $results['message'] = $e->getMessage();
-                return $results;
+
+                $this->commit();
+                return true;
+            }catch (Exception $e) {
+                $this->rollback();
+                return false;
             }
         }
         return false;
     }
 
     /**
-     * 通过spu查询四种语言name
-     * @param ispu
-     * @param array
+     * 列表查询
      */
-    public function getName($spu){
-        if(empty($spu))
-            return false;
-        $where = array();
-        if(isset($spu)){
-            $where['spu'] = $spu;
-        }
-        $result = $this->field('name,show_name')->where($where)->select();
-        return $result ? $result : false;
+    public function getList(){
+
     }
 
+    /**
+     * spu详情
+     * @param string $spu    spu编码
+     * @param string $lang    语言
+     * return array
+     */
+    public function getInfo($spu = '', $lang = '',$status = '') {
+        if (empty($spu)) {
+            return array();
+        }
 
-   /**
+        $condition = array(
+            'spu' => $spu,
+            'deleted_flag' =>self::DELETE_N,
+        );
+        if(!empty($lang)) {
+            $condition['lang'] = $lang;
+        }
+        if(!empty($status)) {
+            $condition['status'] = $status;
+        }
+
+        //读取redis缓存
+        if(redisHashExist('spu',md5(json_encode($condition)))){
+            //return json_decode(redisHashGet('spu',md5(json_encode($condition))),true);
+        }
+
+        //数据读取
+        try {
+            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
+            $result = $this->field($field)->where($condition)->select();
+            $data = array();
+            if ($result) {
+                foreach ($result as $item) {
+                    //语言分组
+                    $data[$item['lang']] = $item;
+                }
+                redisHashSet('spu',md5(json_encode($condition)),json_encode($data));
+            }
+            return $data;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * 根据条件查询
+     * @param array $condition
+     * @param string $field
+     * @return bool
+     * @example: findByCondition(array('spu'=>'111','lang'=>'zh'),array('spu','status'));
+     */
+    public function findByCondition($condition=[], $field=''){
+        if(empty($condition) || !is_array($condition)) {
+            return false;
+        }
+
+        if(is_array($field)) {
+            $field = implode(',' , $field);
+        }elseif(empty($field)){
+            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
+        }
+        try{
+            $result = $this->field($field)->where($condition)->select();
+            if($result){
+                return $result;
+            }
+        }catch (Exception $e) {
+            return false;
+        }
+        return array();
+    }
+
+    /**
+     * 生成ｓｐｕ编码
+     * @return string
+     */
+    public function createSpu() {
+        $spu = randNumber(6);
+        $condition = array(
+            'spu' => $spu
+        );
+        $exit = $this->where($condition)->find();
+        if($exit) {
+            $this->createSpu();
+        }
+        return $spu;
+    }
+
+    /**
      * 参数校验    注：没有参数或没有规则，默认返回true（即不做验证）
      * @param array $param  参数
      * @param array $field  校验规则
@@ -474,8 +507,9 @@ class ProductModel extends PublicModel {
      * )
      */
     private function checkParam($param = [], $field = []) {
-        if (empty($param) || empty($field))
+        if (empty($param) || empty($field)) {
             return array();
+        }
         foreach ($param as $k => $v) {
             if (isset($field[$k])) {
                 $item = $field[$k];
@@ -490,7 +524,7 @@ class ProductModel extends PublicModel {
                             jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
                         }
                         if (!call_user_func($item[1], $v)) {
-                            jsonReturn('', '1001', 'Param ' . $k . ' Validate failed !');
+                            jsonReturn('', '1000', 'Param ' . $k . ' Validate failed !');
                         }
                         break;
                 }
@@ -499,6 +533,18 @@ class ProductModel extends PublicModel {
             continue;
         }
         return $param;
+    }
+
+    /**
+     * 验证语言
+     * @param string $lang
+     * @return bool
+     */
+    private function checkLang($lang='') {
+        if(!empty($lang) && in_array(strtolower($lang),array('zh','en','ru','es'))) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -519,27 +565,4 @@ class ProductModel extends PublicModel {
         return false;
     }
 
-    /**
-     * 设置当前module
-     * @param $module
-     */
-    public function setModule($module) {
-        $this->module = $module;
-    }
-
-    /**
-     * 生成ｓｐｕ编码
-     * @return string
-     */
-    public function createSpu() {
-        $spu = randNumber(6);
-        $condition = array(
-            'spu' => $spu
-        );
-        $exit = $this->find($condition);
-        if($exit) {
-            $this->createSpu();
-        }
-        return $spu;
-    }
 }

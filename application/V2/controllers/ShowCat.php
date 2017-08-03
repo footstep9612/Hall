@@ -9,23 +9,19 @@
 class ShowCatController extends PublicController {
 
     public function init() {
-        parent::init();
+        //  parent::init();
         $this->_model = new ShowCatModel();
     }
 
     public function treeAction() {
-        $lang = $this->get('lang', '');
-        if (!$lang) {
-            $lang = $this->get('lang', 'zh');
-        }
-        $country_bn = $this->get('country_bn', '');
-        $market_area_bn = $this->get('market_area_bn', '');
+        $lang = $this->get('lang', '') ?: $this->getPut('marke_area_bn', 'zh');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
-        $jsondata['market_area_bn'] = $market_area_bn;
+        $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
+        $marke_area_bn = $this->get('marke_area_bn', '') ?: $this->getPut('marke_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
-        $condition = $jsondata;
-        $redis_key = 'show_cat_tree_' . $lang . md5($country_bn . $market_area_bn);
+        $jsondata['marke_area_bn'] = $marke_area_bn;
+        $redis_key = 'show_cat_tree_' . $lang . md5($country_bn . $marke_area_bn);
         $data = json_decode(redisGet($redis_key), true);
         if (!$data) {
             $arr = $this->_model->tree($jsondata);
@@ -34,19 +30,19 @@ class ShowCatController extends PublicController {
                 foreach ($arr as $key => $val) {
                     $children_data = $jsondata;
                     $children_data['level_no'] = 2;
-                    $children_data['parent_cat_no'] = $val['value'];
+                    $children_data['parent_catno'] = $val['value'];
                     $arr[$key]['children'] = $this->_model->tree($children_data);
                     if ($arr[$key]['children']) {
                         foreach ($arr[$key]['children'] as $k => $item) {
                             $children_data['level_no'] = 3;
-                            $children_data['parent_cat_no'] = $item['value'];
+                            $children_data['parent_catno'] = $item['value'];
                             $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
                         }
                     }
                 }
                 redisSet($redis_key, json_encode($arr), 86400);
                 $this->setCode(MSG::MSG_SUCCESS);
-                $this->_setCount($lang, $country_bn, $market_area_bn);
+                $this->_setCount($lang, $country_bn, $marke_area_bn);
                 $this->jsonReturn($arr);
             } else {
                 $this->setCode(MSG::ERROR_EMPTY);
@@ -54,7 +50,7 @@ class ShowCatController extends PublicController {
             }
         }
         $this->setCode(MSG::MSG_SUCCESS);
-        $this->_setCount($lang, $country_bn, $market_area_bn);
+        $this->_setCount($lang, $country_bn, $marke_area_bn);
         $this->jsonReturn($data);
     }
 
@@ -65,8 +61,8 @@ class ShowCatController extends PublicController {
      * @author zyg
      *
      */
-    private function _setCount($lang, $country_bn, $market_area_bn) {
-        $redis_key = 'show_cat_count_' . $lang;
+    private function _setCount($lang, $country_bn, $marke_area_bn) {
+        $redis_key = 'show_cat' . $lang;
         list($count1, $count2, $count3) = json_decode(redisGet($redis_key), true);
         if ($count1 || $count2 || $count3) {
             $this->setvalue('count1', $count1);
@@ -74,7 +70,7 @@ class ShowCatController extends PublicController {
             $this->setvalue('count3', $count3);
         } else {
             $countData = ['lang' => $lang,
-                'market_area_bn' => $market_area_bn,
+                'marke_area_bn' => $marke_area_bn,
                 'country_bn' => $country_bn,
             ];
             $countData['level_no'] = 1;
@@ -91,15 +87,18 @@ class ShowCatController extends PublicController {
     }
 
     public function listAction() {
-        $lang = $this->get('lang', 'en');
+        $lang = $this->get('lang', '') ?: $this->getPut('lang', 'en');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
-        $country_bn = $this->get('country_bn', '');
-        $market_area_bn = $this->get('market_area_bn', '');
+        $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
+        $marke_area_bn = $this->get('marke_area_bn', '') ?: $this->getPut('marke_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
-        $jsondata['market_area_bn'] = $market_area_bn;
+        $jsondata['marke_area_bn'] = $marke_area_bn;
+        $jsondata['cat_no1'] = $this->get('cat_no1', '') ?: $this->getPut('cat_no1', '');
+        $jsondata['cat_no2'] = $this->get('cat_no2', '') ?: $this->getPut('cat_no2', '');
+        $jsondata['cat_no3'] = $this->get('cat_no3', '') ?: $this->getPut('cat_no3', '');
         $condition = $jsondata;
-        $key = 'Show_cat_list_' . $lang;
+        $key = 'Show_cat_' . $lang . '_' . md5(json_encode($condition));
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->getlist($jsondata);
@@ -107,18 +106,18 @@ class ShowCatController extends PublicController {
                 $this->setCode(MSG::MSG_SUCCESS);
                 foreach ($arr as $key => $val) {
                     $arr[$key]['childs'] = $this->_model->getlist(
-                            ['parent_cat_no' => $val['cat_no'],
+                            ['parenshow_material_catcashow_material_catno' => $val['cashow_material_catno'],
                                 'level_no' => 2,
                                 'country_bn' => $country_bn,
-                                'market_area_bn' => $market_area_bn,
+                                'markeshow_material_catarea_bn' => $markeshow_material_catarea_bn,
                                 'lang' => $lang]);
 
                     if ($arr[$key]['childs']) {
                         foreach ($arr[$key]['childs'] as $k => $item) {
-                            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
+                            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parenshow_material_catcashow_material_catno' => $item['cashow_material_catno'],
                                 'level_no' => 3,
                                 'country_bn' => $country_bn,
-                                'market_area_bn' => $market_area_bn,
+                                'markeshow_material_catarea_bn' => $markeshow_material_catarea_bn,
                                 'lang' => $lang]);
                         }
                     }
@@ -133,9 +132,9 @@ class ShowCatController extends PublicController {
 
                     foreach ($arr[$key]['childs'] as $k => $item) {
                         $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(
-                                ['parent_cat_no' => $item['cat_no'], 'level_no' => 3,
+                                ['parent_catno' => $item['cat_no'], 'level_no' => 3,
                                     'country_bn' => $country_bn,
-                                    'market_area_bn' => $market_area_bn,
+                                    'marke_area_bn' => $markeshow_material_catarea_bn,
                                     'lang' => $lang]);
                     }
                     redisSet($key, json_encode($arr), 86400);
@@ -162,15 +161,15 @@ class ShowCatController extends PublicController {
 
     public function getlistAction() {
 
-        $lang = $this->get('lang', 'en');
-        $cat_no = $this->get('cat_no', '');
-        $country_bn = $this->get('country_bn', '');
-        $market_area_bn = $this->get('market_area_bn', '');
-        $key = 'Show_cat_getlist_' . $lang . '_' . $cat_no;
+        $lang = $this->get('lang') ?: $this->getPut('lang', 'en');
+        $show_material_catno = $this->get('show_material_catno', '') ?: $this->getPut('show_material_catno', '');
+        $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
+        $market_area_bn = $this->get('market_area_bn', '') ?: $this->getPut('market_area_bn', '');
+        $key = 'show_material_cat_' . $lang . '_' . $show_material_catno;
 
         $data = json_decode(redisGet($key), true);
         if (!$data) {
-            $arr = $this->_model->get_list($market_area_bn, $country_bn, $cat_no, $lang);
+            $arr = $this->_model->geshow_material_catlist($market_area_bn, $country_bn, $show_material_catno, $lang);
             if ($arr) {
                 redisSet($key, json_encode($arr), 86400);
                 $this->setCode(MSG::MSG_SUCCESS);
@@ -187,7 +186,7 @@ class ShowCatController extends PublicController {
      * 分类详情
      */
     public function infoAction() {
-        $cat_no = $this->get('id');
+        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -196,31 +195,35 @@ class ShowCatController extends PublicController {
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
             $result = $this->_model->info($cat_no, $lang);
+
             if ($result) {
-                $data = $result;
-                $data['name'] = $data['id'] = null;
-                unset($data['name'], $data['id']);
+                if (!$data) {
+                    $data = $result;
+                    $data['name'] = $data['id'] = null;
+                    unset($data['name'], $data['id']);
+                }
                 $data[$lang]['name'] = $result['name'];
             }
         }
+    
 
         if ($data) {
-            list($top_cats, $parent_cats) = $this->getparentcats($data);
+            list($top_cats, $parent_cats) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setvalue('top_cats', $top_cats);
             $this->setvalue('parent_cats', $parent_cats);
             if ($data['level_no'] == 3) {
-                $material_cat_nos = $this->_model->Table('erui_goods.t_show_material_cat')
-                        ->where(['show_cat_no' => $data['cat_no']])
+                $show_material_catnos = $this->_model->Table('erui2_goods.show_material_cat')
+                        ->where(['show_cat_no' => $cat_no])
                         ->field('material_cat_no')
                         ->select();
-                $mcat_nos = [];
-                foreach ($material_cat_nos as $mcat_no) {
-                    $mcat_nos = $mcat_no['material_cat_no'];
+                $mcashow_material_catnos = [];
+                foreach ($show_material_catnos as $mcashow_material_catno) {
+                    $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
                 }
 
-                $es_product_model = new EsproductModel();
-                $material_cats = $es_product_model->getmaterial_cats($mcat_nos, 'zh');
+                $es_producshow_material_catmodel = new EsproductModel();
+                $material_cats = $es_producshow_material_catmodel->getmaterial_cats($mcashow_material_catnos, 'zh');
             } else {
                 $material_cats = null;
             }
@@ -234,20 +237,20 @@ class ShowCatController extends PublicController {
         exit;
     }
 
-    private function getparentcats($data) {
-        $parent_cats = $top_cats = null;
+    private function _getparentcats($data) {
+        $parenshow_material_catcats = $top_cats = null;
         if ($data['level_no'] == 3) {
             $result = $this->_model->info($data['parent_cat_no'], 'zh');
-            $parent_cats = $this->_model->get_list($result['market_area_bn'], $result['country_bn'], $result['parent_cat_no'], 'zh');
-            $top_cats = $this->_model->get_list($result['market_area_bn'], $result['country_bn'], '', 'zh');
+            $parenshow_material_catcats = $this->_model->getlist($result['market_area_bn'], $result['country_bn'], $result['parent_catno'], 'zh');
+            $top_cats = $this->_model->getlist($result['market_area_bn'], $result['country_bn'], '', 'zh');
 
-            foreach ($parent_cats as $key => $item) {
-                if ($item['cat_no'] == $result['cat_no']) {
+            foreach ($parenshow_material_catcats as $key => $item) {
+                if ($item['cat_no'] == $result['parent_cat_no']) {
                     $item['checked'] = true;
                 } else {
                     $item['checked'] = false;
                 }
-                $parent_cats[$key] = $item;
+                $parenshow_material_catcats[$key] = $item;
             }
             foreach ($top_cats as $key => $item) {
                 if ($item['cat_no'] == $result['parent_cat_no']) {
@@ -258,7 +261,7 @@ class ShowCatController extends PublicController {
                 $top_cats[$key] = $item;
             }
         } elseif ($data['level_no'] == 2) {
-            $top_cats = $this->_model->get_list($data['parent_cat_no'], 'zh');
+            $top_cats = $this->_model->getlist($data['parent_cat_no'], 'zh');
             foreach ($top_cats as $key => $item) {
                 if ($item['cat_no'] == $data['parent_cat_no']) {
                     $item['checked'] = true;
@@ -268,22 +271,18 @@ class ShowCatController extends PublicController {
                 $top_cats[$key] = $item;
             }
         }
-        return [$top_cats, $parent_cats];
+        return [$top_cats, $parenshow_material_catcats];
     }
 
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('show_cat_getlist_*');
-        $redis->delete($keys);
-        $listkeys = $redis->getKeys('Show_cat_list_*');
-        $redis->delete($listkeys);
-        $treekeys = $redis->getKeys('show_cat_tree_*');
+        $treekeys = $redis->getKeys('show_cat_*');
         $redis->delete($treekeys);
     }
 
     public function createAction() {
-
-        $result = $this->_model->create_data($this->put_data, $this->user['username']);
+        $data = $this->getPut();
+        $result = $this->_model->create_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -295,8 +294,8 @@ class ShowCatController extends PublicController {
     }
 
     public function updateAction() {
-
-        $result = $this->_model->update_data($this->put_data, $this->user['username']);
+        $data = $this->getPut();
+        $result = $this->_model->update_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -308,8 +307,8 @@ class ShowCatController extends PublicController {
     }
 
     public function deleteAction() {
-
-        $result = $this->_model->delete_data($this->put_data['id']);
+        $data = $this->getPut();
+        $result = $this->_model->delete_data($data['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -321,8 +320,8 @@ class ShowCatController extends PublicController {
     }
 
     public function approvingAction() {
-
-        $result = $this->_model->approving($this->put_data['id']);
+        $data = $this->getPut();
+        $result = $this->_model->approving($data['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -338,8 +337,8 @@ class ShowCatController extends PublicController {
      */
 
     public function changeorderAction() {
-
-        $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
+        $data = $this->getPut();
+        $result = $this->_model->changeorder($data['cat_no'], $data['chang_cat_no']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

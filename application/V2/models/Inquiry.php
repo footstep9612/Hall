@@ -32,8 +32,8 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];  //流程编码
         }
-        if (!empty($condition['buyer_id'])) {
-            $where['buyer_id'] = $condition['buyer_id'];  //采购商ID
+        if (!empty($condition['buyer_name'])) {
+            $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
         if (!empty($condition['agent_id'])) {
             $where['agent_id'] = $condition['agent_id'];//市场经办人
@@ -72,12 +72,12 @@ class InquiryModel extends PublicModel {
     public function getList($condition = []) {
         $where = $this->getCondition($condition);
 
-        $page = isset($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = isset($condition['pageSize'])?$condition['pageSize']:10;
+        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
+        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
             $count = $this->getCount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
+            $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
             if($list){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
@@ -189,13 +189,14 @@ class InquiryModel extends PublicModel {
      */
     public function updateData($condition = []) {
         $data = $this->create($condition);
-        if(isset($condition['id'])){
+        if(!empty($condition['id'])){
             $where['id'] = $condition['id'];
         }else{
             $results['code'] = '-103';
             $results['message'] = '没有ID!';
             return $results;
         }
+        $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->where($where)->save($data);
@@ -221,14 +222,15 @@ class InquiryModel extends PublicModel {
      * @return bool
      */
     public function updateStatus($condition = []) {
-        if(isset($condition['id'])){
+        if(!empty($condition['id'])){
             $where['id'] = array('in',explode(',',$condition['id']));
         }else{
             return false;
         }
-        if(isset($condition['status'])){
+        if(!empty($condition['status'])){
             $status['status'] = $condition['status'];
         }
+        $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->where($where)->save($status);

@@ -18,7 +18,7 @@ class RateController extends PublicController {
     //put your code here
     public function init() {
         //  parent::init();
-        $this->_model = new RateModel();
+    
     }
 
     /*
@@ -34,17 +34,17 @@ class RateController extends PublicController {
 
         $key = 'Rate_' . md5(json_encode($condtion));
         $data = redisGet($key);
-
+        $rate_model = new RateModel();
         if ($data == '&&') {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(NULL);
         } elseif (!$data) {
-            $arr = $this->_model->getList($condtion);
+            $arr = $rate_model->getList($condtion);
             if ($arr) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::MSG_SUCCESS;
                 $data['data'] = $arr;
-                $data['count'] = $this->_model->getCount($condtion);
+                $data['count'] = $rate_model->getCount($condtion);
                 redisSet($key, json_encode($data), 86400);
                 $this->jsonReturn($data);
             } elseif ($arr === null) {
@@ -75,8 +75,10 @@ class RateController extends PublicController {
 
     public function infoAction() {
         $id = $this->get('id');
+        $rate_model = new RateModel();
         if ($id) {
-            $result = $this->_model->where(['id' => $id])->find();
+            $result = $rate_model->info($id);
+            
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -104,8 +106,9 @@ class RateController extends PublicController {
      */
 
     public function createAction() {
-        $condition = $this->put_data;
-        $result = $this->_model->create_data($condition, $this->user['id']);
+        $condition = $this->getPut();
+        $rate_model = new RateModel();
+        $result = $rate_model->create_data($condition, $this->user['id']);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -139,10 +142,10 @@ class RateController extends PublicController {
      */
 
     public function updateAction() {
-
-        $condition = $this->put_data;
-        $where['id'] = $this->get('id');
-        $result = $this->_model->where($where)->update_data($condition, $where);
+        $rate_model = new RateModel();
+        $condition = $this->getPut();
+        $where['id'] = $this->get('id') ?: $this->getPut('id');
+        $result = $rate_model->update_data($condition, $where);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -163,11 +166,12 @@ class RateController extends PublicController {
 
     public function deleteAction() {
 
-        $where['id'] = $this->get('id');
+        $where['id'] =$this->getPut('id');
         if (!$where['id']) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
+        
         $result = $this->_model->where($where)->delete();
         if ($result) {
             $this->_delcache();

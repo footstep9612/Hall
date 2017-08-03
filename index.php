@@ -25,7 +25,7 @@ define('COMMON_PATH', MYPATH . DS . 'common');
 if (file_exists(APPLICATION_PATH) && file_exists(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini')) {
     $application = new Yaf_Application(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini');
 } else {
-    die('{"code":"-1","message":"系统错误!"}');
+    $application = new Yaf_Application(MYPATH . DS . 'conf' . DS . 'application.ini');
 }
 
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端

@@ -64,7 +64,8 @@ class RateModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param data $data;
+     * @param array $condition
+     * @param string $order 排序
      * @return array
      * @date    2017-8-1 16:20:48
      * @author zyg
@@ -72,11 +73,11 @@ class RateModel extends PublicModel {
     public function getlist($condition, $order = 'id desc') {
         try {
             $data = $this->_getCondition($condition);
-            $this->field('id,lang,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
+            $this->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
                             . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
                             . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
                             . 'qty,remarks,status,created_by,created_at,updated_by,'
-                            . 'updated_at,deleted_flag')
+                            . 'updated_at')
                     ->where($data);
             return $this->order($order)
                             ->select();
@@ -87,22 +88,36 @@ class RateModel extends PublicModel {
     }
 
     /**
+     * 获取总数
+     * @param data $condition
+     * @return int
+     * @date    2017-8-1 16:20:48
+     * @author zyg
+     */
+    public function getCount($condition) {
+        try {
+            $data = $this->_getCondition($condition);
+            return $this->where($data)->count();
+        } catch (Exception $ex) {
+
+            return 0;
+        }
+    }
+
+    /**
      * 获取情
-     * @param  string $bn 编码
-     * @param  string $lang 语言
+     * @param  string $id 编码
      * @return mix
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function info($bn = '', $lang = 'en') {
-        $where['bn'] = $bn;
-        $where['lang'] = $lang;
+    public function info($id = '') {
+        $where['id'] = $id;
         return $this->where($where)
-                        ->field('id,lang,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
+                        ->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
                                 . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
                                 . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
-                                . 'qty,remarks,status,created_by,created_at,updated_by,'
-                                . 'updated_at,deleted_flag')
+                                . 'qty,remarks,status')
                         ->find();
     }
 
@@ -120,9 +135,7 @@ class RateModel extends PublicModel {
         } else {
             $where['id'] = $id;
         }
-        if ($lang) {
-            $where['lang'] = $lang;
-        }
+
         $flag = $this->where($where)
                 ->save(['status' => 'INVALID']);
 

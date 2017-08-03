@@ -23,33 +23,7 @@ class EsProductController extends PublicController {
     //put your code here
     public function init() {
 
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
-        if (!method_exists($this, $this->getRequest()->getActionName() . 'Action')) {
-            $this->setCode(MSG::MSG_ERROR_ACTION);
-            $this->jsonReturn();
-        }
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
-        if (!empty($jsondata["token"])) {
-            $token = $jsondata["token"];
-        }
-        if (!empty($token)) {
-            try {
-                $tokeninfo = JwtInfo($token); //解析token
-                $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
-                if (empty($userinfo)) {
-                    $this->put_data['source'] = 'ERUI';
-                } else {
-                    $this->user = $userinfo;
-                }
-            } catch (Exception $e) {
-                $this->put_data['source'] = 'ERUI';
-            }
-        } else {
-            $this->put_data['source'] = 'ERUI';
-        }
+        //  parent::init();
         $this->es = new ESClient();
     }
 
@@ -63,7 +37,8 @@ class EsProductController extends PublicController {
 
     public function listAction() {
         $model = new EsProductModel();
-        $ret = $model->getProducts($this->put_data, null, $this->getLang());
+        $lang = $this->get('lang') ?: $this->getPut('lang', 'zh');
+        $ret = $model->getProducts($this->put_data, null, $lang);
         if ($ret) {
             $data = $ret[0];
 
@@ -120,7 +95,6 @@ class EsProductController extends PublicController {
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
-            $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
         }
         return $list;
     }
@@ -256,7 +230,7 @@ class EsProductController extends PublicController {
     public function goodsAction() {
 
         $int_analyzed = ['type' => 'integer'];
-        $float_analyzed = ['type' => 'float'];
+        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',
@@ -290,7 +264,7 @@ class EsProductController extends PublicController {
             'nude_cargo_w_mm' => $int_analyzed,
             'suppliers' => $ik_analyzed,
             'shelves_status' => $not_analyzed,
-            'compose_require_pack' => $float_analyzed,
+            'compose_require_pack' => $not_analyzed,
             'qrcode' => $not_analyzed,
             'checked_by' => $int_analyzed,
             'show_name' => $ik_analyzed,
@@ -313,18 +287,18 @@ class EsProductController extends PublicController {
             'min_pack_w_mm' => $int_analyzed,
             'name_customs' => $ik_analyzed,
             'checked_at' => $not_analyzed,
-            'gross_weight_kg' => $float_analyzed,
+            'gross_weight_kg' => $not_analyzed,
             'regulatory_conds' => $ik_analyzed,
             'min_pack_h_mm' => $int_analyzed,
             'created_by' => $int_analyzed,
-            'net_weight_kg' => $int_analyzed,
+            'net_weight_kg' => $not_analyzed,
             'exw_days' => $ik_analyzed,
-            'tax_rebates_pct' => $float_analyzed,
+            'tax_rebates_pct' => $not_analyzed,
             'attrs' => $ik_analyzed,
             'pack_type' => $ik_analyzed,
             'min_pack_l_mm' => $int_analyzed,
             'name' => $ik_analyzed,
-            'purchase_price' => $float_analyzed,
+            'purchase_price' => $not_analyzed,
             'purchase_price_cur_bn' => $not_analyzed,
             'updated_by' => $int_analyzed,
             'spu' => $not_analyzed,
@@ -346,7 +320,7 @@ class EsProductController extends PublicController {
 
 
         $int_analyzed = ['type' => 'integer'];
-        $float_analyzed = ['type' => 'float'];
+        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',
@@ -400,7 +374,7 @@ class EsProductController extends PublicController {
             'lang' => $not_analyzed,
             'brand' => $ik_analyzed,
             'checked_at' => $not_analyzed,
-            'resp_rate' => $float_analyzed,
+            'resp_rate' => $not_analyzed,
             'profile' => $ik_analyzed,
             'created_by' => $int_analyzed,
             'attrs' => $ik_analyzed,
