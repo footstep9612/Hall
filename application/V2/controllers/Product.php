@@ -9,7 +9,7 @@
 class ProductController extends PublicController {
 
     public function init() {
-        parent::init();
+//        parent::init();
         $this->put_data = $this->put_data ? $this->put_data : $_POST;
     }
 
@@ -126,6 +126,57 @@ class ProductController extends PublicController {
             break;
         }
         if ($result) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * spu状态更改  -- 总接口
+     * @param    status_type(状态flag )
+     *           标志: check(报审)    valid(通过)     invalid(驳回)
+     * @param       spu编码   lang语言
+     * @example   $this->put_data=[
+     *                      'status_type'=> 'check',
+     *                      0 => [
+     *                           'spu'=> '340306010001',
+     *                           'lang'=> 'zh',
+     *                           'remarks' =>  '',
+     *                           ],
+     *                      1 => [],...
+     *                  ];
+     * @return true or false
+     * @author  klp  2017/8/2
+     */
+    public function modifySpuAction(){
+       /*  $this->put_data = [
+                 'status_type'=> 'check',
+                  0 => [
+                       'spu'=> '112',
+                       'lang'=> 'en',
+                       'remarks' =>  ''
+                       ],
+                  ];*/
+        if(empty($this->put_data)){
+            return false;
+        }
+        $productModel = new ProductModel();
+        //新状态可以补充
+        switch($this->put_data['status_type']){
+            case 'check':    //报审
+                $status = $productModel::STATUS_CHECKING;
+                break;
+            case 'valid':    //审核通过
+                $status = $productModel::STATUS_VALID;
+                break;
+            case 'invalid':    //驳回
+                $status = $productModel::STATUS_INVALID;
+                break;
+        }
+        unset($this->put_data['status_type']);
+        $result = $productModel->modifySpu($this->put_data,$status);
+        if ($result && $result['code'] == 1) {
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);

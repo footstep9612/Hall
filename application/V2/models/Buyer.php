@@ -14,7 +14,7 @@
 class BuyerModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer';
-    protected $dbName = 'erui_buyer2'; //数据库名称
+    protected $dbName = 'erui2_buyer'; //数据库名称
     protected $g_table = 'erui_buyer2.t_buyer';
 //    protected $autoCheckFields = false;
     public function __construct($str = '') {
@@ -435,43 +435,32 @@ class BuyerModel extends PublicModel {
     }
 
     /**
-     * 获取企业信息(数据表信息不全,待完善)_
+     * 获取企业信息
      * @author klp
      */
-    public function getBuyerInfo($info)
+    public function buyerInfo($info)
     {
         //$info['customer_id'] = '20170630000001'; $info['lang']='en';//测试
         $where=array();
-        if(!empty($info['customer_id'])){
-            $where['customer_id'] = $info['customer_id'];
+        if(!empty($info['buyer_id'])){
+            $where['buyer_id'] = $info['buyer_id'];
         } else{
-            jsonReturn('','-1001','用户[customer_id]不可以为空');
+            jsonReturn('','-1001','用户[buyer_id]不可以为空');
         }
         if (isset($info['lang']) && in_array($info['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($info['lang']);
-        } else{
-            $where['lang'] = 'en';
         }
-        $field = 'lang,serial_no,name,bn,country,profile,reg_date,bank_name,swift_code,bank_address,bank_account,listed_flag,official_address,reg_date,capital_account,sales,official_phone,fax,official_website,employee_count,credit_total,credit_available,apply_at,approved_at,remarks';
+        $field = 'lang,serial_no,buyer_type,name,bn,country_code,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,sec_ex_listed_on,line_of_credit,credit_available,credit_cur_bn,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';
         try{
             $buyerInfo =  $this->field($field)->where($where)->find();
             if($buyerInfo){
-                //获取国家代码与企业邮箱与邮箱
-                $BuyerAddressModel = new BuyerAddressModel();
-                $addressInfo = $BuyerAddressModel->field('tel_country_code,official_email,zipcode')->where($where)->find();
-                $buyerInfo['tel_country_code'] = $buyerInfo['official_email'] = $buyerInfo['zipcode'] = '';
-                if($addressInfo){
-                    $buyerInfo['tel_country_code'] = $$addressInfo['tel_country_code'];
-                    $buyerInfo['official_email'] = $$addressInfo['official_email'];
-                    $buyerInfo['zipcode'] = $$addressInfo['zipcode'];
-                }
-                $buyerRegInfo = new BuyerreginfoModel();
-                $result = $buyerRegInfo->getBuyerRegInfo($where);
+                $BuyerreginfoModel = new BuyerreginfoModel();
+                $result = $BuyerreginfoModel->buyerRegInfo($where);
                 return $result ? array_merge($buyerInfo,$result) : $buyerInfo;
             }
             return array();
         }catch (Exception $e){
-            return array();
+            return false;
         }
     }
 

@@ -15,13 +15,20 @@ class ProductChecklogModel extends PublicModel{
      * @param array $condition
      * @return bool
      */
-    public function takeRecord($condition,$status) {
-        if(empty($condition) || empty($status)) {
+    public function takeRecord($condition,$checkStatus) {
+        if(empty($condition) || empty($checkStatus)) {
             return false;
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
-
+        switch($checkStatus) {
+            case 'VALID':
+                $status = 'PASS';
+                break;
+            case 'INVALID':
+                $status = 'REJECTED';
+                break;
+        }
         $arr = array();
         $results = array();
         if($condition && is_array($condition)) {
@@ -29,6 +36,7 @@ class ProductChecklogModel extends PublicModel{
                 foreach ($condition as $item) {
                     $data = [
                         'sku' => $item['sku'],
+                        'lang' => $item['lang'],
                         'status' => $status,
                         'spu' => isset($item['spu']) ? $item['spu'] : '',
                         'remarks' => isset($item['remarks']) ? $item['remarks'] : '',
@@ -62,7 +70,7 @@ class ProductChecklogModel extends PublicModel{
      */
     public function getRecord($sku){
         if(empty($sku)) {
-            jsonReturn('',MSG::ERROR_PARAM,MSG::ERROR_PARAM);
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
         $where = array('sku'=>$sku);
         $fields = 'spu, sku, status, remarks, approved_by, approved_at';

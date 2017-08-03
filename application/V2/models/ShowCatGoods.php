@@ -34,7 +34,7 @@ class ShowCatGoodsModel extends PublicModel {
             $results['code'] = '-101';
             $results['message'] = '缺少SKU!';
         }
-        if(empty($condition['show_cat'])){
+        if(empty($condition['cat_no'])){
             $results['code'] = '-101';
             $results['message'] = '缺少显示分类!';
         }
@@ -42,7 +42,7 @@ class ShowCatGoodsModel extends PublicModel {
             $results['code'] = '-101';
             $results['message'] = '缺少上架状态!';
         }
-        if(empty($condition['name'])){
+        if(empty($condition['created_by'])){
             $results['code'] = '-101';
             $results['message'] = '缺少添加人!';
         }
@@ -55,6 +55,7 @@ class ShowCatGoodsModel extends PublicModel {
                 $test['spu'] = $condition['spu'];
                 $test['sku'] = $sku['sku'];
                 $test['cat_no'] = $val;
+                $test['status'] = 'VALID';
                 $test['onshelf_flag'] = strtoupper($condition['onshelf_flag']);
                 $test['created_by'] = $condition['created_by'];
                 $test['created_at'] = $this->getTime();

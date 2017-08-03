@@ -1005,13 +1005,13 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-
-            $pModel = new ProductModel();                         //spu状态
-            $resp = $pModel->modifySpu($input,$status);
-            if (!$resp) {
-                $this->rollback();
-                return false;
-            }
+//
+//            $pModel = new ProductModel();                         //spu状态
+//            $resp = $pModel->modifySpu($input,$status);
+//            if (!$resp) {
+//                $this->rollback();
+//                return false;
+//            }
 
             $gattr = new GoodsAttrModel();
             $resAttr = $gattr->modifyAttr($input,$status);        //属性状态
@@ -1026,14 +1026,14 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-
-            $checkLogModel = new ProductChecklogModel();          //审核记录
-            $resLogs = $checkLogModel->takeRecord($input,$status);
-            if (!$resLogs || $resLogs['code'] != 1) {
-                $this->rollback();
-                return false;
+            if('CHECKING' != $status) {
+                $checkLogModel = new ProductChecklogModel();          //审核记录
+                $resLogs = $checkLogModel->takeRecord($input, $status);
+                if (!$resLogs || $resLogs['code'] != 1) {
+                    $this->rollback();
+                    return false;
+                }
             }
-
             $this->commit();
             return true;
         } catch (Exception $e) {
@@ -1064,6 +1064,9 @@ class GoodsModel extends PublicModel {
                             'lang' => $item['lang']
                         ];
                         $result = $this->where($where)->save(['status' => $status]);
+                        if (!$result) {
+                            return false;
+                        }
                     } else {
                         $where = [
                             'sku' => $item['sku'],
@@ -1075,6 +1078,18 @@ class GoodsModel extends PublicModel {
                             'checked_at' => date('Y-m-d H:i:s', time())
                         ];
                         $result = $this->where($where)->save($save);
+                        if ($result) {
+                            if('VALID' == $status) {
+                                $pModel = new ProductModel();                         //spu审核通过
+                                $check = $pModel->field('status')->where(['spu'=>$item['spu'],'lang'=>$item['lang']])->find();
+                                $resp =('VALID' == $check['status']) ? true : $pModel->updateStatus($item['spu'],$item['lang'],$status);
+                                if(!$resp) {
+                                    return false;
+                                }
+                            }
+                        } else{
+                            return false;
+                        }
                     }
                 }
                 if ($result) {
@@ -1150,6 +1165,9 @@ class GoodsModel extends PublicModel {
                         "lang" => $del['lang']
                     ];
                     $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    if (!$res) {
+                        return false;
+                    }
                 }
                 if ($res) {
                     $results['code'] = '1';

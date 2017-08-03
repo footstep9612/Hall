@@ -304,7 +304,7 @@ class GoodsAttrModel extends PublicModel{
         try {
             $result = $this->field($field)->where($where)->select();
 
-            $data = $attrs = array();
+            $data = array();
             if($result){
                 //获取产品属性
                 $product = new ProductAttrModel();
@@ -313,6 +313,7 @@ class GoodsAttrModel extends PublicModel{
 
                 //按语言分组,类型分组
                 foreach ($attrs as $item){
+                    $item['flag'] = true;
                     if (empty($item['spec_attrs'])) {
                         $data[$item['lang']]['spec_attrs'][] = $item;
                     }
@@ -346,7 +347,7 @@ class GoodsAttrModel extends PublicModel{
         }
         $results = array();
         if(empty($input['sku']) || empty($input['lang'])) {
-            jsonReturn('',MSG::ERROR_PARAM,MSG::ERROR_PARAM);
+            jsonReturn('',MSG::MSG_FAILED,MSG::ERROR_PARAM);
         }
         try {
             $data = [
@@ -364,12 +365,8 @@ class GoodsAttrModel extends PublicModel{
                     'lang'=> $input['lang']
                 ];
                 $res = $this->where($where)->save($data);
-                if($res) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                }else{
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
+                if(!$res) {
+                    return false;
                 }
             } else {
                 $data['status'] = self::STATUS_DRAFT;
@@ -378,13 +375,16 @@ class GoodsAttrModel extends PublicModel{
                 $data['created_by'] = $input['created_by'];
                 $data['created_at'] = date('Y-m-d H:i:s', time());
                 $res = $this->add($data);
-                if($res) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                }else{
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
+                if(!$res) {
+                    return false;
                 }
+            }
+            if($res) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '失败!';
             }
             return $results;
         }catch (Exception $e) {
@@ -414,6 +414,9 @@ class GoodsAttrModel extends PublicModel{
                     $resatr = $this->field('sku')->where($where)->find();
                     if ($resatr) {
                         $res = $this->where($where)->save(['status' => $status]);
+                        if (!$res) {
+                            return false;
+                        }
                     }
                 }
                 if ($res) {
@@ -451,6 +454,9 @@ class GoodsAttrModel extends PublicModel{
                         "lang" => $del['lang']
                     ];
                     $res = $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
+                    if (!$res) {
+                        return false;
+                    }
                 }
                 if ($res) {
                     $results['code'] = '1';

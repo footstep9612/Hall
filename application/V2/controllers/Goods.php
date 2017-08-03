@@ -11,6 +11,7 @@ class GoodsController extends PublicController{
 
     public function init()
     {
+//        parent::init();
 //        $this->input = json_decode(file_get_contents("php://input"), true);
 
     }
@@ -49,6 +50,7 @@ class GoodsController extends PublicController{
         $result = $goodsModel->getSkuAttrsInfo($this->put_data);
         $this->returnInfo($result);
     }
+
     /**
      * sku附件详情
      * @pararm
@@ -58,6 +60,21 @@ class GoodsController extends PublicController{
     public function skuAttachsInfoAction(){
         $goodsModel = new GoodsAttachModel();
         $result = $goodsModel->getSkuAttachsInfo($this->put_data);
+        $this->returnInfo($result);
+    }
+
+    /**
+     * 查找用户信息
+     * @pararm  用户id
+     * @return
+     * @author klp
+     */
+    public function userInfoAction(){
+        if(empty($this->put_data['id'])) {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+        $userModel = new UserModel();
+        $result = $userModel->info($this->put_data['id']);
         $this->returnInfo($result);
     }
 
@@ -77,7 +94,7 @@ class GoodsController extends PublicController{
      * @param  sku: sku编码不存在为新建,反之更新
      * @param          spu(编码)  name(名称)  show_name(展示名称) lang(语言数组)
      * @param  attr:  attr_no(属性编码) attr_name(属性名称)
-     *                 goods_flag(商品属性)   spec_flag(规格型号)  logi_flag(物流属性)  hs_flag(申报要素)
+     *                 ex_goods_attrs(商品属性)   spec_attrs(规格型号)  other_attrs(其它属性)  ex_hs_attrs(申报要素)
      *                注:属性添加时带其中一个flag
      * @param  attach:  attach_url(文件地址)
      * @param  supplier_cost:  supplier_id(供应商ID)
@@ -156,7 +173,8 @@ class GoodsController extends PublicController{
                 ]
             ],
 
-        ];*/
+        ];
+       return $this->put_data;*/
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSku($this->put_data);
         $this->returnInfo($result);
@@ -188,7 +206,8 @@ class GoodsController extends PublicController{
                       'lang'=> 'zh',
                       'remarks' =>  ''
                       ],
-                 ];*/
+                 ];
+       return $this->put_data;*/
         if(empty($this->put_data)){
             return false;
         }
@@ -212,13 +231,14 @@ class GoodsController extends PublicController{
      * @author  klp  2017/8/1
      */
     public function deleteRealSkuAction(){
-        $this->put_data=[
+     /*   $this->put_data=[
                      0  => [
                           'sku'=> '37518005',
                           'spu'=> '8832211',
                           'lang'=> 'zh'
                         ]
                      ];
+        return $this->put_data;*/
         if(empty($this->put_data)){
             return false;
         }
@@ -239,7 +259,7 @@ class GoodsController extends PublicController{
     }
 
     /**
-     * 审核记录查询
+     * sku审核记录查询
      * @param sku
      * @author  klp  2017/8/2
      */
@@ -274,10 +294,6 @@ class GoodsController extends PublicController{
         exit;
     }
 
-    public function ediAction(){
-//        $edi = new Edi();
-//        $data = $edi->test();var_dump($data);die;
-    }
 
     public function testInput()
     {

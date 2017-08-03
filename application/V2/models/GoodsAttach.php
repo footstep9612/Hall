@@ -292,12 +292,18 @@ class GoodsAttachModel extends PublicModel{
                             'id' => $checkout['id']
                         ];
                         $res = $this->where($where)->save($data);
+                        if (!$res) {
+                            return false;
+                        }
                     } else {
                         $data['status'] = self::STATUS_DRAFT;
                         $data['sku'] = $input['sku'];
                         $data['created_by'] = $input['user_id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $res = $this->add($data);
+                        if (!$res) {
+                            return false;
+                        }
                     }
                 }
                 if ($res) {
@@ -338,6 +344,9 @@ class GoodsAttachModel extends PublicModel{
                     $resach = $this->field('sku')->where($where)->find();
                     if ($resach) {
                         $res = $this->where($where)->save(['status' => $status]);
+                        if (!$res) {
+                            return false;
+                        }
                     }
                 } else {
                     $where = [
@@ -351,6 +360,9 @@ class GoodsAttachModel extends PublicModel{
                     $resach = $this->field('sku')->where($where)->find();
                     if ($resach) {
                         $res = $this->where($where)->save($save);
+                        if (!$res) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -386,6 +398,9 @@ class GoodsAttachModel extends PublicModel{
                         'sku' => $del['sku']
                     ];
                     $res = $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
+                    if (!$res) {
+                        return false;
+                    }
                 }
                 if ($res) {
                     $results['code'] = '1';
