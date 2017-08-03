@@ -834,8 +834,6 @@ class EsProductModel extends Model {
                     ->field('spu,meterial_cat_no,brand,source')
                     ->select();
             $brands = [];
-            $supplier_ids = [];
-            $supplier_names = [];
             $sources = [];
             $meterial_cat_nos = [];
             $attr_spus = $mcat_nos = [];
