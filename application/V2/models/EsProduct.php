@@ -197,7 +197,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'shelves_by');
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
         $this->_getQureyByBool($condition, $body, ESClient::MATCH_PHRASE, 'recommend_flag', 'recommend_flag', 'N');
-        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
+        // $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'brand');
         $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'real_name', 'name');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
@@ -235,15 +235,15 @@ class EsProductModel extends Model {
     public function getProducts($condition, $_source, $lang = 'en') {
 
         try {
-            if (!$_source) {
-                $_source = ['meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
-                    , 'profile', 'suppliers', 'source', 'attachs', 'brand',
-                    'recommend_flag', 'supply_ability', 'tech_paras', 'meterial_cat',
-                    'brand', 'supplier_name', 'sku_num'];
-            }
+//            if (!$_source) {
+//                $_source = ['material_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
+//                    , 'profile', 'suppliers', 'source', 'attachs', 'brand',
+//                    'recommend_flag', 'supply_ability', 'tech_paras', 'meterial_cat',
+//                    'brand', 'supplier_name', 'sku_count'];
+//            }
             $body = $this->getCondition($condition);
-            $redis_key = 'es_product_' . md5(json_encode($body));
-            $data = json_decode(redisGet($redis_key), true);
+            $redis_key = 'es_product2_' . md5(json_encode($body));
+            //   $data = json_decode(redisGet($redis_key), true);
             if (!$data) {
                 $pagesize = 10;
                 $current_no = 1;
@@ -256,18 +256,18 @@ class EsProductModel extends Model {
                 $from = ($current_no - 1) * $pagesize;
                 $es = new ESClient();
                 unset($condition['source']);
-                $newbody = $this->getCondition($condition);
-                $allcount = $es->setbody($newbody)
-                        ->count($this->dbName, $this->tableName . '_' . $lang);
-                $es->setbody($body)->setfields($_source)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
+                $es->setbody($body)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
 
                 if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
-                    $es->setaggs('sku_num', 'sku_num', 'sum');
+                    $es->setaggs('sku_count', 'sku_count', 'sum');
                 } else {
-                    $es->setaggs('meterial_cat_no', 'meterial_cat_no');
+                    $es->setaggs('material_cat_no', 'material_cat_no');
                 }
-                $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize, $allcount['count']];
-                redisSet($redis_key, json_encode($data), 3600);
+                $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+
+//                if ($data) {
+//                    redisSet($redis_key, json_encode($data), 3600);
+//                }
                 return $data;
             }
             return $data;
@@ -361,7 +361,7 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
             return $es->setbody($body)
-                            ->setaggs('meterial_cat_no', 'meterial_cat_no')
+                            ->setaggs('material_cat_no', 'material_cat_no')
                             ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -584,13 +584,18 @@ class EsProductModel extends Model {
      */
 
     public function getproduct_attrbyspus($spus, $lang = 'en') {
+        if (!$spus || !is_array($spus)) {
+            return [];
+        }
         try {
+
             $product_attrs = $this->table('erui2_goods.product_attr')
                     ->field('*')
-                    ->where(['spu' => ['in', $spus], 'lang' => $lang,
-                        'spec_flag' => 'N',
+                    ->where(['spu' => ['in', $spus],
+                        'lang' => $lang,
                         'status' => 'VALID'])
                     ->select();
+
             $ret = [];
             if ($product_attrs) {
                 foreach ($product_attrs as $item) {
@@ -619,17 +624,20 @@ class EsProductModel extends Model {
 
     public function getshow_catsbyspus($spus, $lang = 'en') {
         try {
-
-            $show_cat_products = $this->table('erui2_goods.show_cat_product scp')
-                    ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
-                    ->field('scp.cat_no,scp.spu')
-                    ->where(['scp.spu' => ['in', $spus],
-                        'scp.status' => 'VALID',
-                        'sc.status' => 'VALID',
-                        'sc.lang' => $lang,
-                        'sc.id>0',
-                    ])
-                    ->select();
+            if ($spus && is_array($spus)) {
+                $show_cat_products = $this->table('erui2_goods.show_cat_product scp')
+                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->field('scp.cat_no,scp.spu')
+                        ->where(['scp.spu' => ['in', $spus],
+                            'scp.status' => 'VALID',
+                            'sc.status' => 'VALID',
+                            'sc.lang' => $lang,
+                            'sc.id>0',
+                        ])
+                        ->select();
+            } else {
+                return [];
+            }
             $ret = [];
             foreach ($show_cat_products as $item) {
 
@@ -655,8 +663,11 @@ class EsProductModel extends Model {
      */
 
     public function getshow_material_cats($cat_nos, $lang = 'en') {
-
+        if (!$cat_nos || !is_array($cat_nos)) {
+            return [];
+        }
         try {
+
             $show_material_cats = $this->table('erui2_goods.show_material_cat smc')
                     ->join('erui2_goods.show_cat sc on smc.show_cat_no=sc.cat_no')
                     ->field('show_cat_no,material_cat_no')
@@ -831,19 +842,19 @@ class EsProductModel extends Model {
     public function getproductattrsbyspus($spus, $lang = 'en') {
         try {
             $products = $this->where(['spu' => ['in', $spus], 'lang' => $lang])
-                    ->field('spu,meterial_cat_no,brand,source')
+                    ->field('spu,material_cat_no,brand,source')
                     ->select();
             $brands = [];
             $sources = [];
-            $meterial_cat_nos = [];
+            $material_cat_nos = [];
             $attr_spus = $mcat_nos = [];
             foreach ($products as $item) {
                 $this->_findnulltoempty($item);
-                $mcat_nos[] = $item['meterial_cat_no'];
+                $mcat_nos[] = $item['material_cat_no'];
                 $attr_spus[] = $item['spu'];
                 $brands[$item['spu']] = $item['brand'];
                 $sources[$item['spu']] = $item['source'];
-                $meterial_cat_nos[$item['spu']] = $item['meterial_cat_no'];
+                $material_cat_nos[$item['spu']] = $item['material_cat_no'];
             }
             $unique_spus = array_unique($attr_spus);
             $mcat_nos = array_unique($mcat_nos);
@@ -866,13 +877,13 @@ class EsProductModel extends Model {
             foreach ($products as $item) {
                 $show_cat = [];
                 $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
-                if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
-                    foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
+                if (isset($scats_no_mcatsno[$item['material_cat_no']])) {
+                    foreach ($scats_no_mcatsno[$item['material_cat_no']] as $show_cat_no) {
                         $show_cat[$show_cat_no] = $scats[$show_cat_no];
                     }
                 }
-                if (isset($mcats[$item['meterial_cat_no']])) {
-                    $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
+                if (isset($mcats[$item['material_cat_no']])) {
+                    $body['meterial_cat'] = json_encode($mcats[$item['material_cat_no']], JSON_UNESCAPED_UNICODE);
                 } else {
                     $body['meterial_cat'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
                 }
@@ -895,7 +906,7 @@ class EsProductModel extends Model {
                 }
                 $body['brand'] = $brands[$item['spu']];
                 $body['source'] = $sources[$item['spu']];
-                $body['meterial_cat_no'] = $meterial_cat_nos[$item['spu']];
+                $body['material_cat_no'] = $material_cat_nos[$item['spu']];
                 $ret[$item['spu']] = $body;
             }
             return $ret;
@@ -956,7 +967,7 @@ class EsProductModel extends Model {
                 $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {
-                        $mcat_nos[] = $item['meterial_cat_no'];
+                        $mcat_nos[] = $item['material_cat_no'];
                         $spus[] = $item['spu'];
                     }
                     $spus = array_unique($spus);
@@ -1004,13 +1015,13 @@ class EsProductModel extends Model {
                         if (isset($scats_no_spu[$item['spu']]) && isset($scats[$scats_no_spu[$item['spu']]])) {
                             $show_cat[$scats_no_spu[$item['spu']]] = $scats[$scats_no_spu[$item['spu']]];
                         }
-                        if (isset($scats_no_mcatsno[$item['meterial_cat_no']])) {
-                            foreach ($scats_no_mcatsno[$item['meterial_cat_no']] as $show_cat_no) {
+                        if (isset($scats_no_mcatsno[$item['material_cat_no']])) {
+                            foreach ($scats_no_mcatsno[$item['material_cat_no']] as $show_cat_no) {
                                 $show_cat[$show_cat_no] = $scats[$show_cat_no];
                             }
                         }
-                        if (isset($mcats[$item['meterial_cat_no']])) {
-                            $body['meterial_cat'] = json_encode($mcats[$item['meterial_cat_no']], JSON_UNESCAPED_UNICODE);
+                        if (isset($mcats[$item['material_cat_no']])) {
+                            $body['meterial_cat'] = json_encode($mcats[$item['material_cat_no']], JSON_UNESCAPED_UNICODE);
                         } else {
                             $body['meterial_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
                         }
@@ -1132,8 +1143,8 @@ class EsProductModel extends Model {
             $data['id'] = $condition['id'];
         }
         $data['lang'] = $lang;
-        if (isset($condition['meterial_cat_no'])) {
-            $material_cat_no = $data['meterial_cat_no'] = $condition['meterial_cat_no'];
+        if (isset($condition['material_cat_no'])) {
+            $material_cat_no = $data['material_cat_no'] = $condition['material_cat_no'];
             $mcatmodel = new MaterialcatModel();
             $data['meterial_cat'] = json_encode($mcatmodel->getinfo($material_cat_no, $lang), 256);
             $smmodel = new ShowmaterialcatModel();
@@ -1141,7 +1152,7 @@ class EsProductModel extends Model {
             $scats = $this->getshow_cats($show_cat_nos, $lang);
             $data['show_cats'] = $this->_getValue($scats, $material_cat_no, [], 'json');
         } else {
-            $data['meterial_cat_no'] = '';
+            $data['material_cat_no'] = '';
             $data['meterial_cat'] = json_encode(new \stdClass());
             $data['show_cats'] = json_encode([]);
         }

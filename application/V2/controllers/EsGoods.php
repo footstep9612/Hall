@@ -23,7 +23,7 @@ class EsGoodsController extends PublicController {
     //put your code here
     public function init() {
         $this->es = new ESClient();
-        parent::init();
+        //  parent::init();
     }
 
     /**
@@ -34,14 +34,15 @@ class EsGoodsController extends PublicController {
      * @desc   ES 商品
      */
     public function listAction() {
-        $lang = $this->get('lang', 'en');
+        $lang = $this->get('lang', '')?:$this->getPut('lang', 'zh');
+        $data= $this->getPut();
         $model = new EsgoodsModel();
-        $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
-            , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
-            'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
-            'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'created_at',
-            'created_by', 'checked_by', 'checked_at', 'update_by', 'update_at', 'shelves_by', 'shelves_at', 'shelves_status', 'checked_desc',];
-        $ret = $model->getgoods($this->put_data, $_source, $lang);
+//        $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
+//            , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
+//            'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
+//            'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'created_at',
+//            'created_by', 'checked_by', 'checked_at', 'update_by', 'update_at', 'shelves_by', 'shelves_at', 'shelves_status', 'checked_desc',];
+        $ret = $model->getgoods($data, null, $lang);
         if ($ret) {
             $list = [];
             $data = $ret[0];
