@@ -7,7 +7,6 @@
  */
 class QuoteBizLineController extends PublicController
 {
-
     /**
      * 产品线报价单模型
      * @var
@@ -26,7 +25,7 @@ class QuoteBizLineController extends PublicController
      */
     public function init()
     {
-        parent::init();
+        //parent::init();
 
         $this->_quoteBizLine = new QuoteBizLineModel();
 
@@ -40,6 +39,7 @@ class QuoteBizLineController extends PublicController
      */
     public function listAction()
     {
+
         $data = $this->_quoteBizLine->getQuoteList($this->_requestParams);
 
         if (!$data){
@@ -135,7 +135,18 @@ class QuoteBizLineController extends PublicController
         |
         */
 
-        $this->_quoteBizLine->storageQuote($this->_requestParams['quote_id']);
+        $result = $this->_quoteBizLine->storageQuote($this->_requestParams['quote_id']);
+        if (!$result){
+            $this->jsonReturn([
+                'code' => -104,
+                'message' => '失败!',
+            ]);
+        }
+
+        $this->jsonReturn([
+            'code'=> 1,
+            'message' => '成功!'
+        ]);
 
     }
 
@@ -163,19 +174,27 @@ class QuoteBizLineController extends PublicController
         ]);
     }
 
-    /**
-     * @desc 报价办理->附件信息
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | 产品线报价->附件信息(上传附件)   角色:产品线负责人
+    |--------------------------------------------------------------------------
+    | 说明：
+    | 1、当前环节且本人上传，可删除
+    | 2、A环节，上传了附件，提交出去后，再流转回来，不能删除之前上传的附件
+    | 3、附件排序：按时间顺序正序排列
+    | 4.点击附件名称可以下载附件
+    |
+    */
     public function attachAction()
     {
         $quoteAttach = new QuoteAttachModel();
 
-        $attachList = $quoteAttach->where(['quote_id'=>$this->_requestParams['quote_id']])->select();
+        $attachList = $quoteAttach->where(['quote_id'=>$this->_requestParams['quote_id']])->order('created_at desc')->select();
 
         if (!$attachList){
             $this->jsonReturn([
                 'code' => -101,
-                'message' => '失败',
+                'message' => '没有数据',
                 'data' => ''
             ]);
         }
@@ -277,7 +296,7 @@ class QuoteBizLineController extends PublicController
     | 项目状态:项目经理审核
     | 把当前项目(询单)的状态改为项目经理审核
     */
-    public function submitAction()
+    public function submitToManagerAction()
     {
         $inquiry = new InquiryModel();
 
@@ -297,6 +316,111 @@ class QuoteBizLineController extends PublicController
             'code' => -101,
             'message' => '提交失败!'
         ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 产品线报价->选择供应商   角色:产品线报价人
+    |--------------------------------------------------------------------------
+    | 操作说明
+    | 当前用户所在报价小组，对应的供应商
+    |
+    | 当前用户信息
+    | 查找当前用户所在的报价小组(产品线id)  [bizline_group表]
+    | 查找产品线对应的供应商列表 [bizline_supplier表]
+    |
+    */
+
+    /**
+     * 选择供应商
+     */
+    public function supplierAction()
+    {
+        //当前用户所在的产品线id
+        $bizline_id = 1;
+
+        //产品线对应的供应商
+        $bizlineSupplier = new BizlineSupplierModel();
+        //TODO 这里后期可能添加搜索功能
+        $bizline_suppliers = $bizlineSupplier->getList($bizline_id);
+
+        if ($bizline_suppliers){
+            $this->jsonReturn([
+                'code' => 1,
+                'message' => '成功!'
+            ]);
+        }
+
+        $this->jsonReturn([
+            'code' => -104,
+            'message' => '没有相关记录!'
+        ]);
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 产品线报价->暂存   角色:产品线报价人
+    |--------------------------------------------------------------------------
+    | 操作说明
+    | 点击暂存后，不做校验，市场的进度为待提交
+    | 当前报价单状态改为待提交  [quote_bizlie表]
+    |
+    */
+    public function quoterStorageAction()
+    {
+        $quote_id = 1;
+        $result = $this->_quoteBizLine->quoterStorage($quote_id);
+
+        //TODO 这里可能添加一些列逻辑
+
+        if ($result){
+            $this->jsonReturn([
+                'code' => 1,
+                'message' => '成功!'
+            ]);
+        }
+
+        $this->jsonReturn([
+            'code' => -104,
+            'message' => '失败!'
+        ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | 产品线报价->提交产品线负责人审核   角色:产品线报价人
+    |--------------------------------------------------------------------------
+    | 操作说明
+    | 点击暂存后，不做校验，市场的进度为待提交
+    | 当前报价单状态改为待提交  [quote_bizlie表]
+    |
+    */
+    public function submitToBizlineManagerAction()
+    {
+
+        //返回给前端的标准数据
+
+        //TODO 判断是不是已经提交了，不能重复提交吧?
+
+        //保存数据及更改状态
+        $inquiry_id = 1;
+        $inquiry = new InquiryModel();
+        $result = $inquiry->where(['id'=>$inquiry_id])->save(['status'=>'VALID']);
+
+        if (!$result){
+            $this->jsonReturn([
+                'code' => -104,
+                'message' => '失败!'
+            ]);
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功!'
+        ]);
+
     }
 }
 
