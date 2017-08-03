@@ -16,7 +16,7 @@ class ShowmaterialcatModel extends PublicModel {
     //put your code here
     //put your code here
     protected $tableName = 'show_material_cat';
-    protected $dbName = 'erui_goods'; //数据库名称
+    protected $dbName = 'erui2_goods'; //数据库名称
 
     public function __construct($str = '') {
         parent::__construct($str);
@@ -31,7 +31,7 @@ class ShowmaterialcatModel extends PublicModel {
 
         try {
             return $this->alias('ms')
-                            ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ')
+                            ->join('erui2_goods.show_cat s on s.cat_no=ms.show_cat_no ')
                             ->where(['ms.show_cat_no' => $showcatno
                                 , 'ms.status' => 'VALID',
                                 's.status' => 'VALID',
@@ -66,7 +66,7 @@ class ShowmaterialcatModel extends PublicModel {
                 }
 
                 $flag = $this->alias('ms')
-                        ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ', 'left')
+                        ->join('erui2_goods.show_cat s on s.cat_no=ms.show_cat_no ', 'left')
                         ->where($where)
                         ->field('ms.material_cat_no,ms.show_cat_no as cat_no,'
                                 . 'ms.status,s.name')
@@ -95,7 +95,7 @@ class ShowmaterialcatModel extends PublicModel {
 
         try {
             return $this->alias('ms')
-                            ->join('erui_goods.t_show_cat s on s.cat_no=ms.show_cat_no ', 'left')
+                            ->join('erui2_goods.show_cat s on s.cat_no=ms.show_cat_no ', 'left')
                             ->where(['ms.material_cat_no' => $material_cat_no
                                 , 'ms.status' => 'VALID',
                                 's.status' => 'VALID',
@@ -125,7 +125,7 @@ class ShowmaterialcatModel extends PublicModel {
                 return [];
             }
 
-            return $this->Table('erui_goods.t_show_cat')
+            return $this->Table('erui2_goods.show_cat')
                             ->where(['cat_no' => ['in', $show_cat_nos]
                                 , 'status' => 'VALID',
                                 'lang' => $lang,

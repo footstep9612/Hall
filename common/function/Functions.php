@@ -1359,17 +1359,15 @@ function browser_lang() {
  * @param string $message    错误提示
  * @param string $type
  */
-function jsonReturn($data, $code = 1, $message = '', $type = 'JSON') {
+function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
     header('Content-Type:application/json; charset=utf-8');
     if ($data) {
-        if (!is_array($data)) {
-            $data = array('data' => $data);
-        }
+        $data = array('data' => $data);
         $data['code'] = $code;
-        $data['message'] = ErrorMsg::getMessage($code, $message);
+        $data['message'] = ErrorMsg::getMessage($code, $message,$lang);
         exit(json_encode($data));
     } else {
-        exit(json_encode(array('code' => $code, 'message' => ErrorMsg::getMessage($code, $message))));
+        exit(json_encode(array('code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
     }
 }
 
@@ -1661,4 +1659,18 @@ function getValue(&$where, &$condition, $name, $type = 'string', $field = null) 
             $where[$field] = ['in', $condition[$name]];
         }
     }
+}
+
+/**
+ * 生产随机数
+ * @param int $len
+ * @param string $prefix    前缀
+ * @return string
+ */
+function randNumber($len = 6,$prefix = ''){
+    $str = '';
+    for($i=0;$i<$len;$i++){
+        $str.=rand(0,9);
+    }
+    return $prefix.str_pad($str,6,'0',STR_PAD_LEFT);
 }

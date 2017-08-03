@@ -1,12 +1,16 @@
 <?php
 
 /**
- * 产品与物料分类对应表
- * zyg
+ * Description of FeeType
+ * @author  zhongyg
+ * @date    2017-8-1 17:34:40
+ * @version V2.0
+ * @desc  物料分类 
  */
 class MaterialCatController extends PublicController {
 
     public function init() {
+        $this->user['id'] = 1;
         // parent::init();
         if (!method_exists($this, $this->getRequest()->getActionName() . 'Action')) {
             $this->setCode(MSG::MSG_ERROR_ACTION);
@@ -92,12 +96,12 @@ class MaterialCatController extends PublicController {
      * @author zyg
      *
      */
-    private function _getCount($cat_no) {
+    private function _getCount($cat_no, $lang = 'en') {
         $redis_key = 'Material_cat_spucount_' . md5(json_encode($cat_no));
         $data = json_decode(redisGet($redis_key), true);
-        $materialcat_product_model = new MaterialcatproductModel();
+        $materialcat_product_model = new Model('erui2_goods.product');
         if (!$data) {
-            $arr = $materialcat_product_model->getCount($cat_no);
+            $arr = $materialcat_product_model->where(['material_cat_no' => $cat_no, 'status' => 'VALID', 'lang' => $lang])->Count();
             if ($arr) {
                 redisSet($redis_key, $arr, 86400);
                 return $arr;
@@ -115,10 +119,10 @@ class MaterialCatController extends PublicController {
      * @author zyg
      *
      */
-    private function _getSpuCount(&$cats = []) {
+    private function _getSpuCount(&$cats = [], $lang = 'en') {
 
         foreach ($cats AS $key => $one) {
-            $one['spucount'] = $this->_getCount($one['cat_no']);
+            $one['spucount'] = $this->_getCount($one['cat_no'], $lang);
             $cats[$key] = $one;
         }
     }
@@ -131,7 +135,7 @@ class MaterialCatController extends PublicController {
      */
     public function listAction() {
 
-        $condition = $this->get();
+        $condition = $this->get() ? $this->get() : $this->getPut();
         $condition['token'] = null;
         unset($condition['token']);
         $key = 'Material_cat_list_' . md5(json_encode($condition));
@@ -139,8 +143,9 @@ class MaterialCatController extends PublicController {
 
         if (!$data) {
             $arr = $this->_model->getlist($condition);
+
             if ($arr) {
-                $this->_getSpuCount($arr);
+                $this->_getSpuCount($arr, $condition['lang']);
                 redisSet($key, json_encode($arr), 86400);
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
@@ -186,7 +191,7 @@ class MaterialCatController extends PublicController {
      *
      */
     public function infoAction() {
-        $cat_no = $this->get('id');
+        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -196,9 +201,11 @@ class MaterialCatController extends PublicController {
         foreach ($langs as $lang) {
             $result = $this->_model->info($cat_no, $lang);
             if ($result) {
-                $data = $result;
-                $data['name'] = $data['id'] = null;
-                unset($data['name'], $data['id']);
+                if (!$data) {
+                    $data = $result;
+                    $data['name'] = $data['id'] = null;
+                    unset($data['name'], $data['id']);
+                }
                 $data[$lang]['name'] = $result['name'];
             }
         }
@@ -268,17 +275,21 @@ class MaterialCatController extends PublicController {
     private function _delCache() {
         $redis = new phpredis();
         $keys = $redis->getKeys('Material_cat*');
-        var_dump($keys);
+
         $redis->delete($keys);
     }
 
     /*
      * 新建分类
-     * @author zyg
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
      */
 
     public function createAction() {
-        $result = $this->_model->create_data($this->put_data, $this->user['username']);
+        $data = $this->getPut();
+        $result = $this->_model->create_data($data, $this->user['id']);
         if ($result) {
             $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -295,7 +306,8 @@ class MaterialCatController extends PublicController {
      */
 
     public function updateAction() {
-        $result = $this->_model->update_data($this->put_data, $this->user['username']);
+        $data = $this->getPut();
+        $result = $this->_model->update_data($data, $this->user['id']);
 
         if ($result) {
             $this->_delCache();
@@ -313,18 +325,17 @@ class MaterialCatController extends PublicController {
      */
 
     public function deleteAction() {
-        $cat_no = $this->get('id');
-        $lang = $this->get('lang');
+        $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
+        $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
         $product_model = new ProductModel();
         $data = $product_model->where(['meterial_cat_no' => ['like', $cat_no . '%']])
                 ->find();
-
         if ($data) {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('该分类下存在产品,不能删除');
             $this->jsonReturn();
         }
-        $result = $this->_model->delete_data($cat_no, $lang);
+        $result = $this->_model->delete_data($cat_no, $lang, $this->user['id']);
         if ($result) {
             $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -341,8 +352,10 @@ class MaterialCatController extends PublicController {
      */
 
     public function approvingAction() {
+        $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
+        $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
+        $result = $this->_model->approving($cat_no, $lang, $this->user['id']);
 
-        $result = $this->_model->approving($this->put_data['cat_no'], $this->getLang());
         if ($result) {
             $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -359,7 +372,7 @@ class MaterialCatController extends PublicController {
      */
 
     public function changeorderAction() {
-        $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
+        $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no'], $this->user['id']);
         if ($result) {
             $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
