@@ -9,6 +9,8 @@ class ProductChecklogModel extends PublicModel{
     protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'product_check_log'; //数据表表名
 
+    const STATUS_PASS  = 'PASS';    //-通过
+    const STATUS_REJECTED = 'REJECTED';    //-不通过
 
     /**
      * 商品审核记录写入
@@ -28,11 +30,12 @@ class ProductChecklogModel extends PublicModel{
             try {
                 foreach ($condition as $item) {
                     $data = [
-                        'sku' => $item['sku'],
-                        'status' => $status,
                         'spu' => isset($item['spu']) ? $item['spu'] : '',
+                        'sku' => isset($item['sku']) ? $item['sku'] : '',
+                        'lang' => isset($item['lang']) ? $item['lang'] : '',
+                        'status' => $status,
                         'remarks' => isset($item['remarks']) ? $item['remarks'] : '',
-                        'approved_by' => $userInfo['id'],
+                        'approved_by' => isset($userInfo['id']) ? $userInfo['id'] : '',
                         'approved_at' => date('Y-m-d H:i:s', time())
                     ];
                     $arr[] = $data;

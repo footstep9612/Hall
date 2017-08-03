@@ -272,6 +272,7 @@ class ProductModel extends PublicModel {
             $this->startTrans();
             try{
                // $model = new EsproductModel();
+                $spuary = [];
                 if(is_array($spu)) {
                     foreach($spu as $r){
                         $where = array(
@@ -282,16 +283,7 @@ class ProductModel extends PublicModel {
                         }
                         $result = $this->where($where)->save(array('status'=>$status));
                         if($result){
-                            switch($status){
-                                case self::STATUS_VALID:
-                                    $pclog = new ProductCheckLogModel();
-                                    $pclog->addLog($r,'',$lang,$pclog::STATUS_PASS,$remark);
-                                    break;
-                                case self::STATUS_INVALID:
-                                    $pclog = new ProductCheckLogModel();
-                                    $pclog->addLog($r,'',$lang,$pclog::STATUS_REJECTED,$remark);
-                                    break;
-                            }
+                            $spuary[]=array('spu'=>$r, 'lang'=>$lang,'remarks'=>$remark);
                             /**
                              * 更新ES
                              */
@@ -310,16 +302,7 @@ class ProductModel extends PublicModel {
                     }
                     $result = $this->where($where)->save(array('status'=>$status));
                     if($result){
-                        switch($status){
-                            case self::STATUS_VALID:
-                                $pclog = new ProductCheckLogModel();
-                                $pclog->addLog($spu,'',$lang,$pclog::STATUS_PASS,$remark);
-                                break;
-                            case self::STATUS_INVALID:
-                                $pclog = new ProductCheckLogModel();
-                                $pclog->addLog($spu,'',$lang,$pclog::STATUS_REJECTED,$remark);
-                                break;
-                        }
+                        $spuary[]=array('spu'=>$spu, 'lang'=>$lang,'remarks'=>$remark);
                         /**
                          * 更新ES
                          */
@@ -328,6 +311,16 @@ class ProductModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
+                }
+                switch($status){
+                    case self::STATUS_VALID:
+                        $pclog = new ProductCheckLogModel();
+                        $pclog->takeRecord($spuary,$pclog::STATUS_PASS);
+                        break;
+                    case self::STATUS_INVALID:
+                        $pclog = new ProductCheckLogModel();
+                        $pclog->takeRecord($spuary,$pclog::STATUS_REJECTED);
+                        break;
                 }
 
                 $this->commit();
@@ -364,7 +357,6 @@ class ProductModel extends PublicModel {
                         }
                         $result = $this->where($where)->save(array('deleted_flag'=>self::DELETE_Y));
                         if($result) {
-
                             /**
                              * 更新ES
                              */
@@ -383,7 +375,6 @@ class ProductModel extends PublicModel {
                     }
                     $result = $this->where($where)->save(array('deleted_flag'=>self::DELETE_Y));
                     if($result) {
-
                         /**
                          * 更新ES
                          */
@@ -424,6 +415,7 @@ class ProductModel extends PublicModel {
 
         $condition = array(
             'spu' => $spu,
+            'deleted_flag' =>self::DELETE_N,
         );
         if(!empty($lang)) {
             $condition['lang'] = $lang;

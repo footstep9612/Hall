@@ -1361,14 +1361,7 @@ function browser_lang() {
  */
 function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
     header('Content-Type:application/json; charset=utf-8');
-    if ($data) {
-        $data = array('data' => $data);
-        $data['code'] = $code;
-        $data['message'] = ErrorMsg::getMessage($code, $message,$lang);
-        exit(json_encode($data));
-    } else {
-        exit(json_encode(array('code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
-    }
+    exit(json_encode(array('data'=>$code==1 ? $data : false,'code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
 }
 
 /**
