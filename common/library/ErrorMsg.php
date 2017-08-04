@@ -38,7 +38,7 @@ class ErrorMsg {
     private static $message = array(
         'zh' => array(
             '0' => '失败',
-            '200' => '成功',
+            '1' => '成功',
             '100' => '已经存在',
             '302' => '请求方法有误',
 
@@ -77,7 +77,7 @@ class ErrorMsg {
      * @param string $msg  自定义错误信息
      * @param string $lang 语言(默认中文)
      */
-    public static function getMessage($code = '200', $msg = '',$lang='zh') {
+    public static function getMessage($code = '1', $msg = '',$lang='zh') {
         $msg = $msg ? $msg : (isset(self::$message[$lang][$code]) ? self::$message[$lang][$code] : '');
         return $msg;
     }

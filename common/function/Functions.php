@@ -1359,9 +1359,9 @@ function browser_lang() {
  * @param string $message    错误提示
  * @param string $type
  */
-function jsonReturn($data, $code = 200, $message = '', $lang = 'zh') {
+function jsonReturn($data, $code = '1', $message = '', $lang = 'zh') {
     header('Content-Type:application/json; charset=utf-8');
-    exit(json_encode(array('data'=>$code==200 ? $data : false,'code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
+    exit(json_encode(array('data'=>$code=='1' ? $data : false,'code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
 }
 
 /**
