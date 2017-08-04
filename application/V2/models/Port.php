@@ -33,7 +33,7 @@ class PortModel extends PublicModel {
             return json_decode(redisHashGet('Port', md5(json_encode($condition))), true);
         }
         try {
-            $field = 'lang,country_bn,bn,name,port_type,trans_mode,description,address,longitude,latitude';
+            $field = 'lang,country_bn,bn,name,port_type,trans_mode,remarks,address,longitude,latitude';
             $result = $this->field($field)->where($condition)->order('bn')->select();
             if ($result) {
                 redisHashSet('Port', md5(json_encode($condition)), json_encode($result));
@@ -182,7 +182,7 @@ class PortModel extends PublicModel {
             $arr['country_bn'] = $data['country_bn'];
             $arr['trans_mode'] = $data['trans_mode'];
             $arr['port_type'] = $data['port_type'];
-            $arr['description'] = $data['description'];
+            $arr['remarks'] = $data['remarks'];
 
             if ($this->Exits($where)) {
                 $flag = $this->where($where)->save($arr);
@@ -215,7 +215,7 @@ class PortModel extends PublicModel {
             $arr['country_bn'] = $create['country_bn'];
             $arr['trans_mode'] = $create['trans_mode'];
             $arr['port_type'] = $create['port_type'];
-            $arr['description'] = $create['description'];
+            $arr['remarks'] = $create['remarks'];
             $langs = ['en', 'zh', 'es', 'ru'];
             foreach ($langs as $lang) {
                 if (isset($create[$lang]['name'])) {

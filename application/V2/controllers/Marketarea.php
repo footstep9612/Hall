@@ -61,11 +61,14 @@ class MarketareaController extends PublicController {
         $data = [];
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            $result = $this->_model->info($bn, 'en');
+            $result = $this->_model->info($bn, $lang);
+
             if ($result) {
-                $data = $result;
-                $data['name'] = null;
-                unset($data['name']);
+                if (!$data) {
+                    $data = $result;
+                    $data['name'] = null;
+                    unset($data['name']);
+                }
                 $data[$lang]['name'] = $result['name'];
             }
         }
@@ -73,7 +76,7 @@ class MarketareaController extends PublicController {
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
-        } elseif ($data === null) {
+        } elseif ($data === []) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
