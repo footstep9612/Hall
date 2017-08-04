@@ -5,35 +5,52 @@
  */
 class BrandController extends PublicController {
 
+    protected $langs = ['en', 'es', 'ru', 'zh'];
+
     public function init() {
         // parent::init();
     }
 
     public function listAction() {
 
-        $brand = $this->get('brand', '');
-        $current_no = $this->getPut('current_no', '1');
-        $pagesize = $this->getPut('pagesize', '10');
+        $condition = $this->getPut();
+        $lang = $this->getPut('lang', '');
+        unset($condition['token']);
 
-        $brand_key = 'brand_list_' . md5($brand . $current_no . $pagesize);
+        $brand_key = 'brand_list_' . md5(json_encode($condition));
         $data = json_decode(redisGet($brand_key), true);
+        $brand_model = new BrandModel();
         if (!$data) {
-            $brand_model = new BrandModel();
-            $arr = $brand_model->getlist($brand, 'VALID', $current_no, $pagesize);
 
-
+            $arr = $brand_model->getlist($condition, $lang);
+            foreach ($arr as $key => $item) {
+                $brands = json_decode($item['brand'], true);
+                foreach ($this->langs as $lang) {
+                    $item[$lang] = [];
+                }
+                foreach ($brands as $val) {
+                    $item[$val['lang']] = $val;
+                }
+                unset($item['brand']);
+                $arr[$key] = $item;
+            }
             if ($arr) {
                 redisSet($brand_key, json_encode($arr), 86400);
+                $count = $brand_model->getCount($condition, $lang);
+                $this->setvalue('count', $count);
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
             } elseif ($arr === null) {
                 $this->setCode(MSG::ERROR_EMPTY);
+                $this->setvalue('count', 0);
                 $this->jsonReturn();
             } else {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
             }
         }
+        $count = $brand_model->getCount($condition, $lang);
+        $this->setvalue('count', $count);
         $this->setCode(MSG::MSG_SUCCESS);
         $this->jsonReturn($data);
     }
@@ -44,15 +61,26 @@ class BrandController extends PublicController {
 
     public function ListAllAction() {
 
-        $name = $this->getPut('name', '');
+        $condition = $this->getPut();
+        $lang = $this->getPut('lang', '');
 
 
         $key = 'brand_list_' . md5($name);
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $brand_model = new BrandModel();
-            $arr = $brand_model->listall($name);
-
+            $arr = $brand_model->listall($condition, $lang);
+            foreach ($arr as $key => $item) {
+                $brands = json_decode($item['brand'], true);
+                foreach ($this->langs as $lang) {
+                    $item[$lang] = [];
+                }
+                foreach ($brands as $val) {
+                    $item[$val['lang']] = $val;
+                }
+                unset($item['brand']);
+                $arr[$key] = $item;
+            }
             redisSet($key, json_encode($arr), 86400);
             if ($arr) {
                 $this->setCode(MSG::MSG_SUCCESS);
@@ -79,9 +107,15 @@ class BrandController extends PublicController {
         }
         $brand_model = new BrandModel();
         $result = $brand_model->info($id);
-
+        $brands = json_decode($result['brand'], true);
+        foreach ($this->langs as $lang) {
+            $result[$lang] = [];
+        }
+        foreach ($brands as $val) {
+            $result[$val['lang']] = $val;
+        }
+         unset($result['brand']);
         if ($result) {
-
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($result);
         } elseif ($result === null) {
@@ -104,8 +138,8 @@ class BrandController extends PublicController {
 
     public function createAction() {
         $brand_model = new BrandModel();
-
-        $result = $brand_model->create_data($this->put_data, $this->user['username']);
+        $data = $this->getPut();
+        $result = $brand_model->create_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -118,7 +152,8 @@ class BrandController extends PublicController {
 
     public function updateAction() {
         $brand_model = new BrandModel();
-        $result = $brand_model->update_data($this->put_data, $this->user['username']);
+        $data = $this->getPut();
+        $result = $brand_model->update_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -131,7 +166,8 @@ class BrandController extends PublicController {
 
     public function deleteAction() {
         $brand_model = new BrandModel();
-        $result = $brand_model->delete_data($this->put_data['id']);
+        $id = $this->get('id') ?: $this->getPut('id');
+        $result = $brand_model->delete_data($id);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -144,7 +180,11 @@ class BrandController extends PublicController {
 
     public function batchdeleteAction() {
         $brand_model = new BrandModel();
-        $result = $brand_model->batchdelete_data($this->put_data['ids']);
+        $ids = $this->get('ids') ?: $this->getPut('ids');
+        if (is_string($ids)) {
+            $ids = explode(',', $ids);
+        }
+        $result = $brand_model->batchdelete_data($ids);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

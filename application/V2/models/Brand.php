@@ -23,31 +23,41 @@ class BrandModel extends PublicModel {
     const STATUS_VALID = 'VALID'; //生效；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
+    protected $langs = ['en', 'es', 'ru', 'zh'];
+
     public function __construct() {
         parent::__construct();
     }
 
-    public function getcondition($name, $status = 'VALID') {
+    /**
+     * 条件解析
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function getcondition($condition, $lang = '') {
 
         $where = [];
-        if (!empty($name)) {
-            $where['name'] = ['like', '%' . $name . '%'];
+        $this->_getValue($where, $condition, 'id', 'string');
+        $this->_getValue($where, $condition, 'name', 'like', 'brand');
+        $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
+        $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
+        if ($lang) {
+            $where['brand'] = ['like', '%' . $lang . '%'];
         }
-        if (!empty($status)) {
-            $where['status'] = $status;
-        }
-
         return $where;
     }
 
     /**
      * 获取数据条数
-     * @param mix $condition
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
      * @return mix
      * @author zyg
      */
-    public function getcount($name, $status = 'VALID') {
-        $where = $this->getcondition($name, $lang);
+    public function getCount($condition, $lang = '') {
+        $where = $this->getcondition($condition, $lang);
         try {
             return $this->where($where)
                             ->count('id');
@@ -59,36 +69,32 @@ class BrandModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param mix $condition
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
      * @return mix
      * @author zyg
      */
-    public function getlist($name, $status = 'VALID', $current_no = 1, $pagesize = 10) {
-        $where = $this->getcondition($name, $status);
-        if (intval($current_no) <= 1) {
-            $row_start = 0;
-        } else {
-            $row_start = (intval($current_no) - 1) * $pagesize;
-        }
-        if ($pagesize < 1) {
-            $pagesize = 10;
-        }
+    public function getlist($condition, $lang = '') {
+        $where = $this->getcondition($condition, $lang);
+        list($row_start, $pagesize) = $this->_getPage($condition);
+
         return $this->where($where)
                         ->field('id,brand,status,created_by,'
                                 . 'created_at,updated_by,updated_at')
                         ->order('id desc')
-                        ->limit($row_start . ',' . $pagesize)
+                        ->limit($row_start, $pagesize)
                         ->select();
     }
 
     /**
      * 获取列表
-     * @param mix $condition
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
      * @return mix
      * @author zyg
      */
-    public function listall($name, $status = 'VALID') {
-        $where = $this->getcondition($name, $status);
+    public function listall($condition, $lang = '') {
+        $where = $this->getcondition($condition, $lang);
         return $this->where($where)
                         ->field('id,brand')
                         ->order('id desc')
@@ -189,7 +195,7 @@ class BrandModel extends PublicModel {
      * @author zyg
      */
     public function update_data($upcondition = [], $username = '') {
-        $data = $this->create($upcondition);
+        $data['brand'] = $this->_getdata($upcondition);
         if (!$data['id']) {
             return false;
         } else {
@@ -214,17 +220,42 @@ class BrandModel extends PublicModel {
     }
 
     /**
+     * 品牌数据组合
+     * @param  mix $create 品牌数据
+     * @return bool
+     * @author zyg
+     */
+    private function _getdata($create) {
+
+        $data = [
+            'style' => $create['style'],
+            'label' => $create['label'],
+            'logo' => $create['logo'],
+            'manufacturer' => $create['manufacturer']
+        ];
+        $datalist = [];
+        foreach ($this->langs as $lang) {
+
+            if (isset($create[$lang]) && isset($create[$lang]['name']) && $create[$lang]['name']) {
+                $data['lang'] = $lang;
+                $data['name'] = $create[$lang]['name'];
+            }
+            $datalist[] = $data;
+        }
+        return json_encode($datalist, 256);
+    }
+
+    /**
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = [], $username = '') {
+    public function create_data($createcondition = [], $uid = '') {
 
-        $data = $condition = $this->create($createcondition);
+        $data['brand'] = $this->_getdata($createcondition);
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $username;
-
+        $data['created_by'] = $uid;
         $flag = $this->add($data);
 
         if (!$flag) {

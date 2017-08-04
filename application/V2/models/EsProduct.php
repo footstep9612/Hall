@@ -588,7 +588,6 @@ class EsProductModel extends Model {
             return [];
         }
         try {
-
             $product_attrs = $this->table('erui2_goods.product_attr')
                     ->field('*')
                     ->where(['spu' => ['in', $spus],
