@@ -13,11 +13,11 @@
  * @version V2.0
  * @desc   
  */
-class BoxShipownerClauseController extends PublicController {
+class TransboxtypeController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        // parent::init();
     }
 
     /*
@@ -27,13 +27,14 @@ class BoxShipownerClauseController extends PublicController {
     public function listAction() {
         $data = $this->get() ? $this->get() : $this->getPut();
 
-        $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        if (redisGet('BoxShipownerClause_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('BoxShipownerClause_' . md5(json_encode($data))), true);
+        $trans_box_type_model = new TransBoxTypeModel();
+        if (redisGet('TransBoxType_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('TransBoxType_' . md5(json_encode($data))), true);
         } else {
-            $arr = $box_shipowner_clause_model->getlist($data);
+            $arr = $trans_box_type_model->getlist($data);
+
             if ($arr) {
-                redisSet('BoxShipownerClause_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('TransBoxType_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {
@@ -53,13 +54,13 @@ class BoxShipownerClauseController extends PublicController {
     public function infoAction() {
         $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
 
-        $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        if (redisGet('BoxShipownerClause_' . md5($id))) {
-            $arr = json_decode(redisGet('BoxShipownerClause_' . md5($id)), true);
+        $trans_box_type_model = new TransBoxTypeModel();
+        if (redisGet('TransBoxType_' . md5($id))) {
+            $arr = json_decode(redisGet('TransBoxType_' . md5($id)), true);
         } else {
-            $arr = $box_shipowner_clause_model->info($id);
+            $arr = $trans_box_type_model->info($id);
             if ($arr) {
-                redisSet('BoxShipownerClause_' . md5($id), json_encode($arr));
+                redisSet('TransBoxType_' . md5($id), json_encode($arr));
             }
         }
         if (!empty($arr)) {
@@ -72,10 +73,11 @@ class BoxShipownerClauseController extends PublicController {
 
     public function createAction() {
         $condition = $this->getPut(null);
-        $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        $result = $box_shipowner_clause_model->create_data($condition);
+        $trans_box_type_model = new TransBoxTypeModel();
+
+        $result = $trans_box_type_model->create_data($condition);
         if ($result) {
-//            $this->delcache();
+            // $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -85,15 +87,16 @@ class BoxShipownerClauseController extends PublicController {
     }
 
     public function updateAction() {
-
+        $trans_box_type_model = new TransBoxTypeModel();
         $condition = $this->getPut(null);
-        $box_shipowner_clause_model = new BoxShipownerClauseModel();
+
         if (!$condition['id']) {
             $condition['id'] = $this->get('id');
         }
-        $result = $box_shipowner_clause_model->update_data($condition);
+        $result = $trans_box_type_model->update_data($condition);
+
         if ($result) {
-//            $this->delcache();
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -103,7 +106,7 @@ class BoxShipownerClauseController extends PublicController {
     }
 
     public function deleteAction() {
-
+        $trans_box_type_model = new TransBoxTypeModel();
         $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
         $where['id'] = $id;
         if ($id) {
@@ -112,10 +115,9 @@ class BoxShipownerClauseController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-
-        $result = $this->_model->where($where)->delete();
+        $result = $trans_box_type_model->delete_data($id);
         if ($result) {
-//            $this->delcache();
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {

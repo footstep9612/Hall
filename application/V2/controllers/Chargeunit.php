@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc   
  */
-class ChargeUnitController extends PublicController {
+class ChargeunitController extends PublicController {
 
     //put your code here
     public function init() {

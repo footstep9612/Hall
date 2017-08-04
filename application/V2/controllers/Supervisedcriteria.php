@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc   
  */
-class SupervisedCriteriaController extends PublicController {
+class SupervisedcriteriaController extends PublicController {
 
     //put your code here
     public function init() {

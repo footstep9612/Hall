@@ -7,33 +7,34 @@
  */
 
 /**
- * Description of HotKeywords
+ * Description of FeeType
  * @author  zhongyg
- * @date    2017-8-1 18:19:45
+ * @date    2017-8-1 17:34:40
  * @version V2.0
  * @desc   
  */
-class HotKeywordsController extends PublicController {
+class ShipownerclauseController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        //parent::init();
     }
 
     /*
-     * 所有计费单位
+     * 所有船东条款
      */
 
     public function listAction() {
         $data = $this->get();
+        $data['lang'] = $this->get('lang', 'zh');
 
-        $hot_keywords_model = new HotKeywordsModel();
-        if (redisGet('HotKeywords_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('HotKeywords_' . md5(json_encode($data))), true);
+        $shipowner_clause_model = new ShipownerClauseModel();
+        if (redisGet('ShipownerClause_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('ShipownerClause_' . md5(json_encode($data))), true);
         } else {
-            $arr = $hot_keywords_model->getlist($data);
+            $arr = $shipowner_clause_model->getlist($data);
             if ($arr) {
-                redisSet('HotKeywords_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('ShipownerClause_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {
@@ -44,5 +45,4 @@ class HotKeywordsController extends PublicController {
         $this->jsonReturn($arr);
     }
 
-    //put your code here
 }

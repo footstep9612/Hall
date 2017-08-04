@@ -7,11 +7,11 @@
  * Time: 14:19
  */
 class ProductAttachModel extends PublicModel {
+
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
     const STATUS_INVALID = 'INVALID';  //无效
-
     const DELETED_Y = 'Y'; //删除
     const DELETED_N = 'N'; //未删除
 
@@ -31,9 +31,9 @@ class ProductAttachModel extends PublicModel {
      * @param $spu spu编码
      * @return array
      */
-    public function getAttachBySpu($spu = '',$status='') {
+    public function getAttachBySpu($spu = '', $status = '') {
         if (empty($spu)) {
-            jsonReturn('',ErrorMsg::NOTNULL_SPU);
+            jsonReturn('', ErrorMsg::NOTNULL_SPU);
         }
 
         $field = 'attach_type,attach_name,attach_url,default_flag,sort_order,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
@@ -41,17 +41,17 @@ class ProductAttachModel extends PublicModel {
             'spu' => $spu,
             'default_flag' => self::DELETED_N
         );
-        if(!empty($status)){
+        if (!empty($status)) {
             $condition['status'] = $status;
         }
 
         //根据缓存读取,没有则查找数据库并缓存
         $key_redis = md5(json_encode($condition));
-        if (redisHashExist('spu_attach',$key_redis)) {
-            $result = redisHashGet('spu_attach',$key_redis);
-            return json_decode($result,true);
+        if (redisHashExist('spu_attach', $key_redis)) {
+            $result = redisHashGet('spu_attach', $key_redis);
+            return json_decode($result, true);
         } else {
-            try{
+            try {
                 $result = $this->field($field)->where($condition)->select();
                 if ($result) {
                     $data = array();
@@ -63,16 +63,15 @@ class ProductAttachModel extends PublicModel {
                     return $data;
                 }
                 return array();
-            }catch (Exception $e){
+            } catch (Exception $e) {
                 return false;
             }
         }
     }
 
-
     /**
      * 添加附件
-     * @param array $data
+     * @param array $input
      * @return bool|mixed
      */
     public function addAttach($input = []) {
@@ -91,6 +90,40 @@ class ProductAttachModel extends PublicModel {
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
         return $this->add($data);
+    }
+
+    /* 通过SKU获取数据商品文件列表
+     * @param mix $spus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix  
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getproduct_attachsbyspus($spus, $lang = 'en') {
+
+        try {
+            $product_attachs = $this->field('id,attach_type,attach_url,attach_name,attach_url,spu')
+                    ->where(['spu' => ['in', $spus],
+                        'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
+                        'status' => 'VALID'])
+                    ->select();
+            $ret = [];
+            if ($product_attachs) {
+                foreach ($product_attachs as $item) {
+                    $data['attach_name'] = $item['attach_name'];
+                    $data['attach_url'] = $item['attach_url'];
+                    $ret[$item['spu']][$item['attach_type']][] = $data;
+                }
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
     }
 
 }

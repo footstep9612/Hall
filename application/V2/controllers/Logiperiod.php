@@ -1,113 +1,105 @@
 <?php
 
 /**
- * Description of RateController
+ * Description of LogiPeriodController
  * @author  zhongyg
  * @date    2017-8-2 13:07:21
  * @version V2.0
- * @desc   贸易术语
+ * @desc   贸易条款对应物流时效
  */
-class TradeTermsController extends PublicController {
+class LogiperiodController extends PublicController {
 
     public function init() {
-        //s parent::init();
+        // parent::init();
 
-        $this->_model = new TradeTermsModel();
+        $this->_model = new LogiPeriodModel();
     }
 
-    /*
-     * Description of 贸易术语列表
+    /**
+     * Description of 列表
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   贸易术语
+     * @desc   贸易条款对应物流时效
      */
-
     public function listAction() {
         $condtion = $this->put_data;
         unset($condtion['token']);
-        $key = 'Tradeterms_list_' . md5(json_encode($condtion));
-        $key_count = 'Tradeterms_list_count_' . md5(json_encode($condtion));
+        $key = 'logi_period_list_' . $lang . md5(json_encode($condtion));
         $data = redisGet($key);
         if (!$data) {
-            $arr = $this->_model->getList($condtion);
+            $arr = $this->_model->getListbycondition($condtion);
 
             if ($arr) {
-                $this->setCode(MSG::MSG_SUCCESS);
-                redisSet($key, json_encode($arr), 86400);
-                $count = $this->_model->getCount($condtion);
-                redisSet($key_count, $count, 86400);
-                $this->setvalue('count', $count);
+                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+                $data['code'] = MSG::MSG_SUCCESS;
+                $data['data'] = $arr;
+                $data['count'] = $this->_model->getCount($condtion);
+                redisSet($key, json_encode($data), 86400);
                 $this->jsonReturn($data);
             } elseif ($arr === null) {
-                $this->setCode(MSG::ERROR_EMPTY);
-                $this->jsonReturn(null);
                 redisSet($key, '&&', 86400);
-                redisSet($key_count, 0, 86400);
+                $this->setvalue('count', 0);
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn(null);
             } else {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
             }
         } elseif ($data == '&&') {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->jsonReturn(null);
-        } else {
-
             $this->setCode(MSG::MSG_SUCCESS);
-            $count = intval(redisGet($key_count));
-            $this->setvalue('count', $count);
-            $data = json_decode($data, true);
-          
-            $this->jsonReturn($data);
+            $this->jsonReturn(null);
         }
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn(json_decode($data, true));
     }
 
-    /*
-     * Description of 贸易术语所有
+    /**
+     * Description of 列表
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   贸易术语
+     * @desc   贸易条款对应物流时效
      */
-
     public function listallAction() {
         $condtion = $this->put_data;
+        $condtion['lang'] = $this->getPut('lang', 'zh');
         unset($condtion['token']);
-        $key = 'Tradeterms_listall_' . md5(json_encode($condtion));
+        $key = 'logi_period_listall_' . $lang . md5(json_encode($condtion));
         $data = redisGet($key);
         if (!$data) {
-            $arr = $this->_model->getall($condtion);
+            $arr = $this->_model->getListbycondition($condtion, true);
+
             if ($arr) {
+                $this->setCode(MSG::MSG_SUCCESS);
+                $data['data'] = $arr;
+
+                redisSet($key, json_encode($data), 86400);
+                $this->jsonReturn($arr);
+            } elseif ($arr === null) {
+                redisSet($key, '&&', 86400);
 
                 $this->setCode(MSG::MSG_SUCCESS);
-                redisSet($key, json_encode($arr), 86400);
-                $this->jsonReturn($data);
-            } elseif ($arr === null) {
-                $this->setCode(MSG::ERROR_EMPTY);
                 $this->jsonReturn(null);
-                redisSet($key, '&&', 86400);
             } else {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
             }
         } elseif ($data == '&&') {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->jsonReturn(null);
-        } else {
             $this->setCode(MSG::MSG_SUCCESS);
-            $data = json_decode($data, true);
-            $this->jsonReturn($data);
+            $this->jsonReturn(null);
         }
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->jsonReturn(json_decode($data, true));
     }
 
-    /*
-     * Description of 贸易术语详情
+    /**
+     * Description of 详情
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   贸易术语
+     * @desc   贸易条款对应物流时效
      */
-
     public function infoAction() {
         $id = $this->getPut('id');
         if ($id) {
@@ -128,31 +120,35 @@ class TradeTermsController extends PublicController {
         exit;
     }
 
-    /*
-     * Description of 删除缓存
+    /**
+     * Description of 清空缓存
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   贸易术语
+     * @desc   贸易条款对应物流时效
      */
-
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Tradeterms_*');
+        $keys = $redis->getKeys('logi_period_list_*');
         $redis->delete($keys);
+        $LogiPeriods = $redis->getKeys('LogiPeriod*');
+        $redis->delete($LogiPeriods);
     }
 
-    /*
-     * Description of 新建
+    /**
+     * Description of 新增
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   贸易术语
+     * @desc   贸易条款对应物流时效
      */
-
     public function createAction() {
         $condition = $this->put_data;
         $data = $this->_model->create($condition);
+        $data['logi_no'] = $data['warehouse'] . '_' . substr($data['trans_mode'], 0, 1) . '_' . $data['trade_terms']
+                . '_' . $data['from_port'] . '_' . $data['to_port'];
+        $data['created_by'] = $this->user['name'];
+        $data['created_at'] = date('Y-m-d H:i:s');
         $result = $this->_model->add($data);
         if ($result) {
             $this->delcache();
@@ -164,14 +160,13 @@ class TradeTermsController extends PublicController {
         }
     }
 
-    /*
+    /**
      * Description of 更新
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   贸易术语
+     * @desc   贸易条款对应物流时效
      */
-
     public function updateAction() {
 
         $condition = $this->put_data;
@@ -188,14 +183,13 @@ class TradeTermsController extends PublicController {
         }
     }
 
-    /*
+    /**
      * Description of 删除
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   贸易术语
+     * @desc   贸易条款对应物流时效
      */
-
     public function deleteAction() {
 
         $condition = $this->put_data;
@@ -205,13 +199,12 @@ class TradeTermsController extends PublicController {
             } elseif (is_array($condition['id'])) {
                 $where['id'] = ['in', $condition['id']];
             }
-        } elseif ($condition['terms']) {
-            $where['terms'] = $condition['terms'];
+        } elseif ($condition['bn']) {
+            $where['bn'] = $condition['bn'];
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-
         $result = $this->_model->where($where)->delete();
         if ($result) {
             $this->delcache();

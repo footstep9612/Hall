@@ -13,28 +13,27 @@
  * @version V2.0
  * @desc   
  */
-class ShipownerClauseController extends PublicController {
+class FeetypeController extends PublicController {
 
     //put your code here
     public function init() {
-        //parent::init();
+        //  parent::init();
     }
 
     /*
-     * 所有船东条款
+     * 所有计费单位
      */
 
     public function listAction() {
         $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
-
-        $shipowner_clause_model = new ShipownerClauseModel();
-        if (redisGet('ShipownerClause_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('ShipownerClause_' . md5(json_encode($data))), true);
+        $data['lang'] = $this->get('lang','zh');
+        $fee_type_model = new FeeTypeModel();
+        if (redisGet('FeeType_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('FeeType_' . md5(json_encode($data))), true);
         } else {
-            $arr = $shipowner_clause_model->getlist($data);
+            $arr = $fee_type_model->getlist($data);
             if ($arr) {
-                redisSet('ShipownerClause_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('FeeType_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {

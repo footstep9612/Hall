@@ -13,11 +13,11 @@
  * @version V2.0
  * @desc   
  */
-class FeeTypeController extends PublicController {
+class BoxtypeController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        // parent::init();
     }
 
     /*
@@ -26,14 +26,14 @@ class FeeTypeController extends PublicController {
 
     public function listAction() {
         $data = $this->get();
-        $data['lang'] = $this->get('lang','zh');
-        $fee_type_model = new FeeTypeModel();
-        if (redisGet('FeeType_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('FeeType_' . md5(json_encode($data))), true);
+        $data['lang'] = $this->get('lang', 'zh');
+        $box_type_model = new BoxTypeModel();
+        if (redisGet('BoxType_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('BoxType_' . md5(json_encode($data))), true);
         } else {
-            $arr = $fee_type_model->getlist($data);
+            $arr = $box_type_model->getlist($data);
             if ($arr) {
-                redisSet('FeeType_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('BoxType_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {

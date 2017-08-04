@@ -1,25 +1,20 @@
 <?php
 
 /**
- * Description of RateController
- * @author  zhongyg
- * @date    2017-8-2 13:07:21
- * @version V2.0
- * @desc   物流费率
+  附件文档Controller
  */
-class TransModeController extends PublicController {
+class PaymentmodeController extends PublicController {
 
     public function init() {
-        // parent::init();
+        parent::init();
 
-        $this->_model = new TransModeModel();
+        $this->_model = new PaymentmodeModel();
     }
 
     public function listAction() {
         $condtion = $this->put_data;
         unset($condtion['token']);
-        $condtion['lang'] = $this->getPut('lang', 'zh');
-        $key = 'TransMode_list_' . md5(json_encode($condtion));
+        $key = 'Paymentmode_list_' . md5(json_encode($condtion));
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->getListbycondition($condtion);
@@ -63,7 +58,7 @@ class TransModeController extends PublicController {
 
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('TransMode_*');
+        $keys = $redis->getKeys('Paymentmode_list_*');
         $redis->delete($keys);
     }
 

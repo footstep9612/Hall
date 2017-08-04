@@ -7,17 +7,17 @@
  */
 
 /**
- * Description of FeeType
+ * Description of HotKeywords
  * @author  zhongyg
- * @date    2017-8-1 17:34:40
+ * @date    2017-8-1 18:19:45
  * @version V2.0
  * @desc   
  */
-class BoxTypeController extends PublicController {
+class HotkeywordsController extends PublicController {
 
     //put your code here
     public function init() {
-        // parent::init();
+        parent::init();
     }
 
     /*
@@ -26,14 +26,14 @@ class BoxTypeController extends PublicController {
 
     public function listAction() {
         $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
-        $box_type_model = new BoxTypeModel();
-        if (redisGet('BoxType_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('BoxType_' . md5(json_encode($data))), true);
+
+        $hot_keywords_model = new HotKeywordsModel();
+        if (redisGet('HotKeywords_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('HotKeywords_' . md5(json_encode($data))), true);
         } else {
-            $arr = $box_type_model->getlist($data);
+            $arr = $hot_keywords_model->getlist($data);
             if ($arr) {
-                redisSet('BoxType_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('HotKeywords_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {
@@ -44,4 +44,5 @@ class BoxTypeController extends PublicController {
         $this->jsonReturn($arr);
     }
 
+    //put your code here
 }

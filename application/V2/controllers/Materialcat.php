@@ -7,7 +7,7 @@
  * @version V2.0
  * @desc  物料分类 
  */
-class MaterialCatController extends PublicController {
+class MaterialcatController extends PublicController {
 
     public function init() {
         $this->user['id'] = 1;
@@ -383,4 +383,5 @@ class MaterialCatController extends PublicController {
         }
     }
 
+   
 }

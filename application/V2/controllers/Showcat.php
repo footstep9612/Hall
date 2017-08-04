@@ -6,7 +6,7 @@
  * Date: 2017/6/15
  * Time: 11:09
  */
-class ShowCatController extends PublicController {
+class ShowcatController extends PublicController {
 
     public function init() {
         //  parent::init();
@@ -205,7 +205,7 @@ class ShowCatController extends PublicController {
                 $data[$lang]['name'] = $result['name'];
             }
         }
-    
+
 
         if ($data) {
             list($top_cats, $parent_cats) = $this->_getparentcats($data);

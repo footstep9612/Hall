@@ -11,7 +11,7 @@
  *
  * @author zyg
  */
-class BuyerAgentController extends PublicController {
+class BuyeragentController extends PublicController {
 
 
     public function __init() {

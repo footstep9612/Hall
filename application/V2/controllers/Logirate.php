@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc  物流费率 
  */
-class LogiRateController extends PublicController {
+class LogirateController extends PublicController {
 
     //put your code here
     public function init() {

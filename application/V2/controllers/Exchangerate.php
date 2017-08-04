@@ -7,40 +7,52 @@
  */
 
 /**
- * Description of Destdeliverylogi
+ * Description of Cxchangerate
  *
  * @author zhongyg
  */
-class DestDeliveryLogiController extends PublicController {
+class ExchangerateController extends PublicController {
 
+    //put your code here
     public function init() {
-        // parent::init();
-
-        $this->_model = new DestDeliveryLogiModel();
+        //  parent::init();
+        $this->_model = new ExchangeRateModel();
     }
 
     public function listAction() {
-        $country = $this->getPut('country');
-        $lang = $this->getPut('lang', 'zh');
+        $condtion = $this->get();
 
-        $key = 'dest_delivery_logi_list_' . $lang . md5($country . $lang);
-        $data = json_decode(redisGet($key), true);
-        if (!$data) {
-            $arr = $this->_model->getList($country, $lang);
-            echo $this->_model->_sql();
+        $key = 'Exchange_rate_' . md5(json_encode($condtion));
+        $data = redisGet($key);
+      
+        if ($data == '&&') {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn(NULL);
+        } elseif (!$data) {
+            $arr = $this->_model->getListbycondition($condtion);
             if ($arr) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::MSG_SUCCESS;
                 $data['data'] = $arr;
-               
+                $data['count'] = $this->_model->getCount($condtion);
                 redisSet($key, json_encode($data), 86400);
                 $this->jsonReturn($data);
+            } elseif ($arr === null) {
+                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+                $data['code'] = MSG::MSG_SUCCESS;
+                $data['data'] = $arr;
+                $data['count'] = 0;
+                redisSet($key, '&&', 86400);
+                $this->jsonReturn(null);
             } else {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
             }
+        } else {
+            $data= json_decode($data,true);
+            $data['code'] = MSG::MSG_SUCCESS;
+            $this->jsonReturn($data);
         }
-        $this->jsonReturn($data);
     }
 
     /**
@@ -52,7 +64,6 @@ class DestDeliveryLogiController extends PublicController {
             $result = $this->_model->where(['id' => $id])->find();
         } else {
             $this->setCode(MSG::MSG_FAILED);
-
             $this->jsonReturn();
         }
         if ($result) {
@@ -68,19 +79,13 @@ class DestDeliveryLogiController extends PublicController {
 
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('dest_delivery_logi_*');
+        $keys = $redis->getKeys('Exchange_rate_*');
         $redis->delete($keys);
     }
 
     public function createAction() {
         $condition = $this->put_data;
-        $data = $this->_model->create($condition);
-        $data['logi_no'] = $data['from_loc'] . '_'
-                . substr($data['trans_mode'], 0, 1)
-                . '_' . $data['to_loc'];
-        $data['created_by'] = $this->user['name'];
-        $data['created_at'] = date('Y-m-d H:i:s');
-        $result = $this->_model->add($data);
+        $result = $this->_model->create_data($condition, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -94,9 +99,8 @@ class DestDeliveryLogiController extends PublicController {
     public function updateAction() {
 
         $condition = $this->put_data;
-        $data = $this->_model->create($condition);
-        $where['id'] = $condition['id'];
-        $result = $this->_model->where($where)->update($data);
+        $where['id'] = $this->get('id');
+        $result = $this->_model->where($where)->update_data($condition, $where);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -109,20 +113,11 @@ class DestDeliveryLogiController extends PublicController {
 
     public function deleteAction() {
 
-        $condition = $this->put_data;
-        if (isset($condition['id']) && $condition['id']) {
-            if (is_string($condition['id'])) {
-                $where['id'] = $condition['id'];
-            } elseif (is_array($condition['id'])) {
-                $where['id'] = ['in', $condition['id']];
-            }
-        } elseif (isset($condition['logi_no']) && $condition['logi_no']) {
-            $where['logi_no'] = $condition['logi_no'];
-        } else {
+        $where['id'] = $this->get('id');
+        if (!$where['id']) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-
         $result = $this->_model->where($where)->delete();
         if ($result) {
             $this->delcache();

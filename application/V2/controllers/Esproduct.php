@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc   ES 产品
  */
-class EsProductController extends PublicController {
+class EsproductController extends PublicController {
 
     protected $index = 'erui2_goods';
     protected $es = '';
@@ -23,6 +23,7 @@ class EsProductController extends PublicController {
     //put your code here
     public function init() {
 
+        error_reporting(E_ERROR);
         //  parent::init();
         $this->es = new ESClient();
     }

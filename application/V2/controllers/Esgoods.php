@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc   ES 商品
  */
-class EsGoodsController extends PublicController {
+class EsgoodsController extends PublicController {
 
     protected $index = 'erui2_goods';
     protected $es = '';

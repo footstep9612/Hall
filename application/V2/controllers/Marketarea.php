@@ -1,42 +1,37 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- * Description of ExportTariffController
+ * Description of MarketAreaModel
  * @author  zhongyg
- * @date    2017-8-2 15:31:26
+ * @date    2017-8-1 16:50:09
  * @version V2.0
- * @desc   增值税、关税信息
+ * @desc   营销区域
  */
-class ExportTariffController extends PublicController {
+class MarketareaController extends PublicController {
 
-    //put your code here
     public function init() {
         // parent::init();
+
+        $this->_model = new MarketAreaModel();
     }
 
     /**
-     * Description of 列表
+     * Description of MarketAreaModel
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   增值税、关税信息
+     * @desc   营销区域
      */
     public function listAction() {
-        $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
-        $export_tariff_model = new ExportTariffModel();
-        if (redisGet('Export_Tariff_listall_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Export_Tariff_listall_' . md5(json_encode($data))), true);
+        $data = $this->get() ?: $this->getPut();
+        $data['lang'] = $this->get('lang', '') ?: $this->getPut('lang', '');
+        $market_area_model = new MarketAreaModel();
+        if (redisGet('Market_Area_listall_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
         } else {
-            $arr = $export_tariff_model->getlist($data, false);
+            $arr = $market_area_model->getlist($data, false);
             if ($arr) {
-                redisSet('Export_Tariff_listall_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {
@@ -54,17 +49,36 @@ class ExportTariffController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   增值税、关税信息
+     * @desc   营销区域
      */
     public function infoAction() {
-        $id = $this->get('id');
+        $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
 
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $export_tariff_model = new ExportTariffModel();
-        $result = $export_tariff_model->info($bn, 'en');
+        $ret_en = $this->_model->info($bn, 'en');
+        $ret_zh = $this->_model->info($bn, 'zh');
+        $ret_es = $this->_model->info($bn, 'es');
+        $ret_ru = $this->_model->info($bn, 'ru');
+        $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
+        if ($ret_en) {
+            $result['en']['name'] = $ret_en['name'];
+            //$result['en']['id'] = $ret_en['id'];
+        }
+        if ($ret_zh) {
+            $result['zh']['name'] = $ret_zh['name'];
+            // $result['zh']['id'] = $ret_zh['id'];
+        }
+        if ($ret_ru) {
+            $result['ru']['name'] = $ret_ru['name'];
+            // $result['ru']['id'] = $ret_ru['id'];
+        }
+        if ($ret_es) {
+            $result['es']['name'] = $ret_es['name'];
+            // $result['es']['id'] = $ret_es['id'];
+        }
         unset($result['id']);
         unset($result['lang']);
         if ($result) {
@@ -83,24 +97,24 @@ class ExportTariffController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   增值税、关税信息
+     * @desc   营销区域
      */
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Export_Tariff_*');
+        $keys = $redis->getKeys('market_area_list_*');
         $redis->delete($keys);
     }
 
     /**
-     * Description of 新增增值税、关税信息
+     * Description of 新增营销区域
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   增值税、关税信息
+     * @desc   营销区域
      */
     public function createAction() {
-        $export_tariff_model = new ExportTariffModel();
-        $result = $export_tariff_model->create_data($this->put_data);
+        $data = $this->getPut();
+        $result = $this->_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -112,19 +126,15 @@ class ExportTariffController extends PublicController {
     }
 
     /**
-     * Description of 更新增值税、关税信息
+     * Description of 更新营销区域
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   增值税、关税信息
+     * @desc   营销区域
      */
     public function updateAction() {
-        $export_tariff_model = new ExportTariffModel();
-        $id = $this->get('id');
-        if (!$this->put_data['id']) {
-            $this->put_data['id'] = $id;
-        }
-        $result = $export_tariff_model->update_data($this->put_data);
+        $data = $this->getPut();
+        $result = $this->_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -136,19 +146,19 @@ class ExportTariffController extends PublicController {
     }
 
     /**
-     * Description of 删除增值税、关税信息
+     * Description of 删除营销区域
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   增值税、关税信息
+     * @desc   营销区域
      */
     public function deleteAction() {
-        $condition = $this->put_data;
-        $id = $this->get('id');
+        $data = $this->getPut();
+        $id = $this->get('id') ?: $this->getPut('id');
         if ($id) {
             $ids = explode(',', $id);
             if (is_array($ids)) {
-                $where['id'] = ['in', $condition['id']];
+                $where['id'] = ['in', $ids];
             } else {
                 $where['id'] = $id;
             }

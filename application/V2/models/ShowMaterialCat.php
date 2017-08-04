@@ -11,7 +11,7 @@
  *
  * @author zhongyg
  */
-class ShowmaterialcatModel extends PublicModel {
+class ShowMaterialCatModel extends PublicModel {
 
     //put your code here
     //put your code here
@@ -137,6 +137,47 @@ class ShowmaterialcatModel extends PublicModel {
             Log::write($ex->getMessage());
             return [];
         }
+    }
+
+    /*
+     * 根据分类编码数组获取物料分类信息
+     * @param mix $cat_nos // 物料分类编码数组
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  规格信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getshow_material_cats($cat_nos, $lang = 'en') {
+        if (!$cat_nos || !is_array($cat_nos)) {
+            return [];
+        }
+        try {
+
+            $show_material_cats = $this->alias(smc)
+                    ->join('erui2_goods.show_cat sc on smc.show_cat_no=sc.cat_no')
+                    ->field('show_cat_no,material_cat_no')
+                    ->where([
+                        'smc.material_cat_no' => ['in', $cat_nos],
+                        'sc.status' => 'VALID',
+                        'sc.lang' => $lang,
+                        'sc.id>0',
+                        'smc.status' => 'VALID'])
+                    ->select();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+        $ret = [];
+        if ($show_material_cats) {
+            foreach ($show_material_cats as $item) {
+                $ret[$item['material_cat_no']][$item['show_cat_no']] = $item['show_cat_no'];
+            }
+        }
+        return $ret;
     }
 
 }
