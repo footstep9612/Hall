@@ -158,12 +158,15 @@ class MarketAreaModel extends PublicModel {
             $datalist = [];
             $arr['bn'] = ucwords($create['en']['name']);
             $create['en']['name'] = ucwords($create['en']['name']);
-            foreach ($create as $key => $name) {
-                $arr['lang'] = $key;
-                $arr['name'] = $name;
-                $arr['created_at'] = date('Y-m-d H:i:s');
-                $arr['created_by'] = $uid;
-                $datalist[] = $arr;
+            $langs = ['en', 'zh', 'es', 'ru'];
+            foreach ($langs as $lang) {
+                if (isset($create[$lang]['name']) && $create[$lang]['name']) {
+                    $arr['lang'] = $lang;
+                    $arr['name'] = $create[$lang]['name'];
+                    $arr['created_at'] = date('Y-m-d H:i:s');
+                    $arr['created_by'] = $uid;
+                    $datalist[] = $arr;
+                }
             }
             return $this->addAll($datalist);
         } else {
