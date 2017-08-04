@@ -204,13 +204,13 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages', 'advantages.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords','keywords.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name','show_name.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
@@ -590,7 +590,6 @@ class EsProductModel extends Model {
 
             $mcatmodel = new MaterialcatModel();
             $data['material_cat'] = json_encode($mcatmodel->getinfo($material_cat_no, $lang), 256); //通过物料分类编码获取物料分类详情
-
         } else {
             $data['material_cat_no'] = '';
             $data['material_cat'] = json_encode(new \stdClass());
@@ -667,9 +666,14 @@ class EsProductModel extends Model {
      * @desc   ES 产品 
      */
 
-    public function create_data($data, $lang = 'en') {
+    public function create_data($spu, $lang = 'en') {
         try {
             $es = new ESClient();
+            if ($spu) {
+                $product_model = new ProductModel();
+                $data = $product_model->where(['sku' => $sku, 'lang' => $lang])->find();
+            }
+
             $body = $this->getInsertCodition($data);
             $id = $data['spu'];
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
