@@ -284,7 +284,9 @@ class QuoteBizLineController extends PublicController
     */
     public function assignAction()
     {
-        echo 23456789;
+
+        $data = send_Mail("72163033@qq.com","科瑞集团支付系统提示邮件","你好!learnfans@aliyun.com,这是科瑞集团支付系统提示邮件，收到请回复");
+        p($data);
     }
 
     /*
