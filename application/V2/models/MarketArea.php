@@ -109,6 +109,7 @@ class MarketAreaModel extends PublicModel {
             $row = $this->where($where)
                     ->field('id,lang,bn,name,url')
                     ->find();
+
             return $row;
         } else {
             return false;

@@ -58,32 +58,24 @@ class MarketareaController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $ret_en = $this->_model->info($bn, 'en');
-        $ret_zh = $this->_model->info($bn, 'zh');
-        $ret_es = $this->_model->info($bn, 'es');
-        $ret_ru = $this->_model->info($bn, 'ru');
-        $result = !empty($ret_en) ? $ret_en : (!empty($ret_zh) ? $ret_zh : (empty($ret_es) ? $ret_es : $ret_ru));
-        if ($ret_en) {
-            $result['en']['name'] = $ret_en['name'];
-            //$result['en']['id'] = $ret_en['id'];
+        $data = [];
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            $result = $this->_model->info($bn, 'en');
+            if ($result) {
+                $data = $result;
+                $data['name'] = null;
+                unset($data['name']);
+                $data[$lang]['name'] = $result['name'];
+            }
         }
-        if ($ret_zh) {
-            $result['zh']['name'] = $ret_zh['name'];
-            // $result['zh']['id'] = $ret_zh['id'];
-        }
-        if ($ret_ru) {
-            $result['ru']['name'] = $ret_ru['name'];
-            // $result['ru']['id'] = $ret_ru['id'];
-        }
-        if ($ret_es) {
-            $result['es']['name'] = $ret_es['name'];
-            // $result['es']['id'] = $ret_es['id'];
-        }
-        unset($result['id']);
-        unset($result['lang']);
-        if ($result) {
+
+        if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($result);
+            $this->jsonReturn($data);
+        } elseif ($data === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
 

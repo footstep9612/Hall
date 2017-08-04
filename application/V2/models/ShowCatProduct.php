@@ -246,7 +246,7 @@ class ShowCatProductModel extends PublicModel {
     public function getshow_catsbyspus($spus, $lang = 'en') {
         try {
             if ($spus && is_array($spus)) {
-                $show_cat_products = $this->table('erui2_goods.show_cat_product scp')
+                $show_cat_products = $this->alias('scp')
                         ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no,scp.spu')
                         ->where(['scp.spu' => ['in', $spus],
@@ -260,9 +260,22 @@ class ShowCatProductModel extends PublicModel {
                 return [];
             }
             $ret = [];
+            $show_cat_nos = [];
             foreach ($show_cat_products as $item) {
 
-                $ret[$item['spu']] = $item['cat_no'];
+                $show_cat_nos[] = $item['cat_no'];
+            }
+
+
+            $show_cat_model = new ShowCatModel();
+            $scats = $show_cat_model->getshow_cats($show_cat_nos, $lang);
+
+            foreach ($show_cat_products as $item) {
+                $show_cat_no = $item['cat_no'];
+                if (isset($scats[$show_cat_no])) {
+                    $ret[$item['spu']][$show_cat_no] = $scats[$show_cat_no];
+                    $ret[$item['spu']][$show_cat_no]['onshelf_flag'] = $item['onshelf_flag'];
+                }
             }
             return $ret;
         } catch (Exception $ex) {
