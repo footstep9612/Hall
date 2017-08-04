@@ -10,7 +10,7 @@ class ProductController extends PublicController {
     protected $method = '';
 
     public function init() {
-        //parent::init();
+        parent::init();
         $this->method = $this->getMethod();
     }
 
@@ -178,6 +178,55 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_REQUEST_MATHOD);
         }
         exit;
+    }
+
+    /**
+     * 上架
+     */
+    public function onshelfAction(){
+        if(!isset($this->put_data['spu'])){
+            jsonReturn('',ErrorMsg::NOTNULL_SPU);
+        }
+
+        if(!isset($this->put_data['lang'])) {
+            jsonReturn('',ErrorMsg::NOTNULL_LANG);
+        }
+
+        $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
+
+        $showCatProduct = new ShowCatProductModel();
+        $result = $showCatProduct ->onShelf($this->put_data['spu'],$this->put_data['lang'],$cat_no);
+        if($result){
+            jsonReturn(true);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 下架
+     */
+    public function downshelfAction(){
+        if(!isset($this->put_data['spu'])){
+            jsonReturn('',ErrorMsg::NOTNULL_SPU);
+        }
+
+        $lang = '';
+        if(isset($this->put_data['lang']) && !in_array(strtolower($this->put_data['lang']),array('zh','en','es','ru'))) {
+            jsonReturn('', ErrorMsg::WRONG_LANG);
+        } else {
+            $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
+        }
+
+        $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
+
+        $showCatProduct = new ShowCatProductModel();
+        $result = $showCatProduct ->downShelf($this->put_data['spu'],$lang,$cat_no);
+        if($result){
+            jsonReturn(true);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
     }
 
 }
