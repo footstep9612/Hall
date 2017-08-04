@@ -63,7 +63,7 @@ class MarketAreaModel extends PublicModel {
 
             $this->alias('zh')
                     ->join('erui2_operation.market_area as en on '
-                            . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'left')
+                            . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'inner')
                     ->field('zh.bn,zh.parent_bn,zh.name as zh_name,zh.url,en.name as en_name ')
                     ->where($data);
 
@@ -155,20 +155,21 @@ class MarketAreaModel extends PublicModel {
      */
     public function create_data($create = [], $uid = 0) {
         if (isset($create['en']['name']) && isset($create['zh']['name'])) {
-            $datalist = [];
-            $arr['bn'] = ucwords($create['en']['name']);
+
+            $newbn = ucwords($create['en']['name']);
             $create['en']['name'] = ucwords($create['en']['name']);
             $langs = ['en', 'zh', 'es', 'ru'];
+            $this->startTrans();
             foreach ($langs as $lang) {
-                if (isset($create[$lang]['name']) && $create[$lang]['name']) {
-                    $arr['lang'] = $lang;
-                    $arr['name'] = $create[$lang]['name'];
-                    $arr['created_at'] = date('Y-m-d H:i:s');
-                    $arr['created_by'] = $uid;
-                    $datalist[] = $arr;
+                $create['bn'] = $newbn;
+                $flag = $this->updateandcreate($create, $lang, $newbn, $uid);
+                if (!$flag) {
+                    $this->rollback();
+                    return false;
                 }
             }
-            return $this->addAll($datalist);
+            $this->commit();
+            return true;
         } else {
             return false;
         }
@@ -216,7 +217,7 @@ class MarketAreaModel extends PublicModel {
                 $arr['updated_by'] = $uid;
                 $arr['created_at'] = date('Y-m-d H:i:s');
                 $arr['created_by'] = $uid;
-                $flag = $this->add($data);
+                $flag = $this->add($arr);
                 return $flag;
             }
         } else {

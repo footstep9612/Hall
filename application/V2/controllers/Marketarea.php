@@ -30,6 +30,7 @@ class MarketareaController extends PublicController {
             $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
         } else {
             $arr = $market_area_model->getlist($data, false);
+            
             if ($arr) {
                 redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
             }
@@ -108,6 +109,7 @@ class MarketareaController extends PublicController {
     public function createAction() {
         $data = $this->getPut();       
         $result = $this->_model->create_data($data, $this->user['id']);
+   
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
