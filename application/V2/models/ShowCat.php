@@ -13,8 +13,10 @@ class ShowCatModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING'; //审核；
     const STATUS_VALID = 'VALID'; //生效；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
+
     protected $dbName = 'erui2_goods';
     protected $tableName = 'show_cat';
+
     public function __construct() {
 
         parent::__construct();
@@ -27,7 +29,7 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      */
     public function tree($condition = []) {
-        $where = $this->getcondition($condition);
+        $where = $this->_getcondition($condition);
         try {
             return $this->where($where)
                             ->order('sort_order DESC')
@@ -131,7 +133,7 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      *
      */
-    protected function getcondition($condition = []) {
+    protected function _getcondition($condition = []) {
         $where = [];
         getValue($where, $condition, 'id');
         getValue($where, $condition, 'cat_no');
@@ -189,7 +191,7 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      */
     public function getcount($condition = [], $lang = 'en') {
-        $where = $this->getcondition($condition);
+        $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
         try {
             return $this->where($where)
@@ -208,7 +210,7 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition = [], $lang = 'en') {
-        $where = $this->getcondition($condition);
+        $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
             //  $count = $this->getcount($condition);
@@ -262,7 +264,9 @@ class ShowCatModel extends PublicModel {
      */
     public function info($cat_no = '', $lang = 'en') {
         $where['cat_no'] = $cat_no;
-        $where['lang'] = $lang;
+        if ($lang) {
+            $where['lang'] = $lang;
+        }
         return $this->where($where)
                         ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
                                 . 'sort_order,created_at,created_by,big_icon,middle_icon,'
@@ -436,12 +440,12 @@ class ShowCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function update_data($upcondition = [], $username = '') {
+    public function update_data($upcondition = [], $uid = '') {
         $condition = $upcondition;
-        list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, $username);
+        list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, $uid);
         $this->startTrans();
         $langs = ['en', 'es', 'zh', 'ru'];
-        $data['created_by'] = $username;
+        $data['created_by'] = $uid;
         foreach ($langs as $lang) {
             if (isset($condition[$lang])) {
                 $data['lang'] = $lang;
@@ -450,7 +454,7 @@ class ShowCatModel extends PublicModel {
                 $add = $data;
                 $add['cat_no'] = $cat_no;
                 $add['status'] = self::STATUS_APPROVING;
-                $add['id'] = $this->getMaxid() + 1;
+
                 $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($add);
                 if (!$flag) {
                     $this->rollback();
@@ -483,7 +487,7 @@ class ShowCatModel extends PublicModel {
                             'material_cat_no' => $material_cat_no,
                             'status' => 'VALID',
                             'created_at' => date('Y-m-d H:i:s'),
-                            'created_by' => $username
+                            'created_by' => $uid
                         ];
                     }
                     $show_material_cat_model->addAll($dataList);
@@ -501,7 +505,7 @@ class ShowCatModel extends PublicModel {
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $username
+                        'created_by' => $uid
                     ];
                 }
                 $show_material_cat_model->addAll($dataList);
@@ -652,7 +656,7 @@ class ShowCatModel extends PublicModel {
         }
     }
 
-    public function create_data($createcondition = [], $username = '') {
+    public function create_data($createcondition = [], $uid = '') {
         $data = $condition = $this->create($createcondition);
         if (isset($condition['cat_no'])) {
             $data['cat_no'] = $condition['cat_no'];
@@ -682,7 +686,7 @@ class ShowCatModel extends PublicModel {
                 $data['cat_no'] = $cat_no;
             }
         }
-        $data['created_by'] = $username;
+        $data['created_by'] = $uid;
         $data['created_at'] = date('Y-m-d H:i:s');
         switch ($condition['status']) {
 
@@ -699,39 +703,41 @@ class ShowCatModel extends PublicModel {
                 $data['status'] = $condition['status'];
                 break;
             default :
-                $data['status'] = self::STATUS_APPROVING;
+                $data['status'] = self::STATUS_VALID;
         }
         if ($condition['sort_order']) {
             $data['sort_order'] = $condition['sort_order'];
         }
         $this->startTrans();
-        $maxid = $this->getMaxid();
         $langs = ['en', 'es', 'zh', 'ru'];
         foreach ($langs as $lang) {
             if (isset($createcondition[$lang])) {
-                $data['lang'] = 'en';
-                $maxid++;
-                $data['id'] = $maxid;
-                $data['name'] = $createcondition['en']['name'];
+                $data['lang'] = $lang;
+                $data['name'] = $createcondition[$lang]['name'];
                 $flag = $this->add($data);
                 if (!$flag) {
-
                     $this->rollback();
                     return false;
                 }
             }
         }
-        if ($data['level_no'] == 3 && isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
+
+
+        if ($data['level_no'] == 3 && isset($createcondition['material_cat_nos']) && $createcondition['material_cat_nos']) {
             $dataList = [];
-            foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
-                $dataList[] = ['show_cat_no' => $cat_no,
+            $show_material_cat_model = new ShowmaterialcatModel();
+            foreach ($createcondition['material_cat_nos'] as $material_cat_no) {
+                $data = [
+                    'show_cat_no' => $cat_no,
                     'material_cat_no' => $material_cat_no,
                     'status' => 'VALID',
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $username
+                    'created_by' => $uid
                 ];
+                $dataList[] = $data = $show_material_cat_model->create($data);
             }
-            $this->Table('erui2_goods.show_material_cat')->addAll($dataList);
+
+            $flag = $show_material_cat_model->addAll($dataList);
         }
         $this->commit();
         return $cat_no;
@@ -826,27 +832,26 @@ class ShowCatModel extends PublicModel {
 
     /*
      * 根据展示分类编码数组获取展示分类信息
-     * @author zhongyg 2017-06-26
      * @param mix $show_cat_nos // 展示分类编码数组
      * @param string $lang // 语言 zh en ru es 
      * @return mix  
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
      */
 
     public function getshow_cats($show_cat_nos, $lang = 'en') {
 
         try {
             if ($show_cat_nos) {
-                $cat3s = $this->table('erui2_goods.show_cat')
-                        ->field('(select name from erui_dict.market_area where bn=market_area_bn and lang=\'' . $lang . '\') as market_area_name,'
-                                . '(select name from erui2_dict.country where bn=country_bn and lang=\'' . $lang . '\') as country_name,'
-                                . 'parent_cat_no,cat_no,name')
+                $cat3s = $this->field('market_area_bn,country_bn,parent_cat_no,cat_no,name')
                         ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                         ->select();
                 $cat1_nos = $cat2_nos = [];
             } else {
                 return [];
             }
-
             if (!$cat3s) {
                 return [];
             }
@@ -855,8 +860,7 @@ class ShowCatModel extends PublicModel {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
             if ($cat2_nos) {
-                $cat2s = $this->table('erui_goods.t_show_cat')
-                                ->field('id,cat_no,name,parent_cat_no')
+                $cat2s = $this->field('id,cat_no,name,parent_cat_no')
                                 ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
             if (!$cat2s) {
@@ -865,8 +869,8 @@ class ShowCatModel extends PublicModel {
                     $newcat3s[$val['cat_no']] = [
                         'cat_no3' => $val['cat_no'],
                         'cat_name3' => $val['name'],
-                        'market_area_name' => $val['market_area_name'],
-                        'country_name' => $val['country_name']
+                        'market_area_bn' => $val['market_area_bn'],
+                        'country_bn' => $val['country_bn']
                     ];
                 }
                 return $newcat3s;
@@ -875,7 +879,7 @@ class ShowCatModel extends PublicModel {
                 $cat1_nos[] = $cat2['parent_cat_no'];
             }
             if ($cat1_nos) {
-                $cat1s = $this->table('erui_goods.t_show_cat')->field('id,cat_no,name')
+                $cat1s = $this->field('id,cat_no,name')
                                 ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
 
@@ -889,10 +893,12 @@ class ShowCatModel extends PublicModel {
                     $newcat3s[$val['cat_no']] = [
                         'cat_no3' => $val['cat_no'],
                         'cat_name3' => $val['name'],
+                        'market_area_bn' => $val['market_area_bn'],
+                        'country_bn' => $val['country_bn'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
                         'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
-                        'market_area_name' => $val['market_area_name'],
-                        'country_name' => $val['country_name']
+                        'market_area_bn' => $val['market_area_bn'],
+                        'country_bn' => $val['country_bn'],
                     ];
                 }
                 return $newcat3s;
@@ -908,10 +914,9 @@ class ShowCatModel extends PublicModel {
                     'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
                     'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
                     'cat_no3' => $val['cat_no'],
-                    'cat_name3' => $val['name'],
-                    'market_area_name' => $val['market_area_name'],
-                    'country_name' => $val['country_name'],
-                ];
+                    'market_area_bn' => $val['market_area_bn'],
+                    'country_bn' => $val['country_bn'],
+                    'cat_name3' => $val['name']];
             }
             return $newcat3s;
         } catch (Exception $ex) {

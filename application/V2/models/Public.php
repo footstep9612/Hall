@@ -115,22 +115,27 @@ class PublicModel extends Model {
      * @param string $name // 查询的字段
      * @param string $type // 默认值 string bool  like array
      * @param string $field // 组合条件的字段
+     * @param string $default 默认值 暂时只支持 string 和bool
      * @date  2017-8-1 9:13:41
      * @return null
      */
 
-    protected function _getValue(&$where, &$condition, $name, $type = 'string', $field = null) {
+    protected function _getValue(&$where, &$condition, $name, $type = 'string', $field = null, $default = null) {
         if (!$field) {
             $field = $name;
         }
         if ($type === 'string') {
             if (isset($condition[$name]) && trim($condition[$name])) {
                 $where[$field] = trim($condition[$name]);
+            } elseif ($default) {
+                $where[$field] = trim($default);
             }
         } elseif ($type === 'bool') {
             if (isset($condition[$name]) && trim($condition[$name])) {
                 $flag = trim($condition[$name]) == 'Y' ? 'Y' : 'N';
                 $where[$field] = $flag;
+            } elseif ($default) {
+                $where[$field] = trim($default);
             }
         } elseif ($type === 'like') {
             if (isset($condition[$name]) && trim($condition[$name])) {
@@ -175,6 +180,41 @@ class PublicModel extends Model {
                     ->field('id')
                     ->find();
             return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /**
+     * 新增日志文件
+     * @param  string $action 操作 CREATE、UPDATE、DELETE、CHECK
+     * @param  string $obj_id 对象ID
+     * @param  string $uid 操作者ID
+     * @param  mix $op_note 比如具体审核意见。如果是修改，可以是json串
+     * @param  string $op_log 文本格式：yyyy-mm-dd hh:mm:ss 张三创建询单1
+     * @param  string $op_result 操作结果：Y-成功；N-失败
+     * @param  string $category 操作者ID
+     * @return mix
+     * @date 2017-08-01
+     * @author zyg
+     */
+    protected function _addlog($action, $obj_id, $uid, $op_note = [], $op_log = '', $op_result = 'Y', $category = null) {
+        try {
+            $op_log_model = new OpLogModel();
+            if (!$category) {
+                $data['category'] = $this->tableName;
+            } else {
+                $data['category'] = $category;
+            }
+            $data['action'] = $action;
+            $data['obj_id'] = $obj_id;
+            $data['op_log'] = $op_log;
+            $data['op_note'] = $op_note;
+            $data['op_result'] = $op_result;
+
+            return $op_log_model->create_data($data, $uid);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

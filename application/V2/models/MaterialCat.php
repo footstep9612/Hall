@@ -86,7 +86,7 @@ class MaterialCatModel extends PublicModel {
      * @author zyg
      */
     public function getCount($condition = []) {
-        $where = $this->getcondition($condition);
+        $where = $this->_getcondition($condition);
         try {
             return $this->where($where)
                             //  ->field('id,user_id,name,email,mobile,status')
@@ -104,7 +104,7 @@ class MaterialCatModel extends PublicModel {
      * @author zyg
      */
     public function tree($condition = []) {
-        $where = $this->getcondition($condition);
+        $where = $this->_getcondition($condition);
         try {
             return $this->where($where)
                             ->order('sort_order DESC')
@@ -117,8 +117,6 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
-
-
     /**
      * 获取列表
      * @param mix $condition
@@ -127,7 +125,7 @@ class MaterialCatModel extends PublicModel {
      */
     public function getlist($condition = []) {
         try {
-            $where = $this->getcondition($condition);
+            $where = $this->_getcondition($condition);
             list($start_no, $pagesize) = $this->_getPage($condition);
             return $this->where($where)
                             ->limit($start_no, $pagesize)
@@ -141,6 +139,13 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
+    /**
+     * 分类联动
+     * @param string $cat_no 分类编码
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
     public function get_list($cat_no = '', $lang = 'en') {
         if ($cat_no) {
             $condition['parent_cat_no'] = $cat_no;
@@ -164,8 +169,7 @@ class MaterialCatModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param  string $code 编码
-     * @param  int $id id
+     * @param  string $cat_no 分类编码
      * @param  string $lang 语言
      * @return mix
      * @author zyg
@@ -258,7 +262,7 @@ class MaterialCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($cat_no = '', $lang = '') {
+    public function delete_data($cat_no = '', $lang = '', $uid = null) {
         if (!$cat_no) {
 
             return false;
@@ -268,14 +272,16 @@ class MaterialCatModel extends PublicModel {
             $where['lang'] = $lang;
         }
         try {
-
             $flag = $this->where($where)
                     ->save(['status' => self::STATUS_DELETED]);
+            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
 
             return $flag;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
+            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
+
             return false;
         }
     }
@@ -286,7 +292,7 @@ class MaterialCatModel extends PublicModel {
      * @return string $chang_cat_no 被交换的分类编码
      * @author zyg
      */
-    public function changecat_sort_order($cat_no, $chang_cat_no) {
+    public function changecat_sort_order($cat_no, $chang_cat_no, $uid = 0) {
 
         try {
             $this->startTrans();
@@ -297,21 +303,26 @@ class MaterialCatModel extends PublicModel {
                 $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order'
                     => $sort_order['sort_order']]);
                 if ($flag1) {
+                    $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'Y', __CLASS__);
                     $this->commit();
                     return true;
                 } else {
+                    $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'N', __CLASS__);
                     $this->rollback();
                     return false;
                 }
             } else {
+                $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'N', __CLASS__);
                 $this->rollback();
                 return false;
             }
+
             return $flag;
         } catch (Exception $ex) {
             $this->rollback();
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
+            $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'N', __CLASS__);
             return false;
         }
     }
@@ -322,27 +333,31 @@ class MaterialCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function approving($cat_no = '', $lang = '') {
+    public function approving($cat_no = '', $lang = '', $uid = 0) {
 
         $where['cat_no'] = $cat_no;
         if ($lang) {
             $where['lang'] = $lang;
         }
+
         try {
             $flag = $this->where($where)
                     ->save(['status' => self::STATUS_VALID]);
-            if ($flag && $cat_no && !$lang) {
+
+            if ($flag !== false && $cat_no && !$lang) {
                 $es_product_model = new EsproductModel();
                 $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
                 $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
                 $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
                 $es_product_model->Updatemeterialcatno($cat_no, null, 'ru');
-            } elseif ($flag && $cat_no && $lang) {
+            } elseif ($flag !== false && $cat_no && $lang) {
                 $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
             }
-            return $flag;
+            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
+            return $flag !== false;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
@@ -354,9 +369,9 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function update_data($upcondition = [], $username = '') {
-        $data = $this->getUpdateCondition($upcondition, $username);
-        $data['created_by'] = $username;
+    public function update_data($upcondition = [], $uid = 0) {
+        $data = $this->getUpdateCondition($upcondition, $uid);
+        $data['created_by'] = $uid;
         try {
             $info = $this->info($upcondition['cat_no'], null);
             if (!$data) {
@@ -390,6 +405,7 @@ class MaterialCatModel extends PublicModel {
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
 
                     if (!$flag) {
+                        $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
                         $this->rollback();
                         return false;
                     }
@@ -404,11 +420,13 @@ class MaterialCatModel extends PublicModel {
                     $flag = $this->where(['cat_no' => $val['cat_no']])
                             ->save(['cat_no' => $child_cat_no, 'parent_cat_no' => $data['cat_no']]);
                     if (!$flag) {
+                        $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
                         $this->rollback();
                         return false;
                     }
                     $flag = $this->updateothercat($val['cat_no'], $child_cat_no);
                     if (!$flag) {
+                        $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
                         $this->rollback();
                         return false;
                     }
@@ -416,17 +434,19 @@ class MaterialCatModel extends PublicModel {
             } elseif (isset($upcondition['level_no']) && $upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
                 $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
                 if (!$flag) {
+                    $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
                     $this->rollback();
                     return false;
                 }
             }
-
+            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
             $this->commit();
             return $flag;
         } catch (Exception $ex) {
             $this->rollback();
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
+            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
             return false;
         }
     }
@@ -437,7 +457,7 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getUpdateCondition($upcondition = [], $username = '') {
+    public function getUpdateCondition($upcondition = [], $uid = 0) {
         $data = [];
         $where = [];
         $info = [];
@@ -488,14 +508,14 @@ class MaterialCatModel extends PublicModel {
             $data['sort_order'] = $upcondition['sort_order'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $username;
+        $data['created_by'] = $uid;
         return $data;
     }
 
     public function updateothercat($old_cat_no, $new_cat_no) {
         try {
 
-            $model = new Model($this->dbName . '.product', 't_');
+            $model = new Model($this->dbName . '.product');
             $flag = $model
                     ->where(['meterial_cat_no' => $old_cat_no])
                     ->save(['meterial_cat_no' => $new_cat_no]);
@@ -505,18 +525,13 @@ class MaterialCatModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-            $material_cat_product_model = new Model($this->dbName . '.material_cat_product', 't_');
-            $flag = $material_cat_product_model
-                    ->where(['cat_no' => $old_cat_no])
-                    ->save(['cat_no' => $new_cat_no]);
-
 
             if ($flag === false) {
                 $this->rollback();
 
                 return false;
             }
-            $show_material_cat_model = new Model($this->dbName . '.show_material_cat', 't_');
+            $show_material_cat_model = new Model($this->dbName . '.show_material_cat');
             $flag = $show_material_cat_model
                     ->where(['material_cat_no' => $old_cat_no])
                     ->save(['material_cat_no' => $new_cat_no]);
@@ -582,19 +597,13 @@ class MaterialCatModel extends PublicModel {
         return $rows;
     }
 
-    public function getMaxid() {
-        $row = $this->field('max(id) as maxid')->find();
-        return intval($row['maxid']);
-    }
-
     /**
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = [], $username = '') {
-
+    public function create_data($createcondition = [], $uid = 0) {
         $condition = $this->create($createcondition);
         if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
             $info = $this->info($condition['parent_cat_no'], null);
@@ -616,16 +625,15 @@ class MaterialCatModel extends PublicModel {
         } else {
             $data['level_no'] = 1;
         }
-        if (!isset($data['cat_no'])) {
-            $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
-            if (!$cat_no) {
-                return false;
-            } else {
-                $data['cat_no'] = $cat_no;
-            }
+
+        $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
+        if (!$cat_no) {
+            return false;
+        } else {
+            $data['cat_no'] = $cat_no;
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $username;
+        $data['created_by'] = $uid;
         if (!isset($condition['status'])) {
             $condition['status'] = self::STATUS_APPROVING;
         }
@@ -649,24 +657,20 @@ class MaterialCatModel extends PublicModel {
             $data['sort_order'] = $condition['sort_order'];
         }
         $this->startTrans();
-        $maxid = $this->getMaxid();
-
         $langs = ['en', 'es', 'zh', 'ru'];
         foreach ($langs as $lang) {
+
             if (isset($createcondition[$lang])) {
-                $data['lang'] = 'en';
-                $maxid++;
-                $data['id'] = $maxid;
+                $data['lang'] = $lang;
                 $data['name'] = $createcondition['en']['name'];
                 $flag = $this->add($data);
-
                 if (!$flag) {
-
                     $this->rollback();
                     return false;
                 }
             }
         }
+        $this->_addlog(__FUNCTION__, 1, $uid, $createcondition, '', 'Y');
         $this->commit();
         return $flag;
     }
@@ -752,6 +756,122 @@ class MaterialCatModel extends PublicModel {
                 redisHashSet('Material', md5($cat_name), json_encode($result));
 
             return $result ? $result : array();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
+     * @param mix $cat_no // 物料分类编码数组3f
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  物料分类及上级和顶级信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getmaterial_cat($cat_no, $lang = 'en') {
+        try {
+            $cat3 = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
+                    ->find();
+            $cat2 = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                    ->find();
+            $cat1 = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                    ->find();
+            return [$cat1['cat_no'], $cat1['name'], $cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据物料分类编码搜索物料分类 及上级分类信息
+     * @param mix $cat_nos // 物料分类编码数组
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  物料分类及上级和顶级信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getmaterial_cats($cat_nos, $lang = 'en') {
+        if (!$cat_nos) {
+            return[];
+        }
+        try {
+            $cat3s = $this->field('id,cat_no,name,parent_cat_no')
+                            ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
+
+            if (!$cat3s) {
+                return [];
+            }
+            $cat1_nos = $cat2_nos = [];
+            foreach ($cat3s as $cat) {
+                $cat2_nos[] = $cat['parent_cat_no'];
+            }
+            $cat2s = $this->field('id,cat_no,name,parent_cat_no')
+                    ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])
+                    ->select();
+            if (!$cat2s) {
+                $newcat3s = [];
+                foreach ($cat3s as $val) {
+                    $newcat3s[$val['cat_no']] = [
+                        'cat_no3' => $val['cat_no'],
+                        'cat_name3' => $val['name']];
+                }
+                return $newcat3s;
+            }
+            foreach ($cat2s as $cat2) {
+                $cat1_nos[] = $cat2['parent_cat_no'];
+            }
+
+            $cat1s = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])
+                    ->select();
+            $newcat1s = [];
+            if (!$cat1s) {
+                $newcat3s = [];
+                $newcat2s = [];
+                foreach ($cat2s as $val) {
+                    $newcat2s[$val['cat_no']] = $val;
+                }
+                foreach ($cat3s as $val) {
+                    $newcat3s[$val['cat_no']] = [
+                        'cat_no3' => $val['cat_no'],
+                        'cat_name3' => $val['name'],
+                        'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+                        'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                    ];
+                }
+                return $newcat3s;
+            }
+            foreach ($cat1s as $val) {
+                $newcat1s[$val['cat_no']] = $val;
+            }
+            $newcat2s = [];
+            foreach ($cat2s as $val) {
+                $newcat2s[$val['cat_no']] = $val;
+            }
+            foreach ($cat3s as $val) {
+                $newcat3s[$val['cat_no']] = ['cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
+                    'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+                    'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+                    'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                    'cat_no3' => $val['cat_no'],
+                    'cat_name3' => $val['name']];
+            }
+
+            return $newcat3s;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

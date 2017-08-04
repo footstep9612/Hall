@@ -4,13 +4,13 @@
  * Class GoodsAttrModel
  *  @author  klp
  */
-
-class GoodsAttrModel extends PublicModel{
+class GoodsAttrModel extends PublicModel {
 
     protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
+
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效
     const STATUS_DELETED = 'DELETED'; //删除
@@ -23,22 +23,23 @@ class GoodsAttrModel extends PublicModel{
      * @param array $condition
      * @return array
      */
-    public function getAttr($condition=[]){
-        if(!isset($condition['sku'])) {
+
+    public function getAttr($condition = []) {
+        if (!isset($condition['sku'])) {
             return array();
         }
         //组装条件
         $where = array(
             'sku' => trim($condition['sku']),
         );
-        if(isset($condition['lang']) && in_array(strtolower($condition['lang']),array('zh','en','es','ru'))){
+        if (isset($condition['lang']) && in_array(strtolower($condition['lang']), array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($condition['lang']);
         }
-        if(isset($condition['status']) && in_array(strtoupper($condition['status']),array('VALID','INVALID','DELETED'))){
+        if (isset($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
             $where['status'] = strtoupper($condition['status']);
         }
-        if(isset($condition['attr_type'])){
-            switch($condition['attr_type']){
+        if (isset($condition['attr_type'])) {
+            switch ($condition['attr_type']) {
                 case 'goods_flag':
                     $where['goods_flag'] = 'Y';
                     break;
@@ -55,11 +56,11 @@ class GoodsAttrModel extends PublicModel{
         }
 
         //redis获取
-        if(redisHashExist('Attr',md5(json_encode($where)))){
-            return json_decode(redisHashGet('Attr',md5(json_encode($where))),true);
+        if (redisHashExist('Attr', md5(json_encode($where)))) {
+            return json_decode(redisHashGet('Attr', md5(json_encode($where))), true);
         }
         //查询
-        try{
+        try {
             $field = 'id,lang,attr_no,attr_name,attr_value_type,attr_value,value_unit,attr_group,sort_order,goods_flag,logi_flag,hs_flag,spec_flag,status';
             $result = $this->field($field)->where($where)->order('sort_order')->select();
 
@@ -69,12 +70,12 @@ class GoodsAttrModel extends PublicModel{
 
             //获取产品属性
             $product = new ProductAttrModel();
-            $pattr = $product->getAttr($spu ? $spu : '',isset($condition['lang'])?$condition['lang']:'',isset($condition['attr_type'])?$condition['attr_type']:'',isset($condition['status'])?$condition['status']:'');
+            $pattr = $product->getAttr($spu ? $spu : '', isset($condition['lang']) ? $condition['lang'] : '', isset($condition['attr_type']) ? $condition['attr_type'] : '', isset($condition['status']) ? $condition['status'] : '');
 
             $data = $attrs = array();
-            $attrs = array_merge($result,$pattr);
-            if($attrs){
-                foreach($attrs as $item){
+            $attrs = array_merge($result, $pattr);
+            if ($attrs) {
+                foreach ($attrs as $item) {
                     $group1 = '';
                     $item['flag'] = true;
                     if ($item['goods_flag'] == 'Y') {
@@ -99,9 +100,9 @@ class GoodsAttrModel extends PublicModel{
                     }
                 }
             }
-            redisHashSet('Attr',md5(json_encode($where)),json_encode($data));
+            redisHashSet('Attr', md5(json_encode($where)), json_encode($data));
             return $data;
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return array();
         }
     }
@@ -111,63 +112,65 @@ class GoodsAttrModel extends PublicModel{
      * @author klp
      * @return bool
      */
-    public function createAttrSku($data){
+    public function createAttrSku($data) {
         $arr = $this->check_data($data);
         $res = $this->addAll($arr);
-        if($res){
+        if ($res) {
             return true;
-        } else{
+        } else {
             return false;
         }
     }
+
     /**
      * sku属性更新（门户后台）
      * @author klp
      * @return bool
      */
-    public function updateAttrSku($data){
+    public function updateAttrSku($data) {
         $condition = $this->check_up($data);
-        if($condition){
-            try{
-                foreach($condition as $v){
-                    $this->where(array('sku'=>$v['sku'],'lang'=>$v['lang']))->save($v);
+        if ($condition) {
+            try {
+                foreach ($condition as $v) {
+                    $this->where(array('sku' => $v['sku'], 'lang' => $v['lang']))->save($v);
                 }
                 return true;
-            } catch(\Kafka\Exception $e){
+            } catch (\Kafka\Exception $e) {
                 return false;
             }
-        } else{
+        } else {
             return false;
         }
     }
-
 
     /**
      * sku属性参数处理（门户后台）
      * @author klp
      * @return array
      */
-    public function check_data($data=[]){
-        if(empty($data))
+    public function check_data($data = []) {
+        if (empty($data))
             return false;
-        $condition['lang'] = isset($data['lang']) ? $data['lang']: 'en';
-        $condition['required_flag'] = isset($data['required_flag']) ? $data['required_flag']: 'N';
-        $condition['search_flag'] = isset($data['search_flag']) ? $data['search_flag']: 'Y';
-        $condition['attr_group'] = isset($data['attr_group']) ? $data['attr_group']: '';
-        $condition['sort_order'] = isset($data['sort_order']) ? $data['sort_order']: 1;
-        $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
-        if (isset($data['created_by'])) {$condition['created_by'] = $data['created_by'];}
+        $condition['lang'] = isset($data['lang']) ? $data['lang'] : 'en';
+        $condition['required_flag'] = isset($data['required_flag']) ? $data['required_flag'] : 'N';
+        $condition['search_flag'] = isset($data['search_flag']) ? $data['search_flag'] : 'Y';
+        $condition['attr_group'] = isset($data['attr_group']) ? $data['attr_group'] : '';
+        $condition['sort_order'] = isset($data['sort_order']) ? $data['sort_order'] : 1;
+        $condition['created_at'] = isset($data['created_at']) ? $data['created_at'] : date('Y-m-d H:i:s');
+        if (isset($data['created_by'])) {
+            $condition['created_by'] = $data['created_by'];
+        }
         if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
         } else {
-            JsonReturn('','-1002','sku编号不能为空');
+            JsonReturn('', '-1002', 'sku编号不能为空');
         }
         if (isset($data['attr_no'])) {
             $condition['attr_no'] = $data['attr_no'];
         } else {
-            JsonReturn('','-1003','属性编码不能为空');
+            JsonReturn('', '-1003', '属性编码不能为空');
         }
-        if(isset($data['status'])){
+        if (isset($data['status'])) {
             switch ($data['status']) {
                 case self::STATUS_VALID:
                     $condition['status'] = $data['status'];
@@ -184,37 +187,33 @@ class GoodsAttrModel extends PublicModel{
         }
         //属性组处理
         $attrs = array();
-        foreach ($data['attrs'] as $k=>$v) {
-            if(isset($v['goods_flag']) && 'Y' == $v['goods_flag']) {
+        foreach ($data['attrs'] as $k => $v) {
+            if (isset($v['goods_flag']) && 'Y' == $v['goods_flag']) {
                 $condition['goods_flag'] = 'Y';
                 $condition['spec_flag'] = 'N';
                 $condition['logi_flag'] = 'N';
                 $condition['hs_flag'] = 'N';
-            }
-            elseif(isset($v['spec_flag']) && 'Y' == $v['spec_flag']) {
+            } elseif (isset($v['spec_flag']) && 'Y' == $v['spec_flag']) {
                 $condition['spec_flag'] = 'Y';
                 $condition['goods_flag'] = 'N';
                 $condition['logi_flag'] = 'N';
                 $condition['hs_flag'] = 'N';
-            }
-            elseif(isset($v['logi_flag']) && 'Y' == $v['logi_flag']) {
+            } elseif (isset($v['logi_flag']) && 'Y' == $v['logi_flag']) {
                 $condition['logi_flag'] = 'Y';
                 $condition['spec_flag'] = 'N';
                 $condition['goods_flag'] = 'N';
                 $condition['hs_flag'] = 'N';
-            }
-            elseif(isset($v['hs_flag']) && 'Y' == $v['hs_flag']) {
+            } elseif (isset($v['hs_flag']) && 'Y' == $v['hs_flag']) {
                 $condition['hs_flag'] = 'Y';
                 $condition['spec_flag'] = 'N';
                 $condition['logi_flag'] = 'N';
                 $condition['goods_flag'] = 'N';
             }
-            $condition['attr_name'] =$v['attr_name'];
-            $condition['attr_value'] = isset($v['attr_value']) ? $v['attr_value']: '';
-            $condition['attr_value_type'] = isset($v['attr_value_type']) ? $v['attr_value_type']: 'String';
-            $condition['value_unit'] = isset($v['value_unit']) ? $v['value_unit']: ' ';
+            $condition['attr_name'] = $v['attr_name'];
+            $condition['attr_value'] = isset($v['attr_value']) ? $v['attr_value'] : '';
+            $condition['attr_value_type'] = isset($v['attr_value_type']) ? $v['attr_value_type'] : 'String';
+            $condition['value_unit'] = isset($v['value_unit']) ? $v['value_unit'] : ' ';
             $attrs[] = $condition;
-
         }
         return $attrs;
     }
@@ -224,28 +223,42 @@ class GoodsAttrModel extends PublicModel{
      * @author klp
      * @return bool
      */
-    public function check_up($data){
-        if(empty($data)) {
+    public function check_up($data) {
+        if (empty($data)) {
             return false;
         }
         $condition = [];
         if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
         } else {
-            JsonReturn('','-1001','sku编号不能为空');
+            JsonReturn('', '-1001', 'sku编号不能为空');
         }
         if (isset($data['lang'])) {
             $condition['lang'] = $data['lang'];
         } else {
-            JsonReturn('','-1002','lang不能为空');
+            JsonReturn('', '-1002', 'lang不能为空');
         }
-        if (isset($data['spu'])) {$condition['spu'] = $data['spu'];}
-        if (isset($data['attr_no'])) {$condition['attr_no'] = $data['attr_no'];}
-        if (isset($data['value_unit'])) {$condition['value_unit'] = $data['value_unit'];}
-        if (isset($data['required_flag'])) {$condition['required_flag'] = $data['required_flag'];}
-        if (isset($data['search_flag'])) {$condition['search_flag'] = $data['search_flag'];}
-        if (isset($data['attr_group'])) {$condition['attr_group'] = $data['attr_group'];}
-        if (isset($data['sort_order'])) {$condition['sort_order'] = $data['sort_order'];}
+        if (isset($data['spu'])) {
+            $condition['spu'] = $data['spu'];
+        }
+        if (isset($data['attr_no'])) {
+            $condition['attr_no'] = $data['attr_no'];
+        }
+        if (isset($data['value_unit'])) {
+            $condition['value_unit'] = $data['value_unit'];
+        }
+        if (isset($data['required_flag'])) {
+            $condition['required_flag'] = $data['required_flag'];
+        }
+        if (isset($data['search_flag'])) {
+            $condition['search_flag'] = $data['search_flag'];
+        }
+        if (isset($data['attr_group'])) {
+            $condition['attr_group'] = $data['attr_group'];
+        }
+        if (isset($data['sort_order'])) {
+            $condition['sort_order'] = $data['sort_order'];
+        }
 //        if (isset($data['updated_by'])) {$condition['updated_by'] = $data['updated_by'];}
         if (isset($data['status'])) {
             switch ($data['status']) {
@@ -262,10 +275,14 @@ class GoodsAttrModel extends PublicModel{
         }
         //属性组处理
         $attrs = array();
-        foreach ($data['attrs'] as $k=>$v) {
+        foreach ($data['attrs'] as $k => $v) {
             $condition['id'] = $v['id'];
-            if (isset($v['attr_name'])) {$condition['attr_name'] = $v['attr_name'];}
-            if (isset($v['attr_value'])) {$condition['attr_value'] = $v['attr_value'];}
+            if (isset($v['attr_name'])) {
+                $condition['attr_name'] = $v['attr_name'];
+            }
+            if (isset($v['attr_value'])) {
+                $condition['attr_value'] = $v['attr_value'];
+            }
             $attrs[] = $condition;
         }
         return $attrs;
@@ -283,15 +300,15 @@ class GoodsAttrModel extends PublicModel{
         }
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
-        } else{
-            jsonReturn('',MSG::MSG_FAILED,MSG::ERROR_PARAM);
+        } else {
+            jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
         }
         if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($condition['lang']);
         }
         if (!empty($condition['status']) && in_array(strtoupper($condition['status']), array('VALID', 'INVALID', 'DELETED'))) {
             $where['status'] = strtoupper($condition['status']);
-        } else{
+        } else {
             $where['status'] = array('neq', self::STATUS_DELETED);
         }
 
@@ -304,15 +321,16 @@ class GoodsAttrModel extends PublicModel{
         try {
             $result = $this->field($field)->where($where)->select();
 
-            $data = $attrs = array();
-            if($result){
+            $data = array();
+            if ($result) {
                 //获取产品属性
                 $product = new ProductAttrModel();
-                $pattr = $product->getAttr($result['spu'] ? $result['spu'] : '',isset($where['lang'])?$where['lang']:'',isset($where['status'])?$where['status']:'');
+                $pattr = $product->getAttr($result['spu'] ? $result['spu'] : '', isset($where['lang']) ? $where['lang'] : '', isset($where['status']) ? $where['status'] : '');
                 $attrs = array_merge($result, $pattr);
 
                 //按语言分组,类型分组
-                foreach ($attrs as $item){
+                foreach ($attrs as $item) {
+                    $item['flag'] = true;
                     if (empty($item['spec_attrs'])) {
                         $data[$item['lang']]['spec_attrs'][] = $item;
                     }
@@ -329,7 +347,7 @@ class GoodsAttrModel extends PublicModel{
                 redisHashSet('SkuAttrs', md5(json_encode($where)), json_encode($data));
             }
             return $data;
-        } catch (Exception $e){
+        } catch (Exception $e) {
             return array();
         }
     }
@@ -340,36 +358,32 @@ class GoodsAttrModel extends PublicModel{
      * @params 条件:sku lang
      * @return bool
      */
-    public function editSkuAttr($input){
-        if(empty($input)) {
+    public function editSkuAttr($input) {
+        if (empty($input)) {
             return false;
         }
         $results = array();
-        if(empty($input['sku']) || empty($input['lang'])) {
-            jsonReturn('',MSG::ERROR_PARAM,MSG::ERROR_PARAM);
+        if (empty($input['sku']) || empty($input['lang'])) {
+            jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
         }
         try {
             $data = [
-                'spu'             => $input['spu'],
-                'spec_attrs'      => isset($input['attrs']['spec_attrs']) ? json_encode($input['attrs']['spec_attrs']) : '',
-                'ex_goods_attrs'  => isset($input['attrs']['ex_goods_attrs']) ? json_encode($input['attrs']['ex_goods_attrs']) : '',
-                'ex_hs_attrs'     => isset($input['attrs']['ex_hs_attrs']) ? json_encode($input['attrs']['ex_hs_attrs']) : '',
-                'other_attrs'     => isset($input['attrs']['other_attrs']) ? json_encode($input['attrs']['other_attrs']) : ''
+                'spu' => $input['spu'],
+                'spec_attrs' => isset($input['attrs']['spec_attrs']) ? json_encode($input['attrs']['spec_attrs']) : '',
+                'ex_goods_attrs' => isset($input['attrs']['ex_goods_attrs']) ? json_encode($input['attrs']['ex_goods_attrs']) : '',
+                'ex_hs_attrs' => isset($input['attrs']['ex_hs_attrs']) ? json_encode($input['attrs']['ex_hs_attrs']) : '',
+                'other_attrs' => isset($input['attrs']['other_attrs']) ? json_encode($input['attrs']['other_attrs']) : ''
             ];
             //存在sku编辑,反之新增,后续扩展性
-            $result = $this->field('sku')->where(['sku' => $input['sku'],'lang'=>$input['lang']])->find();
+            $result = $this->field('sku')->where(['sku' => $input['sku'], 'lang' => $input['lang']])->find();
             if ($result) {
                 $where = [
                     'sku' => trim($input['sku']),
-                    'lang'=> $input['lang']
+                    'lang' => $input['lang']
                 ];
                 $res = $this->where($where)->save($data);
-                if($res) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                }else{
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
+                if (!$res) {
+                    return false;
                 }
             } else {
                 $data['status'] = self::STATUS_DRAFT;
@@ -378,16 +392,19 @@ class GoodsAttrModel extends PublicModel{
                 $data['created_by'] = $input['created_by'];
                 $data['created_at'] = date('Y-m-d H:i:s', time());
                 $res = $this->add($data);
-                if($res) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                }else{
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
+                if (!$res) {
+                    return false;
                 }
             }
+            if ($res) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '失败!';
+            }
             return $results;
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
@@ -399,12 +416,12 @@ class GoodsAttrModel extends PublicModel{
      * @author klp
      * @return bool
      */
-    public function modifyAttr($data,$status) {
-        if(empty($data) || empty($status)) {
+    public function modifyAttr($data, $status) {
+        if (empty($data) || empty($status)) {
             return false;
         }
         $results = array();
-        if($data && is_array($data)) {
+        if ($data && is_array($data)) {
             try {
                 foreach ($data as $item) {
                     $where = [
@@ -414,6 +431,9 @@ class GoodsAttrModel extends PublicModel{
                     $resatr = $this->field('sku')->where($where)->find();
                     if ($resatr) {
                         $res = $this->where($where)->save(['status' => $status]);
+                        if (!$res) {
+                            return false;
+                        }
                     }
                 }
                 if ($res) {
@@ -438,19 +458,22 @@ class GoodsAttrModel extends PublicModel{
      * @author klp
      * @return bool
      */
-    public function deleteSkuAttr($delData){
-        if(empty($delData)) {
+    public function deleteSkuAttr($delData) {
+        if (empty($delData)) {
             return false;
         }
         $results = array();
-        if($delData && is_array($delData)) {
-            try{
-                foreach($delData as $del){
+        if ($delData && is_array($delData)) {
+            try {
+                foreach ($delData as $del) {
                     $where = [
                         "sku" => $del['sku'],
                         "lang" => $del['lang']
                     ];
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
+                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    if (!$res) {
+                        return false;
+                    }
                 }
                 if ($res) {
                     $results['code'] = '1';
@@ -467,7 +490,34 @@ class GoodsAttrModel extends PublicModel{
             }
         }
         return false;
+    }
 
+    /* 通过SKU获取数据商品属性列表
+     * @param mix $skus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix 
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 商品 
+     */
+
+    public function getgoods_attrbyskus($skus, $lang = 'en') {
+
+        try {
+            $product_attrs = $this->field('*')
+                    ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
+                    ->select();
+            $ret = [];
+            foreach ($product_attrs as $item) {
+                $ret[$item['sku']][] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
     }
 
 }

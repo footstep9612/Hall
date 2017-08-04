@@ -33,7 +33,7 @@ class PortModel extends PublicModel {
             return json_decode(redisHashGet('Port', md5(json_encode($condition))), true);
         }
         try {
-            $field = 'lang,country_bn,bn,name,port_type,trans_mode,description,address,longitude,latitude';
+            $field = 'lang,country_bn,bn,name,port_type,trans_mode,remarks,address,longitude,latitude';
             $result = $this->field($field)->where($condition)->order('bn')->select();
             if ($result) {
                 redisHashSet('Port', md5(json_encode($condition)), json_encode($result));
@@ -68,12 +68,12 @@ class PortModel extends PublicModel {
         if (isset($condition['trans_mode']) && $condition['trans_mode']) {
             $where['trans_mode'] = $condition['trans_mode'];
         }
+
+        $this->_getValue($where, $condition, 'status', 'string', 'VALID');
         if (isset($condition['name']) && $condition['name']) {
             $where['name'] = ['like', '%' . $condition['name'] . '%'];
         }
-        if (isset($condition['address']) && $condition['address']) {
-            $where['address'] = ['like', '%' . $condition['address'] . '%'];
-        }
+
         return $where;
     }
 
@@ -151,18 +151,16 @@ class PortModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($data, $where) {
+    public function update_data($data, $uid = 0) {
         if (!isset($data['bn']) || !$data['bn']) {
             return false;
         }
-        $where['bn'] = $data['bn'];
-
         $newbn = ucwords($data['en']['name']);
         $data['en']['name'] = ucwords($data['en']['name']);
         $this->startTrans();
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            $flag = $this->updateandcreate($data, $lang, $newbn);
+            $flag = $this->updateandcreate($data, $lang, $newbn, $uid);
             if (!$flag) {
                 $this->rollback();
                 return false;
@@ -172,7 +170,7 @@ class PortModel extends PublicModel {
         return true;
     }
 
-    private function updateandcreate($data, $lang, $newbn) {
+    private function updateandcreate($data, $lang, $newbn, $uid) {
         if (isset($data[$lang]['name'])) {
             $where['lang'] = $lang;
             $where['bn'] = $data['bn'];
@@ -182,12 +180,16 @@ class PortModel extends PublicModel {
             $arr['country_bn'] = $data['country_bn'];
             $arr['trans_mode'] = $data['trans_mode'];
             $arr['port_type'] = $data['port_type'];
-            $arr['description'] = $data['description'];
+            $arr['remarks'] = $data['remarks'];
 
             if ($this->Exits($where)) {
                 $flag = $this->where($where)->save($arr);
                 return $flag;
             } else {
+                $data = $arr;
+                $data['status'] = 'VALID';
+                $data['created_by'] = $uid;
+                $data['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->add($data);
                 return $flag;
             }
@@ -207,7 +209,7 @@ class PortModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function create_data($create = []) {
+    public function create_data($create = [], $uid = 0) {
         if (isset($create['en']['name']) && isset($create['zh']['name'])) {
             $datalist = [];
             $arr['bn'] = ucwords($create['en']['name']);
@@ -215,7 +217,10 @@ class PortModel extends PublicModel {
             $arr['country_bn'] = $create['country_bn'];
             $arr['trans_mode'] = $create['trans_mode'];
             $arr['port_type'] = $create['port_type'];
-            $arr['description'] = $create['description'];
+            $arr['remarks'] = $create['remarks'];
+            $arr['created_by'] = $uid;
+            $data['status'] = 'VALID';
+            $arr['created_at'] = date('Y-m-d H:i:s');
             $langs = ['en', 'zh', 'es', 'ru'];
             foreach ($langs as $lang) {
                 if (isset($create[$lang]['name'])) {

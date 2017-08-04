@@ -7,9 +7,6 @@
  * Time: 19:24
  */
 class ShowCatProductModel extends PublicModel {
-    protected $dbName = 'erui2_goods'; //数据库名称
-    protected $tableName = 'show_cat_product'; //数据表表名
-    //状态
     const STATUS_DRAFT = 'DRAFT';    //草稿
     const STATUS_APPROVING = 'APPROVING';    //审核
     const STATUS_VALID = 'VALID';    //生效
@@ -37,25 +34,25 @@ class ShowCatProductModel extends PublicModel {
      * @return array|bool
      */
     public function getspusByCatNo($CatNo = '', $lang = '') {
-      if (empty($spu))
-        return [];
-      try {
-        $return = array(
-            'cat_no' => $spu,
-        );
-        $where = ['cat_no' => $CatNo, 'status' => 'VALID'];
-        $result = $this->field('spu')
-                        ->where($where)->select();
-        if ($result) {
-          return $result;
-        } else {
-          return [];
+        if (empty($spu))
+            return [];
+        try {
+            $return = array(
+                'cat_no' => $spu,
+            );
+            $where = ['cat_no' => $CatNo, 'status' => 'VALID'];
+            $result = $this->field('spu')
+                            ->where($where)->select();
+            if ($result) {
+                return $result;
+            } else {
+                return [];
+            }
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
-      } catch (Exception $ex) {
-        LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-        LOG::write($ex->getMessage(), LOG::ERR);
-        return [];
-      }
     }
 
     /**
@@ -170,5 +167,57 @@ class ShowCatProductModel extends PublicModel {
         }
     }
 
+    /*
+     * 根据SPUS 获取产品展示分类信息
+     * @param mix $spus // 产品SPU数组
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  展示分类信息列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getshow_catsbyspus($spus, $lang = 'en') {
+        try {
+            if ($spus && is_array($spus)) {
+                $show_cat_products = $this->alias('scp')
+                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->field('scp.cat_no,scp.spu')
+                        ->where(['scp.spu' => ['in', $spus],
+                            'scp.status' => 'VALID',
+                            'sc.status' => 'VALID',
+                            'sc.lang' => $lang,
+                            'sc.id>0',
+                        ])
+                        ->select();
+            } else {
+                return [];
+            }
+            $ret = [];
+            $show_cat_nos = [];
+            foreach ($show_cat_products as $item) {
+
+                $show_cat_nos[] = $item['cat_no'];
+            }
+
+
+            $show_cat_model = new ShowCatModel();
+            $scats = $show_cat_model->getshow_cats($show_cat_nos, $lang);
+
+            foreach ($show_cat_products as $item) {
+                $show_cat_no = $item['cat_no'];
+                if (isset($scats[$show_cat_no])) {
+                    $ret[$item['spu']][$show_cat_no] = $scats[$show_cat_no];
+                    $ret[$item['spu']][$show_cat_no]['onshelf_flag'] = $item['onshelf_flag'];
+                }
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
 
 }

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * 产品线报价
+ * Class QuoteBizLineModel
+ * @author 买买提
+ */
 class QuoteBizLineModel extends PublicModel
 {
 
@@ -81,6 +86,19 @@ class QuoteBizLineModel extends PublicModel
     {
         return $this->where(['quote_id'=>$quote_id])->save(['status'=>'SUBMIT']);
     }
+
+    /**
+     * 产品线报价人暂存报价
+     * @param $quote_id 报价id
+     *
+     * @return bool
+     */
+    public function quoterStorage($quote_id)
+    {
+        //TODO 这里添加保存数据的逻辑才行
+        return $this->where(['quote_id'=>$quote_id])->save(['status'=>'SUBMIT']);
+    }
+
     /**
      * 过滤条件
      * @param array $param

@@ -1359,9 +1359,9 @@ function browser_lang() {
  * @param string $message    错误提示
  * @param string $type
  */
-function jsonReturn($data, $code = '1', $message = '', $lang = 'zh') {
+function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
     header('Content-Type:application/json; charset=utf-8');
-    exit(json_encode(array('data'=>$code=='1' ? $data : false,'code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
+    exit(json_encode(array('data'=>$code==1 ? $data : false,'code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
 }
 
 /**
@@ -1660,10 +1660,10 @@ function getValue(&$where, &$condition, $name, $type = 'string', $field = null) 
  * @param string $prefix    前缀
  * @return string
  */
-function randNumber($len = 6,$prefix = ''){
+function randNumber($len = 6, $prefix = '') {
     $str = '';
-    for($i=0;$i<$len;$i++){
-        $str.=rand(0,9);
+    for ($i = 0; $i < $len; $i++) {
+        $str .= rand(0, 9);
     }
-    return $prefix.str_pad($str,6,'0',STR_PAD_LEFT);
+    return $prefix . str_pad($str, 6, '0', STR_PAD_LEFT);
 }

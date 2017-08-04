@@ -155,7 +155,6 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::FAILED);
         }
     }
-
     /**
      * 产品附件
      */
