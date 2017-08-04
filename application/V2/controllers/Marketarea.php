@@ -64,12 +64,10 @@ class MarketareaController extends PublicController {
             $result = $this->_model->info($bn, $lang);
 
             if ($result) {
-                if (!$data) {
-                    $data = $result;
-                    $data['name'] = null;
-                    unset($data['name']);
-                }
+                $data['bn'] = $result['bn'];
                 $data[$lang]['name'] = $result['name'];
+            } else {
+                $data[$lang]['name'] = '';
             }
         }
 
@@ -109,7 +107,7 @@ class MarketareaController extends PublicController {
      */
     public function createAction() {
         $data = $this->getPut();
-        $result = $this->_model->create_data($data,$this->user['id']);
+        $result = $this->_model->create_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -129,7 +127,7 @@ class MarketareaController extends PublicController {
      */
     public function updateAction() {
         $data = $this->getPut();
-        $result = $this->_model->update_data($data,$this->user['id']);
+        $result = $this->_model->update_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
