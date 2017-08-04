@@ -12,7 +12,10 @@ class InquiryController extends PublicController {
         parent::__init();
     }
 
-    //返回询价单流水号
+    /*
+     * 返回询价单流程编码
+     * Author:张玉良
+     */
     public function getSerialNoAction() {
         $data['serial_no'] = $this->getInquirySerialNo();
         if(!empty($data)){
@@ -26,7 +29,10 @@ class InquiryController extends PublicController {
         }
     }
 
-    //查询询单流程编码是否存在
+    /*
+     * 查询询单流程编码是否存在
+     * Author:张玉良
+     */
     public function checkSerialNoAction() {
         $inquiry = new InquiryModel();
         $where = $this->put_data;
@@ -36,7 +42,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //询价单列表
+    /*
+     * 询价单列表
+     * Author:张玉良
+     */
     public function getListAction(){
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
@@ -77,7 +86,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //询价单详情
+    /*
+     * 询价单详情
+     * Author:张玉良
+     */
     public function getInfoAction() {
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
@@ -98,22 +110,24 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //添加询价单
+    /*
+     * 添加询价单
+     * Author:张玉良
+     */
     public function addAction(){
         $inquiry = new InquiryModel();
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
 
         $results = $inquiry->addData($data);
-        if($results['code'] == '1'){
-            $approveLog['inquiry_no'] = $results['data']['inquiry_no'];
-            $approveLog['type'] = '创建市场报价单';
-            $this->addApproveLog($approveLog);
-        }
+
         $this->jsonReturn($results);
     }
 
-    //修改询价单
+    /*
+     * 修改询价单
+     * Author:张玉良
+     */
     public function updateAction(){
         $inquiry = new InquiryModel();
         $data =  $this->put_data;
@@ -123,7 +137,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //批量修改询价单状态
+    /*
+     * 批量修改询价单状态
+     * Author:张玉良
+     */
     public function updateStatusAction(){
         $inquiry = new InquiryModel();
         $data =  $this->put_data;
@@ -133,7 +150,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //删除询价单
+    /*
+     * 删除询价单
+     * Author:张玉良
+     */
     public function deleteAction() {
         $inquiry = new InquiryModel();
         $where =  $this->put_data;
@@ -142,8 +162,11 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //附件列表
-    public function getListAttachAction() {
+    /*
+     * 附件列表
+     * Author:张玉良
+     */
+    public function getAttachListAction() {
         $attach = new InquiryattachModel();
         $where =  $this->put_data;
 
@@ -152,7 +175,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //添加附件
+    /*
+     * 添加附件
+     * Author:张玉良
+     */
     public function addAttachAction() {
         $attach = new InquiryattachModel();
         $data =  $this->put_data;
@@ -163,8 +189,11 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //删除附件
-    public function delAttachAction() {
+    /*
+     * 删除附件
+     * Author:张玉良
+     */
+    public function deleteAttachAction() {
         $attach = new InquiryattachModel();
         $data =  $this->put_data;
         $data['updated_by'] = $this->user['id'];
@@ -173,8 +202,11 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //明细列表
-    public function getListItemAction() {
+    /*
+     * 明细列表
+     * Author:张玉良
+     */
+    public function getItemListAction() {
         $Item = new InquiryitemModel();
 
         $where =  $this->put_data;
@@ -183,8 +215,11 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //明细详情
-    public function getInfoItemAction() {
+    /*
+     * 明细详情
+     * Author:张玉良
+     */
+    public function getItemInfoAction() {
         $Item = new InquiryitemModel();
 
         $where =  $this->put_data;
@@ -193,7 +228,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //添加明细
+    /*
+     * 添加明细
+     * Author:张玉良
+     */
     public function addItemAction() {
         $Item = new InquiryitemModel();
         $data =  $this->put_data;
@@ -203,7 +241,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //修改明细
+    /*
+     * 修改明细
+     * Author:张玉良
+     */
     public function updateItemAction() {
         $Item = new InquiryitemModel();
         $data =  $this->put_data;
@@ -213,8 +254,11 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //删除明细
-    public function delItemAction() {
+    /*
+     * 删除明细
+     * Author:张玉良
+     */
+    public function deleteItemAction() {
         $Item = new InquiryitemModel();
         $data =  $this->put_data;
 
@@ -222,8 +266,11 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //明细附件列表
-    public function getListItemAttachAction()
+    /*
+     * 明细附件列表
+     * Author:张玉良
+     */
+    public function getItemAttachListAction()
     {
         $ItemAttach = new InquiryitemattachModel();
 
@@ -233,7 +280,10 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //添加明细附件
+    /*
+     * 添加明细附件
+     * Author:张玉良
+     */
     public function addItemAttachAction() {
         $ItemAttach = new InquiryitemattachModel();
         $data =  $this->put_data;
@@ -243,12 +293,24 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //删除明细附件
-    public function delItemAttachAction() {
+    /*
+     * 删除明细附件
+     * Author:张玉良
+     */
+    public function deleteItemAttachAction() {
         $ItemAttach = new InquiryitemattachModel();
         $data =  $this->put_data;
 
         $results = $ItemAttach->deleteData($data);
         $this->jsonReturn($results);
     }
+
+    /*
+     * 提交到项目经理
+     */
+
+    /*
+     * 提交到方案中心
+     */
+
 }
