@@ -36,7 +36,7 @@ class CountryModel extends PublicModel {
         }
         getValue($data, $condition, 'name', 'like', 'c.name');
         getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
-        getValue($data, $condition, 'region', 'like', 'c.region');
+        getValue($data, $condition, 'region_bn', 'like', 'c.region_bn');
         if (isset($condition['status']) && $condition['status'] == 'ALL') {
             
         } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
@@ -74,7 +74,7 @@ class CountryModel extends PublicModel {
             $this->alias('c')
                     ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
                     ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
-                    ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region,c.pinyin,'
+                    ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,'
                             . 'ma.name as market_area_name ,mac.market_area_bn')
                     ->where($data);
             if ($type) {
@@ -94,10 +94,14 @@ class CountryModel extends PublicModel {
 
     public function getCount($condition) {
         try {
-            $data = $this->getCondition($condition);
+            $data = $this->alias('c')
+                    ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
+                    ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
+                    ->getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
-
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
     }

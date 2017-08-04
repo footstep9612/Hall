@@ -8,8 +8,10 @@
 
 /**
  * Description of Esgoods
- *
- * @author zhongyg
+ * @author  zhongyg
+ * @date    2017-8-1 16:50:09
+ * @version V2.0
+ * @desc   ES 产品
  */
 class EsProductController extends PublicController {
 
@@ -21,43 +23,22 @@ class EsProductController extends PublicController {
     //put your code here
     public function init() {
 
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
-        if (!method_exists($this, $this->getRequest()->getActionName() . 'Action')) {
-            $this->setCode(MSG::MSG_ERROR_ACTION);
-            $this->jsonReturn();
-        }
-        $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
-        if (!empty($jsondata["token"])) {
-            $token = $jsondata["token"];
-        }
-        if (!empty($token)) {
-            try {
-                $tokeninfo = JwtInfo($token); //解析token
-                $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
-                if (empty($userinfo)) {
-                    $this->put_data['source'] = 'ERUI';
-                } else {
-                    $this->user = $userinfo;
-                }
-            } catch (Exception $e) {
-                $this->put_data['source'] = 'ERUI';
-            }
-        } else {
-            $this->put_data['source'] = 'ERUI';
-        }
+        //  parent::init();
         $this->es = new ESClient();
     }
 
     /*
      * 获取列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
      */
 
     public function listAction() {
         $model = new EsProductModel();
-        $ret = $model->getProducts($this->put_data, null, $this->getLang());
+        $lang = $this->get('lang') ?: $this->getPut('lang', 'zh');
+        $ret = $model->getProducts($this->put_data, null, $lang);
         if ($ret) {
             $data = $ret[0];
 
@@ -87,6 +68,10 @@ class EsProductController extends PublicController {
 
     /*
      * 处理ES 数据
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
      */
 
     private function _getdata($data) {
@@ -110,13 +95,15 @@ class EsProductController extends PublicController {
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
-            $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
         }
         return $list;
     }
 
     /* 获取分类列表
-     * @
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
      */
 
     private function _getcatlist($material_cat_nos, $material_cats) {
@@ -153,6 +140,10 @@ class EsProductController extends PublicController {
 
     /*
      * 更新关键词表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
      */
 
     private function _update_keywords() {
@@ -177,6 +168,233 @@ class EsProductController extends PublicController {
                 $usersearchmodel->add($search);
             }
         }
+    }
+
+    /**
+     * Description of 数据导入
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function importAction($lang = 'en') {
+        try {
+            set_time_limit(0);
+            ini_set('memory_limi', '1G');
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsproductModel();
+                $espoductmodel->importproducts($lang);
+            }
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 创建索引
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function indexAction() {
+        $body['mappings'] = [];
+        $product_properties = $this->productAction('en');
+        $goods_properties = $this->goodsAction('en');
+        foreach ($this->langs as $lang) {
+            $body['mappings']['goods_' . $lang]['properties'] = $goods_properties;
+            $body['mappings']['goods_' . $lang]['_all'] = ['enabled' => false];
+            $body['mappings']['product_' . $lang]['properties'] = $product_properties;
+            $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
+        }
+        $this->es->create_index($this->index, $body);
+        $this->setCode(1);
+        $this->setMessage('成功!');
+        $this->jsonReturn();
+    }
+
+    /**
+     * Description of 商品索引信息组合
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function goodsAction() {
+
+        $int_analyzed = ['type' => 'integer'];
+        $not_analyzed = ['type' => 'float'];
+        $ik_analyzed = [
+            'index' => 'no',
+            'type' => 'string',
+            'fields' => [
+                'all' => [
+                    'index' => 'not_analyzed',
+                    'type' => 'string'
+                ],
+                'standard' => [
+                    'analyzer' => 'standard',
+                    'type' => 'string'
+                ],
+                'ik' => [
+                    'analyzer' => 'ik',
+                    'type' => 'string'
+                ],
+                'whitespace' => [
+                    'analyzer' => 'whitespace',
+                    'type' => 'string'
+                ]
+            ]
+        ];
+        $not_analyzed = [
+            'index' => 'not_analyzed',
+            'type' => 'string'
+        ];
+        $body = [
+            'min_order_qty' => $int_analyzed,
+            'min_pack_naked_qty' => $int_analyzed,
+            'min_pack_unit' => $ik_analyzed,
+            'nude_cargo_w_mm' => $int_analyzed,
+            'suppliers' => $ik_analyzed,
+            'shelves_status' => $not_analyzed,
+            'compose_require_pack' => $not_analyzed,
+            'qrcode' => $not_analyzed,
+            'checked_by' => $int_analyzed,
+            'show_name' => $ik_analyzed,
+            'nude_cargo_h_mm' => $int_analyzed,
+            'created_at' => $not_analyzed,
+            'description' => $ik_analyzed,
+            'hs_code' => $ik_analyzed,
+            'specs' => $ik_analyzed,
+            'updated_at' => $not_analyzed,
+            'commodity_ori_place' => $ik_analyzed,
+            'nude_cargo_l_mm' => $int_analyzed,
+            'tx_unit' => $ik_analyzed,
+            'material_cat_no' => $not_analyzed,
+            'model' => $ik_analyzed,
+            'show_cats' => $ik_analyzed,
+            'id' => $int_analyzed,
+            'lang' => $not_analyzed,
+            'sku' => $not_analyzed,
+            'nude_cargo_unit' => $ik_analyzed,
+            'min_pack_w_mm' => $int_analyzed,
+            'name_customs' => $ik_analyzed,
+            'checked_at' => $not_analyzed,
+            'gross_weight_kg' => $not_analyzed,
+            'regulatory_conds' => $ik_analyzed,
+            'min_pack_h_mm' => $int_analyzed,
+            'created_by' => $int_analyzed,
+            'net_weight_kg' => $not_analyzed,
+            'exw_days' => $ik_analyzed,
+            'tax_rebates_pct' => $not_analyzed,
+            'attrs' => $ik_analyzed,
+            'pack_type' => $ik_analyzed,
+            'min_pack_l_mm' => $int_analyzed,
+            'name' => $ik_analyzed,
+            'purchase_price' => $not_analyzed,
+            'purchase_price_cur_bn' => $not_analyzed,
+            'updated_by' => $int_analyzed,
+            'spu' => $not_analyzed,
+            'meterial_cat' => $ik_analyzed,
+            'status' => $not_analyzed
+        ];
+
+        return $body;
+    }
+
+    /**
+     * Description of 产品索引信息组合
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function productAction($lang = 'en') {
+
+
+        $int_analyzed = ['type' => 'integer'];
+        $not_analyzed = ['type' => 'float'];
+        $ik_analyzed = [
+            'index' => 'no',
+            'type' => 'string',
+            'fields' => [
+                'all' => [
+                    'index' => 'not_analyzed',
+                    'type' => 'string'
+                ],
+                'standard' => [
+                    'analyzer' => 'standard',
+                    'type' => 'string'
+                ],
+                'ik' => [
+                    'analyzer' => 'ik',
+                    'type' => 'string'
+                ],
+                'whitespace' => [
+                    'analyzer' => 'whitespace',
+                    'type' => 'string'
+                ]
+            ]
+        ];
+        $not_analyzed = [
+            'index' => 'not_analyzed',
+            'type' => 'string'
+        ];
+
+        $body = [
+            'principle' => $ik_analyzed,
+            'recommend_flag' => $not_analyzed,
+            'skus' => $ik_analyzed,
+            'keywords' => $ik_analyzed,
+            'suppliers' => $ik_analyzed,
+            'supply_ability' => $ik_analyzed,
+            'qrcode' => $not_analyzed,
+            'checked_by' => $int_analyzed,
+            'show_name' => $ik_analyzed,
+            'created_at' => $not_analyzed,
+            'description' => $ik_analyzed,
+            'availability' => $ik_analyzed,
+            'source' => $ik_analyzed,
+            'resp_time' => $ik_analyzed,
+            'specs' => $ik_analyzed,
+            'updated_at' => $not_analyzed,
+            'delivery_cycle' => $ik_analyzed,
+            'material_cat_no' => $not_analyzed,
+            'warranty' => $ik_analyzed,
+            'show_cats' => $ik_analyzed,
+            'customizability' => $ik_analyzed,
+            'id' => $int_analyzed,
+            'lang' => $not_analyzed,
+            'brand' => $ik_analyzed,
+            'checked_at' => $not_analyzed,
+            'resp_rate' => $not_analyzed,
+            'profile' => $ik_analyzed,
+            'created_by' => $int_analyzed,
+            'attrs' => $ik_analyzed,
+            'exe_standard' => $ik_analyzed,
+            'attachs' => $ik_analyzed,
+            'source_detail' => $ik_analyzed,
+            'advantages' => $ik_analyzed,
+            'sku_count' => $int_analyzed,
+            'name' => $ik_analyzed,
+            'updated_by' => $int_analyzed,
+            'spu' => $not_analyzed,
+            'availability_ratings' => $int_analyzed,
+            'app_scope' => $ik_analyzed,
+            'target_market' => $ik_analyzed,
+            'tech_paras' => $ik_analyzed,
+            'properties' => $ik_analyzed,
+            'meterial_cat' => $ik_analyzed,
+            'status' => $not_analyzed
+        ];
+        return $body;
     }
 
 }

@@ -1,7 +1,11 @@
 <?php
 
 /**
-  附件文档Controller
+ * Description of RateController
+ * @author  zhongyg
+ * @date    2017-8-2 13:07:21
+ * @version V2.0
+ * @desc   物流费率
  */
 class TransModeController extends PublicController {
 

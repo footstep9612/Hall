@@ -36,8 +36,8 @@ class Bootstrap extends Yaf_Bootstrap_Abstract {
             $ControllerName = $this->parseName($out[2], 1);
             $Request->setControllerName($ControllerName);
             $Request->setModuleName('Index');
-           // $method = $Request->getMethod();
-            
+            // $method = $Request->getMethod();
+
             $action = ':Action';
 //            switch ($method) {
 //                case 'GET':

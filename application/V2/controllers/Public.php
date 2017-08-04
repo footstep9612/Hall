@@ -174,6 +174,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         } else {
             if ($data) {
                 $this->send['data'] = $data;
+            } elseif ($data === null) {
+                $this->send['data'] = null;
             }
             $this->send['code'] = $this->getCode();
 
@@ -184,7 +186,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             } else {
                 $this->send['message'] = $this->getMessage();
             }
-
             exit(json_encode($this->send, JSON_UNESCAPED_UNICODE));
         }
     }
@@ -197,10 +198,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @return mixed
      */
 
-    public function getPut($name, $default = null) {
-        $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
-        // return array_walk_recursive($data, 'think_filter');
-        return $data;
+    public function getPut($name = null, $default = null) {
+
+        if (!$this->put_data) {
+            $this->put_data = json_decode(file_get_contents("php://input"), true);
+        }
+        if ($name) {
+            $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            return $data;
+        } else {
+            return $this->put_data;
+        }
     }
 
     /**
@@ -231,7 +239,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($name) {
             return $this->getRequest()->get($name, $default);
         } else {
-            return $this->getRequest()->getParams();
+            return $_GET;
         }
     }
 

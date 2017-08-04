@@ -35,7 +35,16 @@ class BoxShipownerClauseModel extends PublicModel {
 
         $this->_getValue($data, $condition, 'box_type_bn'); //名称
         $this->_getValue($data, $condition, 'shipowner_clause_bn'); //贸易术语简称
-
+        if (isset($condition['keyword']) && $condition['keyword']) {
+            $map = [];
+            
+         
+            $this->_getValue($map, $condition, 'keyword', 'like', 'bt.box_type_name');
+            $this->_getValue($map, $condition, 'keyword', 'like', 'sc.clause');
+            $map['_logic'] = 'or';
+            $data['_complex'] = $map;
+        }
+        $this->_getValue($data, $condition, 'status'); //状态
         if (!isset($data['status'])) {
             $data['status'] = 'VALID';
         }
@@ -50,12 +59,13 @@ class BoxShipownerClauseModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function getlist($condition, $order = 'id desc') {
+    public function getlist($condition, $order = 'tbt.id desc') {
         try {
             $data = $this->_getCondition($condition);
-            $this->field('id,'
-                            . '(select box_type_name from erui2_dict.box_type where bn= box_type and lang=\'zh\')  as box_type_name,'
-                            . '(select clause from erui2_dict.shipowner_clause where bn= shipowner_clause_bn and lang=\'zh\') as clause')
+            $this->alias('tbt')
+                    ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
+                    ->join('erui2_dict.shipowner_clause sc on sc.bn=tbt.shipowner_clause_bn and sc.lang=\'zh\'', 'left')
+                    ->field('tbt.id,bt.box_type_name,sc.clause ')
                     ->where($data);
             return $this->order($order)
                             ->select();
@@ -126,8 +136,10 @@ class BoxShipownerClauseModel extends PublicModel {
     public function create_data($create = []) {
 
         $data = $this->create($create);
+        unset($data['id']);
         $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $flag = $this->add($data);
+
         if ($flag) {
             return $flag;
         } else {

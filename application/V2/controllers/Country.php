@@ -59,6 +59,8 @@ class CountryController extends PublicController {
     public function listallAction() {
         $data = $this->get();
         unset($data['token']);
+        $data['lang'] = $this->getPut('lang', 'zh');
+
         $market_area = new CountryModel();
         if (redisGet('Country_listall_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('Country_listall_' . md5(json_encode($data))), true);

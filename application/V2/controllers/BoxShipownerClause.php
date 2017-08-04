@@ -17,7 +17,7 @@ class BoxShipownerClauseController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        //  parent::init();
     }
 
     /*
@@ -25,19 +25,21 @@ class BoxShipownerClauseController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
+        $data = $this->get() ? $this->get() : $this->getPut();
 
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        if (redisGet('BoxShipowner_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('BoxShipowner_' . md5(json_encode($data))), true);
+        if (redisGet('BoxShipownerClause_' . md5(json_encode($data)))) {
+            $arr = json_decode(redisGet('BoxShipownerClause_' . md5(json_encode($data))), true);
         } else {
             $arr = $box_shipowner_clause_model->getlist($data);
             if ($arr) {
-                redisSet('BoxShipowner_' . md5(json_encode($data)), json_encode($arr));
+                redisSet('BoxShipownerClause_' . md5(json_encode($data)), json_encode($arr));
             }
         }
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
         } else {
             $this->setCode(MSG::MSG_FAILED);
         }
@@ -49,15 +51,15 @@ class BoxShipownerClauseController extends PublicController {
      */
 
     public function infoAction() {
-        $id = $this->get('id');
+        $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
 
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        if (redisGet('BoxShipowner_' . md5($id))) {
-            $arr = json_decode(redisGet('BoxShipowner_' . md5($id)), true);
+        if (redisGet('BoxShipownerClause_' . md5($id))) {
+            $arr = json_decode(redisGet('BoxShipownerClause_' . md5($id)), true);
         } else {
             $arr = $box_shipowner_clause_model->info($id);
             if ($arr) {
-                redisSet('BoxShipowner_' . md5($id), json_encode($arr));
+                redisSet('BoxShipownerClause_' . md5($id), json_encode($arr));
             }
         }
         if (!empty($arr)) {
@@ -71,7 +73,6 @@ class BoxShipownerClauseController extends PublicController {
     public function createAction() {
         $condition = $this->getPut(null);
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
-
         $result = $box_shipowner_clause_model->create_data($condition);
         if ($result) {
 //            $this->delcache();
@@ -87,7 +88,9 @@ class BoxShipownerClauseController extends PublicController {
 
         $condition = $this->getPut(null);
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        $condition['id'] = $this->get('id');
+        if (!$condition['id']) {
+            $condition['id'] = $this->get('id');
+        }
         $result = $box_shipowner_clause_model->update_data($condition);
         if ($result) {
 //            $this->delcache();
@@ -101,7 +104,7 @@ class BoxShipownerClauseController extends PublicController {
 
     public function deleteAction() {
 
-        $id = $this->get('id');
+        $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
         $where['id'] = $id;
         if ($id) {
             $where['id'] = $id;

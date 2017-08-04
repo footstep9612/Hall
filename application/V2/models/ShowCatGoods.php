@@ -34,7 +34,7 @@ class ShowCatGoodsModel extends PublicModel {
             $results['code'] = '-101';
             $results['message'] = '缺少SKU!';
         }
-        if(empty($condition['show_cat'])){
+        if(empty($condition['cat_no'])){
             $results['code'] = '-101';
             $results['message'] = '缺少显示分类!';
         }
@@ -42,41 +42,28 @@ class ShowCatGoodsModel extends PublicModel {
             $results['code'] = '-101';
             $results['message'] = '缺少上架状态!';
         }
-        if(empty($condition['name'])){
+        if(empty($condition['created_by'])){
             $results['code'] = '-101';
             $results['message'] = '缺少添加人!';
         }
 
         $showcat = explode(',',$condition['cat_no']);
-
-        try {
-            $result = $this->field('spu,sku')->where(['spu'=>$condition['spu'],'lang'=>$condition['lang']])->select();
-            if($result) {
-                foreach($showcat as $val) {
-                    foreach ($condition['skus'] as $sku) {
-                        $test['onshelf_flag'] = strtoupper($condition['onshelf_flag']);
-                        $test['updated_by'] = $condition['name'];
-                        $test['updated_at'] = $this->getTime();
-                        $id = $this->where(['sku'=>$sku['sku'],'lang'=>$condition['lang'],'cat_no'=>$val])->save($test);
-                    }
-                }
-            } else {
-                $linecat = [];
-                foreach($showcat as $val) {
-                    foreach ($condition['skus'] as $sku) {
-                        $test['lang'] = $condition['lang'];
-                        $test['spu'] = $condition['spu'];
-                        $test['sku'] = $sku['sku'];
-                        $test['cat_no'] = $val;
-                        $test['status'] = 'VALID';
-                        $test['onshelf_flag'] = strtoupper($condition['onshelf_flag']);
-                        $test['created_by'] = $condition['created_by'];
-                        $test['created_at'] = $this->getTime();
-                        $linecat[] = $test;
-                    }
-                }
-                $id = $this->addAll($linecat);
+        $linecat = [];
+        foreach($showcat as $val) {
+            foreach ($condition['skus'] as $sku) {
+                $test['lang'] = $condition['lang'];
+                $test['spu'] = $condition['spu'];
+                $test['sku'] = $sku['sku'];
+                $test['cat_no'] = $val;
+                $test['status'] = 'VALID';
+                $test['onshelf_flag'] = strtoupper($condition['onshelf_flag']);
+                $test['created_by'] = $condition['created_by'];
+                $test['created_at'] = $this->getTime();
+                $linecat[] = $test;
             }
+        }
+        try {
+            $id = $this->addAll($linecat);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';

@@ -7,7 +7,7 @@
 class CurrencyController extends PublicController {
 
     public function init() {
-        parent::init();
+        //  parent::init();
     }
 
     /**
@@ -17,12 +17,13 @@ class CurrencyController extends PublicController {
      * @return array|mixed
      * @author  zhongyg
      */
-    public function listALLAction() {
+    public function listAction() {
         $key = 'Currency_listall';
         $data = json_decode(redisGet($key), true);
         $model = new CurrencyModel();
         if (!$data) {
             $arr = $model->getlist();
+
             if ($arr) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::MSG_SUCCESS;

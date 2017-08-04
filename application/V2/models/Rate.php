@@ -39,6 +39,7 @@ class RateModel extends PublicModel {
         $this->_getValue($data, $condition, 'lang'); //语言
         $this->_getValue($data, $condition, 'name'); //名称
         $this->_getValue($data, $condition, 'trade_terms_bn'); //贸易术语简称
+        $this->_getValue($data, $condition, 'trans_mode_bn'); //运输方式简称 
         $this->_getValue($data, $condition, 'port_bn'); //港口简称
         $this->_getValue($data, $condition, 'country_bn'); //目的国简称
         $this->_getValue($data, $condition, 'box_type_bn'); //发货箱型简称
@@ -63,7 +64,8 @@ class RateModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param data $data;
+     * @param array $condition
+     * @param string $order 排序
      * @return array
      * @date    2017-8-1 16:20:48
      * @author zyg
@@ -71,36 +73,51 @@ class RateModel extends PublicModel {
     public function getlist($condition, $order = 'id desc') {
         try {
             $data = $this->_getCondition($condition);
-            $this->field('id,lang,name,trade_terms_bn,country_bn,port_bn,'
+            $this->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
                             . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
                             . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
                             . 'qty,remarks,status,created_by,created_at,updated_by,'
-                            . 'updated_at,deleted_flag')
+                            . 'updated_at')
                     ->where($data);
             return $this->order($order)
                             ->select();
         } catch (Exception $ex) {
-            print_r($ex);
+
             return [];
         }
     }
 
     /**
-     * 获取情
-     * @param  string $bn 编码
-     * @param  string $lang 语言
-     * @return mix
+     * 获取总数
+     * @param data $condition
+     * @return int
+     * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function info($bn = '', $lang = 'en') {
-        $where['bn'] = $bn;
-        $where['lang'] = $lang;
+    public function getCount($condition) {
+        try {
+            $data = $this->_getCondition($condition);
+            return $this->where($data)->count();
+        } catch (Exception $ex) {
+
+            return 0;
+        }
+    }
+
+    /**
+     * 获取情
+     * @param  string $id 编码
+     * @return mix
+     * @date    2017-8-1 16:20:48
+     * @author zyg
+     */
+    public function info($id = '') {
+        $where['id'] = $id;
         return $this->where($where)
-                        ->field('id,lang,name,trade_terms_bn,country_bn,port_bn,'
+                        ->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
                                 . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
                                 . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
-                                . 'qty,remarks,status,created_by,created_at,updated_by,'
-                                . 'updated_at,deleted_flag')
+                                . 'qty,remarks,status')
                         ->find();
     }
 
@@ -109,6 +126,7 @@ class RateModel extends PublicModel {
      * @param  string $id id
      * @param  string $lang 语言
      * @return bool
+     * @date    2017-8-1 16:20:48
      * @author zyg
      */
     public function delete_data($id = '', $lang = '') {
@@ -117,9 +135,7 @@ class RateModel extends PublicModel {
         } else {
             $where['id'] = $id;
         }
-        if ($lang) {
-            $where['lang'] = $lang;
-        }
+
         $flag = $this->where($where)
                 ->save(['status' => 'INVALID']);
 
@@ -128,9 +144,10 @@ class RateModel extends PublicModel {
 
     /**
      * 修改数据
-     * @param  array $update id
+     * @param  array $update 更新条件
      * @return bool
-     * @author jhw
+     * @date    2017-8-1 16:20:48
+     * @author zyg
      */
     public function update_data($update) {
         $data = $this->create($update);
@@ -147,7 +164,8 @@ class RateModel extends PublicModel {
      * 新增数据
      * @param  mix $create 新增条件
      * @return bool
-     * @author jhw
+     * @date    2017-8-1 16:20:48
+     * @author zyg
      */
     public function create_data($create = []) {
 
