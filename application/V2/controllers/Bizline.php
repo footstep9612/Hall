@@ -15,6 +15,7 @@ class BizlineController extends PublicController {
     public function getListAction() {
         $bizline = new BizlineModel();
         $bizlinecat = new BizlinecatModel();
+        $bizlinegroup = new BizlinegroupModel();
         $createcondition = $this->put_data;
 
         $results = $bizline->getlist($createcondition);
@@ -23,14 +24,12 @@ class BizlineController extends PublicController {
             //查找物料分类是否选择
             $where['bizline_id'] = $val['id'];
 
-            $catcount = $bizlinecat->getCount($where);
-            if($catcount>0){
-                $results['data'][$key]['cat_select'] = '已选择';
-            }else{
-                $results['data'][$key]['cat_select'] = '未选择';
-            }
+            $results['data'][$key]['cat_count'] = $bizlinecat->getCount($where);
 
-            //如果根据组查询出报价人组名称
+            //产品线负责人组名称
+            $where['group_role'] = 'BIZLINE_MANAGER';
+            $grouplist = $bizlinegroup->getList($where);
+            $results['data'][$key]['group_name'] = $grouplist['data'][0]['group_id'];
         }
 
         $this->jsonReturn($results);
@@ -101,6 +100,7 @@ class BizlineController extends PublicController {
         $bizline = new BizlineModel();
         $bizlinecat = new BizlinecatModel();
         $createcondition =  $this->put_data;
+        $createcondition['userid'] = $this->user['id'];
 
         $bizline->startTrans();
         $results = $bizline->updateData($createcondition);
@@ -168,7 +168,7 @@ class BizlineController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //产品线报价人列表
+    //产品线负责人列表
     public function getManagerAction() {
         $bizlinegroup = new BizlinegroupModel();
         $createcondition =  $this->put_data;
@@ -226,6 +226,17 @@ class BizlineController extends PublicController {
         $createcondition =  $this->put_data;
 
         $results = $bizlinegroup->deleteBizlineGroup($createcondition);
+
+        $this->jsonReturn($results);
+    }
+
+    //产品线报价人列表
+    public function getQuoterAction() {
+        $bizlinegroup = new BizlinegroupModel();
+        $createcondition =  $this->put_data;
+        $createcondition['group_role'] = 'SKU_QUOTER';
+
+        $results = $bizlinegroup->getList($createcondition);
 
         $this->jsonReturn($results);
     }
