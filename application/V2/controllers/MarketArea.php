@@ -23,8 +23,8 @@ class MarketAreaController extends PublicController {
      * @desc   营销区域
      */
     public function listAction() {
-        $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
+        $data = $this->get() ?: $this->getPut();
+        $data['lang'] = $this->get('lang', '') ?: $this->getPut('lang', '');
         $market_area_model = new MarketAreaModel();
         if (redisGet('Market_Area_listall_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
@@ -52,8 +52,8 @@ class MarketAreaController extends PublicController {
      * @desc   营销区域
      */
     public function infoAction() {
-        $bn = $this->get('id');
-        $bn = 'Middle Asia';
+        $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
+
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -113,7 +113,8 @@ class MarketAreaController extends PublicController {
      * @desc   营销区域
      */
     public function createAction() {
-        $result = $this->_model->create_data($this->put_data);
+        $data = $this->getPut();
+        $result = $this->_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -132,8 +133,8 @@ class MarketAreaController extends PublicController {
      * @desc   营销区域
      */
     public function updateAction() {
-        $where['id'] = $this->get('id');
-        $result = $this->_model->update_data($this->put_data);
+        $data = $this->getPut();
+        $result = $this->_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -152,12 +153,12 @@ class MarketAreaController extends PublicController {
      * @desc   营销区域
      */
     public function deleteAction() {
-        $condition = $this->put_data;
-        $id = $this->get('id');
+        $data = $this->getPut();
+        $id = $this->get('id') ?: $this->getPut('id');
         if ($id) {
             $ids = explode(',', $id);
             if (is_array($ids)) {
-                $where['id'] = ['in', $condition['id']];
+                $where['id'] = ['in', $ids];
             } else {
                 $where['id'] = $id;
             }
