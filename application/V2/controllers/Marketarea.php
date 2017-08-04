@@ -94,7 +94,7 @@ class MarketareaController extends PublicController {
      */
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('market_area_list_*');
+        $keys = $redis->getKeys('Market_Area_*');
         $redis->delete($keys);
     }
 
@@ -106,7 +106,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function createAction() {
-        $data = $this->getPut();
+        $data = $this->getPut();       
         $result = $this->_model->create_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
