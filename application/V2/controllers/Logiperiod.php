@@ -23,7 +23,7 @@ class LogiperiodController extends PublicController {
      * @desc   贸易条款对应物流时效
      */
     public function listAction() {
-        $condtion = $this->put_data;
+        $condtion = $this->getPut();
         unset($condtion['token']);
         $key = 'logi_period_list_' . $lang . md5(json_encode($condtion));
         $data = redisGet($key);
@@ -62,7 +62,7 @@ class LogiperiodController extends PublicController {
      * @desc   贸易条款对应物流时效
      */
     public function listallAction() {
-        $condtion = $this->put_data;
+        $condtion = $this->getPut();
         $condtion['lang'] = $this->getPut('lang', 'zh');
         unset($condtion['token']);
         $key = 'logi_period_listall_' . $lang . md5(json_encode($condtion));

@@ -109,7 +109,7 @@ class MarketareaController extends PublicController {
      */
     public function createAction() {
         $data = $this->getPut();
-        $result = $this->_model->create_data($data);
+        $result = $this->_model->create_data($data,$this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -129,7 +129,7 @@ class MarketareaController extends PublicController {
      */
     public function updateAction() {
         $data = $this->getPut();
-        $result = $this->_model->update_data($data);
+        $result = $this->_model->update_data($data,$this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -148,17 +148,18 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function deleteAction() {
-        $data = $this->getPut();
-        $id = $this->get('id') ?: $this->getPut('id');
-        if ($id) {
-            $ids = explode(',', $id);
-            if (is_array($ids)) {
-                $where['id'] = ['in', $ids];
+
+        $bn = $this->get('bn') ?: $this->getPut('bn');
+        if ($bn) {
+            $bns = explode(',', $bn);
+            if (is_array($bns)) {
+                $where['bn'] = ['in', $bns];
             } else {
-                $where['id'] = $id;
+                $where['bn'] = $bn;
             }
         }
-        $result = $this->_model->where($where)->save(['status' => 'DELETE']);
+        $result = $this->_model->where($where)
+                ->save(['status' => 'DELETE']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
