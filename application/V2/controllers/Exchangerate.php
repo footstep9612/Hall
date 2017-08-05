@@ -29,7 +29,7 @@ class ExchangerateController extends PublicController {
     public function listAction() {
         $condtion = $this->getPut();
         unset($condtion['token']);
-        $key = 'Exchange_rate_' . md5(json_encode($condtion));
+        $key = 'Exchange_rate_' . md5($condtion['cur_bn1'].$condtion['cur_bn2'].$condtion['effective_date']);
         $data = redisGet($key);
 
         if ($data == '&&') {
