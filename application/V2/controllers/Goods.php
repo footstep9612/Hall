@@ -269,6 +269,28 @@ class GoodsController extends PublicController{
         $this->returnInfo($result);
     }
 
+    /**
+     * 审核记录
+     * @author link 2017-08-05
+     */
+    public function checklogAction(){
+        if(!isset($this->put_data['sku'])) {
+            jsonReturn('',ErrorMsg::NOTNULL_SKU);
+        }
+
+        if(!isset($this->put_data['lang'])) {
+            jsonReturn('',ErrorMsg::NOTNULL_LANG);
+        }
+
+        $pchecklog = new ProductChecklogModel();
+        $logs = $pchecklog -> getRecord(array('spu'=>$this->put_data['sku'],'lang'=>$this->put_data['lang']),'sku,lang,status,remarks,approved_by,approved_at');
+        if($logs!==false){
+            jsonReturn($logs);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
 
     /**
      *   通过spu查询四种语言name

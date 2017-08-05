@@ -28,7 +28,7 @@ class ExporttariffController extends PublicController {
      * @desc   增值税、关税信息
      */
     public function listAction() {
-        $data = $this->get();
+        $data =  $this->getPut();
         $data['lang'] = $this->get('lang', 'zh');
         $export_tariff_model = new ExportTariffModel();
         if (redisGet('Export_Tariff_listall_' . md5(json_encode($data)))) {
@@ -57,7 +57,7 @@ class ExporttariffController extends PublicController {
      * @desc   增值税、关税信息
      */
     public function infoAction() {
-        $id = $this->get('id');
+        $id =  $this->getPut('id');
 
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
@@ -100,7 +100,9 @@ class ExporttariffController extends PublicController {
      */
     public function createAction() {
         $export_tariff_model = new ExportTariffModel();
-        $result = $export_tariff_model->create_data($this->put_data);
+        $data= $this->getPut();
+        
+        $result = $export_tariff_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -120,11 +122,9 @@ class ExporttariffController extends PublicController {
      */
     public function updateAction() {
         $export_tariff_model = new ExportTariffModel();
-        $id = $this->get('id');
-        if (!$this->put_data['id']) {
-            $this->put_data['id'] = $id;
-        }
-        $result = $export_tariff_model->update_data($this->put_data);
+        $data = $this->getPut();
+        
+        $result = $export_tariff_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -144,7 +144,7 @@ class ExporttariffController extends PublicController {
      */
     public function deleteAction() {
         $condition = $this->put_data;
-        $id = $this->get('id');
+        $id = $this->getPut('id');
         if ($id) {
             $ids = explode(',', $id);
             if (is_array($ids)) {

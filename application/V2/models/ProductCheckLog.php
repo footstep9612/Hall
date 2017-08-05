@@ -70,16 +70,49 @@ class ProductChecklogModel extends PublicModel{
      * 商品审核记录查询
      * @param  $sku
      * @return array
+     * @updater link  2017-08-05
+     * @updateDetail  由原来单一对sku查询改为按条件查询，兼容原功能。
      */
-    public function getRecord($sku){
-        if(empty($sku)) {
+    public function getRecord($condition = [], $fields = '') {
+        if(empty($condition)) {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        $where = array('sku'=>$sku);
-        $fields = 'spu, sku, status, remarks, approved_by, approved_at';
+        $where = [];
+        if(is_array($condition)) {
+            if(isset($condition['sku'])) {
+                $where['sku'] = $condition['sku'];
+            }
+            if(isset($condition['spu'])) {
+                $where['spu'] = $condition['spu'];
+            }
+            if(isset($condition['lang']) && in_array(strtolower($condition['lang']),array('zh','en','es','ru'))) {
+                $where['lang'] = strtolower($condition['lang']);
+            }
+        }else{
+            $where['sku'] = $condition;
+        }
+
+        if(empty($fields)) {
+            $fields = 'spu,sku,lang,status,remarks,approved_by,approved_at';
+        }elseif(is_array($fields)){
+            $fields = implode(',',$fields);
+        }
+
+        if(redisHashExist('checkLog',md5(serialize($where).$fields))){
+            return json_decode(redisHashGet('checkLog',md5(serialize($where).$fields)),true);
+        }
+
         try{
             $result = $this->field($fields)->where($where)->order('approved_at DESC')->select();
             if($result){
+                $employee = new EmployeeModel();
+                for($i=0;$i<count($result);$i++){
+                    $approveder = $employee->getInfoByCondition(array('id'=>$result[$i]['approved_by']), 'id,name,name_en');
+                    if($approveder && isset($approveder[0])) {
+                        $result[$i]['approved_by'] = $approveder[0];
+                    }
+                }
+                redisHashSet('checkLog',md5(serialize($where).$fields),json_encode($result));
                 return $result;
             }
             return array();

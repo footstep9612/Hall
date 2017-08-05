@@ -195,7 +195,7 @@ class SupplycapabilityModel extends PublicModel {
     }
     $this->startTrans();
     $maxid = $this->getMaxid();
-    $esproduct_model = new EsproductModel();
+    $esproduct_model = new EsProductModel();
     if (isset($createcondition['en'])) {
       $data['lang'] = 'en';
       $maxid++;
@@ -267,7 +267,7 @@ class SupplycapabilityModel extends PublicModel {
     } else {
       return false;
     }
-    $esproduct_model = new EsproductModel();
+    $esproduct_model = new EsProductModel();
     $this->startTrans();
     if (isset($upcondition['en'])) {
       $data['lang'] = 'en';
@@ -348,7 +348,7 @@ class SupplycapabilityModel extends PublicModel {
     if ($id && empty($id)) {
       $where['id'] = ['in', $id];
     }
-    $esproduct_model = new EsproductModel();
+    $esproduct_model = new EsProductModel();
     $this->startTrans();
     $supply_capabilitys = $this->getCatNos($where);
     $flag = $this->where($where)

@@ -54,7 +54,7 @@ class GroupModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,group_no,parent_id,name,description,status')
+                ->field('id,membership,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
                 ->find();
             return $row;
         }else{
@@ -72,7 +72,7 @@ class GroupModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             return $this->where($where)
-                ->save(['status' => 'DELETED']);
+                ->save(['deleted_flag' => 'N']);
         }else{
             return false;
         }
@@ -88,17 +88,14 @@ class GroupModel extends PublicModel {
         if(isset($data['parent_id'])){
             $arr['parent_id'] = $data['parent_id'];
         }
-        if(isset($data['group_no'])){
-            $arr['group_no'] = $data['group_no'];
+        if(isset($data['membership'])){
+            $arr['membership'] = $data['membership'];
         }
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
         }
-        if(isset($data['description'])){
-            $arr['description'] = $data['description'];
-        }
-        if(isset($data['status'])){
-            $arr['status'] = $data['status'];
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
         }
         if(!empty($where)){
             return $this->where($where)->save($arr);

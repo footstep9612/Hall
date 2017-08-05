@@ -77,8 +77,9 @@ class EsproductController extends PublicController {
 
     private function _getdata($data) {
 
+        $user_ids = [];
         foreach ($data['hits']['hits'] as $key => $item) {
-            $list[$key] = $item["_source"];
+            $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
@@ -90,12 +91,42 @@ class EsproductController extends PublicController {
             if ($show_cats) {
                 rsort($show_cats);
             }
+            if ($product['created_by']) {
+                $user_ids[] = $product['created_by'];
+            }
+            if ($product['updated_by']) {
+                $user_ids[] = $product['updated_by'];
+            }
+            if ($product['checked_by']) {
+                $user_ids[] = $product['checked_by'];
+            }
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+        }
+
+        $employee_model = new EmployeeModel();
+        $usernames = $employee_model->getUserNamesByUserids($user_ids);
+        foreach ($list as $key => $val) {
+            if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                $val['created_by_name'] = $usernames[$val['created_by']];
+            } else {
+                $val['created_by_name'] = '';
+            }
+            if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                $val['updated_by_name'] = $usernames[$val['updated_by']];
+            } else {
+                $val['updated_by_name'] = '';
+            }
+            if ($val['checked_by'] && isset($usernames[$val['checked_by']])) {
+                $val['checked_by_name'] = $usernames[$val['checked_by']];
+            } else {
+                $val['checked_by_name'] = '';
+            }
+            $list[$key] = $val;
         }
         return $list;
     }
@@ -128,7 +159,7 @@ class EsproductController extends PublicController {
             }
             rsort($new_showcats3);
             foreach ($new_showcats3 as $key => $item) {
-                $model = new EsproductModel();
+                $model = new EsProductModel();
                 $condition['show_cat_no'] = $item['cat_no'];
                 $item['count'] = $model->getcount($condition, $this->getLang());
                 $new_showcats3[$key] = $item;
@@ -148,23 +179,28 @@ class EsproductController extends PublicController {
      */
 
     private function _update_keywords() {
-        if ($this->put_data['keyword']) {
+        $keyword = $this->getPut('keyword');
+        $show_cat_no = $this->getPut('show_cat_no');
+        $country_bn = $this->getPut('country_bn');
+        if ($keyword) {
             $search = [];
-            $search['keywords'] = $this->put_data['keyword'];
-            if ($this->user['email']) {
-                $search['user_email'] = $this->user['email'];
-            } else {
-                $search['user_email'] = '';
-            }
+            $search['keywords'] = $keyword;
+            $search['show_cat_no'] = $show_cat_no;
+            $search['country_bn'] = $country_bn;
             $search['search_time'] = date('Y-m-d H:i:s');
-            $usersearchmodel = new BuyersearchhisModel();
-            $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
+            $usersearchmodel = new HotKeywordsModel();
+            $uid = $this->user['id'];
+            $condition = ['keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
             if ($row) {
                 $search['search_count'] = intval($row['search_count']) + 1;
                 $search['id'] = $row['id'];
+                $search['updated_by'] = $uid;
+                $search['updated_at'] = date('Y-m-d H:i:s');
                 $usersearchmodel->update_data($search);
             } else {
+                $search['created_by'] = $uid;
+                $search['created_at'] = date('Y-m-d H:i:s');
                 $search['search_count'] = 1;
                 $usersearchmodel->add($search);
             }
@@ -183,9 +219,38 @@ class EsproductController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsproductModel();
+                $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 数据导入
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function updateAction($lang = 'en') {
+        try {
+            set_time_limit(0);
+            ini_set('memory_limi', '1G');
+            $time = redisGet('ES_PRODUCT_TIME');
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsProductModel();
+                $espoductmodel->updateproducts($lang, $time);
+            }
+            redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -231,7 +296,6 @@ class EsproductController extends PublicController {
     public function goodsAction() {
 
         $int_analyzed = ['type' => 'integer'];
-        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',
@@ -321,7 +385,6 @@ class EsproductController extends PublicController {
 
 
         $int_analyzed = ['type' => 'integer'];
-        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',

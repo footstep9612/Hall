@@ -44,7 +44,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND role_member.role_id ='.$condition['role_id'];
         }
         if ( !empty($condition['username']) ){
-            $sql .= ' AND employee.name like %'.$condition['role_id'].'%';
+            $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
         }
         $sql .= ' group by `employee`.`id`';
         if ( $condition['num'] ){
