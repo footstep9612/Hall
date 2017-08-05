@@ -38,23 +38,123 @@ class QuotebizlineController extends PublicController {
      */
     public function listAction() {
 
-        $data = $this->_quoteBizLine->getQuoteList($this->_requestParams);
-
-        if (!$data) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => '失败',
-                'data' => ''
-            ]);
+        $inquryList = $this->getListHandler($this->_requestParams);
+        if ($inquryList['code'] !='1'){
+            $this->jsonReturn($inquryList);
         }
-
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'data' => $data
-        ]);
+        //显示市场经办人，项目经理
+        $response = $this->restoreListHandler($inquryList);
+        $this->jsonReturn($response);
     }
 
+    /**
+     * 根据条件获取数据
+     * @param $request 前段提交的条件
+     * @return array 获取的数据
+     */
+    private function getListHandler($request){
+
+        $where = $this->getListCondition($request);
+
+        $page = !empty($request['currentPage']) ? $request['currentPage'] : 1;
+        $pageSize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
+
+        $inquiry = new InquiryModel();
+        try{
+            $total = $inquiry->getCount($where);
+            $field = ['id','serial_no','country_bn','buyer_name','created_at','status','quote_deadline','agent_id','pm_id'];
+            $list = $inquiry->where($where)->page($page,$pageSize)->field($field)->order('updated_at desc')->select();
+            if (!$list){
+                return ['code'=>'-104','message'=>'没有数据！','data'=>''];
+            }
+            return [
+                'code' => '1',
+                'message' => '成功！',
+                'total' => $total,
+                'data' => $list
+            ];
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * 重组数组
+     * @param $list
+     * @return mixed
+     */
+    private function restoreListHandler($list){
+        foreach ($list['data'] as $item=>$value) {
+            //经办人
+            if(!empty($value['agent_id'])){
+                $employee = Z('Employee')->where(['id'=>$value['agent_id']])->field('name')->find();
+                $list['data'][$item]['agent_name'] = $employee['name'];
+            }
+            //项目经理
+            if(!empty($val['pm_id'])){
+                $productManager = Z('Employee')->where(['id'=>$value['pm_id']])->field('name')->find();
+                $list['data'][$item]['pm_name'] = $productManager['name'];
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * 重组查询条件
+     * @param $request 查询条件
+     * @return array 重组后的条件
+     */
+    private function getListCondition($request){
+
+        $where = [];
+        //Z函数实例化一个不存在模型文件的模型
+        $employee = Z('Employee');
+
+        //市场经办人
+        if (!empty($request['agent_name'])){
+            $agenter = $employee->field('id')->where(['name'=>$request['agent_name']])->find();
+            if ($agenter){
+                $where['agent_id'] = intval($agenter['id']);
+            }
+        }
+        //项目经理
+        if (!empty($request['pm_name'])){
+            $projectManager = $employee->field('id')->where(['name'=>$request['pm_name']])->find();
+            if ($projectManager){
+                $where['pm_id'] = $projectManager['id'];
+            }
+        }
+        //项目状态
+        if (!empty($request['status'])) {
+            $where['status'] = $request['status'];
+        }
+        //国家
+        if (!empty($request['country_bn'])) {
+            $where['country_bn'] = $request['country_bn'];
+        }
+        //流程编码
+        if (!empty($request['serial_no'])) {
+            $where['serial_no'] = $request['serial_no'];
+        }
+        //客户名称
+        if (!empty($request['buyer_name'])) {
+            $where['buyer_name'] = $request['buyer_name'];
+        }
+        //询价时间
+        if (!empty($request['start_time']) && !empty($request['end_time'])) {
+            $where['created_at'] = array(
+                array('gt',date('Y-m-d H:i:s',$request['start_time'])),
+                array('lt',date('Y-m-d H:i:s',$request['end_time']))
+            );
+        }
+        //删除状态
+        $where['deleted_flag'] = !empty($request['deleted_flag']) ? $request['deleted_flag'] : 'N';
+
+        return $where;
+    }
     /**
      * @desc 详情页询单信息接口
      */
