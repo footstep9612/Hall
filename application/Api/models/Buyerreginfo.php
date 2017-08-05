@@ -16,7 +16,7 @@ class BuyerreginfoModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'buyer_reg_info';
-    protected $dbName = 'erui_buyer';
+    protected $dbName = 'erui2_buyer';
 
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
@@ -61,56 +61,52 @@ class BuyerreginfoModel extends PublicModel {
      * 企业信息新建-门户
      * @author klp
      */
-    public function createInfo($token,$input)
-    {
+    public function createInfo($token,$input){
         if (!isset($input))
             return false;
-        $this->startTrans();
         try {
-            foreach ($input as $key => $value) {
-                $arr = ['zh', 'en', 'ru', 'es'];
-                if (in_array($key, $arr)) {
-                    $checkout = $this->checkParam($input, $this->field);
-                    $data = [
-                        'lang' => $key,
-                        'customer_id' => $token['customer_id'],
-                        'registered_in' => $checkout['registered_in'],
-                        'bank_country_code' => $checkout['bank_country_code'],
-                        'legal_person_name' => isset($checkout['legal_person_name']) ? $checkout['legal_person_name'] : '',
-                        'legal_person_gender' => isset($checkout['legal_person_gender']) ? $checkout['legal_person_gender'] : '',
-                        'expiry_date' => isset($checkout['expiry_date']) ? $checkout['expiry_date'] : '',
-                        'reg_capital' => isset($checkout['reg_capital']) ? $checkout['reg_capital'] : '',
-                        'reg_capital_cur' => isset($checkout['reg_capital_cur']) ? $checkout['reg_capital_cur'] : '',
-                        'social_credit_code' => isset($checkout['social_credit_code']) ? $checkout['social_credit_code'] : '',
-                        'biz_nature' => isset($checkout['biz_nature']) ? $checkout['biz_nature'] : '',
-                        'biz_scope' => isset($checkout['biz_scope']) ? $checkout['biz_scope'] : '',
-                        'biz_type' => isset($checkout['biz_type']) ? $checkout['biz_type'] : '',
-                        'service_type' => isset($checkout['service_type']) ? $checkout['service_type'] : '',
-                        'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
-                        'bank_phone' => isset($checkout['bank_phone']) ? $checkout['bank_phone'] : '',
-                        'bank_fax' => isset($checkout['bank_fax']) ? $checkout['bank_fax'] : '',
-                        'turnover' => isset($checkout['turnover']) ? (int)$checkout['turnover'] : 0,
-                        'profit' => isset($checkout['profit']) ? (int)$checkout['profit'] : 0,
-                        'assets' => isset($checkout['assets']) ? (int)$checkout['assets'] : 0,
-                        'equity_ratio' => isset($checkout['equity_ratio']) ? $checkout['equity_ratio'] : '',
-                        'own_capital' => isset($checkout['own_capital']) ? (int)$checkout['own_capital'] : 0,
-                        'branch_count' => isset($checkout['branch_count']) ? $checkout['branch_count'] : 0
-                    ];
-                    //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
-                    $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
-                    if ($result) {
-                        $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
-                    } else {
-                        $data['created_by'] = $token['user_name'];
-                        $data['created_at'] = date('Y-m-d H:i:s', time());
-                        $this->add($data);
+            if (is_array($input)) {
+                $checkout = $this->checkParam($input, $this->field);
+                $data = [
+                    'buyer_id' => $token['buyer_id'],
+                    'registered_in' => $checkout['registered_in'],
+                    'legal_person_name' => isset($checkout['legal_person_name']) ? $checkout['legal_person_name'] : '',
+                    'legal_person_gender' => isset($checkout['legal_person_gender']) ? $checkout['legal_person_gender'] : '',
+                    'reg_date' => isset($checkout['reg_date']) ? $checkout['reg_date'] : '',
+                    'expiry_date' => isset($checkout['expiry_date']) ? $checkout['expiry_date'] : '',
+                    'reg_capital' => isset($checkout['reg_capital']) ? $checkout['reg_capital'] : '',
+                    'reg_capital_cur_bn' => isset($checkout['reg_capital_cur_bn']) ? $checkout['reg_capital_cur_bn'] : '',
+                    'social_credit_code' => isset($checkout['social_credit_code']) ? $checkout['social_credit_code'] : '',
+                    'biz_nature' => isset($checkout['biz_nature']) ? $checkout['biz_nature'] : '',
+                    'biz_scope' => isset($checkout['biz_scope']) ? $checkout['biz_scope'] : '',
+                    'biz_type' => isset($checkout['biz_type']) ? $checkout['biz_type'] : '',
+                    'service_type' => isset($checkout['service_type']) ? $checkout['service_type'] : '',
+                    'employee_count' => isset($checkout['employee_count']) ? $checkout['employee_count'] : '',
+                    'equitiy' => isset($checkout['equitiy']) ? $checkout['equitiy'] : '',
+                    'turnover' => isset($checkout['turnover']) ? (int)$checkout['turnover'] : 0,
+                    'profit' => isset($checkout['profit']) ? (int)$checkout['profit'] : 0,
+                    'total_assets' => isset($checkout['total_assets']) ? (int)$checkout['total_assets'] : 0,
+                    'equity_ratio' => isset($checkout['equity_ratio']) ? $checkout['equity_ratio'] : '',
+                    'equity_capital' => isset($checkout['equity_capital']) ? (int)$checkout['equity_capital'] : 0,
+                ];
+                //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
+                $result = $this->field('buyer_id')->where(['buyer_id' => $token['buyer_id']])->find();
+                if ($result) {
+                    $result = $this->where(['buyer_id' => $token['buyer_id']])->save($data);
+                    if(!$result){
+                        return false;
+                    }
+                } else {
+                    $data['created_by'] = $token['user_name'];
+                    $data['created_at'] = date('Y-m-d H:i:s', time());
+                    $result = $this->add($data);
+                    if(!$result){
+                        return false;
                     }
                 }
             }
-                $this->commit();
-                return $token['customer_id'];
+                return true;
             } catch(\Kafka\Exception $e){
-                $this->rollback();
                 return false;
             }
     }
