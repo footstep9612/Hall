@@ -48,18 +48,18 @@ class InquiryController extends PublicController {
      */
     public function getListAction(){
         $inquiry = new InquiryModel();
-        $employee = new EmployeeModel();
+        $employee = Z('employee');;
 
         $where = $this->put_data;
         //如果搜索条件有经办人，转换成id
-        if($where['agent_name']){
+        if(!empty($where['agent_name'])){
             $agent = $employee-file('id')->where('name='.$where['agent_name'])->find();
             if($agent){
                 $where['agent_id']=$agent['id'];
             }
         }
         //如果搜索条件有项目经理，转换成id
-        if($where['pm_name']){
+        if(!empty($where['pm_name'])){
             $pm = $employee-file('id')->where('name='.$where['agent_name'])->find();
             if($agent){
                 $where['pm_id']=$pm['id'];
@@ -92,7 +92,7 @@ class InquiryController extends PublicController {
      */
     public function getInfoAction() {
         $inquiry = new InquiryModel();
-        $employee = new EmployeeModel();
+        $employee = Z('employee');
         $where = $this->put_data;
 
         $results = $inquiry->getInfo($where);
