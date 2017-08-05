@@ -10,8 +10,8 @@ class QuoteItemLogiModel extends PublicModel {
     protected $dbName = 'erui2_rfq';
     protected $tableName = 'quote_item_logi';
     protected $joinTable1 = 'erui2_rfq.quote_item_form b ON a.quote_item_id = b.quote_item_id';
-    protected $joinTable2 = 'erui2_goods.goods c ON b.sku = c.sku';
-    protected $joinField = 'a.tax_no, a.rebate_rate, a.export_tariff_rate, a.supervised_criteria, b.sku, b.quote_qty, b.quote_unit, b.net_weight_kg, b.gross_weight_kg, b.package_size, b.created_by, c.name_customs, c.name_zh';
+    protected $joinTable2 = 'erui2_goods.goods c ON b.sku = c.sku AND c.lang = \'zh\'';
+    protected $joinField = 'a.id, a.tax_no, a.rebate_rate, a.export_tariff_rate, a.supervised_criteria, b.sku, b.quote_qty, b.quote_unit, b.net_weight_kg, b.gross_weight_kg, b.package_size, b.created_by, c.name_customs, c.name_zh';
 			    
     public function __construct() {
         parent::__construct();
@@ -28,12 +28,15 @@ class QuoteItemLogiModel extends PublicModel {
     public function getJoinWhere($condition = []) {
          
         $where = [];
+        
+        if(!empty($condition['id'])) {
+            $where['a.id'] = $condition['id'];
+        }
          
         if(!empty($condition['quote_id'])) {
             $where['a.quote_id'] = $condition['quote_id'];
         }
          
-        $where['c.lang'] = 'en';
         $where['a.deleted_flag'] = 'N';
          
         return $where;

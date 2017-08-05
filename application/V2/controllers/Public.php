@@ -178,7 +178,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $this->send['data'] = null;
             }
             $this->send['code'] = $this->getCode();
-
             if ($this->send['code'] == "1" && !$this->getMessage()) {
                 $this->send['message'] = '成功!';
             } elseif (!$this->getMessage()) {

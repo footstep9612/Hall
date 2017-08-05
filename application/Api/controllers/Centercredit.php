@@ -26,24 +26,36 @@ class CentercreditController extends ShopMallController
     }
 
     /**
-     * 采购商企业银行信息
+     * 采购商企业信息
+     * @pararm  buyer_id(采购商编号)
+     * @return array
      * @author klp
      */
-    public function getBuyerInfoAction()
-    {
+    public function getBuyerInfoAction(){
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getBuyerInfo($this->user);
+        $result = $buyerModel->buyerInfo($this->put_data);
+        $this->returnInfo($result);
+    }
+    /**
+     * 采购商银行信息
+     * @pararm  buyer_id(采购商编号)
+     * @return array
+     * @author klp
+     */
+    public function getBuyerBankInfoAction(){
+        $buyerModel = new BuyerBankInfoModel();
+        $result = $buyerModel->getBuyerBankInfo($this->put_data);
         $this->returnInfo($result);
     }
 
     /**
      * 查看审核信息
+     * @pararm  buyer_id(采购商编号)
      * @author klp
      */
-    public function getCheckInfoAction()
-    {
-        $BuyerappapprovalModel = new BuyerappapprovalModel();
-        $result = $BuyerappapprovalModel->getCheckInfo($this->user);
+    public function getApprovelInfoAction(){
+        $BuyerCreditLogModel = new BuyerCreditLogModel();
+        $result = $BuyerCreditLogModel->getInfo($this->put_data);
         $this->returnInfo($result);
     }
 

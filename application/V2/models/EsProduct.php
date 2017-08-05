@@ -69,17 +69,20 @@ class EsProductModel extends Model {
                 ]];
             }
         } elseif ($qurey_type == ESClient::RANGE) {
+            if (!$field) {
+                $field = $name;
+            }
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
                 $created_at_start = $condition[$name . '_start'];
                 $created_at_end = $condition[$name . '_end'];
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
-            } elseif (isset($condition[$name . '_start']) && $condition[$field . '_start']) {
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+            } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
                 $created_at_start = $condition[$name . '_start'];
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = $condition[$name . '_end'];
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gle' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
             }
         }
     }
@@ -246,6 +249,9 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
             unset($condition['source']);
+            if ($body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
+            }
             $es->setbody($body)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
 
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
@@ -470,6 +476,127 @@ class EsProductModel extends Model {
                         } else {
                             $body['material_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
                         }
+                        $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
+
+                        if (isset($product_attrs[$spu])) {
+                            $body['attrs'] = json_encode($product_attrs[$spu], JSON_UNESCAPED_UNICODE);
+                            if ($product_attrs[$item['spu']][0]['spec_attrs']) {
+                                $body['specs'] = $product_attrs[$spu][0]['spec_attrs'];
+                            } else {
+                                $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+                            }
+                        } else {
+                            $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+                            $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+                        }
+
+                        $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+
+
+                        if ($flag['_shards']['successful'] !== 1) {
+                            LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+                        }
+                        if ($key === 99) {
+                            $max_id = $item['id'];
+                        }
+                        $k++;
+                        // print_r($flag);
+                    }
+                } else {
+                    return false;
+                }
+            }
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /*
+     * 批量更新产品数据到ES
+     * @author zyg 2017-07-31
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function updateproducts($lang = 'en', $time = '1970-01-01 8:00:00') {
+        try {
+            $where = [
+                'lang' => $lang,
+                '_complex' => [
+                    '_logic' => 'or',
+                    'created_at' => ['egt' => $time],
+                    'updated_at' => ['egt' => $time],
+                    'checked_at' => ['egt' => $time],
+                ],
+            ];
+            $count = $this->where($where)->count('id');
+            $max_id = 0;
+            echo '共有', $count, '条记录需要导入!', PHP_EOL;
+            $k = 1;
+            for ($i = 0; $i < $count; $i += 100) {
+                if ($i > $count) {
+                    $i = $count;
+                }
+                $where['id'] = $max_id;
+                $products = $this->where($where)->limit(0, 100)->order('id asc')->select();
+                $spus = $mcat_nos = [];
+                if ($products) {
+                    foreach ($products as $item) {
+                        $mcat_nos[] = $item['material_cat_no'];
+                        $spus[] = $item['spu'];
+                    }
+                    $spus = array_unique($spus);
+                    $mcat_nos = array_unique($mcat_nos);
+
+                    $material_cat_model = new MaterialCatModel();
+                    $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类                  
+
+
+                    $show_cat_product_model = new ShowCatProductModel();
+                    $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang); //根据spus获取展示分类编码
+
+                    $product_attr_model = new ProductAttrModel();
+                    $product_attrs = $product_attr_model->getproduct_attrbyspus($spus, $lang); //根据spus获取产品属性
+
+                    $product_attach_model = new ProductAttachModel();
+                    $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
+                    $es = new ESClient();
+
+                    foreach ($products as $key => $item) {
+                        $spu = $id = $item['spu'];
+                        $this->_findnulltoempty($item);
+                        $body = $item;
+
+                        if ($body['source'] == 'ERUI') {
+                            $body['sort_order'] = 100;
+                        } else {
+                            $body['sort_order'] = 1;
+                        }
+
+                        if (isset($attachs[$spu])) {
+                            $body['attachs'] = json_encode($attachs[$spu], 256);
+                        } else {
+                            $body['attachs'] = '[]';
+                        }
+                        $show_cat = [];
+                        if (isset($scats_no_spu[$spu]) && isset($scats[$scats_no_spu[$spu]])) {
+                            $show_cat[$scats_no_spu[$spu]] = $scats[$scats_no_spu[$spu]];
+                        }
+                        $material_cat_no = $item['material_cat_no'];
+
+
+
+                        if (isset($mcats[$material_cat_no])) {
+                            $body['material_cat'] = json_encode($mcats[$material_cat_no], JSON_UNESCAPED_UNICODE);
+                        } else {
+                            $body['material_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
+                        }
 
                         $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
 
@@ -545,11 +672,12 @@ class EsProductModel extends Model {
                 return 'N';
             }
         } elseif ($type === 'json') {
+
             if (isset($condition[$name]) && $condition[$name]) {
                 $return = json_encode($condition[$name], 256);
                 $condition = null;
                 unset($condition);
-                return $flag;
+                return $return;
             } else {
                 $condition = null;
                 unset($condition);
@@ -560,7 +688,7 @@ class EsProductModel extends Model {
                 $return = strtoupper($condition[$name]);
                 $condition = null;
                 unset($condition);
-                return $flag;
+                return $return;
             } else {
                 $condition = null;
                 unset($condition);
@@ -811,7 +939,7 @@ class EsProductModel extends Model {
                 $es->bulk($updateParams);
             }
         }
-        $esgoods = new EsgoodsModel();
+        $esgoods = new EsGoodsModel();
         $esgoods->update_showcats($old_cat_no, $lang);
         return true;
     }
@@ -838,9 +966,6 @@ class EsProductModel extends Model {
         $type = $this->tableName . '_' . $lang;
         $mcatmodel = new MaterialcatModel();
         $data['material_cat'] = json_encode($mcatmodel->getinfo($new_cat_no, $lang), 256);
-        $smmodel = new ShowmaterialcatModel();
-
-
         $data['material_cat_no'] = $new_cat_no;
         if ($spu) {
             $id = $spu;
@@ -852,8 +977,8 @@ class EsProductModel extends Model {
                     'material_cat_no' => $new_cat_no,
                 ],
                 "query" => [
-                    ESClient::MATCH_PHRASE => [
-                        "material_cat_no" => $material_cat_no
+                    ESClient::WILDCARD => [
+                        "material_cat" => '*' . $material_cat_no . '*'
                     ]
                 ]
             ];
@@ -876,8 +1001,8 @@ class EsProductModel extends Model {
                     "material_cat" => $data['material_cat'],
                 ],
                 "query" => [
-                    ESClient::MATCH_PHRASE => [
-                        "material_cat_no" => $material_cat_no
+                    ESClient::WILDCARD => [
+                        "material_cat" => '*' . $material_cat_no . '*'
                     ]
                 ]
             ];

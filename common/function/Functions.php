@@ -1357,10 +1357,13 @@ function browser_lang() {
  * @param array $data    返回值
  * @param int $code    错误编码
  * @param string $message    错误提示
- * @param string $type
+ * @param string $lang
  */
 function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
     header('Content-Type:application/json; charset=utf-8');
+    if(isset($data['data'])){
+      $data=  $data['data'];
+    }
     exit(json_encode(array('data'=>$code==1 ? $data : false,'code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
 }
 

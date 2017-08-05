@@ -41,9 +41,15 @@ class LogisticsController extends PublicController {
 	public function getQuoteItemLogiDetailAction() {
 	    $condition = $this->put_data;
 	
-	    $res = $this->quoteItemLogiModel->getJoinDetail($condition);
-	
-	    $this->jsonReturn($res);
+	    if (!empty($condition['r_id'])) {
+	        $condition['id'] = $condition['r_id'];
+	        unset($condition['r_id']);
+    	    $res = $this->quoteItemLogiModel->getJoinDetail($condition);
+    	
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
 	}
 	
 	/**
@@ -89,11 +95,15 @@ class LogisticsController extends PublicController {
 	public function updateQuoteLogiFeeInfoAction() {
 	    $condition = $this->put_data;
 	
-	    if (!empty($condition['r_id'])) {
-	        $where['id'] = $condition['r_id'];
-	        unset($condition['r_id']);
+	    if (!empty($condition['quote_id'])) {
 	        
 	        $data = $condition;
+	        
+	        unset($data['from_port']);
+	        unset($data['to_port']);
+	        unset($data['trans_mode_bn']);
+	        unset($data['box_type_bn']);
+	        unset($data['quote_remarks']);
 	        
 	        $data['inspection_fee'] = 0;
 	        $data['land_freight'] = 0;
@@ -181,9 +191,19 @@ class LogisticsController extends PublicController {
 	        $data['shipping_charge_cny'] = round($totalFeeUSD * $this->_getRateCNY('USD'), 3);
 	        $data['shipping_charge_ncny'] = round($totalFeeUSD, 3);
 	        
-	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);
+	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
+	        
+	        $quoteData = [
+	            'from_port' => $condition['from_port'],
+	            'to_port' => $condition['to_port'],
+	            'trans_mode_bn' => $condition['trans_mode_bn'],
+	            'box_type_bn' => $condition['box_type_bn'],
+	            'quote_remarks' => $condition['quote_remarks']
+	        ];
+	        
+	        $res2 = $this->quoteModel->updateQuote(['quote_no' => $quote['quote_no']], $quoteData);
 	
-	        $this->jsonReturn($res);
+	        $this->jsonReturn($res1 && $res2);
 	    } else {
 	        $this->jsonReturn(false);
 	    }

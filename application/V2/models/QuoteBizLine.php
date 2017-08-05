@@ -20,13 +20,6 @@ class QuoteBizLineModel extends PublicModel
      */
     protected $tableName = 'quote_bizline';
 
-    /**
-     * 数据表前缀
-     * @var string
-     * TODO 这里后期可以设置publicmodel的$tablePrefix属性为空来代替
-     */
-    protected $tablePrefix = '';
-
     public function __construct()
     {
         parent::__construct();

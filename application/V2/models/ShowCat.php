@@ -350,6 +350,14 @@ class ShowCatModel extends PublicModel {
                 ->save(['status' => self::STATUS_DELETED]);
         $this->Table('erui2_goods.show_material_cat')->where(['show_cat_no' => $cat_no])
                 ->delete();
+        $es_product_model = new EsProductModel();
+        if ($lang) {
+            $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
+        } else {
+            foreach ($this->langs as $lan) {
+                $es_product_model->Updatemeterialcatno($cat_no, null, $lan);
+            }
+        }
         return $flag;
     }
 
@@ -400,7 +408,7 @@ class ShowCatModel extends PublicModel {
         if ($lang) {
             $where['lang'] = $lang;
         }
-        $es_product_model = new EsproductModel();
+        $es_product_model = new EsProductModel();
 
 
         $flag = $this->where($where)
@@ -608,7 +616,7 @@ class ShowCatModel extends PublicModel {
         }
         $show_cat_product_model = new ShowCatProductModel();
         $spus = $show_cat_product_model->getspusByCatNo($old_cat_no);
-        $es_product_model = new EsproductModel();
+        $es_product_model = new EsProductModel();
         $flag_cat_product = $show_cat_product_model
                 ->where(['cat_no' => $old_cat_no])
                 ->save(['cat_no' => $new_cat_no]);
@@ -616,10 +624,11 @@ class ShowCatModel extends PublicModel {
             $this->rollback();
             return false;
         }
-        $es_product_model->update_showcats($spus, 'en');
-        $es_product_model->update_showcats($spus, 'zh');
-        $es_product_model->update_showcats($spus, 'es');
-        $es_product_model->update_showcats($spus, 'ru');
+
+        foreach ($this->langs as $lan) {
+            $es_product_model->Updatemeterialcatno($old_cat_no, null, $lan, $new_cat_no);
+        }
+
         return true;
     }
 

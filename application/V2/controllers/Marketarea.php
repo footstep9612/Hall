@@ -30,7 +30,7 @@ class MarketareaController extends PublicController {
             $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
         } else {
             $arr = $market_area_model->getlist($data, false);
-            
+
             if ($arr) {
                 redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
             }
@@ -61,8 +61,10 @@ class MarketareaController extends PublicController {
         }
         $data = [];
         $langs = ['en', 'zh', 'es', 'ru'];
+        $market_area_model = new MarketAreaModel();
         foreach ($langs as $lang) {
-            $result = $this->_model->info($bn, $lang);
+
+            $result = $market_area_model->info($bn, $lang);
 
             if ($result) {
                 $data['bn'] = $result['bn'];
@@ -71,11 +73,11 @@ class MarketareaController extends PublicController {
                 $data[$lang]['name'] = '';
             }
         }
-
-        if ($data) {
+        $this->_getTeams($data);
+        if ($data['bn']) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
-        } elseif ($data === []) {
+        } elseif (empty($data['bn'])) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
@@ -84,6 +86,36 @@ class MarketareaController extends PublicController {
             $this->jsonReturn();
         }
         exit;
+    }
+
+    /**
+     * Description of 获取营销团队信息
+     * @param array $data 详情
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   营销区域
+     */
+    private function _getTeams(&$data) {
+        $team_keys = ['market_org_id', 'market_org_name',
+            'biz_tech_org_id', 'biz_tech_org_name',
+            'logi_check_org_id', 'logi_check_org_name',
+            'logi_quote_org_id', 'logi_quote_org_name'];
+        if (isset($data['bn']) && $data['bn']) {
+            $market_area_team_model = new MarketAreaTeamModel();
+            $team = $market_area_team_model->getTeamByMarketAreaBn($data['bn']);
+            foreach ($team_keys as $team_key) {
+                if ($team[$team_key]) {
+                    $data[$team_key] = $team[$team_key];
+                } else {
+                    $data[$team_key] = '';
+                }
+            }
+        } else {
+            foreach ($team_keys as $team_key) {
+                $data[$team_key] = '';
+            }
+        }
     }
 
     /**
@@ -107,9 +139,21 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function createAction() {
-        $data = $this->getPut();       
-        $result = $this->_model->create_data($data, $this->user['id']);
-   
+        $data = $this->getPut();
+        $market_area_model = new MarketAreaModel();
+        if (!isset($data['en']['name']) || !isset($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->jsonReturn();
+        } else {
+            $newbn = ucwords($data['en']['name']);
+            $flag = $market_area_model->Exits(['bn' => $newbn]);
+            if ($flag) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
+        $result = $market_area_model->create_data($data, $this->user['id']);
+
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -129,7 +173,8 @@ class MarketareaController extends PublicController {
      */
     public function updateAction() {
         $data = $this->getPut();
-        $result = $this->_model->update_data($data, $this->user['id']);
+        $market_area_model = new MarketAreaModel();
+        $result = $market_area_model->update_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -158,9 +203,10 @@ class MarketareaController extends PublicController {
                 $where['bn'] = $bn;
             }
         }
-        $result = $this->_model->where($where)
+        $market_area_model = new MarketAreaModel();
+        $result = $market_area_model->where($where)
                 ->save(['status' => 'DELETE']);
-        if ($result) {
+        if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();

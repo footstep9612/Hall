@@ -64,7 +64,7 @@ class ProductController extends PublicController {
     }
 
     public function updateEsproduct($input, $spu) {
-        $es_product_model = new EsproductModel();
+        $es_product_model = new EsProductModel();
         $productModel = new ProductModel();
         if (isset($input['en']) && $input['en']) {
             $data = $productModel->getInfo($spu, 'en');

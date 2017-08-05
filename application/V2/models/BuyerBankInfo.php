@@ -40,4 +40,5 @@ class BuyerBankInfoModel extends PublicModel{
     }
 
 
+
 }

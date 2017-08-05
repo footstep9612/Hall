@@ -128,7 +128,7 @@ class EsproductController extends PublicController {
             }
             rsort($new_showcats3);
             foreach ($new_showcats3 as $key => $item) {
-                $model = new EsproductModel();
+                $model = new EsProductModel();
                 $condition['show_cat_no'] = $item['cat_no'];
                 $item['count'] = $model->getcount($condition, $this->getLang());
                 $new_showcats3[$key] = $item;
@@ -183,9 +183,38 @@ class EsproductController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsproductModel();
+                $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 数据导入
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function updateAction($lang = 'en') {
+        try {
+            set_time_limit(0);
+            ini_set('memory_limi', '1G');
+            $time = redisGet('ES_PRODUCT_TIME');
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsProductModel();
+                $espoductmodel->updateproducts($lang, $time);
+            }
+            redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -231,7 +260,6 @@ class EsproductController extends PublicController {
     public function goodsAction() {
 
         $int_analyzed = ['type' => 'integer'];
-        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',
@@ -321,7 +349,6 @@ class EsproductController extends PublicController {
 
 
         $int_analyzed = ['type' => 'integer'];
-        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',

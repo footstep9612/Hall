@@ -278,7 +278,7 @@ class ProductModel extends PublicModel {
         if ($spu) {
             $this->startTrans();
             try {
-                $model = new EsproductModel();
+                $model = new EsProductModel();
                 $spuary = [];
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
@@ -354,7 +354,7 @@ class ProductModel extends PublicModel {
         if ($spu) {
             $this->startTrans();
             try {
-                $model = new EsproductModel();
+                $model = new EsProductModel();
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
                         $where = array(

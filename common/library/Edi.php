@@ -143,7 +143,7 @@ class Edi {
         try{
             $response = $this->client->doEdiBuyerCodeApply($data);
             var_dump($response);
-            $buyerCodeApproveInfo = $response->BuyerCodeApproveInfo;
+            $buyerCodeApproveInfo = $response->BuyerCodeApproveInfo(array());
             if ($buyerCodeApproveInfo) {
 //                foreach () { }
                 var_dump($buyerCodeApproveInfo->BuyerInfo);
@@ -162,7 +162,7 @@ class Edi {
      */
     public function EdiBuyerCodeApprove(){
         try{
-            $buyerCodeApproveInfo = $this->client->doEdiBuyerCodeApprove;
+            $buyerCodeApproveInfo = $this->client->doEdiBuyerCodeApprove(array());
             if ($buyerCodeApproveInfo) {
                 var_dump($buyerCodeApproveInfo->BuyerInfo);
                 $data = self::xml_to_array($buyerCodeApproveInfo);
@@ -192,7 +192,7 @@ class Edi {
 //        return $this->resultInfo("doEdiBankCodeApply", $xmlEdiBankCodeApply);
         try{
             $response = $this->client->doEdiBankCodeApply($data);
-            $buyerCodeApproveInfo = $response->doEdiBankCodeApprove;
+            $buyerCodeApproveInfo = $response->doEdiBankCodeApprove(array());
             if ($buyerCodeApproveInfo) {
 //                foreach () { }
                 var_dump($buyerCodeApproveInfo->BuyerInfo);
@@ -211,7 +211,7 @@ class Edi {
     public  function EdiBankCodeApprove(){
 //        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
         try{
-            $BankCodeApproveInfo = $this->client->doEdiBankCodeApprove;
+            $BankCodeApproveInfo = $this->client->doEdiBankCodeApprove(array());
             if ($BankCodeApproveInfo) {
                 var_dump($BankCodeApproveInfo->BankInfo);
             } else {
@@ -243,7 +243,7 @@ class Edi {
     public function EdiQuotaApproveInfo(){
 //        return $this->resultInfo("getEdiQuotaApproveInfo", $xmlGetEdiQuotaApproveInfo);
         try{
-            $QuotaApproveInfo = $this->client->getEdiQuotaApproveInfo;
+            $QuotaApproveInfo = $this->client->getEdiQuotaApproveInfo(array());
             if ($QuotaApproveInfo) {
                 var_dump($QuotaApproveInfo->BuyerQuotaInfo);
             } else {
@@ -321,7 +321,7 @@ class Edi {
     public function QuotaBalanceInfoByPolicyNo(){
 //        return $this->resultInfo("getQuotaBalanceInfoByPolicyNo",$xmlGetQuotaBalanceInfoByPolicyNo);
         try{
-            $QuotaBalanceInfo = $this->client->getQuotaBalanceInfoByPolicyNo;
+            $QuotaBalanceInfo = $this->client->getQuotaBalanceInfoByPolicyNo(array());
             if ($QuotaBalanceInfo) {
                 var_dump($QuotaBalanceInfo);
             } else {
@@ -350,7 +350,7 @@ class Edi {
      */
     public function EdiCountryClassify(){
         try{
-            $CountryClassify = $this->client->getEdiCountryClassify;
+            $CountryClassify = $this->client->getEdiCountryClassify(array());
             if ($CountryClassify) {
                 var_dump($CountryClassify);
             } else {
