@@ -280,6 +280,7 @@ class ProductModel extends PublicModel {
             try {
                 $model = new EsProductModel();
                 $spuary = [];
+                $userInfo = getLoinInfo();
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
                         $where = array(
@@ -288,7 +289,15 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('status' => $status));
+                        $updata = array('status' => $status);
+                        /**
+                         * 审核人跟时间
+                         */
+                        if($status==self::STATUS_VALID || $status==self::STATUS_INVALID) {
+                            $updata['checked_at'] = date('Y-m-d H:i:s',time());
+                            $updata['checked_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                        }
+                        $result = $this->where($where)->save($updata);
                         if ($result) {
                             $spuary[] = array('spu' => $r, 'lang' => $lang, 'remarks' => $remark);
                             /**
@@ -307,13 +316,21 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('status' => $status));
+                    $updata = array('status' => $status);
+                    /**
+                     * 审核人跟时间
+                     */
+                    if($status==self::STATUS_VALID || $status==self::STATUS_INVALID) {
+                        $updata['checked_at'] = date('Y-m-d H:i:s',time());
+                        $updata['checked_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                    }
+                    $result = $this->where($where)->save($updata);
                     if ($result) {
                         $spuary[] = array('spu' => $spu, 'lang' => $lang, 'remarks' => $remark);
                         /**
                          * 更新ES
                          */
-                        $model->changestatus($r, $status, $lang);
+                        $model->changestatus($spu, $status, $lang);
                     } else {
                         $this->rollback();
                         return false;
@@ -368,7 +385,7 @@ class ProductModel extends PublicModel {
                             /**
                              * 更新ES
                              */
-                            @$model->changestatus($r, $status, $lang);
+                            $model->delete_data($r,$lang);
                         } else {
                             $this->rollback();
                             return false;
@@ -386,7 +403,7 @@ class ProductModel extends PublicModel {
                         /**
                          * 更新ES
                          */
-                        $model->changestatus($r, $status, $lang);
+                        $model->delete_data($spu, $lang);
                     } else {
                         $this->rollback();
                         return false;
