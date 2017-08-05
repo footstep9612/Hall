@@ -10,7 +10,7 @@ class ExcelmanagerController extends PublicController
 
     private $_requestParams = [];
     public function init(){
-        //parent::init();
+        parent::init();
         $this->_requestParams = json_decode(file_get_contents("php://input"),true);
     }
 
