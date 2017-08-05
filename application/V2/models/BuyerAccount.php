@@ -14,7 +14,7 @@
 class BuyerAccountModel extends PublicModel {
 
     protected $tableName = 'buyer_account';
-    protected $dbName = 'erui_buyer'; //数据库名称
+    protected $dbName = 'erui2_buyer'; //数据库名称
     public function __construct($str = '') {
 
         parent::__construct();
@@ -43,52 +43,50 @@ class BuyerAccountModel extends PublicModel {
                 $map['email']=$data['email'];
                 $map['user_name']=$data['user_name'];
             }
-            $row = $this->table('erui_buyer.t_buyer_account')->where($map)->select();
+            $row = $this->table('erui2_buyer.buyer_account')->where($map)->select();
         }else{
-            $row = $this->table('erui_buyer.t_buyer_account')->where($data)->select();
+            $row = $this->table('erui2_buyer.buyer_account')->where($data)->select();
         }
         return empty($row) ? false : $row ;
     }
 
-//    /**
-//     * 获取列表
-//     * @param data $data;
-//     * @return array
-//     * @author jhw
-//     */
-//    public function getlist($data,$limit,$order='ug.id desc') {
-//        $sql  = 'SELECT ug.id,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name ';
-//        $sql .= ' FROM '.$this->tableName.'as ug';
-//        $sql .= ' LEFT JOIN t_group AS g ON t_group.`id` = ug.`group_id`';
-//        $sql .= ' LEFT JOIN t_user AS u ON u.`id` = ug.`user_id`';
-//        if(!empty($data['group_id'])){
-//            $sql .= ' WHERE g.`group_id` = '.$data['group_id'];
-//        }
-//        if(!empty($limit)){
-//            $sql .= ' LIMIT '.$limit['page'].','.$limit['num'];
-//        }
-//        $sql .= ' ORDER BY '.$order;
-//        $res = $this->query( $sql );
-//        return $res;
-//    }
+    /**
+     * 获取列表
+     * @param data $data;
+     * @return array
+     * @author jhw
+     */
+    public function getlist($data,$limit,$order='ug.id desc') {
+        $sql  = 'SELECT ug.id,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name ';
+        $sql .= ' FROM '.$this->tableName.'as ug';
+        $sql .= ' LEFT JOIN t_group AS g ON t_group.`id` = ug.`group_id`';
+        $sql .= ' LEFT JOIN t_user AS u ON u.`id` = ug.`user_id`';
+        if(!empty($data['group_id'])){
+            $sql .= ' WHERE g.`group_id` = '.$data['group_id'];
+        }
+        if(!empty($limit)){
+            $sql .= ' LIMIT '.$limit['page'].','.$limit['num'];
+        }
+        $sql .= ' ORDER BY '.$order;
+        $res = $this->query( $sql );
+        return $res;
+    }
 
-//    /**
-//     * 获取列表
-//     * @param  int  $id
-//     * @return array
-//     * @author jhw
-//     */
-//    public function detail($id = '') {
-//        $where['id'] = $id;
-//        if(!empty($where['id'])){
-//            $row = $this->where($where)
-//                ->field('id,parent_id,name,description,status')
-//                ->find();
-//            return $row;
-//        }else{
-//            return false;
-//        }
-//    }
+    /**
+     * 获取用户信息
+     * @param  int  $id
+     * @return array
+     * @author jhw
+     */
+    public function info($data) {
+        if(!empty($data['buyer_id'])){
+            $row = $this->where(['buyer_id' => $data['buyer_id'] ,'deleted_flag' => 'N'])
+                ->find();
+            return $row;
+        }else{
+            return false;
+        }
+    }
 
     /**
      * 登录
@@ -179,8 +177,8 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['customer_id'])){
-            $arr['customer_id'] = $create['customer_id'];
+        if(isset($create['buyer_id'])){
+            $arr['buyer_id'] = $create['buyer_id'];
         }
         if(isset($create['email'])){
             $arr['email'] = $create['email'];

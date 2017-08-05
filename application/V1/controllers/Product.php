@@ -31,24 +31,23 @@ class ProductController extends PublicController {
     /**
      * spu 基本信息
      */
-    public function getInfoAction()
-    {
-        if(isset($this->input['spu']) && !empty($this->input['spu'])){
+    public function getInfoAction() {
+        if (isset($this->input['spu']) && !empty($this->input['spu'])) {
             $spu = $this->input['spu'];
-        } else{
-            jsonReturn('','1000','参数[spu]有误');
+        } else {
+            $this->jsonReturn('', '1000', '参数[spu]有误');
         }
         $lang = !empty($this->input['lang']) ? $this->input['lang'] : '';
-        if($lang != '' && !in_array($lang,array('zh','en','es','ru'))) {
-            jsonReturn('','1000','参数[语言]有误');
+        if ($lang != '' && !in_array($lang, array('zh', 'en', 'es', 'ru'))) {
+            $this->jsonReturn('', '1000', '参数[语言]有误');
         }
-        $status = isset($this->input['status'])?strtoupper($this->input['status']):'';
-        if($status != '' && !in_array($status,array('NORMAL','CLOSED','VALID','TEST','CHECKING','INVALID','DELETED'))) {
-            jsonReturn('','1000','参数[状态]有误');
+        $status = isset($this->input['status']) ? strtoupper($this->input['status']) : '';
+        if ($status != '' && !in_array($status, array('NORMAL', 'CLOSED', 'VALID', 'TEST', 'CHECKING', 'INVALID', 'DELETED'))) {
+            $this->jsonReturn('', '1000', '参数[状态]有误');
         }
 
         $productModel = new ProductModel();
-        $result = $productModel->getInfo($spu, $lang,$status);
+        $result = $productModel->getInfo($spu, $lang, $status);
         if (!empty($result)) {
             $data = array(
                 'data' => $result
@@ -69,8 +68,8 @@ class ProductController extends PublicController {
 
         if (!empty($data['spu'])) {
             $spu = $data['spu'];
-        } else{
-            jsonReturn('',"-1001","spu不可以为空");
+        } else {
+            jsonReturn('', "-1001", "spu不可以为空");
         }
         $lang = isset($data['lang']) ? $data['lang'] : '';
         //获取产品属性
@@ -85,7 +84,7 @@ class ProductController extends PublicController {
             );
             jsonReturn($data);
         } else {
-            jsonReturn('','-1002', '获取失败');
+            jsonReturn('', '-1002', '获取失败');
         }
         exit;
     }
@@ -109,9 +108,9 @@ class ProductController extends PublicController {
     /**
      * SPU删除
      */
-    public function deleteAction(){
-        if(!isset($this->input['id']))
-            jsonReturn('',ErrorMsg::ERROR_PARAM);
+    public function deleteAction() {
+        if (!isset($this->input['id']))
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
 
         $productModel = new ProductModel();
         $result = $productModel->del($this->input);
@@ -125,18 +124,18 @@ class ProductController extends PublicController {
     /**
      * 修改
      */
-    public function updateAction(){
-        if(!isset($this->input['update_type']))
+    public function updateAction() {
+        if (!isset($this->input['update_type']))
             jsonReturn('', ErrorMsg::ERROR_PARAM);
 
-        if(!isset($this->input['id']))
-            jsonReturn('',ErrorMsg::ERROR_PARAM);
+        if (!isset($this->input['id']))
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
 
         $result = '';
-        switch($this->input['update_type']){
+        switch ($this->input['update_type']) {
             case 'declare':    //SPU报审
                 $productModel = new ProductModel();
-                $result = $productModel->upStatus($this->input['id'],$productModel::STATUS_CHECKING);
+                $result = $productModel->upStatus($this->input['id'], $productModel::STATUS_CHECKING);
                 break;
         }
         if ($result) {
@@ -151,7 +150,7 @@ class ProductController extends PublicController {
      */
     public function listAction() {
         if (!isset($this->input['show_cat_no'])) {
-            jsonReturn('',"-1001","SKU编码不能为空");
+            jsonReturn('', "-1001", "SKU编码不能为空");
         }
         $lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
         $page = isset($this->input['current_no']) ? $this->input['current_no'] : 1;
@@ -164,7 +163,7 @@ class ProductController extends PublicController {
             $return['message'] = '成功';
             jsonReturn($return);
         } else {
-            jsonReturn('','-1002', '获取失败');
+            jsonReturn('', '-1002', '获取失败');
         }
         exit;
     }
@@ -174,23 +173,23 @@ class ProductController extends PublicController {
      */
     public function infoAction() {
         if (!isset($this->input['sku'])) {
-            jsonReturn('',"-1001","SKU编码不能为空");
+            jsonReturn('', "-1001", "SKU编码不能为空");
         }
         $lang = isset($this->input['lang']) ? strtolower($this->input['lang']) : (browser_lang() ? browser_lang() : 'en');
 
-            $goodsModel = new GoodsModel();
-            $result = $goodsModel->getInfo($this->input['sku'], $lang);
-            if (!empty($result)) {
-                $data = array(
-                    'code' => 1,
-                    'message' => '成功',
-                    'data' => $result
-                );
-                jsonReturn($data);
-            } else {
-                jsonReturn('','-1002','失败');
-            }
-            exit;
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->getInfo($this->input['sku'], $lang);
+        if (!empty($result)) {
+            $data = array(
+                'code' => 1,
+                'message' => '成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1002', '失败');
+        }
+        exit;
     }
 
     /**
@@ -201,8 +200,8 @@ class ProductController extends PublicController {
 
         if (!empty($data['spu'])) {
             $spu = $data['spu'];
-        } else{
-            jsonReturn('',"-1001","spu不可以为空");
+        } else {
+            jsonReturn('', "-1001", "spu不可以为空");
         }
         $lang = !empty($data['lang']) ? $data['lang'] : '';
         //获取产品属性
@@ -217,7 +216,7 @@ class ProductController extends PublicController {
             );
             jsonReturn($data);
         } else {
-            jsonReturn('','-1002', '获取失败');
+            jsonReturn('', '-1002', '获取失败');
         }
         exit;
     }
@@ -226,22 +225,22 @@ class ProductController extends PublicController {
      * 获取产品（spu）下的商品（sku）,包括规格 -- 门户产品详页在使用
      * @author link 2017-06-27
      */
-    public function getSpecGoodsAction(){
-        if(!isset($this->input['spu']) || empty($this->input['spu'])){
-            jsonReturn('','1000');
+    public function getSpecGoodsAction() {
+        if (!isset($this->input['spu']) || empty($this->input['spu'])) {
+            jsonReturn('', '1000');
         }
-        if(isset($this->input['lang']) && !in_array($this->input['lang'],array('zh','en','es','ru'))){
-            jsonReturn('','1000');
-        }elseif(!isset($this->input['lang'])){
+        if (isset($this->input['lang']) && !in_array($this->input['lang'], array('zh', 'en', 'es', 'ru'))) {
+            jsonReturn('', '1000');
+        } elseif (!isset($this->input['lang'])) {
             $this->input['lang'] = 'en';
         }
-        $this->input['spec_type'] = isset($this->input['spec_type'])?$this->input['spec_type']:0;
+        $this->input['spec_type'] = isset($this->input['spec_type']) ? $this->input['spec_type'] : 0;
         $gmodel = new GoodsModel();
-        $result = $gmodel->getSpecGoodsBySpu($this->input['spu'],$this->input['lang'],$this->input['spec_type']);
-        if($result){
-            jsonReturn(array('data'=>$result));
+        $result = $gmodel->getSpecGoodsBySpu($this->input['spu'], $this->input['lang'], $this->input['spec_type']);
+        if ($result) {
+            jsonReturn(array('data' => $result));
         } else {
-            jsonReturn('','-1002', '获取失败');
+            jsonReturn('', '-1002', '获取失败');
         }
     }
 

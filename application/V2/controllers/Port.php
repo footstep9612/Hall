@@ -59,17 +59,21 @@ class PortController extends PublicController {
      * 分类联动
      */
     public function infoAction() {
-        $bn = $this->getPut('bn');
+        $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
         if ($bn) {
             $data = [];
             $langs = ['en', 'zh', 'es', 'ru'];
             foreach ($langs as $lang) {
-                $result = $this->_model->field('country_bn,bn,port_type,trans_mode,name,description')
+                $result = $this->_model->field('country_bn,bn,port_type,trans_mode,name,remarks')
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
+
                 if ($result) {
-                    $data = $result;
-                    $data['name'] = null;
-                    unset($data['name']);
+                    if (!$data) {
+                        $data = $result;
+                        $data['name'] = null;
+                        unset($data['name']);
+                    }
+
                     $data[$lang]['name'] = $result['name'];
                 }
             }
@@ -81,6 +85,9 @@ class PortController extends PublicController {
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
+        } elseif ($data === []) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
 

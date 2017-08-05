@@ -115,22 +115,27 @@ class PublicModel extends Model {
      * @param string $name // 查询的字段
      * @param string $type // 默认值 string bool  like array
      * @param string $field // 组合条件的字段
+     * @param string $default 默认值 暂时只支持 string 和bool
      * @date  2017-8-1 9:13:41
      * @return null
      */
 
-    protected function _getValue(&$where, &$condition, $name, $type = 'string', $field = null) {
+    protected function _getValue(&$where, &$condition, $name, $type = 'string', $field = null, $default = null) {
         if (!$field) {
             $field = $name;
         }
         if ($type === 'string') {
             if (isset($condition[$name]) && trim($condition[$name])) {
                 $where[$field] = trim($condition[$name]);
+            } elseif ($default) {
+                $where[$field] = trim($default);
             }
         } elseif ($type === 'bool') {
             if (isset($condition[$name]) && trim($condition[$name])) {
                 $flag = trim($condition[$name]) == 'Y' ? 'Y' : 'N';
                 $where[$field] = $flag;
+            } elseif ($default) {
+                $where[$field] = trim($default);
             }
         } elseif ($type === 'like') {
             if (isset($condition[$name]) && trim($condition[$name])) {

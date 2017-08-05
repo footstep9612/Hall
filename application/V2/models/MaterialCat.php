@@ -763,4 +763,120 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
+    /*
+     * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
+     * @param mix $cat_no // 物料分类编码数组3f
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  物料分类及上级和顶级信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getmaterial_cat($cat_no, $lang = 'en') {
+        try {
+            $cat3 = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
+                    ->find();
+            $cat2 = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                    ->find();
+            $cat1 = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
+                    ->find();
+            return [$cat1['cat_no'], $cat1['name'], $cat2['cat_no'], $cat2['name'], $cat3['cat_no'], $cat3['name']];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据物料分类编码搜索物料分类 及上级分类信息
+     * @param mix $cat_nos // 物料分类编码数组
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  物料分类及上级和顶级信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getmaterial_cats($cat_nos, $lang = 'en') {
+        if (!$cat_nos) {
+            return[];
+        }
+        try {
+            $cat3s = $this->field('id,cat_no,name,parent_cat_no')
+                            ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
+
+            if (!$cat3s) {
+                return [];
+            }
+            $cat1_nos = $cat2_nos = [];
+            foreach ($cat3s as $cat) {
+                $cat2_nos[] = $cat['parent_cat_no'];
+            }
+            $cat2s = $this->field('id,cat_no,name,parent_cat_no')
+                    ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])
+                    ->select();
+            if (!$cat2s) {
+                $newcat3s = [];
+                foreach ($cat3s as $val) {
+                    $newcat3s[$val['cat_no']] = [
+                        'cat_no3' => $val['cat_no'],
+                        'cat_name3' => $val['name']];
+                }
+                return $newcat3s;
+            }
+            foreach ($cat2s as $cat2) {
+                $cat1_nos[] = $cat2['parent_cat_no'];
+            }
+
+            $cat1s = $this->field('id,cat_no,name')
+                    ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])
+                    ->select();
+            $newcat1s = [];
+            if (!$cat1s) {
+                $newcat3s = [];
+                $newcat2s = [];
+                foreach ($cat2s as $val) {
+                    $newcat2s[$val['cat_no']] = $val;
+                }
+                foreach ($cat3s as $val) {
+                    $newcat3s[$val['cat_no']] = [
+                        'cat_no3' => $val['cat_no'],
+                        'cat_name3' => $val['name'],
+                        'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+                        'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                    ];
+                }
+                return $newcat3s;
+            }
+            foreach ($cat1s as $val) {
+                $newcat1s[$val['cat_no']] = $val;
+            }
+            $newcat2s = [];
+            foreach ($cat2s as $val) {
+                $newcat2s[$val['cat_no']] = $val;
+            }
+            foreach ($cat3s as $val) {
+                $newcat3s[$val['cat_no']] = ['cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
+                    'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+                    'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
+                    'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                    'cat_no3' => $val['cat_no'],
+                    'cat_name3' => $val['name']];
+            }
+
+            return $newcat3s;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }
