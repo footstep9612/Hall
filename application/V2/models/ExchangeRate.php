@@ -110,6 +110,7 @@ class ExchangeRateModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create = [], $username = '') {
+   
         if (isset($create['effective_date'])) {
             $arr['effective_date'] = $create['effective_date'];
         }
@@ -125,6 +126,7 @@ class ExchangeRateModel extends PublicModel {
         $arr['created_at'] = date('Y-m-d H:i:s');
         $arr['created_by'] = $username;
         $data = $this->create($arr);
+    
         return $this->add($data);
     }
 

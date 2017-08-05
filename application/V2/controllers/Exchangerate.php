@@ -16,11 +16,12 @@ class ExchangerateController extends PublicController {
     //put your code here
     public function init() {
         //  parent::init();
+        error_reporting(E_ERROR);
         $this->_model = new ExchangeRateModel();
     }
 
     public function listAction() {
-        $condtion = $this->get();
+        $condtion = $this->getPut();
 
         $key = 'Exchange_rate_' . md5(json_encode($condtion));
         $data = redisGet($key);
@@ -59,7 +60,7 @@ class ExchangerateController extends PublicController {
      * 分类联动
      */
     public function infoAction() {
-        $id = $this->get('id');
+        $id = $this->getPut('id');
         if ($id) {
             $result = $this->_model->where(['id' => $id])->find();
         } else {
@@ -84,7 +85,7 @@ class ExchangerateController extends PublicController {
     }
 
     public function createAction() {
-        $condition = $this->put_data;
+        $condition =  $this->getPut();
         $result = $this->_model->create_data($condition, $this->user['id']);
         if ($result) {
             $this->delcache();
@@ -98,8 +99,8 @@ class ExchangerateController extends PublicController {
 
     public function updateAction() {
 
-        $condition = $this->put_data;
-        $where['id'] = $this->get('id');
+        $condition =  $this->getPut();
+        $where['id'] = $this->getPut('id');
         $result = $this->_model->where($where)->update_data($condition, $where);
         if ($result) {
             $this->delcache();
@@ -113,7 +114,7 @@ class ExchangerateController extends PublicController {
 
     public function deleteAction() {
 
-        $where['id'] = $this->get('id');
+        $where['id'] = $this->getPut('id');
         if (!$where['id']) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
