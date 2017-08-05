@@ -350,6 +350,14 @@ class ShowCatModel extends PublicModel {
                 ->save(['status' => self::STATUS_DELETED]);
         $this->Table('erui2_goods.show_material_cat')->where(['show_cat_no' => $cat_no])
                 ->delete();
+        $es_product_model = new EsproductModel();
+        if ($lang) {
+            $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
+        } else {
+            foreach ($this->langs as $lan) {
+                $es_product_model->Updatemeterialcatno($cat_no, null, $lan);
+            }
+        }
         return $flag;
     }
 
@@ -616,10 +624,11 @@ class ShowCatModel extends PublicModel {
             $this->rollback();
             return false;
         }
-        $es_product_model->update_showcats($spus, 'en');
-        $es_product_model->update_showcats($spus, 'zh');
-        $es_product_model->update_showcats($spus, 'es');
-        $es_product_model->update_showcats($spus, 'ru');
+
+        foreach ($this->langs as $lan) {
+            $es_product_model->Updatemeterialcatno($old_cat_no, null, $lan, $new_cat_no);
+        }
+
         return true;
     }
 

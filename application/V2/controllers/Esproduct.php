@@ -260,7 +260,6 @@ class EsproductController extends PublicController {
     public function goodsAction() {
 
         $int_analyzed = ['type' => 'integer'];
-        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',
@@ -350,7 +349,6 @@ class EsproductController extends PublicController {
 
 
         $int_analyzed = ['type' => 'integer'];
-        $not_analyzed = ['type' => 'float'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => 'string',

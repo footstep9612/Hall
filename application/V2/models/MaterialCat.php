@@ -16,6 +16,7 @@ class MaterialCatModel extends PublicModel {
     //put your code here
     protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'material_cat'; //数据表表名
+    protected $langs = ['en', 'es', 'zh', 'ru'];
 
     const STATUS_DRAFT = 'DRAFT'; //草稿
     const STATUS_APPROVING = 'APPROVING'; //审核；
@@ -275,7 +276,14 @@ class MaterialCatModel extends PublicModel {
             $flag = $this->where($where)
                     ->save(['status' => self::STATUS_DELETED]);
             $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
-
+            $es_product_model = new EsproductModel();
+            if ($lang) {
+                $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
+            } else {
+                foreach ($this->langs as $lan) {
+                    $es_product_model->Updatemeterialcatno($cat_no, null, $lan);
+                }
+            }
             return $flag;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -391,8 +399,8 @@ class MaterialCatModel extends PublicModel {
                 }
             }
             $this->startTrans();
-            $langs = ['en', 'es', 'zh', 'ru'];
-            foreach ($langs as $lang) {
+
+            foreach ($this->langs as $lang) {
                 if (isset($upcondition[$lang])) {
                     $data['lang'] = $lang;
                     $data['name'] = $upcondition[$lang]['name'];
@@ -439,6 +447,7 @@ class MaterialCatModel extends PublicModel {
                     return false;
                 }
             }
+
             $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
             $this->commit();
             return $flag;
@@ -543,10 +552,9 @@ class MaterialCatModel extends PublicModel {
             }
 
             $es_product_model = new EsproductModel();
-            $es_product_model->Updatemeterialcatno($old_cat_no, null, 'en', $new_cat_no);
-            $es_product_model->Updatemeterialcatno($old_cat_no, null, 'zh', $new_cat_no);
-            $es_product_model->Updatemeterialcatno($old_cat_no, null, 'es', $new_cat_no);
-            $es_product_model->Updatemeterialcatno($old_cat_no, null, 'ru', $new_cat_no);
+            foreach ($this->langs as $lang) {
+                $es_product_model->Updatemeterialcatno($where['cat_no'], null, $lang, $data['cat_no']);
+            }
             return true;
         } catch (Exception $ex) {
             $this->rollback();
@@ -657,8 +665,7 @@ class MaterialCatModel extends PublicModel {
             $data['sort_order'] = $condition['sort_order'];
         }
         $this->startTrans();
-        $langs = ['en', 'es', 'zh', 'ru'];
-        foreach ($langs as $lang) {
+        foreach ($this->langs as $lang) {
 
             if (isset($createcondition[$lang])) {
                 $data['lang'] = $lang;

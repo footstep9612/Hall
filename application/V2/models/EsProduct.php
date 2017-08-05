@@ -537,8 +537,8 @@ class EsProductModel extends Model {
             for ($i = 0; $i < $count; $i += 100) {
                 if ($i > $count) {
                     $i = $count;
-                }                
-                $where['id']=$max_id;
+                }
+                $where['id'] = $max_id;
                 $products = $this->where($where)->limit(0, 100)->order('id asc')->select();
                 $spus = $mcat_nos = [];
                 if ($products) {
@@ -960,9 +960,6 @@ class EsProductModel extends Model {
         $type = $this->tableName . '_' . $lang;
         $mcatmodel = new MaterialcatModel();
         $data['material_cat'] = json_encode($mcatmodel->getinfo($new_cat_no, $lang), 256);
-        $smmodel = new ShowmaterialcatModel();
-
-
         $data['material_cat_no'] = $new_cat_no;
         if ($spu) {
             $id = $spu;
@@ -974,8 +971,8 @@ class EsProductModel extends Model {
                     'material_cat_no' => $new_cat_no,
                 ],
                 "query" => [
-                    ESClient::MATCH_PHRASE => [
-                        "material_cat_no" => $material_cat_no
+                    ESClient::WILDCARD => [
+                        "material_cat" => '*' . $material_cat_no . '*'
                     ]
                 ]
             ];
@@ -998,8 +995,8 @@ class EsProductModel extends Model {
                     "material_cat" => $data['material_cat'],
                 ],
                 "query" => [
-                    ESClient::MATCH_PHRASE => [
-                        "material_cat_no" => $material_cat_no
+                    ESClient::WILDCARD => [
+                        "material_cat" => '*' . $material_cat_no . '*'
                     ]
                 ]
             ];
