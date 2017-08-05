@@ -38,75 +38,15 @@ class EsgoodsController extends PublicController {
         $lang = $this->get('lang', '') ?: $this->getPut('lang', 'zh');
         $data = $this->getPut();
         $model = new EsGoodsModel();
-//        $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
-//            , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
-//            'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
-//            'meterial_cat', 'brand', 'supplier_name', 'warranty', 'status', 'created_at',
-//            'created_by', 'checked_by', 'checked_at', 'update_by', 'update_at', 'shelves_by', 'shelves_at', 'shelves_status', 'checked_desc',];
         $ret = $model->getgoods($data, null, $lang);
         if ($ret) {
-            $list = [];
             $data = $ret[0];
+            $list = $this->_getdata($data);
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
-            foreach ($data['hits']['hits'] as $key => $item) {
-                $list[$key] = $item["_source"];
-                $attachs = json_decode($item["_source"]['attachs'], true);
-                if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
-                    $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
-                } else {
-                    $product_attach_model = new ProductAttachModel();
-                    $list[$key]['img'] =[];
-                }
-                $show_cats = json_decode($item["_source"]["show_cats"], true);
-                if ($show_cats) {
-                    rsort($show_cats);
-                }
-                $sku = $item["_source"]['sku'];
 
-                if (isset($list_en[$sku])) {
-                    $list[$key]['name'] = $list_en[$sku];
-                    $list[$key]['name_' . $lang] = $item["_source"]['name'];
-                } elseif (isset($list_zh[$sku])) {
-                    $list[$key]['name_zh'] = $item["_source"]['name'];
-                } else {
-                    $list[$key]['name'] = $item["_source"]['name'];
-                    $list[$key]['name_' . $lang] = $item["_source"]['name'];
-                }
-
-                $list[$key]['show_cats'] = $show_cats;
-                if (isset($list[$key]['attrs']) && $list[$key]['attrs']) {
-                    $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-                }
-
-                if (isset($list[$key]['specs']) && $list[$key]['specs']) {
-                    $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-                }
-                $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-                $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
-            }
-            if (isset($this->put_data['keyword']) && $this->put_data['keyword']) {
-                $search = [];
-                $search['keywords'] = $this->put_data['keyword'];
-                if ($this->user['email']) {
-                    $search['user_email'] = $this->user['email'];
-                } else {
-                    $search['user_email'] = '';
-                }
-                $search['search_time'] = date('Y-m-d H:i:s');
-                $usersearchmodel = new UsersearchhisModel();
-                $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
-                $row = $usersearchmodel->exist($condition);
-                if ($row) {
-                    $search['search_count'] = intval($row['search_count']) + 1;
-                    $search['id'] = $row['id'];
-                    $usersearchmodel->update_data($search);
-                } else {
-                    $search['search_count'] = 1;
-                    $usersearchmodel->add($search);
-                }
-            }
+            $this->_update_keywords();
             $send['data'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             $send['code'] = $this->getCode();
@@ -115,6 +55,106 @@ class EsgoodsController extends PublicController {
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 处理ES 数据
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    private function _getdata($data) {
+
+        $user_ids = [];
+        foreach ($data['hits']['hits'] as $key => $item) {
+            $product = $list[$key] = $item["_source"];
+            $attachs = json_decode($item["_source"]['attachs'], true);
+            if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+                $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
+            } else {
+                $list[$key]['img'] = null;
+            }
+            $list[$key]['id'] = $item['_id'];
+            $show_cats = json_decode($item["_source"]["show_cats"], true);
+            if ($show_cats) {
+                rsort($show_cats);
+            }
+            if ($product['created_by']) {
+                $user_ids[] = $product['created_by'];
+            }
+            if ($product['updated_by']) {
+                $user_ids[] = $product['updated_by'];
+            }
+            if ($product['checked_by']) {
+                $user_ids[] = $product['checked_by'];
+            }
+            $list[$key]['show_cats'] = $show_cats;
+            $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
+            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+            $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
+            $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+        }
+
+        $employee_model = new EmployeeModel();
+        $usernames = $employee_model->getUserNamesByUserids($user_ids);
+        foreach ($list as $key => $val) {
+            if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                $val['created_by_name'] = $usernames[$val['created_by']];
+            } else {
+                $val['created_by_name'] = '';
+            }
+            if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                $val['updated_by_name'] = $usernames[$val['updated_by']];
+            } else {
+                $val['updated_by_name'] = '';
+            }
+            if ($val['checked_by'] && isset($usernames[$val['checked_by']])) {
+                $val['checked_by_name'] = $usernames[$val['checked_by']];
+            } else {
+                $val['checked_by_name'] = '';
+            }
+            $list[$key] = $val;
+        }
+        return $list;
+    }
+
+    /*
+     * 更新关键词表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    private function _update_keywords() {
+        $keyword = $this->getPut('keyword');
+        $show_cat_no = $this->getPut('show_cat_no');
+        $country_bn = $this->getPut('country_bn');
+        if ($keyword) {
+            $search = [];
+            $search['keywords'] = $keyword;
+            $search['show_cat_no'] = $show_cat_no;
+            $search['country_bn'] = $country_bn;
+            $search['search_time'] = date('Y-m-d H:i:s');
+            $usersearchmodel = new HotKeywordsModel();
+            $uid = $this->user['id'];
+            $condition = ['keywords' => $search['keywords']];
+            $row = $usersearchmodel->exist($condition);
+            if ($row) {
+                $search['search_count'] = intval($row['search_count']) + 1;
+                $search['id'] = $row['id'];
+                $search['updated_by'] = $uid;
+                $search['updated_at'] = date('Y-m-d H:i:s');
+                $usersearchmodel->update_data($search);
+            } else {
+                $search['created_by'] = $uid;
+                $search['created_at'] = date('Y-m-d H:i:s');
+                $search['search_count'] = 1;
+                $usersearchmodel->add($search);
+            }
         }
     }
 

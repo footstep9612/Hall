@@ -99,14 +99,34 @@ class EsproductController extends PublicController {
             }
             if ($product['checked_by']) {
                 $user_ids[] = $product['checked_by'];
-            }            
-            
+            }
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+        }
+
+        $employee_model = new EmployeeModel();
+        $usernames = $employee_model->getUserNamesByUserids($user_ids);
+        foreach ($list as $key => $val) {
+            if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                $val['created_by_name'] = $usernames[$val['created_by']];
+            } else {
+                $val['created_by_name'] = '';
+            }
+            if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                $val['updated_by_name'] = $usernames[$val['updated_by']];
+            } else {
+                $val['updated_by_name'] = '';
+            }
+            if ($val['checked_by'] && isset($usernames[$val['checked_by']])) {
+                $val['checked_by_name'] = $usernames[$val['checked_by']];
+            } else {
+                $val['checked_by_name'] = '';
+            }
+            $list[$key] = $val;
         }
         return $list;
     }
@@ -159,23 +179,28 @@ class EsproductController extends PublicController {
      */
 
     private function _update_keywords() {
-        if ($this->put_data['keyword']) {
+        $keyword = $this->getPut('keyword');
+        $show_cat_no = $this->getPut('show_cat_no');
+        $country_bn = $this->getPut('country_bn');
+        if ($keyword) {
             $search = [];
-            $search['keywords'] = $this->put_data['keyword'];
-            if ($this->user['email']) {
-                $search['user_email'] = $this->user['email'];
-            } else {
-                $search['user_email'] = '';
-            }
+            $search['keywords'] = $keyword;
+            $search['show_cat_no'] = $show_cat_no;
+            $search['country_bn'] = $country_bn;
             $search['search_time'] = date('Y-m-d H:i:s');
-            $usersearchmodel = new BuyersearchhisModel();
-            $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
+            $usersearchmodel = new HotKeywordsModel();
+            $uid = $this->user['id'];
+            $condition = ['keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
             if ($row) {
                 $search['search_count'] = intval($row['search_count']) + 1;
                 $search['id'] = $row['id'];
+                $search['updated_by'] = $uid;
+                $search['updated_at'] = date('Y-m-d H:i:s');
                 $usersearchmodel->update_data($search);
             } else {
+                $search['created_by'] = $uid;
+                $search['created_at'] = date('Y-m-d H:i:s');
                 $search['search_count'] = 1;
                 $usersearchmodel->add($search);
             }
