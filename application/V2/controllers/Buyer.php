@@ -13,7 +13,6 @@
  */
 class BuyerController extends PublicController {
 
-
     public function __init() {
         //   parent::__init();
 
@@ -359,6 +358,7 @@ class BuyerController extends PublicController {
             );
         }
     }
+
 
 
 }
