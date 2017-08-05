@@ -2,8 +2,8 @@
 
 /**
  */
-//class ServicecatController extends PublicController {
-class ServicecatController extends Yaf_Controller_Abstract{
+class ServicecatController extends PublicController {
+//class ServicecatController extends Yaf_Controller_Abstract{
 
     public function init() {
 //parent::init();
@@ -16,14 +16,11 @@ class ServicecatController extends Yaf_Controller_Abstract{
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
-        if(!empty($data['lang'])){
-            $where['lang'] = $data['lang'];
-        }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
         if(!empty($data['currentPage'])) {
-            $limit['page'] = ($data['currentPage'] - 1) * $where['num'];
+            $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
         }
         $model = new ServiceCatModel();
         $data =$model->getlist($where,$limit);
@@ -156,8 +153,16 @@ class ServicecatController extends Yaf_Controller_Abstract{
      * @author klp
      */
     public function levelAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        if(!empty($data['pageSize'])){
+            $limit['num'] = $data['pageSize'];
+        }
+        if(!empty($data['currentPage'])) {
+            $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
+        }
         $MemberServiceModel = new MemberServiceModel();
-        $result = $MemberServiceModel->levelInfo();
+        $result = $MemberServiceModel->levelInfo($limit);
         if(!empty($result)) {
             jsonReturn($result);
         } else {
@@ -191,6 +196,29 @@ class ServicecatController extends Yaf_Controller_Abstract{
         }
     }
 
+    /**
+     * 删除等级
+     */
+
+    public function deleteLevelAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+//        $data['buyer_level'] = '1';//测试
+        if(empty($data['buyer_level'])){
+            $datajson['code'] = -101;
+            $datajson['message'] = '[buyer_level]不可以都为空!';
+            $this->jsonReturn($datajson);
+        }
+        $MemberServiceModel = new MemberServiceModel();
+        $res = $MemberServiceModel->delData($data['buyer_level']);
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
 
     /**
      * 会员服务信息详情查询 -- 总的接口 一级二级三级

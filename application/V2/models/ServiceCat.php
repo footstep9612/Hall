@@ -27,15 +27,15 @@ class ServiceCatModel extends PublicModel {
         $fields = 'id,parent_id,level_no,category,sort_order,status,created_by,created_at,updated_by,checked_by,checked_at';
         if(!empty($limit)){
             return $this->field($fields)
-                ->where($condition)
-                ->limit($limit['page'] . ',' . $limit['num'])
-                ->order($order)
-                ->select();
+                         ->where($condition)
+                         ->limit($limit['page'] . ',' . $limit['num'])
+                         ->order($order)
+                         ->select();
         }else{
             return $this->field($fields)
-                ->where($condition)
-                ->order($order)
-                ->select();
+                         ->where($condition)
+                         ->order($order)
+                         ->select();
         }
     }
     

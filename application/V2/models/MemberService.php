@@ -13,18 +13,27 @@ class MemberServiceModel extends PublicModel{
         parent::__construct();
     }
 
+    //状态
+    const STATUS_VALID = 'VALID';          //有效
+    const STATUS_INVALID = 'INVALID';      //无效
+    const STATUS_DELETED = 'DELETED';      //删除
+
     /**
      * 会员等级查看
      * @author klp
      */
-    public function levelInfo(){
+    public function levelInfo($limit){
         $where = array(
             'status'=>'VALID',
             'deleted_flag'=>'N'
         );
         $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
-            $result = $this->field($fields)->where($where)->select();
+            if(!empty($limit)){
+            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->select();
+            } else{
+                $result = $this->field($fields)->where($where)->select();
+            }
             if($result) {
                 return $result;
             }
@@ -75,6 +84,29 @@ class MemberServiceModel extends PublicModel{
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
+        }
+    }
+
+    /**
+     * @desc 删除数据
+     * @author klp
+     * @param $id
+     * @return bool
+     */
+    public function delData($buyer_level) {
+        if (!isset($buyer_level)) {
+            return false;
+        }
+        $status = self::STATUS_DELETED;
+        try{
+            $where = ['buyer_level'=>$buyer_level];
+            $res = $this->where($where)->save(['status'=>$status]);
+            if(!$res){
+                return false;
+            }
+            return $res;
+        } catch (Exception $e) {
+            return false;
         }
     }
 
