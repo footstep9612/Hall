@@ -22,6 +22,7 @@ class EsgoodsController extends PublicController {
 
     //put your code here
     public function init() {
+        error_reporting(E_ERROR);
         $this->es = new ESClient();
         //  parent::init();
     }
@@ -56,7 +57,7 @@ class EsgoodsController extends PublicController {
                     $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
                 } else {
                     $product_attach_model = new ProductAttachModel();
-                    $list[$key]['img'] = $product_attach_model->getimgBySpu($item["_source"]['spu']);
+                    $list[$key]['img'] =[];
                 }
                 $show_cats = json_decode($item["_source"]["show_cats"], true);
                 if ($show_cats) {
