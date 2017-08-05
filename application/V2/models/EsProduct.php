@@ -250,7 +250,7 @@ class EsProductModel extends Model {
             $es = new ESClient();
             unset($condition['source']);
             $es->setbody($body)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
-            echo json_encode($body, 256);
+
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');
             } else {
