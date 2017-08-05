@@ -73,11 +73,11 @@ class MarketareaController extends PublicController {
                 $data[$lang]['name'] = '';
             }
         }
-
-        if ($data) {
+        $this->_getTeams($data);
+        if ($data['bn']) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
-        } elseif ($data === []) {
+        } elseif (empty($data['bn'])) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
@@ -86,6 +86,36 @@ class MarketareaController extends PublicController {
             $this->jsonReturn();
         }
         exit;
+    }
+
+    /**
+     * Description of 获取营销团队信息
+     * @param array $data 详情
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   营销区域
+     */
+    private function _getTeams(&$data) {
+        $team_keys = ['market_org_id', 'market_org_name',
+            'biz_tech_org_id', 'biz_tech_org_name',
+            'logi_check_org_id', 'logi_check_org_name',
+            'logi_quote_org_id', 'logi_quote_org_name'];
+        if (isset($data['bn']) && $data['bn']) {
+            $market_area_team_model = new MarketAreaTeamModel();
+            $team = $market_area_team_model->getTeamByMarketAreaBn($data['bn']);
+            foreach ($team_keys as $team_key) {
+                if ($team[$team_key]) {
+                    $data[$team_key] = $team[$team_key];
+                } else {
+                    $data[$team_key] = '';
+                }
+            }
+        } else {
+            foreach ($team_keys as $team_key) {
+                $data[$team_key] = '';
+            }
+        }
     }
 
     /**
@@ -112,7 +142,6 @@ class MarketareaController extends PublicController {
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
         if (!isset($data['en']['name']) || !isset($data['zh']['name'])) {
-
             $this->setCode(MSG::ERROR_PARAM);
             $this->jsonReturn();
         } else {
@@ -123,7 +152,6 @@ class MarketareaController extends PublicController {
                 $this->jsonReturn();
             }
         }
-
         $result = $market_area_model->create_data($data, $this->user['id']);
 
         if ($result) {
