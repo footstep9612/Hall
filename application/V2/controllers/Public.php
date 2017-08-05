@@ -6,7 +6,14 @@
  */
 abstract class PublicController extends Yaf_Controller_Abstract {
 
-    protected $user;
+    protected $user = [
+        'id' => '98',
+        'user_no' => '',
+        'name' => '刘晖',
+        'email' => 'liuhui02@keruigroup.com',
+        'mobile' => '17190177863',
+        'status' => 'NORMAL'
+    ];
     protected $put_data = [];
     protected $code = "1";
     protected $send = [];
