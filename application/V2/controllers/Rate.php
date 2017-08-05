@@ -30,7 +30,7 @@ class RateController extends PublicController {
      */
 
     public function listAction() {
-        $condtion = $this->get();
+        $condtion = $this->getPut();
 
         $key = 'Rate_' . md5(json_encode($condtion));
         $data = redisGet($key);
@@ -74,7 +74,7 @@ class RateController extends PublicController {
      */
 
     public function infoAction() {
-        $id = $this->get('id');
+        $id = $this->getPut('id');
         $rate_model = new RateModel();
         if ($id) {
             $result = $rate_model->info($id);
@@ -172,7 +172,7 @@ class RateController extends PublicController {
             $this->jsonReturn();
         }
         
-        $result = $this->_model->where($where)->delete();
+        $result = $this->_model->where($where)->save(['status'=>'DELETE']);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);

@@ -47,7 +47,7 @@ class DestdeliverylogiController extends PublicController {
      * 分类联动
      */
     public function infoAction() {
-        $id = $this->get('id');
+        $id = $this->getPut('id');
         if ($id) {
             $result = $this->_model->where(['id' => $id])->find();
         } else {
@@ -73,7 +73,7 @@ class DestdeliverylogiController extends PublicController {
     }
 
     public function createAction() {
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         $data = $this->_model->create($condition);
         $data['logi_no'] = $data['from_loc'] . '_'
                 . substr($data['trans_mode'], 0, 1)
@@ -93,7 +93,7 @@ class DestdeliverylogiController extends PublicController {
 
     public function updateAction() {
 
-        $condition = $this->put_data;
+        $condition =  $this->getPut();
         $data = $this->_model->create($condition);
         $where['id'] = $condition['id'];
         $result = $this->_model->where($where)->update($data);
@@ -109,7 +109,7 @@ class DestdeliverylogiController extends PublicController {
 
     public function deleteAction() {
 
-        $condition = $this->put_data;
+        $condition =  $this->getPut();
         if (isset($condition['id']) && $condition['id']) {
             if (is_string($condition['id'])) {
                 $where['id'] = $condition['id'];
