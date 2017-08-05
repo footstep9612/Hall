@@ -155,19 +155,20 @@ class MarketAreaModel extends PublicModel {
      */
     public function create_data($create = [], $uid = 0) {
         if (isset($create['en']['name']) && isset($create['zh']['name'])) {
-
             $newbn = ucwords($create['en']['name']);
             $create['en']['name'] = ucwords($create['en']['name']);
             $langs = ['en', 'zh', 'es', 'ru'];
             $this->startTrans();
             foreach ($langs as $lang) {
                 $create['bn'] = $newbn;
-                $flag = $this->updateandcreate($create, $lang, $newbn, $uid);
+                $flag = $this->_updateandcreate($create, $lang, $newbn, $uid);
                 if (!$flag) {
                     $this->rollback();
                     return false;
                 }
             }
+            $market_area_team_model = new MarketAreaTeamModel();
+            $market_area_team_model->updateandcreate($data, $newbn, $uid);
             $this->commit();
             return true;
         } else {
@@ -190,17 +191,19 @@ class MarketAreaModel extends PublicModel {
         $this->startTrans();
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            $flag = $this->updateandcreate($data, $lang, $newbn, $uid);
+            $flag = $this->_updateandcreate($data, $lang, $newbn, $uid);
             if (!$flag) {
                 $this->rollback();
                 return false;
             }
         }
+        $market_area_team_model = new MarketAreaTeamModel();
+        $market_area_team_model->updateandcreate($data, $newbn, $uid);
         $this->commit();
         return true;
     }
 
-    private function updateandcreate($data, $lang, $newbn, $uid = 0) {
+    private function _updateandcreate($data, $lang, $newbn, $uid = 0) {
         if (isset($data[$lang]['name'])) {
             $where['lang'] = $lang;
             $where['bn'] = $data['bn'];
