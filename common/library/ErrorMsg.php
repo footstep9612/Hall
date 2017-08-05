@@ -25,6 +25,7 @@ class ErrorMsg {
     const NOTNULL_SHOWNAME = 1004;
     const NOTNULL_LANG = 1005;
     const NOTNULL_SCAT = 1006;
+    const NOTNULL_SKU = 1007;
     const WRONG_SPU = 1101;
     const WRONG_MCAT = 1102;
     const WRONG_LANG = 1105;
@@ -52,6 +53,7 @@ class ErrorMsg {
             '1004' => '展示名称不能为空',
             '1005' => '语言不能为空',
             '1006' => '展示分类不能为空',
+            '1007' => 'SKU不能为空',
             '1101' => 'spu有误',
             '1102' => '物料分类有误',
             '1105' => '语言有误',
