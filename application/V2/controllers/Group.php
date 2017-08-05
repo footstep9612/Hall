@@ -22,17 +22,18 @@ class GroupController extends PublicController {
         $limit = [];
         $where = [];
         $where['parent_id'] = 0;
+        $where['deleted_flag'] = 'N';
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
         $count = count($data);
         $childrencount=0;
         for($i=0;$i<$count;$i++){
-            $data[$i]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['id']],$limit);
+            $data[$i]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['id'],'deleted_flag'=>'N'],$limit);
             $childrencount = count($data[$i]['children']);
             if($childrencount>0){
                 for($j=0;$j<$childrencount;$j++){
                     if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
+                        $data[$i]['children'][$j]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['children'][$j]['id'],'deleted_flag'=>'N'],$limit);
                         if(!$data[$i]['children'][$j]['children']){
                             unset($data[$i]['children'][$j]['children']);
                         }
@@ -109,7 +110,7 @@ class GroupController extends PublicController {
         }else{
             $where['id'] = $data['id'];
         }
-        $arr['status'] = 'DELETED';
+        $arr['deleted_flag'] = 'Y';
         $model_group = new GroupModel();
         $id = $model_group->update_data($arr,$where);
         if($id > 0){
