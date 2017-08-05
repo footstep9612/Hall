@@ -5,23 +5,19 @@
  * Class ExcelManagerController
  * @author 买买提
  */
-class ExcelManagerController extends PublicController
+class ExcelmanagerController extends PublicController
 {
 
     private $_requestParams = [];
-
-    public function init()
-    {
+    public function init(){
         //parent::init();
-
         $this->_requestParams = json_decode(file_get_contents("php://input"),true);
     }
 
     /**
      * 下载sku导入模板(询单管理->新增询单)
      */
-    public function downloadInquirySkuTemplateAction()
-    {
+    public function downloadInquirySkuTemplateAction(){
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
@@ -34,14 +30,11 @@ class ExcelManagerController extends PublicController
     /**
      * 导入sku(询单管理->新增询单)
      */
-    public function importSkuAction()
-    {
+    public function importSkuAction(){
         $remoteFile = $this->_requestParams['url'];
-
+        //下载到本地临时文件
         $localFile = ExcelHelperTrait::download2local($remoteFile);
-
         $data = ExcelHelperTrait::ready2import($localFile);
-
         $this->jsonReturn($this->importSkuHandler($data));
     }
 
@@ -51,10 +44,8 @@ class ExcelManagerController extends PublicController
      *
      * @return array
      */
-    private function importSkuHandler($data)
-    {
-        //去掉第一行数据(excel文件的标题)
-        array_shift($data);
+    private function importSkuHandler($data){
+        array_shift($data);//去掉第一行数据(excel文件的标题)
         if (empty($data)){
             return [
                 'code' => '-104',
@@ -97,9 +88,10 @@ class ExcelManagerController extends PublicController
         }
     }
 
-    public function downQuotationAction()
-    {
-
+    /**
+     * 下载报价单(询单管理->报价信息)
+     */
+    public function downQuotationAction(){
         //获取数据并重组格式
         //$data = $this->getResortData($this->_requestParams['serial_no']);
         $data = $this->simulateData();
@@ -127,8 +119,7 @@ class ExcelManagerController extends PublicController
      * 模拟报价数据
      * @return array
      */
-    private function simulateData()
-    {
+    private function simulateData(){
         $quote = [
             'id'=>23456787654,//编号
             'inquiry_id'=>'INQ23456543',
@@ -218,12 +209,14 @@ class ExcelManagerController extends PublicController
         ];
 
         $quote['quote_items'] = $quote_item;
-
         return $quote;
     }
 
-    private function getResortData($param)
-    {
+    /**
+     * 重组报价信息
+     * @param $param
+     */
+    private function getResortData($param){
 
         $quote = new QuoteModel();
 
@@ -290,8 +283,13 @@ class ExcelManagerController extends PublicController
 //
     }
 
-    private function createExcelAndInsertData($quote)
-    {
+    /**
+     * 创建excel文件对象
+     * @param $quote
+     *
+     * @return string 文件路径
+     */
+    private function createExcelAndInsertData($quote){
 
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet();//当前sheet
