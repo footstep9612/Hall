@@ -187,12 +187,12 @@ class EsProductModel extends Model {
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -208,11 +208,33 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.ik');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $employee_model = new EmployeeModel();
+        if (isset($condition['created_by_name']) && $condition['created_by_name']) {
+            $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+            foreach ($userids as $created_by) {
+                $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
+            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $created_by_bool]];
+        }
+        if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
+            $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
+            foreach ($userids as $updated_by) {
+                $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
+            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
+        }
+        if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
+            $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
+            foreach ($userids as $checked_by) {
+                $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
+            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
+        }
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');

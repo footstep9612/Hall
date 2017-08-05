@@ -100,7 +100,7 @@ class BrandController extends PublicController {
      * 分类联动
      */
     public function infoAction() {
-        $id = $this->get('id');
+        $id = $this->getPut('id');
         if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
