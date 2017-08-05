@@ -29,8 +29,8 @@ class ExchangerateController extends PublicController {
     public function listAction() {
         $condtion = $this->getPut();
         unset($condtion['token']);
-        $key = 'Exchange_rate_' . md5($condtion['cur_bn1'].$condtion['cur_bn2'].$condtion['effective_date']);
-        $data = redisGet($key);
+        $key = $condtion['cur_bn1'] . $condtion['cur_bn2'] . $condtion['effective_date'];
+        $data = redisHashGet('Exchange_rate', $key);
 
         if ($data == '&&') {
             $this->setCode(MSG::MSG_SUCCESS);
@@ -45,13 +45,14 @@ class ExchangerateController extends PublicController {
                 $data['code'] = MSG::MSG_SUCCESS;
                 $data['data'] = $arr;
                 $data['count'] = $this->_model->getCount($condtion);
-                redisSet($key, json_encode($data), 86400);
+                redisHashGet('Exchange_rate', $key, json_encode($data));
                 $this->jsonReturn($data);
             } elseif ($arr === null) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::MSG_SUCCESS;
                 $data['data'] = $arr;
                 $data['count'] = 0;
+                redisHashGet('Exchange_rate', $key, '&&');
                 redisSet($key, '&&', 86400);
                 $this->jsonReturn(null);
             } else {
@@ -80,6 +81,7 @@ class ExchangerateController extends PublicController {
                 $userids[] = $val['created_by'];
             }
             $usernames = $employee_model->getUserNamesByUserids($userids);
+         
             foreach ($arr as $key => $val) {
                 if ($val['created_by'] && isset($usernames[$val['created_by']])) {
                     $val['created_by_name'] = $usernames[$val['created_by']];
@@ -109,10 +111,10 @@ class ExchangerateController extends PublicController {
             $curs = $currency_model->getNameByBns($currency_bns);
             foreach ($arr as $key => $val) {
                 if ($val[$field1] && isset($curs[$val[$field1]])) {
-                    $val[$field1] = $val[$field1] . '_' . $curs[$val[$field1]];
+                    $val[$field1] = $val[$field1] . '/' . $curs[$val[$field1]];
                 }
                 if ($val[$field2] && isset($curs[$val[$field2]])) {
-                    $val[$field2] = $val[$field2] . '_' . $curs[$val[$field2]];
+                    $val[$field2] = $val[$field2] . '/' . $curs[$val[$field2]];
                 }
                 $arr[$key] = $val;
             }
