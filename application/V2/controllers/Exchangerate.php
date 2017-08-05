@@ -21,7 +21,7 @@ class ExchangerateController extends PublicController {
 
     public function listAction() {
         $condtion = $this->getPut();
-
+        unset($condtion['token']);
         $key = 'Exchange_rate_' . md5(json_encode($condtion));
         $data = redisGet($key);
 
