@@ -16,7 +16,6 @@ class ExchangerateController extends PublicController {
     //put your code here
     public function init() {
         parent::init();
-        error_reporting(E_ERROR);
         $this->_model = new ExchangeRateModel();
     }
 
