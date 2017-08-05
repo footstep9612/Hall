@@ -34,9 +34,9 @@ class EsgoodsController extends PublicController {
      * @desc   ES 商品
      */
     public function listAction() {
-        $lang = $this->get('lang', '')?:$this->getPut('lang', 'zh');
-        $data= $this->getPut();
-        $model = new EsgoodsModel();
+        $lang = $this->get('lang', '') ?: $this->getPut('lang', 'zh');
+        $data = $this->getPut();
+        $model = new EsGoodsModel();
 //        $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
 //            , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
 //            'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
@@ -130,10 +130,39 @@ class EsgoodsController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsgoodsModel();
+                $espoductmodel = new EsGoodsModel();
                 $espoductmodel->importgoodss($lang);
             }
 
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 数据导入
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function updateAction($lang = 'en') {
+        try {
+            set_time_limit(0);
+            ini_set('memory_limi', '1G');
+            $time = redisGet('ES_GOODS_TIME');
+            foreach ($this->langs as $lang) {
+                $es_goods_model = new EsGoodsModel();
+                $es_goods_model->updateproducts($lang, $time);
+            }
+            redisSet('ES_GOODS_TIME', date('Y-m-d H:i:s'));
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

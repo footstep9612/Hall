@@ -12,11 +12,102 @@ class ShowCatGoodsModel extends PublicModel {
     protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'show_cat_goods'; //数据表表名
 
+    const STATUS_DRAFT = 'DRAFT';    //草稿
+    const STATUS_APPROVING = 'APPROVING';    //审核
+    const STATUS_VALID = 'VALID';    //生效
+    const STATUS_DELETED = 'DELETED';    //删除
+
+    const STATUS_ONSHELF = 'Y';    //上架
+    const STATUS_UNSHELF = 'N';    //未上架
+
     public function __construct() {
         parent::__construct();
     }
 
     /**
+     * 根据spu上架sku
+     * @param array $data_spu  spu上架信息
+     * @author link
+     */
+    public function onShelf($data_spu=[]) {
+        if(empty($data_spu)) {
+            return false;
+        }
+
+        $data = [];
+        $goodsModel = new GoodsModel();
+        $sku_temp = [];
+        $userInfo = getLoinInfo();
+        foreach($data_spu as $item){
+            /**
+             * 根据spu lang获取sku
+             */
+            if(!isset($sku_temp[$item['lang'].'_'.$item['spu']])){
+                $result = $goodsModel->field('sku')->where(array('spu'=>$item['spu'],'lang'=>$item['lang']))->select();
+                if(empty($result)) {
+                    continue;
+                }else{
+                    $sku_temp[$item['lang'].'_'.$item['spu']] = $result;
+                }
+            }
+            foreach($sku_temp[$item['lang'].'_'.$item['spu']] as $r) {
+                $data_temp =[];
+                $data_temp['lang'] = $item['lang'];
+                $data_temp['cat_no'] = $item['cat_no'];
+                $data_temp['spu'] = $item['spu'];
+                $data_temp['sku'] = $r['sku'];
+                $data_temp['onshelf_flag'] = self::STATUS_ONSHELF;
+                $data_temp['status'] = self::STATUS_VALID;
+                $data_temp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                $data_temp['created_at'] = date('Y-m-d H:i:s',time());
+                $data[] = $data_temp;
+            }
+        }
+        try{
+            return $this->addAll($data);
+        }catch (Exception $e){
+            return false;
+        }
+    }
+
+    /**
+     * 下架
+     * @param array $spu spu编码 必填
+     * @param string $lang 语言 选填
+     * @param string $cat_no 展示分类  选填
+     * @return bool
+     * @author link
+     *
+     * @example: downShelf(array('000001'));    #下架000001
+     *            downShelf(array('000001'),'zh');    #下架000001的中文
+     *            downShelf(array('000001'),'zh',array('0011','0022'));    #下架展示分类为0011，0022下000001为中文的
+     */
+    public function downShelf($spu = '', $lang='', $cat_no=''){
+        if(empty($spu) || !is_array($spu)) {
+            jsonReturn('',ErrorMsg::WRONG_SPU);
+        }
+
+        $where = array(
+            'spu'=>array('in', $spu),
+        );
+
+        if(!empty($lang)) {
+            $where['lang'] = $lang;
+        }
+
+        if(!empty($cat_no) && is_array($cat_no)) {
+            $where['cat_no'] = array('in', $cat_no);
+        }
+
+        try{
+            $result = $this->where($where)->delete();
+            return $result ? true : false;
+        }catch (Exception $e){
+            return false;
+        }
+    }
+
+        /**
      * 商品上架添加数据
      * @param array $condition
      * @return array
