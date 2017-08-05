@@ -50,7 +50,7 @@ class MarketareaController extends PublicController {
             $employee_model = new EmployeeModel();
             $userids = [];
             foreach ($arr as $key => $val) {
-                $userids = $val['created_by'];
+                 $userids[] = $val['created_by'];
             }
             $usernames = $employee_model->getUserNamesByUserids($userids);
             foreach ($arr as $key => $val) {

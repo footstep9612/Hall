@@ -19,6 +19,13 @@ class ExchangerateController extends PublicController {
         $this->_model = new ExchangeRateModel();
     }
 
+    /* 获取分类列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   汇率列表
+     */
+
     public function listAction() {
         $condtion = $this->getPut();
         unset($condtion['token']);
@@ -31,6 +38,8 @@ class ExchangerateController extends PublicController {
         } elseif (!$data) {
             $arr = $this->_model->getListbycondition($condtion);
             $this->_setUserName($arr);
+            $this->_setCurrency($arr, 'cur_bn1', 'cur_bn2');
+
             if ($arr) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::MSG_SUCCESS;
@@ -56,12 +65,19 @@ class ExchangerateController extends PublicController {
         }
     }
 
+    /* id转换为姓名
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   汇率列表
+     */
+
     private function _setUserName(&$arr) {
         if ($arr) {
             $employee_model = new EmployeeModel();
             $userids = [];
             foreach ($arr as $key => $val) {
-                $userids = $val['created_by'];
+                $userids[] = $val['created_by'];
             }
             $usernames = $employee_model->getUserNamesByUserids($userids);
             foreach ($arr as $key => $val) {
@@ -69,6 +85,34 @@ class ExchangerateController extends PublicController {
                     $val['created_by_name'] = $usernames[$val['created_by']];
                 } else {
                     $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /* id转换为姓名
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   汇率列表
+     */
+
+    private function _setCurrency(&$arr, $field1, $field2) {
+        if ($arr) {
+            $currency_model = new CurrencyModel();
+            $currency_bns = [];
+            foreach ($arr as $key => $val) {
+                $currency_bns[] = $val[$field1];
+                $currency_bns[] = $val[$field2];
+            }
+            $curs = $currency_model->getNameByBns($currency_bns);
+            foreach ($arr as $key => $val) {
+                if ($val[$field1] && isset($curs[$val[$field1]])) {
+                    $val[$field1] = $val[$field1] . '_' . $curs[$val[$field1]];
+                }
+                if ($val[$field2] && isset($curs[$val[$field2]])) {
+                    $val[$field2] = $val[$field2] . '_' . $curs[$val[$field2]];
                 }
                 $arr[$key] = $val;
             }
