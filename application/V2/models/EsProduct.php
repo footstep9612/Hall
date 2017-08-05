@@ -476,7 +476,6 @@ class EsProductModel extends Model {
                         } else {
                             $body['material_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
                         }
-
                         $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
 
                         if (isset($product_attrs[$spu])) {
@@ -501,7 +500,7 @@ class EsProductModel extends Model {
                             $max_id = $item['id'];
                         }
                         $k++;
-                        print_r($flag);
+                        // print_r($flag);
                     }
                 } else {
                     return false;
@@ -673,11 +672,12 @@ class EsProductModel extends Model {
                 return 'N';
             }
         } elseif ($type === 'json') {
+
             if (isset($condition[$name]) && $condition[$name]) {
                 $return = json_encode($condition[$name], 256);
                 $condition = null;
                 unset($condition);
-                return $flag;
+                return $return;
             } else {
                 $condition = null;
                 unset($condition);
@@ -688,7 +688,7 @@ class EsProductModel extends Model {
                 $return = strtoupper($condition[$name]);
                 $condition = null;
                 unset($condition);
-                return $flag;
+                return $return;
             } else {
                 $condition = null;
                 unset($condition);
