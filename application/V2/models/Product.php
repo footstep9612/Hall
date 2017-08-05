@@ -280,6 +280,7 @@ class ProductModel extends PublicModel {
             try {
                 $model = new EsProductModel();
                 $spuary = [];
+                $userInfo = getLoinInfo();
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
                         $where = array(
@@ -288,7 +289,15 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('status' => $status));
+                        $updata = array('status' => $status);
+                        /**
+                         * 审核人跟时间
+                         */
+                        if($status==self::STATUS_VALID || $status==self::STATUS_INVALID) {
+                            $updata['checked_at'] = date('Y-m-d H:i:s',time());
+                            $updata['checked_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                        }
+                        $result = $this->where($where)->save($updata);
                         if ($result) {
                             $spuary[] = array('spu' => $r, 'lang' => $lang, 'remarks' => $remark);
                             /**
@@ -307,13 +316,21 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('status' => $status));
+                    $updata = array('status' => $status);
+                    /**
+                     * 审核人跟时间
+                     */
+                    if($status==self::STATUS_VALID || $status==self::STATUS_INVALID) {
+                        $updata['checked_at'] = date('Y-m-d H:i:s',time());
+                        $updata['checked_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                    }
+                    $result = $this->where($where)->save($updata);
                     if ($result) {
                         $spuary[] = array('spu' => $spu, 'lang' => $lang, 'remarks' => $remark);
                         /**
                          * 更新ES
                          */
-                        $model->changestatus($r, $status, $lang);
+                        $model->changestatus($spu, $status, $lang);
                     } else {
                         $this->rollback();
                         return false;
@@ -368,7 +385,7 @@ class ProductModel extends PublicModel {
                             /**
                              * 更新ES
                              */
-                            @$model->changestatus($r, $status, $lang);
+                            $model->delete_data($r,$lang);
                         } else {
                             $this->rollback();
                             return false;
@@ -386,7 +403,7 @@ class ProductModel extends PublicModel {
                         /**
                          * 更新ES
                          */
-                        $model->changestatus($r, $status, $lang);
+                        $model->delete_data($spu, $lang);
                     } else {
                         $this->rollback();
                         return false;
@@ -434,7 +451,7 @@ class ProductModel extends PublicModel {
 
         //读取redis缓存
         if (redisHashExist('spu', md5(json_encode($condition)))) {
-            //return json_decode(redisHashGet('spu',md5(json_encode($condition))),true);
+            return json_decode(redisHashGet('spu',md5(json_encode($condition))),true);
         }
 
         //数据读取
@@ -443,7 +460,24 @@ class ProductModel extends PublicModel {
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
+                $employee = new EmployeeModel();
                 foreach ($result as $item) {
+                    //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
+                    $createder = $employee->getInfoByCondition(array('id'=>$item['created_by']), 'id,name,name_en');
+                    if($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
+
+                    $updateder = $employee->getInfoByCondition(array('id'=>$item['updated_by']), 'id,name,name_en');
+                    if($updateder && isset($updateder[0])) {
+                        $item['updated_by'] = $updateder[0];
+                    }
+
+                    $checkeder = $employee->getInfoByCondition(array('id'=>$item['checked_by']), 'id,name,name_en');
+                    if($checkeder && isset($checkeder[0])) {
+                        $item['checked_by'] = $checkeder[0];
+                    }
+
                     //语言分组
                     $data[$item['lang']] = $item;
                 }

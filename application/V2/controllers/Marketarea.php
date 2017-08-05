@@ -10,7 +10,7 @@
 class MarketareaController extends PublicController {
 
     public function init() {
-        // parent::init();
+         parent::init();
 
         $this->_model = new MarketAreaModel();
     }
@@ -30,7 +30,7 @@ class MarketareaController extends PublicController {
             $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
         } else {
             $arr = $market_area_model->getlist($data, false);
-
+            $this->_setUserName($arr);
             if ($arr) {
                 redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
             }
@@ -45,6 +45,25 @@ class MarketareaController extends PublicController {
         $this->jsonReturn($arr);
     }
 
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
     /**
      * Description of 详情
      * @author  zhongyg
@@ -54,7 +73,6 @@ class MarketareaController extends PublicController {
      */
     public function infoAction() {
         $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
-
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();

@@ -22,17 +22,18 @@ class GroupController extends PublicController {
         $limit = [];
         $where = [];
         $where['parent_id'] = 0;
+        $where['deleted_flag'] = 'N';
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
         $count = count($data);
         $childrencount=0;
         for($i=0;$i<$count;$i++){
-            $data[$i]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['id']],$limit);
+            $data[$i]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['id'],'deleted_flag'=>'N'],$limit);
             $childrencount = count($data[$i]['children']);
             if($childrencount>0){
                 for($j=0;$j<$childrencount;$j++){
                     if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
+                        $data[$i]['children'][$j]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['children'][$j]['id'],'deleted_flag'=>'N'],$limit);
                         if(!$data[$i]['children'][$j]['children']){
                             unset($data[$i]['children'][$j]['children']);
                         }
@@ -95,6 +96,28 @@ class GroupController extends PublicController {
         }
         jsonReturn($datajson);
     }
+    public function updateAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data)){
+            $datajson['code'] = -101;
+            $datajson['message'] = '数据不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        if($data[id]){
+            $where['id'] =$data[id];
+            $model_group = new GroupModel();
+            $id = $model_group->update_data($data,$where);
+            if(!empty($id)){
+                $datajson['code'] = 1;
+                $datajson['data']['id'] = $id;
+            }else{
+                $datajson['code'] = -104;
+                $datajson['data'] = $data;
+                $datajson['message'] = '添加失败!';
+            }
+            jsonReturn($datajson);
+        }
+    }
     public function deleteAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if(empty($data)){
@@ -109,7 +132,7 @@ class GroupController extends PublicController {
         }else{
             $where['id'] = $data['id'];
         }
-        $arr['status'] = 'DELETED';
+        $arr['deleted_flag'] = 'Y';
         $model_group = new GroupModel();
         $id = $model_group->update_data($arr,$where);
         if($id > 0){
