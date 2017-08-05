@@ -91,7 +91,7 @@ class CurrencyModel extends PublicModel {
             if ($bns) {
                 $where = ['bn' => ['in', $bns]];
                 $field = 'bn,name';
-                $result = $this->where(['bn' => ['in', $bns]])->field($field)->select();
+                $result = $this->where($where)->field($field)->select();
                 $curs = [];
                 foreach ($result as $cur) {
                     $curs[$cur['bn']] = $cur['name'];
