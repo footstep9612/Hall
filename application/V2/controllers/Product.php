@@ -10,7 +10,7 @@ class ProductController extends PublicController {
     protected $method = '';
 
     public function init() {
-        parent::init();
+       // parent::init();
         $this->method = $this->getMethod();
     }
 
@@ -223,6 +223,27 @@ class ProductController extends PublicController {
         $result = $showCatProduct ->downShelf($this->put_data['spu'],$lang,$cat_no);
         if($result){
             jsonReturn(true);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 审核记录
+     */
+    public function checklogAction(){
+        if(!isset($this->put_data['spu'])) {
+            jsonReturn('',ErrorMsg::NOTNULL_SPU);
+        }
+
+        if(!isset($this->put_data['lang'])) {
+            jsonReturn('',ErrorMsg::NOTNULL_LANG);
+        }
+
+        $pchecklog = new ProductChecklogModel();
+        $logs = $pchecklog -> getRecord(array('spu'=>$this->put_data['spu'],'lang'=>$this->put_data['lang']),'spu,lang,status,remarks,approved_by,approved_at');
+        if($logs!==false){
+            jsonReturn($logs);
         }else{
             jsonReturn('',ErrorMsg::FAILED);
         }
