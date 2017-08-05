@@ -52,9 +52,15 @@ class ExchangeRateModel extends PublicModel {
     public function detail($id = '') {
         $where['id'] = $id;
         if (!empty($where['id'])) {
+            try{
             $row = $this->where($where)
                     ->field('id,effective_date,cur_bn1,cur_bn2,rate')
                     ->find();
+            } catch (Exception $ex) {
+                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+                LOG::write($ex->getMessage(), LOG::ERR);
+                return false;
+            }
             return $row;
         } else {
             return false;
@@ -70,8 +76,14 @@ class ExchangeRateModel extends PublicModel {
     public function delete_data($id = '') {
         $where['id'] = $id;
         if (!empty($where['id'])) {
-            return $this->where($where)
-                            ->save(['status' => 'DELETED']);
+            try {
+                return $this->where($where)
+                                ->save(['status' => 'DELETED']);
+            } catch (Exception $ex) {
+                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+                LOG::write($ex->getMessage(), LOG::ERR);
+                return false;
+            }
         } else {
             return false;
         }
@@ -97,7 +109,13 @@ class ExchangeRateModel extends PublicModel {
             $arr['rate'] = $data['rate'];
         }
         if (!empty($where)) {
-            return $this->where($where)->save($arr);
+            try {
+                return $this->where($where)->save($arr);
+            } catch (Exception $ex) {
+                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+                LOG::write($ex->getMessage(), LOG::ERR);
+                return false;
+            }
         } else {
             return false;
         }
@@ -109,8 +127,8 @@ class ExchangeRateModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function create_data($create = [], $username = '') {
-   
+    public function create_data($create = [], $uid = '') {
+
         if (isset($create['effective_date'])) {
             $arr['effective_date'] = $create['effective_date'];
         }
@@ -124,10 +142,15 @@ class ExchangeRateModel extends PublicModel {
             $arr['rate'] = $create['rate'];
         }
         $arr['created_at'] = date('Y-m-d H:i:s');
-        $arr['created_by'] = $username;
+        $arr['created_by'] = $uid;
         $data = $this->create($arr);
-    
-        return $this->add($data);
+        try {
+            return $this->add($data);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
@@ -158,6 +181,8 @@ class ExchangeRateModel extends PublicModel {
             $data = $this->getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
 
             return 0;
         }
@@ -190,7 +215,9 @@ class ExchangeRateModel extends PublicModel {
                     ->where($where)
                     ->select();
             return $result;
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return array();
         }
     }

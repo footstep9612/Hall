@@ -15,7 +15,7 @@ class ExchangerateController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        parent::init();
         error_reporting(E_ERROR);
         $this->_model = new ExchangeRateModel();
     }
@@ -25,7 +25,7 @@ class ExchangerateController extends PublicController {
 
         $key = 'Exchange_rate_' . md5(json_encode($condtion));
         $data = redisGet($key);
-      
+
         if ($data == '&&') {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn(NULL);
@@ -50,7 +50,7 @@ class ExchangerateController extends PublicController {
                 $this->jsonReturn();
             }
         } else {
-            $data= json_decode($data,true);
+            $data = json_decode($data, true);
             $data['code'] = MSG::MSG_SUCCESS;
             $this->jsonReturn($data);
         }
@@ -85,7 +85,7 @@ class ExchangerateController extends PublicController {
     }
 
     public function createAction() {
-        $condition =  $this->getPut();
+        $condition = $this->getPut();
         $result = $this->_model->create_data($condition, $this->user['id']);
         if ($result) {
             $this->delcache();
@@ -99,7 +99,7 @@ class ExchangerateController extends PublicController {
 
     public function updateAction() {
 
-        $condition =  $this->getPut();
+        $condition = $this->getPut();
         $where['id'] = $this->getPut('id');
         $result = $this->_model->where($where)->update_data($condition, $where);
         if ($result) {

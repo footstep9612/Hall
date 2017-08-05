@@ -77,8 +77,9 @@ class EsproductController extends PublicController {
 
     private function _getdata($data) {
 
+        $user_ids = [];
         foreach ($data['hits']['hits'] as $key => $item) {
-            $list[$key] = $item["_source"];
+            $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
@@ -90,6 +91,16 @@ class EsproductController extends PublicController {
             if ($show_cats) {
                 rsort($show_cats);
             }
+            if ($product['created_by']) {
+                $user_ids[] = $product['created_by'];
+            }
+            if ($product['updated_by']) {
+                $user_ids[] = $product['updated_by'];
+            }
+            if ($product['checked_by']) {
+                $user_ids[] = $product['checked_by'];
+            }            
+            
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
