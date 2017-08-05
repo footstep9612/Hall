@@ -249,6 +249,9 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
             unset($condition['source']);
+            if ($body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
+            }
             $es->setbody($body)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
 
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
