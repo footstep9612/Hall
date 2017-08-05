@@ -232,7 +232,7 @@ class ShowCatGoodsModel extends PublicModel {
             if ($skus && is_array($skus)) {
                 $show_catgoods = $this->alias('scp')
                         ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
-                        ->field('scp.cat_no,scp.spu')
+                        ->field('scp.cat_no,scp.spu,scp.onshelf_flag')
                         ->where(['scp.sku' => ['in', $skus],
                             'scp.status' => 'VALID',
                             'sc.status' => 'VALID',
