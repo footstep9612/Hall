@@ -16,7 +16,7 @@
 class ExportTariffModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui2_config';
     protected $tableName = 'export_tariff';
 
     public function __construct($str = '') {
@@ -156,20 +156,33 @@ class ExportTariffModel extends PublicModel {
      * @version V2.0
      * @desc   增值税、关税信息
      */
-    public function create_data($create = []) {
-        if (isset($create['en']['name']) && isset($create['zh']['name'])) {
-            $datalist = [];
-            $arr['bn'] = ucwords($create['en']['name']);
-            $create['en']['name'] = ucwords($create['en']['name']);
-            foreach ($create as $key => $name) {
-                $arr['lang'] = $key;
-                $arr['name'] = $name;
-                $datalist[] = $arr;
-            }
-            return $this->addAll($datalist);
-        } else {
-            return false;
-        }
+    public function create_data($create = [], $uid = 0) {
+        $create['created_by'] = $uid;
+        $create['created_at'] = date('Y-m-d H:i:s');
+        $create['cat_name'] = $create['country_bn'];
+        $create['unit'] = 1;
+        $create['tax_rebate_rate'] = 0;
+        $create['tax_no'] = $create['country_bn'];
+        $create['export_tariff_rate'] = 0;
+        $create['hs'] = $create['country_bn'];
+        $create['supervised_criteria'] = $create['country_bn'];
+        $data = $this->create($create);
+
+        var_dump($data);
+        return $this->add($data);
+//        if (isset($create['en']['name']) && isset($create['zh']['name'])) {
+////            $datalist = [];
+////            $arr['bn'] = ucwords($create['en']['name']);
+////            $create['en']['name'] = ucwords($create['en']['name']);
+////            foreach ($create as $key => $name) {
+////                $arr['lang'] = $key;
+////                $arr['name'] = $name;
+////                $datalist[] = $arr;
+////            }
+//            return $this->addAll($datalist);
+//        } else {
+//            return false;
+//        }
     }
 
 }
