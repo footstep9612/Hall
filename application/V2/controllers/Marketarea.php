@@ -10,7 +10,7 @@
 class MarketareaController extends PublicController {
 
     public function init() {
-        // parent::init();
+         parent::init();
 
         $this->_model = new MarketAreaModel();
     }
@@ -50,7 +50,7 @@ class MarketareaController extends PublicController {
             $employee_model = new EmployeeModel();
             $userids = [];
             foreach ($arr as $key => $val) {
-                 $userids[] = $val['created_by'];
+                $userids[] = $val['created_by'];
             }
             $usernames = $employee_model->getUserNamesByUserids($userids);
             foreach ($arr as $key => $val) {
@@ -73,7 +73,6 @@ class MarketareaController extends PublicController {
      */
     public function infoAction() {
         $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
-
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
