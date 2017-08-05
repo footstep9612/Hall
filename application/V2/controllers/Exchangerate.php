@@ -30,6 +30,7 @@ class ExchangerateController extends PublicController {
             $this->jsonReturn(NULL);
         } elseif (!$data) {
             $arr = $this->_model->getListbycondition($condtion);
+            $this->_setUserName($arr);
             if ($arr) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::MSG_SUCCESS;
@@ -52,6 +53,25 @@ class ExchangerateController extends PublicController {
             $data = json_decode($data, true);
             $data['code'] = MSG::MSG_SUCCESS;
             $this->jsonReturn($data);
+        }
+    }
+
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 
