@@ -77,7 +77,6 @@ class MarketAreaTeamModel extends PublicModel {
         $arr['logi_check_org_id'] = $data['logi_check_org_id'];
         $arr['logi_quote_org_id'] = $data['logi_quote_org_id'];
         if ($this->Exits($where)) {
-
             $flag = $this->where($where)->save($arr);
             return $flag;
         } else {

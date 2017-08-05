@@ -168,7 +168,7 @@ class MarketAreaModel extends PublicModel {
                 }
             }
             $market_area_team_model = new MarketAreaTeamModel();
-            $market_area_team_model->updateandcreate($data, $newbn, $uid);
+            $market_area_team_model->updateandcreate($create, $newbn, $uid);
             $this->commit();
             return true;
         } else {
