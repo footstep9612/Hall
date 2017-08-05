@@ -276,7 +276,7 @@ class MaterialCatModel extends PublicModel {
             $flag = $this->where($where)
                     ->save(['status' => self::STATUS_DELETED]);
             $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
-            $es_product_model = new EsproductModel();
+            $es_product_model = new EsProductModel();
             if ($lang) {
                 $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
             } else {
@@ -353,7 +353,7 @@ class MaterialCatModel extends PublicModel {
                     ->save(['status' => self::STATUS_VALID]);
 
             if ($flag !== false && $cat_no && !$lang) {
-                $es_product_model = new EsproductModel();
+                $es_product_model = new EsProductModel();
                 $es_product_model->Updatemeterialcatno($cat_no, null, 'en');
                 $es_product_model->Updatemeterialcatno($cat_no, null, 'zh');
                 $es_product_model->Updatemeterialcatno($cat_no, null, 'es');
@@ -551,7 +551,7 @@ class MaterialCatModel extends PublicModel {
                 return false;
             }
 
-            $es_product_model = new EsproductModel();
+            $es_product_model = new EsProductModel();
             foreach ($this->langs as $lang) {
                 $es_product_model->Updatemeterialcatno($where['cat_no'], null, $lang, $data['cat_no']);
             }

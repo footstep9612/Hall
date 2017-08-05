@@ -36,7 +36,7 @@ class EsgoodsController extends PublicController {
     public function listAction() {
         $lang = $this->get('lang', '') ?: $this->getPut('lang', 'zh');
         $data = $this->getPut();
-        $model = new EsgoodsModel();
+        $model = new EsGoodsModel();
 //        $_source = ['id', 'sku', 'spu', 'name', 'show_name', 'model'
 //            , 'purchase_price1', 'purchase_price2', 'attachs', 'package_quantity', 'exw_day',
 //            'purchase_price_cur', 'purchase_unit', 'pricing_flag', 'show_cats',
@@ -130,7 +130,7 @@ class EsgoodsController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsgoodsModel();
+                $espoductmodel = new EsGoodsModel();
                 $espoductmodel->importgoodss($lang);
             }
 

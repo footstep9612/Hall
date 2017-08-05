@@ -222,7 +222,7 @@ class ShowcatController extends PublicController {
                     $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
                 }
 
-                $es_producshow_material_catmodel = new EsproductModel();
+                $es_producshow_material_catmodel = new EsProductModel();
                 $material_cats = $es_producshow_material_catmodel->getmaterial_cats($mcashow_material_catnos, 'zh');
             } else {
                 $material_cats = null;

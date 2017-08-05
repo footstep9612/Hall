@@ -95,7 +95,7 @@ class ProductshelvesController extends Yaf_Controller_Abstract {
     }
 
     private function change_ProductShelvesStatus($spu, $status, $lang) {
-        $es_product_model = new EsproductModel();
+        $es_product_model = new EsProductModel();
         $es_product_model->changesShelvesstatus($spu, $status, $lang);
     }
 

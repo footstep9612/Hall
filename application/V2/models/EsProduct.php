@@ -939,7 +939,7 @@ class EsProductModel extends Model {
                 $es->bulk($updateParams);
             }
         }
-        $esgoods = new EsgoodsModel();
+        $esgoods = new EsGoodsModel();
         $esgoods->update_showcats($old_cat_no, $lang);
         return true;
     }

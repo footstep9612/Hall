@@ -128,7 +128,7 @@ class EsproductController extends PublicController {
             }
             rsort($new_showcats3);
             foreach ($new_showcats3 as $key => $item) {
-                $model = new EsproductModel();
+                $model = new EsProductModel();
                 $condition['show_cat_no'] = $item['cat_no'];
                 $item['count'] = $model->getcount($condition, $this->getLang());
                 $new_showcats3[$key] = $item;
@@ -183,7 +183,7 @@ class EsproductController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsproductModel();
+                $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
             $this->setCode(1);
@@ -211,7 +211,7 @@ class EsproductController extends PublicController {
             ini_set('memory_limi', '1G');
             $time = redisGet('ES_PRODUCT_TIME');
             foreach ($this->langs as $lang) {
-                $espoductmodel = new EsproductModel();
+                $espoductmodel = new EsProductModel();
                 $espoductmodel->updateproducts($lang, $time);
             }
             redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
