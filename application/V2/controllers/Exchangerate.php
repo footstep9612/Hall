@@ -61,7 +61,7 @@ class ExchangerateController extends PublicController {
     public function infoAction() {
         $id = $this->getPut('id');
         if ($id) {
-            $result = $this->_model->where(['id' => $id])->find();
+            $result = $this->_model->field('id,effective_date,cur_bn1,cur_bn2,rate')->where(['id' => $id])->find();
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -100,7 +100,7 @@ class ExchangerateController extends PublicController {
 
         $condition = $this->getPut();
         $where['id'] = $this->getPut('id');
-        $result = $this->_model->where($where)->update_data($condition, $where);
+        $result = $this->_model->update_data($condition, $where);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

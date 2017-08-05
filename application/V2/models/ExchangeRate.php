@@ -99,11 +99,11 @@ class ExchangeRateModel extends PublicModel {
         if (isset($data['effective_date'])) {
             $arr['effective_date'] = $data['effective_date'];
         }
-        if (isset($data['currency1'])) {
-            $arr['currency1'] = $data['currency1'];
+        if (isset($data['cur_bn1'])) {
+            $arr['cur_bn1'] = $data['cur_bn1'];
         }
-        if (isset($data['currency2'])) {
-            $arr['currency2'] = $data['currency2'];
+        if (isset($data['cur_bn2'])) {
+            $arr['cur_bn2'] = $data['cur_bn2'];
         }
         if (isset($data['rate'])) {
             $arr['rate'] = $data['rate'];
