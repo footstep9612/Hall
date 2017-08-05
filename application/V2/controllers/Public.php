@@ -6,7 +6,7 @@
  */
 abstract class PublicController extends Yaf_Controller_Abstract {
 
-    protected $user;
+    protected $user ;
     protected $put_data = [];
     protected $code = "1";
     protected $send = [];

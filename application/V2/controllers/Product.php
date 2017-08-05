@@ -10,7 +10,7 @@ class ProductController extends PublicController {
     protected $method = '';
 
     public function init() {
-        //parent::init();
+        parent::init();
         $this->method = $this->getMethod();
     }
 
@@ -21,7 +21,7 @@ class ProductController extends PublicController {
         if ($this->method == 'GET') {
             $spu = $this->getQuery('spu','');
             $lang = $this->getQuery('lang','');
-            $status = $this->getQuery('lang','');
+            $status = $this->getQuery('status','');
             if (empty($spu)) {
                 jsonReturn('', '1000', '参数[spu]有误');
             }
@@ -51,16 +51,6 @@ class ProductController extends PublicController {
      * 产品添加/编辑
      */
     public function editAction() {
-        $this->put_data = array(
-            'zh' => array(
-                'material_cat_no' => '111',
-                'name' => '113',
-                'show_name' => '111',
-                'keywords' => '',
-            ),
-            'spu' =>'252862',
-        );
-
         $productModel = new ProductModel();
         $result = $productModel->editInfo($this->put_data);
         if ($result) {
@@ -127,10 +117,6 @@ class ProductController extends PublicController {
      * @param string $lang 语言  选填 不填将处理全部语言
      */
     public function updateAction() {
-        $this->put_data = array(
-            'update_type'=>'verifyok',
-            'spu'=>'111'
-        );
         if (!isset($this->put_data['update_type'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
@@ -146,6 +132,8 @@ class ProductController extends PublicController {
             $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
         }
 
+        $remark = isset($this->put_data['remark']) ? htmlspecialchars($this->put_data['remark']) : '';
+
         $result = '';
         switch ($this->put_data['update_type']) {
             case 'declare':    //SPU报审
@@ -154,18 +142,89 @@ class ProductController extends PublicController {
                 break;
             case 'verifyok':    //SPU审核通过
                 $productModel = new ProductModel();
-                $result = $productModel->updateStatus($this->put_data['spu'],$lang,$productModel::STATUS_VALID);
+                $result = $productModel->updateStatus($this->put_data['spu'],$lang,$productModel::STATUS_VALID,$remark);
                 break;
             case 'verifyno':    //SPU审核驳回
-                $remark = isset($this->put_data['remark']) ? htmlspecialchars($this->put_data['remark']) : '';
                 $productModel = new ProductModel();
-                $result = $productModel->updateStatus($this->put_data['spu'], $lang, $productModel::STATUS_INVALID);
+                $result = $productModel->updateStatus($this->put_data['spu'], $lang, $productModel::STATUS_INVALID,$remark);
                 break;
         }
         if ($result) {
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+    /**
+     * 产品附件
+     */
+    public function attachAction(){
+        if ($this->method == 'GET') {
+            $spu = $this->getQuery('spu', '');
+            if (empty($spu)) {
+                jsonReturn('', ErrorMsg::NOTNULL_SPU);
+            }
+            $status = $this->getQuery('status', '');
+
+            $pattach = new ProductAttachModel();
+            $result = $pattach->getAttachBySpu($spu, $status);
+            if ($result !== false) {
+                jsonReturn($result);
+            } else {
+                jsonReturn('', ErrorMsg::FAILED);
+            }
+        }else {
+            jsonReturn('', ErrorMsg::ERROR_REQUEST_MATHOD);
+        }
+        exit;
+    }
+
+    /**
+     * 上架
+     */
+    public function onshelfAction(){
+        if(!isset($this->put_data['spu'])){
+            jsonReturn('',ErrorMsg::NOTNULL_SPU);
+        }
+
+        if(!isset($this->put_data['lang'])) {
+            jsonReturn('',ErrorMsg::NOTNULL_LANG);
+        }
+
+        $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
+
+        $showCatProduct = new ShowCatProductModel();
+        $result = $showCatProduct ->onShelf($this->put_data['spu'],$this->put_data['lang'],$cat_no);
+        if($result){
+            jsonReturn(true);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 下架
+     */
+    public function downshelfAction(){
+        if(!isset($this->put_data['spu'])){
+            jsonReturn('',ErrorMsg::NOTNULL_SPU);
+        }
+
+        $lang = '';
+        if(isset($this->put_data['lang']) && !in_array(strtolower($this->put_data['lang']),array('zh','en','es','ru'))) {
+            jsonReturn('', ErrorMsg::WRONG_LANG);
+        } else {
+            $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
+        }
+
+        $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
+
+        $showCatProduct = new ShowCatProductModel();
+        $result = $showCatProduct ->downShelf($this->put_data['spu'],$lang,$cat_no);
+        if($result){
+            jsonReturn(true);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
         }
     }
 

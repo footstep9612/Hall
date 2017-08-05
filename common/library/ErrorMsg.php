@@ -7,36 +7,56 @@
  * Time: 18:50
  */
 class ErrorMsg {
-    //状态code
+    /**
+     * 系统级错误
+     */
     const FAILED = 0;
-    const SUCCESS = 1;
+    const SUCCESS = 200;
     const EXIST =100;
-    const ERROR_REQUEST_MATHOD = 403;
-    const ERROR_PARAM = 1000;
+    const ERROR_REQUEST_MATHOD = 302;
 
+    /**
+     * 产品级错误
+     */
+    const ERROR_PARAM = 1000;
     const NOTNULL_SPU = 1001;
-    const WRONG_MCAT = 1002;
+    const NOTNULL_MCAT = 1002;
     const NOTNULL_NAME = 1003;
     const NOTNULL_SHOWNAME = 1004;
-    const WRONG_LANG = 1005;
+    const NOTNULL_LANG = 1005;
+    const NOTNULL_SCAT = 1006;
+    const WRONG_SPU = 1101;
+    const WRONG_MCAT = 1102;
+    const WRONG_LANG = 1105;
+    const WRONG_SCAT = 1106;
+    const WRONG_STATUS = 1107;
 
-    //错误信息映射
+
+    /**
+     * 错误信息映射
+     */
     private static $message = array(
         'zh' => array(
             '0' => '失败',
             '1' => '成功',
             '100' => '已经存在',
-            '1000' => '参数错误',
-            '403' => '请求方法有误',
+            '302' => '请求方法有误',
 
             /**
              * 产品级错误
              */
+            '1000' => '参数错误',
             '1001' => 'SPU不能为空',
-            '1002' => '物料分类有误',
+            '1002' => '物料分类不能为空',
             '1003' => '名称不能为空',
-            '1004' => '展示名称',
-            '1005' => '语言有误',
+            '1004' => '展示名称不能为空',
+            '1005' => '语言不能为空',
+            '1006' => '展示分类不能为空',
+            '1101' => 'spu有误',
+            '1102' => '物料分类有误',
+            '1105' => '语言有误',
+            '1106' => '展示分类有误',
+            '1107' => '状态有误',
 
             /**
              * 买买提定义

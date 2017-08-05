@@ -738,7 +738,6 @@ class ShowCatModel extends PublicModel {
             }
 
             $flag = $show_material_cat_model->addAll($dataList);
-         
         }
         $this->commit();
         return $cat_no;
@@ -833,27 +832,26 @@ class ShowCatModel extends PublicModel {
 
     /*
      * 根据展示分类编码数组获取展示分类信息
-     * @author zhongyg 2017-06-26
      * @param mix $show_cat_nos // 展示分类编码数组
      * @param string $lang // 语言 zh en ru es 
      * @return mix  
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
      */
 
     public function getshow_cats($show_cat_nos, $lang = 'en') {
 
         try {
             if ($show_cat_nos) {
-                $cat3s = $this->table('erui2_goods.show_cat')
-                        ->field('(select name from erui_dict.market_area where bn=market_area_bn and lang=\'' . $lang . '\') as market_area_name,'
-                                . '(select name from erui2_dict.country where bn=country_bn and lang=\'' . $lang . '\') as country_name,'
-                                . 'parent_cat_no,cat_no,name')
+                $cat3s = $this->field('market_area_bn,country_bn,parent_cat_no,cat_no,name')
                         ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                         ->select();
                 $cat1_nos = $cat2_nos = [];
             } else {
                 return [];
             }
-
             if (!$cat3s) {
                 return [];
             }
@@ -862,8 +860,7 @@ class ShowCatModel extends PublicModel {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
             if ($cat2_nos) {
-                $cat2s = $this->table('erui2_goods.show_cat')
-                                ->field('id,cat_no,name,parent_cat_no')
+                $cat2s = $this->field('id,cat_no,name,parent_cat_no')
                                 ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
             if (!$cat2s) {
@@ -872,8 +869,8 @@ class ShowCatModel extends PublicModel {
                     $newcat3s[$val['cat_no']] = [
                         'cat_no3' => $val['cat_no'],
                         'cat_name3' => $val['name'],
-                        'market_area_name' => $val['market_area_name'],
-                        'country_name' => $val['country_name']
+                        'market_area_bn' => $val['market_area_bn'],
+                        'country_bn' => $val['country_bn']
                     ];
                 }
                 return $newcat3s;
@@ -882,7 +879,7 @@ class ShowCatModel extends PublicModel {
                 $cat1_nos[] = $cat2['parent_cat_no'];
             }
             if ($cat1_nos) {
-                $cat1s = $this->table('erui2_goods.show_cat')->field('id,cat_no,name')
+                $cat1s = $this->field('id,cat_no,name')
                                 ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
 
@@ -896,10 +893,12 @@ class ShowCatModel extends PublicModel {
                     $newcat3s[$val['cat_no']] = [
                         'cat_no3' => $val['cat_no'],
                         'cat_name3' => $val['name'],
+                        'market_area_bn' => $val['market_area_bn'],
+                        'country_bn' => $val['country_bn'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
                         'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
-                        'market_area_name' => $val['market_area_name'],
-                        'country_name' => $val['country_name']
+                        'market_area_bn' => $val['market_area_bn'],
+                        'country_bn' => $val['country_bn'],
                     ];
                 }
                 return $newcat3s;
@@ -915,10 +914,9 @@ class ShowCatModel extends PublicModel {
                     'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
                     'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
                     'cat_no3' => $val['cat_no'],
-                    'cat_name3' => $val['name'],
-                    'market_area_name' => $val['market_area_name'],
-                    'country_name' => $val['country_name'],
-                ];
+                    'market_area_bn' => $val['market_area_bn'],
+                    'country_bn' => $val['country_bn'],
+                    'cat_name3' => $val['name']];
             }
             return $newcat3s;
         } catch (Exception $ex) {

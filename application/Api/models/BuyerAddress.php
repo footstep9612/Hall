@@ -27,47 +27,47 @@ class BuyerAddressModel extends PublicModel
      * 新增/更新数据
      * @author klp
      */
-    public function createInfo($token,$input)
-    {
-        if (!isset($input))
-            return false;
-        $this->startTrans();
-        try {
-            foreach ($input as $key => $item) {
-                $arr = ['zh', 'en', 'ru', 'es'];
-                if (in_array($key, $arr)) {
-                    $checkout = $this->checkParam($item);
-                    $data = [
-                        'lang' => $key,
-                        'customer_id' => $token['customer_id'],
-                        'tel_country_code' => isset($checkout['tel_country_code']) ? $checkout['tel_country_code'] : '',
-                        'official_email' => isset($checkout['official_email']) ? $checkout['official_email'] : '',
-                        'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
-                        'address' => isset($checkout['address']) ? $checkout['address'] : '',
-                        'longitude' => isset($checkout['longitude']) ? $checkout['longitude'] : '',
-                        'latitude' => isset($checkout['latitude']) ? $checkout['latitude'] : '',
-                        'tel_area_code' => isset($checkout['tel_area_code']) ? $checkout['tel_area_code'] : '',
-                        'tel_local_number' => isset($checkout['tel_local_number']) ? $checkout['tel_local_number'] : '',
-                        'tel_ext_number' => isset($checkout['tel_ext_number']) ? $checkout['tel_ext_number'] : '',
-                    ];
-                    //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
-                    $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
-                    if ($result) {
-                        $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
-                    } else {
-                        $data['created_by'] = $token['user_name'];
-                        $data['created_at'] = date('Y-m-d H:i:s', time());
-                        $this->add($data);
-                    }
-                }
-            }
-            $this->commit();
-            return $token['customer_id'];
-        } catch(\Kafka\Exception $e){
-            $this->rollback();
-            return false;
-        }
-    }
+    /*  public function createInfo($token,$input)
+      {
+          if (!isset($input))
+              return false;
+          $this->startTrans();
+          try {
+              foreach ($input as $key => $item) {
+                  $arr = ['zh', 'en', 'ru', 'es'];
+                  if (in_array($key, $arr)) {
+                      $checkout = $this->checkParam($item);
+                      $data = [
+                          'lang' => $key,
+                          'customer_id' => $token['customer_id'],
+                          'tel_country_code' => isset($checkout['tel_country_code']) ? $checkout['tel_country_code'] : '',
+                          'official_email' => isset($checkout['official_email']) ? $checkout['official_email'] : '',
+                          'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
+                          'address' => isset($checkout['address']) ? $checkout['address'] : '',
+                          'longitude' => isset($checkout['longitude']) ? $checkout['longitude'] : '',
+                          'latitude' => isset($checkout['latitude']) ? $checkout['latitude'] : '',
+                          'tel_area_code' => isset($checkout['tel_area_code']) ? $checkout['tel_area_code'] : '',
+                          'tel_local_number' => isset($checkout['tel_local_number']) ? $checkout['tel_local_number'] : '',
+                          'tel_ext_number' => isset($checkout['tel_ext_number']) ? $checkout['tel_ext_number'] : '',
+                      ];
+                      //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
+                      $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
+                      if ($result) {
+                          $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
+                      } else {
+                          $data['created_by'] = $token['user_name'];
+                          $data['created_at'] = date('Y-m-d H:i:s', time());
+                          $this->add($data);
+                      }
+                  }
+              }
+              $this->commit();
+              return $token['customer_id'];
+          } catch(\Kafka\Exception $e){
+              $this->rollback();
+              return false;
+          }
+      }*/
 
     /**
      * 参数校验-门户

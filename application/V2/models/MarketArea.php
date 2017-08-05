@@ -63,7 +63,7 @@ class MarketAreaModel extends PublicModel {
 
             $this->alias('zh')
                     ->join('erui2_operation.market_area as en on '
-                            . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'left')
+                            . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'inner')
                     ->field('zh.bn,zh.parent_bn,zh.name as zh_name,zh.url,en.name as en_name ')
                     ->where($data);
 
@@ -109,6 +109,7 @@ class MarketAreaModel extends PublicModel {
             $row = $this->where($where)
                     ->field('id,lang,bn,name,url')
                     ->find();
+
             return $row;
         } else {
             return false;
@@ -152,19 +153,75 @@ class MarketAreaModel extends PublicModel {
      * @version V2.0
      * @desc   营销区域
      */
-    public function create_data($create = []) {
+    public function create_data($create = [], $uid = 0) {
         if (isset($create['en']['name']) && isset($create['zh']['name'])) {
-            $datalist = [];
-            $arr['bn'] = ucwords($create['en']['name']);
+
+            $newbn = ucwords($create['en']['name']);
             $create['en']['name'] = ucwords($create['en']['name']);
-            foreach ($create as $key => $name) {
-                $arr['lang'] = $key;
-                $arr['name'] = $name;
-                $datalist[] = $arr;
+            $langs = ['en', 'zh', 'es', 'ru'];
+            $this->startTrans();
+            foreach ($langs as $lang) {
+                $create['bn'] = $newbn;
+                $flag = $this->updateandcreate($create, $lang, $newbn, $uid);
+                if (!$flag) {
+                    $this->rollback();
+                    return false;
+                }
             }
-            return $this->addAll($datalist);
+            $this->commit();
+            return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * 修改数据
+     * @param  int $id id
+     * @return bool
+     * @author jhw
+     */
+    public function update_data($data, $uid) {
+        if (!isset($data['bn']) || !$data['bn']) {
+            return false;
+        }
+        $newbn = ucwords($data['en']['name']);
+        $data['en']['name'] = ucwords($data['en']['name']);
+        $this->startTrans();
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            $flag = $this->updateandcreate($data, $lang, $newbn, $uid);
+            if (!$flag) {
+                $this->rollback();
+                return false;
+            }
+        }
+        $this->commit();
+        return true;
+    }
+
+    private function updateandcreate($data, $lang, $newbn, $uid = 0) {
+        if (isset($data[$lang]['name'])) {
+            $where['lang'] = $lang;
+            $where['bn'] = $data['bn'];
+            $arr['bn'] = $newbn;
+            $arr['lang'] = $lang;
+            $arr['name'] = $data[$lang]['name'];
+            if ($this->Exits($where)) {
+                $arr['updated_at'] = date('Y-m-d H:i:s');
+                $arr['updated_by'] = $uid;
+                $flag = $this->where($where)->save($arr);
+                return $flag;
+            } else {
+                $arr['updated_at'] = date('Y-m-d H:i:s');
+                $arr['updated_by'] = $uid;
+                $arr['created_at'] = date('Y-m-d H:i:s');
+                $arr['created_by'] = $uid;
+                $flag = $this->add($arr);
+                return $flag;
+            }
+        } else {
+            return true;
         }
     }
 

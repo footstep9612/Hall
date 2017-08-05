@@ -7,6 +7,7 @@
  * Time: 18:52
  */
 class ProductModel extends PublicModel {
+
     const STATUS_NORMAL = 'NORMAL'; //发布
     const STATUS_CLOSED = 'CLOSED'; //关闭
     const STATUS_VALID = 'VALID'; //有效
@@ -42,117 +43,116 @@ class ProductModel extends PublicModel {
         parent::__construct();
     }
 
-
     /**
      * 获取操作数据
      * @param array $input 请求数据
      * @param string $type 操作类型（INSERT/UPDATE）
      */
-    public function getData($input = [],$type = 'INSERT') {
+    public function getData($input = [], $type = 'INSERT') {
         $data = array();
         //展示分类
         if (isset($input['material_cat_no'])) {
             $data['material_cat_no'] = trim($input['material_cat_no']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['material_cat_no'] = '';
         }
 
         //name名称
         if (isset($input['name'])) {
             $data['name'] = htmlspecialchars($input['name']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['name'] = '';
         }
 
         //展示名称
         if (isset($input['show_name'])) {
             $data['show_name'] = htmlspecialchars($input['show_name']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['show_name'] = '';
         }
 
         //关键字
         if (isset($input['keywords'])) {
             $data['keywords'] = removeXSS($input['keywords']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['keywords'] = '';
         }
 
         //执行标准
-        if(isset($input['exe_standard'])) {
+        if (isset($input['exe_standard'])) {
             $data['exe_standard'] = removeXSS($input['exe_standard']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['exe_standard'] = '';
         }
 
         //技术参数
-        if(isset($input['tech_paras'])) {
+        if (isset($input['tech_paras'])) {
             $data['tech_paras'] = removeXSS($input['tech_paras']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['tech_paras'] = '';
         }
 
         //产品优势
-        if(isset($input['advantages'])) {
+        if (isset($input['advantages'])) {
             $data['advantages'] = removeXSS($input['advantages']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['advantages'] = '';
         }
 
         //详情
-        if(isset($input['description'])) {
+        if (isset($input['description'])) {
             $data['description'] = removeXSS($input['description']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['description'] = '';
         }
 
         //简介
-        if(isset($input['profile'])) {
+        if (isset($input['profile'])) {
             $data['profile'] = removeXSS($input['profile']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['profile'] = '';
         }
 
         //工作原理
-        if(isset($input['principle'])) {
+        if (isset($input['principle'])) {
             $data['principle'] = removeXSS($input['principle']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['principle'] = '';
         }
 
         //适用范围
-        if(isset($input['app_scope'])) {
+        if (isset($input['app_scope'])) {
             $data['app_scope'] = removeXSS($input['app_scope']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['app_scope'] = '';
         }
 
         //使用特点
-        if(isset($input['properties'])) {
+        if (isset($input['properties'])) {
             $data['properties'] = removeXSS($input['properties']);
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['properties'] = '';
         }
 
         //质保期
-        if(isset($input['warranty'])) {
+        if (isset($input['warranty'])) {
             $data['warranty'] = $input['warranty'];
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['warranty'] = '';
         }
 
         //供应能力
-        if(isset($input['supply_ability'])) {
+        if (isset($input['supply_ability'])) {
             $data['supply_ability'] = $input['supply_ability'];
-        } elseif($type == 'INSERT') {
+        } elseif ($type == 'INSERT') {
             $data['supply_ability'] = '';
         }
 
         $userInfo = getLoinInfo(); //获取当前用户信息
-        if($type == 'INSERT') {
+        if ($type == 'INSERT') {
             $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
             $data['created_at'] = date('Y-m-d H:i:s', time());
-        }else{
+        } else {
             $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
             $data['updated_at'] = date('Y-m-d H:i:s', time());
         }
@@ -164,7 +164,7 @@ class ProductModel extends PublicModel {
      * 添加/编辑
      * @param object $input 操作集
      */
-    public function editInfo($input=[]){
+    public function editInfo($input = []) {
         if (empty($input)) {
             return false;
         }
@@ -176,25 +176,25 @@ class ProductModel extends PublicModel {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
                     $data = $this->getData($item, $spu ? 'UPDATE' : 'INSERT');
                     $data['lang'] = $key;
-                    if(empty($data)) {
+                    if (empty($data)) {
                         continue;
                     }
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']),array('DRAFT,TEST,CHECKING'))) ? strtoupper($input['status']) : 'CHECKING';
-                    if($input['status'] !='DRAFT'){
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT,TEST,CHECKING'))) ? strtoupper($input['status']) : 'CHECKING';
+                    if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
 
-                        $exist_condition = array(    //添加时判断同一语言，name,meterial_cat_no是否存在
+                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $data['name'],
                         );
-                        if($spu) {
-                            $exist_condition['spu'] = array('neq',$spu);
+                        if ($spu) {
+                            $exist_condition['spu'] = array('neq', $spu);
                         }
                         $exist = $this->where($exist_condition)->find();
-                        if($exist) {
+                        if ($exist) {
                             jsonReturn('', ErrorMsg::EXIST);
                         }
                     }
@@ -203,28 +203,28 @@ class ProductModel extends PublicModel {
                     if (empty($spu)) { //不存在添加
                         $spu_tmp = $this->createSpu(); //不存在生产spu
                         $data['spu'] = $spu_tmp;
-                        $data['qrcode'] = createQrcode('/product/info/' .  $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
-                        if($this->add($data)) {
+                        $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
+                        if ($this->add($data)) {
                             $spu = $spu_tmp;
-                        }else{
+                        } else {
                             $this->rollback();
                             return false;
                         }
                     } else {    //修改
                         $data['spu'] = $spu;
-                        if($this->where(array('spu' => $spu, 'lang' => $key))->save($data)) {
+                        if ($this->where(array('spu' => $spu, 'lang' => $key))->save($data)) {
                             $spu = $spu;
-                        } else{
+                        } else {
                             $this->rollback();
                             return false;
                         }
                     }
                 } elseif ($key == 'attachs') {
                     if ($item && $spu) {
-                        if (!isset($input['spu'])){
-                             if (!$this->checkAttachImage($item)) {
-                                 jsonReturn('', '1000', '产品图不能为空');
-                             }
+                        if (!isset($input['spu'])) {
+                            if (!$this->checkAttachImage($item)) {
+                                jsonReturn('', '1000', '产品图不能为空');
+                            }
                         }
                         foreach ($item as $atta) {
                             $data = array(
@@ -233,13 +233,13 @@ class ProductModel extends PublicModel {
                                 'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
                             );
-                            if(empty($data['attach_url'])) {
+                            if (empty($data['attach_url'])) {
                                 continue;
                             }
 
                             $pattach = new ProductAttachModel();
                             $attach = $pattach->addAttach($data);
-                            if(!$attach) {
+                            if (!$attach) {
                                 $this->rollback();
                                 return false;
                             }
@@ -250,6 +250,13 @@ class ProductModel extends PublicModel {
                 }
             }
             $spu ? $this->commit() : $this->rollback();
+            if ($spu) {
+                $langs = ['en', 'zh', 'es', 'ru'];
+                foreach ($langs as $lang) {
+                    $esproductmodel = new EsProductModel();
+                    $esproductmodel->create_data($spu, $lang);
+                }
+            }
             return $spu;
         } catch (Exception $e) {
             $this->rollback();
@@ -264,39 +271,31 @@ class ProductModel extends PublicModel {
      * @param string $remark 评语
      * @example: updateStatus(array('111','222'),'','CHECKING')    #不分语言处理
      */
-    public function updateStatus($spu = '',$lang='',$status='',$remark=''){
-        if(empty($spu) || empty($status))
+    public function updateStatus($spu = '', $lang = '', $status = '', $remark = '') {
+        if (empty($spu) || empty($status))
             return false;
 
-        if($spu) {
+        if ($spu) {
             $this->startTrans();
-            try{
-               // $model = new EsproductModel();
-                if(is_array($spu)) {
-                    foreach($spu as $r){
+            try {
+                $model = new EsproductModel();
+                $spuary = [];
+                if (is_array($spu)) {
+                    foreach ($spu as $r) {
                         $where = array(
                             'spu' => $r,
                         );
-                        if(!empty($lang)) {
+                        if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('status'=>$status));
-                        if($result){
-                            switch($status){
-                                case self::STATUS_VALID:
-                                    $pclog = new ProductCheckLogModel();
-                                    $pclog->addLog($r,'',$lang,$pclog::STATUS_PASS,$remark);
-                                    break;
-                                case self::STATUS_INVALID:
-                                    $pclog = new ProductCheckLogModel();
-                                    $pclog->addLog($r,'',$lang,$pclog::STATUS_REJECTED,$remark);
-                                    break;
-                            }
+                        $result = $this->where($where)->save(array('status' => $status));
+                        if ($result) {
+                            $spuary[] = array('spu' => $r, 'lang' => $lang, 'remarks' => $remark);
                             /**
                              * 更新ES
                              */
-                            //$model->changestatus($r,$status,$lang);
-                        }else{
+                            $model->changestatus($r, $status, $lang);
+                        } else {
                             $this->rollback();
                             return false;
                         }
@@ -305,34 +304,35 @@ class ProductModel extends PublicModel {
                     $where = array(
                         'spu' => $spu,
                     );
-                    if(!empty($lang)) {
+                    if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('status'=>$status));
-                    if($result){
-                        switch($status){
-                            case self::STATUS_VALID:
-                                $pclog = new ProductCheckLogModel();
-                                $pclog->addLog($spu,'',$lang,$pclog::STATUS_PASS,$remark);
-                                break;
-                            case self::STATUS_INVALID:
-                                $pclog = new ProductCheckLogModel();
-                                $pclog->addLog($spu,'',$lang,$pclog::STATUS_REJECTED,$remark);
-                                break;
-                        }
+                    $result = $this->where($where)->save(array('status' => $status));
+                    if ($result) {
+                        $spuary[] = array('spu' => $spu, 'lang' => $lang, 'remarks' => $remark);
                         /**
                          * 更新ES
                          */
-                        //$model->changestatus($r,$status,$lang);
-                    }else{
+                        $model->changestatus($r, $status, $lang);
+                    } else {
                         $this->rollback();
                         return false;
                     }
                 }
+                switch ($status) {
+                    case self::STATUS_VALID:
+                        $pclog = new ProductCheckLogModel();
+                        $pclog->takeRecord($spuary, $pclog::STATUS_PASS);
+                        break;
+                    case self::STATUS_INVALID:
+                        $pclog = new ProductCheckLogModel();
+                        $pclog->takeRecord($spuary, $pclog::STATUS_REJECTED);
+                        break;
+                }
 
                 $this->commit();
                 return true;
-            }catch (Exception $e){
+            } catch (Exception $e) {
                 $this->rollback();
                 return false;
             }
@@ -340,55 +340,54 @@ class ProductModel extends PublicModel {
         return false;
     }
 
-	/*
+    /*
      * 删除
      * @param string $spu
      * @param string $lang
      */
+
     public function deleteInfo($spu = '', $lang = '') {
-        if(empty($spu)) {
+        if (empty($spu)) {
             return false;
         }
 
-        if($spu) {
+        if ($spu) {
             $this->startTrans();
-            try{
-                //$model = new EsproductModel();
-                if(is_array($spu)) {
-                    foreach($spu as $r){
+            try {
+                $model = new EsproductModel();
+                if (is_array($spu)) {
+                    foreach ($spu as $r) {
                         $where = array(
                             'spu' => $r,
                         );
-                        if(!empty($lang)) {
+                        if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('deleted_flag'=>self::DELETE_Y));
-                        if($result) {
-
+                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                        if ($result) {
                             /**
                              * 更新ES
                              */
-                            //@$model->changestatus($r,$status,$lang);
-                        }else{
+                            @$model->changestatus($r, $status, $lang);
+                        } else {
                             $this->rollback();
                             return false;
                         }
                     }
-                }else{
+                } else {
                     $where = array(
                         'spu' => $spu,
                     );
-                    if(!empty($lang)) {
+                    if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('deleted_flag'=>self::DELETE_Y));
-                    if($result) {
-
+                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                    if ($result) {
                         /**
                          * 更新ES
                          */
-                        //@$model->changestatus($r,$status,$lang);
-                    }else{
+                        $model->changestatus($r, $status, $lang);
+                    } else {
                         $this->rollback();
                         return false;
                     }
@@ -396,7 +395,7 @@ class ProductModel extends PublicModel {
 
                 $this->commit();
                 return true;
-            }catch (Exception $e) {
+            } catch (Exception $e) {
                 $this->rollback();
                 return false;
             }
@@ -407,8 +406,8 @@ class ProductModel extends PublicModel {
     /**
      * 列表查询
      */
-    public function getList(){
-
+    public function getList() {
+        
     }
 
     /**
@@ -417,23 +416,24 @@ class ProductModel extends PublicModel {
      * @param string $lang    语言
      * return array
      */
-    public function getInfo($spu = '', $lang = '',$status = '') {
+    public function getInfo($spu = '', $lang = '', $status = '') {
         if (empty($spu)) {
             return array();
         }
 
         $condition = array(
             'spu' => $spu,
+            'deleted_flag' => self::DELETE_N,
         );
-        if(!empty($lang)) {
+        if (!empty($lang)) {
             $condition['lang'] = $lang;
         }
-        if(!empty($status)) {
+        if (!empty($status)) {
             $condition['status'] = $status;
         }
 
         //读取redis缓存
-        if(redisHashExist('spu',md5(json_encode($condition)))){
+        if (redisHashExist('spu', md5(json_encode($condition)))) {
             //return json_decode(redisHashGet('spu',md5(json_encode($condition))),true);
         }
 
@@ -447,7 +447,7 @@ class ProductModel extends PublicModel {
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
-                redisHashSet('spu',md5(json_encode($condition)),json_encode($data));
+                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
@@ -462,22 +462,22 @@ class ProductModel extends PublicModel {
      * @return bool
      * @example: findByCondition(array('spu'=>'111','lang'=>'zh'),array('spu','status'));
      */
-    public function findByCondition($condition=[], $field=''){
-        if(empty($condition) || !is_array($condition)) {
+    public function findByCondition($condition = [], $field = '') {
+        if (empty($condition) || !is_array($condition)) {
             return false;
         }
 
-        if(is_array($field)) {
-            $field = implode(',' , $field);
-        }elseif(empty($field)){
+        if (is_array($field)) {
+            $field = implode(',', $field);
+        } elseif (empty($field)) {
             $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
         }
-        try{
+        try {
             $result = $this->field($field)->where($condition)->select();
-            if($result){
+            if ($result) {
                 return $result;
             }
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
         return array();
@@ -493,7 +493,7 @@ class ProductModel extends PublicModel {
             'spu' => $spu
         );
         $exit = $this->where($condition)->find();
-        if($exit) {
+        if ($exit) {
             $this->createSpu();
         }
         return $spu;
@@ -548,8 +548,8 @@ class ProductModel extends PublicModel {
      * @param string $lang
      * @return bool
      */
-    private function checkLang($lang='') {
-        if(!empty($lang) && in_array(strtolower($lang),array('zh','en','ru','es'))) {
+    private function checkLang($lang = '') {
+        if (!empty($lang) && in_array(strtolower($lang), array('zh', 'en', 'ru', 'es'))) {
             return true;
         }
         return false;

@@ -15,7 +15,7 @@ class BuyerattachModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'buyer_attach';
-    protected $dbName = 'erui_buyer';
+    protected $dbName = 'erui2_buyer';
     Protected $autoCheckFields = false;
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
@@ -87,6 +87,14 @@ class BuyerattachModel extends PublicModel {
      * @author zyg
      */
     public function update_data($upcondition = []) {
+        if($upcondition['attach_url']&&$upcondition['buyer_id']){
+            $info = $this->where($upcondition)->find();
+            if(!$info){
+                $this->where(['buyer_id'=>$upcondition['buyer_id']])->save(['deleted_flag' => 'Y']);
+                $data = $this->create($upcondition);
+                return $this->add($data);
+            }
+        }
 
     }
 
@@ -94,9 +102,16 @@ class BuyerattachModel extends PublicModel {
      * 新增数据
      * @param  mix $createcondition 新增条件
      * @return bool
-     * @author zyg
+     * @author jhw
      */
     public function create_data($createcondition = []) {
-
+        /**
+         * @desc 添加报价单附件详情
+         * @author zhangyuliang 2017-06-29
+         * @param array $condition
+         * @return array
+         */
+            $data = $this->create($createcondition);
+            return $this->add($data);
     }
 }

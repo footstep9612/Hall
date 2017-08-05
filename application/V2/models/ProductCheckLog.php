@@ -9,30 +9,41 @@ class ProductChecklogModel extends PublicModel{
     protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'product_check_log'; //数据表表名
 
+    const STATUS_PASS  = 'PASS';    //-通过
+    const STATUS_REJECTED = 'REJECTED';    //-不通过
 
     /**
      * 商品审核记录写入
      * @param array $condition
      * @return bool
      */
-    public function takeRecord($condition,$status) {
-        if(empty($condition) || empty($status)) {
+    public function takeRecord($condition,$checkStatus) {
+        if(empty($condition) || empty($checkStatus)) {
             return false;
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
-
+        switch($checkStatus) {
+            case 'VALID':
+                $status = 'PASS';
+                break;
+            case 'INVALID':
+                $status = 'REJECTED';
+                break;
+        }
         $arr = array();
         $results = array();
         if($condition && is_array($condition)) {
             try {
                 foreach ($condition as $item) {
                     $data = [
-                        'sku' => $item['sku'],
-                        'status' => $status,
                         'spu' => isset($item['spu']) ? $item['spu'] : '',
+                        'sku' => isset($item['sku']) ? $item['sku'] : '',
+                        'lang' => isset($item['lang']) ? $item['lang'] : '',
+                        'lang' => $item['lang'],
+                        'status' => $status,
                         'remarks' => isset($item['remarks']) ? $item['remarks'] : '',
-                        'approved_by' => $userInfo['id'],
+                        'approved_by' => isset($userInfo['id']) ? $userInfo['id'] : '',
                         'approved_at' => date('Y-m-d H:i:s', time())
                     ];
                     $arr[] = $data;
@@ -62,7 +73,7 @@ class ProductChecklogModel extends PublicModel{
      */
     public function getRecord($sku){
         if(empty($sku)) {
-            jsonReturn('',MSG::ERROR_PARAM,MSG::ERROR_PARAM);
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
         $where = array('sku'=>$sku);
         $fields = 'spu, sku, status, remarks, approved_by, approved_at';

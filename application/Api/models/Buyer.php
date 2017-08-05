@@ -14,7 +14,7 @@
 class BuyerModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer';
-    protected $dbName = 'erui_buyer'; //数据库名称
+    protected $dbName = 'erui2_buyer'; //数据库名称
     protected $g_table = 'erui_buyer.t_buyer';
 //    protected $autoCheckFields = false;
     public function __construct($str = '') {
@@ -479,68 +479,64 @@ class BuyerModel extends PublicModel {
      * 企业信息新建-门户
      * @author klp
      */
-    public function editInfo($token,$input)
-    {
-        if (!isset($input))
+    public function editInfo($token,$input){
+        if (!isset($input)) {
             return false;
+        }
         $this->startTrans();
         try {
-            foreach ($input as $key => $item) {
-                $arr = ['zh', 'en', 'ru', 'es'];
-                if (in_array($key, $arr)) {
-                    $checkout = $this->checkParam($item);
-                    $data = [
-                        'lang' => $key,
-                        'customer_id' => $token['customer_id'],
-                        'serial_no' => $token['customer_id'],
-                        'name' => $checkout['name'],
-//                        'country' => $checkout['country'],
-                        'bank_name' => $checkout['bank_name'],
-                        'bank_address' =>  $checkout['bank_address'],
-                        'official_address' =>  $checkout['official_address'],
-                        'bn' => isset($checkout['bn']) ? $checkout['bn'] : '',
-                        'bank_account' => isset($checkout['bank_account']) ? $checkout['bank_account'] : '',
-                        'profile' => isset($checkout['profile']) ? $checkout['profile'] : '',
-                        'province' => isset($checkout['province']) ? $checkout['province'] : '',
-                        'city' => isset($checkout['city']) ? $checkout['city'] : '',
-                        'reg_date' => isset($checkout['reg_date']) ? $checkout['reg_date'] : '',
-                        'swift_code' => isset($checkout['swift_code']) ? $checkout['swift_code'] : '',
-                        'listed_flag' => isset($checkout['listed_flag']) ? $checkout['listed_flag'] : 'N',
-                        'capital_account' => isset($checkout['capital_account']) ? (int)$checkout['capital_account'] : 0,
-                        'sales' => isset($checkout['sales']) ? (int)$checkout['sales'] : 0,
-                        'official_phone' => isset($checkout['official_phone']) ? $checkout['official_phone'] : '',
-                        'fax' => isset($checkout['fax']) ? (int)$checkout['fax'] : '',
-                        'official_website' => isset($checkout['official_website']) ? $checkout['official_website'] : '',
-                        'employee_count' => isset($checkout['employee_count']) ? $checkout['employee_count'] : '',
-                        'remarks' => isset($checkout['remarks']) ? $checkout['remarks'] : ''
-                    ];
-                    //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
-                    $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
-                    if ($result) {
-                        $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
-                    } else {
-                        $data['apply_at'] = date('Y-m-d H:i:s', time());
-                        $data['status'] = self::STATUS_CHECKING;//待审状态
-                        $this->add($data);
-                    }
-                    //t_buyer_reg_info
-                    $buyerRegInfo = new BuyerreginfoModel();
-                    $result = $buyerRegInfo->createInfo($token,$input);
+            if (is_array($input)) {
+                $checkout = $this->checkParam($input);
+                $data = [
+                    'buyer_id' => $token['buyer_id'],
+                    'name' => $checkout['name'],
+                    'country_code' => $checkout['country_code'],
+                    'official_email' => isset($checkout['official_email']) ? $checkout['official_email'] : '',
+                    'official_phone' => isset($checkout['official_phone']) ? $checkout['official_phone'] : '',
+                    'official_fax' => isset($checkout['official_fax']) ? $checkout['official_fax'] : '',
+                    'first_name' => isset($checkout['first_name']) ? $checkout['first_name'] : '',
+                    'official_website' => isset($checkout['official_website']) ? $checkout['official_website'] : '',
+                    'province' => isset($checkout['province']) ? $checkout['province'] : '',//暂为办公地址
+
+                    'remarks' => isset($checkout['remarks']) ? $checkout['remarks'] : ''
+                ];
+                //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
+                $result = $this->field('buyer_id')->where(['buyer_id' => $token['buyer_id']])->find();
+                if ($result) {
+                    $result = $this->where(['buyer_id' => $token['buyer_id']])->save($data);
                     if(!$result){
+                        $this->rollback();
                         return false;
                     }
-                    //t_buyer_address
-                    $buyerAddressMode = new BuyerAddressModel();
-                    $res = $buyerAddressMode->createInfo($token,$input);
-                    if(!$res){
+                } else {
+                    $data['apply_at'] = date('Y-m-d H:i:s', time());
+                    $data['status'] = self::STATUS_CHECKING;//待审状态
+                    $result= $this->add($data);
+                    if(!$result){
+                        $this->rollback();
                         return false;
                     }
                 }
+                //buyer_reg_info
+                $buyerRegInfo = new BuyerreginfoModel();
+                $result = $buyerRegInfo->createInfo($token,$input);
+                if(!$result){
+                    $this->rollback();
+                    return false;
+                }
+                //buyer_address
+                $BuyerBankInfoModel = new BuyerBankInfoModel();
+                $res = $BuyerBankInfoModel->editInfo($token,$input);
+                if(!$res){
+                    $this->rollback();
+                    return false;
+                }
             }
             $this->commit();
-            return $token['customer_id'];
+            return $token['buyer_id'];
         } catch(\Kafka\Exception $e){
             $this->rollback();
+            //var_dump($e);//测试
             return false;
         }
     }

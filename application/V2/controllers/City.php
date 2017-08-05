@@ -60,17 +60,36 @@ class CityController extends PublicController {
      * 分类联动
      */
     public function infoAction() {
-        $id = $this->get('id');
-        if ($id) {
-            $result = $this->_model->where(['id' => $id])->find();
+        $bn = $this->get('bn') ?: $this->getPut('bn');
+        if ($bn) {
+            $data = [];
+            $langs = ['en', 'zh', 'es', 'ru'];
+            foreach ($langs as $lang) {
+                $result = $this->_model->field('lang,region_bn,country_bn,bn,'
+                        . 'name,time_zone,status,created_by,created_at')
+                                ->where(['bn' => $bn, 'lang' => $lang])->find();
+
+                if ($result) {
+                    if (!$data) {
+                        $data = $result;
+                        $data['name'] = null;
+                        unset($data['name']);
+                    }
+
+                    $data[$lang]['name'] = $result['name'];
+                }
+            }
         } else {
             $this->setCode(MSG::MSG_FAILED);
 
             $this->jsonReturn();
         }
-        if ($result) {
+        if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($result);
+            $this->jsonReturn($data);
+        } elseif ($data === []) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
 
@@ -86,7 +105,7 @@ class CityController extends PublicController {
     }
 
     public function createAction() {
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         $data = $this->_model->create($condition);
         $result = $this->_model->add($data);
         if ($result) {
@@ -101,10 +120,9 @@ class CityController extends PublicController {
 
     public function updateAction() {
 
-        $condition = $this->put_data;
-        $data = $this->_model->create($condition);
-        $where['id'] = $this->get('id');
-        $result = $this->_model->where($where)->update($data);
+        $condition = $this->getPut();
+
+        $result = $this->_model->update_data($condition);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
