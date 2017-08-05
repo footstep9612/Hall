@@ -69,17 +69,20 @@ class EsProductModel extends Model {
                 ]];
             }
         } elseif ($qurey_type == ESClient::RANGE) {
+            if (!$field) {
+                $field = $name;
+            }
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
                 $created_at_start = $condition[$name . '_start'];
                 $created_at_end = $condition[$name . '_end'];
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
-            } elseif (isset($condition[$name . '_start']) && $condition[$field . '_start']) {
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+            } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
                 $created_at_start = $condition[$name . '_start'];
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = $condition[$name . '_end'];
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gle' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
             }
         }
     }
@@ -247,7 +250,7 @@ class EsProductModel extends Model {
             $es = new ESClient();
             unset($condition['source']);
             $es->setbody($body)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
-
+            echo json_encode($body, 256);
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');
             } else {
