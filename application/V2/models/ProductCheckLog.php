@@ -94,11 +94,25 @@ class ProductChecklogModel extends PublicModel{
 
         if(empty($fields)) {
             $fields = 'spu,sku,lang,status,remarks,approved_by,approved_at';
+        }elseif(is_array($fields)){
+            $fields = implode(',',$fields);
+        }
+
+        if(redisHashExist('checkLog',md5(serialize($where).$fields))){
+            return json_decode(redisHashGet('checkLog',md5(serialize($where).$fields)),true);
         }
 
         try{
             $result = $this->field($fields)->where($where)->order('approved_at DESC')->select();
             if($result){
+                $employee = new EmployeeModel();
+                for($i=0;$i<count($result);$i++){
+                    $approveder = $employee->getInfoByCondition(array('id'=>$result[$i]['approved_by']), 'id,name,name_en');
+                    if($approveder && isset($approveder[0])) {
+                        $result[$i]['approved_by'] = $approveder[0];
+                    }
+                }
+                redisHashSet('checkLog',md5(serialize($where).$fields),json_encode($result));
                 return $result;
             }
             return array();
