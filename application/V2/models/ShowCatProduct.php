@@ -60,7 +60,7 @@ class ShowCatProductModel extends PublicModel {
      * @param array $spu spu编码 必填
      * @param string $lang 语言  必填
      * @param array $cat_no 展示分类  选填
-     *
+     * @author link
      * @example: onShelf(array('000001'),'en',array('001','002'));
      */
     public function onShelf($spu='', $lang= '', $cat_no=[]){
@@ -124,6 +124,13 @@ class ShowCatProductModel extends PublicModel {
                 return false;
             }else {
                 $result = $this->addAll($data);
+                /**
+                 * spu上架成功，上架spu所对应的sku
+                 */
+                if($result) {
+                    $showCatGoods = new ShowCatGoodsModel();
+                    $showCatGoods -> onShelf($data);
+                }
                 return $result ? true : false;
             }
         }catch(Exception $e){
@@ -137,6 +144,7 @@ class ShowCatProductModel extends PublicModel {
      * @param string $lang 语言 选填
      * @param string $cat_no 展示分类  选填
      * @return bool
+     * @author link
      *
      * @example: downShelf(array('000001'));    #下架000001
      *            downShelf(array('000001'),'zh');    #下架000001的中文
@@ -161,6 +169,10 @@ class ShowCatProductModel extends PublicModel {
 
         try{
             $result = $this->where($where)->delete();
+            if($result) {
+                $showCatGoods = new ShowCatGoodsModel();
+                $showCatGoods -> downShelf($spu,$lang,$cat_no);
+            }
             return $result ? true : false;
         }catch (Exception $e){
             return false;
