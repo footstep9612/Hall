@@ -71,7 +71,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             return $this->where($where)
-                ->save(['status' => 'DELETED']);
+                ->delete();
         }else{
             return false;
         }
