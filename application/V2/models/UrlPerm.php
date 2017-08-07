@@ -87,8 +87,11 @@ class UrlPermModel extends PublicModel {
         if(isset($data['url'])){
             $arr['url'] = $data['url'];
         }
-        if(isset($data['description'])){
-            $arr['description'] = $data['description'];
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
+        }
+        if(isset($data[''])){
+            $arr['fn'] = $data['fn'];
         }
         if(isset($data['parent_id'])){
             $arr['parent_id'] = $data['parent_id'];
@@ -133,6 +136,7 @@ class UrlPermModel extends PublicModel {
         if(isset($create['created_by'])){
             $arr['created_by'] = $create['created_by'];
         }
+        $arr['created_at'] = date("Y-m-d H:i:s");
         $data = $this->create($arr);
         return $this->add($data);
     }
