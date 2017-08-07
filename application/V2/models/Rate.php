@@ -132,13 +132,14 @@ class RateModel extends PublicModel {
 
         $redis_key = $id;
         if (redisHashExist('Rate', $redis_key)) {
-             return json_decode(redisHashGet('Rate', $redis_key), true);
+            return json_decode(redisHashGet('Rate', $redis_key), true);
         }
         $item = $this->where($where)
                 ->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
                         . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
                         . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
-                        . 'qty,remarks,status')
+                        . 'qty,remarks,status,created_by,created_at,updated_by,'
+                        . 'updated_at')
                 ->find();
         redisHashSet('Rate', $redis_key, json_encode($item));
         return$item;
@@ -147,20 +148,23 @@ class RateModel extends PublicModel {
     /**
      * 删除数据
      * @param  string $id id
-     * @param  string $lang 语言
+     * @param  string $uid 用户ID
      * @return bool
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function delete_data($id = '', $lang = '') {
+    public function delete_data($id = '', $uid = 0) {
         if (!$id) {
             return false;
         } else {
             $where['id'] = $id;
         }
+        $update_data['updated_by'] = $uid;
+        $update_data['updated_at'] = date('Y-m-d H:i:s');
+        $update_data['status'] = 'DELETED';
 
         $flag = $this->where($where)
-                ->save(['status' => 'INVALID']);
+                ->save($update_data);
 
         return $flag;
     }
@@ -172,9 +176,11 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function update_data($update) {
+    public function update_data($update, $uid = 0) {
         $data = $this->create($update);
         $where['id'] = $data['id'];
+        $update_data['updated_by'] = $uid;
+        $update_data['updated_at'] = date('Y-m-d H:i:s');
         $flag = $this->where($where)->save($data);
         if ($flag) {
             return $flag;
@@ -190,8 +196,14 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function create_data($create = []) {
+    public function create_data($create = [], $uid = 0) {
+        if (isset($create['id'])) {
+            $create['id'] = null;
+            unset($create['id']);
+        }
 
+        $create['created_by'] = $uid;
+        $create['created_at'] = date('Y-m-d H:i:s');
         $data = $this->create($create);
         $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $flag = $this->add($data);
