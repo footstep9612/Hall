@@ -580,7 +580,7 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                $where['id'] = $max_id;
+                   $where['id'] = ['gt',$max_id];
                 $products = $this->where($where)->limit(0, 100)->order('id asc')->select();
                 $spus = $mcat_nos = [];
                 if ($products) {
