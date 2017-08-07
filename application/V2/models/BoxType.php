@@ -22,7 +22,8 @@ class BoxTypeModel extends PublicModel {
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
-  /**
+
+    /**
      * 获取列表
      * @param data $data;
      * @return array
@@ -33,7 +34,7 @@ class BoxTypeModel extends PublicModel {
         $data = [];
         $this->_getValue($data, $condition, 'lang');
         $this->_getValue($data, $condition, 'bn');
-        $this->_getValue($data, $condition, 'box_type_name','like');
+        $this->_getValue($data, $condition, 'box_type_name', 'like');
         $this->_getValue($data, $condition, 'status');
         if (!isset($data['status'])) {
             $data['status'] = 'VALID';
@@ -52,14 +53,18 @@ class BoxTypeModel extends PublicModel {
      */
     public function getlist($condition, $order = 'id desc') {
         try {
-            $data = $this->_getCondition($condition);
-            $this->field('id,bn,box_type_name')
-                    ->where($data);
-            return $this->order($order)
-                            ->select();
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where) . $order);
+            if (redisHashExist('BoxType', $redis_key)) {
+                return json_decode(redisHashGet('BoxType', $redis_key), true);
+            }
+            $result = $this->field('id,bn,box_type_name')->where($where)->order($order)->select();
+            redisHashSet('BoxType', $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+     
             return [];
         }
     }
+
 }

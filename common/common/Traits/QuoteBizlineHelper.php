@@ -70,4 +70,91 @@ trait QuoteBizlineHelper{
 
         return $data;
     }
+
+    /**
+     * 项目经理转交其他人办理
+     * 操作说明：根据新选择的项目经理替换掉原来的项目经理
+     * @param $param
+     * @return mixed
+     */
+    static public function transmitHandler(array $param){
+        $inquiry = new InquiryModel();
+        try{
+            if ($inquiry->where(['id'=>$param['inquiry_id']])->save(['pm_id'=>$param['pm_id']])){
+                return [
+                    'code' => '1',
+                    'message' => '转交成功!'
+                ];
+            }else{
+                return [
+                    'code' => '-104',
+                    'message' => '转交失败!'
+                ];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * 产品线报价->项目经理->提交产品线报价
+     * @param $param 请求数据
+     * @return array 返回数据
+     */
+    static public function submitToBizline($param){
+
+        $inquiryModel = new InquiryModel();
+        $inquiry_ids = explode(',',$param['inquiry_ids']);
+        try{
+            foreach ($inquiry_ids as $inquiry=>$item){
+                $inquiryModel->where(['id'=>$item])->save(['status'=>'BIZLINE']);
+            }
+            return ['code'=>'1','message'=>'成功!'];
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * 产品线报价->项目经理->退回产品线重新报价
+     * @param $param 请求参数
+     * @return array 结果
+     */
+    static public function sendbackToBizline($param){
+
+        //TODO 这里处理一些其他逻辑待定
+        //self::sendbackToBizlineDetail();
+
+        $inquiry_id = $param['inquiry_id'];
+        $inquiryModel = new InquiryModel();
+
+        try{
+            $result = $inquiryModel->where(['id'=>$inquiry_id])->save(['status'=>'BIZLINE_QUOTE']);
+            if (!$result){
+                return ['code'=>'-101','message'=>'操作失败!'];
+            }
+            return ['code'=>'1','message'=>'操作成功!'];
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * 产品线报价->项目经理->退回产品线重新报价时候的其他逻辑
+     * @param $data 参数
+     * @return mixed 结果
+     */
+    static public function sendbackToBizlineDetail($data){
+        return $data;
+    }
+
 }

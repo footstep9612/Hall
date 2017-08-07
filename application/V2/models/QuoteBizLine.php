@@ -108,7 +108,6 @@ class QuoteBizLineModel extends PublicModel{
     /**
      * 根据条件获取总数
      * @param $where
-     *
      * @return mixed
      */
     private function getTotal($where)

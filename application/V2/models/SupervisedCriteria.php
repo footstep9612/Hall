@@ -26,15 +26,15 @@ class SupervisedCriteriaModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param data $data;
+     * @param array $condition;
      * @return array
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    private function _getCondition(&$condition) {
+    private function _getCondition() {
         $data = [];
         $data['status'] = 'VALID';
-        $data['deleted_flag'] = 'N';
+        //$data['deleted_flag'] = 'N';
         return $data;
     }
 
@@ -47,11 +47,15 @@ class SupervisedCriteriaModel extends PublicModel {
      */
     public function getlist($condition, $order = 'id desc') {
         try {
-            $data = $this->_getCondition($condition);
-            $this->field('id,criteria_no,license,authority,issued_at')
-                    ->where($data);
-            return $this->order($order)
-                            ->select();
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where) . $order);
+            if (redisHashExist('SupervisedCriteria', $redis_key)) {
+                return json_decode(redisHashGet('SupervisedCriteria', $redis_key), true);
+            }
+
+            $result = $this->field('id,criteria_no,license,authority,issued_at')->where($where)->order($order)->select();
+            redisHashSet('SupervisedCriteria', $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
             print_r($ex);
             return [];

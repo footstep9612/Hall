@@ -25,17 +25,11 @@ class BoxtypeController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', 'zh');
         $box_type_model = new BoxTypeModel();
-        if (redisGet('BoxType_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('BoxType_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $box_type_model->getlist($data);
-            if ($arr) {
-                redisSet('BoxType_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+        $arr = $box_type_model->getlist($data);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } else {

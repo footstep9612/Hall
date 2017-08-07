@@ -7,12 +7,16 @@
  * Time: 14:34
  * @desc 落地配
  */
-class DestDeliveryLogiModel extends Model {
+class DestDeliveryLogiModel extends PublicModel {
 
     protected $dbName = 'erui2_config'; //数据库名称
     protected $tableName = 'dest_delivery_logi';
 
     const STATUS_VALID = 'VALID';    //有效的
+
+    public function __construct() {
+        parent::__construct();
+    }
 
     /**
      * 根据落地国家跟语言获取信息
@@ -20,13 +24,12 @@ class DestDeliveryLogiModel extends Model {
      * @param string $lang
      * @return array|mixed|string
      */
-
     public function getList($country = '', $lang = '') {
-        if (empty($country) || empty($lang))
-            return array();
-
-        if (redisHashExist('DDL', md5($country . '_' . $lang))) {
-            return json_decode(redisHashGet('DDL', md5($country . '_' . $lang)), true);
+        if (empty($country) || empty($lang)) {
+            return [];
+        }
+        if (redisHashExist('DestDeliveryLogi', md5($country . '_' . $lang))) {
+            return json_decode(redisHashGet('DestDeliveryLogi', md5($country . '_' . $lang)), true);
         }
         try {
             $condition = array(
@@ -39,7 +42,7 @@ class DestDeliveryLogiModel extends Model {
             $result = $this->field($field)->where($condition)->select();
 
             if ($result) {
-                redisHashSet('DDL', md5($country . '_' . $lang), json_encode($result));
+                redisHashSet('DestDeliveryLogi', md5($country . '_' . $lang), json_encode($result));
             }
             return $result;
         } catch (Exception $ex) {

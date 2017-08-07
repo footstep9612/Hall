@@ -25,16 +25,11 @@ class SupervisedcriteriaController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
+        $data = $this->getPut();
         $shipowner_clause_model = new SupervisedCriteriaModel();
-        if (redisGet('SupervisedCriteria_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('SupervisedCriteria' . md5(json_encode($data))), true);
-        } else {
-            $arr = $shipowner_clause_model->getlist($data);
-            if ($arr) {
-                redisSet('SupervisedCriteria_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $shipowner_clause_model->getlist($data);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } else {

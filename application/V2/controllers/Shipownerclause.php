@@ -25,18 +25,13 @@ class ShipownerclauseController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', 'zh');
 
         $shipowner_clause_model = new ShipownerClauseModel();
-        if (redisGet('ShipownerClause_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('ShipownerClause_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $shipowner_clause_model->getlist($data);
-            if ($arr) {
-                redisSet('ShipownerClause_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $shipowner_clause_model->getlist($data);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } else {

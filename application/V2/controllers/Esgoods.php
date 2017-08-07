@@ -22,9 +22,12 @@ class EsgoodsController extends PublicController {
 
     //put your code here
     public function init() {
-        error_reporting(E_ERROR);
-        $this->es = new ESClient();
-         parent::init();
+        if ($this->getRequest()->isCli()) {
+            ini_set("display_errors", "On");
+            error_reporting(E_ERROR | E_STRICT);
+        } else {
+            parent::init();
+        }
     }
 
     /**
@@ -201,7 +204,7 @@ class EsgoodsController extends PublicController {
             $time = redisGet('ES_GOODS_TIME');
             foreach ($this->langs as $lang) {
                 $es_goods_model = new EsGoodsModel();
-                $es_goods_model->updateproducts($lang, $time);
+                $es_goods_model->updategoodss($lang, $time);
             }
             redisSet('ES_GOODS_TIME', date('Y-m-d H:i:s'));
             $this->setCode(1);

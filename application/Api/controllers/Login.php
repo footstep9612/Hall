@@ -126,6 +126,11 @@ class LoginController extends Yaf_Controller_Abstract {
         if($check){
             jsonReturn('',-101,'The company email or user name already exists.');
         }
+        //验证公司名称是否存在
+        $checkcompany = $model->field('id')->where('name='.$data['company'])->find();
+        if($checkcompany){
+            jsonReturn('',-101,'The company name already exists.');
+        }
 
         // 生成用户编码
         $condition['page']=0;

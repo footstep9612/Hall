@@ -1,7 +1,11 @@
 <?php
 
 /**
- * 口岸
+ * Description of PortController
+ * @author  zhongyg
+ * @date    2017-8-1 16:50:09
+ * @version V2.0
+ * @desc   口岸
  */
 class PortController extends PublicController {
 
@@ -11,53 +15,96 @@ class PortController extends PublicController {
         $this->_model = new PortModel();
     }
 
+    /*
+     * Description of 口岸列表
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+
     public function listAction() {
-        $condtion = $this->put_data;
-        unset($condtion['token']);
-        $key = 'Port_list_' . md5(json_encode($condtion));
-        $data = json_decode(redisGet($key), true);
-        if (!$data) {
-            $arr = $this->_model->getListbycondition($condtion);
-            if ($arr) {
-                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-                $data['code'] = MSG::MSG_SUCCESS;
-                $data['data'] = $arr;
-                $data['count'] = $this->_model->getCount($condtion);
-                redisSet($key, json_encode($data), 86400);
-                $this->jsonReturn($data);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
+        $condtion = $this->getPut();
+        $condtion['lang'] = $this->getPut('lang', 'zh');
+
+
+
+        $arr = $this->_model->getListbycondition($condtion);
+        $this->_setUserName($arr);
+        if ($arr) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+            $data['code'] = MSG::MSG_SUCCESS;
+            $data['data'] = $arr;
+            $data['count'] = $this->_model->getCount($condtion);
+
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
-        $this->jsonReturn($data);
     }
+
+    /*
+     * Description of 口岸所有
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
 
     public function listAllAction() {
-        $condtion = $this->put_data;
+        $condtion = $this->getPut();
         $condtion['lang'] = $this->getPut('lang', 'zh');
-        unset($condtion['token']);
-        $key = 'Port_listall_' . md5(json_encode($condtion));
-        $data = json_decode(redisGet($key), true);
-        if (!$data) {
-            $arr = $this->_model->getAll($condtion);
-            if ($arr) {
-                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-                $data['code'] = MSG::MSG_SUCCESS;
-                $data['data'] = $arr;
-                redisSet($key, json_encode($data), 86400);
-                $this->jsonReturn($data);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
+
+        $arr = $this->_model->getAll($condtion);
+        $this->_setUserName($arr);
+        if ($arr) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+            $data['code'] = MSG::MSG_SUCCESS;
+            $data['data'] = $arr;
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
-        $this->jsonReturn($data);
     }
 
-    /**
-     * 分类联动
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr 
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   物流费率
      */
+
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 口岸详情
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+
     public function infoAction() {
         $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
         if ($bn) {
@@ -96,16 +143,32 @@ class PortController extends PublicController {
         exit;
     }
 
+    /*
+     * Description of 口岸删除缓存
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Port_*');
+        $keys = $redis->getKeys('Port');
         $redis->delete($keys);
     }
 
+    /*
+     * Description of 新增口岸
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+
     public function createAction() {
-        $condition = $this->put_data;
-        unset($condition['token']);
-        $result = $this->_model->create_data($condition);
+        $condtion = $this->getPut();
+
+        $result = $this->_model->create_data($condtion);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -116,10 +179,18 @@ class PortController extends PublicController {
         }
     }
 
+    /*
+     * Description of 更新口岸
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+
     public function updateAction() {
 
-        $condition = $this->put_data;
-        unset($condition['token']);
+        $condition = $this->getPut();
+
         $result = $this->_model->update_data($condition);
         if ($result) {
             $this->delcache();
@@ -131,9 +202,17 @@ class PortController extends PublicController {
         }
     }
 
+    /*
+     * Description of 删除口岸
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+
     public function deleteAction() {
 
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         if ($condition['bn']) {
             if (is_string($condition['bn'])) {
                 $where['bn'] = $condition['bn'];
@@ -147,7 +226,7 @@ class PortController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $result = $this->_model->where($where)->delete();
+        $result = $this->_model->where($where)->save(['status' => 'DELETED',]);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

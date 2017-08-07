@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-1 17:34:40
  * @version V2.0
- * @desc   
+ * @desc   发货箱型对应船东条款
  */
 class BoxshipownerclauseController extends PublicController {
 
@@ -21,21 +21,22 @@ class BoxshipownerclauseController extends PublicController {
     }
 
     /*
-     * 所有计费单位
+     * 所有发货箱型对应船东条款
+     * @param data $data;
+     * @return array
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   费率类型
      */
 
     public function listAction() {
         $data = $this->get() ? $this->get() : $this->getPut();
 
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        if (redisGet('BoxShipownerClause_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('BoxShipownerClause_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $box_shipowner_clause_model->getlist($data);
-            if ($arr) {
-                redisSet('BoxShipownerClause_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $box_shipowner_clause_model->getlist($data);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } elseif ($arr === null) {
@@ -48,20 +49,20 @@ class BoxshipownerclauseController extends PublicController {
 
     /*
      * 所有计费单位
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   费率类型
      */
 
     public function infoAction() {
         $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
 
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        if (redisGet('BoxShipownerClause_' . md5($id))) {
-            $arr = json_decode(redisGet('BoxShipownerClause_' . md5($id)), true);
-        } else {
-            $arr = $box_shipowner_clause_model->info($id);
-            if ($arr) {
-                redisSet('BoxShipownerClause_' . md5($id), json_encode($arr));
-            }
-        }
+
+        $arr = $box_shipowner_clause_model->info($id);
+
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } else {
@@ -70,12 +71,19 @@ class BoxshipownerclauseController extends PublicController {
         $this->jsonReturn($arr);
     }
 
+    /* 新增
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   费率类型
+     */
+
     public function createAction() {
         $condition = $this->getPut(null);
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
         $result = $box_shipowner_clause_model->create_data($condition);
         if ($result) {
-//            $this->delcache();
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -83,17 +91,21 @@ class BoxshipownerclauseController extends PublicController {
             $this->jsonReturn();
         }
     }
+
+    /* 更新
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   费率类型
+     */
 
     public function updateAction() {
 
         $condition = $this->getPut(null);
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
-        if (!$condition['id']) {
-            $condition['id'] = $this->get('id');
-        }
         $result = $box_shipowner_clause_model->update_data($condition);
         if ($result) {
-//            $this->delcache();
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -102,9 +114,16 @@ class BoxshipownerclauseController extends PublicController {
         }
     }
 
+    /* 删除
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   费率类型
+     */
+
     public function deleteAction() {
 
-        $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
+        $id = $this->getPut('id');
         $where['id'] = $id;
         if ($id) {
             $where['id'] = $id;
@@ -113,9 +132,9 @@ class BoxshipownerclauseController extends PublicController {
             $this->jsonReturn();
         }
 
-        $result = $this->_model->where($where)->delete();
+        $result = $this->_model->where($where)->save(['status' => 'DELETED']);
         if ($result) {
-//            $this->delcache();
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {

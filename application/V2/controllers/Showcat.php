@@ -9,12 +9,12 @@
 class ShowcatController extends PublicController {
 
     public function init() {
-        //  parent::init();
+        parent::init();
         $this->_model = new ShowCatModel();
     }
 
     public function treeAction() {
-        $lang = $this->get('lang', '') ?: $this->getPut('marke_area_bn', 'zh');
+        $lang = $this->getPut('marke_area_bn', 'zh');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
@@ -87,11 +87,11 @@ class ShowcatController extends PublicController {
     }
 
     public function listAction() {
-        $lang = $this->get('lang', '') ?: $this->getPut('lang', 'en');
+        $lang = $this->getPut('lang', 'en');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
-        $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
-        $marke_area_bn = $this->get('marke_area_bn', '') ?: $this->getPut('marke_area_bn', '');
+        $country_bn = $this->getPut('country_bn', '');
+        $marke_area_bn = $this->getPut('marke_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['marke_area_bn'] = $marke_area_bn;
         $jsondata['cat_no1'] = $this->get('cat_no1', '') ?: $this->getPut('cat_no1', '');
@@ -307,8 +307,9 @@ class ShowcatController extends PublicController {
     }
 
     public function deleteAction() {
-        $data = $this->getPut();
-        $result = $this->_model->delete_data($data['id']);
+        $cat_no = $this->getPut('cat_no');
+        $lang = $this->getPut('lang', '');
+        $result = $this->_model->delete_data($cat_no, $lang, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

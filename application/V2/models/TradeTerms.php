@@ -18,8 +18,8 @@ class TradeTermsModel extends PublicModel {
     protected $dbName = 'erui2_dict';
     protected $tableName = 'trade_terms';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /*
@@ -30,7 +30,7 @@ class TradeTermsModel extends PublicModel {
      * @desc   贸易术语
      */
 
-    function getCondition($condition) {
+    private function _getCondition($condition) {
         $where = [];
 
         $this->_getValue($where, $condition, 'id', 'string');
@@ -56,10 +56,17 @@ class TradeTermsModel extends PublicModel {
 
     public function getCount($condition) {
         try {
-            $data = $this->getCondition($condition);
-            return $this->where($data)->count();
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where)) . '_COUNT';
+            if (redisHashExist('TradeTerms', $redis_key)) {
+                return redisHashGet('TradeTerms', $redis_key);
+            }
+            $count = $this->where($where)->count();
+            redisHashSet('TradeTerms', $redis_key, $count);
+            return $count;
         } catch (Exception $ex) {
-
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
     }
@@ -77,26 +84,27 @@ class TradeTermsModel extends PublicModel {
      * @desc   贸易术语
      */
     public function getList($condition = '') {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
         try {
             $field = 'id,terms,description,trans_mode_bn,lang';
 
-            $pagesize = 10;
-            $current_no = 1;
-            if (isset($condition['current_no'])) {
-                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+            list($from, $pagesize) = $this->_getPage($condition);
+            $redis_key = md5(json_encode($where) . '_' . $from . '_' . $pagesize);
+            if (redisHashExist('TradeTerms', $redis_key)) {
+                return json_decode(redisHashGet('TradeTerms', $redis_key), true);
             }
-            if (isset($condition['pagesize'])) {
-                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-            }
-            $from = ($current_no - 1) * $pagesize;
             $result = $this->field($field)
                     ->limit($from, $pagesize)
                     ->where($where)
                     ->select();
+            if ($result) {
+                redisHashSet('TradeTerms', $redis_key, json_encode($result));
+            }
             return $result;
-        } catch (Exception $e) {
-            return false;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 
@@ -113,16 +121,24 @@ class TradeTermsModel extends PublicModel {
      * @desc   贸易术语
      */
     public function getall($condition = '') {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
         try {
             $field = 'id,terms,description,trans_mode_bn,lang';
-
+            $redis_key = md5(json_encode($where));
+            if (redisHashExist('TradeTerms', $redis_key)) {
+                return json_decode(redisHashGet('TradeTerms', $redis_key), true);
+            }
             $result = $this->field($field)
                     ->where($where)
                     ->select();
+            if ($result) {
+                redisHashSet('TradeTerms', $redis_key, json_encode($result));
+            }
             return $result;
-        } catch (Exception $e) {
-            return false;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 
