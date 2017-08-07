@@ -56,7 +56,8 @@ class VatariffModel extends PublicModel {
             $data = $this->getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
-
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
     }
@@ -92,6 +93,8 @@ class VatariffModel extends PublicModel {
                     ->select();
             return $result;
         } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
 
             return array();
         }
@@ -112,8 +115,14 @@ class VatariffModel extends PublicModel {
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $where['id'] = $update_data['id'];
         $data = $this->create($update_data);
-        $flag = $this->where($where)->save($data);
-        return $flag;
+        try {
+            $flag = $this->where($where)->save($data);
+            return $flag;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     public function Exits($where) {
@@ -136,8 +145,14 @@ class VatariffModel extends PublicModel {
             return [];
         }
         $field = 'id,country_bn,value_added_tax,tariff,created_by,created_at';
-        return $this->field($field)->where($where)
-                        ->find();
+        try {
+            return $this->field($field)->where($where)
+                            ->find();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /**
@@ -153,9 +168,14 @@ class VatariffModel extends PublicModel {
         $data = $this->create($create);
         $data['value_added_tax'] = number_format($data['value_added_tax'], 4, '.', '');
         $data['tariff'] = number_format($data['tariff'], 4, '.', '');
-
-        $flag = $this->add($data);
-        return $flag;
+        try {
+            $flag = $this->add($data);
+            return $flag;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
 }

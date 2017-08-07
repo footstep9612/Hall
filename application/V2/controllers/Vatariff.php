@@ -37,6 +37,7 @@ class VatariffController extends PublicController {
         } else {
             $arr = $va_tariff_model->getlist($data, false);
 
+          
             $this->_setUserName($arr);
             if ($arr) {
                 redisSet('Vatariff_' . md5(json_encode($data)), json_encode($arr));
