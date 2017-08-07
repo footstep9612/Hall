@@ -152,7 +152,7 @@ class ESClient {
      * @return array     *
      */
 
-    public function create_index($index, $body, $number_of_shards = 15, $number_of_replicas = 1) {
+    public function create_index($index, $body, $number_of_shards = 6, $number_of_replicas = 1) {
         $indexParams['index'] = $index;
         // $indexParams['type'] = $type;
         $indexParams['body'] = $body;
