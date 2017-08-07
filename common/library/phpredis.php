@@ -33,14 +33,14 @@ class phpredis {
                 $this->_CAUTH = $config['auth'];
             }
             $this->_PORT = $config['port'];
-            $this->_DBNAME = isset($config['dbname']) ?$config['dbname']: 0;
+            $this->_DBNAME = isset($config['dbname']) ? $config['dbname'] : 0;
         } else {
             $this->_HOST = $rconfig['server'];
             if (isset($rconfig['auth'])) {
                 $this->_CAUTH = $rconfig['auth'];
             }
             $this->_PORT = $rconfig['port'];
-            $this->_DBNAME = isset($rconfig['dbname']) ?$rconfig['dbname']: 0;
+            $this->_DBNAME = isset($rconfig['dbname']) ? $rconfig['dbname'] : 0;
         }
 
         $this->_TIMEOUT = 0;
