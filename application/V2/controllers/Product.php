@@ -10,7 +10,7 @@ class ProductController extends PublicController {
     protected $method = '';
 
     public function init() {
-       // parent::init();
+        parent::init();
         $this->method = $this->getMethod();
     }
 
