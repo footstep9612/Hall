@@ -182,7 +182,6 @@ class BrandModel extends PublicModel {
         } elseif ($id) {
             $where['id'] = $id;
         }
-
         $flag = $this->re($where)
                 ->save(['status' => self::STATUS_DELETED]);
         if ($flag) {
@@ -227,29 +226,24 @@ class BrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function update_data($upcondition = [], $username = '') {
+    public function update_data($upcondition = [], $uid = 0) {
         $data['brand'] = $this->_getdata($upcondition);
-        if (!$data['id']) {
+
+        if (!$upcondition['id']) {
             return false;
         } else {
-            $where['id'] = $data['id'];
+            $where['id'] = $upcondition['id'];
         }
+        $data['updated_by'] = $uid;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        try {
+            $flag = $this->where($where)->save($data);
 
-        $data['updated_by'] = date('Y-m-d H:i:s');
-        $data['updated_at'] = $username;
-
-
-        $data['name'] = $upcondition['name'];
-
-
-        $exist_flag = $this->Exist($where);
-        $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($data);
-        if (!$flag) {
-
+            return $flag;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
             return false;
         }
-
-        return $flag;
     }
 
     /**
@@ -268,7 +262,6 @@ class BrandModel extends PublicModel {
         ];
         $datalist = [];
         foreach ($this->langs as $lang) {
-
             if (isset($create[$lang]) && isset($create[$lang]['name']) && $create[$lang]['name']) {
                 $data['lang'] = $lang;
                 $data['name'] = $create[$lang]['name'];
