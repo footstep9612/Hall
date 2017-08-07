@@ -155,6 +155,6 @@ class QuoteItemLogiModel extends PublicModel {
             return false;
         }
     
-        return $this->where($where)->save(['status' => 'DELETED']);
+        return $this->where($where)->save(['deleted_flag' => 'Y']);
     }
 }

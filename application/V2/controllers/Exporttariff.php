@@ -17,7 +17,7 @@ class ExporttariffController extends PublicController {
 
     //put your code here
     public function init() {
-        // parent::init();
+         parent::init();
     }
 
     /**
@@ -153,7 +153,7 @@ class ExporttariffController extends PublicController {
                 $where['id'] = $id;
             }
         }
-        $result = $this->_model->where($where)->save(['status' => 'DELETE']);
+        $result = $this->_model->where($where)->save(['status' => 'DELETED']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

@@ -46,6 +46,12 @@ class UserModel extends PublicModel {
         if ( !empty($condition['username']) ){
             $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
         }
+        if ( !empty($condition['employee_flag']) ){
+            $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
+        }
+        if ( !empty($condition['employee_flag']) ){
+            $sql .= ' AND employee.employee_flag ='.$condition['employee_flag'];
+        }
         $sql .= ' group by `employee`.`id`';
         if ( $condition['num'] ){
             $sql .= ' LIMIT '.$condition['page'].','.$condition['num'];
@@ -102,7 +108,10 @@ class UserModel extends PublicModel {
         if(!empty($data['mobile'])){
             $where['mobile'] = $data['mobile'];
         }
-        if(empty($where['mobile'])&&empty($where['email'])){
+        if(!empty($data['user_no'])){
+            $where['user_no'] = $data['user_no'];
+        }
+        if(empty($where['mobile'])&&empty($where['email'])&&empty($where['user_no'])){
             echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
             exit();
         }
