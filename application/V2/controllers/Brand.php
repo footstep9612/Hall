@@ -126,7 +126,7 @@ class BrandController extends PublicController {
         $brand_model = new BrandModel();
         $data = $this->getPut();
         $result = $brand_model->create_data($data, $this->user['id']);
-        if ($result) {
+        if ($result!==false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
@@ -140,7 +140,7 @@ class BrandController extends PublicController {
         $brand_model = new BrandModel();
         $data = $this->getPut();
         $result = $brand_model->update_data($data, $this->user['id']);
-        if ($result) {
+        if ($result!==false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
@@ -154,7 +154,7 @@ class BrandController extends PublicController {
         $brand_model = new BrandModel();
         $id = $this->get('id') ?: $this->getPut('id');
         $result = $brand_model->delete_data($id);
-        if ($result) {
+        if ($result!==false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
@@ -171,7 +171,7 @@ class BrandController extends PublicController {
             $ids = explode(',', $ids);
         }
         $result = $brand_model->batchdelete_data($ids);
-        if ($result) {
+        if ($result!==false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
