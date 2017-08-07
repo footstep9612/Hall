@@ -24,7 +24,7 @@ class EsgoodsController extends PublicController {
     public function init() {
         error_reporting(E_ERROR);
         $this->es = new ESClient();
-        //  parent::init();
+         parent::init();
     }
 
     /**

@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of FeeType
+ * Description of Boxshipownerclause
  * @author  zhongyg
  * @date    2017-8-1 17:34:40
  * @version V2.0
@@ -17,7 +17,7 @@ class BoxshipownerclauseController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        parent::init();
     }
 
     /*

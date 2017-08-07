@@ -17,7 +17,7 @@ class TransboxtypeController extends PublicController {
 
     //put your code here
     public function init() {
-        // parent::init();
+        parent::init();
     }
 
     /*

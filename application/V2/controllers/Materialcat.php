@@ -10,8 +10,8 @@
 class MaterialcatController extends PublicController {
 
     public function init() {
-        $this->user['id'] = 1;
-        // parent::init();
+
+        parent::init();
         if (!method_exists($this, $this->getRequest()->getActionName() . 'Action')) {
             $this->setCode(MSG::MSG_ERROR_ACTION);
             $this->jsonReturn();
@@ -383,5 +383,4 @@ class MaterialcatController extends PublicController {
         }
     }
 
-   
 }
