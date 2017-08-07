@@ -53,4 +53,21 @@ trait QuoteBizlineHelper{
 
     }
 
+    /**
+     * 重组划分产品线数据
+     * @param $param    条件
+     * @return array    重组后的结构
+     */
+    static public function setPartitionBizlineFields($param){
+        $data = [];
+        $data['quote_id'] = $param['quote_id'];
+        $data['inquiry_id'] = $param['inquiry_id'];
+        $data['bizline_id'] = $param['bizline_id'];
+        $data['created_at'] = date('Y-m-d H:i:s');
+        //$data['biz_agent_id'] 需要去inquiry表读取agent_id字段
+        $inquiryModel = new InquiryModel();
+        $data['biz_agent_id'] = $inquiryModel->where(['id'=>$param['inquiry_id']])->getField('agent_id');
+
+        return $data;
+    }
 }

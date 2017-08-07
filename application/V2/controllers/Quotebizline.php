@@ -516,4 +516,30 @@ class QuotebizlineController extends PublicController {
         ]);
     }
 
+    /**
+     * 产品线报价->项目经理->划分产品线
+     */
+    public function partitionBizlineAction(){
+
+        $response = $this->partitionBizlineHandler($this->_requestParams);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 执行产品线报价划分产品线业务
+     * @param $param 参数
+     * @return array 结果
+     */
+    private function partitionBizlineHandler($param){
+
+        //重组参数，并准备插入到quote_bizline表
+        $data = QuoteBizlineHelper::setPartitionBizlineFields($param);
+        //插入数据
+        return $this->_quoteBizLine->partitionBizline($data);
+
+    }
+
+
+
 }
