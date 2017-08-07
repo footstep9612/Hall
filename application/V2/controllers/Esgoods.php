@@ -202,11 +202,12 @@ class EsgoodsController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             $time = redisGet('ES_GOODS_TIME');
+            redisSet('ES_GOODS_TIME', date('Y-m-d H:i:s'));
             foreach ($this->langs as $lang) {
                 $es_goods_model = new EsGoodsModel();
                 $es_goods_model->updategoodss($lang, $time);
             }
-            redisSet('ES_GOODS_TIME', date('Y-m-d H:i:s'));
+
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

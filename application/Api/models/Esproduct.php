@@ -937,9 +937,26 @@ class EsproductModel extends PublicModel {
      * @return mix  
      */
 
-    public function importproducts($lang = 'en') {
+    public function importproducts($lang = 'en', $time = null) {
         try {
-            $count = $this->where(['lang' => $lang])->count('id');
+
+            if ($time) {
+                $where = [
+                    'lang' => $lang,
+                    '_complex' => [
+                        '_logic' => 'or',
+                        'created_at' => ['egt' => $time],
+                        'updated_at' => ['egt' => $time],
+                        'checked_at' => ['egt' => $time],
+                    ],
+                ];
+            } else {
+                $where = [
+                    'lang' => $lang,
+                ];
+            }
+
+            $count = $this->where($where)->count('id');
             $max_id = 0;
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
             $k = 1;
@@ -949,13 +966,8 @@ class EsproductModel extends PublicModel {
                 if ($i > $count) {
                     $i = $count;
                 }
-
-                $products = $this->where([
-                                    'lang' => $lang,
-                                    //  'status' => 'VALID',
-                                    'id' => ['gt', $max_id]
-                                ])
-                                ->limit(0, 100)->order('id asc')->select();
+                $where['id'] = ['gt', $max_id];
+                $products = $this->where($where)->limit(0, 100)->order('id asc')->select();
 
                 $spus = $mcat_nos = [];
                 if ($products) {
@@ -1072,6 +1084,7 @@ class EsproductModel extends PublicModel {
                     return false;
                 }
             }
+            redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
