@@ -57,7 +57,6 @@ class SupplierModel extends PublicModel {
         if ( $condition['num'] ){
             $sql .= ' LIMIT '.$condition['page'].','.$condition['num'];
         }
-        var_dump($sql);
         return $this->query( $sql );
     }
 
