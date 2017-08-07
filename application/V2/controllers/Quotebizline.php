@@ -156,26 +156,32 @@ class QuotebizlineController extends PublicController {
         return $where;
     }
     /**
-     * @desc 详情页询单信息接口
+     * @desc 详情页询单信息接口(只读)
      */
     public function inquiryInfoAction() {
-        //TODO 这里可以用公用接口来获取询单信息
-        $data = [];
-        if (!$data) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => '失败',
-                'data' => ''
-            ]);
-        }
 
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'data' => $data
-        ]);
+        $response = $this->inquryInfoHandler($this->_requestParams);
+        $this->jsonReturn($response);
+
     }
 
+    private function inquryInfoHandler($request){
+        //获取询单本身信息
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field(QuoteBizlineHelper::getInquiryInfoFields())->find();
+
+        if (!$inquiryInfo){
+            return ['code'=>'-104','message'=>'没有询单信息','data'=>''];
+        }
+        //重组询单信息数组
+        $inquiry = QuoteBizlineHelper::restoreInqiryInfo($inquiryInfo);
+
+        return $response = [
+            'code' => '1',
+            'message' => '成功!',
+            'data' => $inquiry
+        ];
+    }
     /**
      * @desc 详情页报价信息接口
      */
@@ -202,16 +208,20 @@ class QuotebizlineController extends PublicController {
      * @desc 报价办理接口
      */
     public function manageAction() {
-        /*
+          /*
           |--------------------------------------------------------------------------
-          | Application Locale Configuration
+          | 报价办理接口（读取询单信息）
           |--------------------------------------------------------------------------
           |
-          | The application locale determines the default locale that will be used
-          | by the translation service provider. You are free to set this value
-          | to any of the locales which will be supported by the application.
+          | 操作说明
+          | 提交暂存后，不做校验，市场的进度为待提交
           |
          */
+
+    }
+
+    private function manageHandler(){
+
     }
 
     /**
