@@ -69,6 +69,6 @@ class DictController extends Yaf_Controller_Abstract {
             $datajson['message'] = '数据为空!';
         }
 
-        $this->jsonReturn($datajson);
+        exit(json_encode($datajson, JSON_UNESCAPED_UNICODE));
     }
 }
