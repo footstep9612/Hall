@@ -350,7 +350,7 @@ class Edi {
      */
     public function EdiCountryClassify(){
         try{
-            $CountryClassify = $this->client->getEdiCountryClassify(array());
+            $CountryClassify = $this->client->getEdiCountryClassify(array('getEdiCountryClassify' => array('startDate'=>'2011-01-01','endDate'=>'2017-01-01')));
             if ($CountryClassify) {
                 var_dump($CountryClassify);
             } else {
