@@ -157,7 +157,7 @@ class LogirateController extends PublicController {
             }
         }
         $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->where($where)->save(['status' => 'DELETE']);
+        $result = $Logi_Rate_model->where($where)->save(['status' => 'DELETED']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
