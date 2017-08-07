@@ -33,26 +33,17 @@ class phpredis {
                 $this->_CAUTH = $config['auth'];
             }
             $this->_PORT = $config['port'];
-            if ($config['dbname']) {
-                $this->_DBNAME = $config['dbname'];
-            } else {
-                $this->_DBNAME = 0;
-            }
+            $this->_DBNAME = isset($config['dbname']) ? $config['dbname'] : 0;
         } else {
             $this->_HOST = $rconfig['server'];
             if (isset($rconfig['auth'])) {
                 $this->_CAUTH = $rconfig['auth'];
             }
             $this->_PORT = $rconfig['port'];
-            if ($rconfig['dbname']) {
-                $this->_DBNAME = $rconfig['dbname'];
-            } else {
-                $this->_DBNAME = 0;
-            }
+            $this->_DBNAME = isset($rconfig['dbname']) ? $rconfig['dbname'] : 0;
         }
 
         $this->_TIMEOUT = 0;
-
         $this->_CTYPE = 1;
 
         if (!isset($this->_REDIS)) {
@@ -72,11 +63,17 @@ class phpredis {
                 if ($cauth) {
                     $this->_REDIS->auth($cauth);
                 }
+                if ($dbname) {
+                    $this->_REDIS->select($dbname);
+                }
                 break;
             case 2:
                 $this->_REDIS->pconnect($host, $port, $timeout);
                 if ($cauth) {
                     $this->_REDIS->auth($cauth);
+                }
+                if ($dbname) {
+                    $this->_REDIS->select($dbname);
                 }
                 break;
             default:
@@ -281,7 +278,7 @@ class phpredis {
      * 入队列 
      * @param $list string 队列名 
      * @param $value mixed 入队元素值 
-     * @param $deriction int 0:数据入队列头(左) 1:数据入队列尾(右) 默认为0 
+     * @param $direction int 0:数据入队列头(左) 1:数据入队列尾(右) 默认为0 
      * @param $repeat int 判断value是否存在  0:不判断存在 1:判断存在 如果value存在则不入队列 
      */
     public function listPush($list, $value, $direction = 0, $repeat = 0) {

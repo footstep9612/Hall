@@ -466,13 +466,14 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getUpdateCondition($upcondition = [], $uid = 0) {
+    public function getUpdateCondition(&$upcondition = [], $uid = 0) {
         $data = [];
         $where = [];
         $info = [];
         if (isset($upcondition['cat_no']) && $upcondition['cat_no']) {
             $data['cat_no'] = $where['cat_no'] = $upcondition['cat_no'];
             $info = $this->info($where['cat_no'], 'zh');
+            $upcondition['level_no'] = $info['level_no'];
         } else {
 
             return false;
