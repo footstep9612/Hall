@@ -98,4 +98,28 @@ trait QuoteBizlineHelper{
             ];
         }
     }
+
+    /**
+     * 产品线报价->项目经理->提交产品线报价
+     * @param $param 请求数据
+     * @return array 返回数据
+     */
+    static public function submitToBizline($param){
+
+        $inquiryModel = new InquiryModel();
+        $inquiry_ids = explode(',',$param['inquiry_ids']);
+        try{
+            foreach ($inquiry_ids as $inquiry=>$item){
+                $inquiryModel->where(['id'=>$item])->save(['status'=>'BIZLINE']);
+            }
+            return ['code'=>'1','message'=>'成功!'];
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+
 }
