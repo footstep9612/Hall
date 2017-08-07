@@ -24,7 +24,11 @@ class VatariffModel extends PublicModel {
         if (isset($condition['id']) && $condition['id']) {
             $where['vt.id'] = $condition['id'];
         }
-
+        if (isset($condition['status']) && $condition['status']) {
+            $where['vt.status'] = $condition['status'];
+        } else {
+            $where['vt.status'] = 'VALID';
+        }
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
             $employee_model = new EmployeeModel();
