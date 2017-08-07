@@ -33,32 +33,36 @@ class BuyerreginfoModel extends PublicModel {
     );
 
     /**
-     * 根据条件获取信息(企业/银行)
+     * 根据条件获取信息(企业)
      * @param mix $condition
      * @return mix
      * @author
      */
-    public function getBuyerRegInfo($condition=[]) {
+    public function buyerRegInfo($condition=[]) {
         if(empty($condition))
             return false;
         $where=array();
-        if(!empty($condition['customer_id'])){
-            $where['customer_id'] = $condition['customer_id'];
+        if(!empty($condition['id'])){
+            $where['buyer_id'] = $condition['id'];
         } else{
-            jsonReturn('','-1001','用户[customer_id]不可以为空');
+            jsonReturn('','-1001','用户[buyer_id]不可以为空');
         }
-        $where['lang'] = $condition['lang'] ? strtolower($condition['lang']) : (browser_lang() ? browser_lang() : 'en');
-        $field = 'legal_person_name,legal_person_gender,expiry_date,registered_in,reg_capital,reg_capital_cur,social_credit_code,biz_nature,biz_scope,biz_type,service_type,bank_country_code,bank_phone,bank_fax,turnover,profit,assets,own_capital,equity_ratio,branch_count,created_by,created_at';
+//        if (isset($info['lang']) && in_array($info['lang'], array('zh', 'en', 'es', 'ru'))) {
+//            $where['lang'] = strtolower($info['lang']);
+//        }
+        $field = 'legal_person_name,legal_person_gender,reg_date,expiry_date,registered_in,reg_capital,social_credit_code,biz_nature,biz_scope,biz_type,service_type,branch_count,employee_count,equitiy,turnover,profit,total_assets,reg_capital_cur_bn,equity_ratio,equity_capital,created_by,created_at,deleted_flag';
         try{
             $buyerRegInfo =  $this->field($field)->where($where)->find();
             return $buyerRegInfo ? $buyerRegInfo : array();
         } catch(Exception $e){
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
             return false;
         }
     }
 
     /**
-     * 企业信息新建-门户
+     * 企业信息新建/编辑 --门户
      * @author klp
      */
     public function createInfo($token,$input){
@@ -66,92 +70,108 @@ class BuyerreginfoModel extends PublicModel {
             return false;
         try {
             if (is_array($input)) {
-                $checkout = $this->checkParam($input, $this->field);
-                $data = [
-                    'buyer_id' => $token['buyer_id'],
-                    'registered_in' => $checkout['registered_in'],
-                    'legal_person_name' => isset($checkout['legal_person_name']) ? $checkout['legal_person_name'] : '',
-                    'legal_person_gender' => isset($checkout['legal_person_gender']) ? $checkout['legal_person_gender'] : '',
-                    'reg_date' => isset($checkout['reg_date']) ? $checkout['reg_date'] : '',
-                    'expiry_date' => isset($checkout['expiry_date']) ? $checkout['expiry_date'] : '',
-                    'reg_capital' => isset($checkout['reg_capital']) ? $checkout['reg_capital'] : '',
-                    'reg_capital_cur_bn' => isset($checkout['reg_capital_cur_bn']) ? $checkout['reg_capital_cur_bn'] : '',
-                    'social_credit_code' => isset($checkout['social_credit_code']) ? $checkout['social_credit_code'] : '',
-                    'biz_nature' => isset($checkout['biz_nature']) ? $checkout['biz_nature'] : '',
-                    'biz_scope' => isset($checkout['biz_scope']) ? $checkout['biz_scope'] : '',
-                    'biz_type' => isset($checkout['biz_type']) ? $checkout['biz_type'] : '',
-                    'service_type' => isset($checkout['service_type']) ? $checkout['service_type'] : '',
-                    'employee_count' => isset($checkout['employee_count']) ? $checkout['employee_count'] : '',
-                    'equitiy' => isset($checkout['equitiy']) ? $checkout['equitiy'] : '',
-                    'turnover' => isset($checkout['turnover']) ? (int)$checkout['turnover'] : 0,
-                    'profit' => isset($checkout['profit']) ? (int)$checkout['profit'] : 0,
-                    'total_assets' => isset($checkout['total_assets']) ? (int)$checkout['total_assets'] : 0,
-                    'equity_ratio' => isset($checkout['equity_ratio']) ? $checkout['equity_ratio'] : '',
-                    'equity_capital' => isset($checkout['equity_capital']) ? (int)$checkout['equity_capital'] : 0,
-                ];
+                $data = $this->checkParam($input);
                 //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
-                $result = $this->field('buyer_id')->where(['buyer_id' => $token['buyer_id']])->find();
+                $result = $this->field('buyer_id')->where(['buyer_id' => $token['id']])->find();
                 if ($result) {
-                    $result = $this->where(['buyer_id' => $token['buyer_id']])->save($data);
+                    $data['updated_at'] = date('Y-m-d H:i:s', time());
+                    $result = $this->where(['buyer_id' => $token['id']])->save($data);
                     if(!$result){
                         return false;
                     }
                 } else {
-                    $data['created_by'] = $token['user_name'];
+                    $data['buyer_id'] =$token['id'];
+//                    $data['created_by'] = $token['buyer_id'];
                     $data['created_at'] = date('Y-m-d H:i:s', time());
                     $result = $this->add($data);
                     if(!$result){
                         return false;
                     }
                 }
-            }
-                return true;
-            } catch(\Kafka\Exception $e){
+            } else {
                 return false;
             }
+            return true;
+        } catch(Exception $e){
+            // var_dump($e);//测试
+            return false;
+        }
     }
 
     /**
-     * 参数校验    注：没有参数或没有规则，默认返回true（即不做验证）
-     * @param array $param  参数
-     * @param array $field  校验规则
-     * @return bool
-     *
-     * Example
-     * checkParam(
-     *      array('name'=>'','key'=>''),
-     *      array(
-     *          'name'=>array('required'),
-     *          'key'=>array('method','fun')
-     *      )
-     * )
+     * 参数校验-门户
+     * @author klp
      */
-    private function checkParam($param = [], $field = []) {
-        if (empty($param) || empty($field))
-            return array();
-        foreach ($param as $k => $v) {
-            if (isset($field[$k])) {
-                $item = $field[$k];
-                switch ($item[0]) {
-                    case 'required':
-                        if ($v == '' || empty($v)) {
-                            jsonReturn('', '-1001', 'Param ' . $k . ' Not null !');
-                        }
-                        break;
-//                    case 'method':
-//                        if (!method_exists($item[1])) {
-//                            jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
-//                        }
-//                        if (!call_user_func($item[1], $v)) {
-//                            jsonReturn('', '1001', 'Param ' . $k . ' Validate failed !');
-//                        }
-//                        break;
-                }
-            }
-            // $param[$k] = htmlspecialchars(trim($v));
-            continue;
+    private function checkParam($params = []) {
+        if (empty($params)) {
+            return false;
         }
-        return $param;
+        $data = $results = array();
+
+        if(!empty($params['registered_in'])) {
+            $data['registered_in'] = $params['registered_in'];
+        } else{
+            $results['code'] = -101;
+            $results['message'] = '[registered_in]不能为空!';
+        }
+        if(!empty($params['legal_person_name'])) {
+            $data['legal_person_name'] = $params['legal_person_name'];
+        }
+        if(!empty($params['legal_person_gender'])) {
+            $data['legal_person_gender'] = $params['legal_person_gender'];
+        }
+        if(!empty($params['reg_date'])) {
+            $data['reg_date'] = $params['reg_date'];
+        }
+        if(!empty($params['expiry_date'])) {
+            $data['expiry_date'] = $params['expiry_date'];
+        }
+        if(!empty($params['reg_capital'])) {
+            $data['reg_capital'] = $params['reg_capital'];
+        }
+        if(!empty($params['reg_capital_cur_bn'])) {
+            $data['reg_capital_cur_bn'] = $params['reg_capital_cur_bn'];
+        }
+        if(!empty($params['social_credit_code'])) {
+            $data['social_credit_code'] = $params['social_credit_code'];
+        }
+        if(!empty($params['biz_nature'])) {
+            $data['biz_nature'] = $params['biz_nature'];
+        }
+        if(!empty($params['biz_scope'])) {
+            $data['biz_scope'] = $params['biz_scope'];
+        }
+        if(!empty($params['biz_type'])) {
+            $data['biz_type'] = $params['biz_type'];
+        }
+        if(!empty($params['service_type'])) {
+            $data['service_type'] = $params['service_type'];
+        }
+        if(!empty($params['employee_count'])) {
+            $data['employee_count'] = $params['employee_count'];
+        }
+        if(!empty($params['equitiy'])) {
+            $data['equitiy'] = $params['equitiy'];
+        }
+        if(!empty($params['turnover'])) {
+            $data['turnover'] = $params['turnover'];
+        }
+        if(!empty($params['profit'])) {
+            $data['profit'] = $params['profit'];
+        }
+        if(!empty($params['total_assets'])) {
+            $data['total_assets'] = $params['total_assets'];
+        }
+        if(!empty($params['equity_ratio'])) {
+            $data['equity_ratio'] = $params['equity_ratio'];
+        }
+        if(!empty($params['equity_capital'])) {
+            $data['equity_capital'] = $params['equity_capital'];
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return $data;
     }
 
     /**

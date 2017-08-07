@@ -35,6 +35,12 @@ class GoodsController extends PublicController{
      * @author klp
      */
     public function skuInfoAction(){
+//        $this->put_data = [
+//
+//                'sku'=> '3303060000010001',
+//                'lang'=> 'en',
+//
+//        ];
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getSkuInfo($this->put_data);
         $this->returnInfo($result);
@@ -247,6 +253,27 @@ class GoodsController extends PublicController{
         $this->returnInfo($result);
     }
 
+    /**
+     * sku附件新增
+     * @author  klp  2017/7-6
+     */
+    public function addSkuAttachAction(){
+        $userInfo = getLoinInfo();
+        $this->put_data['user_id'] = $userInfo['id'];
+        $gattach = new GoodsAttachModel();
+        $resAttach = $gattach->editSkuAttach($this->put_data);
+        $this->returnInfo($resAttach);
+    }
+
+    /**
+     * sku附件删除
+     * @author  klp  2017/7-6
+     */
+    public function delSkuAttachAction(){
+        $gattach = new GoodsAttachModel();
+        $resAttach = $gattach->deleteSkuAttach($this->put_data);
+        $this->returnInfo($resAttach);
+    }
 
     /**
      * sku供应商  -- 通过生产商ID或名称获取供应商信息
