@@ -46,6 +46,12 @@ class UserModel extends PublicModel {
         if ( !empty($condition['username']) ){
             $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
         }
+        if ( !empty($condition['employee_flag']) ){
+            $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
+        }
+        if ( !empty($condition['employee_flag']) ){
+            $sql .= ' AND employee.employee_flag ='.$condition['employee_flag'];
+        }
         $sql .= ' group by `employee`.`id`';
         if ( $condition['num'] ){
             $sql .= ' LIMIT '.$condition['page'].','.$condition['num'];

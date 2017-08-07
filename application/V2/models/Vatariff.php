@@ -22,11 +22,16 @@ class VatariffModel extends PublicModel {
     function getCondition($condition) {
         $where = [];
         if (isset($condition['id']) && $condition['id']) {
-            $where['id'] = $condition['id'];
+            $where['vt.id'] = $condition['id'];
         }
-
+        if (isset($condition['status']) && $condition['status']) {
+            $where['vt.status'] = $condition['status'];
+        } else {
+            $where['vt.status'] = 'VALID';
+        }
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
+            $employee_model = new EmployeeModel();
             $userids = $employee_model->getUseridsByUserName($keyword);
             if ($userids) {
                 $map['vt.created_by'] = ['in', $userids];
@@ -51,7 +56,8 @@ class VatariffModel extends PublicModel {
             $data = $this->getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
-
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
     }
@@ -67,7 +73,7 @@ class VatariffModel extends PublicModel {
     public function getList($condition = '') {
         $where = $this->getCondition($condition);
         try {
-            $field = 'vt.id,vt.country_bn,vt.value_added_tax,vt.tariff'
+            $field = 'vt.id,vt.country_bn,vt.value_added_tax,vt.tariff,'
                     . 'vt.created_by,vt.created_at,c.name as country_name';
 
             $pagesize = 10;
@@ -86,7 +92,10 @@ class VatariffModel extends PublicModel {
                     ->where($where)
                     ->select();
             return $result;
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+
             return array();
         }
     }
@@ -106,13 +115,44 @@ class VatariffModel extends PublicModel {
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $where['id'] = $update_data['id'];
         $data = $this->create($update_data);
-        $flag = $this->where($where)->save($data);
-        return $flag;
+        try {
+            $flag = $this->where($where)->save($data);
+            return $flag;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     public function Exits($where) {
 
         return $this->where($where)->find();
+    }
+
+    /**
+     * Description of 更新目的国 增值税、关税
+     * @param  int $id id
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   目的国 增值税、关税
+     */
+    public function info($id = '') {
+        if ($id) {
+            $where['id'] = $id;
+        } else {
+            return [];
+        }
+        $field = 'id,country_bn,value_added_tax,tariff,created_by,created_at';
+        try {
+            return $this->field($field)->where($where)
+                            ->find();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /**
@@ -124,9 +164,18 @@ class VatariffModel extends PublicModel {
     public function create_data($create = [], $uid = 0) {
         $create['created_by'] = $uid;
         $create['created_at'] = date('Y-m-d H:i:s');
+
         $data = $this->create($create);
-        $flag = $this->add($data);
-        return $flag;
+        $data['value_added_tax'] = number_format($data['value_added_tax'], 4, '.', '');
+        $data['tariff'] = number_format($data['tariff'], 4, '.', '');
+        try {
+            $flag = $this->add($data);
+            return $flag;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
 }

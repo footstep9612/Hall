@@ -92,6 +92,7 @@ class UrlpermController extends PublicController {
             $this->jsonReturn($datajson);
         }
 
+        $data['created_by']=$this->user['id'];
         $model_url_perm = new UrlPermModel();
         $id = $model_url_perm->create_data($data);
         if(!empty($id)){

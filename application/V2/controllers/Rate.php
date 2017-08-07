@@ -172,7 +172,7 @@ class RateController extends PublicController {
             $this->jsonReturn();
         }
         
-        $result = $this->_model->where($where)->save(['status'=>'DELETE']);
+        $result = $this->_model->where($where)->save(['status'=>'DELETED']);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);
