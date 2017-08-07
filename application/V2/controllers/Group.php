@@ -53,7 +53,7 @@ class GroupController extends PublicController {
             $datajson['message'] = '数据为空!';
         }
 
-        jsonReturn($datajson);
+        $this->jsonReturn($datajson);
     }
 
     public function infoAction() {
@@ -94,7 +94,7 @@ class GroupController extends PublicController {
             $datajson['data'] = $data;
             $datajson['message'] = '添加失败!';
         }
-        jsonReturn($datajson);
+        $this->jsonReturn($datajson);
     }
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -114,7 +114,7 @@ class GroupController extends PublicController {
                 $datajson['data'] = $data;
                 $datajson['message'] = '添加失败!';
             }
-            jsonReturn($datajson);
+            $this->jsonReturn($datajson);
         }
     }
     public function deleteAction() {
@@ -140,7 +140,7 @@ class GroupController extends PublicController {
             $datajson['code'] = -104;
             $datajson['message'] = '修改失败!';
         }
-        jsonReturn($datajson);
+        $this->jsonReturn($datajson);
     }
 
 }
