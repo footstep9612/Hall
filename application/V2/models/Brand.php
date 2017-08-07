@@ -182,7 +182,7 @@ class BrandModel extends PublicModel {
         } elseif ($id) {
             $where['id'] = $id;
         }
-        $flag = $this->re($where)
+        $flag = $this->where($where)
                 ->save(['status' => self::STATUS_DELETED]);
         if ($flag) {
 
