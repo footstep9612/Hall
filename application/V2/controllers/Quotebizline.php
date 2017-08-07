@@ -546,8 +546,21 @@ class QuotebizlineController extends PublicController {
         if (empty($this->_requestParams['inquiry_id']) || empty($this->_requestParams['pm_id'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
-
         $response = QuoteBizlineHelper::transmitHandler($this->_requestParams);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 产品线报价->项目经理->提交产品线报价
+     * 操作说明:当前询单的状态改为产品线报价
+     */
+    public function submitToBizlineAction(){
+
+        if (empty($this->_requestParams['inquiry_ids'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+        $response = QuoteBizlineHelper::submitToBizline($this->_requestParams);
         $this->jsonReturn($response);
 
     }
