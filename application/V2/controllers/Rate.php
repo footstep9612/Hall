@@ -18,7 +18,6 @@ class RateController extends PublicController {
     //put your code here
     public function init() {
         //  parent::init();
-    
     }
 
     /*
@@ -32,8 +31,7 @@ class RateController extends PublicController {
     public function listAction() {
         $condtion = $this->getPut();
 
-        $key = 'Rate_' . md5(json_encode($condtion));
-        $data = redisGet($key);
+
         $rate_model = new RateModel();
         if ($data == '&&') {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -45,14 +43,14 @@ class RateController extends PublicController {
                 $data['code'] = MSG::MSG_SUCCESS;
                 $data['data'] = $arr;
                 $data['count'] = $rate_model->getCount($condtion);
-                redisSet($key, json_encode($data), 86400);
+
                 $this->jsonReturn($data);
             } elseif ($arr === null) {
                 $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
                 $data['code'] = MSG::ERROR_EMPTY;
                 $data['data'] = $arr;
                 $data['count'] = 0;
-                redisSet($key, '&&', 86400);
+
                 $this->jsonReturn(null);
             } else {
                 $this->setCode(MSG::MSG_FAILED);
@@ -78,7 +76,6 @@ class RateController extends PublicController {
         $rate_model = new RateModel();
         if ($id) {
             $result = $rate_model->info($id);
-            
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -129,7 +126,7 @@ class RateController extends PublicController {
 
     private function _delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Rate_*');
+        $keys = $redis->getKeys('Rate');
         $redis->delete($keys);
     }
 
@@ -166,13 +163,13 @@ class RateController extends PublicController {
 
     public function deleteAction() {
 
-        $where['id'] =$this->getPut('id');
+        $where['id'] = $this->getPut('id');
         if (!$where['id']) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        
-        $result = $this->_model->where($where)->save(['status'=>'DELETED']);
+
+        $result = $this->_model->where($where)->save(['status' => 'DELETED']);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);

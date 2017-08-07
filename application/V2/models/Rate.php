@@ -23,8 +23,8 @@ class RateModel extends PublicModel {
      * 初始化
      */
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**
@@ -72,18 +72,26 @@ class RateModel extends PublicModel {
      */
     public function getlist($condition, $order = 'id desc') {
         try {
-            $data = $this->_getCondition($condition);
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where) . $order);
+            if (redisHashExist('Rate', $redis_key)) {
+                return json_decode(redisHashGet('Rate', $redis_key), true);
+            }
             $this->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
                             . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
                             . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
                             . 'qty,remarks,status,created_by,created_at,updated_by,'
                             . 'updated_at')
-                    ->where($data);
-            return $this->order($order)
-                            ->select();
+                    ->where($where);
+            $re = $this->order($order)->select();
+            if ($re) {
+                redisHashSet('Rate', $redis_key, json_encode($re));
+            }
+            return$re;
         } catch (Exception $ex) {
-
-            return [];
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
         }
     }
 
@@ -96,10 +104,18 @@ class RateModel extends PublicModel {
      */
     public function getCount($condition) {
         try {
-            $data = $this->_getCondition($condition);
-            return $this->where($data)->count();
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where)) . '_COUNT';
+            if (redisHashExist('Rate', $redis_key)) {
+                return redisHashGet('Rate', $redis_key);
+            }
+            $count = $this->where($where)->count();
+            redisHashSet('Rate', $redis_key, $count);
+            return $count;
         } catch (Exception $ex) {
 
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
     }
@@ -113,12 +129,19 @@ class RateModel extends PublicModel {
      */
     public function info($id = '') {
         $where['id'] = $id;
-        return $this->where($where)
-                        ->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
-                                . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
-                                . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
-                                . 'qty,remarks,status')
-                        ->find();
+
+        $redis_key = $id;
+        if (redisHashExist('Rate', $redis_key)) {
+             return json_decode(redisHashGet('Rate', $redis_key), true);
+        }
+        $item = $this->where($where)
+                ->field('id,name,trade_terms_bn,trans_mode_bn,country_bn,port_bn,'
+                        . 'box_type_bn,shipowner_clause_bn,fee_type_bn,'
+                        . 'fee_type_notes,pricing_unit,unit_price,cur_bn,'
+                        . 'qty,remarks,status')
+                ->find();
+        redisHashSet('Rate', $redis_key, json_encode($item));
+        return$item;
     }
 
     /**

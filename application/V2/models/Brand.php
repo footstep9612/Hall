@@ -58,12 +58,19 @@ class BrandModel extends PublicModel {
      */
     public function getCount($condition, $lang = '') {
         $where = $this->getcondition($condition, $lang);
+
+        $redis_key = md5(json_encode($where) . $lang) . '_COUNT';
+        if (redisHashExist('Brand', $redis_key)) {
+            return redisHashGet('Brand', $redis_key);
+        }
         try {
-            return $this->where($where)
-                            ->count('id');
+            $count = $this->where($where)
+                    ->count('id');
+            redisHashSet('Brand', $redis_key, $count);
+            return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
-            return false;
+            return 0;
         }
     }
 
@@ -78,12 +85,23 @@ class BrandModel extends PublicModel {
         $where = $this->getcondition($condition, $lang);
         list($row_start, $pagesize) = $this->_getPage($condition);
 
-        return $this->where($where)
-                        ->field('id,brand,status,created_by,'
-                                . 'created_at,updated_by,updated_at')
-                        ->order('id desc')
-                        ->limit($row_start, $pagesize)
-                        ->select();
+        $redis_key = md5(json_encode($where) . $lang . $row_start . $pagesize);
+        if (redisHashExist('Brand', $redis_key)) {
+            return json_decode(redisHashGet('Brand', $redis_key), true);
+        }
+        try {
+            $item = $this->where($where)
+                    ->field('id,brand,status,created_by,'
+                            . 'created_at,updated_by,updated_at')
+                    ->order('id desc')
+                    ->limit($row_start, $pagesize)
+                    ->select();
+            redisHashSet('Brand', $redis_key, json_encode($item));
+            return $item;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
     }
 
     /**
@@ -95,10 +113,22 @@ class BrandModel extends PublicModel {
      */
     public function listall($condition, $lang = '') {
         $where = $this->getcondition($condition, $lang);
-        return $this->where($where)
-                        ->field('id,brand')
-                        ->order('id desc')
-                        ->select();
+
+        $redis_key = md5(json_encode($where) . $lang);
+        if (redisHashExist('Brand', $redis_key)) {
+            return json_decode(redisHashGet('Brand', $redis_key), true);
+        }
+        try {
+            $item = $this->where($where)
+                    ->field('id,brand')
+                    ->order('id desc')
+                    ->select();
+            redisHashSet('Brand', $redis_key, json_encode($item));
+            return $item;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
     }
 
     /**
@@ -115,11 +145,14 @@ class BrandModel extends PublicModel {
         } else {
             return [];
         }
-        if ($status) {
-            $where['status'] = $status;
+        $redis_key = $id;
+        if (redisHashExist('Brand', $redis_key)) {
+            return json_decode(redisHashGet('Rate', $redis_key), true);
         }
-        return $this->where($where)
-                        ->find();
+        $item = $this->where($where)
+                ->find();
+        redisHashSet('Brand', $redis_key, json_encode($item));
+        return$item;
     }
 
     /**
