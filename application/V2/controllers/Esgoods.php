@@ -204,7 +204,7 @@ class EsgoodsController extends PublicController {
             $time = redisGet('ES_GOODS_TIME');
             foreach ($this->langs as $lang) {
                 $es_goods_model = new EsGoodsModel();
-                $es_goods_model->updateproducts($lang, $time);
+                $es_goods_model->updategoodss($lang, $time);
             }
             redisSet('ES_GOODS_TIME', date('Y-m-d H:i:s'));
             $this->setCode(1);
