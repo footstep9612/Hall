@@ -70,4 +70,32 @@ trait QuoteBizlineHelper{
 
         return $data;
     }
+
+    /**
+     * 项目经理转交其他人办理
+     * 操作说明：根据新选择的项目经理替换掉原来的项目经理
+     * @param $param
+     * @return mixed
+     */
+    static public function transmitHandler(array $param){
+        $inquiry = new InquiryModel();
+        try{
+            if ($inquiry->where(['id'=>$param['inquiry_id']])->save(['pm_id'=>$param['pm_id']])){
+                return [
+                    'code' => '1',
+                    'message' => '转交成功!'
+                ];
+            }else{
+                return [
+                    'code' => '-104',
+                    'message' => '转交失败!'
+                ];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
 }
