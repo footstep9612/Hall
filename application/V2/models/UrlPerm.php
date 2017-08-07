@@ -71,7 +71,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             return $this->where($where)
-                ->save(['status' => 'DELETED']);
+                ->delete();
         }else{
             return false;
         }
@@ -90,14 +90,11 @@ class UrlPermModel extends PublicModel {
         if(isset($data['remarks'])){
             $arr['remarks'] = $data['remarks'];
         }
-        if(isset($data[''])){
+        if(isset($data['fn'])){
             $arr['fn'] = $data['fn'];
         }
         if(isset($data['parent_id'])){
             $arr['parent_id'] = $data['parent_id'];
-        }
-        if(isset($data['status'])){
-            $arr['status'] = $data['status'];
         }
         if(!empty($where)){
             return $this->where($where)->save($arr);

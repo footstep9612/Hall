@@ -14,6 +14,7 @@ class LogisticsController extends PublicController {
 		$this->quoteLogiFeeModel = new QuoteLogiFeeModel();
 		$this->quoteItemLogiModel = new QuoteItemLogiModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
+		$this->userModel = new UserModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -66,6 +67,45 @@ class LogisticsController extends PublicController {
 	        unset($condition['r_id']);
 	        $res = $this->quoteItemLogiModel->updateInfo($where, $condition);
 	
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 获取报价单列表接口
+	 *
+	 * @author liujf
+	 * @time 2017-08-07
+	 */
+	public function getQuoteLogiListAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['agent_name'])) {
+	         $agent = $this->userModel->where(['name' => $condition['agent_name']])->find();
+	         $condition['agent_id'] = $agent['id'];
+	    }
+	    
+	    if (!empty($condition['pm_name'])) {
+	        $pm = $this->userModel->where(['name' => $condition['pm_name']])->find();
+	        $condition['pm_id'] = $pm['id'];
+	    }
+	
+	    $quoteLogiFeeList= $this->quoteLogiFeeModel->getJoinList($condition);
+	    
+	    foreach ($quoteLogiFeeList as &$quoteLogiFee) {
+            $userAgent = $this->userModel->info($quoteLogiFee['agent_id']);
+            $userPm = $this->userModel->info($quoteLogiFee['pm_id']);
+	        $quoteLogiFee['agent_name'] = $userAgent['name'];
+	        $quoteLogiFee['pm_name'] = $userPm['name'];
+	    }
+	    
+	    if ($quoteLogiFeeList) {
+	        $res['code'] = 1;
+	        $res['message'] = '成功!';
+	        $res['data'] = $quoteLogiFeeList;
+	        $res['count'] = $this->quoteLogiFeeModel->getListCount($condition);
 	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);

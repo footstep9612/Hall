@@ -20,36 +20,23 @@ class CountryController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
-        unset($data['token']);
-        if (isset($data['current_no']) && $data['current_no']) {
-            $data['current_no'] = intval($data['current_no']) > 0 ? intval($data['current_no']) : 1;
-        }
-        if (isset($data['pagesize']) && $data['pagesize']) {
-            $data['pagesize'] = intval($data['pagesize']) > 0 ? intval($data['pagesize']) : 2;
-        }
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', 'zh');
         $market_area = new CountryModel();
-        if (redisGet('Country_list_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Country_list_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $market_area->getlistBycodition($data); //($this->put_data);
 
-            if ($arr) {
-                redisSet('Country_list_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+        $arr = $market_area->getlistBycodition($data); //($this->put_data);
+        $count = $market_area->getCount($data);
 
+        $this->setvalue('count', $count);
         if (!empty($arr)) {
-            $data['code'] = MSG::MSG_SUCCESS;
-            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS);
-            $data['data'] = $arr;
-        } else {
-            $data['code'] = MSG::MSG_FAILED;
-            $data['message'] = MSG::getMessage(MSG::MSG_FAILED);
-        }
-        $data['count'] = $market_area->getCount($data);
+            $this->setCode(MSG::MSG_SUCCESS);
 
-        $this->jsonReturn($data);
+            $this->jsonReturn($arr);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+
+            $this->jsonReturn();
+        }
     }
 
     /*
@@ -57,19 +44,14 @@ class CountryController extends PublicController {
      */
 
     public function listallAction() {
-        $data = $this->get();
-        unset($data['token']);
+        $data = $this->getPut();
+
         $data['lang'] = $this->getPut('lang', 'zh');
 
         $market_area = new CountryModel();
-        if (redisGet('Country_listall_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Country_listall_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $market_area->getlistBycodition($data, false);
-            if ($arr) {
-                redisSet('Country_listall_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $market_area->getlistBycodition($data, false);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } else {
@@ -83,10 +65,10 @@ class CountryController extends PublicController {
      */
 
     public function checknameAction() {
-        $name = $this->get('name');
-        $exclude = $this->get('exclude');
+        $name = $this->getPut('name');
+        $exclude = $this->getPut('exclude');
 
-        $lang = $this->get('lang', 'en');
+        $lang = $this->getPut('lang', 'en');
         if ($exclude == $name) {
             $this->setCode(1);
             $data = true;
@@ -110,7 +92,7 @@ class CountryController extends PublicController {
      * 详情
      */
     public function infoAction() {
-        $bn = $this->get('bn') ?: $this->getPut('bn');
+        $bn = $this->getPut('bn');
 
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
@@ -160,7 +142,7 @@ class CountryController extends PublicController {
      */
 
     public function createAction() {
-        $result = $this->_model->create_data($this->put_data);
+        $result = $this->_model->create_data($this->getPut(), $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -183,7 +165,7 @@ class CountryController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $result = $this->_model->update_data($this->put_data);
+        $result = $this->_model->update_data($this->getPut(), $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -199,7 +181,7 @@ class CountryController extends PublicController {
      */
 
     public function updatestatusAction() {
-        $result = $this->_model->updatestatus($this->put_data);
+        $result = $this->_model->updatestatus($this->getPut(), $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -228,7 +210,7 @@ class CountryController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $result = $this->_model->where($where)->delete();
+        $result = $this->_model->where($where)->save(['status' => 'DELETED']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

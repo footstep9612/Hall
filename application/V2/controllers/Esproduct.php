@@ -23,9 +23,12 @@ class EsproductController extends PublicController {
     //put your code here
     public function init() {
 
-        error_reporting(E_ERROR);
-        //  parent::init();
-        $this->es = new ESClient();
+        if ($this->getRequest()->isCli()) {
+            ini_set("display_errors", "On");
+            error_reporting(E_ERROR | E_STRICT);
+        } else {
+            parent::init();
+        }
     }
 
     /*
@@ -246,11 +249,12 @@ class EsproductController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             $time = redisGet('ES_PRODUCT_TIME');
+                redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->updateproducts($lang, $time);
             }
-            redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
+        
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

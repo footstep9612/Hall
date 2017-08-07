@@ -97,6 +97,10 @@ class GroupModel extends PublicModel {
         if(isset($data['remarks'])){
             $arr['remarks'] = $data['remarks'];
         }
+        if(isset($data['deleted_flag'])){
+            $arr['deleted_flag'] = $data['deleted_flag'];
+        }
+
         if(!empty($where)){
             return $this->where($where)->save($arr);
         }else{

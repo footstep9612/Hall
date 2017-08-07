@@ -11,7 +11,7 @@
  *
  * @author jhw
  */
-class DictController extends ShopMallController {
+class DictController extends Yaf_Controller_Abstract {
 
     public function __init() {
         //   parent::__init();

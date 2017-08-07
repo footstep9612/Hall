@@ -10,7 +10,7 @@
 class LogiperiodController extends PublicController {
 
     public function init() {
-        // parent::init();
+        parent::init();
 
         $this->_model = new LogiPeriodModel();
     }
@@ -24,34 +24,25 @@ class LogiperiodController extends PublicController {
      */
     public function listAction() {
         $condtion = $this->getPut();
-        unset($condtion['token']);
-        $key = 'logi_period_list_' . $lang . md5(json_encode($condtion));
-        $data = redisGet($key);
-        if (!$data) {
-            $arr = $this->_model->getListbycondition($condtion);
 
-            if ($arr) {
-                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-                $data['code'] = MSG::MSG_SUCCESS;
-                $data['data'] = $arr;
-                $data['count'] = $this->_model->getCount($condtion);
-                redisSet($key, json_encode($data), 86400);
-                $this->jsonReturn($data);
-            } elseif ($arr === null) {
-                redisSet($key, '&&', 86400);
-                $this->setvalue('count', 0);
-                $this->setCode(MSG::MSG_SUCCESS);
-                $this->jsonReturn(null);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
-        } elseif ($data == '&&') {
+        $arr = $this->_model->getListbycondition($condtion);
+
+        if ($arr) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+            $data['code'] = MSG::MSG_SUCCESS;
+            $data['data'] = $arr;
+            $data['count'] = $this->_model->getCount($condtion);
+
+            $this->jsonReturn($data);
+        } elseif ($arr === null) {
+
+            $this->setvalue('count', 0);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
-        $this->setCode(MSG::MSG_SUCCESS);
-        $this->jsonReturn(json_decode($data, true));
     }
 
     /**
@@ -64,33 +55,23 @@ class LogiperiodController extends PublicController {
     public function listallAction() {
         $condtion = $this->getPut();
         $condtion['lang'] = $this->getPut('lang', 'zh');
-        unset($condtion['token']);
-        $key = 'logi_period_listall_' . $lang . md5(json_encode($condtion));
-        $data = redisGet($key);
-        if (!$data) {
-            $arr = $this->_model->getListbycondition($condtion, true);
 
-            if ($arr) {
-                $this->setCode(MSG::MSG_SUCCESS);
-                $data['data'] = $arr;
 
-                redisSet($key, json_encode($data), 86400);
-                $this->jsonReturn($arr);
-            } elseif ($arr === null) {
-                redisSet($key, '&&', 86400);
+        $arr = $this->_model->getListbycondition($condtion, true);
 
-                $this->setCode(MSG::MSG_SUCCESS);
-                $this->jsonReturn(null);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
-        } elseif ($data == '&&') {
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+
+            $this->jsonReturn($arr);
+        } elseif ($arr === null) {
+
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
-        $this->setCode(MSG::MSG_SUCCESS);
-        $this->jsonReturn(json_decode($data, true));
     }
 
     /**

@@ -1,17 +1,16 @@
 <?php
 /*
- * @desc 报价单项物流报价模型
+ * @desc 信保税率模型
  * 
  * @author liujf 
- * @time 2017-08-02
+ * @time 2017-08-01
  */
-class QuoteItemLogiModel extends PublicModel {
+class SinosureRateModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
-    protected $tableName = 'quote_item_logi';
-    protected $joinTable1 = 'erui2_rfq.quote_item_form b ON a.quote_item_id = b.quote_item_id';
-    protected $joinTable2 = 'erui2_goods.goods c ON b.sku = c.sku AND c.lang = \'zh\'';
-    protected $joinField = 'a.id, a.tax_no, a.rebate_rate, a.export_tariff_rate, a.supervised_criteria, b.sku, b.quote_qty, b.quote_unit, b.net_weight_kg, b.gross_weight_kg, b.package_size, b.created_by, c.name_customs, c.name_zh';
+    protected $dbName = 'erui_config2';
+    protected $tableName = 'sinosure_rate';
+    protected $joinTable = 'erui_sys2.employee b ON a.created_by = b.id';
+    protected $joinField = 'a.*, b.name';
 			    
     public function __construct() {
         parent::__construct();
@@ -23,18 +22,18 @@ class QuoteItemLogiModel extends PublicModel {
      * @param array $condition
      * @return array
      * @author liujf
-     * @time 2017-08-02
+     * @time 2017-08-01
      */
     public function getJoinWhere($condition = []) {
          
         $where = [];
-        
-        if(!empty($condition['id'])) {
-            $where['a.id'] = $condition['id'];
-        }
+    
+        if(!empty($condition['country_bn'])) {
+     	    $where['a.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+     	}
          
-        if(!empty($condition['quote_id'])) {
-            $where['a.quote_id'] = $condition['quote_id'];
+        if(!empty($condition['name'])) {
+            $where['b.name'] = ['like', '%' . $condition['name'] . '%'];
         }
          
         $where['a.deleted_flag'] = 'N';
@@ -49,15 +48,14 @@ class QuoteItemLogiModel extends PublicModel {
      * @param array $condition
      * @return int $count
      * @author liujf
-     * @time 2017-08-02
+     * @time 2017-08-01
      */
     public function getJoinCount($condition = []) {
          
         $where = $this->getJoinWhere($condition);
          
         $count = $this->alias('a')
-                                 ->join($this->joinTable1, 'LEFT')
-                                 ->join($this->joinTable2, 'LEFT')
+                                 ->join($this->joinTable, 'LEFT')
                                  ->where($where)
                                  ->count('a.id');
          
@@ -70,21 +68,20 @@ class QuoteItemLogiModel extends PublicModel {
      * @param array $condition
      * @return array
      * @author liujf
-     * @time 2017-08-02
+     * @time 2017-08-01
      */
     public function getJoinList($condition = []) {
          
         $where = $this->getJoinWhere($condition);
     
-        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        //$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
     
         return $this->alias('a')
-                            ->join($this->joinTable1, 'LEFT')
-                            ->join($this->joinTable2, 'LEFT')
+                            ->join($this->joinTable, 'LEFT')
                             ->field($this->joinField)
                             ->where($where)
-                            //->page($currentPage, $pageSize)
+                            ->page($currentPage, $pageSize)
                             ->order('a.id DESC')
                             ->select();
     }
@@ -95,15 +92,14 @@ class QuoteItemLogiModel extends PublicModel {
      * @param array $condition
      * @return array
      * @author liujf
-     * @time 2017-08-02
+     * @time 2017-08-01
      */
     public function getJoinDetail($condition = []) {
          
         $where = $this->getJoinWhere($condition);
          
         return $this->alias('a')
-                            ->join($this->joinTable1, 'LEFT')
-                            ->join($this->joinTable2, 'LEFT')
+                            ->join($this->joinTable, 'LEFT')
                             ->field($this->joinField)
                             ->where($where)
                             ->find();
@@ -115,7 +111,7 @@ class QuoteItemLogiModel extends PublicModel {
      * @param array $condition
      * @return mixed
      * @author liujf
-     * @time 2017-08-02
+     * @time 2017-08-01
      */
     public function addRecord($condition = []) {
     
@@ -130,7 +126,7 @@ class QuoteItemLogiModel extends PublicModel {
      * @param array $where , $condition
      * @return bool
      * @author liujf
-     * @time 2017-08-02
+     * @time 2017-08-01
      */
     public function updateInfo($where = [], $condition = []) {
     
@@ -145,7 +141,7 @@ class QuoteItemLogiModel extends PublicModel {
      * @param array $condition
      * @return bool
      * @author liujf
-     * @time 2017-08-02
+     * @time 2017-08-01
      */
     public function delRecord($condition = []) {
     

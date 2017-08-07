@@ -53,13 +53,17 @@ class ShipownerClauseModel extends PublicModel {
      */
     public function getlist($condition, $order = 'id desc') {
         try {
-            $data = $this->_getCondition($condition);
-            $this->field('id,bn,clause')
-                    ->where($data);
-            return $this->order($order)
-                            ->select();
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where) . $order);
+            if (redisHashExist('ShipownerClause', $redis_key)) {
+                return json_decode(redisHashGet('ShipownerClause', $redis_key), true);
+            }
+            $result = $this->field('id,bn,clause')->where($where)->order($order)->select();
+            redisHashSet('ShipownerClause', $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }

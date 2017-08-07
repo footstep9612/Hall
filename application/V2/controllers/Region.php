@@ -17,7 +17,7 @@ class RegionController extends PublicController {
 
     //put your code here
     public function init() {
-        //parent::init();
+        parent::init();
     }
 
     /*
@@ -25,17 +25,12 @@ class RegionController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
-        $data['lang']=$this->get('lang','zh');
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', 'zh');
         $region_model = new RegionModel();
-        if (redisGet('Region_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Region_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $region_model->getlist($data);
-            if ($arr) {
-                redisSet('Region_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $region_model->getlist($data);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } else {

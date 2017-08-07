@@ -95,15 +95,16 @@ class TransBoxTypeModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($id = '') {
+    public function delete_data($id = '', $uid = 0) {
         if (!$id) {
             return false;
         } else {
             $where['id'] = $id;
         }
-
-        $flag = $this->where($where)
-                ->save(['status' => 'INVALID', 'deleted_flag' => 'Y']);
+        $data = ['status' => 'DELETED',
+            'deleted_flag' => 'Y',
+        ];
+        $flag = $this->where($where)->save($data);
 
         return $flag;
     }

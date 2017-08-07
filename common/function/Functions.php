@@ -852,11 +852,12 @@ function isMobile($mobile) {
  * @param str $name
  * @param str $key
  * @param str $value
+ * @param string $Expire 设置过期时间
  * @return string
  * @author jhw
  */
 
-function redisHashSet($name, $key, $value) {
+function redisHashSet($name, $key, $value, $Expire = null) {
 
     $reids = new phpredis();
     if (empty($name) && !is_string($name)) {
@@ -875,6 +876,9 @@ function redisHashSet($name, $key, $value) {
 
     $data[$key] = $value;
     if ($reids->hashSet($name, $data)) {
+        if ($Expire) {
+            $reids->setKeyExpire($name, $Expire);
+        }
         return true;
     } else {
         return false;
@@ -1361,10 +1365,10 @@ function browser_lang() {
  */
 function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
     header('Content-Type:application/json; charset=utf-8');
-    if(isset($data['data'])){
-      $data=  $data['data'];
+    if (isset($data['data'])) {
+        $data = $data['data'];
     }
-    exit(json_encode(array('data'=>$code==1 ? $data : false,'code' => $code, 'message' => ErrorMsg::getMessage($code, $message,$lang))));
+    exit(json_encode(array('data' => $code == 1 ? $data : false, 'code' => $code, 'message' => ErrorMsg::getMessage($code, $message, $lang))));
 }
 
 /**

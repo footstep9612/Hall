@@ -337,7 +337,7 @@ class ShowCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($cat_no = '', $lang = '') {
+    public function delete_data($cat_no = '', $lang = '', $uid=0) {
         if (!$cat_no) {
             return false;
         } else {
@@ -347,9 +347,16 @@ class ShowCatModel extends PublicModel {
             $where['lang'] = $lang;
         }
         $flag = $this->where($where)
-                ->save(['status' => self::STATUS_DELETED]);
-        $this->Table('erui2_goods.show_material_cat')->where(['show_cat_no' => $cat_no])
-                ->delete();
+                ->save(['status' => self::STATUS_DELETED,
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => $uid]);
+
+        $this->Table('erui2_goods.show_material_cat')->where([
+                    'show_cat_no' => $cat_no])
+                ->save(['status' => self::STATUS_DELETED,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'updated_by' => $uid
+        ]);
         $es_product_model = new EsProductModel();
         if ($lang) {
             $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
@@ -453,7 +460,9 @@ class ShowCatModel extends PublicModel {
         list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, $uid);
         $this->startTrans();
         $langs = ['en', 'es', 'zh', 'ru'];
-        $data['created_by'] = $uid;
+        $data['updated_by'] = $uid;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+
         foreach ($langs as $lang) {
             if (isset($condition[$lang])) {
                 $data['lang'] = $lang;
@@ -462,7 +471,9 @@ class ShowCatModel extends PublicModel {
                 $add = $data;
                 $add['cat_no'] = $cat_no;
                 $add['status'] = self::STATUS_APPROVING;
-
+                $add['cat_no'] = $uid;
+                $add['created_by'] = $uid;
+                $add['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($add);
                 if (!$flag) {
                     $this->rollback();
@@ -495,9 +506,12 @@ class ShowCatModel extends PublicModel {
                             'material_cat_no' => $material_cat_no,
                             'status' => 'VALID',
                             'created_at' => date('Y-m-d H:i:s'),
-                            'created_by' => $uid
+                            'created_by' => $uid,
+                            'updated_at' => date('Y-m-d H:i:s'),
+                            'updated_by' => $uid
                         ];
                     }
+
                     $show_material_cat_model->addAll($dataList);
                 }
             }
@@ -513,7 +527,9 @@ class ShowCatModel extends PublicModel {
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $uid
+                        'created_by' => $uid,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => $uid
                     ];
                 }
                 $show_material_cat_model->addAll($dataList);
@@ -533,7 +549,7 @@ class ShowCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getUpdateCondition($upcondition = [], $username = '') {
+    public function getUpdateCondition(&$upcondition = [], $uid = '') {
         $data = [];
         $where = [];
         $info = [];
@@ -545,9 +561,11 @@ class ShowCatModel extends PublicModel {
         if (isset($condition['country_bn']) && $condition['country_bn']) {
             $where['country_bn'] = $condition['country_bn'];
         }
+
         if ($condition['cat_no']) {
             $where['cat_no'] = $condition['cat_no'];
-            $info = $this->getinfo($where['cat_no']);
+            $info = $this->info($where['cat_no']);
+            $upcondition['level_no'] = $info['level_no'];
         } else {
             return false;
         }
@@ -601,7 +619,7 @@ class ShowCatModel extends PublicModel {
             $data['big_icon'] = $condition['big_icon'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $username;
+        $data['created_by'] = $uid;
         return [$data, $where, $cat_no];
     }
 
@@ -615,7 +633,6 @@ class ShowCatModel extends PublicModel {
             return false;
         }
         $show_cat_product_model = new ShowCatProductModel();
-        $spus = $show_cat_product_model->getspusByCatNo($old_cat_no);
         $es_product_model = new EsProductModel();
         $flag_cat_product = $show_cat_product_model
                 ->where(['cat_no' => $old_cat_no])
@@ -667,6 +684,7 @@ class ShowCatModel extends PublicModel {
 
     public function create_data($createcondition = [], $uid = '') {
         $data = $condition = $this->create($createcondition);
+
         if (isset($condition['cat_no'])) {
             $data['cat_no'] = $condition['cat_no'];
         }
@@ -677,6 +695,7 @@ class ShowCatModel extends PublicModel {
             $data['parent_cat_no'] = 0;
             $condition['level_no'] = 1;
         }
+
         if (isset($condition['parent_cat_no']) && $condition['level_no'] == 1) {
             $data['parent_cat_no'] = 0;
         } elseif (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {

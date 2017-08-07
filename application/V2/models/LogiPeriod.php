@@ -22,7 +22,7 @@ class LogiPeriodModel extends PublicModel {
      * @version V2.0
      * @desc   贸易条款对应物流时效
      */
-    function getCondition($condition) {
+    private function _getCondition($condition) {
         $where = [];
 
         getValue($where, $condition, 'id', 'string'); //id
@@ -63,7 +63,7 @@ class LogiPeriodModel extends PublicModel {
      */
     public function getCount($condition) {
         try {
-            $data = $this->getCondition($condition);
+            $data = $this->_getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
 
@@ -84,7 +84,17 @@ class LogiPeriodModel extends PublicModel {
      * @desc   贸易条款对应物流时效
      */
     public function getListbycondition($condition = '', $type = true) {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
+        if ($type) {
+            list($from, $pagesize) = $this->_getPage($condition);
+            $redis_key = md5(json_encode($condition) . $from . $pagesize . $type);
+        } else {
+            $redis_key = md5(json_encode($condition) . $type);
+        }
+
+        if (redisHashExist('LogiPeriod', $redis_key)) {
+            return json_decode(redisHashGet('LogiPeriod', $redis_key, true));
+        }
         try {
             $field = 'id,lang,logi_no,trade_terms_bn,trans_mode_bn,warehouse,from_country,'
                     . 'from_port,to_country,clearance_loc,to_port,packing_period_min,'
@@ -94,14 +104,15 @@ class LogiPeriodModel extends PublicModel {
                     . 'remarks,period_min,period_max,status,created_by,created_at';
             $this->field($field);
             if ($type) {
-                list($from, $pagesize) = $this->_getPage($condition);
                 $this->limit($from, $pagesize);
             }
             $result = $this->where($where)->select();
-
+            redisHashSet('LogiPeriod', $redis_key, json_encode($result));
             return $result;
-        } catch (Exception $e) {
-            return array();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 

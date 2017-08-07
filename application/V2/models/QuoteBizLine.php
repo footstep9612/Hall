@@ -108,11 +108,33 @@ class QuoteBizLineModel extends PublicModel{
     /**
      * 根据条件获取总数
      * @param $where
-     *
      * @return mixed
      */
     private function getTotal($where)
     {
         return $this->where($where)->count('id');
+    }
+
+    /**
+     * 划分产品线
+     * @param $data
+     * @return mixed
+     */
+    public function partitionBizline($data){
+
+        try{
+            if ($this->add($data)){
+                return [
+                    'code' =>'1',
+                    'message'=>'成功!'
+                ];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+
     }
 }

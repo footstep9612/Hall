@@ -11,22 +11,26 @@
  * @author  zhongyg
  * @date    2017-8-1 17:34:40
  * @version V2.0
- * @desc   
+ * @desc   费率类型
  */
 class FeetypeController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        parent::init();
     }
 
     /*
-     * 所有计费单位
+     * 所有费率类型
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   费率类型
      */
 
     public function listAction() {
-        $data = $this->get();
-        $data['lang'] = $this->get('lang','zh');
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', 'zh');
         $fee_type_model = new FeeTypeModel();
         if (redisGet('FeeType_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('FeeType_' . md5(json_encode($data))), true);

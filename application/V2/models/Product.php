@@ -26,6 +26,7 @@ class ProductModel extends PublicModel {
         'material_cat_no' => array('required'),
         'name' => array('required'),
         'show_name' => array('required'),
+        'brand' => array('required'),
     );
 
     /**
@@ -48,7 +49,7 @@ class ProductModel extends PublicModel {
      * @param array $input 请求数据
      * @param string $type 操作类型（INSERT/UPDATE）
      */
-    public function getData($input = [], $type = 'INSERT') {
+    public function getData($input = [], $type = 'INSERT', $lang='') {
         $data = array();
         //展示分类
         if (isset($input['material_cat_no'])) {
@@ -69,6 +70,30 @@ class ProductModel extends PublicModel {
             $data['show_name'] = htmlspecialchars($input['show_name']);
         } elseif ($type == 'INSERT') {
             $data['show_name'] = '';
+        }
+
+        //品牌  看前台传什么如果传id则需要查询brand表，否则直至存json
+        if (isset($input['brand'])) {
+            if(is_numeric($input['brand'])) {
+                $data['brand'] = '';
+                $brand = new BrandModel();
+                $brandInfo = $brand->info($input['brand']);
+                if($brandInfo){
+                    $brandAry = json_decode($brandInfo['brand'],true);
+                    foreach($brandAry as $r){
+                        if($r['lang'] == $lang){
+                            unset($r['lang']);
+                            unset($r['manufacturer']);
+                            $data['brand'] = json_encode($r);
+                            break;
+                        }
+                    }
+                }
+            }else{
+                $data['brand'] = $input['brand'];
+            }
+        } elseif ($type == 'INSERT') {
+            $data['brand'] = '';
         }
 
         //关键字
@@ -174,7 +199,7 @@ class ProductModel extends PublicModel {
         try {
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    $data = $this->getData($item, $spu ? 'UPDATE' : 'INSERT');
+                    $data = $this->getData($item, $spu ? 'UPDATE' : 'INSERT', $key);
                     $data['lang'] = $key;
                     if (empty($data)) {
                         continue;
@@ -199,7 +224,6 @@ class ProductModel extends PublicModel {
                         }
                     }
                     $data['status'] = $input['status'];
-                    $data['brand'] = ''; //品牌：看前台传什么如果传id则需要查询brand表，否则直至存json
                     if (empty($spu)) { //不存在添加
                         $spu_tmp = $this->createSpu(); //不存在生产spu
                         $data['spu'] = $spu_tmp;

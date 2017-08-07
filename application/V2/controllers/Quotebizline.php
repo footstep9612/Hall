@@ -516,4 +516,81 @@ class QuotebizlineController extends PublicController {
         ]);
     }
 
+    /**
+     * 产品线报价->项目经理->划分产品线
+     */
+    public function partitionBizlineAction(){
+        $response = $this->partitionBizlineHandler($this->_requestParams);
+        $this->jsonReturn($response);
+    }
+
+    /**
+     * 执行产品线报价划分产品线业务
+     * @param $param 参数
+     * @return array 结果
+     */
+    private function partitionBizlineHandler($param){
+        //重组参数，并准备插入到quote_bizline表
+        $data = QuoteBizlineHelper::setPartitionBizlineFields($param);
+        //插入数据
+        return $this->_quoteBizLine->partitionBizline($data);
+    }
+
+
+    /**
+     * 产品线报价->项目经理->转交其他人办理
+     * 操作说明:转交后，当前人员就不是项目经理了，如果也不是方案中心的人，就不能再查看这个项目了
+     */
+    public function transmitAction(){
+
+        if (empty($this->_requestParams['inquiry_id']) || empty($this->_requestParams['pm_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+        $response = QuoteBizlineHelper::transmitHandler($this->_requestParams);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 产品线报价->项目经理->提交产品线报价
+     * 操作说明:当前询单的状态改为产品线报价
+     */
+    public function submitToBizlineAction(){
+
+        if (empty($this->_requestParams['inquiry_ids'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+        $response = QuoteBizlineHelper::submitToBizline($this->_requestParams);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 产品线报价->项目经理->退回产品线重新报价
+     * 操作说明:当前询单的状态改为(退回)---待定
+     */
+    public function sendbackToBizlineAction(){
+
+        if (empty($this->_requestParams['inquiry_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+
+        $this->jsonReturn(QuoteBizlineHelper::sendbackToBizline($this->_requestParams));
+
+    }
+
+
+    /**
+     * 产品线报价->项目经理->提交物流报价
+     */
+    public function submitToLogiAction()
+    {
+
+        if (empty($this->_requestParams['inquiry_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+        $this->jsonReturn(QuoteBizlineHelper::submitToLogi($this->_requestParams));
+
+    }
+
 }
