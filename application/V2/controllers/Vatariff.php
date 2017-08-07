@@ -31,7 +31,7 @@ class VatariffController extends PublicController {
         $data = $this->get() ?: $this->getPut();
 
         $va_tariff_model = new VatariffModel();
-        $key = $data['keyword'] . $data['current_no'] . $data['pagesize'];
+        $key = $data['id'] . $data['current_no'] . $data['pagesize'] . md5($data['keyword']);
         if (redisHashExist('Vatariff', $key)) {
             $arr = json_decode(redisHashGet('Vatariff', $key), true);
         } else {
@@ -112,7 +112,7 @@ class VatariffController extends PublicController {
      */
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Vatariff_*');
+        $keys = $redis->getKeys('Vatariff');
         $redis->delete($keys);
     }
 
