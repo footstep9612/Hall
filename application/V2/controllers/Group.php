@@ -109,7 +109,6 @@ class GroupController extends PublicController {
             $id = $model_group->update_data($data,$where);
             if(!empty($id)){
                 $datajson['code'] = 1;
-                $datajson['data']['id'] = $id;
             }else{
                 $datajson['code'] = -104;
                 $datajson['data'] = $data;
