@@ -1,10 +1,11 @@
 <?php
 
 /**
- * Created by PhpStorm.
- * User: linkai
- * Date: 2017/6/30
- * Time: 19:46
+ * Description of PortModel
+ * @author  zhongyg
+ * @date    2017-8-1 16:50:09
+ * @version V2.0
+ * @desc   口岸
  */
 class PortModel extends PublicModel {
 
@@ -20,6 +21,10 @@ class PortModel extends PublicModel {
      * @param string $lang
      * @param string $country
      * @return array|mixed
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc 
      */
     public function getPort($lang = '', $country = '') {
         $condition = array(
@@ -39,16 +44,22 @@ class PortModel extends PublicModel {
                 redisHashSet('Port', md5(json_encode($condition)), json_encode($result));
                 return $result;
             }
-        } catch (Exception $e) {
-            return array();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 
-    /*
-     * 条件id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude
+    /**
+     * Description of 条件处理
+     * @param array $condition 条件
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   
      */
-
-    function getCondition($condition) {
+    private function _getCondition($condition) {
         $where = [];
         if (isset($condition['id']) && $condition['id']) {
             $where['id'] = $condition['id'];
@@ -77,16 +88,28 @@ class PortModel extends PublicModel {
         return $where;
     }
 
-    /*
-     * 获取数据
+    /**
+     * Description of 获取总数
+     * @param array $condition 条件
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
      */
-
     public function getCount($condition) {
         try {
-            $data = $this->getCondition($condition);
-            return $this->where($data)->count();
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where)) . '_COUNT';
+            if (redisHashExist('Port', $redis_key)) {
+                return redisHashGet('Port', $redis_key);
+            }
+            $count = $this->where($where)->count();
+            redisHashSet('Port', $redis_key, $count);
+            return $count;
         } catch (Exception $ex) {
 
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
     }
@@ -98,28 +121,37 @@ class PortModel extends PublicModel {
      * @param string $from_country 起始国
      * @param string $warehouse 起始仓库
      * @return array
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
      */
     public function getListbycondition($condition = '') {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
+
+
+
+        list($from, $pagesize) = $this->_getPage($condition);
+        $redis_key = md5(json_encode($where) . '_' . $from . '_' . $pagesize);
+        if (redisHashExist('Port', $redis_key)) {
+            return json_decode(redisHashGet('Port', $redis_key), true);
+        }
         try {
             $field = 'id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude';
 
-            $pagesize = 10;
-            $current_no = 1;
-            if (isset($condition['current_no'])) {
-                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-            }
-            if (isset($condition['pagesize'])) {
-                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-            }
-            $from = ($current_no - 1) * $pagesize;
+
             $result = $this->field($field)
                     ->limit($from, $pagesize)
                     ->where($where)
                     ->select();
+            if ($result) {
+                redisHashSet('Port', $redis_key, json_encode($result));
+            }
             return $result;
-        } catch (Exception $e) {
-            return array();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 
@@ -130,18 +162,31 @@ class PortModel extends PublicModel {
      * @param string $from_country 起始国
      * @param string $warehouse 起始仓库
      * @return array
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
      */
     public function getAll($condition = '') {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
+
+        $redis_key = md5(json_encode($where));
+        if (redisHashExist('Port', $redis_key)) {
+            return json_decode(redisHashGet('Port', $redis_key), true);
+        }
         try {
             $field = 'id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude';
-
             $result = $this->field($field)
                     ->where($where)
                     ->select();
+            if ($result) {
+                redisHashSet('Port', $redis_key, json_encode($result));
+            }
             return $result;
-        } catch (Exception $e) {
-            return array();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 
@@ -149,7 +194,10 @@ class PortModel extends PublicModel {
      * 修改数据
      * @param  int $id id
      * @return bool
-     * @author jhw
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
      */
     public function update_data($data, $uid = 0) {
         if (!isset($data['bn']) || !$data['bn']) {
@@ -160,7 +208,7 @@ class PortModel extends PublicModel {
         $this->startTrans();
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            $flag = $this->updateandcreate($data, $lang, $newbn, $uid);
+            $flag = $this->_updateandcreate($data, $lang, $newbn, $uid);
             if (!$flag) {
                 $this->rollback();
                 return false;
@@ -170,7 +218,16 @@ class PortModel extends PublicModel {
         return true;
     }
 
-    private function updateandcreate($data, $lang, $newbn, $uid) {
+    /**
+     * 存在修改或者不存在新增
+     * @param  int $id id
+     * @return bool
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+    private function _updateandcreate($data, $lang, $newbn, $uid) {
         if (isset($data[$lang]['name'])) {
             $where['lang'] = $lang;
             $where['bn'] = $data['bn'];
@@ -207,7 +264,10 @@ class PortModel extends PublicModel {
      * 新增数据
      * @param  mix $create 新增条件
      * @return bool
-     * @author jhw
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
      */
     public function create_data($create = [], $uid = 0) {
         if (isset($create['en']['name']) && isset($create['zh']['name'])) {

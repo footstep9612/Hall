@@ -10,7 +10,7 @@
 class TradetermsController extends PublicController {
 
     public function init() {
-         parent::init();
+        parent::init();
 
         $this->_model = new TradeTermsModel();
     }
@@ -24,41 +24,21 @@ class TradetermsController extends PublicController {
      */
 
     public function listAction() {
-        $condtion = $this->put_data;
-        unset($condtion['token']);
-        $key = 'Tradeterms_list_' . md5(json_encode($condtion));
-        $key_count = 'Tradeterms_list_count_' . md5(json_encode($condtion));
-        $data = redisGet($key);
-        if (!$data) {
-            $arr = $this->_model->getList($condtion);
-
-            if ($arr) {
-                $this->setCode(MSG::MSG_SUCCESS);
-                redisSet($key, json_encode($arr), 86400);
-                $count = $this->_model->getCount($condtion);
-                redisSet($key_count, $count, 86400);
-                $this->setvalue('count', $count);
-                $this->jsonReturn($data);
-            } elseif ($arr === null) {
-                $this->setCode(MSG::ERROR_EMPTY);
-                $this->jsonReturn(null);
-                redisSet($key, '&&', 86400);
-                redisSet($key_count, 0, 86400);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
-        } elseif ($data == '&&') {
+        $condtion = $this->getPut();
+        $condtion['lang'] = $this->getPut('lang', 'zh');
+        $arr = $this->_model->getList($condtion);
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $count = $this->_model->getCount($condtion);
+            echo $this->_model->_sql();
+            $this->setvalue('count', $count);
+            $this->jsonReturn($arr);
+        } elseif ($arr === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
-
-            $this->setCode(MSG::MSG_SUCCESS);
-            $count = intval(redisGet($key_count));
-            $this->setvalue('count', $count);
-            $data = json_decode($data, true);
-
-            $this->jsonReturn($data);
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
     }
 
@@ -71,32 +51,19 @@ class TradetermsController extends PublicController {
      */
 
     public function listallAction() {
-        $condtion = $this->put_data;
-        unset($condtion['token']);
-        $key = 'Tradeterms_listall_' . md5(json_encode($condtion));
-        $data = redisGet($key);
-        if (!$data) {
-            $arr = $this->_model->getall($condtion);
-            if ($arr) {
+        $condtion = $this->getPut();
+        $condtion['lang'] = $this->getPut('lang', 'zh');
 
-                $this->setCode(MSG::MSG_SUCCESS);
-                redisSet($key, json_encode($arr), 86400);
-                $this->jsonReturn($data);
-            } elseif ($arr === null) {
-                $this->setCode(MSG::ERROR_EMPTY);
-                $this->jsonReturn(null);
-                redisSet($key, '&&', 86400);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
-        } elseif ($data == '&&') {
+        $arr = $this->_model->getall($condtion);
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
+        } elseif ($arr === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
-            $this->setCode(MSG::MSG_SUCCESS);
-            $data = json_decode($data, true);
-            $this->jsonReturn($data);
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
     }
 
@@ -138,7 +105,7 @@ class TradetermsController extends PublicController {
 
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Tradeterms_*');
+        $keys = $redis->getKeys('Tradeterms');
         $redis->delete($keys);
     }
 
@@ -151,7 +118,7 @@ class TradetermsController extends PublicController {
      */
 
     public function createAction() {
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         $data = $this->_model->create($condition);
         $result = $this->_model->add($data);
         if ($result) {
@@ -174,7 +141,7 @@ class TradetermsController extends PublicController {
 
     public function updateAction() {
 
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         $data = $this->_model->create($condition);
         $where['id'] = $condition['id'];
         $result = $this->_model->where($where)->update($data);
@@ -198,7 +165,7 @@ class TradetermsController extends PublicController {
 
     public function deleteAction() {
 
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         if (isset($condition['id']) && $condition['id']) {
             if (is_string($condition['id'])) {
                 $where['id'] = $condition['id'];

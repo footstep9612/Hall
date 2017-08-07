@@ -37,8 +37,8 @@ class BoxShipownerClauseModel extends PublicModel {
         $this->_getValue($data, $condition, 'shipowner_clause_bn'); //贸易术语简称
         if (isset($condition['keyword']) && $condition['keyword']) {
             $map = [];
-            
-         
+
+
             $this->_getValue($map, $condition, 'keyword', 'like', 'bt.box_type_name');
             $this->_getValue($map, $condition, 'keyword', 'like', 'sc.clause');
             $map['_logic'] = 'or';
@@ -61,14 +61,20 @@ class BoxShipownerClauseModel extends PublicModel {
      */
     public function getlist($condition, $order = 'tbt.id desc') {
         try {
-            $data = $this->_getCondition($condition);
-            $this->alias('tbt')
-                    ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
-                    ->join('erui2_dict.shipowner_clause sc on sc.bn=tbt.shipowner_clause_bn and sc.lang=\'zh\'', 'left')
-                    ->field('tbt.id,bt.box_type_name,sc.clause ')
-                    ->where($data);
-            return $this->order($order)
-                            ->select();
+            $where = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($where) . $order);
+            if (redisHashExist('BoxShipownerClause', $redis_key)) {
+                return json_decode(redisHashGet('BoxShipownerClause', $redis_key), true);
+            }
+            $result = $this->alias('tbt')
+                            ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
+                            ->join('erui2_dict.shipowner_clause sc on sc.bn=tbt.shipowner_clause_bn and sc.lang=\'zh\'', 'left')
+                            ->field('tbt.id,bt.box_type_name,sc.clause ')
+                            ->where($where)->order($order)->select();
+
+
+            redisHashSet('BoxShipownerClause', $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
             print_r($ex);
             return [];

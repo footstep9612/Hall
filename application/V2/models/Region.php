@@ -53,14 +53,18 @@ class RegionModel extends PublicModel {
      */
     public function getlist($condition, $order = 'id desc') {
         try {
-            $data = $this->_getCondition($condition);
-            $this->field('id,lang,bn,name,`status`')
-                    ->where($data);
+            $where = $this->_getCondition($condition);
 
-            return $this->order($order)
-                            ->select();
+            $redis_key = md5(json_encode($where) . $order);
+            if (redisHashExist('Region', $redis_key)) {
+                return json_decode(redisHashGet('Region', $redis_key), true);
+            }
+            $result = $this->field('id,lang,bn,name,`status`')->where($where)->order($order)->select();
+            redisHashSet('Region', $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }

@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of User
+ * Description of Country
  *
  * @author jhw
  */
@@ -28,7 +28,7 @@ class CountryModel extends PublicModel {
      * 条件id,lang,bn,name,time_zone,region,pinyin
      */
 
-    private function getCondition($condition) {
+    private function _getCondition(&$condition) {
         $data = [];
         getValue($data, $condition, 'lang', 'string', 'c.lang');
         if (isset($condition['bn']) && $condition['bn']) {
@@ -45,8 +45,7 @@ class CountryModel extends PublicModel {
             $data['c.status'] = 'VALID';
         }
         getValue($data, $condition, 'market_area_bn', 'like', 'mac.market_area_bn');
-        $condition = null;
-        unset($condition);
+
         return $data;
     }
 
@@ -58,30 +57,30 @@ class CountryModel extends PublicModel {
      */
     public function getlistBycodition($condition, $order = 'c.id desc', $type = true) {
         try {
-            $data = $this->getCondition($condition);
-
+            $where = $this->_getCondition($condition);
+            $condition = null;
+            unset($condition);
             if ($type) {
-                $pagesize = 10;
-                $current_no = 1;
-                if (isset($condition['current_no']) && $condition['current_no']) {
-                    $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-                }
-                if (isset($condition['pagesize']) && $condition['pagesize']) {
-                    $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-                }
-                $from = ($current_no - 1) * $pagesize;
+                list($from, $pagesize) = $this->_getPage($condition);
+            }
+            $redis_key = md5(json_encode($where) . $order . $from . $pagesize . $type);
+            if (redisHashExist('Country', $redis_key)) {
+                return json_decode(redisHashGet('Country', $redis_key), true);
             }
             $this->alias('c')
                     ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
                     ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
                     ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,'
                             . 'ma.name as market_area_name ,mac.market_area_bn')
-                    ->where($data);
+                    ->where($where);
             if ($type) {
                 $this->limit($from . ',' . $pagesize);
             }
-            return $this->order($order)
-                            ->select();
+            $result = $this->order($order)
+                    ->select();
+
+            redisHashSet('Country', $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
             print_r($ex);
             return [];
@@ -97,7 +96,7 @@ class CountryModel extends PublicModel {
             $data = $this->alias('c')
                     ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
                     ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
-                    ->getCondition($condition);
+                    ->_getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

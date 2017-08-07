@@ -16,11 +16,15 @@ class CityModel extends Model {
      * @param string $bn 简称
      * @param string $lang 语言
      * @return string
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc 
      */
     public function getCityByBn($bn = '', $lang = '') {
-        if (empty($bn) || empty($lang))
+        if (empty($bn) || empty($lang)) {
             return '';
-
+        }
         if (redisHashExist('City', $bn . '_' . $lang)) {
             return redisHashGet('City', $bn . '_' . $lang);
         }
@@ -43,11 +47,15 @@ class CityModel extends Model {
         }
     }
 
-    /*
-     * 条件id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude
+    /**
+     * Description of 条件处理
+     * @param array $condition 条件
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   
      */
-
-    function getCondition($condition) {
+    private function _getCondition($condition) {
         $where = [];
         if (isset($condition['id']) && $condition['id']) {
             $where['id'] = $condition['id'];
@@ -74,12 +82,24 @@ class CityModel extends Model {
 
     /*
      * 获取数据
+     * @param array $condition 条件
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc 
      */
 
     public function getCount($condition) {
         try {
-            $data = $this->getCondition($condition);
-            return $this->where($data)->count();
+
+            $data = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($data)) . 'COUNT';
+            if (redisHashExist('City', $redis_key)) {
+                return redisHashGet('City', $redis_key);
+            }
+            $count = $this->where($data)->count();
+             redisHashSet('City', $redis_key, $count);
+            return $count;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -94,25 +114,25 @@ class CityModel extends Model {
      * @param string $from_country 起始国
      * @param string $warehouse 起始仓库
      * @return array
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc 
      */
     public function getListbycondition($condition = '') {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
+        list($from, $pagesize) = $this->_getPage($condition);
+        $redis_key = md5(json_encode($where) . '_' . $from . '_' . $pagesize);
+        if (redisHashExist('City', $redis_key)) {
+            return json_decode(redisHashGet('City', $redis_key), true);
+        }
         try {
             $field = 'id,bn,country_bn,name,lang,region_bn,time_zone';
-
-            $pagesize = 10;
-            $current_no = 1;
-            if (isset($condition['current_no'])) {
-                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-            }
-            if (isset($condition['pagesize'])) {
-                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-            }
-            $from = ($current_no - 1) * $pagesize;
             $result = $this->field($field)
                     ->limit($from, $pagesize)
                     ->where($where)
                     ->select();
+            redisHashSet('City', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -128,14 +148,25 @@ class CityModel extends Model {
      * @param string $from_country 起始国
      * @param string $warehouse 起始仓库
      * @return array
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc 
      */
     public function getAll($condition = '') {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
+        $redis_key = md5(json_encode($where));
+        if (redisHashExist('City', $redis_key)) {
+            return json_decode(redisHashGet('City', $redis_key), true);
+        }
         try {
             $field = 'id,bn,country_bn,name,lang,region_bn,time_zone';
             $result = $this->field($field)
                     ->where($where)
                     ->select();
+            if ($result) {
+                redisHashSet('City', $redis_key, json_encode($result));
+            }
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

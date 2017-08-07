@@ -1,64 +1,78 @@
 <?php
 
 /**
-  附件文档Controller
+ * Description of CityController
+ * @author  zhongyg
+ * @date    2017-8-1 16:50:09
+ * @version V2.0
+ * @desc   城市
  */
 class CityController extends PublicController {
 
     public function init() {
-         parent::init();
+        parent::init();
 
         $this->_model = new CityModel();
     }
 
+    /*
+     * Description of 城市列表
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
+     */
+
     public function listAction() {
         $condtion = $this->getPut(null);
+        $condtion['lang'] = $this->getPut('lang', 'zh');
+        $arr = $this->_model->getListbycondition($condtion);
+        if ($arr) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+            $data['code'] = MSG::MSG_SUCCESS;
+            $data['data'] = $arr;
+            $data['count'] = $this->_model->getCount($condtion);
 
-        $key = 'City_list_' . md5(json_encode($condtion));
-        $data = json_decode(redisGet($key), true);
-        if (!$data) {
-            $arr = $this->_model->getListbycondition($condtion);
-            if ($arr) {
-                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-                $data['code'] = MSG::MSG_SUCCESS;
-                $data['data'] = $arr;
-                $data['count'] = $this->_model->getCount($condtion);
-                redisSet($key, json_encode($data), 86400);
-                $this->jsonReturn($data);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
-        $this->jsonReturn($data);
     }
+
+    /*
+     * Description of 城市列表 所有
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
+     */
 
     public function listallAction() {
         $condtion = $this->getPut(null);
         $condtion['lang'] = $this->getPut('lang', 'zh');
 
-        unset($condtion['token']);
-        $key = 'City_listall_' . md5(json_encode($condtion));
-        $data = json_decode(redisGet($key), true);
-        if (!$data) {
-            $arr = $this->_model->getAll($condtion);
-            if ($arr) {
-                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-                $data['code'] = MSG::MSG_SUCCESS;
-                $data['data'] = $arr;
-                redisSet($key, json_encode($data), 86400);
-                $this->jsonReturn($data);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
+        $arr = $this->_model->getAll($condtion);
+        if ($arr) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+            $data['code'] = MSG::MSG_SUCCESS;
+            $data['data'] = $arr;
+            redisSet($key, json_encode($data), 86400);
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
-        $this->jsonReturn($data);
     }
 
-    /**
-     * 分类联动
+    /*
+     * Description of 城市详情
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
      */
+
     public function infoAction() {
         $bn = $this->get('bn') ?: $this->getPut('bn');
         if ($bn) {
@@ -66,7 +80,7 @@ class CityController extends PublicController {
             $langs = ['en', 'zh', 'es', 'ru'];
             foreach ($langs as $lang) {
                 $result = $this->_model->field('lang,region_bn,country_bn,bn,'
-                        . 'name,time_zone,status,created_by,created_at')
+                                        . 'name,time_zone,status,created_by,created_at')
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
 
                 if ($result) {
@@ -98,15 +112,33 @@ class CityController extends PublicController {
         exit;
     }
 
+    /*
+     * Description of 删除缓存
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
+     */
+
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('City*');
+        $keys = $redis->getKeys('City');
         $redis->delete($keys);
     }
+
+    /*
+     * Description of 新增城市
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
+     */
 
     public function createAction() {
         $condition = $this->getPut();
         $data = $this->_model->create($condition);
+        $data['created_by'] = $this->user['id'];
+        $data['created_at'] = date('Y-m-d H:i:s');
         $result = $this->_model->add($data);
         if ($result) {
             $this->delcache();
@@ -118,11 +150,19 @@ class CityController extends PublicController {
         }
     }
 
+    /*
+     * Description of 更新城市
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
+     */
+
     public function updateAction() {
 
         $condition = $this->getPut();
 
-        $result = $this->_model->update_data($condition);
+        $result = $this->_model->update_data($condition, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -132,6 +172,14 @@ class CityController extends PublicController {
             $this->jsonReturn();
         }
     }
+
+    /*
+     * Description of 删除城市
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
+     */
 
     public function deleteAction() {
 
@@ -149,7 +197,7 @@ class CityController extends PublicController {
             $this->jsonReturn();
         }
 
-        $result = $this->_model->where($where)->delete();
+        $result = $this->_model->where($where)->save(['status' => 'DELETED']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

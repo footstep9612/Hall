@@ -50,11 +50,19 @@ class FeeTypeModel extends PublicModel {
      */
     public function getlist($condition, $order = 'id desc') {
         try {
-            $data = $this->_getCondition($condition);
+            $where = $this->_getCondition($condition);
+
+            $redis_key = md5(json_encode($where) . $order);
+            if (redisHashExist('FeeType', $redis_key)) {
+                return json_decode(redisHashGet('FeeType', $redis_key), true);
+            }
             $this->field('id,bn,name')
-                    ->where($data);
-            return $this->order($order)
-                            ->select();
+                    ->where($where);
+            $result = $this->order($order)
+                    ->select();
+
+            redisHashSet('FeeType', $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
             print_r($ex);
             return [];
