@@ -22,11 +22,12 @@ class VatariffModel extends PublicModel {
     function getCondition($condition) {
         $where = [];
         if (isset($condition['id']) && $condition['id']) {
-            $where['id'] = $condition['id'];
+            $where['vt.id'] = $condition['id'];
         }
 
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
+            $employee_model = new EmployeeModel();
             $userids = $employee_model->getUseridsByUserName($keyword);
             if ($userids) {
                 $map['vt.created_by'] = ['in', $userids];
@@ -67,7 +68,7 @@ class VatariffModel extends PublicModel {
     public function getList($condition = '') {
         $where = $this->getCondition($condition);
         try {
-            $field = 'vt.id,vt.country_bn,vt.value_added_tax,vt.tariff'
+            $field = 'vt.id,vt.country_bn,vt.value_added_tax,vt.tariff,'
                     . 'vt.created_by,vt.created_at,c.name as country_name';
 
             $pagesize = 10;
@@ -86,7 +87,8 @@ class VatariffModel extends PublicModel {
                     ->where($where)
                     ->select();
             return $result;
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
+
             return array();
         }
     }
@@ -116,6 +118,25 @@ class VatariffModel extends PublicModel {
     }
 
     /**
+     * Description of 更新目的国 增值税、关税
+     * @param  int $id id
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   目的国 增值税、关税
+     */
+    public function info($id = '') {
+        if ($id) {
+            $where['id'] = $id;
+        } else {
+            return [];
+        }
+        $field = 'id,country_bn,value_added_tax,tariff,created_by,created_at';
+        return $this->field($field)->where($where)
+                        ->find();
+    }
+
+    /**
      * 新增数据
      * @param  mix $create 新增条件
      * @return bool
@@ -124,7 +145,11 @@ class VatariffModel extends PublicModel {
     public function create_data($create = [], $uid = 0) {
         $create['created_by'] = $uid;
         $create['created_at'] = date('Y-m-d H:i:s');
+
         $data = $this->create($create);
+        $data['value_added_tax'] = number_format($data['value_added_tax'], 4, '.', '');
+        $data['tariff'] = number_format($data['tariff'], 4, '.', '');
+
         $flag = $this->add($data);
         return $flag;
     }

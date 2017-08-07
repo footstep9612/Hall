@@ -25,16 +25,18 @@ class VatariffController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   营销区域
+     * @desc   目的国 增值税、关税
      */
     public function listAction() {
         $data = $this->get() ?: $this->getPut();
 
         $va_tariff_model = new VatariffModel();
+
         if (redisGet('Vatariff_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('Vatariff_' . md5(json_encode($data))), true);
         } else {
             $arr = $va_tariff_model->getlist($data, false);
+
             $this->_setUserName($arr);
             if ($arr) {
                 redisSet('Vatariff_' . md5(json_encode($data)), json_encode($arr));
@@ -74,7 +76,7 @@ class VatariffController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   营销区域
+     * @desc   目的国 增值税、关税
      */
     public function infoAction() {
         $id = $this->getPut('id', '');
@@ -82,14 +84,13 @@ class VatariffController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $data = [];
-
         $va_tariff_model = new VatariffModel();
         $result = $va_tariff_model->info($id);
-
+        $data = [$result];
+        $this->_setUserName($data);
         if ($result) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($data);
+            $this->jsonReturn($data[0]);
         } elseif ($result == null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
@@ -106,7 +107,7 @@ class VatariffController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   营销区域
+     * @desc   目的国 增值税、关税
      */
     private function delcache() {
         $redis = new phpredis();
@@ -115,11 +116,11 @@ class VatariffController extends PublicController {
     }
 
     /**
-     * Description of 新增营销区域
+     * Description of 新增目的国 增值税、关税
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   营销区域
+     * @desc   目的国 增值税、关税
      */
     public function createAction() {
         $data = $this->getPut();
@@ -138,11 +139,11 @@ class VatariffController extends PublicController {
     }
 
     /**
-     * Description of 更新营销区域
+     * Description of 更新目的国 增值税、关税
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   营销区域
+     * @desc   目的国 增值税、关税
      */
     public function updateAction() {
         $data = $this->getPut();
@@ -159,11 +160,11 @@ class VatariffController extends PublicController {
     }
 
     /**
-     * Description of 删除营销区域
+     * Description of 删除目的国 增值税、关税
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   营销区域
+     * @desc   目的国 增值税、关税
      */
     public function deleteAction() {
 
