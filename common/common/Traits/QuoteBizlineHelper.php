@@ -157,4 +157,17 @@ trait QuoteBizlineHelper{
         return $data;
     }
 
+    /**
+     * 产品线报价->项目经理->提交物流报价
+     * @param $param
+     * @return array
+     */
+    static public function submitToLogi($param)
+    {
+        $response = [
+            'code' => '1',
+            'message' => '提交成功!'
+        ];
+        return $response;
+    }
 }

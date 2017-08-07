@@ -580,4 +580,17 @@ class QuotebizlineController extends PublicController {
     }
 
 
+    /**
+     * 产品线报价->项目经理->提交物流报价
+     */
+    public function submitToLogiAction()
+    {
+
+        if (empty($this->_requestParams['inquiry_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+        $this->jsonReturn(QuoteBizlineHelper::submitToLogi($this->_requestParams));
+
+    }
+
 }
