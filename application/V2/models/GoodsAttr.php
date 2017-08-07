@@ -369,10 +369,10 @@ class GoodsAttrModel extends PublicModel {
         try {
             $data = [
                 'spu' => $input['spu'],
-                'spec_attrs' => isset($input['attrs']['spec_attrs']) ? json_encode($input['attrs']['spec_attrs']) : '',
-                'ex_goods_attrs' => isset($input['attrs']['ex_goods_attrs']) ? json_encode($input['attrs']['ex_goods_attrs']) : '',
-                'ex_hs_attrs' => isset($input['attrs']['ex_hs_attrs']) ? json_encode($input['attrs']['ex_hs_attrs']) : '',
-                'other_attrs' => isset($input['attrs']['other_attrs']) ? json_encode($input['attrs']['other_attrs']) : ''
+                'spec_attrs' => isset($input['attrs']['spec_attrs']) ? $input['attrs']['spec_attrs'] : '',
+                'ex_goods_attrs' => isset($input['attrs']['ex_goods_attrs']) ? $input['attrs']['ex_goods_attrs'] : '',
+                'ex_hs_attrs' => isset($input['attrs']['ex_hs_attrs']) ? $input['attrs']['ex_hs_attrs'] : '',
+                'other_attrs' => isset($input['attrs']['other_attrs']) ? $input['attrs']['other_attrs'] : ''
             ];
             //存在sku编辑,反之新增,后续扩展性
             $result = $this->field('sku')->where(['sku' => $input['sku'], 'lang' => $input['lang']])->find();
