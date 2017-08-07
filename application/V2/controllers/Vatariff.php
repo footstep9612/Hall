@@ -31,16 +31,16 @@ class VatariffController extends PublicController {
         $data = $this->get() ?: $this->getPut();
 
         $va_tariff_model = new VatariffModel();
-
-        if (redisGet('Vatariff_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Vatariff_' . md5(json_encode($data))), true);
+        $key = $data['keyword'] . $data['current_no'] . $data['pagesize'];
+        if (redisHashExist('Vatariff', $key)) {
+            $arr = json_decode(redisHashGet('Vatariff', $key), true);
         } else {
             $arr = $va_tariff_model->getlist($data, false);
 
-          
+
             $this->_setUserName($arr);
             if ($arr) {
-                redisSet('Vatariff_' . md5(json_encode($data)), json_encode($arr));
+                redisHashSet('Vatariff', $key, json_encode($arr));
             }
         }
         if (!empty($arr)) {
