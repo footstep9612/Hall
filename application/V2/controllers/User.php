@@ -35,6 +35,9 @@ class UserController extends PublicController {
         if(!empty($data['role_id'])){
             $where['role_id'] = $data['role_id'];
         }
+        if(!empty($data['employee_flag'])){
+            $where['employee_flag'] = $data['employee_flag'];
+        }
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
@@ -117,13 +120,35 @@ class UserController extends PublicController {
         if(!empty($data['remarks'])) {
             $arr['remarks'] = $data['remarks'];
         }
-        if(!empty($data['user_no'])) {
-            $arr['user_no'] = $data['user_no'];
+        if(!empty($data['employee_flag'])) {
+            $arr['employee_flag'] = $data['employee_flag'];
         }else{
-            $this->jsonReturn(array("code" => "-101", "message" => "用户编号不能为空"));
+            $arr['employee_flag'] = "I";
+        }
+        $model = new UserModel();
+        if($arr['employee_flag']=="O"){
+            $condition['page']=0;
+            $condition['countPerPage']=1;
+            $condition['employee_flag']='O';
+            $data_t = $model->getlist($condition); //($this->put_data);
+            if($data_t){
+                $no=substr($data_t[0]['user_no'],-1,9);
+                $no++;
+            }else{
+                $no=1;
+            }
+            $temp_num = 1000000000;
+            $new_num = $no + $temp_num;
+            $real_num = date("Ymd").substr($new_num,1,9); //即截取掉最前面的“1”
+            $arr['user_no'] = $real_num;
+        }else{
+            if(!empty($data['user_no'])) {
+                $arr['user_no'] = $data['user_no'];
+            }else{
+                $this->jsonReturn(array("code" => "-101", "message" => "用户编号不能为空"));
+            }
         }
         $arr['created_by'] = $this->user['id'];
-        $model = new UserModel();
         $login_arr['user_no'] = $data['user_no'];
         $check = $model->Exist($login_arr);
         if($check){
