@@ -11,7 +11,9 @@ class QuoteLogiFeeModel extends PublicModel {
     protected $tableName = 'quote_logi_fee';
     protected $joinTable1 = 'erui2_rfq.quote b ON a.quote_id = b.id';
     protected $joinTable2 = 'erui2_sys.employee c ON a.updated_by = c.id';
+    protected $joinTable3 = 'erui2_rfq.inquiry d ON a.inquiry_id = d.id';
     protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.box_type_bn, b.quote_remarks, c.name';
+    protected $joinField_ = 'a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, b.period_of_validity';
 			    
     public function __construct() {
         parent::__construct();
@@ -31,6 +33,37 @@ class QuoteLogiFeeModel extends PublicModel {
          
         if(!empty($condition['quote_id'])) {
             $where['a.quote_id'] = $condition['quote_id'];
+        }
+        
+        if(!empty($condition['status'])) {
+            $where['a.status'] = $condition['status'];
+        }
+        
+        if(!empty($condition['country_bn'])) {
+            $where['d.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+        }
+        
+        if(!empty($condition['inquiry_no'])) {
+            $where['d.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+        }
+        
+        if(!empty($condition['buyer_name'])) {
+            $where['d.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
+        }
+        
+        if (!empty($condition['agent_id'])) {
+            $where['d.agent_id'] = $condition['agent_id'];
+        }
+        
+        if (!empty($condition['pm_id'])) {
+            $where['d.pm_id'] = $condition['pm_id'];
+        }   
+        
+        if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
+            $where['d.inquiry_time'] = [
+                ['egt', $condition['start_inquiry_time']],
+                ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
+            ];
         }
         
         $where['a.deleted_flag'] = 'N';
@@ -61,6 +94,27 @@ class QuoteLogiFeeModel extends PublicModel {
     }
     
     /**
+     * @desc 获取l列表记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-08-07
+     */
+    public function getListCount($condition = []) {
+         
+        $where = $this->getJoinWhere($condition);
+         
+        $count = $this->alias('a')
+                                ->join($this->joinTable1, 'LEFT')
+                                ->join($this->joinTable3, 'LEFT')
+                                ->where($where)
+                                ->count('a.id');
+         
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
      * @desc 获取关联列表
      *
      * @param array $condition
@@ -72,15 +126,15 @@ class QuoteLogiFeeModel extends PublicModel {
          
         $where = $this->getJoinWhere($condition);
     
-        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        //$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
     
         return $this->alias('a')
                             ->join($this->joinTable1, 'LEFT')
-                            ->join($this->joinTable2, 'LEFT')
-                            ->field($this->joinField)
+                            ->join($this->joinTable3, 'LEFT')
+                            ->field($this->joinField_)
                             ->where($where)
-                            //->page($currentPage, $pageSize)
+                            ->page($currentPage, $pageSize)
                             ->order('a.id DESC')
                             ->select();
     }
