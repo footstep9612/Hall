@@ -24,7 +24,7 @@ class EsproductController extends PublicController {
     public function init() {
 
         error_reporting(E_ERROR);
-        //  parent::init();
+        parent::init();
         $this->es = new ESClient();
     }
 

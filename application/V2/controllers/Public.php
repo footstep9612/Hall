@@ -22,6 +22,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         error_reporting(E_ERROR | E_STRICT);
 
         $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
+        $this->put_data['token'] = null;
+        unset($this->put_data['token']);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
 
@@ -200,13 +202,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function getPut($name = null, $default = null) {
 
         if (!$this->put_data) {
-            $this->put_data = json_decode(file_get_contents("php://input"), true);
+            $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
+            $data['token'] = null;
+            unset($data['token']);
+            return $data;
         }
         if ($name) {
             $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
             return $data;
         } else {
-            return $this->put_data;
+            $data = $this->put_data;
+            $data['token'] = null;
+            unset($data['token']);
+            return $data;
         }
     }
 

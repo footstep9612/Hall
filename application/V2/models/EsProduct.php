@@ -190,6 +190,9 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
+
+
+
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
@@ -235,6 +238,12 @@ class EsProductModel extends Model {
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
+        if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
+            $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"' . $onshelf_flag . '"']]];
+        }
+
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'onshelf_flag', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');

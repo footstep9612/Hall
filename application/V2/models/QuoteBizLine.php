@@ -5,9 +5,7 @@
  * Class QuoteBizLineModel
  * @author 买买提
  */
-class QuoteBizLineModel extends PublicModel
-{
-
+class QuoteBizLineModel extends PublicModel{
     /**
      * 数据库名称
      * @var string
@@ -20,8 +18,7 @@ class QuoteBizLineModel extends PublicModel
      */
     protected $tableName = 'quote_bizline';
 
-    public function __construct()
-    {
+    public function __construct(){
         parent::__construct();
     }
 
@@ -31,8 +28,7 @@ class QuoteBizLineModel extends PublicModel
      *
      * @return array
      */
-    public function getQuoteList(array $param)
-    {
+    public function getQuoteList(array $param){
         $where = $this->filterParam($param);
 
         //$fields = [];
@@ -118,5 +114,28 @@ class QuoteBizLineModel extends PublicModel
     private function getTotal($where)
     {
         return $this->where($where)->count('id');
+    }
+
+    /**
+     * 划分产品线
+     * @param $data
+     * @return mixed
+     */
+    public function partitionBizline($data){
+
+        try{
+            if ($this->add($data)){
+                return [
+                    'code' =>'1',
+                    'message'=>'成功!'
+                ];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+
     }
 }

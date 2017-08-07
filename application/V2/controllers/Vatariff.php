@@ -7,13 +7,13 @@
  */
 
 /**
- * Description of LogiRate
+ * Description of Vatariff
  * @author  zhongyg
- * @date    2017-8-3 15:30:59
+ * @date    2017-8-5 18:38:03
  * @version V2.0
- * @desc  物流费率 
+ * @desc   关税税率
  */
-class LogirateController extends PublicController {
+class VatariffController extends PublicController {
 
     //put your code here
     public function init() {
@@ -23,20 +23,24 @@ class LogirateController extends PublicController {
     /**
      * Description of MarketAreaModel
      * @author  zhongyg
-     * @date    2017-8-3 15:30:59
+     * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   物流费率
+     * @desc   目的国 增值税、关税
      */
     public function listAction() {
         $data = $this->get() ?: $this->getPut();
 
-        $Logi_Rate_model = new LogiRateModel();
-        if (redisGet('Logi_Rate_listall_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Logi_Rate_listall_' . md5(json_encode($data))), true);
+        $va_tariff_model = new VatariffModel();
+        $key = $data['id'] . $data['current_no'] . $data['pagesize'] . md5($data['keyword']);
+        if (redisHashExist('Vatariff', $key)) {
+            $arr = json_decode(redisHashGet('Vatariff', $key), true);
         } else {
-            $arr = $Logi_Rate_model->getlist($data, false);
+            $arr = $va_tariff_model->getlist($data, false);
+
+
+            $this->_setUserName($arr);
             if ($arr) {
-                redisSet('Logi_Rate_listall_' . md5(json_encode($data)), json_encode($arr));
+                redisHashSet('Vatariff', $key, json_encode($arr));
             }
         }
         if (!empty($arr)) {
@@ -49,28 +53,48 @@ class LogirateController extends PublicController {
         $this->jsonReturn($arr);
     }
 
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
     /**
      * Description of 详情
      * @author  zhongyg
-     * @date    2017-8-3 15:30:59
+     * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   物流费率
+     * @desc   目的国 增值税、关税
      */
     public function infoAction() {
-        $id = $this->get('id') ?: $this->getPut('id');
-
+        $id = $this->getPut('id', '');
         if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->info($id);
+        $va_tariff_model = new VatariffModel();
+        $result = $va_tariff_model->info($id);
+        $data = [$result];
+        $this->_setUserName($data);
         if ($result) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($result);
-        } elseif ($result === null) {
+            $this->jsonReturn($data[0]);
+        } elseif ($result == null) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->jsonReturn($result);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
 
@@ -82,27 +106,29 @@ class LogirateController extends PublicController {
     /**
      * Description of 删除缓存
      * @author  zhongyg
-     * @date    2017-8-3 15:30:59
+     * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   物流费率
+     * @desc   目的国 增值税、关税
      */
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Logi_Rate_list_*');
+        $keys = $redis->getKeys('Vatariff');
         $redis->delete($keys);
     }
 
     /**
-     * Description of 新增物流费率
+     * Description of 新增目的国 增值税、关税
      * @author  zhongyg
-     * @date    2017-8-3 15:30:59
+     * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   物流费率
+     * @desc   目的国 增值税、关税
      */
     public function createAction() {
         $data = $this->getPut();
-        $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->create_data($data, $this->user['id']);
+        $va_tariff_model = new VatariffModel();
+
+        $result = $va_tariff_model->create_data($data, $this->user['id']);
+
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -114,20 +140,16 @@ class LogirateController extends PublicController {
     }
 
     /**
-     * Description of 更新物流费率
+     * Description of 更新目的国 增值税、关税
      * @author  zhongyg
-     * @date    2017-8-3 15:30:59
+     * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   物流费率
+     * @desc   目的国 增值税、关税
      */
     public function updateAction() {
-        $id = $this->get('id') ?: $this->getPut('id');
         $data = $this->getPut();
-        if (!isset($data['id']) || !$data['id']) {
-            $data['id'] = $id;
-        }
-        $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->update_data($data, $this->user['id']);
+        $va_tariff_model = new VatariffModel();
+        $result = $va_tariff_model->update_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -139,26 +161,27 @@ class LogirateController extends PublicController {
     }
 
     /**
-     * Description of 删除物流费率
+     * Description of 删除目的国 增值税、关税
      * @author  zhongyg
-     * @date    2017-8-3 15:30:59
+     * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   物流费率
+     * @desc   目的国 增值税、关税
      */
     public function deleteAction() {
-        $condition = $this->getPut();
+
         $id = $this->get('id') ?: $this->getPut('id');
         if ($id) {
             $ids = explode(',', $id);
             if (is_array($ids)) {
-                $where['id'] = ['in', $condition['id']];
+                $where['id'] = ['in', $ids];
             } else {
                 $where['id'] = $id;
             }
         }
-        $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->where($where)->save(['status' => 'DELETED']);
-        if ($result) {
+        $va_tariff_model = new VatariffModel();
+        $result = $va_tariff_model->where($where)
+                ->save(['status' => 'DELETED']);
+        if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();

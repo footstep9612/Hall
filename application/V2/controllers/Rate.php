@@ -17,8 +17,7 @@ class RateController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
-    
+        parent::init();
     }
 
     /*
@@ -31,37 +30,54 @@ class RateController extends PublicController {
 
     public function listAction() {
         $condtion = $this->getPut();
-
-        $key = 'Rate_' . md5(json_encode($condtion));
-        $data = redisGet($key);
         $rate_model = new RateModel();
-        if ($data == '&&') {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->jsonReturn(NULL);
-        } elseif (!$data) {
-            $arr = $rate_model->getList($condtion);
-            if ($arr) {
-                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-                $data['code'] = MSG::MSG_SUCCESS;
-                $data['data'] = $arr;
-                $data['count'] = $rate_model->getCount($condtion);
-                redisSet($key, json_encode($data), 86400);
-                $this->jsonReturn($data);
-            } elseif ($arr === null) {
-                $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
-                $data['code'] = MSG::ERROR_EMPTY;
-                $data['data'] = $arr;
-                $data['count'] = 0;
-                redisSet($key, '&&', 86400);
-                $this->jsonReturn(null);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
-        } else {
-            $data = json_decode($data, true);
+        $arr = $rate_model->getList($condtion);
+        $this->_setUserName($arr);
+        if ($arr) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
             $data['code'] = MSG::MSG_SUCCESS;
+            $data['data'] = $arr;
+            $data['count'] = $rate_model->getCount($condtion);
+
             $this->jsonReturn($data);
+        } elseif ($arr === null) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+            $data['code'] = MSG::ERROR_EMPTY;
+            $data['data'] = $arr;
+            $data['count'] = 0;
+
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr 
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   物流费率
+     */
+
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 
@@ -78,14 +94,15 @@ class RateController extends PublicController {
         $rate_model = new RateModel();
         if ($id) {
             $result = $rate_model->info($id);
-            
+            $data = [$result];
+            $this->_setUserName($data);
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
         if ($result) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($result);
+            $this->jsonReturn($data[0]);
         } elseif ($result === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
@@ -129,7 +146,7 @@ class RateController extends PublicController {
 
     private function _delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Rate_*');
+        $keys = $redis->getKeys('Rate');
         $redis->delete($keys);
     }
 
@@ -144,8 +161,8 @@ class RateController extends PublicController {
     public function updateAction() {
         $rate_model = new RateModel();
         $condition = $this->getPut();
-        $where['id'] = $this->get('id') ?: $this->getPut('id');
-        $result = $rate_model->update_data($condition, $where);
+        $condition['id'] = $this->get('id') ?: $this->getPut('id');
+        $result = $rate_model->update_data($condition, $this->user['id']);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -165,14 +182,14 @@ class RateController extends PublicController {
      */
 
     public function deleteAction() {
-
-        $where['id'] =$this->getPut('id');
-        if (!$where['id']) {
+        $data = $this->getPut();
+        $id = $this->getPut('id');
+        if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        
-        $result = $this->_model->where($where)->save(['status'=>'DELETE']);
+        $rate_model = new RateModel();
+        $result = $rate_model->delete_data($id, $this->user['id']);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);

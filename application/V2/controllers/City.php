@@ -6,7 +6,7 @@
 class CityController extends PublicController {
 
     public function init() {
-        // parent::init();
+         parent::init();
 
         $this->_model = new CityModel();
     }

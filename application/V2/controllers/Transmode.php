@@ -5,12 +5,12 @@
  * @author  zhongyg
  * @date    2017-8-2 13:07:21
  * @version V2.0
- * @desc   物流费率
+ * @desc   运输方式
  */
 class TransmodeController extends PublicController {
 
     public function init() {
-        // parent::init();
+         parent::init();
 
         $this->_model = new TransModeModel();
     }

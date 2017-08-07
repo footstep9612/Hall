@@ -3,7 +3,7 @@
 /**
  */
 class ServicecatController extends PublicController {
-
+//class ServicecatController extends Yaf_Controller_Abstract{
 
     public function init() {
 //parent::init();
@@ -16,14 +16,11 @@ class ServicecatController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
-        if(!empty($data['lang'])){
-            $where['lang'] = $data['lang'];
-        }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
         if(!empty($data['currentPage'])) {
-            $limit['page'] = ($data['currentPage'] - 1) * $where['num'];
+            $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
         }
         $model = new ServiceCatModel();
         $data =$model->getlist($where,$limit);
@@ -64,27 +61,76 @@ class ServicecatController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    /**
+     * 新增
+     */
+    public function createServiceAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+       /* $data=[
+            0=>[
+                'category'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金务","remarks":""}',
+                'term'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金务2","remarks":""}',
+                'item'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金务3","remarks":""}',
+            ],
+        ];*/
+        $model = new ServiceCatModel();
+        $res = $model->addData($data);
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
 
-    /*
+    /**
      * 更新
      */
 
-    public function updateAction() {
+    public function updateServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $id = $data['id'];
-        if(empty($id)){
+       /* $data=[
+            0=>[
+                'id'=>35,
+                'category'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金1务","remarks":""}',
+                'term'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金2务2","remarks":""}',
+                'item'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金3务3","remarks":""}',
+            ],
+        ];*/
+        $model = new ServiceCatModel();
+        $res = $model->update_data($data);
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 删除
+     */
+
+    public function deleteServiceAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+//        $data['id'] = 35;//测试
+        if(empty($data['id'])){
             $datajson['code'] = -101;
             $datajson['message'] = 'id不可以都为空!';
             $this->jsonReturn($datajson);
         }
         $model = new ServiceCatModel();
-        $res = $model->update_data($data,['id' => $id]);
-        if(!empty($res)){
+        $res = $model->delData($data['id']);
+        if($res){
             $datajson['code'] = 1;
             $datajson['data'] = $res;
         }else{
             $datajson['code'] = -104;
-            $datajson['message'] = '数据为空!';
+            $datajson['message'] = '失败!';
         }
         $this->jsonReturn($datajson);
     }
@@ -101,5 +147,92 @@ class ServicecatController extends PublicController {
         $this->jsonReturn();
     }
 
+    /**
+     * 会员等级查询
+     * @time  2017-08-05
+     * @author klp
+     */
+    public function levelAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        if(!empty($data['pageSize'])){
+            $limit['num'] = $data['pageSize'];
+        }
+        if(!empty($data['currentPage'])) {
+            $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
+        }
+        $MemberServiceModel = new MemberServiceModel();
+        $result = $MemberServiceModel->levelInfo($limit);
+        if(!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
+    /**
+     * 会员等级新建/编辑
+     * @time  2017-08-05
+     * @author klp
+     */
+    public function editLevelAction(){
+        /*$this->put_data = [
+            0=>[
+                'id'=>'',
+                'buyer_level'=>'',
+                'service_cat_id'=>'',
+                'service_term_id'=>'',
+                'service_item_id'=>'',
+            ],
+        ];*/
+        //获取用户信息
+        $userInfo = getLoinInfo();
+        $MemberServiceModel = new MemberServiceModel();
+        $result = $MemberServiceModel->editInfo($this->put_data,$userInfo);
+        if($result && $result['code'] == 1) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
+    /**
+     * 删除等级
+     */
+
+    public function deleteLevelAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+//        $data['buyer_level'] = '1';//测试
+        if(empty($data['buyer_level'])){
+            $datajson['code'] = -101;
+            $datajson['message'] = '[buyer_level]不可以都为空!';
+            $this->jsonReturn($datajson);
+        }
+        $MemberServiceModel = new MemberServiceModel();
+        $res = $MemberServiceModel->delData($data['buyer_level']);
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 会员服务信息详情查询 -- 总的接口 一级二级三级
+     * @time  2017-08-05
+     * @author klp
+     */
+    public function serviceInfoAction(){
+        $ServiceCatModel = new ServiceCatModel();
+        $result = $ServiceCatModel->getInfo($this->put_data);
+        if(!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
 
 }

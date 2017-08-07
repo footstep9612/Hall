@@ -30,13 +30,13 @@ class ExchangeRateModel extends PublicModel {
      */
     public function getlist($data, $limit, $order = 'id desc') {
         if (!empty($limit)) {
-            return $this->field('id,effective_date,cur_bn1,cur_bn2,rate')
+            return $this->field('id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         } else {
-            return $this->field('id,effective_date,cur_bn1,cur_bn2,rate')
+            return $this->field('id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at')
                             ->where($data)
                             ->order($order)
                             ->select();
@@ -54,7 +54,7 @@ class ExchangeRateModel extends PublicModel {
         if (!empty($where['id'])) {
             try{
             $row = $this->where($where)
-                    ->field('id,effective_date,cur_bn1,cur_bn2,rate')
+                    ->field('id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at')
                     ->find();
             } catch (Exception $ex) {
                 LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

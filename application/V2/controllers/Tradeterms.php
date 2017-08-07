@@ -10,7 +10,7 @@
 class TradetermsController extends PublicController {
 
     public function init() {
-        //s parent::init();
+         parent::init();
 
         $this->_model = new TradeTermsModel();
     }
