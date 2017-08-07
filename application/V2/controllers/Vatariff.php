@@ -180,7 +180,7 @@ class VatariffController extends PublicController {
         }
         $va_tariff_model = new VatariffModel();
         $result = $va_tariff_model->where($where)
-                ->save(['status' => 'DELETE']);
+                ->save(['status' => 'DELETED']);
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
