@@ -25,136 +25,48 @@ class QuotebizlineController extends PublicController {
      */
     public function init() {
         //parent::init();
-
         $this->_quoteBizLine = new QuoteBizLineModel();
-
         $this->_quoteItemBizLine = new QuoteItemBizLineModel();
-
         $this->_requestParams = json_decode(file_get_contents("php://input"), true);
     }
 
-    /**
-     * @desc 产品线报价列表接口
-     */
-    public function listAction() {
 
-        $inquryList = $this->getListHandler($this->_requestParams);
-        if ($inquryList['code'] !='1'){
-            $this->jsonReturn($inquryList);
-        }
-        //显示市场经办人，项目经理
-        $response = $this->restoreListHandler($inquryList);
-        $this->jsonReturn($response);
+    /**
+     * @desc 产品线报价->列表(角色:项目经理)
+     * @author 买买提
+     */
+    public function listPmAction(){
+        $this->jsonReturn($this->listPmHandler($this->_requestParams));
+    }
+    /**
+     * @desc 产品线报价->列表(角色:项目经理)
+     * @author 买买提
+     * 说明:项目经理可以查看自己负责的询单
+     * 数据库操作:查找当前用户id跟inquiry表中pm_id字段值相等的items
+     */
+    private function listPmHandler($request){
+        $filterParams = QuoteBizlineHelper::filterListParams($request,'PM');
+        return QuoteBizlineHelper::getQuotelineInquiryList($filterParams);
     }
 
     /**
-     * 根据条件获取数据
-     * @param $request 前段提交的条件
-     * @return array 获取的数据
+     * @desc 产品线报价->列表(角色:产品线相关人员)
+     * @author 买买提
      */
-    private function getListHandler($request){
-
-        $where = $this->getListCondition($request);
-
-        $page = !empty($request['currentPage']) ? $request['currentPage'] : 1;
-        $pageSize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
-
-        $inquiry = new InquiryModel();
-        try{
-            $total = $inquiry->getCount($where);
-            $field = ['id','serial_no','country_bn','buyer_name','created_at','status','quote_deadline','agent_id','pm_id'];
-            $list = $inquiry->where($where)->page($page,$pageSize)->field($field)->order('updated_at desc')->select();
-            if (!$list){
-                return ['code'=>'-104','message'=>'没有数据！','data'=>''];
-            }
-            return [
-                'code' => '1',
-                'message' => '成功！',
-                'total' => $total,
-                'data' => $list
-            ];
-        }catch (Exception $exception){
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
-        }
+    public function listBizlineAction(){
+        $this->jsonReturn($this->listBizlineHandler());
     }
-
     /**
-     * 重组数组
-     * @param $list
-     * @return mixed
+     * @desc 产品线报价->列表(角色:产品线相关人员)
+     * @author 买买提
+     * 说明:产品线相关人员：可以查看自己负责的询单
+     * 数据库操作说明:查找当前用户id跟inquiry表中pm_id字段值相等的items
      */
-    private function restoreListHandler($list){
-        foreach ($list['data'] as $item=>$value) {
-            //经办人
-            if(!empty($value['agent_id'])){
-                $employee = Z('Employee')->where(['id'=>$value['agent_id']])->field('name')->find();
-                $list['data'][$item]['agent_name'] = $employee['name'];
-            }
-            //项目经理
-            if(!empty($val['pm_id'])){
-                $productManager = Z('Employee')->where(['id'=>$value['pm_id']])->field('name')->find();
-                $list['data'][$item]['pm_name'] = $productManager['name'];
-            }
-        }
-        return $list;
+    private function listBizlineHandler(){
+        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'BIZLINE');
+        return QuoteBizlineHelper::getQuotelineInquiryList($filterParams);
     }
 
-    /**
-     * 重组查询条件
-     * @param $request 查询条件
-     * @return array 重组后的条件
-     */
-    private function getListCondition($request){
-
-        $where = [];
-        //Z函数实例化一个不存在模型文件的模型
-        $employee = Z('Employee');
-
-        //市场经办人
-        if (!empty($request['agent_name'])){
-            $agenter = $employee->field('id')->where(['name'=>$request['agent_name']])->find();
-            if ($agenter){
-                $where['agent_id'] = intval($agenter['id']);
-            }
-        }
-        //项目经理
-        if (!empty($request['pm_name'])){
-            $projectManager = $employee->field('id')->where(['name'=>$request['pm_name']])->find();
-            if ($projectManager){
-                $where['pm_id'] = $projectManager['id'];
-            }
-        }
-        //项目状态
-        if (!empty($request['status'])) {
-            $where['status'] = $request['status'];
-        }
-        //国家
-        if (!empty($request['country_bn'])) {
-            $where['country_bn'] = $request['country_bn'];
-        }
-        //流程编码
-        if (!empty($request['serial_no'])) {
-            $where['serial_no'] = $request['serial_no'];
-        }
-        //客户名称
-        if (!empty($request['buyer_name'])) {
-            $where['buyer_name'] = $request['buyer_name'];
-        }
-        //询价时间
-        if (!empty($request['start_time']) && !empty($request['end_time'])) {
-            $where['created_at'] = array(
-                array('gt',date('Y-m-d H:i:s',$request['start_time'])),
-                array('lt',date('Y-m-d H:i:s',$request['end_time']))
-            );
-        }
-        //删除状态
-        $where['deleted_flag'] = !empty($request['deleted_flag']) ? $request['deleted_flag'] : 'N';
-
-        return $where;
-    }
     /**
      * @desc 详情页询单信息接口(只读)
      */
@@ -241,13 +153,13 @@ class QuotebizlineController extends PublicController {
         $result = $this->_quoteBizLine->storageQuote($this->_requestParams['quote_id']);
         if (!$result) {
             $this->jsonReturn([
-                'code' => -104,
+                'code' => '-104',
                 'message' => '失败!',
             ]);
         }
 
         $this->jsonReturn([
-            'code' => 1,
+            'code' => '1',
             'message' => '成功!'
         ]);
     }
@@ -362,13 +274,13 @@ class QuotebizlineController extends PublicController {
         if ($sendBackQuote && $sendBackQuoteSku) {
             $this->jsonReturn([
                 'code' => 1,
-                'message' => '成功'
+                'message' => '退回成功!'
             ]);
         }
 
         $this->jsonReturn([
             'code' => -101,
-            'message' => '失败！'
+            'message' => '退回失败！'
         ]);
     }
 
@@ -378,12 +290,18 @@ class QuotebizlineController extends PublicController {
       |--------------------------------------------------------------------------
       |
       | 操作说明
-      | 产品线报价
+      | 前端需要提交的字段 quote_id报价id bizline_agent_id产品线报价人
+      | 把当前报价单的产品线报价人字段改为新选择的id
       |
      */
 
-    public function assignAction() {
-        echo 23456789;
+    public function assignQuoterAction() {
+
+        if( empty($this->_requestParams['quote_id']) || empty($this->_requestParams['bizline_agent_id']) ){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+        $this->jsonReturn(QuoteBizlineHelper::assignQuoter($this->_requestParams));
+
     }
 
     /*
