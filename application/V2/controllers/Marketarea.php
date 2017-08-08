@@ -213,17 +213,12 @@ class MarketareaController extends PublicController {
     public function deleteAction() {
 
         $bn = $this->get('bn') ?: $this->getPut('bn');
-        if ($bn) {
-            $bns = explode(',', $bn);
-            if (is_array($bns)) {
-                $where['bn'] = ['in', $bns];
-            } else {
-                $where['bn'] = $bn;
-            }
-        }
+     
         $market_area_model = new MarketAreaModel();
-        $result = $market_area_model->where($where)
-                ->save(['status' => 'DELETED']);
+        $result = $market_area_model
+                ->delete_data($bn,$this->user['id']);
+                
+            
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

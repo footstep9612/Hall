@@ -59,7 +59,8 @@ class ChargeUnitModel extends PublicModel {
             return $this->order($order)
                             ->select();
         } catch (Exception $ex) {
-            print_r($ex);
+            LOG::write('CLASS ' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }

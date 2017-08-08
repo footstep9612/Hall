@@ -64,7 +64,8 @@ class FeeTypeModel extends PublicModel {
             redisHashSet('FeeType', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+          LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }
