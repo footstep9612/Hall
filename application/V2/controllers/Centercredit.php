@@ -6,8 +6,8 @@
  * Time: 14:46
  */
 
-//class CentercreditController extends PublicController{
-class CentercreditController extends Yaf_Controller_Abstract{
+class CentercreditController extends PublicController{
+//class CentercreditController extends Yaf_Controller_Abstract{
     private $input;
     public function __init(){
 //        $this->input = json_decode(file_get_contents("php://input"), true);
