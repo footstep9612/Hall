@@ -50,10 +50,10 @@ class GoodsController extends Yaf_Controller_Abstract{
      * @author klp
      */
     public function skuAttrsInfoAction(){
-        $this->put_data = [
-            'sku'=> '84877319',
-
-        ];
+//        $this->put_data = [
+//            'sku'=> '84877319',
+//
+//        ];
         $goodsModel = new GoodsAttrModel();
         $result = $goodsModel->getSkuAttrsInfo($this->put_data);
         $this->returnInfo($result);
