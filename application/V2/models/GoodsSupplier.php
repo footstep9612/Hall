@@ -45,7 +45,7 @@ class GoodsSupplierModel extends PublicModel {
                         'status' => 'VALID'
                     ])
                     ->select();
-            if ($product_attrs) {
+            if (!$product_attrs) {
                 return [];
             }
             $ret = [];
