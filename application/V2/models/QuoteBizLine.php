@@ -137,4 +137,29 @@ class QuoteBizLineModel extends PublicModel{
         }
 
     }
+
+    /**
+     * 产品线报价->产品线报价人->提交产品线负责人审核
+     * 操作说明:当前报价单状态改为(........)
+     * @param $params
+     * @return array
+     */
+    public function submitToBizlineManager($params){
+
+        //TODO 这里可能处理一些逻辑相关的操作
+
+        //更新当前的报价单状态为产品线报价
+        try{
+            if ($this->where(['quote_id'=>$params['quote_id']])->save(['status'=>'SUBMITED'])){
+                return ['code'=>'1','message'=>'提交成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'提交失败!'];
+            }
+        }catch (Exception $exception){
+            return [
+                'code'=> $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
 }

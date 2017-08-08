@@ -5,21 +5,53 @@
  * Date: 2017/7/20
  * Time: 14:46
  */
-class CentercreditController extends ShopMallController
-{
+class CentercreditController extends ShopMallController{
+//class CentercreditController extends Yaf_Controller_Abstract{
     private $input;
     public function __init()
     {
-        $this->input = json_decode(file_get_contents("php://input"), true);
+//        $this->input = json_decode(file_get_contents("php://input"), true);
     }
 
     /**
      * 企业/银行信息新建/编辑 - 门户通用
      * @author klp
      */
-    public function editAction()
-    {
-        //jsonReturn(1213);
+    public function editAction(){
+       /* $this->user['id'] = '123';
+        $this->put_data=[
+            'name' =>  '123',
+            'country_code' =>  'ew',
+            'province' =>  '23',
+            'social_credit_code' =>  '' ,
+            'registered_in' =>  '23' ,
+            'official_email' =>  '' ,
+            'reg_date' =>  '' ,
+            'biz_nature' =>  'State-owned',
+            'equitiy' =>  '' ,
+            'turnover' =>  '' ,
+            'legal_person_name' =>  '' ,
+            'official_fax' =>  '' ,
+            'official_phone' =>  '' ,
+            'official_website' =>  '' ,
+            'swift_code' =>  '23' ,
+            'bank_name' =>  '23' ,
+            'bank_country_code' =>  '32' ,
+            'bank_address' =>  '32' ,
+            'bank_zipcode' =>  '' ,
+            'bank_phone' =>  '' ,
+            'bank_fax' =>  '' ,
+            'bank_turnover' =>  '' ,
+            'bank_profit' =>  '' ,
+            'bank_assets' =>  '' ,
+            'equity_ratio' =>  '' ,
+            'bank_equity_capital' =>  '' ,
+            'branch_count_' =>  '' ,
+            'bank_employee_count' =>  '' ,
+            'created_by_' =>  '' ,
+            'bank_remarks' =>  '' ,
+            'loading' =>  ''
+        ];*/
         $buyerModel = new BuyerModel();
         $result = $buyerModel->editInfo($this->user,$this->put_data);
         $this->returnInfo($result);
@@ -32,8 +64,9 @@ class CentercreditController extends ShopMallController
      * @author klp
      */
     public function getBuyerInfoAction(){
+//        $this->user['id'] = '123';
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->buyerInfo($this->put_data);
+        $result = $buyerModel->buyerInfo($this->user);
         $this->returnInfo($result);
     }
     /**
@@ -43,8 +76,9 @@ class CentercreditController extends ShopMallController
      * @author klp
      */
     public function getBuyerBankInfoAction(){
+//        $this->user['id'] = '123';
         $buyerModel = new BuyerBankInfoModel();
-        $result = $buyerModel->getBuyerBankInfo($this->put_data);
+        $result = $buyerModel->getBuyerBankInfo($this->user);
         $this->returnInfo($result);
     }
 
@@ -54,8 +88,9 @@ class CentercreditController extends ShopMallController
      * @author klp
      */
     public function getApprovelInfoAction(){
+//        $this->user['id'] = '123';
         $BuyerCreditLogModel = new BuyerCreditLogModel();
-        $result = $BuyerCreditLogModel->getInfo($this->put_data);
+        $result = $BuyerCreditLogModel->getInfo($this->user);
         $this->returnInfo($result);
     }
 

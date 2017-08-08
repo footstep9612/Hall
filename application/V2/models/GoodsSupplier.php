@@ -36,13 +36,18 @@ class GoodsSupplierModel extends PublicModel {
 
     public function getsuppliersbyskus($skus, $lang = 'en') {
         try {
+            if (!$skus) {
+                return [];
+            }
             $product_attrs = $this->field('sku,supplier_id,brand,supply_ability,'
                             . '(select name from  erui2_supplier.supplier where id=supplier_id ) as supplier_name')
                     ->where(['sku' => ['in', $skus],
                         'status' => 'VALID'
                     ])
                     ->select();
-
+            if (!$product_attrs) {
+                return [];
+            }
             $ret = [];
             foreach ($product_attrs as $item) {
                 $sku = $item['sku'];

@@ -69,7 +69,8 @@ class TransBoxTypeModel extends PublicModel {
                             ->where($data)
                             ->select();
         } catch (Exception $ex) {
-            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }
@@ -83,10 +84,15 @@ class TransBoxTypeModel extends PublicModel {
      */
     public function info($id = '') {
         $where['id'] = $id;
-
-        return $this->where($where)
-                        ->field('id,box_type_bn,trans_mode_bn')
-                        ->find();
+        try {
+            return $this->where($where)
+                            ->field('id,box_type_bn,trans_mode_bn')
+                            ->find();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
     }
 
     /**

@@ -35,7 +35,7 @@ class MaterialcatproductModel extends PublicModel {
             ];
             return $this->where($where)->field('cat_no')->find();
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write('CLASS ' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
@@ -53,8 +53,7 @@ class MaterialcatproductModel extends PublicModel {
             $where['cat_no'] = ['like', $catNo . '%'];
             return $this->where($where)->count();
         } catch (Exception $ex) {
-            print_r($ex);
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write('CLASS ' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }

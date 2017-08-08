@@ -35,6 +35,12 @@ class GoodsController extends PublicController{
      * @author klp
      */
     public function skuInfoAction(){
+//        $this->put_data = [
+//
+//                'sku'=> '3303060000010001',
+//                'lang'=> 'en',
+//
+//        ];
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getSkuInfo($this->put_data);
         $this->returnInfo($result);
@@ -222,7 +228,6 @@ class GoodsController extends PublicController{
      * @example   $this->put_data=[
      *                  0  => [
      *                       'sku'=> '3303060000010001',
-     *                      'spu'=> '340306010001',
      *                       'lang'=> 'zh'
      *                       ],
      *                      1  => [],...
@@ -231,14 +236,14 @@ class GoodsController extends PublicController{
      * @author  klp  2017/8/1
      */
     public function deleteRealSkuAction(){
-     /*   $this->put_data=[
-                     0  => [
-                          'sku'=> '37518005',
-                          'spu'=> '8832211',
-                          'lang'=> 'zh'
-                        ]
+        $this->put_data=[
+                     'sku'  => [
+                           '37518005',
+                           '37518006'
+                        ],
+                    'lang'=> 'zh'
                      ];
-        return $this->put_data;*/
+       /* return $this->put_data;*/
         if(empty($this->put_data)){
             return false;
         }
@@ -247,6 +252,28 @@ class GoodsController extends PublicController{
         $this->returnInfo($result);
     }
 
+    /**
+     * sku附件新增
+     * @author  klp  2017/7-6
+     */
+    public function addSkuAttachAction(){
+        $userInfo = getLoinInfo();
+        $this->put_data['user_id'] = $userInfo['id'];
+        $gattach = new GoodsAttachModel();
+        $resAttach = $gattach->editSkuAttach($this->put_data);
+        $this->returnInfo($resAttach);
+    }
+
+    /**
+     * sku附件删除
+     * @param  "sku":['000001'，'000002',...]
+     * @author  klp  2017/7-6
+     */
+    public function delSkuAttachAction(){
+        $gattach = new GoodsAttachModel();
+        $resAttach = $gattach->deleteSkuAttach($this->put_data);
+        $this->returnInfo($resAttach);
+    }
 
     /**
      * sku供应商  -- 通过生产商ID或名称获取供应商信息

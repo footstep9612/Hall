@@ -20,17 +20,17 @@ class BuyerBankInfoModel extends PublicModel{
      */
     public function getBuyerBankInfo($info)
     {
-        //$info['customer_id'] = '20170630000001'; $info['lang']='en';//测试
+        //$info['id'] = '20170630000001'; $info['lang']='en';//测试
         $where=array();
-        if(!empty($info['buyer_id'])){
-            $where['buyer_id'] = $info['buyer_id'];
+        if(!empty($info['id'])){
+            $where['buyer_id'] = $info['id'];
         } else{
             jsonReturn('','-1001','用户[buyer_id]不可以为空');
         }
         if (isset($info['lang']) && in_array($info['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($info['lang']);
         }
-        $field = 'buyer_id,swift_code,bank_name,bank_account,country_code,country_bn,address,zipcode,phone,fax,turnover,profit,total_assets,reg_capital_cur_bn,equity_ratio,equity_capital,remarks,created_by,created_at';
+        $field = 'buyer_id,swift_code,bank_name,bank_account,country_code,country_bn,address,zipcode,phone,fax,turnover,profit,total_assets,reg_capital_cur_bn,equity_ratio,equity_capital,branch_count,employee_count,remarks,created_by,created_at';
         try{
             $buyerBankInfo =  $this->field($field)->where($where)->find();
             return $buyerBankInfo ? $buyerBankInfo : array();
@@ -48,48 +48,114 @@ class BuyerBankInfoModel extends PublicModel{
             return false;
         try {
             if (is_array($input)) {
-                $checkout = $this->checkParam($input);
-                $data = [
-                    'buyer_id' => $token['buyer_id'],
-                    'swift_code' => $checkout['swift_code'],
-                    'country_code' => $checkout['bank_country_code'],
-                    'bank_name' => isset($checkout['bank_name']) ? $checkout['bank_name'] : '',
-                    'bank_account' => isset($checkout['bank_account']) ? $checkout['bank_account'] : '',
-                    'country_bn' => isset($checkout['country_bn']) ? $checkout['country_bn'] : '',
-                    'address' => isset($checkout['bank_address']) ? $checkout['bank_address'] : '',
-                    'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
-                    'phone' => isset($checkout['phone']) ? $checkout['phone'] : '',
-                    'fax' => isset($checkout['fax']) ? $checkout['fax'] : '',
-                    'turnover' => isset($checkout['bank_turnover']) ? $checkout['bank_turnover'] : '',
-                    'profit' => isset($checkout['bank_profit']) ? $checkout['bank_profit'] : '',
-                    'total_assets' => isset($checkout['bank_assets']) ? $checkout['bank_assets'] : '',
-                    'reg_capital_cur_bn' => isset($checkout['reg_capital_cur_bn']) ? $checkout['reg_capital_cur_bn'] : '',
-                    'equity_capital' => isset($checkout['bank_equity_capital']) ? $checkout['bank_equity_capital'] : '',
-                    'employee_count' => isset($checkout['bank_employee_count']) ? $checkout['bank_employee_count'] : '',
-                    'equity_ratio' => isset($checkout['equity_ratio']) ? $checkout['equity_ratio'] : '',
-                    'branch_count' => isset($checkout['branch_count']) ? $checkout['branch_count'] : 0,
-                    'remarks' => isset($checkout['bank_remarks']) ? $checkout['bank_remarks'] : ''
-                ];
+                $data = $this->checkParam($input);
                 //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
-                $result = $this->field('buyer_id')->where(['buyer_id' => $token['buyer_id']])->find();
+                $result = $this->field('buyer_id')->where(['buyer_id' => $token['id']])->find();
                 if ($result) {
-                    $result = $this->where(['buyer_id' => $token['buyer_id']])->save($data);
+                    $data['updated_at'] = date('Y-m-d H:i:s', time());
+                    $result = $this->where(['buyer_id' => $token['id']])->save($data);
                     if(!$result){
                         return false;
                     }
                 } else {
-                    $data['created_by'] = $token['user_name'];
+                    $data['buyer_id'] =$token['id'];
                     $data['created_at'] = date('Y-m-d H:i:s', time());
                     $result = $this->add($data);
                     if(!$result){
                         return false;
                     }
                 }
+            } else{
+                return false;
             }
             return true;
-        } catch(\Kafka\Exception $e){
+        } catch(Exception $e){
+            // var_dump($e);//测试
             return false;
         }
     }
 
+    /**
+     * 参数校验-门户
+     * @author klp
+     */
+    private function checkParam($param = []) {
+        if (empty($param)) {
+            return false;
+        }
+        $data = $results = array();
+        if(!empty($param['bank_name'])) {
+            $data['bank_name'] = $param['bank_name'];
+        } else{
+            $results['code'] = -101;
+            $results['message'] = '[bank_name]不能为空!';
+        }
+        if(!empty($param['bank_address'])) {
+            $data['address'] = $param['bank_address'];
+        } else{
+            $results['code'] = -101;
+            $results['message'] = '[bank_address]不能为空!';
+        }
+        if(!empty($param['bank_country_code'])) {
+            $data['country_code']['country_code'] = $param['bank_country_code'];
+        } else{
+            $results['code'] = -101;
+            $results['message'] = '[bank_country_code]不能为空!';
+        }
+        if(!empty($param['swift_code'])) {
+            $data['swift_code'] = $param['swift_code'];
+        } else{
+            $results['code'] = -101;
+            $results['message'] = '[swift_code]不能为空!';
+        }
+        if(!empty($param['bank_account'])) {
+            $data['bank_account'] = $param['bank_account'];
+        }
+        if(!empty($param['country_bn'])) {
+            $data['country_bn'] = $param['country_bn'];
+        }
+        if(!empty($param['bank_zipcode'])) {
+            $data['country_code'] = $param['bank_zipcode'];
+        }
+        if(!empty($param['bank_equity_capital'])) {
+            $data['country_code'] = $param['bank_equity_capital'];
+        }
+        if(!empty($param['bank_phone'])) {
+            $data['phone'] = $param['bank_phone'];
+        }
+        if(!empty($param['bank_fax'])) {
+            $data['fax'] = $param['bank_fax'];
+        }
+        if(!empty($param['bank_turnover'])) {
+            $data['turnover'] = $param['bank_turnover'];
+        }
+        if(!empty($param['bank_profit'])) {
+            $data['profit'] = $param['bank_profit'];
+        }
+        if(!empty($param['bank_assets'])) {
+            $data['total_assets'] = $param['bank_assets'];
+        }
+        if(!empty($param['reg_capital_cur_bn'])) {
+            $data['reg_capital_cur_bn'] = $param['reg_capital_cur_bn'];
+        }
+        if(!empty($param['bank_equity_capital'])) {
+            $data['equity_capital'] = $param['bank_equity_capital'];
+        }
+        if(!empty($param['bank_employee_count'])) {
+            $data['employee_count'] = $param['bank_employee_count'];
+        }
+        if(!empty($param['bank_equity_ratio'])) {
+            $data['equity_ratio'] = $param['bank_equity_ratio'];
+        }
+        if(!empty($param['branch_count'])) {
+            $data['branch_count'] = $param['branch_count'];
+        }
+        if(!empty($param['bank_remarks'])) {
+            $data['remarks'] = $param['bank_remarks'];
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return $data;
+    }
 }

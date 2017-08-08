@@ -11,15 +11,13 @@
  *
  * @author jhw
  */
-class BuyerAddressModel extends PublicModel
-{
+class BuyerAddressModel extends PublicModel {
 
     //put your code here
     protected $dbName = 'erui_buyer';
     protected $tableName = 'buyer_address';
 
-    public function __construct($str = '')
-    {
+    public function __construct($str = '') {
         parent::__construct($str = '');
     }
 
@@ -29,45 +27,45 @@ class BuyerAddressModel extends PublicModel
      */
     /*  public function createInfo($token,$input)
       {
-          if (!isset($input))
-              return false;
-          $this->startTrans();
-          try {
-              foreach ($input as $key => $item) {
-                  $arr = ['zh', 'en', 'ru', 'es'];
-                  if (in_array($key, $arr)) {
-                      $checkout = $this->checkParam($item);
-                      $data = [
-                          'lang' => $key,
-                          'customer_id' => $token['customer_id'],
-                          'tel_country_code' => isset($checkout['tel_country_code']) ? $checkout['tel_country_code'] : '',
-                          'official_email' => isset($checkout['official_email']) ? $checkout['official_email'] : '',
-                          'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
-                          'address' => isset($checkout['address']) ? $checkout['address'] : '',
-                          'longitude' => isset($checkout['longitude']) ? $checkout['longitude'] : '',
-                          'latitude' => isset($checkout['latitude']) ? $checkout['latitude'] : '',
-                          'tel_area_code' => isset($checkout['tel_area_code']) ? $checkout['tel_area_code'] : '',
-                          'tel_local_number' => isset($checkout['tel_local_number']) ? $checkout['tel_local_number'] : '',
-                          'tel_ext_number' => isset($checkout['tel_ext_number']) ? $checkout['tel_ext_number'] : '',
-                      ];
-                      //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
-                      $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
-                      if ($result) {
-                          $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
-                      } else {
-                          $data['created_by'] = $token['user_name'];
-                          $data['created_at'] = date('Y-m-d H:i:s', time());
-                          $this->add($data);
-                      }
-                  }
-              }
-              $this->commit();
-              return $token['customer_id'];
-          } catch(\Kafka\Exception $e){
-              $this->rollback();
-              return false;
-          }
-      }*/
+      if (!isset($input))
+      return false;
+      $this->startTrans();
+      try {
+      foreach ($input as $key => $item) {
+      $arr = ['zh', 'en', 'ru', 'es'];
+      if (in_array($key, $arr)) {
+      $checkout = $this->checkParam($item);
+      $data = [
+      'lang' => $key,
+      'customer_id' => $token['customer_id'],
+      'tel_country_code' => isset($checkout['tel_country_code']) ? $checkout['tel_country_code'] : '',
+      'official_email' => isset($checkout['official_email']) ? $checkout['official_email'] : '',
+      'zipcode' => isset($checkout['zipcode']) ? $checkout['zipcode'] : '',
+      'address' => isset($checkout['address']) ? $checkout['address'] : '',
+      'longitude' => isset($checkout['longitude']) ? $checkout['longitude'] : '',
+      'latitude' => isset($checkout['latitude']) ? $checkout['latitude'] : '',
+      'tel_area_code' => isset($checkout['tel_area_code']) ? $checkout['tel_area_code'] : '',
+      'tel_local_number' => isset($checkout['tel_local_number']) ? $checkout['tel_local_number'] : '',
+      'tel_ext_number' => isset($checkout['tel_ext_number']) ? $checkout['tel_ext_number'] : '',
+      ];
+      //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
+      $result = $this->field('customer_id')->where(['customer_id' => $token['customer_id'], 'lang' => $key])->find();
+      if ($result) {
+      $this->where(['customer_id' => $token['customer_id'], 'lang' => $key])->save($data);
+      } else {
+      $data['created_by'] = $token['user_name'];
+      $data['created_at'] = date('Y-m-d H:i:s', time());
+      $this->add($data);
+      }
+      }
+      }
+      $this->commit();
+      return $token['customer_id'];
+      } catch(\Kafka\Exception $e){
+      $this->rollback();
+      return false;
+      }
+      } */
 
     /**
      * 参数校验-门户
@@ -86,57 +84,57 @@ class BuyerAddressModel extends PublicModel
      * @return bool
      * @author jhw
      */
-    public function create_data($create= []) {
-        if(isset($create['customer_id'])){
+    public function create_data($create = []) {
+        if (isset($create['customer_id'])) {
             $arr['customer_id'] = $create['customer_id'];
         }
-        if(isset($create['lang'])){
+        if (isset($create['lang'])) {
             $arr['lang'] = $create['lang'];
         }
-        if(isset($create['address'])){
+        if (isset($create['address'])) {
             $arr['address'] = $create['address'];
         }
-        if(isset($create['zipcode'])){
+        if (isset($create['zipcode'])) {
             $arr['zipcode'] = $create['zipcode'];
         }
-        if(isset($create['longitude'])){
+        if (isset($create['longitude'])) {
             $arr['longitude'] = $create['longitude'];
         }
-        if(isset($create['latitude'])){
+        if (isset($create['latitude'])) {
             $arr['latitude'] = $create['latitude'];
         }
-        if(isset($create['tel_country_code'])){
+        if (isset($create['tel_country_code'])) {
             $arr['tel_country_code'] = md5($create['tel_country_code']);
         }
-        if(isset($create['tel_area_code'])){
+        if (isset($create['tel_area_code'])) {
             $arr['tel_area_code'] = $create['tel_area_code'];
         }
-        if(isset($create['tel_local_number'])){
-            $arr['tel_local_number'] =$create['tel_local_number'];
+        if (isset($create['tel_local_number'])) {
+            $arr['tel_local_number'] = $create['tel_local_number'];
         }
-        if(isset($create['tel_ext_number'])){
-            $arr['tel_ext_number'] =$create['tel_ext_number'];
+        if (isset($create['tel_ext_number'])) {
+            $arr['tel_ext_number'] = $create['tel_ext_number'];
         }
-        if(isset($create['official_email'])){
-            $arr['official_email'] =$create['official_email'];
+        if (isset($create['official_email'])) {
+            $arr['official_email'] = $create['official_email'];
         }
-        $arr['created_at'] =date("Y-m-d H:i:s");
-        try{
+        $arr['created_at'] = date("Y-m-d H:i:s");
+        try {
             $data = $this->create($arr);
             return $this->add($data);
         } catch (Exception $ex) {
-            print_r($ex);
+
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
-
     }
+
     /**
      * 采购商个人信息更新
      * @author klp
      */
-    public function update_data($condition,$where){
+    public function update_data($condition, $where) {
         if ($condition['address']) {
             $data['address'] = $condition['address'];
         }
@@ -158,4 +156,5 @@ class BuyerAddressModel extends PublicModel
 
         return $this->where($where)->save($data);
     }
+
 }

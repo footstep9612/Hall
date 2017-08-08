@@ -558,6 +558,8 @@ class EsProductModel extends Model {
     public function updateproducts($lang = 'en', $time = '1970-01-01 8:00:00') {
         try {
             if ($time) {
+
+            
                 $where = [
                     'lang' => $lang,
                     '_complex' => [
@@ -567,14 +569,16 @@ class EsProductModel extends Model {
                         'checked_at' => ['egt' => $time],
                     ],
                 ];
+                    $spus = $this->getSpusByTime($time);
+                if ($spus) {
+                    $where['_complex']['spu'] = ['in', $spus];
+                }
             } else {
                 $where = [
                     'lang' => $lang,
                 ];
             }
-            
-            
-            
+
             $count = $this->where($where)->count('id');
             $max_id = 0;
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -583,7 +587,7 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                   $where['id'] = ['gt',$max_id];
+                $where['id'] = ['gt', $max_id];
                 $products = $this->where($where)->limit(0, 100)->order('id asc')->select();
                 $spus = $mcat_nos = [];
                 if ($products) {
@@ -672,6 +676,40 @@ class EsProductModel extends Model {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
+        }
+    }
+
+    /*
+     * 批量更新产品数据到ES
+     * @author zyg 2017-07-31
+     * @param string $lang // 语言 zh en ru es 
+     * @return mix  
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品 
+     */
+
+    public function getSpusByTime($time = '1970-01-01 8:00:00') {
+        if ($time) {
+            $where = [
+                //'lang' => $lang,
+                '_complex' => [
+                    '_logic' => 'or',
+                    'created_at' => ['egt' => $time],
+                    'updated_at' => ['egt' => $time],
+                    'checked_at' => ['egt' => $time],
+                ],
+            ];
+            $show_cat_product_model = new ShowCatProductModel();
+            $show_cat_products = $show_cat_product_model->where($where)->group('spu')->select();
+            $spus = [];
+            foreach ($show_cat_products as $show_cat_product) {
+                $spus[] = $show_cat_product['spu'];
+            }
+            return $spus;
+        } else {
+            return [];
         }
     }
 

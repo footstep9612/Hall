@@ -82,7 +82,8 @@ class CountryModel extends PublicModel {
             redisHashSet('Country', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }
@@ -501,7 +502,8 @@ class CountryModel extends PublicModel {
                 $es->add_document('erui_dict', 'country_' . $lang, $item, $item['bn']);
             }
         } catch (Exception $ex) {
-            var_dump($ex);
+            LOG::write('CLASS ' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
 
             return '';
         }

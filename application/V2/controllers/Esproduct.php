@@ -249,12 +249,12 @@ class EsproductController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             $time = redisGet('ES_PRODUCT_TIME');
-                redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
+            redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->updateproducts($lang, $time);
             }
-        
+
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -372,7 +372,8 @@ class EsproductController extends PublicController {
             'updated_by' => $int_analyzed,
             'spu' => $not_analyzed,
             'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed
+            'status' => $not_analyzed,
+            'attachs' => $not_analyzed,
         ];
 
         return $body;
@@ -447,7 +448,7 @@ class EsproductController extends PublicController {
             'created_by' => $int_analyzed,
             'attrs' => $ik_analyzed,
             'exe_standard' => $ik_analyzed,
-            'attachs' => $ik_analyzed,
+            'attachs' => $not_analyzed,
             'source_detail' => $ik_analyzed,
             'advantages' => $ik_analyzed,
             'sku_count' => $int_analyzed,
