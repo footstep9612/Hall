@@ -58,11 +58,10 @@ class CountryModel extends PublicModel {
     public function getlistBycodition($condition, $order = 'c.id desc', $type = true) {
         try {
             $where = $this->_getCondition($condition);
-            $condition = null;
-            unset($condition);
             if ($type) {
                 list($from, $pagesize) = $this->_getPage($condition);
             }
+            unset($condition);
             $redis_key = md5(json_encode($where) . $order . $from . $pagesize . $type);
             if (redisHashExist('Country', $redis_key)) {
                 return json_decode(redisHashGet('Country', $redis_key), true);
@@ -70,7 +69,8 @@ class CountryModel extends PublicModel {
             $this->alias('c')
                     ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
                     ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
-                    ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,'
+                    ->join('erui2_dict.region r on r.bn=c.region_bn and r.lang=c.lang', 'left')
+                    ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,r.name as region_name,'
                             . 'ma.name as market_area_name ,mac.market_area_bn')
                     ->where($where);
             if ($type) {

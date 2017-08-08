@@ -10,7 +10,7 @@ class CountryController extends PublicController {
     protected $es = '';
 
     public function init() {
-//parent::init();
+        parent::init();
         $this->es = new ESClient();
         $this->_model = new CountryModel();
     }
@@ -22,11 +22,10 @@ class CountryController extends PublicController {
     public function listAction() {
         $data = $this->getPut();
         $data['lang'] = $this->getPut('lang', 'zh');
-        $market_area = new CountryModel();
-
-        $arr = $market_area->getlistBycodition($data); //($this->put_data);
-        $count = $market_area->getCount($data);
-
+        $country_model = new CountryModel();
+        $arr = $country_model->getlistBycodition($data); //($this->put_data);
+        echo $country_model->_sql();
+        $count = $country_model->getCount($data);
         $this->setvalue('count', $count);
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
@@ -47,14 +46,17 @@ class CountryController extends PublicController {
         $data = $this->getPut();
 
         $data['lang'] = $this->getPut('lang', 'zh');
-
-        $market_area = new CountryModel();
-
-        $arr = $market_area->getlistBycodition($data, false);
+        $country_model = new CountryModel();
+        $arr = $country_model->getlistBycodition($data, false);
 
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
-        } else {
+        }
+        elseif($arr===null){
+              $this->setCode(MSG::ERROR_EMPTY);
+        }
+        
+        else {
             $this->setCode(MSG::MSG_FAILED);
         }
         $this->jsonReturn($arr);
