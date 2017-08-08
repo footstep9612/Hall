@@ -31,6 +31,39 @@ class BuyerController extends PublicController {
         if(!empty($data['country_bn'])){
             $where['country_bn'] = $data['country_bn'];
         }
+        if(!empty($data['buyer_no'])){
+            $where['buyer_no'] = $data['buyer_no'];
+        }
+        if(!empty($data['official_phone'])){
+            $where['official_phone'] = $data['official_phone'];
+        }
+        if(!empty($data['status'])){
+            $where['status'] = $data['status'];
+        }
+        if(!empty($data['employee_name'])){
+            $where['employee_name'] = $data['employee_name'];
+        }
+        if(!empty($data['user_name'])){
+            $where['user_name'] = $data['user_name'];
+        }
+        if(!empty($data['first_name'])){
+            $where['first_name'] = $data['first_name'];
+        }
+        if(!empty($data['last_name'])){
+            $where['last_name'] = $data['last_name'];
+        }
+        if(!empty($data['checked_at_start'])){
+            $where['checked_at_start'] = $data['checked_at_start'];
+        }
+        if(!empty($data['checked_at_end'])){
+            $where['checked_at_end'] = $data['checked_at_end'];
+        }
+        if(!empty($data['created_at_end'])){
+            $where['created_at_end'] = $data['created_at_end'];
+        }
+        if(!empty($data['created_at_start'])){
+            $where['created_at_start'] = $data['created_at_start'];
+        }
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
