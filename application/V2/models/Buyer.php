@@ -516,25 +516,5 @@ class BuyerModel extends PublicModel {
         return $param;
     }
 
-
-    /**
-     * 提交易瑞   -- 待审核
-     * @author klp
-     */
-    public function subCheck($data)
-    {
-        if (empty($data)) {
-            return false;
-        }
-        //新状态可以补充
-        $status = [];
-        switch ($data['status_type']) {
-            case 'check':    //审核
-                $status['status'] = self::STATUS_CHECKING;
-                break;
-
-        }
-        $result = $this->where($token['customer_id'])->save(['status' => $status['status']]);
-        return $result ? true : false;
-    }
+    
 }

@@ -1126,7 +1126,6 @@ class GoodsModel extends PublicModel {
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $check = $pModel->field('status')->where(['spu' => $item['spu'], 'lang' => $item['lang']])->find();
-
                                 if($check){
                                     $resp = ('VALID' == $check['status']) ? true : $pModel->updateStatus($item['spu'], $item['lang'], $status);
                                     if (!$resp) {
@@ -1178,7 +1177,6 @@ class GoodsModel extends PublicModel {
         }
         $this->startTrans();
         try {
-
             $res = $this->deleteSku($input['sku'],$lang);                 //sku删除
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
