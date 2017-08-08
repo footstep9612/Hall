@@ -54,8 +54,7 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $result = $productModel->editInfo($this->put_data);
         if ($result) {
-            Log::write('[成功]'.$result,Log::INFO);
-            //$this->updateEsproduct($this->put_data, $result);
+            $this->updateEsproduct($this->put_data, $result);
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
