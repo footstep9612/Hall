@@ -67,16 +67,16 @@ class BuyerModel extends PublicModel {
             $where .= ' And official_phone  = " '.$condition['official_phone'].'"';
         }
         if ( !empty($condition['status']) ){
-            $where .= ' And status  ="'.$condition['status'].'"';
+            $where .= ' And `erui2_buyer`.`buyer_account`.status  ="'.$condition['status'].'"';
         }
         if ( !empty($condition['user_name']) ){
             $where .= ' And `erui2_buyer`.`buyer_account`.`user_name`  ="'.$condition['user_name'].'"';
         }
         if ( !empty($condition['last_name']) ){
-            $where .= " And last_name like '%".$condition['last_name'] ."%'";
+            $where .= " And `erui2_buyer`.`buyer_account`.last_name like '%".$condition['last_name'] ."%'";
         }
         if ( !empty($condition['first_name']) ){
-            $where .= " And first_name like '%".$condition['first_name'] ."%'";
+            $where .= " And `erui2_buyer`.`buyer_account`.first_name like '%".$condition['first_name'] ."%'";
         }
         if ( !empty($condition['checked_at_start']) ){
             $where .= ' And `erui2_buyer`.`buyer`.checked_at  >="'.$condition['checked_at_start'].'"';
@@ -219,6 +219,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_by'])) {
             $data['checked_by'] = $create['checked_by'];
         }
+        $data['status'] = 'DRAFT';
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['checked_at'] = date('Y-m-d H:i:s');
         try {
