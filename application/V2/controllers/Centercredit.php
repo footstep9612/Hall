@@ -6,8 +6,8 @@
  * Time: 14:46
  */
 
-//class CentercreditController extends PublicController{
-class CentercreditController extends Yaf_Controller_Abstract{
+class CentercreditController extends PublicController{
+//class CentercreditController extends Yaf_Controller_Abstract{
     private $input;
     public function __init(){
 //        $this->input = json_decode(file_get_contents("php://input"), true);
@@ -132,15 +132,6 @@ class CentercreditController extends Yaf_Controller_Abstract{
 
     }
 
-    /**
-     * 区域等级会员维护列表(未写)
-     * @author klp
-     */
-    public function gradeListAction(){
-        $buyerModel = new BuyerModel();
-        $result = $buyerModel->getGradeList($this->put_data);
-        $this->returnInfo($result);
-    }
 
 
     //统一回复调用方法

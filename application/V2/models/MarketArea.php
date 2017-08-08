@@ -70,8 +70,7 @@ class MarketAreaModel extends PublicModel {
             return $this->order($order)
                             ->select();
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+            print_r($ex);
             return [];
         }
     }
@@ -89,8 +88,7 @@ class MarketAreaModel extends PublicModel {
             $data = $this->getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+
             return 0;
         }
     }
@@ -108,15 +106,9 @@ class MarketAreaModel extends PublicModel {
         $where['bn'] = $bn;
         $where['lang'] = $lang;
         if (!empty($where)) {
-            try {
-                $row = $this->where($where)
-                        ->field('id,lang,bn,name,url')
-                        ->find();
-            } catch (Exception $ex) {
-                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-                LOG::write($ex->getMessage(), LOG::ERR);
-                return false;
-            }
+            $row = $this->where($where)
+                    ->field('id,lang,bn,name,url')
+                    ->find();
 
             return $row;
         } else {
@@ -126,34 +118,15 @@ class MarketAreaModel extends PublicModel {
 
     /**
      * 删除数据
-     * @param  mix  $bn
+     * @param  int  $id
      * @return bool
      * @author jhw
      */
-    public function delete_data($bn = '', $uid = 0) {
-        if ($bn) {
-            $bns = explode(',', $bn);
-            if (is_array($bns)) {
-                $where['bn'] = ['in', $bns];
-            } else {
-                $where['bn'] = $bn;
-            }
-        }
-        if ($bn) {
-            $arr['status'] = 'DELETED';
-            $arr['updated_at'] = date('Y-m-d H:i:s');
-            $arr['updated_by'] = $uid;
-            try {
-                $flag = $this->where($where)
-                        ->save($arr);
-                $this->_addlog(__FUNCTION__, $uid, $uid, json_encode($arr));
-                return $flag;
-            } catch (Exception $ex) {
-                $this->_addlog(__FUNCTION__, $uid, $uid, json_encode($arr), 'N');
-                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-                LOG::write($ex->getMessage(), LOG::ERR);
-                return false;
-            }
+    public function delete_data($id = '') {
+        $where['id'] = $id;
+        if (!empty($where['id'])) {
+            return $this->where($where)
+                            ->delete();
         } else {
             return false;
         }
@@ -191,14 +164,12 @@ class MarketAreaModel extends PublicModel {
                 $flag = $this->_updateandcreate($create, $lang, $newbn, $uid);
                 if (!$flag) {
                     $this->rollback();
-                    $this->_addlog(__FUNCTION__, $uid, $uid, json_encode($create), 'N');
                     return false;
                 }
             }
             $market_area_team_model = new MarketAreaTeamModel();
             $market_area_team_model->updateandcreate($create, $newbn, $uid);
             $this->commit();
-            $this->_addlog(__FUNCTION__, $uid, $uid, json_encode($create));
             return true;
         } else {
             return false;
@@ -223,15 +194,12 @@ class MarketAreaModel extends PublicModel {
             $flag = $this->_updateandcreate($data, $lang, $newbn, $uid);
             if (!$flag) {
                 $this->rollback();
-                $this->_addlog(__FUNCTION__, $uid, $uid, json_encode($arr), 'N');
                 return false;
             }
         }
         $market_area_team_model = new MarketAreaTeamModel();
         $market_area_team_model->updateandcreate($data, $newbn, $uid);
         $this->commit();
-        $this->_addlog(__FUNCTION__, $uid, $uid, json_encode($data));
-
         return true;
     }
 
@@ -245,28 +213,15 @@ class MarketAreaModel extends PublicModel {
             if ($this->Exits($where)) {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
                 $arr['updated_by'] = $uid;
-                try {
-                    $flag = $this->where($where)->save($arr);
-
-                    return $flag;
-                } catch (Exception $ex) {
-                    LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-                    LOG::write($ex->getMessage(), LOG::ERR);
-                    return false;
-                }
+                $flag = $this->where($where)->save($arr);
+                return $flag;
             } else {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
                 $arr['updated_by'] = $uid;
                 $arr['created_at'] = date('Y-m-d H:i:s');
                 $arr['created_by'] = $uid;
-                try {
-                    $flag = $this->add($arr);
-                    return $flag;
-                } catch (Exception $ex) {
-                    LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-                    LOG::write($ex->getMessage(), LOG::ERR);
-                    return false;
-                }
+                $flag = $this->add($arr);
+                return $flag;
             }
         } else {
             return true;

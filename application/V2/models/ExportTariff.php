@@ -71,8 +71,7 @@ class ExportTariffModel extends PublicModel {
             return $this->order($order)
                             ->select();
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+            print_r($ex);
             return [];
         }
     }
@@ -169,6 +168,7 @@ class ExportTariffModel extends PublicModel {
         $create['supervised_criteria'] = $create['country_bn'];
         $data = $this->create($create);
 
+        var_dump($data);
         return $this->add($data);
 //        if (isset($create['en']['name']) && isset($create['zh']['name'])) {
 ////            $datalist = [];

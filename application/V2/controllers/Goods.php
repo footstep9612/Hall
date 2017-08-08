@@ -5,8 +5,8 @@
  * Date: 2017/7/20
  * Time: 9:34
  */
-class GoodsController extends PublicController{
-//class GoodsController extends Yaf_Controller_Abstract{
+//class GoodsController extends PublicController{
+class GoodsController extends Yaf_Controller_Abstract{
     private $input;
 
     public function init()
@@ -36,10 +36,8 @@ class GoodsController extends PublicController{
      */
     public function skuInfoAction(){
 //        $this->put_data = [
-//
 //                'sku'=> '3303060000010001',
 //                'lang'=> 'en',
-//
 //        ];
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getSkuInfo($this->put_data);
@@ -52,6 +50,10 @@ class GoodsController extends PublicController{
      * @author klp
      */
     public function skuAttrsInfoAction(){
+//        $this->put_data = [
+//            'sku'=> '84877319',
+//
+//        ];
         $goodsModel = new GoodsAttrModel();
         $result = $goodsModel->getSkuAttrsInfo($this->put_data);
         $this->returnInfo($result);
@@ -64,6 +66,9 @@ class GoodsController extends PublicController{
      * @author klp
      */
     public function skuAttachsInfoAction(){
+//        $this->put_data = [
+//            'sku'=> '37518005',
+//        ];
         $goodsModel = new GoodsAttachModel();
         $result = $goodsModel->getSkuAttachsInfo($this->put_data);
         $this->returnInfo($result);
@@ -90,6 +95,7 @@ class GoodsController extends PublicController{
      * @author  klp  2017/8/2
      */
     public function supplierCostInfoAction(){
+//        $this->put_data = '37518005';
         $GoodsCostPriceModel = new GoodsCostPriceModel();
         $result = $GoodsCostPriceModel->getInfo($this->put_data);
         $this->returnInfo($result);
@@ -118,69 +124,69 @@ class GoodsController extends PublicController{
      * @author  klp  2017/7-13
      */
     public function editSkuAction(){
-       /* $this->put_data = [
-            "sku"=>'37518005',
-            "zh"=>[
-                'lang'        =>'zh',
-                'spu'		  =>'8832211',
-                'name'		  =>'123',
-                'show_name'   =>'123',
-                "attrs"=>[
-                        'spec_attrs'	  =>[
-                            0=>[
-                                'attr_name' =>'8121',
-                                'attr_value' =>'1',
-                                'value_unit' =>'1',
-                                'spec_flag' =>'Y',
-                            ],
+        /*  $this->put_data = [
+              "sku"=>'',
+              "zh"=>[
+                  'lang'        =>'zh',
+                  'spu'		  =>'8832211',
+                  'name'		  =>'3123',
+                  'show_name'   =>'3123',
+                  "attrs"=>[
+                      'spec_attrs'	  =>[
+                          0=>[
+                              'attr_name' =>'78121',
+                              'attr_value' =>'1',
+                              'value_unit' =>'1',
+                              'spec_flag' =>'Y',
+                          ],
 
-                        ],
-                        'ex_goods_attrs'  =>[
-                            0=>[
-                                'attr_name' =>'9212',
-                                'attr_value' =>'2',
-                                'value_unit' =>'2',
-                                'goods_flag' =>'Y',
-                            ],
-                        ],
-                        'ex_hs_attrs'	  =>[
-                            0=>[
-                                'attr_name' =>'333',
-                                'attr_value' =>'3',
-                                'value_unit' =>'3',
-                                'hs_flag' =>'Y',
-                            ]
-                        ],
-                        'other_attrs'	  =>[
-                            0=>[
-                                'attr_name' =>'444',
-                                'attr_value' =>'4',
-                                'value_unit' =>'4',
-                            ]
-                        ],
-                    ],
-                ],
-            "attachs"=>[
-                0=>[
-                    'id'=>150,
-                    'supplier_id'    =>'11223',
-                    'attach_type'	 =>'',
-                    'attach_name'	 =>'',
-                    'attach_url'     =>'a/b/c.png',
-                    'sort_order'     =>'0',
-                ],
+                      ],
+                      'ex_goods_attrs'  =>[
+                          0=>[
+                              'attr_name' =>'79212',
+                              'attr_value' =>'2',
+                              'value_unit' =>'2',
+                              'goods_flag' =>'Y',
+                          ],
+                      ],
+                      'ex_hs_attrs'	  =>[
+                          0=>[
+                              'attr_name' =>'7333',
+                              'attr_value' =>'3',
+                              'value_unit' =>'3',
+                              'hs_flag' =>'Y',
+                          ]
+                      ],
+                      'other_attrs'	  =>[
+                          0=>[
+                              'attr_name' =>'7444',
+                              'attr_value' =>'4',
+                              'value_unit' =>'4',
+                          ]
+                      ],
+                  ],
+              ],
+              "attachs"=>[
+                  0=>[
+ //                     'id'=>160,
+                      'supplier_id'    =>'33711223',
+                      'attach_type'	 =>'',
+                      'attach_name'	 =>'',
+                      'attach_url'     =>'a/b/c.png',
+                      'sort_order'     =>'0',
+                  ],
 
-            ],
-            'supplier_cost'=>[
-                0=>[
-                    'id'=>1,
-                    'supplier_id'	     =>'112123',
-                    'min_purchase_qty'	 =>1
-                ]
-            ],
+              ],
+              'supplier_cost'=>[
+                  0=>[
+ //                     'id'=>11,
+                      'supplier_id'	     =>'22112123',
+                      'min_purchase_qty'	 =>1
+                  ]
+              ],
 
-        ];
-       return $this->put_data;*/
+          ];
+         return $this->put_data;*/
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSku($this->put_data);
         $this->returnInfo($result);
@@ -204,16 +210,16 @@ class GoodsController extends PublicController{
      * @author  klp  2017/8/1
      */
     public function modifySkuAction(){
-       /* $this->put_data = [
-                'status_type'=> 'valid',
-                 0 => [
-                      'sku'=> '37518005',
-                      'spu'=> '8832211',
-                      'lang'=> 'zh',
-                      'remarks' =>  ''
-                      ],
-                 ];
-       return $this->put_data;*/
+        /* $this->put_data = [
+                 'status_type'=> 'valid',
+                  0 => [
+                       'sku'=> '77799377',
+                       'spu'=> '8832211',
+                       'lang'=> 'zh',
+                       'remarks' =>  ''
+                       ],
+                  ];
+        return $this->put_data;*/
         if(empty($this->put_data)){
             return false;
         }
@@ -236,14 +242,14 @@ class GoodsController extends PublicController{
      * @author  klp  2017/8/1
      */
     public function deleteRealSkuAction(){
-        $this->put_data=[
-                     'sku'  => [
-                           '37518005',
-                           '37518006'
-                        ],
-                    'lang'=> 'zh'
-                     ];
-       /* return $this->put_data;*/
+        /*    $this->put_data=[
+  //                     'sku'  => [
+  //                           '77799377','55362548'
+  //                        ],
+                      'sku' =>'59633483',
+                      'lang'=> 'zh'
+                       ];
+        return $this->put_data;*/
         if(empty($this->put_data)){
             return false;
         }
@@ -270,9 +276,21 @@ class GoodsController extends PublicController{
      * @author  klp  2017/7-6
      */
     public function delSkuAttachAction(){
+        $this->put_data=[
+            'sku'  => [
+                '37518005'
+            ],
+        ];
         $gattach = new GoodsAttachModel();
         $resAttach = $gattach->deleteSkuAttach($this->put_data);
-        $this->returnInfo($resAttach);
+        if($resAttach && $resAttach['code'] == 1){
+            $this->jsonReturn($resAttach);
+        } else{
+            $this->setCode(MSG::MSG_FAILED);
+            $data['code'] = $this->getCode();
+            $data['message'] = '失败!';
+            $this->jsonReturn($data);
+        }
     }
 
     /**

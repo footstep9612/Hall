@@ -39,8 +39,10 @@ class GoodsCostPriceModel extends PublicModel {
                 //通过supplier_id查询供应商名称
                 $SupplierModel = new SupplierModel();
                 foreach($result as $item) {
-                    $info = $SupplierModel->field('name')->where(['supplier_id'=>$item['supplier_id']])->find();
-                    $item['supplier_name'] = $info['name'];
+                    $info = $SupplierModel->field('name')->where(['id'=>$item['supplier_id']])->find();
+                    if($info){
+                        $item['supplier_name'] = $info['name'];
+                    }
                     $data[] = $item;
                 }
                 return $data;
@@ -86,12 +88,18 @@ class GoodsCostPriceModel extends PublicModel {
                             'id' => $checkout['id']
                         ];
                         $res = $this->where($where)->save($data);
+                    if (!$res) {
+                        return false;
+                    }
                 } else {
                     $data['status'] = self::STATUS_VALID;
                     $data['sku'] = $input['sku'];
                     $data['created_by'] = $input['user_id'];
                     $data['created_at'] = date('Y-m-d H:i:s', time());
                     $res = $this->add($data);
+                    if (!$res) {
+                        return false;
+                    }
                 }
             }
             if($res) {

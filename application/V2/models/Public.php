@@ -201,23 +201,19 @@ class PublicModel extends Model {
      * @author zyg
      */
     protected function _addlog($action, $obj_id, $uid, $op_note = [], $op_log = '', $op_result = 'Y', $category = null) {
-
-        $op_log_model = new OpLogModel();
-        if (!$category) {
-            $data['category'] = $this->tableName;
-        } else {
-            $data['category'] = $category;
-        }
-        $data['action'] = strtoupper($action);
-        $data['obj_id'] = $obj_id;
-        if ($op_log) {
-            $data['op_log'] = $op_log;
-        } else {
-            $data['op_log'] = date('Y-m-d H:i:s') . ' ' . $action . ' ' . $data['category'];
-        }
-        $data['op_note'] = $op_note;
-        $data['op_result'] = $op_result;
         try {
+            $op_log_model = new OpLogModel();
+            if (!$category) {
+                $data['category'] = $this->tableName;
+            } else {
+                $data['category'] = $category;
+            }
+            $data['action'] = $action;
+            $data['obj_id'] = $obj_id;
+            $data['op_log'] = $op_log;
+            $data['op_note'] = $op_note;
+            $data['op_result'] = $op_result;
+
             return $op_log_model->create_data($data, $uid);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

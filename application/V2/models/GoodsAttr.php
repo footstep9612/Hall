@@ -301,7 +301,7 @@ class GoodsAttrModel extends PublicModel {
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
         } else {
-            jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($condition['lang']);
@@ -325,24 +325,25 @@ class GoodsAttrModel extends PublicModel {
             if ($result) {
                 //获取产品属性
                 $product = new ProductAttrModel();
-                $pattr = $product->getAttr($result['spu'] ? $result['spu'] : '', isset($where['lang']) ? $where['lang'] : '', isset($where['status']) ? $where['status'] : '');
+                $pattr = $product->getAttr($result[0]['spu'] ? $result[0]['spu'] : '', isset($where['lang']) ? $where['lang'] : '', isset($where['status']) ? $where['status'] : '');
                 $attrs = array_merge($result, $pattr);
 
                 //按语言分组,类型分组
                 foreach ($attrs as $item) {
                     $item['flag'] = true;
-                    if (empty($item['spec_attrs'])) {
-                        $data[$item['lang']]['spec_attrs'][] = $item;
+                    if (isset($item['spec_attrs'])) {
+                        $item['spec_attrs'] = json_decode($item['spec_attrs']);
                     }
-                    if (empty($item['ex_goods_attrs'])) {
-                        $data[$item['lang']]['ex_goods_attrs'][] = $item;
+                    if (isset($item['ex_goods_attrs'])) {
+                        $item['ex_goods_attrs'] = json_decode($item['ex_goods_attrs']);
                     }
-                    if (empty($item['ex_hs_attrs'])) {
-                        $data[$item['lang']]['ex_hs_attrs'][] = $item;
+                    if (isset($item['ex_hs_attrs'])) {
+                        $item['ex_hs_attrs'] = json_decode($item['ex_hs_attrs']);
                     }
-                    if (empty($item['other_attrs'])) {
-                        $data[$item['lang']]['other_attrs'][] = $item;
+                    if (isset($item['other_attrs'])) {
+                        $item['other_attrs'] = json_decode($item['other_attrs']);
                     }
+                    $data[$item['lang']][] = $item;
                 }
                 redisHashSet('SkuAttrs', md5(json_encode($where)), json_encode($data));
             }
@@ -366,14 +367,16 @@ class GoodsAttrModel extends PublicModel {
         if (empty($input['sku']) || empty($input['lang'])) {
             jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
         }
+        $data = $this->checkParam($input);
+
         try {
-            $data = [
+          /*  $data = [
                 'spu' => $input['spu'],
-                'spec_attrs' => isset($input['attrs']['spec_attrs']) ? $input['attrs']['spec_attrs'] : '',
-                'ex_goods_attrs' => isset($input['attrs']['ex_goods_attrs']) ? $input['attrs']['ex_goods_attrs'] : '',
-                'ex_hs_attrs' => isset($input['attrs']['ex_hs_attrs']) ? $input['attrs']['ex_hs_attrs'] : '',
-                'other_attrs' => isset($input['attrs']['other_attrs']) ? $input['attrs']['other_attrs'] : ''
-            ];
+                'spec_attrs' => !empty($input['attrs']['spec_attrs']) ? json_encode($input['attrs']['spec_attrs']) : '',
+                'ex_goods_attrs' => !empty($input['attrs']['ex_goods_attrs']) ? json_encode($input['attrs']['ex_goods_attrs']) : '',
+                'ex_hs_attrs' => !empty($input['attrs']['ex_hs_attrs']) ? json_encode($input['attrs']['ex_hs_attrs']) : '',
+                'other_attrs' => !empty($input['attrs']['other_attrs']) ? json_encode($input['attrs']['other_attrs']) : ''
+            ];*/
             //存在sku编辑,反之新增,后续扩展性
             $result = $this->field('sku')->where(['sku' => $input['sku'], 'lang' => $input['lang']])->find();
             if ($result) {
@@ -381,12 +384,15 @@ class GoodsAttrModel extends PublicModel {
                     'sku' => trim($input['sku']),
                     'lang' => $input['lang']
                 ];
+                $data['updated_by'] = $input['updated_by'];
+                $data['updated_at'] = date('Y-m-d H:i:s', time());
                 $res = $this->where($where)->save($data);
                 if (!$res) {
                     return false;
                 }
             } else {
                 $data['status'] = self::STATUS_DRAFT;
+                $data['spu'] = $input['spu'];
                 $data['sku'] = $input['sku'];
                 $data['lang'] = $input['lang'];
                 $data['created_by'] = $input['created_by'];
@@ -411,6 +417,30 @@ class GoodsAttrModel extends PublicModel {
         }
     }
 
+    /**
+     * 参数校验    注：没有参数或没有规则，默认返回true（即不做验证）
+     * @param array $param  参数
+     * @param array $field  校验规则
+     * @return
+     *
+     */
+    private function checkParam($param = []) {
+        $data = $results = [];
+        if(!empty($param['attrs']['spec_attrs']) ){
+            $data['spec_attrs'] =  json_encode($param['attrs']['spec_attrs']);
+        }
+        if(!empty($param['attrs']['ex_goods_attrs'])){
+            $data['ex_goods_attrs'] =  json_encode($param['attrs']['ex_goods_attrs']);
+        }
+        if(!empty($param['attrs']['ex_hs_attrs'])){
+            $data['ex_hs_attrs'] =   json_encode($param['attrs']['ex_hs_attrs']);
+        }
+        if(!empty($param['attrs']['other_attrs'])){
+            $data['other_attrs'] =  json_encode($param['attrs']['other_attrs']);
+        }
+
+        return $data;
+    }
     /**
      * sku属性[状态更改]
      * @author klp
