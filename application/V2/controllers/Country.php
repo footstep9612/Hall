@@ -24,7 +24,6 @@ class CountryController extends PublicController {
         $data['lang'] = $this->getPut('lang', 'zh');
         $country_model = new CountryModel();
         $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        echo $country_model->_sql();
         $count = $country_model->getCount($data);
         $this->setvalue('count', $count);
         if (!empty($arr)) {
@@ -51,12 +50,9 @@ class CountryController extends PublicController {
 
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
-        }
-        elseif($arr===null){
-              $this->setCode(MSG::ERROR_EMPTY);
-        }
-        
-        else {
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+        } else {
             $this->setCode(MSG::MSG_FAILED);
         }
         $this->jsonReturn($arr);
