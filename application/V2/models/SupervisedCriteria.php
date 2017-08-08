@@ -20,8 +20,8 @@ class SupervisedCriteriaModel extends PublicModel {
     protected $dbName = 'erui2_dict';
     protected $tableName = 'supervised_criteria';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**
@@ -57,7 +57,8 @@ class SupervisedCriteriaModel extends PublicModel {
             redisHashSet('SupervisedCriteria', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }

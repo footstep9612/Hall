@@ -264,7 +264,7 @@ class BuyerModel extends PublicModel {
             $res = $this->add($datajson);
             return $res;
         } catch (Exception $ex) {
-            print_r($ex);
+          
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
@@ -539,7 +539,7 @@ class BuyerModel extends PublicModel {
             }
             $this->commit();
             return $token['customer_id'];
-        } catch(\Kafka\Exception $e){
+        } catch(Exception $ex){
             $this->rollback();
             return false;
         }

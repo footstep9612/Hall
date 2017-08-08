@@ -125,8 +125,8 @@ class BuyerAddressModel extends PublicModel
             $data = $this->create($arr);
             return $this->add($data);
         } catch (Exception $ex) {
-            print_r($ex);
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+         
+            LOG::write('CLASS ' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }

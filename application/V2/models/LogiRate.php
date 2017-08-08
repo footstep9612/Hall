@@ -72,7 +72,9 @@ class LogiRateModel extends PublicModel {
             return $this->order($order)
                             ->select();
         } catch (Exception $ex) {
-            print_r($ex);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+
             return [];
         }
     }
@@ -90,6 +92,8 @@ class LogiRateModel extends PublicModel {
             $data = $this->getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
 
             return 0;
         }
@@ -108,10 +112,16 @@ class LogiRateModel extends PublicModel {
         $where['bn'] = $bn;
         $where['lang'] = $lang;
         if (!empty($where)) {
-            $row = $this->where($where)
-                    ->field('id,lang,bn,name,url')
-                    ->find();
-            return $row;
+            try {
+                $row = $this->where($where)
+                        ->field('id,lang,bn,name,url')
+                        ->find();
+                return $row;
+            } catch (Exception $ex) {
+                LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+                LOG::write($ex->getMessage(), LOG::ERR);
+                return false;
+            }
         } else {
             return false;
         }
@@ -126,6 +136,7 @@ class LogiRateModel extends PublicModel {
     public function delete_data($id = '') {
         $where['id'] = $id;
         if (!empty($where['id'])) {
+            
             return $this->where($where)
                             ->delete();
         } else {

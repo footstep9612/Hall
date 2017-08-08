@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: klp
  * Date: 2017/7/19
  * Time: 9:34
  */
+
 /**
  * 实现接口如下:
  *          1、买方企业信息：买方代码申请接口
@@ -19,7 +21,6 @@
  *        如 2015-05-05这天的调用全部为(两天数据)：
  *        [2015-05-04T00:00:00,2015-05-05T23:59:59]
  * */
-
 class Edi {
 
     private $params = array();
@@ -49,7 +50,7 @@ class Edi {
             }
         }
         if ('' == $this->serviceUri) {
-            $this->serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serviceInterface;
+            $this->serviceUri = 'http://' . $this->serverIP . ':' . $this->serverPort . '/' . $this->serverDir . '/' . $this->serviceInterface;
         }
         if ('wsdl' == $this->mode) {
             $this->serviceUri .= '?wsdl';
@@ -57,16 +58,15 @@ class Edi {
         $this->client = new SoapClient($this->serviceUri);
     }
 
-
-    static public function getStartDate(){
+    static public function getStartDate() {
         return $startDate = date('Y-m-d\T00:00:00', mktime('-1'));
     }
 
-    static public function getEndDate(){
-        return $endDate =  date('Y-m-d\T23:59:59', time());
+    static public function getEndDate() {
+        return $endDate = date('Y-m-d\T23:59:59', time());
     }
 
-    public function test(){
+    public function test() {
         header("content-type:text/html;charset=utf-8");
         try {
             $client = new SoapClient("http://localhost:81/ediserver/ws_services/SolEdiProxyWebService?wsdl");
@@ -78,7 +78,7 @@ class Edi {
         }
     }
 
-    protected function testEdiBuyerCode(){
+    protected function testEdiBuyerCode() {
         $buyerCodeApplyInfo['corpSerialNo'] = '1';
         $buyerCodeApplyInfo['corpSerialNo'] = '1';
         $buyerCodeApplyInfo['policyNo'] = 'SCH017067-161600';
@@ -90,17 +90,17 @@ class Edi {
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($buyerCodeApplyInfo)));
         try {
             $response = $this->client->doEdiBuyerCodeApply($data);
-            var_dump($response);
+            //  var_dump($response);
             $buyerCodeApproveInfo = $response->BuyerCodeApproveInfo;
             if ($buyerCodeApproveInfo) {
-    //            foreach ($countryClassifyArr as $countryClassify) {
-                    var_dump($buyerCodeApproveInfo->BuyerInfo);
-    //            }
+                //            foreach ($countryClassifyArr as $countryClassify) {
+                //  var_dump($buyerCodeApproveInfo->BuyerInfo);
+                //            }
             } else {
                 echo 123;
-    //            $this->output->writeln('no data');
+                //            $this->output->writeln('no data');
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->exception($e);
         }
     }
@@ -109,8 +109,8 @@ class Edi {
      * 买家代码申请
      *
      */
-    public function EdiBuyerCodeApply($BuyerCodeApply){
-        if(empty($BuyerCodeApply['buyer_no']) || empty($BuyerCodeApply['country_code']) || empty($BuyerCodeApply['name']) || empty($BuyerCodeApply['country_bn']) || empty($BuyerCodeApply['registered_in'])){
+    public function EdiBuyerCodeApply($BuyerCodeApply) {
+        if (empty($BuyerCodeApply['buyer_no']) || empty($BuyerCodeApply['country_code']) || empty($BuyerCodeApply['name']) || empty($BuyerCodeApply['country_bn']) || empty($BuyerCodeApply['registered_in'])) {
             $result['code'] = -101;
         }
         $BuyerCodeApplyInfo['corpSerialNo'] = $BuyerCodeApply['buyer_no'];
@@ -123,7 +123,7 @@ class Edi {
         //买方国家代码--(必填)
         $BuyerCodeApplyInfo['applyTime'] = date('Y-m-d H:i:s', time());
         //申请时间--(必填)
-        if($BuyerCodeApply['lang'] == 'zh') {
+        if ($BuyerCodeApply['lang'] == 'zh') {
             //-----------国内买家必填项:
             $BuyerCodeApplyInfo['chnName'] = $BuyerCodeApply['name'];
             //买方中文名称(必填)  --国内买方中文名称必填
@@ -140,8 +140,8 @@ class Edi {
         }
 
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
-         //$this->resultInfo("doEdiBuyerCodeApply", $xmlBuyerCodeApplyInfo);
-        try{
+        //$this->resultInfo("doEdiBuyerCodeApply", $xmlBuyerCodeApplyInfo);
+        try {
             $response = $this->client->doEdiBuyerCodeApply($data);
             if (is_object($response)) {
                 $result['code'] = 1;
@@ -152,20 +152,19 @@ class Edi {
         } catch (Exception $e) {
             $this->exception($e);
         }
-
     }
 
     /**
      * 获取买家代码申请反馈
      */
-    public function EdiBuyerCodeApprove(){
-        try{
-            $buyerCodeApproveInfo = $this->client->doEdiBuyerCodeApprove(array('doEdiBuyerCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
+    public function EdiBuyerCodeApprove() {
+        try {
+            $buyerCodeApproveInfo = $this->client->doEdiBuyerCodeApprove(array('doEdiBuyerCodeApprove' => array('startDate' => self::getStartDate(), 'endDate' => self::getEndDate())));
             if (is_object($buyerCodeApproveInfo->out) && !empty($buyerCodeApproveInfo->out)) {
                 var_dump($buyerCodeApproveInfo->out);
                 $data = self::xml_to_array($buyerCodeApproveInfo->out);
             }
-        }catch (Exception $e){
+        } catch (Exception $e) {
             $this->exception($e);
         }
     }
@@ -173,15 +172,15 @@ class Edi {
     /**
      * 银行代码申请
      */
-    public function EdiBankCodeApply($BankCodeApply){
-        if(empty($BankCodeApply['swift_code']) || empty($BankCodeApply['bank_name']) || empty($BankCodeApply['country_code']) || empty($BankCodeApply['address'])){
+    public function EdiBankCodeApply($BankCodeApply) {
+        if (empty($BankCodeApply['swift_code']) || empty($BankCodeApply['bank_name']) || empty($BankCodeApply['country_code']) || empty($BankCodeApply['address'])) {
             $result['code'] = -101;
         }
         $BankCodeApplyInfo['corpSerialNo'] = $BankCodeApply['buyer_no'];
         //企业内部银行代码--(必填)
         $BankCodeApplyInfo['policyNo'] = '';
         //保险单号(非必填)
-        $BankCodeApplyInfo['engName'] =  $BankCodeApply['bank_name'];
+        $BankCodeApplyInfo['engName'] = $BankCodeApply['bank_name'];
         //银行英文名称--(必填)
         $BankCodeApplyInfo['countryCode'] = $BankCodeApply['country_code'];
         //银行国家代码--(必填)
@@ -189,7 +188,7 @@ class Edi {
         //银行地址(英文)--(必填)
         $data = array('bankCodeApplyInfoList' => array('BankCodeApplyInfo' => array($BankCodeApplyInfo)));
 //        return $this->resultInfo("doEdiBankCodeApply", $xmlEdiBankCodeApply);
-        try{
+        try {
             $response = $this->client->doEdiBankCodeApply($data);
             if (is_object($response)) {
                 $result['code'] = 1;
@@ -206,10 +205,10 @@ class Edi {
      * 银行代码批复通知
      *
      */
-    public  function EdiBankCodeApprove(){
+    public function EdiBankCodeApprove() {
 //        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
-        try{
-            $BankCodeApproveInfo = $this->client->doEdiBankCodeApprove(array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
+        try {
+            $BankCodeApproveInfo = $this->client->doEdiBankCodeApprove(array('doEdiBankCodeApprove' => array('startDate' => self::getStartDate(), 'endDate' => self::getEndDate())));
             if ($BankCodeApproveInfo) {
                 var_dump($BankCodeApproveInfo->BankInfo);
             } else {
@@ -223,14 +222,14 @@ class Edi {
     /**
      * 出口险-非LC限额申请
      */
-    public function EdiNoLcQuotaApplyV2(){
+    public function EdiNoLcQuotaApplyV2() {
         return $this->resultInfo("doEdiNoLcQuotaApplyV2");
     }
 
     /**
      * 出口险-LC限额申请
      */
-    public function EdiLcQuotaApplyV2(){
+    public function EdiLcQuotaApplyV2() {
         return $this->resultInfo("doEdiLcQuotaApplyV2");
     }
 
@@ -238,10 +237,10 @@ class Edi {
      * 出口险-限额批复通知
      *
      */
-    public function EdiQuotaApproveInfo(){
+    public function EdiQuotaApproveInfo() {
 //        return $this->resultInfo("getEdiQuotaApproveInfo", $xmlGetEdiQuotaApproveInfo);
-        try{
-            $QuotaApproveInfo = $this->client->getEdiQuotaApproveInfo(array('getEdiQuotaApproveInfo'=>array('policyNo'=>'','startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
+        try {
+            $QuotaApproveInfo = $this->client->getEdiQuotaApproveInfo(array('getEdiQuotaApproveInfo' => array('policyNo' => '', 'startDate' => self::getStartDate(), 'endDate' => self::getEndDate())));
             if ($QuotaApproveInfo) {
                 var_dump($QuotaApproveInfo->BuyerQuotaInfo);
             } else {
@@ -255,7 +254,7 @@ class Edi {
     /**
      * 出口险-出运明细申报
      */
-    public function EdiShipmentApply(){
+    public function EdiShipmentApply() {
         return $this->resultInfo("doEdiShipmentApply");
     }
 
@@ -263,14 +262,14 @@ class Edi {
      * 出口险-出运申报受理反馈
      *
      */
-    public function EdiShipmentApproveInfo(){
+    public function EdiShipmentApproveInfo() {
         return $this->resultInfo("getEdiShipmentApproveInfo");
     }
 
     /**
      * 出口险-出运变更申请
      */
-    public function doEdiShipmentAlterApply(){
+    public function doEdiShipmentAlterApply() {
         return $this->resultInfo("doEdiShipmentAlterApply");
     }
 
@@ -278,14 +277,14 @@ class Edi {
      * 出口险-出运变更受理反馈
      *
      */
-    public function EdiShipmentAlterApproveInfo(){
+    public function EdiShipmentAlterApproveInfo() {
         return $this->resultInfo("getEdiShipmentAlterApproveInfo");
     }
 
     /**
      * 出口险-收汇确认
      */
-    public function EdiReceiptApply(){
+    public function EdiReceiptApply() {
         return $this->resultInfo("doEdiReceiptApply");
     }
 
@@ -293,14 +292,14 @@ class Edi {
      * 出口险-收汇确认反馈
      *
      */
-    public function EdiReceiptApproveInfo(){
+    public function EdiReceiptApproveInfo() {
         return $this->resultInfo("getEdiReceiptApproveInfo");
     }
 
     /**
      * 内贸险-限额申请
      */
-    public function EdiDomQuotaApply(){
+    public function EdiDomQuotaApply() {
         return $this->resultInfo("doEdiDomQuotaApply");
     }
 
@@ -308,7 +307,7 @@ class Edi {
      * 内贸险-限额批复
      *
      */
-    public function DomEdiQuotaApproveInfo(){
+    public function DomEdiQuotaApproveInfo() {
         return $this->resultInfo("getDomEdiQuotaApproveInfo");
     }
 
@@ -316,11 +315,11 @@ class Edi {
      * 出口险-限额余额查询V2(新版)
      *
      */
-    public function QuotaBalanceInfoByPolicyNo(){
+    public function QuotaBalanceInfoByPolicyNo() {
 //        return $this->resultInfo("getQuotaBalanceInfoByPolicyNo",$xmlGetQuotaBalanceInfoByPolicyNo);
 //        policyNoList  保险单号集合(必填)
-        try{
-            $QuotaBalanceInfo = $this->client->getQuotaBalanceInfoByPolicyNo(array('policyNoList'=>array()));
+        try {
+            $QuotaBalanceInfo = $this->client->getQuotaBalanceInfoByPolicyNo(array('policyNoList' => array()));
             if ($QuotaBalanceInfo) {
                 var_dump($QuotaBalanceInfo);
             } else {
@@ -335,9 +334,8 @@ class Edi {
      * 出口险-自行掌握限额判断
      *
      */
-    public function doEdiCheckAutoQuota(){
-        $xmlEdiCheckAutoQuota =
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+    public function doEdiCheckAutoQuota() {
+        $xmlEdiCheckAutoQuota = "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 
             ";
         return $this->resultInfo("EdiCheckAutoQuota", $xmlEdiCheckAutoQuota);
@@ -347,9 +345,9 @@ class Edi {
      * 国家分类查询
      *
      */
-    public function EdiCountryClassify(){
-        try{
-            $CountryClassify = $this->client->getEdiCountryClassify(array('startDate'=>'2011-01-01T00:00:00','endDate'=>self::getEndDate()));
+    public function EdiCountryClassify() {
+        try {
+            $CountryClassify = $this->client->getEdiCountryClassify(array('startDate' => '2011-01-01T00:00:00', 'endDate' => self::getEndDate()));
             if ($CountryClassify) {
                 var_dump($CountryClassify);
             } else {
@@ -364,8 +362,8 @@ class Edi {
      * 出口险-基础费率查询
      *
      */
-    public function EdiBasicFeeRate(){
-        try{
+    public function EdiBasicFeeRate() {
+        try {
             $BasicFeeRateInfo = $this->client->getEdiBasicFeeRate;
             if ($BasicFeeRateInfo) {
                 var_dump($BasicFeeRateInfo->BasicFeeRate);
@@ -381,54 +379,58 @@ class Edi {
      * 出口险-特殊费率查询
      *
      */
-    public function EdiSpecialFeeRate(){
-        try{
+    public function EdiSpecialFeeRate() {
+        try {
             $result = $this->client->getEdiSpecialFeeRate;
-            var_dump($result);die;//组织处理数据
-        }catch (Exception $e){
+            var_dump($result);
+            die; //组织处理数据
+        } catch (Exception $e) {
             $this->exception($e);
         }
     }
 
-
-    static function xml_to_array($xml){
-        $array = (array)(@simplexml_load_string($xml, null, LIBXML_NOCDATA));
-        foreach ($array as $key=>$item){
-            $array[$key]  =  @self::struct_to_array((array)$item);
+    static function xml_to_array($xml) {
+        $array = (array) (@simplexml_load_string($xml, null, LIBXML_NOCDATA));
+        foreach ($array as $key => $item) {
+            $array[$key] = @self::struct_to_array((array) $item);
         }
         return $array;
     }
 
     static function struct_to_array($item) {
-        if(!is_string($item)) {
-            $item = (array)$item;
-            foreach ($item as $key=>$val){
-                $item[$key]  =  @self::struct_to_array($val);
+        if (!is_string($item)) {
+            $item = (array) $item;
+            foreach ($item as $key => $val) {
+                $item[$key] = @self::struct_to_array($val);
             }
         }
         return $item;
     }
+
     //公共调用返回结果 --暂不用
-     private function resultInfo($calltype='', $xml){
-        if(empty($calltype)){
+    private function resultInfo($calltype = '', $xml) {
+        if (empty($calltype)) {
             return false;
         }
-         try {
+        try {
             $client = new SoapClient($this->serviceUri);
-            $paramters = array('xml'=>$xml);
-             $result=call_user_func_array($calltype, $paramters);var_dump($result);die;
+            $paramters = array('xml' => $xml);
+            $result = call_user_func_array($calltype, $paramters);
+            var_dump($result);
+            die;
 //            $result=$client->doEdiBuyerCodeApprove($paramters);
 //            return $result? $result : '';
         } catch (Exception $e) {
-             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-             LOG::write($e->getMessage(), LOG::ERR);
-             return $e;
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($e->getMessage(), LOG::ERR);
+            return $e;
         }
     }
 
-    public function exception($e){
+    public function exception($e) {
         LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
         LOG::write($e->getMessage, LOG::ERR);
         return $e;
     }
+
 }
