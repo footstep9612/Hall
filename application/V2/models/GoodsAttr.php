@@ -458,38 +458,46 @@ class GoodsAttrModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function deleteSkuAttr($delData) {
-        if (empty($delData)) {
+    public function deleteSkuAttr($skus,$lang) {
+        if (empty($skus)) {
             return false;
         }
         $results = array();
-        if ($delData && is_array($delData)) {
-            try {
-                foreach ($delData as $del) {
+        try {
+            if ($skus && is_array($skus)) {
+                foreach ($skus as $del) {
                     $where = [
-                        "sku" => $del['sku'],
-                        "lang" => $del['lang']
+                        "sku" => $del,
+                        "lang" => $lang
                     ];
                     $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
                     if (!$res) {
                         return false;
                     }
                 }
-                if ($res) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                } else {
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
+            } else{
+                $where = [
+                    "sku" => $skus,
+                    "lang" => $lang
+                ];
+                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                if (!$res) {
+                    return false;
                 }
-                return $results;
-            } catch (Exception $e) {
-                $results['code'] = $e->getCode();
-                $results['message'] = $e->getMessage();
-                return $results;
             }
+            if ($res) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '失败!';
+            }
+                return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
         }
-        return false;
     }
 
     /* 通过SKU获取数据商品属性列表

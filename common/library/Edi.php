@@ -28,7 +28,8 @@ class Edi {
 
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
-        $config_obj = Yaf_Registry::get("config");
+        $config_obj = new Yaf_Config_Ini('./conf/application.ini', 'sinosure');
+//        $config_obj = Yaf_Registry::get("config");
         $config_db = $config_obj->sinosure->config->toArray();
         $this->serverIP = $config_db['host'];
         $this->serverPort = $config_db['port'];
@@ -348,7 +349,7 @@ class Edi {
      */
     public function EdiCountryClassify(){
         try{
-            $CountryClassify = $this->client->getEdiCountryClassify(array('getEdiCountryClassify' => array('startDate'=>'2011-01-01','endDate'=>'2017-01-01')));
+            $CountryClassify = $this->client->getEdiCountryClassify(array('startDate'=>'2011-01-01T00:00:00','endDate'=>self::getEndDate()));
             if ($CountryClassify) {
                 var_dump($CountryClassify);
             } else {

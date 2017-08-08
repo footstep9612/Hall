@@ -1160,16 +1160,26 @@ class GoodsModel extends PublicModel {
         if (empty($input)) {
             return false;
         }
+        if (!isset($this->put_data['sku'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+
+        $lang = '';
+        if(isset($this->put_data['lang']) && !in_array(strtolower($this->put_data['lang']),array('zh','en','es','ru'))) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        } else {
+            $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
+        }
         $this->startTrans();
         try {
-            $res = $this->deleteSku($input);                 //sku删除
+            $res = $this->deleteSku($input,$lang);                 //sku删除
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
 
             $gattr = new GoodsAttrModel();
-            $resAttr = $gattr->deleteSkuAttr($input);        //属性删除
+            $resAttr = $gattr->deleteSkuAttr($input,$lang);        //属性删除
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
                 return false;
@@ -1201,30 +1211,40 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function deleteSku($delData) {
-        if (empty($delData)) {
+    public function deleteSku($skus,$lang) {
+        if (empty($skus)) {
             return false;
         }
         $results = array();
-        if ($delData && is_array($delData)) {
-            try {
-                foreach ($delData as $del) {
+        try {
+            if ($skus && is_array($skus)) {
+                foreach ($skus as $del) {
                     $where = [
-                        "sku" => $del['sku'],
-                        "lang" => $del['lang']
+                        "sku" => $del,
+                        "lang" => $lang
                     ];
                     $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
                     if (!$res) {
                         return false;
                     }
                 }
-                if ($res) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                } else {
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
+            } else{
+                $where = [
+                    "sku" => $skus,
+                    "lang" => $lang
+                ];
+                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                if (!$res) {
+                    return false;
                 }
+            }
+             if ($res) {
+                 $results['code'] = '1';
+                 $results['message'] = '成功！';
+             } else {
+                 $results['code'] = '-101';
+                 $results['message'] = '失败!';
+             }
                 if ($sku) {
                     $langs = ['en', 'zh', 'es', 'ru'];
                     foreach ($langs as $lang) {
@@ -1233,13 +1253,12 @@ class GoodsModel extends PublicModel {
                     }
                 }
                 return $results;
-            } catch (Exception $e) {
-                $results['code'] = $e->getCode();
-                $results['message'] = $e->getMessage();
-                return $results;
-            }
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
         }
-        return false;
+
     }
 
     /**
