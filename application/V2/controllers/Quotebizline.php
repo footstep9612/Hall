@@ -496,24 +496,15 @@ class QuotebizlineController extends PublicController {
 
     public function submitToBizlineManagerAction() {
 
-        //返回给前端的标准数据
-        //TODO 判断是不是已经提交了，不能重复提交吧?
-        //保存数据及更改状态
-        $inquiry_id = 1;
-        $inquiry = new InquiryModel();
-        $result = $inquiry->where(['id' => $inquiry_id])->save(['status' => 'VALID']);
-
-        if (!$result) {
-            $this->jsonReturn([
-                'code' => -104,
-                'message' => '失败!'
-            ]);
+        //判断参数是否正确
+        if (empty($this->_requestParams['quote_id']) || empty($this->_requestParams['bizline_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
 
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功!'
-        ]);
+        //保存数据及更改状态
+        $quoteBizline = new QuoteBizLineModel();
+        $this->jsonReturn($quoteBizline->submitToBizlineManager($this->_requestParams));
+
     }
 
     /**

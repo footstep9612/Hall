@@ -170,4 +170,5 @@ trait QuoteBizlineHelper{
         ];
         return $response;
     }
+
 }
