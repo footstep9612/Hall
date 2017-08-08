@@ -132,15 +132,6 @@ class CentercreditController extends PublicController{
 
     }
 
-    /**
-     * 区域等级会员维护列表(未写)
-     * @author klp
-     */
-    public function gradeListAction(){
-        $buyerModel = new BuyerModel();
-        $result = $buyerModel->getGradeList($this->put_data);
-        $this->returnInfo($result);
-    }
 
 
     //统一回复调用方法

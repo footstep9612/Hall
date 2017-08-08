@@ -248,19 +248,7 @@ class ShowCatGoodsModel extends PublicModel {
             }
             $ret = [];
             $show_cat_nos = [];
-<<<<<<< HEAD
-            foreach ($show_catgoods as $item) {
-=======
-<<<<<<< Branch_dev
             foreach ($show_cat_goods as $item) {
-=======
-<<<<<<< HEAD
-            foreach ($show_catgoods as $item) {
-=======
-            foreach ($show_cat_goods as $item) {
->>>>>>> Branch_dev
->>>>>>> local
->>>>>>> Branch_dev
                 $show_cat_nos[] = $item['cat_no'];
             }
             $show_cat_model = new ShowCatModel();

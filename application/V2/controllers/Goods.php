@@ -5,8 +5,8 @@
  * Date: 2017/7/20
  * Time: 9:34
  */
-class GoodsController extends PublicController{
-//class GoodsController extends Yaf_Controller_Abstract{
+//class GoodsController extends PublicController{
+class GoodsController extends Yaf_Controller_Abstract{
     private $input;
 
     public function init()
@@ -50,10 +50,10 @@ class GoodsController extends PublicController{
      * @author klp
      */
     public function skuAttrsInfoAction(){
-//        $this->put_data = [
-//            'sku'=> '8832211',
-//            'lang'=> 'zh',
-//        ];
+        $this->put_data = [
+            'sku'=> '84877319',
+
+        ];
         $goodsModel = new GoodsAttrModel();
         $result = $goodsModel->getSkuAttrsInfo($this->put_data);
         $this->returnInfo($result);

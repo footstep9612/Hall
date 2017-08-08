@@ -301,7 +301,7 @@ class GoodsAttrModel extends PublicModel {
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
         } else {
-            jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($condition['lang']);
@@ -325,24 +325,25 @@ class GoodsAttrModel extends PublicModel {
             if ($result) {
                 //获取产品属性
                 $product = new ProductAttrModel();
-                $pattr = $product->getAttr($result['spu'] ? $result['spu'] : '', isset($where['lang']) ? $where['lang'] : '', isset($where['status']) ? $where['status'] : '');
+                $pattr = $product->getAttr($result[0]['spu'] ? $result[0]['spu'] : '', isset($where['lang']) ? $where['lang'] : '', isset($where['status']) ? $where['status'] : '');
                 $attrs = array_merge($result, $pattr);
 
                 //按语言分组,类型分组
                 foreach ($attrs as $item) {
                     $item['flag'] = true;
-                    if (empty($item['spec_attrs'])) {
-                        $data[$item['lang']]['spec_attrs'][] = $item;
+                    if (isset($item['spec_attrs'])) {
+                        $item['spec_attrs'] = json_decode($item['spec_attrs']);
                     }
-                    if (empty($item['ex_goods_attrs'])) {
-                        $data[$item['lang']]['ex_goods_attrs'][] = $item;
+                    if (isset($item['ex_goods_attrs'])) {
+                        $item['ex_goods_attrs'] = json_decode($item['ex_goods_attrs']);
                     }
-                    if (empty($item['ex_hs_attrs'])) {
-                        $data[$item['lang']]['ex_hs_attrs'][] = $item;
+                    if (isset($item['ex_hs_attrs'])) {
+                        $item['ex_hs_attrs'] = json_decode($item['ex_hs_attrs']);
                     }
-                    if (empty($item['other_attrs'])) {
-                        $data[$item['lang']]['other_attrs'][] = $item;
+                    if (isset($item['other_attrs'])) {
+                        $item['other_attrs'] = json_decode($item['other_attrs']);
                     }
+                    $data[$item['lang']][] = $item;
                 }
                 redisHashSet('SkuAttrs', md5(json_encode($where)), json_encode($data));
             }

@@ -85,7 +85,7 @@ class Edi {
         $buyerCodeApplyInfo['engName'] = 'Toyota Motor Sales, U.S.A., Inc';
         $buyerCodeApplyInfo['countryCode'] = 'USA';
         $buyerCodeApplyInfo['engAddress'] = 'USA';
-        $buyerCodeApplyInfo['applyTime'] = date('Y-m-d H:i:s', time());
+        $buyerCodeApplyInfo['applyTime'] =  strtotime('now');
 
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($buyerCodeApplyInfo)));
         try {
@@ -110,9 +110,53 @@ class Edi {
      *
      */
     public function EdiBuyerCodeApply($BuyerCodeApply){
-        if(empty($BuyerCodeApply['buyer_no']) || empty($BuyerCodeApply['country_code']) || empty($BuyerCodeApply['name']) || empty($BuyerCodeApply['country_bn']) || empty($BuyerCodeApply['registered_in'])){
-            $result['code'] = -101;
+        $BuyerInfo = $this->checkParamBuyer($BuyerCodeApply);
+        $result = $this->_EdiBuyerCodeApply($BuyerInfo);
+        if($result && $result['code']  == 1){
+            $res['code'] = 1;
+            $res['message'] = '申请成功!';
+        } else{
+            $res['code'] = -101;
+            $res['message'] = '申请失败!';
         }
+        return $res;
+    }
+
+    public function checkParamBuyer($BuyerCodeApply){
+        $data = $results = array();
+        if(empty($BuyerCodeApply['lang'])){
+            $results['code'] = -101;
+            $results['message'] = '[lang]不能为空!';
+        }
+        if($BuyerCodeApply['lang'] == 'zh') {
+            if(empty($BuyerCodeApply['province'])){
+                $results['code'] = -101;
+                $results['message'] = '[province]不能为空!';
+            }
+        }
+        if(empty($BuyerCodeApply['buyer_no'])){
+            $results['code'] = -101;
+            $results['message'] = '[buyer_no]不能为空!';
+        }
+        if(empty($BuyerCodeApply['country_code'])){
+            $results['code'] = -101;
+            $results['message'] = '[country_code]不能为空!';
+        }
+        if(empty($BuyerCodeApply['name'])){
+            $results['code'] = -101;
+            $results['message'] = '[name]不能为空!';
+        }
+        if(empty($BuyerCodeApply['registered_in'])){
+            $results['code'] = -101;
+            $results['message'] = '[registered_in]不能为空!';
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return $data;
+    }
+
+    private function _EdiBuyerCodeApply($BuyerCodeApply){
         $BuyerCodeApplyInfo['corpSerialNo'] = $BuyerCodeApply['buyer_no'];
         //企业内部买方代码--(必填)
         $BuyerCodeApplyInfo['clientNo'] = '';
@@ -121,13 +165,13 @@ class Edi {
         //保险单号  --动态配置项-SCH017067-161600
         $BuyerCodeApplyInfo['countryCode'] = $BuyerCodeApply['country_code'];
         //买方国家代码--(必填)
-        $BuyerCodeApplyInfo['applyTime'] = date('Y-m-d H:i:s', time());
+        $BuyerCodeApplyInfo['applyTime'] =  strtotime('now');
         //申请时间--(必填)
         if($BuyerCodeApply['lang'] == 'zh') {
             //-----------国内买家必填项:
             $BuyerCodeApplyInfo['chnName'] = $BuyerCodeApply['name'];
             //买方中文名称(必填)  --国内买方中文名称必填
-            $BuyerCodeApplyInfo['areano'] = $BuyerCodeApply['country_bn'];
+            $BuyerCodeApplyInfo['areano'] = $BuyerCodeApply['province'];
             //区域代码--(必填)    --国内买家 必填
             $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['registered_in'];
             //买方中文地址--(必填)--国内买家 必填
@@ -144,11 +188,11 @@ class Edi {
         try{
             $response = $this->client->doEdiBuyerCodeApply($data);
             if (is_object($response)) {
-                $result['code'] = 1;
+                $results['code'] = 1;
             } else {
-                $result['code'] = -101;
+                $results['code'] = -101;
             }
-            return $result;
+            return $results;
         } catch (Exception $e) {
             $this->exception($e);
         }
@@ -158,12 +202,22 @@ class Edi {
     /**
      * 获取买家代码申请反馈
      */
-    public function EdiBuyerCodeApprove(){
+    public function EdiBuyerCodeApprove()
+    {
+        $result = $this->_EdiBuyerCodeApprove();
+        if($result){
+            $data = self::xml_to_array($result);
+        }
+    }
+    private function _EdiBuyerCodeApprove(){
         try{
             $buyerCodeApproveInfo = $this->client->doEdiBuyerCodeApprove(array('doEdiBuyerCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
             if (is_object($buyerCodeApproveInfo->out) && !empty($buyerCodeApproveInfo->out)) {
                 var_dump($buyerCodeApproveInfo->out);
-                $data = self::xml_to_array($buyerCodeApproveInfo->out);
+                return $buyerCodeApproveInfo->out;
+//                date('Y-m-d H:i:s', strtotime('2011-04-01T00:00:00+08:00'));
+            } else{
+                return false;
             }
         }catch (Exception $e){
             $this->exception($e);
@@ -173,8 +227,45 @@ class Edi {
     /**
      * 银行代码申请
      */
-    public function EdiBankCodeApply($BankCodeApply){
-        if(empty($BankCodeApply['swift_code']) || empty($BankCodeApply['bank_name']) || empty($BankCodeApply['country_code']) || empty($BankCodeApply['address'])){
+    public function EdiBankCodeApply($BuyerBankApply){
+        $BankInfo = $this->checkParamBank($BuyerBankApply);
+        $result = $this->_EdiBankCodeApply($BankInfo);
+        if($result && $result['code']  == 1){
+            $res['code'] = 1;
+            $res['message'] = '申请成功!';
+        } else{
+            $res['code'] = -101;
+            $res['message'] = '申请失败!';
+        }
+        return $res;
+    }
+
+    public function checkParamBank($BuyerBankApply){
+        $data = $results = array();
+        if(empty($BuyerBankApply['buyer_no'])){
+            $results['code'] = -101;
+            $results['message'] = '[buyer_no]不能为空!';
+        }
+        if(empty($BuyerBankApply['country_code'])){
+            $results['code'] = -101;
+            $results['message'] = '[country_code]不能为空!';
+        }
+        if(empty($BuyerBankApply['bank_name'])){
+            $results['code'] = -101;
+            $results['message'] = '[bank_name]不能为空!';
+        }
+        if(empty($BuyerBankApply['address'])){
+            $results['code'] = -101;
+            $results['message'] = '[address]不能为空!';
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return $data;
+    }
+
+    private function _EdiBankCodeApply($BankCodeApply){
+        if(empty($BankCodeApply['buyer_no']) || empty($BankCodeApply['bank_name']) || empty($BankCodeApply['country_code']) || empty($BankCodeApply['address'])){
             $result['code'] = -101;
         }
         $BankCodeApplyInfo['corpSerialNo'] = $BankCodeApply['buyer_no'];
@@ -206,14 +297,22 @@ class Edi {
      * 银行代码批复通知
      *
      */
-    public  function EdiBankCodeApprove(){
+    public function EdiBankCodeApprove()
+    {
+        $result = $this->_EdiBankCodeApprove();
+        if($result){
+            $data = self::xml_to_array($result);
+        }
+    }
+    private  function _EdiBankCodeApprove(){
 //        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
         try{
             $BankCodeApproveInfo = $this->client->doEdiBankCodeApprove(array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-            if ($BankCodeApproveInfo) {
-                var_dump($BankCodeApproveInfo->BankInfo);
-            } else {
-                echo 123231;
+            if (is_object($BankCodeApproveInfo->out) && !empty($BankCodeApproveInfo->out)) {
+                var_dump($BankCodeApproveInfo->out);
+                return $BankCodeApproveInfo->out;
+            } else{
+                return false;
             }
         } catch (Exception $e) {
             $this->exception($e);
@@ -239,13 +338,21 @@ class Edi {
      *
      */
     public function EdiQuotaApproveInfo(){
+        $result = $this->_EdiQuotaApproveInfo();
+        if($result){
+            $data = self::xml_to_array($result);
+        }
+    }
+
+    private function _EdiQuotaApproveInfo(){
 //        return $this->resultInfo("getEdiQuotaApproveInfo", $xmlGetEdiQuotaApproveInfo);
         try{
             $QuotaApproveInfo = $this->client->getEdiQuotaApproveInfo(array('getEdiQuotaApproveInfo'=>array('policyNo'=>'','startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-            if ($QuotaApproveInfo) {
-                var_dump($QuotaApproveInfo->BuyerQuotaInfo);
+            if (is_object($QuotaApproveInfo->out) && !empty($QuotaApproveInfo->out)) {
+                return $QuotaApproveInfo->out;
+//                var_dump($QuotaApproveInfo->BuyerQuotaInfo);
             } else {
-                echo 333;
+                return false;
             }
         } catch (Exception $e) {
             $this->exception($e);
@@ -317,14 +424,22 @@ class Edi {
      *
      */
     public function QuotaBalanceInfoByPolicyNo(){
+        $result = $this->_QuotaBalanceInfoByPolicyNo();
+        if($result){
+            $data = self::xml_to_array($result);
+        }
+    }
+
+    private function _QuotaBalanceInfoByPolicyNo(){
 //        return $this->resultInfo("getQuotaBalanceInfoByPolicyNo",$xmlGetQuotaBalanceInfoByPolicyNo);
 //        policyNoList  保险单号集合(必填)
         try{
             $QuotaBalanceInfo = $this->client->getQuotaBalanceInfoByPolicyNo(array('policyNoList'=>array()));
-            if ($QuotaBalanceInfo) {
-                var_dump($QuotaBalanceInfo);
+            if (is_object($QuotaBalanceInfo->out) && !empty($QuotaBalanceInfo->out)) {
+                return $QuotaBalanceInfo->out;
+//                var_dump($QuotaBalanceInfo);
             } else {
-                echo 555;
+                return false;
             }
         } catch (Exception $e) {
             $this->exception($e);
@@ -351,7 +466,7 @@ class Edi {
         try{
             $CountryClassify = $this->client->getEdiCountryClassify(array('startDate'=>'2011-01-01T00:00:00','endDate'=>self::getEndDate()));
             if ($CountryClassify) {
-                var_dump($CountryClassify);
+                var_dump($CountryClassify->out->CountryClassify);die;
             } else {
                 echo 666;
             }
