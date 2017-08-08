@@ -16,7 +16,6 @@ class ShowCatGoodsModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING';    //审核
     const STATUS_VALID = 'VALID';    //生效
     const STATUS_DELETED = 'DELETED';    //删除
-
     const STATUS_ONSHELF = 'Y';    //上架
     const STATUS_UNSHELF = 'N';    //未上架
 
@@ -29,8 +28,8 @@ class ShowCatGoodsModel extends PublicModel {
      * @param array $data_spu  spu上架信息
      * @author link
      */
-    public function onShelf($data_spu=[]) {
-        if(empty($data_spu)) {
+    public function onShelf($data_spu = []) {
+        if (empty($data_spu)) {
             return false;
         }
 
@@ -38,20 +37,20 @@ class ShowCatGoodsModel extends PublicModel {
         $goodsModel = new GoodsModel();
         $sku_temp = [];
         $userInfo = getLoinInfo();
-        foreach($data_spu as $item){
+        foreach ($data_spu as $item) {
             /**
              * 根据spu lang获取sku
              */
-            if(!isset($sku_temp[$item['lang'].'_'.$item['spu']])){
-                $result = $goodsModel->field('sku')->where(array('spu'=>$item['spu'],'lang'=>$item['lang']))->select();
-                if(empty($result)) {
+            if (!isset($sku_temp[$item['lang'] . '_' . $item['spu']])) {
+                $result = $goodsModel->field('sku')->where(array('spu' => $item['spu'], 'lang' => $item['lang']))->select();
+                if (empty($result)) {
                     continue;
-                }else{
-                    $sku_temp[$item['lang'].'_'.$item['spu']] = $result;
+                } else {
+                    $sku_temp[$item['lang'] . '_' . $item['spu']] = $result;
                 }
             }
-            foreach($sku_temp[$item['lang'].'_'.$item['spu']] as $r) {
-                $data_temp =[];
+            foreach ($sku_temp[$item['lang'] . '_' . $item['spu']] as $r) {
+                $data_temp = [];
                 $data_temp['lang'] = $item['lang'];
                 $data_temp['cat_no'] = $item['cat_no'];
                 $data_temp['spu'] = $item['spu'];
@@ -59,13 +58,13 @@ class ShowCatGoodsModel extends PublicModel {
                 $data_temp['onshelf_flag'] = self::STATUS_ONSHELF;
                 $data_temp['status'] = self::STATUS_VALID;
                 $data_temp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                $data_temp['created_at'] = date('Y-m-d H:i:s',time());
+                $data_temp['created_at'] = date('Y-m-d H:i:s', time());
                 $data[] = $data_temp;
             }
         }
-        try{
+        try {
             return $this->addAll($data);
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -82,32 +81,32 @@ class ShowCatGoodsModel extends PublicModel {
      *            downShelf(array('000001'),'zh');    #下架000001的中文
      *            downShelf(array('000001'),'zh',array('0011','0022'));    #下架展示分类为0011，0022下000001为中文的
      */
-    public function downShelf($spu = '', $lang='', $cat_no=''){
-        if(empty($spu) || !is_array($spu)) {
-            jsonReturn('',ErrorMsg::WRONG_SPU);
+    public function downShelf($spu = '', $lang = '', $cat_no = '') {
+        if (empty($spu) || !is_array($spu)) {
+            jsonReturn('', ErrorMsg::WRONG_SPU);
         }
 
         $where = array(
-            'spu'=>array('in', $spu),
+            'spu' => array('in', $spu),
         );
 
-        if(!empty($lang)) {
+        if (!empty($lang)) {
             $where['lang'] = $lang;
         }
 
-        if(!empty($cat_no) && is_array($cat_no)) {
+        if (!empty($cat_no) && is_array($cat_no)) {
             $where['cat_no'] = array('in', $cat_no);
         }
 
-        try{
+        try {
             $result = $this->where($where)->delete();
             return $result ? true : false;
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return false;
         }
     }
 
-        /**
+    /**
      * 商品上架添加数据
      * @param array $condition
      * @return array
@@ -230,7 +229,7 @@ class ShowCatGoodsModel extends PublicModel {
     public function getshow_catsbyskus($skus, $lang = 'en') {
         try {
             if ($skus && is_array($skus)) {
-                $show_catgoods = $this->alias('scp')
+                $show_cat_goods = $this->alias('scp')
                         ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no,scp.spu,scp.sku,scp.onshelf_flag')
                         ->where(['scp.sku' => ['in', $skus],
@@ -243,15 +242,19 @@ class ShowCatGoodsModel extends PublicModel {
             } else {
                 return [];
             }
+
+            if (!$show_cat_goods) {
+                return [];
+            }
             $ret = [];
             $show_cat_nos = [];
-            foreach ($show_catgoods as $item) {              
+            foreach ($show_cat_goods as $item) {
                 $show_cat_nos[] = $item['cat_no'];
             }
             $show_cat_model = new ShowCatModel();
             $scats = $show_cat_model->getshow_cats($show_cat_nos, $lang);
 
-            foreach ($show_catgoods as $item) {
+            foreach ($show_cat_goods as $item) {
                 $show_cat_no = $item['cat_no'];
                 if (isset($scats[$show_cat_no])) {
                     $ret[$item['sku']][$show_cat_no] = $scats[$show_cat_no];
