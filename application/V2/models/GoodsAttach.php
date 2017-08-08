@@ -296,8 +296,7 @@ class GoodsAttachModel extends PublicModel {
                         'sort_order' => isset($checkout['sort_order']) ? $checkout['sort_order'] : 0
                     ];
                     //存在sku编辑,反之新增,后续扩展性
-                    $result = $this->field('sku')->where(['id' => $checkout['id']])->find();
-                    if ($result) {
+                    if (isset($checkout['id']) && !empty($checkout['id'])) {
                         $data['updated_by'] = $input['user_id'];
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $where = [
