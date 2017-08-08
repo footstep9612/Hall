@@ -725,13 +725,13 @@ class GoodsModel extends PublicModel {
             $this->commit();
             if ($sku) {
                 $langs = ['en', 'zh', 'es', 'ru'];
+                $es_goods_model = new EsGoodsModel();
                 foreach ($langs as $lang) {
-                    $es_goods_model = new EsGoodsModel();
-                    $es_goods_model->create_data($where['sku'], $lang);
+                    $es_goods_model->create_data($sku, $lang);
                 }
             }
             return $sku;
-        } catch (\Kafka\Exception $e) {
+        } catch (Exception $e) {
             $this->rollback();
             return false;
         }
@@ -999,9 +999,9 @@ class GoodsModel extends PublicModel {
             }
             if ($sku) {
                 $langs = ['en', 'zh', 'es', 'ru'];
+                $es_goods_model = new EsGoodsModel();
                 foreach ($langs as $lang) {
-                    $es_goods_model = new EsGoodsModel();
-                    $es_goods_model->create_data($where['sku'], $lang);
+                    $es_goods_model->create_data($sku, $lang);
                 }
             }
             $this->commit();
@@ -1067,7 +1067,7 @@ class GoodsModel extends PublicModel {
                 $langs = ['en', 'zh', 'es', 'ru'];
                 foreach ($langs as $lang) {
                     $es_goods_model = new EsGoodsModel();
-                    $es_goods_model->create_data($where['sku'], $lang);
+                    $es_goods_model->create_data($sku, $lang);
                 }
             }
             $this->commit();
@@ -1090,7 +1090,8 @@ class GoodsModel extends PublicModel {
         $results = array();
         //获取当前用户信息
         $userInfo = getLoinInfo();
-
+        $es_goods_model = new EsGoodsModel();
+        $es_product_model = new EsProductModel();
         if ($data && is_array($data)) {
             try {
                 foreach ($data as $item) {
@@ -1114,28 +1115,29 @@ class GoodsModel extends PublicModel {
                             'checked_at' => date('Y-m-d H:i:s', time())
                         ];
                         $result = $this->where($where)->save($save);
+                        if ($result && $item['sku']) {
+                            $es_goods_model->create_data($item['sku'], $item['lang']);
+                        }
                         if ($result) {
+
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $check = $pModel->field('status')->where(['spu' => $item['spu'], 'lang' => $item['lang']])->find();
                                 $resp = ('VALID' == $check['status']) ? true : $pModel->updateStatus($item['spu'], $item['lang'], $status);
+
                                 if (!$resp) {
                                     return false;
                                 }
+                                $es_product_model->create_data($item['spu'], $item['lang']);
                             }
                         } else {
                             return false;
                         }
                     }
                 }
+
                 if ($result) {
-                    if ($sku) {
-                        $langs = ['en', 'zh', 'es', 'ru'];
-                        foreach ($langs as $lang) {
-                            $es_goods_model = new EsGoodsModel();
-                            $es_goods_model->create_data($where['sku'], $lang);
-                        }
-                    }
+
                     $results['code'] = '1';
                     $results['message'] = '成功！';
                 } else {
@@ -1165,21 +1167,21 @@ class GoodsModel extends PublicModel {
         }
 
         $lang = '';
-        if(isset($this->put_data['lang']) && !in_array(strtolower($this->put_data['lang']),array('zh','en','es','ru'))) {
+        if (isset($this->put_data['lang']) && !in_array(strtolower($this->put_data['lang']), array('zh', 'en', 'es', 'ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         } else {
             $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
         }
         $this->startTrans();
         try {
-            $res = $this->deleteSku($input,$lang);                 //sku删除
+            $res = $this->deleteSku($input, $lang);                 //sku删除
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
 
             $gattr = new GoodsAttrModel();
-            $resAttr = $gattr->deleteSkuAttr($input,$lang);        //属性删除
+            $resAttr = $gattr->deleteSkuAttr($input, $lang);        //属性删除
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
                 return false;
@@ -1191,14 +1193,14 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-            if ($sku) {
-                $langs = ['en', 'zh', 'es', 'ru'];
-                foreach ($langs as $lang) {
-                    $es_goods_model = new EsGoodsModel();
-                    $es_goods_model->create_data($where['sku'], $lang);
-                }
-            }
+
+
             $this->commit();
+            if ($input['sku']) {
+                $es_goods_model = new EsGoodsModel();
+                $es_goods_model->delete_data($input['sku'], $lang);
+            }
+
             return true;
         } catch (Exception $e) {
             $this->rollback();
@@ -1211,7 +1213,7 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function deleteSku($skus,$lang) {
+    public function deleteSku($skus, $lang) {
         if (empty($skus)) {
             return false;
         }
@@ -1228,7 +1230,7 @@ class GoodsModel extends PublicModel {
                         return false;
                     }
                 }
-            } else{
+            } else {
                 $where = [
                     "sku" => $skus,
                     "lang" => $lang
@@ -1238,27 +1240,24 @@ class GoodsModel extends PublicModel {
                     return false;
                 }
             }
-             if ($res) {
-                 $results['code'] = '1';
-                 $results['message'] = '成功！';
-             } else {
-                 $results['code'] = '-101';
-                 $results['message'] = '失败!';
-             }
-                if ($sku) {
-                    $langs = ['en', 'zh', 'es', 'ru'];
-                    foreach ($langs as $lang) {
-                        $es_goods_model = new EsGoodsModel();
-                        $es_goods_model->create_data($where['sku'], $lang);
-                    }
-                }
-                return $results;
+            if ($res) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '失败!';
+            }
+            if ($skus) {
+
+                $es_goods_model = new EsGoodsModel();
+                $es_goods_model->batchdelete($skus, $lang);
+            }
+            return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
         }
-
     }
 
     /**
