@@ -275,7 +275,7 @@ class MaterialCatModel extends PublicModel {
         try {
             $flag = $this->where($where)
                     ->save(['status' => self::STATUS_DELETED]);
-            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
+
             $es_product_model = new EsProductModel();
             if ($lang) {
                 $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
@@ -288,7 +288,6 @@ class MaterialCatModel extends PublicModel {
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
-            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
 
             return false;
         }
@@ -311,16 +310,16 @@ class MaterialCatModel extends PublicModel {
                 $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order'
                     => $sort_order['sort_order']]);
                 if ($flag1) {
-                    $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'Y', __CLASS__);
+
                     $this->commit();
                     return true;
                 } else {
-                    $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'N', __CLASS__);
+
                     $this->rollback();
                     return false;
                 }
             } else {
-                $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'N', __CLASS__);
+
                 $this->rollback();
                 return false;
             }
@@ -330,7 +329,7 @@ class MaterialCatModel extends PublicModel {
             $this->rollback();
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
-            $this->_addlog(__FUNCTION__, 1, $uid, ['cat_no' => $cat_no], '', 'N', __CLASS__);
+
             return false;
         }
     }
@@ -361,11 +360,11 @@ class MaterialCatModel extends PublicModel {
             } elseif ($flag !== false && $cat_no && $lang) {
                 $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
             }
-            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
+
             return $flag !== false;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
+
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
@@ -413,7 +412,7 @@ class MaterialCatModel extends PublicModel {
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
 
                     if (!$flag) {
-                        $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
+
                         $this->rollback();
                         return false;
                     }
@@ -428,13 +427,13 @@ class MaterialCatModel extends PublicModel {
                     $flag = $this->where(['cat_no' => $val['cat_no']])
                             ->save(['cat_no' => $child_cat_no, 'parent_cat_no' => $data['cat_no']]);
                     if (!$flag) {
-                        $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
+
                         $this->rollback();
                         return false;
                     }
                     $flag = $this->updateothercat($val['cat_no'], $child_cat_no);
                     if (!$flag) {
-                        $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
+
                         $this->rollback();
                         return false;
                     }
@@ -442,20 +441,20 @@ class MaterialCatModel extends PublicModel {
             } elseif (isset($upcondition['level_no']) && $upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
                 $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
                 if (!$flag) {
-                    $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
+
                     $this->rollback();
                     return false;
                 }
             }
 
-            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'Y', __CLASS__);
+
             $this->commit();
             return $flag;
         } catch (Exception $ex) {
             $this->rollback();
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
-            $this->_addlog(__FUNCTION__, 1, $uid, $where, '', 'N', __CLASS__);
+
             return false;
         }
     }
@@ -678,7 +677,7 @@ class MaterialCatModel extends PublicModel {
                 }
             }
         }
-        $this->_addlog(__FUNCTION__, 1, $uid, $createcondition, '', 'Y');
+
         $this->commit();
         return $flag;
     }
