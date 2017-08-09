@@ -116,8 +116,11 @@ class RoleModel extends PublicModel {
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
         }
-        if(isset($data['description'])){
-            $arr['description'] = $data['description'];
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
+        }
+        if(isset($create['name_en'])){
+            $arr['name_en'] = $create['name_en'];
         }
         if(isset($data['status'])){
             $arr['status'] = $data['status'];
@@ -149,8 +152,8 @@ class RoleModel extends PublicModel {
         if(isset($create['name_en'])){
             $arr['name_en'] = $create['name_en'];
         }
-        if(isset($create['name_en'])){
-            $arr['name_en'] = $create['name_en'];
+        if(isset($create['remarks'])){
+            $arr['remarks'] = $create['remarks'];
         }
         if(isset($create['status'])){
             $arr['status'] = $create['status'];

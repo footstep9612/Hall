@@ -169,4 +169,28 @@ class QuoteBizLineModel extends PublicModel{
             ];
         }
     }
+
+
+    public function setPartitionBizline($param)
+    {
+        //先查找询单相关的字段 inquiry_id biz_agent_id
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$param['serial_no']])
+                                    ->field(['id','agent_id'])
+                                    ->find();
+        //判断一个quote_id是一个或者是多个
+        $quote = explode(',',$param['quote_id']);
+        $data = [
+            'inquiry_id'=>$inquiryInfo['id'],
+            'biz_agent_id'=>$inquiryInfo['agent_id'],
+            'bizline_id'=>$param['bizline_id'],
+            'created_by'=>$param['created_by'],
+            'created_at'=>date('Y-m-d H:i:s')
+        ];
+        foreach ($quote as $k=>$v){
+            $data['quote_id'] = $v;
+            $this->add($data);
+        }
+        return ['code'=>'1','message'=>'成功!'];
+    }
 }

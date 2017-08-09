@@ -169,7 +169,16 @@ trait QuoteBizlineHelper{
             unset($inquiry['pm_id']);
         }
 
-        return $inquiry;
+        //获取询单明细
+        $inquiryItem = new InquiryItemModel();
+        $inquiryList = $inquiryItem->where(['inquiry_id'=>$inquiry['id']])->select();
+
+        $inquiry['list'] = !is_null($inquiryList) ? $inquiryList : [] ;
+        return [
+            'code' => '1',
+            'message' =>'成功!',
+            'data' => $inquiry
+        ];
 
     }
 
@@ -179,6 +188,19 @@ trait QuoteBizlineHelper{
      * @return array    重组后的结构
      */
     static public function setPartitionBizlineFields($param){
+
+        //先查找询单相关的字段 inquiry_id biz_agent_id
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$param['serial_no']])
+                                    ->field(['id','agent_id'])
+                                    ->find();
+
+        //判断一个quote_id是一个或者是多个
+        $quote = explode(',',$param['quote_id']);
+
+        //给产品线关联表插入数据 quote_bizline
+        $quoteBizline = new QuoteBizLineModel();
+
         $data = [];
         $data['quote_id'] = $param['quote_id'];
         $data['inquiry_id'] = $param['inquiry_id'];
@@ -200,7 +222,12 @@ trait QuoteBizlineHelper{
     static public function transmitHandler(array $param){
         $inquiry = new InquiryModel();
         try{
-            if ($inquiry->where(['id'=>$param['inquiry_id']])->save(['pm_id'=>$param['pm_id']])){
+            $result = $inquiry->where(['serial_no'=>$param['serial_no']])
+                              ->save([
+                                  'pm_id'=>$param['pm_id'],//现项目经理
+                                  'ori_pm_id'=>$param['ori_pm_id']//原项目经理
+                              ]);
+            if ($result){
                 return [
                     'code' => '1',
                     'message' => '转交成功!'

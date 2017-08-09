@@ -14,7 +14,7 @@
 class BuyerModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer';
-    protected $dbName = 'erui2_buyer'; //数据库名称
+    protected $dbName = 'erui_buyer'; //数据库名称
 
 //    protected $autoCheckFields = false;
     public function __construct($str = '') {

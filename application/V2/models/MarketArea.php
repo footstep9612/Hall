@@ -88,7 +88,7 @@ class MarketAreaModel extends PublicModel {
             $data = $this->getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
-
+            Log::write($ex->getMessage(), Log::ERR);
             return 0;
         }
     }
@@ -125,9 +125,19 @@ class MarketAreaModel extends PublicModel {
     public function delete_data($id = '') {
         $where['id'] = $id;
         if (!empty($where['id'])) {
-            return $this->where($where)
-                            ->delete();
+            try {
+
+
+                $flag = $this->where($where)
+                        ->delete();
+
+                return $flag;
+            } catch (Exception $ex) {
+                Log::write($ex->getMessage(), Log::ERR);
+            }
         } else {
+
+
             return false;
         }
     }
@@ -164,12 +174,14 @@ class MarketAreaModel extends PublicModel {
                 $flag = $this->_updateandcreate($create, $lang, $newbn, $uid);
                 if (!$flag) {
                     $this->rollback();
+
                     return false;
                 }
             }
             $market_area_team_model = new MarketAreaTeamModel();
             $market_area_team_model->updateandcreate($create, $newbn, $uid);
             $this->commit();
+
             return true;
         } else {
             return false;
@@ -194,12 +206,14 @@ class MarketAreaModel extends PublicModel {
             $flag = $this->_updateandcreate($data, $lang, $newbn, $uid);
             if (!$flag) {
                 $this->rollback();
+
                 return false;
             }
         }
         $market_area_team_model = new MarketAreaTeamModel();
         $market_area_team_model->updateandcreate($data, $newbn, $uid);
         $this->commit();
+
         return true;
     }
 

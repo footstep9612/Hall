@@ -42,7 +42,6 @@ class RoleController extends PublicController {
             $datajson['data'] = $data;
         }else{
             $datajson['code'] = -104;
-            $datajson['data'] = $data;
             $datajson['message'] = '数据为空!';
         }
         $this->jsonReturn($datajson);
@@ -191,8 +190,8 @@ class RoleController extends PublicController {
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
         }
-        if(isset($data['description'])){
-            $arr['description'] = $data['description'];
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
         }
         if(isset($data['status'])){
             $arr['status'] = $data['status'];

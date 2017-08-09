@@ -30,7 +30,7 @@ class VatariffController extends PublicController {
     public function listAction() {
         $data = $this->get() ?: $this->getPut();
 
-        $va_tariff_model = new VatariffModel();
+        $va_tariff_model = new VaTariffModel();
         $key = $data['id'] . $data['current_no'] . $data['pagesize'] . md5($data['keyword']);
         if (redisHashExist('Vatariff', $key)) {
             $arr = json_decode(redisHashGet('Vatariff', $key), true);
@@ -85,7 +85,7 @@ class VatariffController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $va_tariff_model = new VatariffModel();
+        $va_tariff_model = new VaTariffModel();
         $result = $va_tariff_model->info($id);
         $data = [$result];
         $this->_setUserName($data);
@@ -125,7 +125,7 @@ class VatariffController extends PublicController {
      */
     public function createAction() {
         $data = $this->getPut();
-        $va_tariff_model = new VatariffModel();
+        $va_tariff_model = new VaTariffModel();
 
         $result = $va_tariff_model->create_data($data, $this->user['id']);
 
@@ -148,7 +148,7 @@ class VatariffController extends PublicController {
      */
     public function updateAction() {
         $data = $this->getPut();
-        $va_tariff_model = new VatariffModel();
+        $va_tariff_model = new VaTariffModel();
         $result = $va_tariff_model->update_data($data, $this->user['id']);
         if ($result) {
             $this->delcache();
@@ -178,7 +178,7 @@ class VatariffController extends PublicController {
                 $where['id'] = $id;
             }
         }
-        $va_tariff_model = new VatariffModel();
+        $va_tariff_model = new VaTariffModel();
         $result = $va_tariff_model->where($where)
                 ->save(['status' => 'DELETED']);
         if ($result !== false) {
