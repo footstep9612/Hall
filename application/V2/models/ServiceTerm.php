@@ -31,10 +31,16 @@ class ServiceTermModel extends PublicModel{
             $result = $this->field($fields)
                            ->where($condition)
                            ->select();
+            $data = array();
             if($result) {
-                return $result;
+                foreach($result as $item){
+                    $item['term'] = json_decode($item['term']);
+                    $ServiceItemModel = new ServiceItemModel();
+                    $resultItem = $ServiceItemModel->getInfo($item);
+                    $data[] = $resultItem ? array_merge($item,$resultItem) : $item;
+                }
             }
-            return array();
+            return $data;
         } catch(Exception $e) {
            // var_dump($e);
             return array();
@@ -57,7 +63,9 @@ class ServiceTermModel extends PublicModel{
         if(!empty($condition['add_flag'])){
             $data['add_flag'] = $condition['add_flag'];
         }
-        $data['term'] = $condition['term'];
+        if(!empty($condition['term'])){
+            $data['term'] = json_encode($condition['term']);
+        }
         $data['service_cat_id'] = $service_cat_id;
         $data['created_by'] = $userInfo['id'];
         $data['created_at'] = date('Y-m-d H:i:s', time());
@@ -90,7 +98,9 @@ class ServiceTermModel extends PublicModel{
         if(!empty($condition['add_flag'])){
             $data['add_flag'] = $condition['add_flag'];
         }
-        $data['term'] = $condition['term'];
+        if(!empty($condition['term'])){
+            $data['term'] = json_encode($condition['term']);
+        }
         $data['updated_by'] = $userInfo['id'];
         $data['updated_at'] = date('Y-m-d H:i:s', time());
         try{

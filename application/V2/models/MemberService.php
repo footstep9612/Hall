@@ -53,7 +53,7 @@ class MemberServiceModel extends PublicModel{
      * @author klp
      */
     public function editInfo($data = [],$userInfo) {
-        if($data || is_array($data)){
+        if($data || !is_array($data)){
             return false;
         }
         $this->startTrans();

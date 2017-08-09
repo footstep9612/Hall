@@ -66,13 +66,24 @@ class ServicecatController extends PublicController {
      */
     public function createServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-       /* $data=[
-            0=>[
-                'category'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金务","remarks":""}',
-                'term'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金务2","remarks":""}',
-                'item'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金务3","remarks":""}',
-            ],
-        ];*/
+//        $data=[
+//              0=>[
+//                  'category'=>[
+//                      0=>["lang"=>"en", "name"=>"test 1", "remarks"=>"",],
+//                      1=>["lang"=>"zh", "name"=>"测试1", "remarks"=>"",],
+//                  ],
+//                  'term'=>[
+//                      0=>["lang"=>"en", "name"=>"test 2", "remarks"=>"",],
+//                      1=>["lang"=>"zh", "name"=>"测试2", "remarks"=>"",],
+//                  ],
+//                  'item'=>[
+//                      0=>["lang"=>"en", "name"=>"test 3", "remarks"=>"",],
+//                      1=>["lang"=>"zh", "name"=>"测试3", "remarks"=>"",],
+//                  ]
+//              ],
+//
+//
+//               ];
         $model = new ServiceCatModel();
         $res = $model->addData($data);
         if($res){
@@ -91,14 +102,23 @@ class ServicecatController extends PublicController {
 
     public function updateServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-       /* $data=[
+        $data=[
             0=>[
-                'id'=>35,
-                'category'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金1务","remarks":""}',
-                'term'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金2务2","remarks":""}',
-                'item'=>'{"lang":"en","name":"Financial Service","remarks":""},{"lang":"zh","name":"金3务3","remarks":""}',
+                'id'=>'36',
+                'category'=>[
+                    0=>["lang"=>"en", "name"=>"test 11", "remarks"=>"",],
+                    1=>["lang"=>"zh", "name"=>"测试11", "remarks"=>"",],
+                ],
+                'term'=>[
+                    0=>["lang"=>"en", "name"=>"test 22", "remarks"=>"",],
+                    1=>["lang"=>"zh", "name"=>"测试22", "remarks"=>"",],
+                ],
+                'item'=>[
+                    0=>["lang"=>"en", "name"=>"test 33", "remarks"=>"",],
+                    1=>["lang"=>"zh", "name"=>"测试33", "remarks"=>"",],
+                ]
             ],
-        ];*/
+        ];
         $model = new ServiceCatModel();
         $res = $model->update_data($data);
         if($res){

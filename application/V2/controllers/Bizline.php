@@ -14,8 +14,8 @@ class BizlineController extends PublicController {
     //产品线列表
     public function getListAction() {
         $bizline = new BizlineModel();
-        $bizlinecat = new BizlinecatModel();
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinecat = new BizlineCatModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition = $this->put_data;
 
         $results = $bizline->getlist($createcondition);
@@ -38,7 +38,7 @@ class BizlineController extends PublicController {
     //产品线详情
     public function getInfoAction() {
         $bizline = new BizlineModel();
-        $bizlinecat = new BizlinecatModel();
+        $bizlinecat = new BizlineCatModel();
         $materialcat = new MaterialcatModel();
         $createcondition = $this->put_data;
 
@@ -64,7 +64,7 @@ class BizlineController extends PublicController {
     //添加产品线
     public function createAction() {
         $bizline = new BizlineModel();
-        $bizlinecat = new BizlinecatModel();
+        $bizlinecat = new BizlineCatModel();
         $createcondition = $this->put_data;
         $createcondition['userid'] = $this->user['id'];
 
@@ -98,7 +98,7 @@ class BizlineController extends PublicController {
     //修改产品线信息
     public function updateAction() {
         $bizline = new BizlineModel();
-        $bizlinecat = new BizlinecatModel();
+        $bizlinecat = new BizlineCatModel();
         $createcondition =  $this->put_data;
         $createcondition['userid'] = $this->user['id'];
 
@@ -148,7 +148,7 @@ class BizlineController extends PublicController {
 
     //添加产品线负责人
     public function createManagerAction() {
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'BIZLINE_MANAGER';
         $createcondition['userid'] = $this->user['id'];
@@ -160,7 +160,7 @@ class BizlineController extends PublicController {
 
     //修改产品线负责人
     public function updateManagerAction() {
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
 
         $results = $bizlinegroup->updateData($createcondition);
@@ -170,7 +170,7 @@ class BizlineController extends PublicController {
 
     //产品线负责人列表
     public function getManagerAction() {
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'BIZLINE_MANAGER';
 
@@ -181,7 +181,7 @@ class BizlineController extends PublicController {
 
     //添加产品线报价人
     public function createQuoterAction() {
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'SKU_QUOTER';
         $createcondition['userid'] = $this->user['id'];
@@ -193,7 +193,7 @@ class BizlineController extends PublicController {
 
     //修改产品线报价人
     public function updateQuoterAction() {
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'SKU_QUOTER';
         $createcondition['userid'] = $this->user['id'];
@@ -222,7 +222,7 @@ class BizlineController extends PublicController {
 
     //删除产品线报价人
     public function deleteQuoterAction() {
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
 
         $results = $bizlinegroup->deleteBizlineGroup($createcondition);
@@ -232,7 +232,7 @@ class BizlineController extends PublicController {
 
     //产品线报价人列表
     public function getQuoterAction() {
-        $bizlinegroup = new BizlinegroupModel();
+        $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'SKU_QUOTER';
 
