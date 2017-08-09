@@ -77,7 +77,10 @@ class SupplierAttachModel extends PublicModel
     public function info($data = [])
     {
         if(!empty($data['supplier_id'])){
-            $row = $this->where(['supplier_id' => $data['supplier_id'] ,'deleted_flag' => 'N'])
+            $arr['attach_group'] =$data['attach_group'];
+            $arr['supplier_id'] =$data['supplier_id'];
+            $arr['deleted_flag'] =$data['N'];
+            $row = $this->where($arr)
                 ->select();
             return $row;
         }else{

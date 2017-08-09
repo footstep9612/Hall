@@ -40,7 +40,10 @@ class ServiceCatModel extends PublicModel {
         }
         $data =array();
         if($result){
+            $termModel = new ServiceTermModel();
             foreach($result as $item){
+                $count = $termModel->field('id')->where(['service_cat_id'=>$item['id']])->count();
+                $item['count']=$count?$count:0;
                 $item['category'] = json_decode($item['category']);
                 $data[] = $item;
             }
@@ -209,8 +212,8 @@ class ServiceCatModel extends PublicModel {
      * @author klp
      */
     public function getInfo($data) {
-        if(isset($data['service_cat_id']) && !empty($data['service_cat_id'])) {
-            $condition["id"] = $data['service_cat_id'];
+        if(isset($data['id']) && !empty($data['id'])) {
+            $condition["id"] = $data['id'];
         }
         $condition["deleted_flag"] = 'N';
         $condition["status"] = 'VALID';

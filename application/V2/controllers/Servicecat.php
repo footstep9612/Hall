@@ -7,6 +7,8 @@ class ServicecatController extends PublicController {
 
     public function init() {
 //parent::init();
+        $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
+
     }
 
     /*
@@ -102,23 +104,23 @@ class ServicecatController extends PublicController {
 
     public function updateServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $data=[
-            0=>[
-                'id'=>'36',
-                'category'=>[
-                    0=>["lang"=>"en", "name"=>"test 11", "remarks"=>"",],
-                    1=>["lang"=>"zh", "name"=>"测试11", "remarks"=>"",],
-                ],
-                'term'=>[
-                    0=>["lang"=>"en", "name"=>"test 22", "remarks"=>"",],
-                    1=>["lang"=>"zh", "name"=>"测试22", "remarks"=>"",],
-                ],
-                'item'=>[
-                    0=>["lang"=>"en", "name"=>"test 33", "remarks"=>"",],
-                    1=>["lang"=>"zh", "name"=>"测试33", "remarks"=>"",],
-                ]
-            ],
-        ];
+//        $data=[
+//            0=>[
+//                'id'=>'36',
+//                'category'=>[
+//                    0=>["lang"=>"en", "name"=>"test 11", "remarks"=>"",],
+//                    1=>["lang"=>"zh", "name"=>"测试11", "remarks"=>"",],
+//                ],
+//                'term'=>[
+//                    0=>["lang"=>"en", "name"=>"test 22", "remarks"=>"",],
+//                    1=>["lang"=>"zh", "name"=>"测试22", "remarks"=>"",],
+//                ],
+//                'item'=>[
+//                    0=>["lang"=>"en", "name"=>"test 33", "remarks"=>"",],
+//                    1=>["lang"=>"zh", "name"=>"测试33", "remarks"=>"",],
+//                ]
+//            ],
+//        ];
         $model = new ServiceCatModel();
         $res = $model->update_data($data);
         if($res){

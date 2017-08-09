@@ -297,8 +297,7 @@ class Edi {
      * 银行代码批复通知
      *
      */
-    public function EdiBankCodeApprove()
-    {
+    public function EdiBankCodeApprove(){
         $result = $this->_EdiBankCodeApprove();
         if($result){
             $data = self::xml_to_array($result);

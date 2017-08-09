@@ -14,9 +14,9 @@
 class RoleUserModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'role_user';
+    protected $tableName = 'role_member';
     Protected $autoCheckFields = true;
-    protected $table_name ='t_role_user';
+    protected $table_name ='role_member';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -31,12 +31,12 @@ class RoleUserModel extends PublicModel {
      */
     public function getRolesUserlist($id,$order='id desc') {
 
-        $sql = 'SELECT  `t_role_user`.`id`,`t_user`.`name`, `t_user`.`email` , `t_user`.`mobile`  , `t_user`.`user_no` ';
-        $sql .= ' FROM t_role_user';
-        $sql .= ' LEFT JOIN  `t_user` ON `t_user`.`id` =`t_role_user`.`user_id`';
+        $sql = 'SELECT  `role_member`.`id`,`employee`.`name`, `employee`.`email` , `employee`.`mobile`  , `employee`.`user_no` ';
+        $sql .= ' FROM employee';
+        $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
        // $sql_where = '';
         if(!empty($id)) {
-            $sql .= ' WHERE `t_role_user`.`role_id` =' . $id;
+            $sql .= ' WHERE `role_member`.`role_id` =' . $id;
            // $sql .=$sql_where;
         }
 //        if ( $where ){

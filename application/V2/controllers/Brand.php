@@ -19,7 +19,7 @@ class BrandController extends PublicController {
 
         $brand_model = new BrandModel();
         $arr = $brand_model->getlist($condition, $lang);
-     
+
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
             foreach ($this->langs as $blang) {
