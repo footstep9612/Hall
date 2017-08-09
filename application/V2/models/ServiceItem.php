@@ -20,8 +20,8 @@ class ServiceItemModel extends PublicModel{
      * @author klp
      */
     public function getInfo($data) {
-        if(isset($data['id']) && !empty($data['id'])) {
-            $condition["service_cat_id"] = $data['id'];
+        if(isset($data['service_cat_id']) && !empty($data['service_cat_id'])) {
+            $condition["service_cat_id"] = $data['service_cat_id'];
         }
         $condition["deleted_flag"] = 'N';
         $condition["status"] = 'VALID';
@@ -31,10 +31,14 @@ class ServiceItemModel extends PublicModel{
             $result = $this->field($fields)
                            ->where($condition)
                            ->select();
+            $data = array();
             if($result) {
-                return $result;
+                foreach($result as $item){
+                    $item['item'] = json_decode($item['item']);
+                    $data[] = $item;
+                }
             }
-            return array();
+            return $data;
         } catch(Exception $e) {
            // var_dump($e);
             return array();
@@ -51,7 +55,9 @@ class ServiceItemModel extends PublicModel{
         if (!isset($condition)) {
             return false;
         }
-        $data['item'] = $condition['item'];
+        if(!empty($condition['item'])){
+            $data['item'] = json_encode($condition['item']);
+        }
         $data['service_cat_id'] = $service_cat_id;
         $data['service_term_id'] = $service_term_id;
         $data['created_by'] = $userInfo['id'];
@@ -78,7 +84,9 @@ class ServiceItemModel extends PublicModel{
             return false;
         }
         $where = ['service_cat_id'=>$condition['id']];
-        $data['item'] = $condition['item'];
+        if(!empty($condition['item'])){
+            $data['item'] = json_encode($condition['item']);
+        }
         $data['updated_by'] = $userInfo['id'];
         $data['updated_at'] = date('Y-m-d H:i:s', time());
         try{

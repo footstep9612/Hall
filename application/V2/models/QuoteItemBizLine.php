@@ -57,7 +57,7 @@ class QuoteItemBizLineModel extends PublicModel
         $data = $this->where(['quote_id'=>$quote_id])->field(['id','quote_id','status'])->select();
 
         foreach ($data as $k=>$v){
-            $this->where(['quote_id'=>$v['quote_id']])->save(['status'=>'REJECTED']);
+            $this->where(['quote_id'=>$v['quote_id']])->save(['status'=>QuoteBizLineModel::STATUS_RETURN]);
         }
 
         return true;

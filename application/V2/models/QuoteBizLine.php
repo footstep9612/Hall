@@ -18,6 +18,15 @@ class QuoteBizLineModel extends PublicModel{
      */
     protected $tableName = 'quote_bizline';
 
+    /*
+     * 初始状态:待报价
+     */
+    const STATUS_UNQUOTE = 'UNQUOTE';//待报价
+    const STATUS_QUOTED = 'QUOTED';//已报价
+    const STATUS_REJECTED = 'REJECTED';//被驳回
+    const STATUS_TRANSMIT = 'TRANSMIT';//已发送
+    const STATUS_RETURN = 'RETURN';//退回
+
     public function __construct(){
         parent::__construct();
     }
@@ -40,9 +49,8 @@ class QuoteBizLineModel extends PublicModel{
 
     /**
      * 根据条件获取报价信息
-     * @param array $param
-     *
-     * @return mixed
+     * @param $quote_id 报价单id
+     * @return mixed 获取的结果
      */
     public function getQuoteInfo($quote_id)
     {
@@ -52,7 +60,6 @@ class QuoteBizLineModel extends PublicModel{
     /**
      * 产品线负责人暂存报价信息
      * @param $quote_id 报价单id
-     *
      * @return bool
      */
     public function storageQuote($quote_id)
@@ -73,7 +80,7 @@ class QuoteBizLineModel extends PublicModel{
      */
     public function sendback($quote_id)
     {
-        return $this->where(['quote_id'=>$quote_id])->save(['status'=>'SUBMIT']);
+        return $this->where(['quote_id'=>$quote_id])->save(['status'=>self::STATUS_RETURN]);
     }
 
     /**
@@ -150,7 +157,7 @@ class QuoteBizLineModel extends PublicModel{
 
         //更新当前的报价单状态为产品线报价
         try{
-            if ($this->where(['quote_id'=>$params['quote_id']])->save(['status'=>'SUBMITED'])){
+            if ($this->where(['quote_id'=>$params['quote_id']])->save(['status'=>self::STATUS_QUOTED])){
                 return ['code'=>'1','message'=>'提交成功!'];
             }else{
                 return ['code'=>'-104','message'=>'提交失败!'];

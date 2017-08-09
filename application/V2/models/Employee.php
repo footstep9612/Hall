@@ -34,9 +34,9 @@ class EmployeeModel extends PublicModel {
         try {
             $where = [];
             
-            if (is_string($user_ids) && $user_ids) {
+            if (is_string($user_ids)) {
                 $where['id'] = $user_ids;
-            } elseif (is_array($user_ids) && $user_ids) {
+            } elseif (is_array($user_ids)) {
                 $where['id'] = ['in' , $user_ids];
             } else {
                 return false;

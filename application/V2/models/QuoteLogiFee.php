@@ -207,4 +207,24 @@ class QuoteLogiFeeModel extends PublicModel {
     
         return $this->where($where)->save(['deleted_flag' => 'Y']);
     }
+    
+    /**
+     * @desc 更改状态
+     *
+     * @param array $condition
+     * @param string $status
+     * @return bool
+     * @author liujf
+     * @time 2017-08-08
+     */
+    public function updateStatus($condition = [], $status) {
+    
+        if (!empty($condition['quote_id'])) {
+            $where['quote_id'] = $condition['quote_id'];
+        } else {
+            return false;
+        }
+    
+        return $this->where($where)->save(['status' => $status]);
+    }
 }

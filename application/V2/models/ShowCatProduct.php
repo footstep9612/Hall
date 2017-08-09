@@ -204,10 +204,6 @@ class ShowCatProductModel extends PublicModel {
             } else {
                 return [];
             }
-            
-              if (!$show_cat_products) {
-                return [];
-            }
             $ret = [];
             $show_cat_nos = [];
             foreach ($show_cat_products as $item) {
