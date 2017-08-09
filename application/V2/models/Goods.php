@@ -1177,6 +1177,21 @@ class GoodsModel extends PublicModel {
         }
         $this->startTrans();
         try {
+            $showCatGoodsModel = new ShowCatGoodsModel();
+            if(is_array($input['sku'])){
+                foreach($input['sku'] as $sku){
+                    $result = $showCatGoodsModel->field('sku')->where(['sku'=>$sku,'lang'=>$lang,'onshelf_flag'=>'Y'])->select();
+                    if($result){
+                        jsonReturn('',-101,'上架商品不能删除!');
+                    }
+                }
+            } else {
+                $result = $showCatGoodsModel->field('sku')->where(['sku'=>$input['sku'],'lang'=>$lang,'onshelf_flag'=>'Y'])->select();
+                if($result){
+                    jsonReturn('',-101,'上架商品不能删除!');
+                }
+            }
+
             $res = $this->deleteSku($input['sku'],$lang);                 //sku删除
             if (!$res || $res['code'] != 1) {
                 $this->rollback();

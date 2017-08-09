@@ -40,7 +40,10 @@ class ServiceCatModel extends PublicModel {
         }
         $data =array();
         if($result){
+            $termModel = new ServiceTermModel();
             foreach($result as $item){
+                $count = $termModel->field('id')->where(['service_cat_id'=>$item['id']])->count();
+                $item['count']=$count?$count:0;
                 $item['category'] = json_decode($item['category']);
                 $data[] = $item;
             }
