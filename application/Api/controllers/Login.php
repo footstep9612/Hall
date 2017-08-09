@@ -323,10 +323,8 @@ class LoginController extends Yaf_Controller_Abstract {
         if($id) {
             $buyer_account_model = new BuyerAccountModel();
             $check = $buyer_account_model->update_data($user_arr,['id'=>$id]);
-            if($check){
-                redisHashDel('rest_password_key',$data['key']);
-                jsonReturn('',1,'操作成功');
-            }
+            redisHashDel('rest_password_key',$data['key']);
+            jsonReturn('',1,'操作成功');
         }else{
             jsonReturn('',-101,'Key is required');
         }
