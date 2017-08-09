@@ -10,9 +10,13 @@
 class MarketareaController extends PublicController {
 
     public function init() {
-         parent::init();
+        // parent::init();
 
         $this->_model = new MarketAreaModel();
+    }
+
+    private function _init() {
+        parent::init();
     }
 
     /**
@@ -157,6 +161,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function createAction() {
+        $this->_init();
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
         if (!isset($data['en']['name']) || !isset($data['zh']['name'])) {
@@ -190,6 +195,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function updateAction() {
+        $this->_init();
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
         $result = $market_area_model->update_data($data, $this->user['id']);
@@ -211,7 +217,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function deleteAction() {
-
+        $this->_init();
         $bn = $this->get('bn') ?: $this->getPut('bn');
         if ($bn) {
             $bns = explode(',', $bn);

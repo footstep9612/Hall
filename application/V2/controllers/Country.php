@@ -10,9 +10,13 @@ class CountryController extends PublicController {
     protected $es = '';
 
     public function init() {
-        parent::init();
+        //  parent::init();
         $this->es = new ESClient();
         $this->_model = new CountryModel();
+    }
+
+    private function _init() {
+        parent::init();
     }
 
     /*
@@ -140,6 +144,7 @@ class CountryController extends PublicController {
      */
 
     public function createAction() {
+        $this->_init();
         $result = $this->_model->create_data($this->getPut(), $this->user['id']);
         if ($result) {
             $this->delcache();
@@ -156,6 +161,7 @@ class CountryController extends PublicController {
      */
 
     public function updateAction() {
+        $this->_init();
         $where = [];
         $bn = $this->getPut('bn');
         $market_area_bn = $this->getPut('market_area_bn');
@@ -179,6 +185,7 @@ class CountryController extends PublicController {
      */
 
     public function updatestatusAction() {
+        $this->_init();
         $result = $this->_model->updatestatus($this->getPut(), $this->user['id']);
         if ($result) {
             $this->delcache();
@@ -195,6 +202,7 @@ class CountryController extends PublicController {
      */
 
     public function deleteAction() {
+        $this->_init();
         $condition = $this->put_data;
         if (isset($condition['id']) && $condition['id']) {
             if (is_string($condition['id'])) {
@@ -220,6 +228,7 @@ class CountryController extends PublicController {
     }
 
     public function indexAction() {
+        $this->_init();
         $body['mappings'] = [];
         foreach ($this->langs as $lang) {
             $body['mappings']['country_' . $lang]['properties'] = $this->country($lang);
