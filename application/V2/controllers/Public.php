@@ -8,6 +8,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
+    protected $headers = [];
     protected $code = "1";
     protected $send = [];
     protected $message = '';
@@ -21,6 +22,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
+        $this->headers = getAllHeaders();
+        $token = isset($this->headers['token']) ? $this->headers['token'] : '';
+
         $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
         $this->put_data['token'] = null;
         unset($this->put_data['token']);
@@ -32,7 +36,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             
         } else {
-
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
             }
@@ -541,6 +544,26 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
 
         return $inquiryCheckLogModel->addAll($checkLogList);
+    }
+
+    /**
+     * 获取自定义header数据
+     * @author link 2017-08-09
+     */
+    public function getAllHeaders() {
+        $ignore = array('host','accept','content-length','content-type'); // 忽略数据
+        $headers = array();
+        foreach($_SERVER as $key=>$value){
+            if(substr($key, 0, 5)==='HTTP_'){
+                $key = substr($key, 5);
+                $key = strtolower($key);
+                if(!in_array($key, $ignore)){
+                    $headers[$key] = $value;
+                }
+            }
+        }
+
+        return $headers;
     }
 
 }
