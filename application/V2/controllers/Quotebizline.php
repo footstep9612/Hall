@@ -309,24 +309,10 @@ class QuotebizlineController extends PublicController {
      */
 
     public function submitToManagerAction() {
-        $inquiry = new InquiryModel();
-
-        $result = $inquiry->where(['inquiry_no' => $this->_requestParams['inquiry_no']])->save([
-            'status' => 'DRAFT',
-            'goods_quote_status' => 'NOT_QUOTED'
-        ]);
-
-        if ($result) {
-            $this->jsonReturn([
-                'code' => 1,
-                'message' => '提交成功!'
-            ]);
+        if (empty($this->_requestParams['serial_no'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
-
-        $this->jsonReturn([
-            'code' => -101,
-            'message' => '提交失败!'
-        ]);
+        $this->jsonReturn(QuoteBizlineHelper::submitToManager($this->_requestParams));
     }
 
     /*
@@ -478,7 +464,7 @@ class QuotebizlineController extends PublicController {
     public function submitToLogiAction()
     {
 
-        if (empty($this->_requestParams['inquiry_id'])){
+        if (empty($this->_requestParams['serial_no'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
         $this->jsonReturn(QuoteBizlineHelper::submitToLogi($this->_requestParams));
