@@ -412,7 +412,6 @@ class QuotebizlineController extends PublicController {
         if (empty($this->_requestParams['quote_id']) || empty($this->_requestParams['bizline_id'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
-
         //保存数据及更改状态
         $quoteBizline = new QuoteBizLineModel();
         $this->jsonReturn($quoteBizline->submitToBizlineManager($this->_requestParams));
@@ -445,16 +444,16 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * 产品线报价->项目经理->提交产品线报价
+     * @desc 产品线报价->项目经理->提交产品线报价
+     * @author 买买提
      * 操作说明:当前询单的状态改为产品线报价
      */
     public function submitToBizlineAction(){
 
-        if (empty($this->_requestParams['inquiry_ids'])){
+        if (empty($this->_requestParams['serial_no'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
-        $response = QuoteBizlineHelper::submitToBizline($this->_requestParams);
-        $this->jsonReturn($response);
+        $this->jsonReturn(QuoteBizlineHelper::submitToBizline($this->_requestParams));
 
     }
 

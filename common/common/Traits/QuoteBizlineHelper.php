@@ -254,12 +254,14 @@ trait QuoteBizlineHelper{
     static public function submitToBizline($param){
 
         $inquiryModel = new InquiryModel();
-        $inquiry_ids = explode(',',$param['inquiry_ids']);
+
         try{
-            foreach ($inquiry_ids as $inquiry=>$item){
-                $inquiryModel->where(['id'=>$item])->save(['status'=>'BIZLINE']);
+            if ($inquiryModel->where(['serial_no'=>$param['serial_no']])->save(['status'=>'QUOTING_BY_BIZLINE'])){
+                return ['code'=>'1','message'=>'成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'失败!'];
             }
-            return ['code'=>'1','message'=>'成功!'];
+
         }catch (Exception $exception){
             return [
                 'code' => $exception->getCode(),
