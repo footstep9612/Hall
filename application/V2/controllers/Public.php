@@ -22,7 +22,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
-        $this->headers = getAllHeaders();
+        $this->headers = $this->getAllHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
 
         $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
