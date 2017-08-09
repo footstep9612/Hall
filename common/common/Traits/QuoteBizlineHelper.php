@@ -356,7 +356,7 @@ trait QuoteBizlineHelper{
      * @param $param
      * @return array
      */
-    public static function submitToLogi($param)
+    public static function submitToLogi($request)
     {
         //更改项目(询单)状态status为QUOTING_BY_LOGI(物流报价中)
         $inquiry = new InquiryModel();
