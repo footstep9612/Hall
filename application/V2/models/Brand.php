@@ -36,7 +36,7 @@ class BrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getcondition($condition, $lang = '') {
+    private function _getcondition($condition, $lang = '') {
 
         $where = [];
         $this->_getValue($where, $condition, 'id', 'string');
@@ -57,7 +57,7 @@ class BrandModel extends PublicModel {
      * @author zyg
      */
     public function getCount($condition, $lang = '') {
-        $where = $this->getcondition($condition, $lang);
+        $where = $this->_getcondition($condition, $lang);
 
         $redis_key = md5(json_encode($where) . $lang) . '_COUNT';
         if (redisHashExist('Brand', $redis_key)) {
@@ -66,6 +66,7 @@ class BrandModel extends PublicModel {
         try {
             $count = $this->where($where)
                     ->count('id');
+      
             redisHashSet('Brand', $redis_key, $count);
             return $count;
         } catch (Exception $ex) {
@@ -82,7 +83,7 @@ class BrandModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition, $lang = '') {
-        $where = $this->getcondition($condition, $lang);
+        $where = $this->_getcondition($condition, $lang);
         list($row_start, $pagesize) = $this->_getPage($condition);
 
         $redis_key = md5(json_encode($where) . $lang . $row_start . $pagesize);
@@ -112,7 +113,7 @@ class BrandModel extends PublicModel {
      * @author zyg
      */
     public function listall($condition, $lang = '') {
-        $where = $this->getcondition($condition, $lang);
+        $where = $this->_getcondition($condition, $lang);
 
         $redis_key = md5(json_encode($where) . $lang);
         if (redisHashExist('Brand', $redis_key)) {
