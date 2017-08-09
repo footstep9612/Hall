@@ -29,11 +29,7 @@ class BrandController extends PublicController {
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
-                if ($val['manufacturer'] && isset($val['manufacturer'][0])) {
-                    $brand[$val['lang']]['manufacturer_name'] = $val['manufacturer'][0]['name'];
-                } else {
-                    $brand[$val['lang']]['manufacturer_name'] = '';
-                }
+               
             }
             $arr[$key] = $brand;
         }
@@ -72,11 +68,7 @@ class BrandController extends PublicController {
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
-                if ($val['manufacturer'] && isset($val['manufacturer'][0])) {
-                    $brand[$val['lang']]['manufacturer_name'] = $val['manufacturer'][0]['name'];
-                } else {
-                    $brand[$val['lang']]['manufacturer_name'] = '';
-                }
+              
             }
 
             $arr[$key] = $brand;
