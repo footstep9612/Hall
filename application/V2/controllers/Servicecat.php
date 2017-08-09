@@ -7,6 +7,8 @@ class ServicecatController extends PublicController {
 
     public function init() {
 //parent::init();
+        $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
+
     }
 
     /*
