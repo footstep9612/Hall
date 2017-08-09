@@ -15,7 +15,6 @@ class LogisticsController extends PublicController {
 		$this->quoteItemLogiModel = new QuoteItemLogiModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
 		$this->userModel = new UserModel();
-		$this->inquiryCheckLogModel = new InquiryCheckLogModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -66,24 +65,37 @@ class LogisticsController extends PublicController {
 	    if (!empty($condition['items'])) {
 	        
 	        $flag = true;
+	        $data = [];
 	        
-	        $this->quoteItemLogiModel->startTrans();
+	        //$this->quoteItemLogiModel->startTrans();
 	        
 	        foreach ($condition['items'] as $item) {
 	            $where['id'] = $item['id'];
+	            unset($item['id']);
 	            
 	            $res = $this->quoteItemLogiModel->updateInfo($where, $item);
 	            
-	            if (!$res) {
+	            /*if (!$res) {
 	                $this->quoteItemLogiModel->rollback();
 	                $flag = false;
 	                break;
+	            }*/
+	            
+	            if (!$res) {
+	               $data[] = $where['id'];
+	               $flag = false;
 	            }
 	        }
 	        
-	        if ($flag) $this->quoteItemLogiModel->commit();
+	       // if ($flag) $this->quoteItemLogiModel->commit();
 	
-	        $this->jsonReturn($flag);
+	        if ($flag) {
+	            $this->jsonReturn($flag);
+	        } else {
+	            $this->setCode('-101');
+	            $this->setMessage('失败!');
+	            parent::jsonReturn($data);
+	        }
 	    } else {
 	        $this->jsonReturn(false);
 	    }
@@ -335,7 +347,7 @@ class LogisticsController extends PublicController {
 	
 	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'APPROVED');
 	        
-	        $res2 = $this->quoteModel->where($where)->save(['status' => 'PMTHREE']);
+	        $res2 = $this->quoteModel->where($where)->save(['status' => 'QUOTED_BY_LOGI']);
 	        
 	        if ($res1 && $res2) {
 	            $this->quoteLogiFeeModel->commit();
@@ -365,23 +377,23 @@ class LogisticsController extends PublicController {
 	    if (!empty($condition['quote_id'])) {
 	        $where['quote_id'] = $condition['quote_id'];
 	        
+	        $quoteLogiFee = $this->quoteLogiFeeModel->where($where)->find();
+	        
 	        $this->quoteLogiFeeModel->startTrans();
 	        $this->inquiryCheckLogModel->startTrans();
 	
-	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'WITHDREW');
+	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'REJECTED');
 	        
-	        $data = [
-	            'op_id' => $this->user['id'],
+	        $checkLog= [
+	            'inquiry_id' => $quoteLogiFee['inquiry_id'],
 	            'quote_id' => $condition['quote_id'],
-	            'category' => '物流报价',
-	            'action' => '审核',
+	            'category' => 'LOGI',
+	            'action' => 'APPROVING',
 	            'op_note' => $condition['op_note'],
-	            'op_result' => '驳回',
-	            'created_by' => $this->user['id'],
-	            'created_at' => $this->time
+	            'op_result' => 'REJECTED'
 	        ];
 	        
-	        $res2 = $this->inquiryCheckLogModel->addRecord($data);
+	        $res2 = $this->addCheckLog($checkLog);
 	        
 	        if ($res1 && $res2) {
 	            $this->quoteLogiFeeModel->commit();
