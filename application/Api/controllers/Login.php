@@ -295,7 +295,7 @@ class LoginController extends Yaf_Controller_Abstract {
             send_Mail($data_key['email'],'Password retrieval on ERUI platform',$body,$data['first_name']);
             jsonReturn($data_key,1,'发送成功');
         }else{
-            jsonReturn('',-103,'The company email non-existent.');
+            jsonReturn('',-103,' The email does not exist.');
         }
     }
     function checkKeyAction(){
@@ -312,23 +312,21 @@ class LoginController extends Yaf_Controller_Abstract {
     function setPasswordAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         if(empty($data['password'])) {
-            jsonReturn('',-101,'密码不可以为空!');
+            jsonReturn('',-101,'Password is required!');
         }else{
             $user_arr['password_hash'] = $data['password'];
         }
-        if(!empty($data['key'])) {
-            jsonReturn('',-101,'key不可以为空!');
+        if(empty($data['key'])) {
+            jsonReturn('',-101,'Key is required');
         }
         $id = redisHashGet('rest_password_key',$data['key']);
         if($id) {
             $buyer_account_model = new BuyerAccountModel();
             $check = $buyer_account_model->update_data($user_arr,['id'=>$id]);
-            if($check){
-                redisHashDel('rest_password_key',$data['key']);
-                jsonReturn('',1,'操作成功');
-            }
+            redisHashDel('rest_password_key',$data['key']);
+            jsonReturn('',1,'操作成功');
         }else{
-            jsonReturn('',-101,'未获取到key!');
+            jsonReturn('',-101,'Key is required');
         }
     }
 

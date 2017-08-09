@@ -52,10 +52,10 @@ class ExchangeRateModel extends PublicModel {
     public function detail($id = '') {
         $where['id'] = $id;
         if (!empty($where['id'])) {
-            try{
-            $row = $this->where($where)
-                    ->field('id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at')
-                    ->find();
+            try {
+                $row = $this->where($where)
+                        ->field('id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at')
+                        ->find();
             } catch (Exception $ex) {
                 LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
                 LOG::write($ex->getMessage(), LOG::ERR);
@@ -114,6 +114,7 @@ class ExchangeRateModel extends PublicModel {
             } catch (Exception $ex) {
                 LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
                 LOG::write($ex->getMessage(), LOG::ERR);
+
                 return false;
             }
         } else {

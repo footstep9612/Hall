@@ -22,7 +22,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
-        $this->headers = getAllHeaders();
+        $this->headers = $this->getAllHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
 
         $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
@@ -67,6 +67,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
+                        $this->_setUid($userinfo);
                     }
                     //权限控制
 //                        if(redisExist('role_user_'.$userinfo['id'])){
@@ -96,6 +97,18 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                 exit;
             }
+        }
+    }
+
+    /*
+     * 设置UID
+     * @param array $userinfo 用户信息
+     * return void;
+     */
+
+    protected function _setUid($userinfo) {
+        if (!defined('UID') && $userinfo) {
+            define('UID', $userinfo["id"]);
         }
     }
 
@@ -529,7 +542,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $inquiryIdArr = explode(',', $condition['inquiry_id']);
 
-        $checkLogList = $checkLog= array();
+        $checkLogList = $checkLog = array();
 
         foreach ($inquiryIdArr as $inquiryId) {
             $data = $condition;
@@ -551,13 +564,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @author link 2017-08-09
      */
     public function getAllHeaders() {
-        $ignore = array('host','accept','content-length','content-type'); // 忽略数据
+        $ignore = array('host', 'accept', 'content-length', 'content-type'); // 忽略数据
         $headers = array();
-        foreach($_SERVER as $key=>$value){
-            if(substr($key, 0, 5)==='HTTP_'){
+        foreach ($_SERVER as $key => $value) {
+            if (substr($key, 0, 5) === 'HTTP_') {
                 $key = substr($key, 5);
                 $key = strtolower($key);
-                if(!in_array($key, $ignore)){
+                if (!in_array($key, $ignore)) {
                     $headers[$key] = $value;
                 }
             }

@@ -101,7 +101,7 @@ class RoleAccessPermModel extends PublicModel {
                 $url_perm_id_arr = explode(',',$data['url_perm_ids']);
                 $count = count($url_perm_id_arr);
                 for($i=0;$i<$count;$i++){
-                    $this -> create_data(['role_id'=>$data['role_id'],'url_perm_id' =>$url_perm_id_arr[$i] ]);
+                    $this -> create_data(['role_id'=>$data['role_id'],'func_perm_id' =>$url_perm_id_arr[$i] ]);
                 }
             }
         }
@@ -119,12 +119,13 @@ class RoleAccessPermModel extends PublicModel {
         if(isset($create['role_id'])){
             $arr['role_id'] = $create['role_id'];
         }
-        if(isset($create['url_perm_id'])){
-            $arr['url_perm_id'] = $create['url_perm_id'];
+        if(isset($create['func_perm_id'])){
+            $arr['func_perm_id'] = $create['func_perm_id'];
         }
         if(isset($create['perm_flag'])){
             $arr['perm_flag'] = $create['perm_flag'];
         }
+        $arr['created_at']=date("Y-m-d H:i:s");
         $data = $this->create($arr);
         return $this->add($data);
     }
