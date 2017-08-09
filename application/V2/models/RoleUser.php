@@ -69,7 +69,7 @@ class RoleUserModel extends PublicModel {
                 $user_arr = explode(',',$data['role_user_ids']);
                 $count = count($user_arr);
                 for($i=0;$i<$count;$i++){
-                    $this -> create_data(['role_id'=>$data['role_id'],'user_id' =>$user_arr[$i] ]);
+                    $this -> create_data(['role_id'=>$data['role_id'],'employee_id' =>$user_arr[$i] ]);
                 }
             }
         }
@@ -84,9 +84,10 @@ class RoleUserModel extends PublicModel {
         if(isset($create['role_id'])){
             $arr['role_id'] = $create['role_id'];
         }
-        if(isset($create['user_id'])){
-            $arr['user_id'] = $create['user_id'];
+        if(isset($create['employee_id'])){
+            $arr['employee_id'] = $create['employee_id'];
         }
+        $arr['created_at'] = date("Y-m-d H:i:s");
         $data = $this->create($arr);
         return $this->add($data);
     }
