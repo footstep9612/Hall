@@ -212,6 +212,7 @@ class ServiceCatModel extends PublicModel {
      * @author klp
      */
     public function getInfo($data) {
+        //$data['id'] = 3;
         if(isset($data['id']) && !empty($data['id'])) {
             $condition["id"] = $data['id'];
         }
@@ -230,17 +231,48 @@ class ServiceCatModel extends PublicModel {
             $data = array();
             if ($result) {
                 foreach($result as $item){
-                    $item['category'] = json_decode($item['category']);
+                    $item['category'] = json_decode($item['category'],true);
                     $ServiceTermModel = new ServiceTermModel();
                     $resultTerm = $ServiceTermModel->getInfo($item);
-                    $data[] = array_merge($item,$resultTerm);
+                    foreach($item['category'] as $value){
+                        if(empty($resultTerm)){
+                            $resultTerm[$value['lang']] = $resultTerm;
+                        }
+                        unset($item['category']);
+                        $data[$value['lang']]['category'][] = array_merge($value,$item,$resultTerm[$value['lang']]);
+                    }
                 }
                // redisHashSet('ServiceCat', md5(json_encode($condition)), json_encode($data));
-            }
+            }var_dump($data);die;
             return $data;
         } catch(Exception $e) {
             return array();
         }
 
     }
+    function object22array(&$object) {
+        $object =  json_decode( json_encode( $object),true);
+        return  $object;
+    }
+    function object2array($arr) {
+        $array=[];
+        if (is_array($array)) {
+            foreach ($arr as $object) {
+                $array[] = $object;
+            }
+        }
+        return $array;
+    }
+
+    function array2object($array) {
+        if (is_array($array)) {
+            $obj = new StdClass();
+            foreach ($array as $key => $val){
+                $obj->$key = $val;
+            }
+        }
+        else { $obj = $array; }
+        return $obj;
+    }
+
 }

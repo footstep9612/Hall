@@ -332,16 +332,16 @@ class GoodsAttrModel extends PublicModel {
                 foreach ($attrs as $item) {
                     $item['flag'] = true;
                     if (isset($item['spec_attrs'])) {
-                        $item['spec_attrs'] = json_decode($item['spec_attrs']);
+                        $item['spec_attrs'] = json_decode($item['spec_attrs'],true);
                     }
                     if (isset($item['ex_goods_attrs'])) {
-                        $item['ex_goods_attrs'] = json_decode($item['ex_goods_attrs']);
+                        $item['ex_goods_attrs'] = json_decode($item['ex_goods_attrs'],true);
                     }
                     if (isset($item['ex_hs_attrs'])) {
-                        $item['ex_hs_attrs'] = json_decode($item['ex_hs_attrs']);
+                        $item['ex_hs_attrs'] = json_decode($item['ex_hs_attrs'],true);
                     }
                     if (isset($item['other_attrs'])) {
-                        $item['other_attrs'] = json_decode($item['other_attrs']);
+                        $item['other_attrs'] = json_decode($item['other_attrs'],true);
                     }
                     $data[$item['lang']][] = $item;
                 }

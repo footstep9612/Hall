@@ -120,7 +120,7 @@ class GoodsController extends PublicController {
      */
     public function editSkuAction() {
         /* $this->put_data = [
-          "sku"=>'37518005',
+          "sku"=>'',
           "zh"=>[
           'lang'        =>'zh',
           'spu'		  =>'8832211',
@@ -163,7 +163,7 @@ class GoodsController extends PublicController {
           ],
           "attachs"=>[
           0=>[
-          'id'=>150,
+//          'id'=>150,
           'supplier_id'    =>'11223',
           'attach_type'	 =>'',
           'attach_name'	 =>'',
@@ -174,14 +174,14 @@ class GoodsController extends PublicController {
           ],
           'supplier_cost'=>[
           0=>[
-          'id'=>1,
+//          'id'=>1,
           'supplier_id'	     =>'112123',
           'min_purchase_qty'	 =>1
           ]
           ],
 
           ];
-          return $this->put_data; */
+        /*return $this->put_data; */
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSku($this->put_data);
         $this->returnInfo($result);

@@ -27,15 +27,15 @@ class GoodsCostPriceModel extends PublicModel {
      * @return array
      * @author klp
      */
-    public function getInfo($sku=''){
-       if(empty($sku)){
+    public function getInfo($input){
+       if(empty($input['sku'])){
            return false;
        }
-        $fields = 'id, supplier_id, price, price_unit, price_cur_bn, min_purchase_qty, pricing_date, price_validity, status, created_by, created_at';
+        $fields = 'id, sku, supplier_id, price, price_unit, price_cur_bn, min_purchase_qty, pricing_date, price_validity, status, created_by, created_at';
         try{
-            $result = $this->field($fields)->where(['sku'=>$sku])->select();
+            $result = $this->field($fields)->where(['sku'=>$input['sku']])->select();
+            $data = array();
             if($result) {
-                $data = array();
                 //通过supplier_id查询供应商名称
                 $SupplierModel = new SupplierModel();
                 foreach($result as $item) {
@@ -45,9 +45,8 @@ class GoodsCostPriceModel extends PublicModel {
                     }
                     $data[] = $item;
                 }
-                return $data;
             }
-            return array();
+            return $data;
         } catch(Exception $e) {
             return false;
         }
@@ -71,7 +70,7 @@ class GoodsCostPriceModel extends PublicModel {
                     'supplier_id' => isset($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
                     'contact_first_name' => isset($checkout['contact_first_name']) ? $checkout['contact_first_name'] : '',
                     'contact_last_name' => isset($checkout['contact_last_name']) ? $checkout['contact_last_name'] : '',
-                    'price' => isset($checkout['price']) ? $checkout['price'] : 0,
+                    'price' => isset($checkout['price']) ? $checkout['price'] : null,
                     'price_unit' => isset($checkout['price_unit']) ? $checkout['price_unit'] : '',
                     'price_cur_bn' => isset($checkout['price_cur_bn']) ? $checkout['price_cur_bn'] : '',
                     'min_purchase_qty' => isset($checkout['min_purchase_qty']) ? $checkout['min_purchase_qty'] : 1,
