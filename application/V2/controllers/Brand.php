@@ -8,7 +8,7 @@ class BrandController extends PublicController {
     protected $langs = ['en', 'es', 'ru', 'zh'];
 
     public function init() {
-       parent::init();
+        //   parent::init();
     }
 
     public function listAction() {
@@ -24,13 +24,19 @@ class BrandController extends PublicController {
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
             foreach ($this->langs as $lang) {
-                $item[$lang] = [];
+                $brand[$lang] = null;
             }
+            $brand = [];
             foreach ($brands as $val) {
-                $item[$val['lang']] = $val;
+                $brand[$val['lang']] = $val;
+                $brand[$val['lang']]['id'] = $item['id'];
+                if ($val['manufacturer'] && isset($val['manufacturer'][0])) {
+                    $brand[$val['lang']]['manufacturer_name'] = $val['manufacturer'][0]['name'];
+                } else {
+                    $brand[$val['lang']]['manufacturer_name'] = '';
+                }
             }
-            unset($item['brand']);
-            $arr[$key] = $item;
+            $arr[$key] = $brand;
         }
         if ($arr) {
             $count = $brand_model->getCount($condition, $lang);
@@ -60,14 +66,24 @@ class BrandController extends PublicController {
         $arr = $brand_model->listall($condition, $lang);
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
+            $brand = [];
             foreach ($this->langs as $lang) {
-                $item[$lang] = [];
+                $brand[$lang] = [
+                    'id' => $item['id'],
+                    'manufacturer_name' => '',
+                ];
             }
             foreach ($brands as $val) {
-                $item[$val['lang']] = $val;
+                $brand[$val['lang']] = $val;
+                $brand[$val['lang']]['id'] = $item['id'];
+                if ($val['manufacturer'] && isset($val['manufacturer'][0])) {
+                    $brand[$val['lang']]['manufacturer_name'] = $val['manufacturer'][0]['name'];
+                } else {
+                    $brand[$val['lang']]['manufacturer_name'] = '';
+                }
             }
-            unset($item['brand']);
-            $arr[$key] = $item;
+
+            $arr[$key] = $brand;
         }
 
         if ($arr) {
@@ -126,7 +142,7 @@ class BrandController extends PublicController {
         $brand_model = new BrandModel();
         $data = $this->getPut();
         $result = $brand_model->create_data($data, $this->user['id']);
-        if ($result!==false) {
+        if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
@@ -140,7 +156,7 @@ class BrandController extends PublicController {
         $brand_model = new BrandModel();
         $data = $this->getPut();
         $result = $brand_model->update_data($data, $this->user['id']);
-        if ($result!==false) {
+        if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
@@ -154,7 +170,7 @@ class BrandController extends PublicController {
         $brand_model = new BrandModel();
         $id = $this->get('id') ?: $this->getPut('id');
         $result = $brand_model->delete_data($id);
-        if ($result!==false) {
+        if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
@@ -171,7 +187,7 @@ class BrandController extends PublicController {
             $ids = explode(',', $ids);
         }
         $result = $brand_model->batchdelete_data($ids);
-        if ($result!==false) {
+        if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
