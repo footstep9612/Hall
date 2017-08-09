@@ -1404,9 +1404,13 @@ function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
  * @return array|bool
  */
 function getLoinInfo() {
+    $headers = getallheaders();
+    $token = isset($headers['token']) ? $headers['token'] : '';
     $jsondata = json_decode(file_get_contents("php://input"), true);
     $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
-    $token = (isset($jsondata['token']) && !empty($jsondata['token'])) ? $jsondata['token'] : '';
+    if(isset($jsondata['token']) && !empty($jsondata['token'])) {
+        $token = $jsondata['token'];
+    }
     if (isset($post['token']) && !empty($post['token'])) {
         $token = $post['token'];
     }
