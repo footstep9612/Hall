@@ -268,23 +268,17 @@ class LoginController extends Yaf_Controller_Abstract {
 
     function retrievalEmailAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['user_name'])) {
-            $buyer_account_data['user_name'] = $data['user_name'];
-        }else{
-            jsonReturn('',-101,'用户名不可以为空!');
-        }
         if(!empty($data['email'])) {
             $buyer_account_data['email'] = $data['email'];
             if(!isEmail($buyer_account_data['email'])){
-                jsonReturn('',-101,'邮箱格式不正确!');
+                jsonReturn('',-101,'Incorrect email format');
             }
         }else{
-            jsonReturn('',-101,'邮箱不可以都为空!');
+            jsonReturn('',-101,'Email is required');
         }
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
-        $login_arr['user_name'] = $data['user_name'];
         $check = $buyer_account_model->Exist($login_arr,'and');
         if($check){
             //生成邮件验证码
@@ -301,7 +295,7 @@ class LoginController extends Yaf_Controller_Abstract {
             send_Mail($data_key['email'],'Password retrieval on ERUI platform',$body,$data['first_name']);
             jsonReturn($data_key,1,'发送成功');
         }else{
-            jsonReturn('',-103,'The company email or user name non-existent.');
+            jsonReturn('',-103,'The company email non-existent.');
         }
     }
     function checkKeyAction(){
