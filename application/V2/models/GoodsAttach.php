@@ -404,32 +404,36 @@ class GoodsAttachModel extends PublicModel {
         }
         $results = array();
         try {
+
             if ($skus && is_array($skus)) {
-                foreach ($skus as $del) {
-                    $where = [
-                        "sku" => $del,
-                    ];
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-                    if (!$res) {
-                        return false;
-                    }
+                $where = [
+                    "sku" => ['in', $skus],
+                ];
+                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+            
+                if ($res === false) {
+                    return false;
                 }
-            } else{
+            } else {
                 $where = [
                     "sku" => $skus
                 ];
                 $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-                if (!$res) {
+                if ($res === false) {
                     return false;
                 }
             }
-            if ($res) {
+
+            if ($res !== false) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
+                $es_goods_model = new EsGoodsModel();
+                $es_goods_model->BatchUpdate_Attachs($skus, null);
             } else {
                 $results['code'] = '-101';
                 $results['message'] = '失败!';
             }
+        
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
