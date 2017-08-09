@@ -148,7 +148,7 @@ class BrandModel extends PublicModel {
         }
         $redis_key = $id;
         if (redisHashExist('Brand', $redis_key)) {
-            return json_decode(redisHashGet('Rate', $redis_key), true);
+            return json_decode(redisHashGet('Brand', $redis_key), true);
         }
         $item = $this->where($where)
                 ->find();

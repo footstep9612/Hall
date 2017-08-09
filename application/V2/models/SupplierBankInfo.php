@@ -70,4 +70,15 @@ class SupplierBankInfoModel extends PublicModel {
             return false;
         }
     }
+
+    public function info($data = [])
+    {
+        if(!empty($data['supplier_id'])){
+            $row = $this->where(['supplier_id' => $data['supplier_id'] ])
+                ->select();
+            return $row;
+        }else{
+            return false;
+        }
+    }
 }
