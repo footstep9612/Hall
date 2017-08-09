@@ -80,7 +80,7 @@ class EsproductController extends PublicController {
         $ret = $model->getproducts($this->put_data, null, $this->getLang());
         if ($ret) {
             $data = $ret[0];
-            $list = $this->getdata($data);
+            $list = $this->_getdata($data);
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
@@ -94,7 +94,7 @@ class EsproductController extends PublicController {
                 $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
             }
             $send['data'] = $list;
-            $this->update_keywords();
+            $this->_update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
             $send['code'] = $this->getCode();
             $send['message'] = $this->getMessage();
@@ -105,7 +105,7 @@ class EsproductController extends PublicController {
         }
     }
 
-    private function getdata($data) {
+    private function _getdata($data) {
 
         foreach ($data['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
@@ -132,7 +132,7 @@ class EsproductController extends PublicController {
         return $list;
     }
 
-    private function getcatlist($material_cat_nos, $material_cats) {
+    private function _getcatlist($material_cat_nos, $material_cats) {
         ksort($material_cat_nos);
         $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang=' . $this->getLang() . md5(json_encode($this->put_data)));
         $catlist = json_decode(redisGet($catno_key), true);
@@ -161,7 +161,7 @@ class EsproductController extends PublicController {
         return $catlist;
     }
 
-    private function update_keywords() {
+    private function _update_keywords() {
         if ($this->put_data['keyword']) {
             $search = [];
             $search['keywords'] = $this->put_data['keyword'];
@@ -171,7 +171,7 @@ class EsproductController extends PublicController {
                 $search['user_email'] = '';
             }
             $search['search_time'] = date('Y-m-d H:i:s');
-            $usersearchmodel = new UsersearchhisModel();
+            $usersearchmodel = new UserSearchHisModel();
             $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
             if ($row) {
@@ -212,7 +212,7 @@ class EsproductController extends PublicController {
                 $search['keyword'] = $this->put_data['keyword'];
                 $search['user_email'] = $this->user['email'];
                 $search['search_time'] = date('Y-m-d H:i:s');
-                $usersearchmodel = new UsersearchhisModel();
+                $usersearchmodel = new UserSearchHisModel();
                 if ($row = $usersearchmodel->exist($condition)) {
                     $search['search_count'] = intval($row['search_count']) + 1;
                     $usersearchmodel->update_data($search);

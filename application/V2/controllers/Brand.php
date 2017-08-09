@@ -68,10 +68,7 @@ class BrandController extends PublicController {
             $brands = json_decode($item['brand'], true);
             $brand = [];
             foreach ($this->langs as $lang) {
-                $brand[$lang] = [
-                    'id' => $item['id'],
-                    'manufacturer_name' => '',
-                ];
+                $brand[$lang] = null;
             }
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;

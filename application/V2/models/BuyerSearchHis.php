@@ -7,11 +7,11 @@
  */
 
 /**
- * Description of Buyersearchhis
+ * Description of BuyerSearchHisModel
  *
  * @author zhongyg
  */
-class BuyersearchhisModel extends PublicModel {
+class BuyerSearchHisModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'buyer_search_his';

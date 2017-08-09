@@ -7,11 +7,11 @@
  */
 
 /**
- * Description of Supplycapability
+ * Description of SupplyCapabilityModel
  *
  * @author zhongyg
  */
-class SupplycapabilityModel extends PublicModel {
+class SupplyCapabilityModel extends PublicModel {
 
   //put your code here
   protected $tableName = 'supply_capability';

@@ -86,7 +86,7 @@ class EsgoodsController extends ShopMallController {
                     $search['user_email'] = '';
                 }
                 $search['search_time'] = date('Y-m-d H:i:s');
-                $usersearchmodel = new BuyersearchhisModel();
+                $usersearchmodel = new BuyerSearchHisModel();
                 $condition = ['user_email' => $search['user_email'], 'keywords' => $search['keywords']];
                 $row = $usersearchmodel->exist($condition);
                 if ($row) {
