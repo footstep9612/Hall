@@ -416,7 +416,7 @@ class SupplierController extends PublicController {
         // 生成供应商编码
         $model  =  new SupplierModel();
         $res=$model->update_data($arr,$where);
-        if($res===false){
+        if($res!==false){
             if(!empty($data['user_name'])) {
                 $supplier_account_data['user_name']=$data['user_name'];
             }
