@@ -33,6 +33,7 @@ class PublicModel extends Model {
     const MSG_PASSWORD_CANNOTEMPTY = 300011; //密码不能为空
     const MSG_EMAIL_CANNOTEMPTY = 300012; //邮件不能为空
 
+    private static $op_log_id = 0;
 //put your code here
 // 数据表前缀
 
@@ -187,6 +188,36 @@ class PublicModel extends Model {
         }
     }
 
+// 插入数据前的回调方法
+    protected function _before_insert(&$data, $options) {
+        self::$op_log_id = $this->_addlog('ADD', UID, UID, [$data, $options], date('Y-m-d H:i:s') . '开始新增!', 'N');
+    }
+
+    // 插入成功后的回调方法
+    protected function _after_insert($data, $options) {
+        $this->_addlog('ADD', UID, UID, [$data, $options], date('Y-m-d H:i:s') . '新增成功!', 'Y');
+    }
+
+    // 更新数据前的回调方法
+    protected function _before_update(&$data, $options) {
+        self::$op_log_id = $this->_addlog('UPDATE', UID, UID, [$data, $options], date('Y-m-d H:i:s') . '开始更新!', 'N');
+    }
+
+    // 更新成功后的回调方法
+    protected function _after_update($data, $options) {
+        $this->_addlog('UPDATE', UID, UID, [$data, $options], date('Y-m-d H:i:s') . '更新成功!', 'Y');
+    }
+
+    // 删除数据前的回调方法
+    protected function _before_delete($options) {
+        self::$op_log_id = $this->_addlog('DELETE', UID, UID, $options, date('Y-m-d H:i:s') . '开始删除', 'N');
+    }
+
+    // 更新成功后的回调方法
+    protected function _after_delete($data, $options) {
+        $this->_addlog('DELETE', UID, UID, [$data, $options], date('Y-m-d H:i:s') . '删除成功', 'Y');
+    }
+
     /**
      * 新增日志文件
      * @param  string $action 操作 CREATE、UPDATE、DELETE、CHECK
@@ -213,7 +244,11 @@ class PublicModel extends Model {
             $data['op_log'] = $op_log;
             $data['op_note'] = $op_note;
             $data['op_result'] = $op_result;
-
+            if (self::$op_log_id) {
+                return $op_log_model->update_data($data, self::$op_log_id, $uid);
+            } else {
+                return $op_log_model->create_data($data, $uid);
+            }
             return $op_log_model->create_data($data, $uid);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
