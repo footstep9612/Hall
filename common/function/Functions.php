@@ -1364,7 +1364,7 @@ function browser_lang() {
  * @param string $lang
  */
 function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
-    header('Content-Type:application/json; charset=utf-8');
+    @header('Content-Type:application/json; charset=utf-8');
     if (isset($data['data'])) {
         $data = $data['data'];
     }
