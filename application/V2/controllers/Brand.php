@@ -18,13 +18,12 @@ class BrandController extends PublicController {
         unset($condition['token']);
 
         $brand_model = new BrandModel();
-
-
         $arr = $brand_model->getlist($condition, $lang);
+     
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
-            foreach ($this->langs as $lang) {
-                $brand[$lang] = null;
+            foreach ($this->langs as $blang) {
+                $brand[$blang] = null;
             }
             $brand = [];
             foreach ($brands as $val) {
@@ -82,6 +81,7 @@ class BrandController extends PublicController {
 
             $arr[$key] = $brand;
         }
+
 
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
