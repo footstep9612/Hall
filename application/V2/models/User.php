@@ -219,15 +219,15 @@ class UserModel extends PublicModel {
         if(isset($data)){
             $data['created_at']=date("Y-m-d H:i:s");
         }
-        switch ($data['status']) {
+        switch ($create['status']) {
             case self::STATUS_DELETED:
-                $data['status'] = $data['status'];
+                $data['status'] = $create['status'];
                 break;
             case self::STATUS_DISABLED:
-                $data['status'] = $data['status'];
+                $data['status'] = $create['status'];
                 break;
             case self::STATUS_NORMAL:
-                $data['status'] = $data['status'];
+                $data['status'] = $create['status'];
                 break;
         }
         if(!$where){

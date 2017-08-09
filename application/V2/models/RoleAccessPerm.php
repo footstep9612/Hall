@@ -125,6 +125,7 @@ class RoleAccessPermModel extends PublicModel {
         if(isset($create['perm_flag'])){
             $arr['perm_flag'] = $create['perm_flag'];
         }
+        $arr['created_at']=date("Y-m-d H:i:s");
         $data = $this->create($arr);
         return $this->add($data);
     }
