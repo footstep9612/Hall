@@ -279,7 +279,6 @@ class LoginController extends Yaf_Controller_Abstract {
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
-        $login_arr['user_name'] = $data['user_name'];
         $check = $buyer_account_model->Exist($login_arr,'and');
         if($check){
             //生成邮件验证码
@@ -296,7 +295,7 @@ class LoginController extends Yaf_Controller_Abstract {
             send_Mail($data_key['email'],'Password retrieval on ERUI platform',$body,$data['first_name']);
             jsonReturn($data_key,1,'发送成功');
         }else{
-            jsonReturn('',-103,'The company email or user name non-existent.');
+            jsonReturn('',-103,'The company email non-existent.');
         }
     }
     function checkKeyAction(){
