@@ -89,7 +89,7 @@ class ProductAttachModel extends PublicModel {
         $data['status'] = isset($input['status']) ? $input['status'] : self::STATUS_CHECKING;
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
-        if(isset($input['id'])){    //修改
+        if(isset($input['id']) && !empty($input['id'])){    //修改
             return $this->where(array('id'=>$input['id']))->save($data);
         }
         return $this->add($data);
