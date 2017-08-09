@@ -8,7 +8,7 @@ class BrandController extends PublicController {
     protected $langs = ['en', 'es', 'ru', 'zh'];
 
     public function init() {
-         parent::init();
+        parent::init();
     }
 
     public function listAction() {
