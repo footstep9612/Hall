@@ -62,10 +62,10 @@ class SupplierModel extends PublicModel {
             $where .= ' And checked_at  <="'.$condition['checked_at_end'].'"';
         }
         if ( !empty($condition['created_at_start']) ){
-            $where .= ' And created_at_start  >="'.$condition['created_at_start'].'"';
+            $where .= ' And created_at  >="'.$condition['created_at_start'].'"';
         }
         if ( !empty($condition['created_at_end']) ){
-            $where .= ' And created_at_end  <="'.$condition['created_at_end'].'"';
+            $where .= ' And created_at  <="'.$condition['created_at_end'].'"';
         }
         if ($where) {
             $sql .= $where;
