@@ -117,6 +117,20 @@ class SupplierController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+    public function bankinfoAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new SupplierBankInfoModel();
+        $res = $model->info($data);
+        if(!empty($res)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function addressinfoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new SupplierAddressModel();
@@ -416,7 +430,7 @@ class SupplierController extends PublicController {
         // 生成供应商编码
         $model  =  new SupplierModel();
         $res=$model->update_data($arr,$where);
-        if($res){
+        if($res!==false){
             if(!empty($data['user_name'])) {
                 $supplier_account_data['user_name']=$data['user_name'];
             }

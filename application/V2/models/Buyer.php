@@ -375,7 +375,7 @@ class BuyerModel extends PublicModel {
     }
 
     /**
-     * 获取企业信息
+     * 获取采购商信息
      * @author klp
      */
     public function buyerInfo(){
@@ -384,7 +384,7 @@ class BuyerModel extends PublicModel {
         if(!empty($userInfo['id'])){
             $where['id'] = $userInfo['id'];
         } else{
-            jsonReturn('','-1001','用户[buyer_id]不可以为空');
+            jsonReturn('','-1001','用户[id]不可以为空');
         }
 
         $field = 'id,lang,serial_no,buyer_type,buyer_no,name,bn,country_code,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,sec_ex_listed_on,line_of_credit,credit_available,credit_cur_bn,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';

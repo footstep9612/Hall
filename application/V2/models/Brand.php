@@ -36,13 +36,13 @@ class BrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getcondition($condition, $lang = '') {
+    private function _getcondition($condition, $lang = '') {
 
         $where = [];
-        $this->_getValue($where, $condition, 'id', 'string');
+      //  $this->_getValue($where, $condition, 'id', 'string');
         $this->_getValue($where, $condition, 'name', 'like', 'brand');
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
-        $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
+        // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if ($lang) {
             $where['brand'] = ['like', '%' . $lang . '%'];
         }
@@ -57,7 +57,7 @@ class BrandModel extends PublicModel {
      * @author zyg
      */
     public function getCount($condition, $lang = '') {
-        $where = $this->getcondition($condition, $lang);
+        $where = $this->_getcondition($condition, $lang);
 
         $redis_key = md5(json_encode($where) . $lang) . '_COUNT';
         if (redisHashExist('Brand', $redis_key)) {
@@ -66,6 +66,7 @@ class BrandModel extends PublicModel {
         try {
             $count = $this->where($where)
                     ->count('id');
+
             redisHashSet('Brand', $redis_key, $count);
             return $count;
         } catch (Exception $ex) {
@@ -82,7 +83,7 @@ class BrandModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition, $lang = '') {
-        $where = $this->getcondition($condition, $lang);
+        $where = $this->_getcondition($condition, $lang);
         list($row_start, $pagesize) = $this->_getPage($condition);
 
         $redis_key = md5(json_encode($where) . $lang . $row_start . $pagesize);
@@ -93,7 +94,7 @@ class BrandModel extends PublicModel {
             $item = $this->where($where)
                     ->field('id,brand,status,created_by,'
                             . 'created_at,updated_by,updated_at')
-                    ->order('id desc')
+                    ->order('created_at desc')
                     ->limit($row_start, $pagesize)
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
@@ -112,7 +113,7 @@ class BrandModel extends PublicModel {
      * @author zyg
      */
     public function listall($condition, $lang = '') {
-        $where = $this->getcondition($condition, $lang);
+        $where = $this->_getcondition($condition, $lang);
 
         $redis_key = md5(json_encode($where) . $lang);
         if (redisHashExist('Brand', $redis_key)) {
@@ -121,7 +122,7 @@ class BrandModel extends PublicModel {
         try {
             $item = $this->where($where)
                     ->field('id,brand')
-                    ->order('id desc')
+                    ->order('created_at desc')
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;
@@ -147,7 +148,7 @@ class BrandModel extends PublicModel {
         }
         $redis_key = $id;
         if (redisHashExist('Brand', $redis_key)) {
-            return json_decode(redisHashGet('Rate', $redis_key), true);
+            return json_decode(redisHashGet('Brand', $redis_key), true);
         }
         $item = $this->where($where)
                 ->find();
@@ -171,8 +172,8 @@ class BrandModel extends PublicModel {
 
     /**
      * 删除数据
-     * @param  string $brand_no
-     * @param  string $lang 语言
+     * @param  string $id
+     * @param  string $uid 用户ID
      * @return bool
      * @author zyg
      */
@@ -184,6 +185,7 @@ class BrandModel extends PublicModel {
         }
         $flag = $this->where($where)
                 ->save(['status' => self::STATUS_DELETED]);
+
         if ($flag) {
 
             return true;
@@ -211,11 +213,12 @@ class BrandModel extends PublicModel {
                 ->save(['status' => self::STATUS_DELETED]);
 
         if ($flag) {
-
             $this->commit();
+
             return true;
         } else {
             $this->rollback();
+
             return false;
         }
     }
@@ -234,7 +237,7 @@ class BrandModel extends PublicModel {
         } else {
             $where['id'] = $upcondition['id'];
         }
-        $data['updated_by'] = $uid;
+        $data['updated_by'] = UID;
         $data['updated_at'] = date('Y-m-d H:i:s');
         try {
             $flag = $this->where($where)->save($data);
@@ -242,6 +245,7 @@ class BrandModel extends PublicModel {
             return $flag;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
+
             return false;
         }
     }
@@ -258,7 +262,7 @@ class BrandModel extends PublicModel {
             'style' => $create['style'],
             'label' => $create['label'],
             'logo' => $create['logo'],
-            'manufacturer' => $create['manufacturer']
+                //   'manufacturer' => $create['manufacturer']
         ];
         $datalist = [];
         foreach ($this->langs as $lang) {
@@ -282,15 +286,19 @@ class BrandModel extends PublicModel {
         $data['brand'] = $this->_getdata($createcondition);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = $uid;
-        $flag = $this->add($data);
+        try {
+            $flag = $this->add($data);
 
-        if (!$flag) {
+            if (!$flag) {
+                return false;
+            }
 
-            $this->rollback();
+            return $flag;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+
             return false;
         }
-
-        return $flag;
     }
 
 }

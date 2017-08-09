@@ -30,7 +30,7 @@ class UserModel extends PublicModel {
      * @author jhw
      */
     public function getlist($condition = [],$order=" employee.id desc") {
-        $sql = 'SELECT `employee`.`id`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`gender`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
         $sql .= ' FROM '.$this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id ';
@@ -219,15 +219,15 @@ class UserModel extends PublicModel {
         if(isset($data)){
             $data['created_at']=date("Y-m-d H:i:s");
         }
-        switch ($data['status']) {
+        switch ($create['status']) {
             case self::STATUS_DELETED:
-                $data['status'] = $data['status'];
+                $data['status'] = $create['status'];
                 break;
             case self::STATUS_DISABLED:
-                $data['status'] = $data['status'];
+                $data['status'] = $create['status'];
                 break;
             case self::STATUS_NORMAL:
-                $data['status'] = $data['status'];
+                $data['status'] = $create['status'];
                 break;
         }
         if(!$where){

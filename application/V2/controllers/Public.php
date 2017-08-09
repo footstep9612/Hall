@@ -8,6 +8,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
+    protected $headers = [];
     protected $code = "1";
     protected $send = [];
     protected $message = '';
@@ -21,6 +22,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
+        $this->headers = $this->getAllHeaders();
+        $token = isset($this->headers['token']) ? $this->headers['token'] : '';
+
         $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
         $this->put_data['token'] = null;
         unset($this->put_data['token']);
@@ -32,7 +36,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             
         } else {
-
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
             }
@@ -64,6 +67,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
                         );
+                        $this->_setUid($userinfo);
                     }
                     //权限控制
 //                        if(redisExist('role_user_'.$userinfo['id'])){
@@ -93,6 +97,18 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                 exit;
             }
+        }
+    }
+
+    /*
+     * 设置UID
+     * @param array $userinfo 用户信息
+     * return void;
+     */
+
+    protected function _setUid($userinfo) {
+        if (!defined('UID') && $userinfo) {
+            define('UID', $userinfo["id"]);
         }
     }
 
@@ -514,32 +530,53 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     /**
      * @desc 记录审核日志
-     * @author liujf 2017-07-01
-     * @param array $condition 插入数据
+     * 
+     * @param array $condition
      * @return array
+     * @author liujf
+     * @time 2017-08-09
      */
-    public function addApproveLog($condition) {
-        $approveLogModel = new ApproveLogModel();
-        $user = $this->getUserInfo();
+    public function addCheckLog($condition) {
+        $inquiryCheckLogModel = new InquiryCheckLogModel();
         $time = date('Y-m-d H:i:s');
 
-        $inquiry_no_arr = explode(',', $condition['inquiry_no']);
+        $inquiryIdArr = explode(',', $condition['inquiry_id']);
 
-        $approveLogList = $approveLog = array();
+        $checkLogList = $checkLog = array();
 
-        foreach ($inquiry_no_arr as $inquiry_no) {
+        foreach ($inquiryIdArr as $inquiryId) {
             $data = $condition;
-            $data['inquiry_no'] = $inquiry_no;
-            $data['approver_id'] = $user['id'];
-            $data['approver'] = $user['name'];
+            $data['op_id'] = $this->user['id'];
+            $data['inquiry_id'] = $inquiryId;
+            $data['created_by'] = $this->user['id'];
             $data['created_at'] = $time;
 
-            $approveLog = $approveLogModel->create($data);
+            $checkLog = $inquiryCheckLogModel->create($data);
 
-            $approveLogList[] = $approveLog;
+            $checkLogList[] = $checkLog;
         }
 
-        return $approveLogModel->addAll($approveLogList);
+        return $inquiryCheckLogModel->addAll($checkLogList);
+    }
+
+    /**
+     * 获取自定义header数据
+     * @author link 2017-08-09
+     */
+    public function getAllHeaders() {
+        $ignore = array('host', 'accept', 'content-length', 'content-type'); // 忽略数据
+        $headers = array();
+        foreach ($_SERVER as $key => $value) {
+            if (substr($key, 0, 5) === 'HTTP_') {
+                $key = substr($key, 5);
+                $key = strtolower($key);
+                if (!in_array($key, $ignore)) {
+                    $headers[$key] = $value;
+                }
+            }
+        }
+
+        return $headers;
     }
 
 }

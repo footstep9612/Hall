@@ -57,13 +57,13 @@ class RoleModel extends PublicModel {
      */
     public function getRoleslist($id,$order='id desc') {
 
-        $sql = 'SELECT `t_role_access_perm`.`url_perm_id`,`t_url_perm`.`url`, `t_url_perm`.`description` , `t_url_perm`.`parent_id` ';
+        $sql = 'SELECT `role_access_perm`.`func_perm_id`,`func_perm`.`url`, `func_perm`.`fn` , `func_perm`.`parent_id` ';
         $sql .= ' FROM '.$this->table_name;
-        $sql .= ' LEFT JOIN  `t_role_access_perm` ON `t_role_access_perm`.`role_id` =`t_role`.`id`';
-        $sql .= ' LEFT JOIN  `t_url_perm` ON `t_url_perm`.`id` =`t_role_access_perm`.`url_perm_id`';
+        $sql .= ' LEFT JOIN  `role_access_perm` ON `role_access_perm`.`role_id` =`role`.`id`';
+        $sql .= ' LEFT JOIN  `func_perm` ON `func_perm`.`id` =`role_access_perm`.`func_perm_id`';
         $sql_where = '';
         if(!empty($id)) {
-            $sql_where .= ' WHERE `t_role`.`id` =' . $id;
+            $sql_where .= ' WHERE `role`.`id` =' . $id;
             $sql .=$sql_where;
         }
 
@@ -116,8 +116,11 @@ class RoleModel extends PublicModel {
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
         }
-        if(isset($data['description'])){
-            $arr['description'] = $data['description'];
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
+        }
+        if(isset($create['name_en'])){
+            $arr['name_en'] = $create['name_en'];
         }
         if(isset($data['status'])){
             $arr['status'] = $data['status'];
@@ -149,8 +152,8 @@ class RoleModel extends PublicModel {
         if(isset($create['name_en'])){
             $arr['name_en'] = $create['name_en'];
         }
-        if(isset($create['name_en'])){
-            $arr['name_en'] = $create['name_en'];
+        if(isset($create['remarks'])){
+            $arr['remarks'] = $create['remarks'];
         }
         if(isset($create['status'])){
             $arr['status'] = $create['status'];

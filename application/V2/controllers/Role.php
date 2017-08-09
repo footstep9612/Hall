@@ -185,13 +185,14 @@ class RoleController extends PublicController {
         }else{
             $where['id'] = $data['id'];
             $role_arr['role_id'] = $data['id'];
+            $role_user_arr['role_id'] = $data['id'];
 
         }
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
         }
-        if(isset($data['description'])){
-            $arr['description'] = $data['description'];
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
         }
         if(isset($data['status'])){
             $arr['status'] = $data['status'];
@@ -202,6 +203,11 @@ class RoleController extends PublicController {
         if( $data['url_perm_ids']){
             $role_arr['url_perm_ids'] = $data['url_perm_ids'];
             $model_role_access_perm->update_datas($role_arr);
+        }
+        if( $data['role_user_ids']){
+            $model_role_user = new RoleUserModel();
+            $role_user_arr['role_user_ids'] = $data['role_user_ids'];
+            $model_role_user->update_datas($role_arr);
         }
         $datajson['code'] = 1;
         $datajson['message'] = '操作完成!';

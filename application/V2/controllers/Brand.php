@@ -8,7 +8,7 @@ class BrandController extends PublicController {
     protected $langs = ['en', 'es', 'ru', 'zh'];
 
     public function init() {
-         parent::init();
+        parent::init();
     }
 
     public function listAction() {
@@ -18,23 +18,18 @@ class BrandController extends PublicController {
         unset($condition['token']);
 
         $brand_model = new BrandModel();
-
-
         $arr = $brand_model->getlist($condition, $lang);
+
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
-            foreach ($this->langs as $lang) {
-                $brand[$lang] = null;
+            foreach ($this->langs as $blang) {
+                $brand[$blang] = null;
             }
             $brand = [];
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
-                if ($val['manufacturer'] && isset($val['manufacturer'][0])) {
-                    $brand[$val['lang']]['manufacturer_name'] = $val['manufacturer'][0]['name'];
-                } else {
-                    $brand[$val['lang']]['manufacturer_name'] = '';
-                }
+               
             }
             $arr[$key] = $brand;
         }
@@ -68,23 +63,17 @@ class BrandController extends PublicController {
             $brands = json_decode($item['brand'], true);
             $brand = [];
             foreach ($this->langs as $lang) {
-                $brand[$lang] = [
-                    'id' => $item['id'],
-                    'manufacturer_name' => '',
-                ];
+                $brand[$lang] = null;
             }
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
-                if ($val['manufacturer'] && isset($val['manufacturer'][0])) {
-                    $brand[$val['lang']]['manufacturer_name'] = $val['manufacturer'][0]['name'];
-                } else {
-                    $brand[$val['lang']]['manufacturer_name'] = '';
-                }
+              
             }
 
             $arr[$key] = $brand;
         }
+
 
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
