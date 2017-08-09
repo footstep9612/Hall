@@ -212,8 +212,8 @@ class ServiceCatModel extends PublicModel {
      * @author klp
      */
     public function getInfo($data) {
-        if(isset($data['service_cat_id']) && !empty($data['service_cat_id'])) {
-            $condition["id"] = $data['service_cat_id'];
+        if(isset($data['id']) && !empty($data['id'])) {
+            $condition["id"] = $data['id'];
         }
         $condition["deleted_flag"] = 'N';
         $condition["status"] = 'VALID';
