@@ -84,11 +84,14 @@ class ProductAttachModel extends PublicModel {
         $data['attach_type'] = isset($input['attach_type']) ? $input['attach_type'] : '';
         $data['attach_name'] = isset($input['attach_name']) ? $input['attach_name'] : '';
         $data['attach_url'] = isset($input['attach_url']) ? $input['attach_url'] : '';
-        $data['sort_order'] = isset($input['sort_order']) ? $input['sort_order'] : '';
-        $data['default_flag'] = self::DELETED_N;
+        $data['sort_order'] = isset($input['sort_order']) ? $input['sort_order'] : 0;
+        $data['default_flag'] = isset($input['default_flag']) ? 'Y' : 'N';
         $data['status'] = isset($input['status']) ? $input['status'] : self::STATUS_CHECKING;
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
+        if(isset($input['id'])){    //修改
+            return $this->where(array('id'=>$input['id']))->save($data);
+        }
         return $this->add($data);
     }
 
