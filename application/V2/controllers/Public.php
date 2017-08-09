@@ -205,7 +205,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
             $data['token'] = null;
             unset($data['token']);
-            return $data;
         }
         if ($name) {
             $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
@@ -515,32 +514,33 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     /**
      * @desc 记录审核日志
-     * @author liujf 2017-07-01
-     * @param array $condition 插入数据
+     * 
+     * @param array $condition
      * @return array
+     * @author liujf
+     * @time 2017-08-09
      */
-    public function addApproveLog($condition) {
-        $approveLogModel = new ApproveLogModel();
-        $user = $this->getUserInfo();
+    public function addCheckLog($condition) {
+        $inquiryCheckLogModel = new InquiryCheckLogModel();
         $time = date('Y-m-d H:i:s');
 
-        $inquiry_no_arr = explode(',', $condition['inquiry_no']);
+        $inquiryIdArr = explode(',', $condition['inquiry_id']);
 
-        $approveLogList = $approveLog = array();
+        $checkLogList = $checkLog= array();
 
-        foreach ($inquiry_no_arr as $inquiry_no) {
+        foreach ($inquiryIdArr as $inquiryId) {
             $data = $condition;
-            $data['inquiry_no'] = $inquiry_no;
-            $data['approver_id'] = $user['id'];
-            $data['approver'] = $user['name'];
+            $data['op_id'] = $this->user['id'];
+            $data['inquiry_id'] = $inquiryId;
+            $data['created_by'] = $this->user['id'];
             $data['created_at'] = $time;
 
-            $approveLog = $approveLogModel->create($data);
+            $checkLog = $inquiryCheckLogModel->create($data);
 
-            $approveLogList[] = $approveLog;
+            $checkLogList[] = $checkLog;
         }
 
-        return $approveLogModel->addAll($approveLogList);
+        return $inquiryCheckLogModel->addAll($checkLogList);
     }
 
 }

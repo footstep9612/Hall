@@ -36,29 +36,49 @@ class SupplierModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" id desc") {
         $sql =  'SELECT `id`,`lang`,`serial_no`,`supplier_no`,`supplier_type`,`name`,`bn`,`profile`,`reg_capital`,`employee_count`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
-        $sql .=  '`official_email`,`official_phone`,`official_fax`,`first_name`,`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`supplier_level`,`credit_level`,';
+        $sql.=  '`official_email`,`official_phone`,`official_fax`,`first_name`,`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`supplier_level`,`credit_level`,';
         $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`status`,`remarks`,`apply_at`,`created_by`,`created_at`,`checked_by`,`checked_at`';
-        $sql .= ' FROM '.$this->g_table;
-        $where ="";
+        $sql_count =  'SELECT count(`id`) as num ';
+        $str = ' FROM '.$this->g_table;
+        $sql .= $str;
+        $sql_count .= $str;
+        $where =" WHERE 1 = 1";
         if ( !empty($condition['country_bn']) ){
-            $where .= ' WHERE country_bn ='.$condition['country_bn'];
+            $where .= ' And country_bn ="'.$condition['country_bn'].'"';
         }
         if ( !empty($condition['name']) ){
-            if($where){
-                $where .= " and name like '%".$condition['name'] ."%'";
-            }else{
-                $where .=" WHERE name like '%".$condition['name'] ."%'";
-            }
+            $where .= " And name like '%".$condition['name'] ."%'";
         }
-        if($where) {
+        if ( !empty($condition['supplier_no']) ){
+            $where .= ' And supplier_no  ="'.$condition['supplier_no'].'"';
+        }
+        if ( !empty($condition['status']) ){
+            $where .= ' And status  ="'.$condition['status'].'"';
+        }
+        if ( !empty($condition['checked_at_start']) ){
+            $where .= ' And checked_at  >="'.$condition['checked_at_start'].'"';
+        }
+        if ( !empty($condition['checked_at_end']) ){
+            $where .= ' And checked_at  <="'.$condition['checked_at_end'].'"';
+        }
+        if ( !empty($condition['created_at_start']) ){
+            $where .= ' And created_at  >="'.$condition['created_at_start'].'"';
+        }
+        if ( !empty($condition['created_at_end']) ){
+            $where .= ' And created_at  <="'.$condition['created_at_end'].'"';
+        }
+        if ($where) {
             $sql .= $where;
+            $sql_count.= $where;
         }
         $sql .= ' Order By '.$order;
         if ( $condition['num'] ){
             $sql .= ' LIMIT '.$condition['page'].','.$condition['num'];
         }
-        var_dump($sql);
-        return $this->query( $sql );
+        $count =$this->query( $sql_count );
+        $res['count'] =$count[0]['num'];
+        $res['data'] =  $this->query( $sql );
+        return $res;
     }
 
 
@@ -158,6 +178,7 @@ class SupplierModel extends PublicModel {
         if(isset($create['checked_by'])){
             $data['checked_by'] = $create['checked_by'];
         }
+        $data['status'] = 'DRAFT';
         $data['created_at'] = date('Y-m-d H:i:s');
         try{
             $datajson = $this->create($data);

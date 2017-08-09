@@ -2,6 +2,126 @@
 
 trait QuoteBizlineHelper{
 
+
+    /**
+     * 产品线报价列表通用筛选条件
+     * @param $request
+     * @return array
+     */
+    public static function filterListParams($request,$type='PM'){
+
+        $where = [];
+
+        //市场经办人
+        if (!empty($request['agent_name'])){
+            //Z函数实例化一个不存在模型文件的模型
+            $employee = Z('Employee');
+            $agenter = $employee->field('id')->where(['name'=>$request['agent_name']])->find();
+            if ($agenter){
+                $where['agent_id'] = intval($agenter['id']);
+            }
+        }
+        //项目经理
+        if (!empty($request['pm_name'])){
+            //Z函数实例化一个不存在模型文件的模型
+            $employee = Z('Employee');
+            $projectManager = $employee->field('id')->where(['name'=>$request['pm_name']])->find();
+            if ($projectManager){
+                $where['pm_id'] = $projectManager['id'];
+            }
+        }
+
+        switch ($type){
+            case 'PM' : $where['pm_id'] = $request['pm_id'] ; break ;
+            case 'BIZLINE' : $where['agent_id'] = $request['agent_id'] ; break ;
+        }
+
+        //项目状态
+        if (!empty($request['status'])) {
+            $where['status'] = $request['status'];
+        }
+        //国家
+        if (!empty($request['country_bn'])) {
+            $where['country_bn'] = $request['country_bn'];
+        }
+        //流程编码
+        if (!empty($request['serial_no'])) {
+            $where['serial_no'] = $request['serial_no'];
+        }
+        //客户名称
+        if (!empty($request['buyer_name'])) {
+            $where['buyer_name'] = $request['buyer_name'];
+        }
+        //询价时间
+        if (!empty($request['start_time']) && !empty($request['end_time'])) {
+            $where['created_at'] = array(
+                array('gt',date('Y-m-d H:i:s',$request['start_time'])),
+                array('lt',date('Y-m-d H:i:s',$request['end_time']))
+            );
+        }
+        return $where;
+
+    }
+
+    /**
+     * 根据条件获取询单信息
+     * @param $filterParams 筛选字段
+     * @return mixed 返回结果
+     */
+    public static function getQuotelineInquiryList($filterParams){
+
+        $inquiry = new InquiryModel();
+        if (!$total = $inquiry->getCount($filterParams)){
+            return ['code'=>'-104','message'=>'没有数据!','data'=>''];
+        }
+
+        //设置分页
+        $page = !empty($request['currentPage']) ? $request['currentPage'] : 1;
+        $pageSize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
+
+        //最终列出的字段
+        $field = ['id','serial_no','country_bn','buyer_name','created_at','status','quote_deadline','agent_id','pm_id'];
+
+       $list = $inquiry->where($filterParams)->page($page,$pageSize)->field($field)->order('updated_at desc')->select();
+
+        /**
+         * 重组数据
+         * 把项目经理id,市场经办人id换成人名
+         */
+        $responseData = self::restoreQuotelineInquiryList($list);
+
+        return [
+            'code' => '1',
+            'message' => '成功!',
+            'total' => $total,
+            'data' => $responseData
+        ];
+
+    }
+
+    public static function restoreQuotelineInquiryList($list){
+        foreach ($list as $item=>$value) {
+            //经办人
+            if(!empty($value['agent_id'])){
+                $employee = Z('Employee')->where(['id'=>$value['agent_id']])->field('name')->find();
+                $list[$item]['agent_name'] = $employee['name'];
+                unset( $list[$item]['agent_id']);
+            }
+            //项目经理
+            if(!empty($value['pm_id'])){
+                $productManager = Z('Employee')->where(['id'=>$value['pm_id']])->field('name')->find();
+                $list[$item]['pm_name'] = $productManager['name'];
+                unset( $list[$item]['pm_id']);
+            }
+        }
+        return $list;
+    }
+
+
+
+
+
+
     static public function getInquiryInfoFields()
     {
         return [
@@ -49,7 +169,16 @@ trait QuoteBizlineHelper{
             unset($inquiry['pm_id']);
         }
 
-        return $inquiry;
+        //获取询单明细
+        $inquiryItem = new InquiryItemModel();
+        $inquiryList = $inquiryItem->where(['inquiry_id'=>$inquiry['id']])->select();
+
+        $inquiry['list'] = !is_null($inquiryList) ? $inquiryList : [] ;
+        return [
+            'code' => '1',
+            'message' =>'成功!',
+            'data' => $inquiry
+        ];
 
     }
 
@@ -59,6 +188,19 @@ trait QuoteBizlineHelper{
      * @return array    重组后的结构
      */
     static public function setPartitionBizlineFields($param){
+
+        //先查找询单相关的字段 inquiry_id biz_agent_id
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$param['serial_no']])
+                                    ->field(['id','agent_id'])
+                                    ->find();
+
+        //判断一个quote_id是一个或者是多个
+        $quote = explode(',',$param['quote_id']);
+
+        //给产品线关联表插入数据 quote_bizline
+        $quoteBizline = new QuoteBizLineModel();
+
         $data = [];
         $data['quote_id'] = $param['quote_id'];
         $data['inquiry_id'] = $param['inquiry_id'];
@@ -80,7 +222,12 @@ trait QuoteBizlineHelper{
     static public function transmitHandler(array $param){
         $inquiry = new InquiryModel();
         try{
-            if ($inquiry->where(['id'=>$param['inquiry_id']])->save(['pm_id'=>$param['pm_id']])){
+            $result = $inquiry->where(['serial_no'=>$param['serial_no']])
+                              ->save([
+                                  'pm_id'=>$param['pm_id'],//现项目经理
+                                  'ori_pm_id'=>$param['ori_pm_id']//原项目经理
+                              ]);
+            if ($result){
                 return [
                     'code' => '1',
                     'message' => '转交成功!'
@@ -157,4 +304,41 @@ trait QuoteBizlineHelper{
         return $data;
     }
 
+    /**
+     * 产品线报价->项目经理->提交物流报价
+     * @param $param
+     * @return array
+     */
+    static public function submitToLogi($param)
+    {
+        $response = [
+            'code' => '1',
+            'message' => '提交成功!'
+        ];
+        return $response;
+    }
+
+
+    /**
+     * 产品线负责人->指派报价人
+     * @param $request 请求的数据
+     * @return array 结果
+     */
+    static public function assignQuoter($request){
+
+        $quote_item = new QuoteItemModel();
+        try{
+            if ($quote_item->where(['quote_id'=>$request['quote_id']])->save(['bizline_agent_id'=>$request['bizline_agent_id']])){
+                return ['code'=>'1','message'=>'指派成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'指派失败!'];
+            }
+        }catch (Exception $exception){
+             return [
+                 'code' => $exception->getCode(),
+                 'message' => $exception->getMessage()
+             ];
+        }
+
+    }
 }

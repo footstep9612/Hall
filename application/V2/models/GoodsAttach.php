@@ -286,23 +286,22 @@ class GoodsAttachModel extends PublicModel {
         if ($input && is_array($input)) {
             try {
                 foreach ($input['attachs'] as $key => $value) {
-                    $checkout = $this->checkParam($value, $this->field);
-                    $data = [
-                        'supplier_id' => isset($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
-                        'attach_type' => isset($checkout['attach_type']) ? $checkout['attach_type'] : '',
-                        'attach_name' => isset($checkout['attach_name']) ? $checkout['attach_name'] : '',
-                        'attach_url' => $checkout['attach_url'],
-                        'default_flag' => isset($checkout['default_flag']) ? $checkout['default_flag'] : 'N',
-                        'sort_order' => isset($checkout['sort_order']) ? $checkout['sort_order'] : 0
-                    ];
+                    $data = $this->checkParam($value);
+//                    $data = [
+//                        'supplier_id' => !empty($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
+//                        'attach_type' => !empty($checkout['attach_type']) ? $checkout['attach_type'] : 'BIG_IMAGE',
+//                        'attach_name' => !empty($checkout['attach_name']) ? $checkout['attach_name'] : '',
+//                        'attach_url' => $checkout['attach_url'],
+//                        'default_flag' => !empty($checkout['default_flag']) ? $checkout['default_flag'] : 'N',
+//                        'sort_order' => !empty($checkout['sort_order']) ? $checkout['sort_order'] : 0
+//                    ];
                     //存在sku编辑,反之新增,后续扩展性
-                    $result = $this->field('sku')->where(['id' => $checkout['id']])->find();
-                    if ($result) {
+                    if (isset($data['id']) && !empty($data['id'])) {
                         $data['updated_by'] = $input['user_id'];
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $where = [
                             'sku' => trim($input['sku']),
-                            'id' => $checkout['id']
+                            'id' => $data['id']
                         ];
                         $res = $this->where($where)->save($data);
                         if (!$res) {
@@ -399,71 +398,87 @@ class GoodsAttachModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function deleteSkuAttach($delData) {
-        if (empty($delData)) {
+    public function deleteSkuAttach($skus) {
+        if (empty($skus)) {
             return false;
         }
         $results = array();
-        if ($delData && is_array($delData)) {
-            try {
-                foreach ($delData as $del) {
-                    $where = [
-                        'sku' => $del['sku']
-                    ];
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-                    if (!$res) {
-                        return false;
-                    }
+        try {
+
+            if ($skus && is_array($skus)) {
+                $where = [
+                    "sku" => ['in', $skus],
+                ];
+                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+            
+                if ($res === false) {
+                    return false;
                 }
-                if ($res) {
-                    $results['code'] = '1';
-                    $results['message'] = '成功！';
-                } else {
-                    $results['code'] = '-101';
-                    $results['message'] = '失败!';
+            } else {
+                $where = [
+                    "sku" => $skus
+                ];
+                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                if ($res === false) {
+                    return false;
                 }
-                return $results;
-            } catch (Exception $e) {
-                $results['code'] = $e->getCode();
-                $results['message'] = $e->getMessage();
-                return $results;
             }
+
+            if ($res !== false) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+                $es_goods_model = new EsGoodsModel();
+                $es_goods_model->BatchUpdate_Attachs($skus, null);
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '失败!';
+            }
+        
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
         }
-        return false;
     }
 
     /**
      * 参数校验    注：没有参数或没有规则，默认返回true（即不做验证）
      * @param array $param  参数
      * @param array $field  校验规则
-     * @return bool
+     * @return
      *
      */
-    private function checkParam($param = [], $field = []) {
-        if (empty($param) || empty($field))
-            return array();
-        foreach ($param as $k => $v) {
-            if (isset($field[$k])) {
-                $item = $field[$k];
-                switch ($item[0]) {
-                    case 'required':
-                        if ($v == '' || empty($v)) {
-                            jsonReturn('', '1000', 'Param ' . $k . ' Not null !');
-                        }
-                        break;
-//                    case 'method':
-//                        if (!method_exists($item[1])) {
-//                            jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
-//                        }
-//                        if (!call_user_func($item[1], $v)) {
-//                            jsonReturn('', '1001', 'Param ' . $k . ' Validate failed !');
-//                        }
-//                        break;
-                }
-            }
-            continue;
+    private function checkParam($param = []) {
+        if (empty($param)){
+           jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        return $param;
+        $data = $results = [];
+        if(!empty($param['supplier_id'])){
+            $data['supplier_id'] = $param['supplier_id'];
+        }
+        if(!empty($param['attach_type'])){
+            $data['attach_type'] = $param['attach_type'];
+        }
+        if(!empty($param['attach_name'])){
+            $data['attach_name'] = $param['attach_name'];
+        }
+        if(!empty($param['attach_url'])){
+            $data['attach_url'] = $param['attach_url'];
+        } else{
+            $results['code'] = -101;
+            $results['message'] = '[attach_url]参数缺少!';
+        }
+        if(!empty($param['default_flag'])){
+            $data['default_flag'] = $param['default_flag'];
+        }
+        if(!empty($param['sort_order'])){
+            $data['sort_order'] = $param['sort_order'];
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return $data;
     }
 
     /* 通过SKU获取数据商品文件列表

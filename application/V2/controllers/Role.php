@@ -42,7 +42,6 @@ class RoleController extends PublicController {
             $datajson['data'] = $data;
         }else{
             $datajson['code'] = -104;
-            $datajson['data'] = $data;
             $datajson['message'] = '数据为空!';
         }
         $this->jsonReturn($datajson);

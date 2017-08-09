@@ -6,7 +6,7 @@
  * Date: 2017/8/1
  * Time: 13:16
  */
-class BizlinecatModel extends PublicModel {
+class BizlineCatModel extends PublicModel {
 
     protected $dbName = 'erui2_operation'; //数据库名称
     protected $tableName = 'bizline_cat'; //数据表表名

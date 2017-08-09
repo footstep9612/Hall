@@ -18,6 +18,15 @@ class QuoteBizLineModel extends PublicModel{
      */
     protected $tableName = 'quote_bizline';
 
+    /*
+     * 初始状态:待报价
+     */
+    const STATUS_UNQUOTE = 'UNQUOTE';//待报价
+    const STATUS_QUOTED = 'QUOTED';//已报价
+    const STATUS_REJECTED = 'REJECTED';//被驳回
+    const STATUS_TRANSMIT = 'TRANSMIT';//已发送
+    const STATUS_RETURN = 'RETURN';//退回
+
     public function __construct(){
         parent::__construct();
     }
@@ -40,9 +49,8 @@ class QuoteBizLineModel extends PublicModel{
 
     /**
      * 根据条件获取报价信息
-     * @param array $param
-     *
-     * @return mixed
+     * @param $quote_id 报价单id
+     * @return mixed 获取的结果
      */
     public function getQuoteInfo($quote_id)
     {
@@ -52,7 +60,6 @@ class QuoteBizLineModel extends PublicModel{
     /**
      * 产品线负责人暂存报价信息
      * @param $quote_id 报价单id
-     *
      * @return bool
      */
     public function storageQuote($quote_id)
@@ -73,7 +80,7 @@ class QuoteBizLineModel extends PublicModel{
      */
     public function sendback($quote_id)
     {
-        return $this->where(['quote_id'=>$quote_id])->save(['status'=>'SUBMIT']);
+        return $this->where(['quote_id'=>$quote_id])->save(['status'=>self::STATUS_RETURN]);
     }
 
     /**
@@ -136,5 +143,54 @@ class QuoteBizLineModel extends PublicModel{
             ];
         }
 
+    }
+
+    /**
+     * 产品线报价->产品线报价人->提交产品线负责人审核
+     * 操作说明:当前报价单状态改为(........)
+     * @param $params
+     * @return array
+     */
+    public function submitToBizlineManager($params){
+
+        //TODO 这里可能处理一些逻辑相关的操作
+
+        //更新当前的报价单状态为产品线报价
+        try{
+            if ($this->where(['quote_id'=>$params['quote_id']])->save(['status'=>self::STATUS_QUOTED])){
+                return ['code'=>'1','message'=>'提交成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'提交失败!'];
+            }
+        }catch (Exception $exception){
+            return [
+                'code'=> $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+
+    public function setPartitionBizline($param)
+    {
+        //先查找询单相关的字段 inquiry_id biz_agent_id
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$param['serial_no']])
+                                    ->field(['id','agent_id'])
+                                    ->find();
+        //判断一个quote_id是一个或者是多个
+        $quote = explode(',',$param['quote_id']);
+        $data = [
+            'inquiry_id'=>$inquiryInfo['id'],
+            'biz_agent_id'=>$inquiryInfo['agent_id'],
+            'bizline_id'=>$param['bizline_id'],
+            'created_by'=>$param['created_by'],
+            'created_at'=>date('Y-m-d H:i:s')
+        ];
+        foreach ($quote as $k=>$v){
+            $data['quote_id'] = $v;
+            $this->add($data);
+        }
+        return ['code'=>'1','message'=>'成功!'];
     }
 }

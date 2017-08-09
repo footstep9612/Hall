@@ -16,19 +16,19 @@ class BuyerCreditLogModel extends PublicModel{
     const STATUS_APPROVING = 'APPROVING'; //待审核
     const STATUS_REJECTED = 'REJECTED'; //驳回
     const STATUS_APPROVED = 'APPROVED'; //审核通过
-    const STATUS_ERUI = 'ERUI'; //ERUI
-
     /**
      * 获取审核信息
      * @param mix $condition
      * @return mix
      * @author klp
      */
-    public function getInfo() {
-        $userInfo = getLoinInfo();
+    public function getInfo($condition = []) {
+        if(empty($condition)){
+            return false;
+        }
         $where=array();
-        if(!empty($userInfo['id'])){
-            $where['buyer_id'] = $userInfo['id'];
+        if(!empty($condition['id'])){
+            $where['buyer_id'] = $condition['id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }
@@ -54,27 +54,22 @@ class BuyerCreditLogModel extends PublicModel{
             return false;
         }
         $data = [];
-        if(!empty($condition['buyer_id'])){
+        if(isset($condition['buyer_id'])){
             $data['buyer_id'] = $condition['buyer_id'];
         }
-        if(!empty($condition['credit_grantor'])){
-            $data['credit_grantor'] = $condition['credit_grantor'];
-        } else{
-            $data['credit_grantor'] = self::STATUS_ERUI;
-        }
-        if(!empty($condition['credit_apply'])){
+        if(isset($condition['credit_apply'])){
             $data['credit_apply'] = $condition['credit_apply'];
         }
-        if(!empty($condition['credit_cur_bn'])){
+        if(isset($condition['credit_cur_bn'])){
             $data['credit_cur_bn'] = $condition['credit_cur_bn'];
         }
-        if(!empty($condition['in_status'])){
+        if(isset($condition['in_status'])){
             $data['in_status'] = $condition['in_status'];
         }
-        if(!empty($condition['in_remarks'])){
+        if(isset($condition['in_remarks'])){
             $data['in_remarks'] = $condition['in_remarks'];
         }
-        if(!empty($condition['checked_by'])){
+        if(isset($condition['checked_by'])){
             $data['checked_by'] = $condition['checked_by'];
         }
         $data['checked_at'] = date('Y-m-d H:i:s', time());
@@ -99,64 +94,7 @@ class BuyerCreditLogModel extends PublicModel{
             $this->rollback();
             return false;
         }
-    }
 
-    /**
-     * 信保审核
-     * @param mix $condition
-     * @return mix
-     * @author klp
-     */
-    protected function sinosureCredit($checkInfo) {
-        $condition = $this->checkParam($checkInfo);
-        if(empty($condition)){
-            return false;
-        }
-        $data = [];
-        if(!empty($condition['buyer_id'])){
-            $data['buyer_id'] = $condition['buyer_id'];
-        }
-        if(!empty($condition['credit_grantor'])){
-            $data['credit_grantor'] = $condition['credit_grantor'];
-        }
-        if(!empty($condition['credit_granted'])){
-            $data['credit_granted'] = $condition['credit_granted'];
-        }
-        if(!empty($condition['credit_cur_bn'])){
-            $data['credit_cur_bn'] = $condition['credit_cur_bn'];
-        }
-        if(!empty($condition['out_remarks'])){
-            $data['out_remarks'] = $condition['out_remarks'];
-        }
-        if(!empty($condition['approved_by'])){
-            $data['approved_by'] = $condition['approved_by'];
-        }
-        if(!empty($condition['status_type'])){
-            switch (strtoupper($data['status_type'])) {
-                case 'approved':    //审核(通过)
-                    $data['out_status'] = self::STATUS_APPROVED;
-                    break;
-                case 'rejected':    //审核(驳回)
-                    $data['out_status'] = self::STATUS_REJECTED;
-                    break;
-            }
-            unset($data['status_type']);
-        }
-        $data['approved_at'] = date('Y-m-d H:i:s', time());
-        $this->startTrans();
-        try {
-            $res = $this->where(['buyer_id' => $data['buyer_id']])->save($data);
-            if($res) {
-                $this->commit();
-                return $data['out_status'];
-            } else {
-                $this->rollback();
-                return false;
-            }
-        } catch(Exception $e){
-            $this->rollback();
-            return false;
-        }
     }
 
     /**

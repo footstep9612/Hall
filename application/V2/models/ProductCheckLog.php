@@ -37,13 +37,13 @@ class ProductChecklogModel extends PublicModel{
             try {
                 foreach ($condition as $item) {
                     $data = [
-                        'spu' => isset($item['spu']) ? $item['spu'] : '',
-                        'sku' => isset($item['sku']) ? $item['sku'] : '',
-                        'lang' => isset($item['lang']) ? $item['lang'] : '',
+                        'spu' => !empty($item['spu']) ? $item['spu'] : '',
+                        'sku' => !empty($item['sku']) ? $item['sku'] : '',
+                        'lang' => !empty($item['lang']) ? $item['lang'] : '',
                         'lang' => $item['lang'],
                         'status' => $status,
-                        'remarks' => isset($item['remarks']) ? $item['remarks'] : '',
-                        'approved_by' => isset($userInfo['id']) ? $userInfo['id'] : '',
+                        'remarks' => !empty($item['remarks']) ? $item['remarks'] : '',
+                        'approved_by' => !empty($userInfo['id']) ? $userInfo['id'] : '',
                         'approved_at' => date('Y-m-d H:i:s', time())
                     ];
                     $arr[] = $data;

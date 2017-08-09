@@ -14,6 +14,7 @@ class LogisticsController extends PublicController {
 		$this->quoteLogiFeeModel = new QuoteLogiFeeModel();
 		$this->quoteItemLogiModel = new QuoteItemLogiModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
+		$this->userModel = new UserModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -56,16 +57,83 @@ class LogisticsController extends PublicController {
 	 * @desc 修改报价单项物流报价信息接口
 	 *
 	 * @author liujf
-	 * @time 2017-08-02
+	 * @time 2017-08-08
 	 */
 	public function updateQuoteItemLogiInfoAction() {
 	    $condition = $this->put_data;
 	
-	    if (!empty($condition['r_id'])) {
-	        $where['id'] = $condition['r_id'];
-	        unset($condition['r_id']);
-	        $res = $this->quoteItemLogiModel->updateInfo($where, $condition);
+	    if (!empty($condition['items'])) {
+	        
+	        $flag = true;
+	        $data = [];
+	        
+	        //$this->quoteItemLogiModel->startTrans();
+	        
+	        foreach ($condition['items'] as $item) {
+	            $where['id'] = $item['id'];
+	            unset($item['id']);
+	            
+	            $res = $this->quoteItemLogiModel->updateInfo($where, $item);
+	            
+	            /*if (!$res) {
+	                $this->quoteItemLogiModel->rollback();
+	                $flag = false;
+	                break;
+	            }*/
+	            
+	            if (!$res) {
+	               $data[] = $where['id'];
+	               $flag = false;
+	            }
+	        }
+	        
+	       // if ($flag) $this->quoteItemLogiModel->commit();
 	
+	        if ($flag) {
+	            $this->jsonReturn($flag);
+	        } else {
+	            $this->setCode('-101');
+	            $this->setMessage('失败!');
+	            parent::jsonReturn($data);
+	        }
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 获取报价单列表接口
+	 *
+	 * @author liujf
+	 * @time 2017-08-07
+	 */
+	public function getQuoteLogiListAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['agent_name'])) {
+	         $agent = $this->userModel->where(['name' => $condition['agent_name']])->find();
+	         $condition['agent_id'] = $agent['id'];
+	    }
+	    
+	    if (!empty($condition['pm_name'])) {
+	        $pm = $this->userModel->where(['name' => $condition['pm_name']])->find();
+	        $condition['pm_id'] = $pm['id'];
+	    }
+	
+	    $quoteLogiFeeList= $this->quoteLogiFeeModel->getJoinList($condition);
+	    
+	    foreach ($quoteLogiFeeList as &$quoteLogiFee) {
+            $userAgent = $this->userModel->info($quoteLogiFee['agent_id']);
+            $userPm = $this->userModel->info($quoteLogiFee['pm_id']);
+	        $quoteLogiFee['agent_name'] = $userAgent['name'];
+	        $quoteLogiFee['pm_name'] = $userPm['name'];
+	    }
+	    
+	    if ($quoteLogiFeeList) {
+	        $res['code'] = 1;
+	        $res['message'] = '成功!';
+	        $res['data'] = $quoteLogiFeeList;
+	        $res['count'] = $this->quoteLogiFeeModel->getListCount($condition);
 	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);
@@ -191,7 +259,10 @@ class LogisticsController extends PublicController {
 	        $data['shipping_charge_cny'] = round($totalFeeUSD * $this->_getRateCNY('USD'), 3);
 	        $data['shipping_charge_ncny'] = round($totalFeeUSD, 3);
 	        
-	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
+	        $this->quoteLogiFeeModel->startTrans();
+	        $this->quoteModel->startTrans();
+	        
+	        $res1 = $this->quoteLogiFeeModel->updateInfo(['quote_id' => $condition['quote_id']], $data);
 	        
 	        $quoteData = [
 	            'from_port' => $condition['from_port'],
@@ -202,8 +273,18 @@ class LogisticsController extends PublicController {
 	        ];
 	        
 	        $res2 = $this->quoteModel->updateQuote(['quote_no' => $quote['quote_no']], $quoteData);
+	        
+	        if ($res1 && $res2) {
+	            $this->quoteLogiFeeModel->commit();
+	            $this->quoteModel->commit();
+	            $res = true;
+	        } else {
+	            $this->quoteLogiFeeModel->rollback();
+	            $this->quoteModel->rollback();
+	            $res = false;
+	        }
 	
-	        $this->jsonReturn($res1 && $res2);
+	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);
 	    }
@@ -227,6 +308,107 @@ class LogisticsController extends PublicController {
         } else {
             $this->jsonReturn(false);
         }
+	}
+	
+	/**
+	 * @desc 更改物流状态接口
+	 *
+	 * @author liujf
+	 * @time 2017-08-08
+	 */
+	public function updateLogiStatusAction() {
+	    $condition = $this->put_data;
+	     
+	    if (!empty($condition['quote_id'])) {
+	        $where['quote_id'] = $condition['quote_id'];
+	         
+	        $res = $this->quoteLogiFeeModel->updateStatus($where, $condition['status']);
+	         
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 提交项目经理审核接口
+	 *
+	 * @author liujf
+	 * @time 2017-08-08
+	 */
+	public function submitLogiCheckAction() {
+	    $condition = $this->put_data;
+	
+	    if (!empty($condition['quote_id'])) {
+	        $where['quote_id'] = $condition['quote_id'];
+	        
+	        $this->quoteLogiFeeModel->startTrans();
+	        $this->quoteModel->startTrans();
+	
+	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'APPROVED');
+	        
+	        $res2 = $this->quoteModel->where($where)->save(['status' => 'QUOTED_BY_LOGI']);
+	        
+	        if ($res1 && $res2) {
+	            $this->quoteLogiFeeModel->commit();
+	            $this->quoteModel->commit();
+	            $res = true;
+	        } else {
+	            $this->quoteLogiFeeModel->rollback();
+	            $this->quoteModel->rollback();
+	            $res = false;
+	        }
+	
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 物流报价驳回接口
+	 *
+	 * @author liujf
+	 * @time 2017-08-08
+	 */
+	public function rejectLogiAction() {
+	    $condition = $this->put_data;
+	
+	    if (!empty($condition['quote_id'])) {
+	        $where['quote_id'] = $condition['quote_id'];
+	        
+	        $quoteLogiFee = $this->quoteLogiFeeModel->where($where)->find();
+	        
+	        $this->quoteLogiFeeModel->startTrans();
+	        $this->inquiryCheckLogModel->startTrans();
+	
+	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'REJECTED');
+	        
+	        $checkLog= [
+	            'inquiry_id' => $quoteLogiFee['inquiry_id'],
+	            'quote_id' => $condition['quote_id'],
+	            'category' => 'LOGI',
+	            'action' => 'APPROVING',
+	            'op_note' => $condition['op_note'],
+	            'op_result' => 'REJECTED'
+	        ];
+	        
+	        $res2 = $this->addCheckLog($checkLog);
+	        
+	        if ($res1 && $res2) {
+	            $this->quoteLogiFeeModel->commit();
+	            $this->inquiryCheckLogModel->commit();
+	            $res = true;
+	        } else {
+	            $this->quoteLogiFeeModel->rollback();
+	            $this->inquiryCheckLogModel->rollback();
+	            $res = false;
+	        }
+	
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
 	}
 	
 	/**

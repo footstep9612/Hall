@@ -6,7 +6,7 @@
  * Date: 2017/7/20
  * Time: 14:17
  */
-class BizlinegroupModel extends PublicModel {
+class BizlineGroupModel extends PublicModel {
 
     protected $dbName = 'erui2_operation'; //数据库名称
     protected $tableName = 'bizline_group'; //数据表表名

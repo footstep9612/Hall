@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of Usersearchhis
+ * Description of UserSearchHisModel
  *
  * @author zhongyg
  */
@@ -20,7 +20,7 @@ class UsersearchhisController extends PublicController {
     }
 
     public function listAction() {
-        $model = new UsersearchhisModel();
+        $model = new UserSearchHisModel();
         $email = $this->user['email'];
         $condition['user_email'] = $email;
         $data = json_decode(redisGet('Usersearchhis_' . $email), true);

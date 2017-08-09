@@ -572,6 +572,9 @@ class EsProductModel extends Model {
                     'lang' => $lang,
                 ];
             }
+            
+            
+            
             $count = $this->where($where)->count('id');
             $max_id = 0;
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -580,7 +583,7 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                $where['id'] = $max_id;
+                   $where['id'] = ['gt',$max_id];
                 $products = $this->where($where)->limit(0, 100)->order('id asc')->select();
                 $spus = $mcat_nos = [];
                 if ($products) {

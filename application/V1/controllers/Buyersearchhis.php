@@ -19,7 +19,7 @@ class BuyersearchhisController extends ShopMallController {
     }
 
     public function listAction() {
-        $model = new BuyersearchhisModel();
+        $model = new BuyerSearchHisModel();
         $email = $this->user['email'];
         $condition['user_email'] = $email;
         $data = json_decode(redisGet('Buyersearchhis_' . $email), true);

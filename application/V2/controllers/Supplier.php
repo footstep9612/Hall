@@ -29,9 +29,31 @@ class SupplierController extends PublicController {
         if(!empty($data['name'])){
             $where['name'] = $data['name'];
         }
-        if(!empty($data['country_bn'])){
-            $where['country_bn'] = $data['country_bn'];
+        if(!empty($data['supplier_no'])){
+            $where['supplier_no'] = $data['supplier_no'];
         }
+        if(!empty($data['status'])){
+            $where['status'] = $data['status'];
+        }
+        if(!empty($data['supplier_type'])){
+            $where['supplier_type'] = $data['supplier_type'];
+        }
+        if(!empty($data['checked_by'])){
+            $where['checked_by'] = $data['checked_by'];
+        }
+        if(!empty($data['checked_at_start'])){
+            $where['checked_at_start'] = $data['checked_at_start'];
+        }
+        if(!empty($data['checked_at_end'])){
+            $where['checked_at_end'] = $data['checked_at_end'];
+        }
+        if(!empty($data['created_at_start'])){
+            $where['created_at_start'] = $data['created_at_start'];
+        }
+        if(!empty($data['created_at_end'])){
+            $where['created_at_end'] = $data['created_at_end'];
+        }
+
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
@@ -40,7 +62,6 @@ class SupplierController extends PublicController {
         }
         $model = new SupplierModel();
         $data =$model->getlist($where);
-
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -372,8 +393,6 @@ class SupplierController extends PublicController {
         }
         if(!empty($data['country_bn'])) {
             $arr['country_bn'] = $data['country_bn'];
-        }else{
-            jsonReturn('',-101,'国家名不可为空!');
         }
         if(!empty($data['province'])) {
             $arr['province'] = $data['province'];
@@ -394,7 +413,6 @@ class SupplierController extends PublicController {
             $arr['employee_count'] = $data['employee_count'];
 
         }
-
         // 生成供应商编码
         $model  =  new SupplierModel();
         $res=$model->update_data($arr,$where);

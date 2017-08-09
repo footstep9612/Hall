@@ -199,7 +199,7 @@ class ProductModel extends PublicModel {
         try {
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
+                    $data = $this->getData($item, $spu ? 'UPDATE' : 'INSERT', $key);
                     $data['lang'] = $key;
                     if (empty($data)) {
                         continue;
@@ -224,8 +224,8 @@ class ProductModel extends PublicModel {
                         }
                     }
                     $data['status'] = $input['status'];
-                    if (!isset($input['spu'])) { //不存在添加
-                        $spu_tmp = $spu ? $spu : $this->createSpu(); //不存在生产spu
+                    if (empty($spu)) { //不存在添加
+                        $spu_tmp = $this->createSpu(); //不存在生产spu
                         $data['spu'] = $spu_tmp;
                         $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
                         if ($this->add($data)) {

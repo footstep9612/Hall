@@ -26,17 +26,26 @@ class ServiceCatModel extends PublicModel {
         $condition["deleted_flag"] = 'N';
         $fields = 'id,parent_id,level_no,category,sort_order,status,created_by,created_at,updated_by,checked_by,checked_at';
         if(!empty($limit)){
-            return $this->field($fields)
+            $result = $this->field($fields)
                          ->where($condition)
                          ->limit($limit['page'] . ',' . $limit['num'])
                          ->order($order)
                          ->select();
+
         }else{
-            return $this->field($fields)
+            $result = $this->field($fields)
                          ->where($condition)
                          ->order($order)
                          ->select();
         }
+        $data =array();
+        if($result){
+            foreach($result as $item){
+                $item['category'] = json_decode($item['category']);
+                $data[] = $item;
+            }
+        }
+        return $data;
     }
     
 	/**
@@ -55,8 +64,9 @@ class ServiceCatModel extends PublicModel {
             if(is_array($condition)) {
                 foreach ($condition as $item) {
                     $data = $this->create($item);
-
-                    $save['category'] = $data['category'];
+                    if(!empty($data['category'])){
+                        $save['category'] = json_encode($data['category']);
+                    }
                     $save['created_by'] = $userInfo['id'];
                     $save['created_at'] = date('Y-m-d H:i:s', time());
                     $service_cat_id = $this->add($save);
@@ -123,7 +133,9 @@ class ServiceCatModel extends PublicModel {
             if(is_array($condition)) {
                 foreach ($condition as $item) {
                     $where = ['id'=>$item['id']];
-                    $data['category'] = $item['category'];
+                    if(!empty($item['category'])){
+                        $data['category'] = json_encode($item['category']);
+                    }
                     $data['updated_by'] = $userInfo['id'];
                     $data['updated_at'] = date('Y-m-d H:i:s', time());
                     $res = $this->where($where)->save($data);
@@ -215,11 +227,10 @@ class ServiceCatModel extends PublicModel {
             $data = array();
             if ($result) {
                 foreach($result as $item){
+                    $item['category'] = json_decode($item['category']);
                     $ServiceTermModel = new ServiceTermModel();
                     $resultTerm = $ServiceTermModel->getInfo($item);
-                    $ServiceItemModel = new ServiceItemModel();
-                    $resultItem = $ServiceItemModel->getInfo($item);
-                    $data[] = array_merge($item,$resultTerm,$resultItem);
+                    $data[] = array_merge($item,$resultTerm);
                 }
                // redisHashSet('ServiceCat', md5(json_encode($condition)), json_encode($data));
             }
