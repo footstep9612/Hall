@@ -284,19 +284,8 @@ class SupplierModel extends PublicModel {
             $data['checked_by'] = $create['checked_by'];
         }
         if($create['status']){
-            switch ($create['status']) {
-                case self::STATUS_VALID:
-                    $data['status'] = $create['status'];
-                    break;
-                case self::STATUS_INVALID:
-                    $data['status'] = $create['status'];
-                    break;
-                case self::STATUS_DELETE:
-                    $data['status'] = $create['status'];
-                    break;
-            }
+            $data['status'] = $create['status'];
         }
-
         return $this->where($where)->save($data);
 
     }
