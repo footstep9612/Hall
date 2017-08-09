@@ -26,17 +26,26 @@ class ServiceCatModel extends PublicModel {
         $condition["deleted_flag"] = 'N';
         $fields = 'id,parent_id,level_no,category,sort_order,status,created_by,created_at,updated_by,checked_by,checked_at';
         if(!empty($limit)){
-            return $this->field($fields)
+            $result = $this->field($fields)
                          ->where($condition)
                          ->limit($limit['page'] . ',' . $limit['num'])
                          ->order($order)
                          ->select();
+
         }else{
-            return $this->field($fields)
+            $result = $this->field($fields)
                          ->where($condition)
                          ->order($order)
                          ->select();
         }
+        $data =array();
+        if($result){
+            foreach($result as $item){
+                $item['category'] = json_decode($item['category']);
+                $data[] = $item;
+            }
+        }
+        return $data;
     }
     
 	/**
