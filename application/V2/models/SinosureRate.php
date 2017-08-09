@@ -7,9 +7,9 @@
  */
 class SinosureRateModel extends PublicModel {
 
-    protected $dbName = 'erui_config2';
+    protected $dbName = 'erui2_config';
     protected $tableName = 'sinosure_rate';
-    protected $joinTable = 'erui_sys2.employee b ON a.created_by = b.id';
+    protected $joinTable = 'erui2_sys.employee b ON a.created_by = b.id';
     protected $joinField = 'a.*, b.name';
 			    
     public function __construct() {
