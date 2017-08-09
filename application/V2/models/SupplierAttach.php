@@ -83,7 +83,7 @@ class SupplierAttachModel extends PublicModel
                 $arr['attach_group'] =$data['attach_group'];
             }
             $arr['deleted_flag'] ='N';
-            $row = $this->where($arr)
+            $row = $this->field("supplier_id,id,attach_type,attach_group,attach_name as name,attach_code,attach_url as url")->where($arr)
                 ->select();
             return $row;
         }else{
