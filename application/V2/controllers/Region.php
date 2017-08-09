@@ -17,9 +17,11 @@ class RegionController extends PublicController {
 
     //put your code here
     public function init() {
+      //  parent::init();
+    }
+    private function _init() {
         parent::init();
     }
-
     /*
      * 所有区域
      */

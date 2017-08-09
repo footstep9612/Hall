@@ -60,17 +60,20 @@ class MarketAreaModel extends PublicModel {
     public function getlist($condition, $order = 'zh.id desc') {
         try {
             $data = $this->_getCondition($condition);
+            $redis_key = md5(json_encode($data));
+            if (redisHashExist('Market_Area', $redis_key)) {
+                return json_decode(redisHashGet('Market_Area', $redis_key), true);
+            }
+            $result = $this->alias('zh')
+                            ->join('erui2_operation.market_area as en on '
+                                    . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'inner')
+                            ->field('zh.bn,zh.parent_bn,zh.name as zh_name,zh.url,en.name as en_name ')
+                            ->where($data)->order($order)->select();
+            redisHashSet('Market_Area', $redis_key, json_encode($result));
 
-            $this->alias('zh')
-                    ->join('erui2_operation.market_area as en on '
-                            . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'inner')
-                    ->field('zh.bn,zh.parent_bn,zh.name as zh_name,zh.url,en.name as en_name ')
-                    ->where($data);
-
-            return $this->order($order)
-                            ->select();
+            return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+            Log::write($ex->getMessage(), Log::ERR);
             return [];
         }
     }
@@ -86,7 +89,15 @@ class MarketAreaModel extends PublicModel {
     public function getCount($condition) {
         try {
             $data = $this->getCondition($condition);
-            return $this->where($data)->count();
+            $redis_key = md5(json_encode($data)) . '_COUNT';
+            if (redisHashExist('Market_Area', $redis_key)) {
+                return redisHashGet('Market_Area', $redis_key);
+            }
+            $count = $this->where($data)->count();
+
+            redisHashSet('Market_Area', $redis_key, $count);
+
+            return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
             return 0;
@@ -105,11 +116,15 @@ class MarketAreaModel extends PublicModel {
     public function info($bn = '', $lang = 'en') {
         $where['bn'] = $bn;
         $where['lang'] = $lang;
+        $redis_key = md5(json_encode($where));
+        if (redisHashExist('Market_Area', $redis_key)) {
+            return json_decode(redisHashGet('Market_Area', $redis_key), true);
+        }
         if (!empty($where)) {
             $row = $this->where($where)
                     ->field('id,lang,bn,name,url')
                     ->find();
-
+            redisHashSet('Market_Area', $redis_key, json_encode($row));
             return $row;
         } else {
             return false;

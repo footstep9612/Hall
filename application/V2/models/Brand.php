@@ -39,10 +39,10 @@ class BrandModel extends PublicModel {
     private function _getcondition($condition, $lang = '') {
 
         $where = [];
-        $this->_getValue($where, $condition, 'id', 'string');
+      //  $this->_getValue($where, $condition, 'id', 'string');
         $this->_getValue($where, $condition, 'name', 'like', 'brand');
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
-        $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
+        // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if ($lang) {
             $where['brand'] = ['like', '%' . $lang . '%'];
         }
@@ -94,7 +94,7 @@ class BrandModel extends PublicModel {
             $item = $this->where($where)
                     ->field('id,brand,status,created_by,'
                             . 'created_at,updated_by,updated_at')
-                    ->order('id desc')
+                    ->order('created_at desc')
                     ->limit($row_start, $pagesize)
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
@@ -122,7 +122,7 @@ class BrandModel extends PublicModel {
         try {
             $item = $this->where($where)
                     ->field('id,brand')
-                    ->order('id desc')
+                    ->order('created_at desc')
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;
@@ -262,7 +262,7 @@ class BrandModel extends PublicModel {
             'style' => $create['style'],
             'label' => $create['label'],
             'logo' => $create['logo'],
-            'manufacturer' => $create['manufacturer']
+                //   'manufacturer' => $create['manufacturer']
         ];
         $datalist = [];
         foreach ($this->langs as $lang) {
