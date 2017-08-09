@@ -90,7 +90,7 @@ class ProductModel extends PublicModel {
                     }
                 }
             }else{
-                $data['brand'] = $input['brand'];
+                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand']) : $input['brand'];
             }
         } elseif ($type == 'INSERT') {
             $data['brand'] = '';
@@ -199,14 +199,14 @@ class ProductModel extends PublicModel {
         try {
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    $data = $this->getData($item, $spu ? 'UPDATE' : 'INSERT', $key);
+                    $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
                     $data['lang'] = $key;
                     if (empty($data)) {
                         continue;
                     }
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT,TEST,CHECKING'))) ? strtoupper($input['status']) : 'CHECKING';
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT','TEST','CHECKING'))) ? strtoupper($input['status']) : 'CHECKING';
                     if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
@@ -214,6 +214,7 @@ class ProductModel extends PublicModel {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $data['name'],
+                            'status' => array('neq','DRAFT')
                         );
                         if ($spu) {
                             $exist_condition['spu'] = array('neq', $spu);
@@ -224,8 +225,8 @@ class ProductModel extends PublicModel {
                         }
                     }
                     $data['status'] = $input['status'];
-                    if (empty($spu)) { //不存在添加
-                        $spu_tmp = $this->createSpu(); //不存在生产spu
+                    if (!isset($input['spu'])) { //不存在添加
+                        $spu_tmp = $spu ? $spu : $this->createSpu(); //不存在生产spu
                         $data['spu'] = $spu_tmp;
                         $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
                         if ($this->add($data)) {
@@ -256,11 +257,14 @@ class ProductModel extends PublicModel {
                                 'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
                                 'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
+                                'default_flag' => isset($atta['default_flag']) ? 'Y' : 'N',
                             );
+                            if (isset($input['spu'])) {    //修改
+                                $data['id'] = isset($atta['id']) ? $atta['id'] : '';
+                            }
                             if (empty($data['attach_url'])) {
                                 continue;
                             }
-
                             $pattach = new ProductAttachModel();
                             $attach = $pattach->addAttach($data);
                             if (!$attach) {

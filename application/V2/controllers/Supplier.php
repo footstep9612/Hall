@@ -427,6 +427,10 @@ class SupplierController extends PublicController {
             $arr['employee_count'] = $data['employee_count'];
 
         }
+        if(!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+
+        }
         // 生成供应商编码
         $model  =  new SupplierModel();
         $res=$model->update_data($arr,$where);

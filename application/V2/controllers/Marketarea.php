@@ -10,9 +10,13 @@
 class MarketareaController extends PublicController {
 
     public function init() {
-         parent::init();
+        // parent::init();
 
         $this->_model = new MarketAreaModel();
+    }
+
+    private function _init() {
+        parent::init();
     }
 
     /**
@@ -26,15 +30,11 @@ class MarketareaController extends PublicController {
         $data = $this->get() ?: $this->getPut();
         $data['lang'] = $this->get('lang', '') ?: $this->getPut('lang', '');
         $market_area_model = new MarketAreaModel();
-        if (redisGet('Market_Area_listall_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $market_area_model->getlist($data, false);
-            $this->_setUserName($arr);
-            if ($arr) {
-                redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $market_area_model->getlist($data, false);
+        $this->_setUserName($arr);
+
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } elseif ($arr === null) {
@@ -83,7 +83,6 @@ class MarketareaController extends PublicController {
         foreach ($langs as $lang) {
 
             $result = $market_area_model->info($bn, $lang);
-
             if ($result) {
                 $data['bn'] = $result['bn'];
                 $data[$lang]['name'] = $result['name'];
@@ -157,6 +156,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function createAction() {
+        $this->_init();
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
         if (!isset($data['en']['name']) || !isset($data['zh']['name'])) {
@@ -190,6 +190,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function updateAction() {
+        $this->_init();
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
         $result = $market_area_model->update_data($data, $this->user['id']);
@@ -211,7 +212,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function deleteAction() {
-
+        $this->_init();
         $bn = $this->get('bn') ?: $this->getPut('bn');
         if ($bn) {
             $bns = explode(',', $bn);
