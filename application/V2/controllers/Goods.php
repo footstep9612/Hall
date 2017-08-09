@@ -13,7 +13,7 @@ class GoodsController extends PublicController {
 
     public function init() {
 //        parent::init();
-//        $this->input = json_decode(file_get_contents("php://input"), true);
+        $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
     }
 
     /**
@@ -37,8 +37,8 @@ class GoodsController extends PublicController {
     public function skuInfoAction() {
 //        $this->put_data = [
 //
-//                'sku'=> '3303060000010001',
-//                'lang'=> 'en',
+//            'sku'=> '3303060000010001',
+//            'lang'=> 'en',
 //
 //        ];
         $goodsModel = new GoodsModel();

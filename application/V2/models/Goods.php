@@ -832,7 +832,7 @@ class GoodsModel extends PublicModel {
         if (isset($condition['sku']) && !empty($condition['sku'])) {
             $where = array('sku' => trim($condition['sku']));
         } else {
-            jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($condition['lang']);
