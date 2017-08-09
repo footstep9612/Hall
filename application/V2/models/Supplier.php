@@ -61,7 +61,13 @@ class SupplierModel extends PublicModel {
         if ( !empty($condition['checked_at_end']) ){
             $where .= ' And checked_at  <="'.$condition['checked_at_end'].'"';
         }
-        if($where) {
+        if ( !empty($condition['created_at_start']) ){
+            $where .= ' And created_at_start  >="'.$condition['created_at_start'].'"';
+        }
+        if ( !empty($condition['created_at_end']) ){
+            $where .= ' And created_at_end  <="'.$condition['created_at_end'].'"';
+        }
+        if ($where) {
             $sql .= $where;
             $sql_count.= $where;
         }
@@ -172,6 +178,7 @@ class SupplierModel extends PublicModel {
         if(isset($create['checked_by'])){
             $data['checked_by'] = $create['checked_by'];
         }
+        $data['status'] = 'DRAFT';
         $data['created_at'] = date('Y-m-d H:i:s');
         try{
             $datajson = $this->create($data);

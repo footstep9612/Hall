@@ -47,6 +47,13 @@ class SupplierController extends PublicController {
         if(!empty($data['checked_at_end'])){
             $where['checked_at_end'] = $data['checked_at_end'];
         }
+        if(!empty($data['created_at_start'])){
+            $where['created_at_start'] = $data['created_at_start'];
+        }
+        if(!empty($data['created_at_end'])){
+            $where['created_at_end'] = $data['created_at_end'];
+        }
+
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
