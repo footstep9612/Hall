@@ -6,7 +6,7 @@
  * Date: 2017/8/5
  * Time: 19:46
  */
-class VatariffModel extends PublicModel {
+class VaTariffModel extends PublicModel {
 
     protected $dbName = 'erui2_config'; //数据库名称
     protected $tableName = 'va_tariff'; //数据表表名

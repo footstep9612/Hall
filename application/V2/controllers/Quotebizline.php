@@ -69,15 +69,13 @@ class QuotebizlineController extends PublicController {
 
     /**
      * @desc 详情页询单信息接口(只读)
+     * @author 买买提
+     * 说明:项目经理,产品线相关人员通用
+     * 数据库操作:inquiry询单表 inquiry_item询单明细表
      */
-    public function inquiryInfoAction() {
+    public function inquiryInfoAction(){
 
-        $response = $this->inquryInfoHandler($this->_requestParams);
-        $this->jsonReturn($response);
-
-    }
-
-    private function inquryInfoHandler($request){
+        $request = $this->_requestParams;
         //获取询单本身信息
         $inquiryModel = new InquiryModel();
         $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field(QuoteBizlineHelper::getInquiryInfoFields())->find();
@@ -85,14 +83,10 @@ class QuotebizlineController extends PublicController {
         if (!$inquiryInfo){
             return ['code'=>'-104','message'=>'没有询单信息','data'=>''];
         }
-        //重组询单信息数组
-        $inquiry = QuoteBizlineHelper::restoreInqiryInfo($inquiryInfo);
 
-        return $response = [
-            'code' => '1',
-            'message' => '成功!',
-            'data' => $inquiry
-        ];
+        //重组询单信息数组并追加询单明细列表
+        $this->jsonReturn(QuoteBizlineHelper::restoreInqiryInfo($inquiryInfo)) ;
+
     }
     /**
      * @desc 详情页报价信息接口
@@ -429,22 +423,12 @@ class QuotebizlineController extends PublicController {
      * 产品线报价->项目经理->划分产品线
      */
     public function partitionBizlineAction(){
-        $response = $this->partitionBizlineHandler($this->_requestParams);
-        $this->jsonReturn($response);
+        $request = $this->_requestParams;
+        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['created_by'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+        $this->jsonReturn($this->_quoteBizLine->setPartitionBizline($request));
     }
-
-    /**
-     * 执行产品线报价划分产品线业务
-     * @param $param 参数
-     * @return array 结果
-     */
-    private function partitionBizlineHandler($param){
-        //重组参数，并准备插入到quote_bizline表
-        $data = QuoteBizlineHelper::setPartitionBizlineFields($param);
-        //插入数据
-        return $this->_quoteBizLine->partitionBizline($data);
-    }
-
 
     /**
      * 产品线报价->项目经理->转交其他人办理
@@ -452,7 +436,7 @@ class QuotebizlineController extends PublicController {
      */
     public function transmitAction(){
 
-        if (empty($this->_requestParams['inquiry_id']) || empty($this->_requestParams['pm_id'])){
+        if (empty($this->_requestParams['serial_no']) || empty($this->_requestParams['ori_pm_id']) || empty($this->_requestParams['pm_id'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
         $response = QuoteBizlineHelper::transmitHandler($this->_requestParams);
