@@ -30,15 +30,11 @@ class MarketareaController extends PublicController {
         $data = $this->get() ?: $this->getPut();
         $data['lang'] = $this->get('lang', '') ?: $this->getPut('lang', '');
         $market_area_model = new MarketAreaModel();
-        if (redisGet('Market_Area_listall_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('Market_Area_listall_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $market_area_model->getlist($data, false);
-            $this->_setUserName($arr);
-            if ($arr) {
-                redisSet('Market_Area_listall_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $market_area_model->getlist($data, false);
+        $this->_setUserName($arr);
+
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } elseif ($arr === null) {
@@ -87,7 +83,6 @@ class MarketareaController extends PublicController {
         foreach ($langs as $lang) {
 
             $result = $market_area_model->info($bn, $lang);
-
             if ($result) {
                 $data['bn'] = $result['bn'];
                 $data[$lang]['name'] = $result['name'];

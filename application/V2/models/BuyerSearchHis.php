@@ -15,7 +15,7 @@ class BuyerSearchHisModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'buyer_search_his';
-    protected $dbName = 'erui_beavior';
+    protected $dbName = 'erui2_buyer';
 
     public function __construct($str = '') {
         parent::__construct($str);
@@ -32,8 +32,8 @@ class BuyerSearchHisModel extends PublicModel {
         if (isset($condition['keywords'])) {
             $data['keywords'] = $condition['keywords'];
         }
-        if (isset($condition['user_email'])) {
-            $data['user_email'] = $condition['user_email'];
+        if (isset($condition['buyer_id'])) {
+            $data['buyer_id'] = $condition['buyer_id'];
         }
 
         if (isset($condition['search_time_start']) && isset($condition['search_time_end'])) {
