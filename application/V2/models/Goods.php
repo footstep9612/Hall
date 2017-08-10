@@ -336,7 +336,9 @@ class GoodsModel extends PublicModel {
                     $productModel = new ProductModel();
                     $spuNames = $productModel->field('lang,spu,name,show_name')->where(['spu'=>$item['spu']])->select();
                     if($spuNames){
-                        $item['spu_name'] = $spuNames;
+                        foreach($spuNames as $spuName){
+                            $item['spu_name'][$spuName['lang']] = $spuName;
+                        }
                     }
                     //按语言分组
                     $data[$item['lang']] = $item;
