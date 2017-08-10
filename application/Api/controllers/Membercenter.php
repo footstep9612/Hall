@@ -11,7 +11,7 @@
  * 2017/6/26
  * @author klp
  */
-class MemberCenterController extends ShopMallController
+class MembercenterController extends ShopMallController
 {
 
     /**
@@ -21,7 +21,7 @@ class MemberCenterController extends ShopMallController
     public function getUserInfoAction(){
 
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getInfo($this->user);
+        $result = $buyerModel->buyerInfo($this->user);
         if(!empty($result)){
             $data = array(
                 'code' => 1,
