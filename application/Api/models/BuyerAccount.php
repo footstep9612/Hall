@@ -32,17 +32,12 @@ class BuyerAccountModel extends PublicModel {
      * @return mix
      * @author jhw
      */
-    public function Exist($data,$sql='or') {
+    public function Exist($data) {
         if ( !empty($data['email']) && !empty($data['user_name']) ){
-            if($sql == 'or'){
-                $map1['email']=$data['email'];
-                $map1['user_name']=$data['user_name'];
-                $map1['_logic'] = 'or';
-                $map['_complex'] = $map1;
-            }else{
-                $map['email']=$data['email'];
-                $map['user_name']=$data['user_name'];
-            }
+            $map1['email']=$data['email'];
+            $map1['user_name']=$data['user_name'];
+            $map1['_logic'] = 'or';
+            $map['_complex'] = $map1;
             $row = $this->table('erui_buyer.t_buyer_account')->where($map)->select();
         }else{
             $row = $this->table('erui_buyer.t_buyer_account')->where($data)->select();

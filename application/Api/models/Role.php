@@ -16,19 +16,11 @@ class RoleModel extends PublicModel {
     //put your code here
     protected $tableName = 'role';
     Protected $autoCheckFields = true;
-    protected $table_name ='t_role';
-    protected $permtable ='t_url_perm';
-    protected $rolepermtable ='t_role_access_perm';
+
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
 
-     public function getcount($data,$order='id desc'){
-         $count =  $this->field('id,name,description,status')
-             ->where($data)
-             ->count('id');
-         return $count;
-     }
 
     /**
      * 获取列表
@@ -38,12 +30,11 @@ class RoleModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            $res= $this->field('id,name,description,status')
+            return $this->field('id,name,description,status')
                             ->where($data)
-                            ->limit( $limit['page']. ','. $limit['num'] )
+                            ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
-            return $res;
         }else{
             return $this->field('id,name,description,status')
                 ->where($data)
@@ -51,29 +42,7 @@ class RoleModel extends PublicModel {
                 ->select();
         }
     }
-    /**
-     * 获取列表
-     * @param data $data;
-     * @return array
-     * @author jhw
-     */
-    public function getRoleslist($id,$order='id desc') {
 
-        $sql = 'SELECT `t_role_access_perm`.`url_perm_id`,`t_url_perm`.`url`, `t_url_perm`.`description` , `t_url_perm`.`parent_id` ';
-        $sql .= ' FROM '.$this->table_name;
-        $sql .= ' LEFT JOIN  `t_role_access_perm` ON `t_role_access_perm`.`role_id` =`t_role`.`id`';
-        $sql .= ' LEFT JOIN  `t_url_perm` ON `t_url_perm`.`id` =`t_role_access_perm`.`url_perm_id`';
-        $sql_where = '';
-        if(!empty($id)) {
-            $sql_where .= ' WHERE `t_role`.`id` =' . $id;
-            $sql .=$sql_where;
-        }
-
-//        if ( $where ){
-//            $sql .= $sql_where;
-//        }
-        return $this->query( $sql );
-    }
     /**
      * 获取列表
      * @param  int  $id
@@ -115,6 +84,9 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data,$where) {
+        if(isset($data['parent_id'])){
+            $arr['parent_id'] = $data['parent_id'];
+        }
         if(isset($data['name'])){
             $arr['name'] = $data['name'];
         }
@@ -124,13 +96,8 @@ class RoleModel extends PublicModel {
         if(isset($data['status'])){
             $arr['status'] = $data['status'];
         }
-        if(!empty($where)&&isset($arr)){
-            $result =$this->where($where)->save($arr);
-            if (false === $result) {
-                return false;
-            }else{
-                return true;
-            }
+        if(!empty($where)){
+            return $this->where($where)->save($data);
         }else{
             return false;
         }
@@ -145,6 +112,9 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
+        if(isset($create['parent_id'])){
+            $arr['parent_id'] = $create['parent_id'];
+        }
         if(isset($create['name'])){
             $arr['name'] = $create['name'];
         }

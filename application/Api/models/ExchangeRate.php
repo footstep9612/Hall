@@ -14,9 +14,14 @@
 class ExchangeRateModel extends PublicModel {
 
     //put your code here
+<<<<<<< HEAD
     protected $dbName = 'erui_config';
     protected $tableName = 'exchange_rate';
 
+=======
+    protected $dbName='erui_config';
+    protected $tableName = 'exchange_rate';
+>>>>>>> leo
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -27,18 +32,31 @@ class ExchangeRateModel extends PublicModel {
      * @return array
      * @author jhw
      */
+<<<<<<< HEAD
     public function getlist($data, $limit, $order = 'id desc') {
         if (!empty($limit)) {
+=======
+    public function getlist($data,$limit,$order='id desc') {
+        if(!empty($limit)){
+>>>>>>> leo
             return $this->field('id,effective_date,currency1,currency2,rate')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
+<<<<<<< HEAD
         } else {
             return $this->field('id,effective_date,currency1,currency2,rate')
                             ->where($data)
                             ->order($order)
                             ->select();
+=======
+        }else{
+            return $this->field('id,effective_date,currency1,currency2,rate')
+                ->where($data)
+                ->order($order)
+                ->select();
+>>>>>>> leo
         }
     }
 
@@ -50,12 +68,21 @@ class ExchangeRateModel extends PublicModel {
      */
     public function detail($id = '') {
         $where['id'] = $id;
+<<<<<<< HEAD
         if (!empty($where['id'])) {
             $row = $this->where($where)
                     ->field('id,effective_date,currency1,currency2,rate')
                     ->find();
             return $row;
         } else {
+=======
+        if(!empty($where['id'])){
+            $row = $this->where($where)
+                ->field('id,effective_date,currency1,currency2,rate')
+                ->find();
+            return $row;
+        }else{
+>>>>>>> leo
             return false;
         }
     }
@@ -68,10 +95,17 @@ class ExchangeRateModel extends PublicModel {
      */
     public function delete_data($id = '') {
         $where['id'] = $id;
+<<<<<<< HEAD
         if (!empty($where['id'])) {
             return $this->where($where)
                             ->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
         } else {
+=======
+        if(!empty($where['id'])){
+            return $this->where($where)
+                ->save(['status' => 'DELETED']);
+        }else{
+>>>>>>> leo
             return false;
         }
     }
@@ -82,6 +116,7 @@ class ExchangeRateModel extends PublicModel {
      * @return bool
      * @author jhw
      */
+<<<<<<< HEAD
     public function update_data($data, $where) {
         if (isset($data['effective_date'])) {
             $arr['effective_date'] = $data['effective_date'];
@@ -98,10 +133,29 @@ class ExchangeRateModel extends PublicModel {
         if (!empty($where)) {
             return $this->where($where)->save($arr);
         } else {
+=======
+    public function update_data($data,$where) {
+        if(isset($data['effective_date'])){
+            $arr['effective_date'] = $data['effective_date'];
+        }
+        if(isset($data['currency1'])){
+            $arr['currency1'] = $data['currency1'];
+        }
+        if(isset($data['currency2'])){
+            $arr['currency2'] = $data['currency2'];
+        }
+        if(isset($data['rate'])){
+            $arr['rate'] = $data['rate'];
+        }
+        if(!empty($where)){
+            return $this->where($where)->save($arr);
+        }else{
+>>>>>>> leo
             return false;
         }
     }
 
+<<<<<<< HEAD
     /**
      * 新增数据
      * @param  mix $create 新增条件
@@ -191,5 +245,31 @@ class ExchangeRateModel extends PublicModel {
             return array();
         }
     }
+=======
+
+
+    /**
+     * 新增数据
+     * @param  mix $createcondition 新增条件
+     * @return bool
+     * @author jhw
+     */
+    public function create_data($create= []) {
+        if(isset($create['effective_date'])){
+            $arr['effective_date'] = $create['effective_date'];
+        }
+        if(isset($create['currency1'])){
+            $arr['currency1'] = $create['currency1'];
+        }
+        if(isset($create['currency2'])){
+            $arr['currency2'] = $create['currency2'];
+        }
+        if(isset($create['rate'])){
+            $arr['rate'] = $create['rate'];
+        }
+        $data = $this->create($arr);
+        return $this->add($data);
+    }
+>>>>>>> leo
 
 }
