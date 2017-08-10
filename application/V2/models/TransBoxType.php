@@ -98,7 +98,9 @@ class TransBoxTypeModel extends PublicModel {
     public function delete_data($id = '') {
         if (!$id) {
             return false;
-        } else {
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
             $where['id'] = $id;
         }
         $data = ['status' => 'DELETED', 'deleted_flag' => 'Y',];

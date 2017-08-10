@@ -170,17 +170,10 @@ class VatariffController extends PublicController {
     public function deleteAction() {
 
         $id = $this->get('id') ?: $this->getPut('id');
-        if ($id) {
-            $ids = explode(',', $id);
-            if (is_array($ids)) {
-                $where['id'] = ['in', $ids];
-            } else {
-                $where['id'] = $id;
-            }
-        }
+
         $va_tariff_model = new VaTariffModel();
-        $result = $va_tariff_model->where($where)
-                ->save(['status' => 'DELETED']);
+        $result = $va_tariff_model->delete_data($id);
+
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

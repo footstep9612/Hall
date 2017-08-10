@@ -156,7 +156,9 @@ class RateModel extends PublicModel {
     public function delete_data($id = '') {
         if (!$id) {
             return false;
-        } else {
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
             $where['id'] = $id;
         }
         $update_data['updated_by'] = UID;
