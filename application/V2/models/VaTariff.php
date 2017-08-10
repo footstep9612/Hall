@@ -106,8 +106,8 @@ class VaTariffModel extends PublicModel {
 
     /**
      * 修改数据
-     * @param  array $update_data 
-     * @param  int $uid 
+     * @param  array $update_data
+     * @param  int $uid
      * @return bool
      * @author jhw
      */
@@ -185,6 +185,26 @@ class VaTariffModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
+    }
+
+    /**
+     * 删除数据
+     * @param  string $id id
+     * @return bool
+     * @author zyg
+     */
+    public function delete_data($id = '', $uid = 0) {
+        if (!$id) {
+            return false;
+        } else {
+            $where['id'] = $id;
+        }
+        $update_data['updated_by'] = UID;
+        $update_data['updated_at'] = date('Y-m-d H:i:s');
+        $data = ['status' => 'DELETED', 'deleted_flag' => 'Y',];
+        $flag = $this->where($where)->save($data);
+
+        return $flag;
     }
 
 }

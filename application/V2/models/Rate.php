@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-1 17:08:09
  * @version V2.0
- * @desc   
+ * @desc
  */
 class RateModel extends PublicModel {
 
@@ -39,7 +39,7 @@ class RateModel extends PublicModel {
         $this->_getValue($data, $condition, 'lang'); //语言
         $this->_getValue($data, $condition, 'name'); //名称
         $this->_getValue($data, $condition, 'trade_terms_bn'); //贸易术语简称
-        $this->_getValue($data, $condition, 'trans_mode_bn'); //运输方式简称 
+        $this->_getValue($data, $condition, 'trans_mode_bn'); //运输方式简称
         $this->_getValue($data, $condition, 'port_bn'); //港口简称
         $this->_getValue($data, $condition, 'country_bn'); //目的国简称
         $this->_getValue($data, $condition, 'box_type_bn'); //发货箱型简称
@@ -153,16 +153,16 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function delete_data($id = '', $uid = 0) {
+    public function delete_data($id = '') {
         if (!$id) {
             return false;
         } else {
             $where['id'] = $id;
         }
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = UID;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $update_data['status'] = 'DELETED';
-
+        $update_data['deleted_flag'] = 'Y';
         $flag = $this->where($where)
                 ->save($update_data);
 

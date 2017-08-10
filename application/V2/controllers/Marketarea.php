@@ -223,8 +223,8 @@ class MarketareaController extends PublicController {
             }
         }
         $market_area_model = new MarketAreaModel();
-        $result = $market_area_model->where($where)
-                ->save(['status' => 'DELETED']);
+        $result = $market_area_model->delete_data($bn);
+
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
