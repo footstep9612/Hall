@@ -59,7 +59,7 @@ class ProductAttachModel extends PublicModel {
                     foreach ($result as $item) {
                         $data[$item['attach_type']][] = $item;
                     }
-                    redisHashSet($key_redis, json_encode($data));
+                    redisHashSet('spu_attach',$key_redis, json_encode($data));
                     return $data;
                 }
                 return array();
