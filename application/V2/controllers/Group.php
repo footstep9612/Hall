@@ -78,6 +78,29 @@ class GroupController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+    public function adduserAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $where = [];
+        if(!empty($data['group_id'])){
+            $where['group_id'] = $data['group_id'];
+        }else{
+            $datajson['code'] = -101;
+            $datajson['message'] = '组织id不能为空!';
+        }
+        if(!empty($data['user_ids'])){
+            $where['user_ids'] = $data['user_ids'];
+        }
+        $model_group = new GroupUserModel();
+        $data = $model_group->addusers($where); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '操作失败!';
+        }
+
+        $this->jsonReturn($datajson);
+    }
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];

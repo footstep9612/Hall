@@ -44,6 +44,7 @@ class GroupModel extends PublicModel {
         }
     }
 
+
     /**
      * 获取列表
      * @param  int  $id
