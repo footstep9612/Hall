@@ -38,6 +38,7 @@ class FinalQuoteController extends PublicController {
         $results = $finalquote->getInfo($finalwhere);
 
 
+
         $this->jsonReturn($results);
     }
 }

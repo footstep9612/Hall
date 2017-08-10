@@ -5,7 +5,8 @@
  * Date: 2017/6/24
  * Time: 15:26
  */
-class GoodsAttachModel extends PublicModel{
+class GoodsAttachModel extends PublicModel
+{
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
         $config_obj = Yaf_Registry::get("config");
@@ -17,20 +18,20 @@ class GoodsAttachModel extends PublicModel{
         parent::__construct();
     }
 
-    //状态--INVALID,CHECKING,VALID,DELETED
+    //状态
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
-    const STATUS_CHECKING = 'CHECKING'; //审核；
     /**
      * 获取商品附件
      * @param array $condition
      * @return array|mixed
      */
-    public function getAttach($condition=[]){
+    public function getAttach($condition=[])
+    {
         $sku = isset($condition['sku']) ? $condition['sku'] : '';
         if (empty($sku)) {
-            jsonReturn('', 1000,'[sku]不可以为空');
+            jsonReturn('', 1000);
         }
         $where = array(
             'sku' => $sku,
@@ -38,14 +39,14 @@ class GoodsAttachModel extends PublicModel{
         $type = isset($condition['attach_type']) ? strtoupper($condition['attach_type']) : '';
         if($type){
             if(!in_array($type , array('SMALL_IMAGE','MIDDLE_IMAGE','BIG_IMAGE','DOC'))){
-                jsonReturn('',1000,'[type]不正确');
+                jsonReturn('',1000);
             }
             $where['attach_type'] = $type;
         }
         $status = isset($condition['status']) ? strtoupper($condition['status']) : '';
         if($status){
             if($status != '' && !in_array($status , array('VALID','INVALID','DELETED'))){
-                jsonReturn('',1000,'[status]不正确');
+                jsonReturn('',1000);
             }
             $where['status'] = $status;
         }
@@ -82,7 +83,8 @@ class GoodsAttachModel extends PublicModel{
      * @author klp
      * @return bool
      */
-    public function createAttachSku($data){
+    public function createAttachSku($data)
+    {
         if(empty($data)) {
             return false;
         }
@@ -100,49 +102,62 @@ class GoodsAttachModel extends PublicModel{
      * @author klp
      * @return bool
      */
-    /*    public function updateAttachSku($data){
+    public function updateAttachSku($data)
+    {
 
-            $condition = $this->check_up($data);
-            if($condition){
-                try{
-                    foreach($condition as $v){
-                        $this->where("id =". $v['id'])->save($v);
-                    }
-                    return true;
-                } catch(\Kafka\Exception $e){
-                    return false;
+        $condition = $this->check_up($data);
+        if($condition){
+            try{
+                foreach($condition as $v){
+                    $this->where("id =". $v['id'])->save($v);
                 }
-            } else{
+                return true;
+            } catch(\Kafka\Exception $e){
                 return false;
             }
-        }*/
+        } else{
+            return false;
+        }
+    }
 
     /**
      * sku附件[状态更改]（门户后台）
      * @author klp
-     * @return id
+     * @return bool
      */
-    public function modifySkuAttach($delData){
-        if(empty($delData)) {
-            return false;
+    public function modifySkuAttach($delData)
+    {
+        $where = []; $status = [];
+        if(isset($delData['sku'])){
+            $where['sku'] = array('in',explode(',',$delData['sku']));
+        }else{
+            JsonReturn('','-1001','sku不能为空');
         }
-        $status = $delData['status'];
-        unset($delData['status']);
-        $this->startTrans();
-        try {
-            foreach($delData as $item){
-                $where = [
-                    "sku" => $item['sku']
-                ];
-                $resach = $this->field('sku')->where($where)->find();
-                if ($resach) {
-                    $this->where($where)->save(['status' => $status]);
-                }
+        if(isset($delData['status'])) {
+            switch (strtoupper($delData['status'])) {
+                case self::STATUS_VALID:
+                    $status['status'] = $delData['status'];
+                    break;
+                case self::STATUS_INVALID:
+                    $status['status'] = $delData['status'];
+                    break;
+                case self::STATUS_DELETED:
+                    $status['status'] = $delData['status'];
+                    break;
             }
-            $this->commit();
-            return true;
+        } else{
+            JsonReturn('','-1003','[status]不能为空');
+        }
+        try {
+            $result = $this->where($where)->save($status);
+            if(isset($result)){
+                return true;
+            }else{
+                return false;
+            }
         } catch (Exception $e) {
-            $this->rollback();
+//        $results['code'] = $e->getCode();
+//        $results['message'] = $e->getMessage();
             return false;
         }
     }
@@ -150,27 +165,21 @@ class GoodsAttachModel extends PublicModel{
     /**
      * sku附件删除（门户后台）
      * @author klp
-     * @return id
+     * @return bool
      */
-    public function deleteRealAttach($delData){
-        if(empty($delData)) {
-            return false;
+    public function deleteRealAttach($delData)
+    {
+        $where = [];
+        if(isset($delData['sku'])){
+            $where['sku'] = $delData['sku'];
+        }else{
+            JsonReturn('','-1001','sku不能为空');
         }
-        $this->startTrans();
         try{
-            foreach($delData as $del){
-                $where = [
-                    "sku" => $del['sku']
-                ];
-                $resach = $this->field('sku')->where($where)->find();
-                if ($resach) {
-                    $this->where($where)->save(['status' => self::STATUS_DELETED]);
-                }
-            }
-            $this->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->rollback();
+            return $this->where($where)->save(['status' => 'DELETED']);
+        } catch(Exception $e){
+//            $results['code'] = $e->getCode();
+//            $results['message'] = $e->getMessage();
             return false;
         }
     }
@@ -181,25 +190,26 @@ class GoodsAttachModel extends PublicModel{
      * @author klp
      * @return array
      */
-    public function check_data($data=[]){
+    public function check_data($data=[])
+    {
         if(empty($data))
             return false;
 
-        if (isset($data['sku']) && !empty($data['sku'])) {
+        if (isset($data['sku'])) {
             $condition['sku'] = $data['sku'];
         } else {
             JsonReturn('','-1001','sku编号不能为空');
         }
         $condition['created_at'] = isset($data['created_at']) ? $data['created_at']: date('Y-m-d H:i:s');
         if(isset($data['status'])){
-            switch (strtoupper($data['status'])) {
+            switch ($data['status']) {
                 case self::STATUS_VALID:
                     $condition['status'] = $data['status'];
                     break;
                 case self::STATUS_INVALID:
                     $condition['status'] = $data['status'];
                     break;
-                case self::STATUS_CHECKING:
+                case self::STATUS_DELETED:
                     $condition['status'] = $data['status'];
                     break;
             }
@@ -221,9 +231,10 @@ class GoodsAttachModel extends PublicModel{
     /**
      * sku附件更新参数处理（门户后台）
      * @author klp
-     * @return arr
+     * @return bool
      */
-    public function check_up($data){
+    public function check_up($data)
+    {
         if(empty($data))
             return false;
 
@@ -242,7 +253,7 @@ class GoodsAttachModel extends PublicModel{
                 case self::STATUS_INVALID:
                     $condition['status'] = $data['status'];
                     break;
-                case self::STATUS_CHECKING:
+                case self::STATUS_DELETED:
                     $condition['status'] = $data['status'];
                     break;
             }
