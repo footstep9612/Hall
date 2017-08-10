@@ -28,6 +28,8 @@ class LogisticsController extends PublicController {
 	public function getQuoteItemLogiListAction() {
 	    $condition = $this->put_data;
 	
+	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	    
 	    $data = $this->quoteItemLogiModel->getJoinList($condition);
 	
 	    $this->_handleList($this->quoteItemLogiModel, $data, $condition, true);
@@ -510,7 +512,7 @@ class LogisticsController extends PublicController {
 	 */
 	private function _getRate($cur, $exchangeCur = 'CNY') {
 	    
-	    if (!epmty($cur)) {
+	    if (!empty($cur)) {
 	        $exchangeRate = $this->exchangeRateModel->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->field('rate')->find();
 	        
 	        return $exchangeRate['rate'];
