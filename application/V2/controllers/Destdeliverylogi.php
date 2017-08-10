@@ -20,7 +20,7 @@ class DestdeliverylogiController extends PublicController {
     public function listAction() {
         $country = $this->getPut('country');
         $lang = $this->getPut('lang', 'zh');
-        
+
         $dest_delivery_logi_model = new DestDeliveryLogiModel();
         $arr = $dest_delivery_logi_model->getList($country, $lang);
         $this->_setUserName($arr);
@@ -38,7 +38,7 @@ class DestdeliverylogiController extends PublicController {
 
     /*
      * Description of 获取创建人姓名
-     * @param array $arr 
+     * @param array $arr
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0

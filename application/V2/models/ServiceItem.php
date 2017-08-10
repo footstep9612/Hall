@@ -34,13 +34,15 @@ class ServiceItemModel extends PublicModel{
             $data = array();
             if($result) {
                 foreach($result as $item){
-                    $item['item'] = json_decode($item['item']);
-                    $data[] = $item;
+                    $item['item'] = json_decode($item['item'],true);
+                    foreach($item['item'] as $value){
+                        unset($item['item']);
+                        $data[$value['lang']]['item'][] = array_merge($value,$item);
+                    }
                 }
             }
             return $data;
         } catch(Exception $e) {
-           // var_dump($e);
             return array();
         }
     }

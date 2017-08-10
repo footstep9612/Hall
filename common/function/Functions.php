@@ -1404,11 +1404,11 @@ function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
  * @return array|bool
  */
 function getLoinInfo() {
-    $headers = getallheaders();
+    $headers = getHeaders();
     $token = isset($headers['token']) ? $headers['token'] : '';
     $jsondata = json_decode(file_get_contents("php://input"), true);
     $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
-    if(isset($jsondata['token']) && !empty($jsondata['token'])) {
+    if (isset($jsondata['token']) && !empty($jsondata['token'])) {
         $token = $jsondata['token'];
     }
     if (isset($post['token']) && !empty($post['token'])) {
@@ -1421,16 +1421,36 @@ function getLoinInfo() {
 }
 
 /**
+ * 获取自定义header数据
+ * @author link 2017-08-09
+ */
+function getHeaders() {
+    $ignore = array('host', 'accept', 'content-length', 'content-type'); // 忽略数据
+    $headers = array();
+    foreach ($_SERVER as $key => $value) {
+        if (substr($key, 0, 5) === 'HTTP_') {
+            $key = substr($key, 5);
+            $key = strtolower($key);
+            if (!in_array($key, $ignore)) {
+                $headers[$key] = $value;
+            }
+        }
+    }
+
+    return $headers;
+}
+
+/**
  * 获取客户端IP地址
  * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
- * @param boolean $adv 是否进行高级模式获取（有可能被伪装） 
+ * @param boolean $adv 是否进行高级模式获取（有可能被伪装）
  * @return mixed
  */
 
 /**
  * 获取客户端IP地址
  * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
- * @param boolean $adv 是否进行高级模式获取（有可能被伪装） 
+ * @param boolean $adv 是否进行高级模式获取（有可能被伪装）
  * @return mixed
  */
 function get_client_ip($type = 0, $adv = true) {
@@ -1463,8 +1483,8 @@ function get_client_ip($type = 0, $adv = true) {
 
 /*
  * $ip string IP 地址
- * 
- * 
+ *
+ *
  */
 
 function getIpAddress($ip) {
