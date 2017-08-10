@@ -19,8 +19,8 @@ class MarketAreaModel extends PublicModel {
     protected $dbName = 'erui2_operation';
     protected $tableName = 'market_area';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**

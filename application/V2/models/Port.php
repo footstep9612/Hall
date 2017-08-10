@@ -24,7 +24,7 @@ class PortModel extends PublicModel {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc 
+     * @desc
      */
     public function getPort($lang = '', $country = '') {
         $condition = array(
@@ -33,7 +33,6 @@ class PortModel extends PublicModel {
         if (!empty($country)) {
             $condition['country_bn'] = $country;
         }
-
         if (redisHashExist('Port', md5(json_encode($condition)))) {
             return json_decode(redisHashGet('Port', md5(json_encode($condition))), true);
         }
@@ -57,7 +56,7 @@ class PortModel extends PublicModel {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   
+     * @desc
      */
     private function _getCondition($condition) {
         $where = [];

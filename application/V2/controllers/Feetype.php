@@ -32,16 +32,13 @@ class FeetypeController extends PublicController {
         $data = $this->getPut();
         $data['lang'] = $this->getPut('lang', 'zh');
         $fee_type_model = new FeeTypeModel();
-        if (redisGet('FeeType_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('FeeType_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $fee_type_model->getlist($data);
-            if ($arr) {
-                redisSet('FeeType_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $fee_type_model->getlist($data);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
+        } elseif ($arr == null) {
+            $this->setCode(MSG::ERROR_EMPTY);
         } else {
             $this->setCode(MSG::MSG_FAILED);
         }

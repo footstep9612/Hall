@@ -362,7 +362,7 @@ class SupplierController extends PublicController {
             $where_supplier_bank_info = $data['id'];
             $where_supplier_address = $data['id'];
         }else{
-            $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
+            $this->jsonReturn(array("code" => "-101", "message" => "id不能为空"));
         }
         if(!empty($data['supplier_type'])) {
             $arr['supplier_type'] = $data['supplier_type'];
@@ -430,6 +430,24 @@ class SupplierController extends PublicController {
         if(!empty($data['status'])) {
             $arr['status'] = $data['status'];
 
+        }
+        if(!empty($data['brand'])) {
+           $brank_arr =  explode(",",$data['brand']) ;
+            for($i=0;$i<count($brank_arr);$i++){
+                $brand_modle = new BrandModel();
+                $brand_json[$i] = $brand_modle->info($brank_arr[$i]);
+                if($brand_json[$i]){
+                    $brand_json[$i]['brand']=json_decode($brand_json[$i]['brand'],true);
+                    for($j=0;$j<count($brand_json[$i]['brand']);$j++){
+                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['style'] =$brand_json[$i]['brand'][$j]['style'];
+                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['label'] =$brand_json[$i]['brand'][$j]['label'];
+                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['logo'] =$brand_json[$i]['brand'][$j]['logo'];
+                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['lang'] =$brand_json[$i]['brand'][$j]['lang'];
+                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['name'] =$brand_json[$i]['brand'][$j]['name'];
+                    }
+                }
+            }
+            $arr['brand'] = json_encode($brand_json,JSON_UNESCAPED_UNICODE);
         }
         // 生成供应商编码
         $model  =  new SupplierModel();

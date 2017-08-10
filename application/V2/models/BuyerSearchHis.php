@@ -21,6 +21,31 @@ class BuyerSearchHisModel extends PublicModel {
         parent::__construct($str);
     }
 
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('sort_order', '0'),
+        array('search_count', '1'),
+        array('created_at', 'getDate', 1, 'callback'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('keywords', 'require', '关键词不能为空'),
+        array('buyer_id', 'require', '采购商ID不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
     /**
      * 根据条件获取查询条件
      * @param mix $condition

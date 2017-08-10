@@ -1408,7 +1408,7 @@ function getLoinInfo() {
     $token = isset($headers['token']) ? $headers['token'] : '';
     $jsondata = json_decode(file_get_contents("php://input"), true);
     $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
-    if(isset($jsondata['token']) && !empty($jsondata['token'])) {
+    if (isset($jsondata['token']) && !empty($jsondata['token'])) {
         $token = $jsondata['token'];
     }
     if (isset($post['token']) && !empty($post['token'])) {
@@ -1443,14 +1443,14 @@ function getHeaders() {
 /**
  * 获取客户端IP地址
  * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
- * @param boolean $adv 是否进行高级模式获取（有可能被伪装） 
+ * @param boolean $adv 是否进行高级模式获取（有可能被伪装）
  * @return mixed
  */
 
 /**
  * 获取客户端IP地址
  * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
- * @param boolean $adv 是否进行高级模式获取（有可能被伪装） 
+ * @param boolean $adv 是否进行高级模式获取（有可能被伪装）
  * @return mixed
  */
 function get_client_ip($type = 0, $adv = true) {
@@ -1483,8 +1483,8 @@ function get_client_ip($type = 0, $adv = true) {
 
 /*
  * $ip string IP 地址
- * 
- * 
+ *
+ *
  */
 
 function getIpAddress($ip) {
@@ -1697,4 +1697,44 @@ function randNumber($len = 6, $prefix = '') {
         $str .= rand(0, 9);
     }
     return $prefix . str_pad($str, 6, '0', STR_PAD_LEFT);
+}
+
+/**
+ * 获取和设置配置参数 支持批量定义
+ * @param string|array $name 配置变量
+ * @param mixed $value 配置值
+ * @param mixed $default 默认值
+ * @return mixed
+ */
+function C($name = null, $value = null, $default = null) {
+    static $_config = array();
+    // 无参数时获取所有
+    if (empty($name)) {
+        return $_config;
+    }
+    // 优先执行设置获取或赋值
+    if (is_string($name)) {
+        if (!strpos($name, '.')) {
+            $name = strtoupper($name);
+            if (is_null($value)) {
+                return isset($_config[$name]) ? $_config[$name] : $default;
+            }
+            $_config[$name] = $value;
+            return null;
+        }
+        // 二维数组设置和获取支持
+        $name = explode('.', $name);
+        $name[0] = strtoupper($name[0]);
+        if (is_null($value)) {
+            return isset($_config[$name[0]][$name[1]]) ? $_config[$name[0]][$name[1]] : $default;
+        }
+        $_config[$name[0]][$name[1]] = $value;
+        return null;
+    }
+    // 批量设置
+    if (is_array($name)) {
+        $_config = array_merge($_config, array_change_key_case($name, CASE_UPPER));
+        return null;
+    }
+    return null; // 避免非法参数
 }
