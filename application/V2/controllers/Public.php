@@ -526,12 +526,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @desc 记录审核日志
      *
      * @param array $condition
+     * @param object $condition
      * @return array
      * @author liujf
-     * @time 2017-08-09
+     * @time 2017-08-10
      */
-    public function addCheckLog($condition) {
-        $inquiryCheckLogModel = new InquiryCheckLogModel();
+    public function addCheckLog($condition, &$model) {
+        if (is_object($model)) {
+            $inquiryCheckLogModel = &$model;
+        } else {
+            $inquiryCheckLogModel = new InquiryCheckLogModel();
+        }
         $time = date('Y-m-d H:i:s');
 
         $inquiryIdArr = explode(',', $condition['inquiry_id']);
