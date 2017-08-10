@@ -319,7 +319,7 @@ class GoodsController extends PublicController {
         }
 
         $pchecklog = new ProductCheckLogModel();
-        $logs = $pchecklog->getRecord(array('spu' => $sku, 'lang' => $lang), 'sku,lang,status,remarks,approved_by,approved_at');
+        $logs = $pchecklog->getRecord(array('sku' => $sku, 'lang' => $lang), 'sku,lang,status,remarks,approved_by,approved_at');
         if ($logs !== false) {
             jsonReturn($logs);
         } else {
