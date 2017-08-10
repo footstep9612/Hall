@@ -31,7 +31,7 @@ class ErrorMsg {
     const WRONG_LANG = 1105;
     const WRONG_SCAT = 1106;
     const WRONG_STATUS = 1107;
-
+    const NOTDELETE_EXIST_ONSHELF = 1200;
 
     /**
      * 错误信息映射
@@ -59,6 +59,7 @@ class ErrorMsg {
             '1105' => '语言有误',
             '1106' => '展示分类有误',
             '1107' => '状态有误',
+            '1200' => '已上架,不允许删除',
 
             /**
              * 买买提定义
