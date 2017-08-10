@@ -77,6 +77,9 @@ class SupplierController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new SupplierModel();
         $res = $model->info($data);
+        if($res['brand']){
+            $res['brand'] = json_decode($res['brand'],true);
+        }
         if(!empty($res)){
             $datajson['code'] = 1;
             $datajson['data'] = $res;
@@ -446,6 +449,7 @@ class SupplierController extends PublicController {
                         $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['name'] =$brand_json[$i]['brand'][$j]['name'];
                     }
                 }
+                unset($brand_json[$i]['brand']);
             }
             $arr['brand'] = json_encode($brand_json,JSON_UNESCAPED_UNICODE);
         }
