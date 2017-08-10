@@ -12,7 +12,8 @@ class GoodsController extends PublicController {
     private $input;
 
     public function init() {
-//        parent::init();
+       // error_reporting(E_ERROR);
+     parent::init();
         $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
     }
 
@@ -192,16 +193,17 @@ class GoodsController extends PublicController {
      * @param    status_type(状态flag ) 存在为修改状态
      *           标志: check(报审)    valid(通过)     invalid(驳回)
      * @param     sku编码  spu编码   lang语言
-     * @example   $this->put_data=[
-     *                      'status_type'=> 'check',
-     *                      0 => [
-     *                           'sku'=> '3303060000010001',
-     *                           'spu'=> '340306010001',
-     *                           'lang'=> 'zh',
-     *                           'remarks' =>  '',
-     *                           ],
-     *                      1 => [],...
-     *                  ];
+     * @example    $this->put_data = [
+      *                 'status_type'=> 'check',
+      *                     'skus'=>[
+      *                         0 => [
+      *                         'sku'=> '14979553',
+      *                         'spu'=> '8832211',
+      *                         'lang'=> 'zh',
+      *                         'remarks' =>  ''
+      *                         ],
+      *                    ]
+      *                 ]
      * @return true or false
      * @author  klp  2017/8/1
      */
