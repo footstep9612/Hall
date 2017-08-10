@@ -30,7 +30,7 @@ class EsProductModel extends Model {
      * @param mix $body // 返回的数据
      * @param string $qurey_type // 匹配类型
      * @param string $name // 查询的名称
-     * @param string $field // 匹配的名称    
+     * @param string $field // 匹配的名称
      * @date    2017-8-1 16:50:09
      * @version V2.0
      * @desc   ES 产品
@@ -109,7 +109,7 @@ class EsProductModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-                
+
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
@@ -150,7 +150,7 @@ class EsProductModel extends Model {
     }
 
     /*
-     * 判断搜索状态是否存在 
+     * 判断搜索状态是否存在
      * 存在 则组合查询
      * @param mix $condition // 搜索条件
      * @param mix $body // 返回的数据
@@ -257,7 +257,7 @@ class EsProductModel extends Model {
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
      * @param mix  $_source //要搜索的字段
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
@@ -358,12 +358,12 @@ class EsProductModel extends Model {
     /*
      * 根据SPU数组获取展示属性信息
      * @param mix $spus // 产品SPU数组
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getproductattrsbyspus($spus, $lang = 'en') {
@@ -415,12 +415,12 @@ class EsProductModel extends Model {
     /*
      * 将数组中的null值转换为空值
      * @author zyg 2017-07-31
-     * @param array $item // 语言 zh en ru es 
-     * @return mix 
+     * @param array $item // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     private function _findnulltoempty(&$item) {
@@ -434,12 +434,12 @@ class EsProductModel extends Model {
     /*
      * 批量导入产品数据到ES
      * @author zyg 2017-07-31
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function importproducts($lang = 'en') {
@@ -465,7 +465,7 @@ class EsProductModel extends Model {
                     $mcat_nos = array_unique($mcat_nos);
 
                     $material_cat_model = new MaterialCatModel();
-                    $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类                  
+                    $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类
 
 
                     $show_cat_product_model = new ShowCatProductModel();
@@ -547,12 +547,12 @@ class EsProductModel extends Model {
     /*
      * 批量更新产品数据到ES
      * @author zyg 2017-07-31
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function updateproducts($lang = 'en', $time = '1970-01-01 8:00:00') {
@@ -572,9 +572,9 @@ class EsProductModel extends Model {
                     'lang' => $lang,
                 ];
             }
-            
-            
-            
+
+
+
             $count = $this->where($where)->count('id');
             $max_id = 0;
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -583,7 +583,7 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                   $where['id'] = ['gt',$max_id];
+                $where['id'] = ['gt', $max_id];
                 $products = $this->where($where)->limit(0, 100)->order('id asc')->select();
                 $spus = $mcat_nos = [];
                 if ($products) {
@@ -595,7 +595,7 @@ class EsProductModel extends Model {
                     $mcat_nos = array_unique($mcat_nos);
 
                     $material_cat_model = new MaterialCatModel();
-                    $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类                  
+                    $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类
 
 
                     $show_cat_product_model = new ShowCatProductModel();
@@ -681,11 +681,11 @@ class EsProductModel extends Model {
      * @param string $default 默认值
      * @param string $type 判断的类型
      * @param array $arr 状态判断时状态数组
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     protected function _getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
@@ -740,11 +740,11 @@ class EsProductModel extends Model {
     /* 新增条件组合
      * @param array $condition  条件
      * @param string $lang 语言
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getInsertCodition($condition, $lang = 'en') {
@@ -826,12 +826,12 @@ class EsProductModel extends Model {
 
     /*
      * 添加产品到Es
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function create_data($spu, $lang = 'en') {
@@ -862,12 +862,12 @@ class EsProductModel extends Model {
      * 添加产品到Es
      * @param array $data 需要更新的数据
      * @param string $spu  spu
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function update_data($data, $spu, $lang = 'en') {
@@ -900,7 +900,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function changestatus($spu, $status = 'VALID', $lang = 'en') {
@@ -927,7 +927,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品  
+     * @desc   ES 产品
      */
 
     public function getshowcats($spu = null, $lang = 'en') {
@@ -947,7 +947,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function update_showcats($old_cat_no, $lang = 'en') {
@@ -992,7 +992,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function Updatemeterialcatno($material_cat_no, $spu = null, $lang = 'en', $new_cat_no = '') {
@@ -1057,7 +1057,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品  
+     * @desc   ES 产品
      */
 
     public function Update_Attrs($spu, $lang = 'en') {
@@ -1086,7 +1086,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品  
+     * @desc   ES 产品
      */
 
     public function Update_Attachs($spu, $lang = 'en') {
@@ -1112,7 +1112,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function Update_brand($spu, $brand, $lang = 'en') {
@@ -1150,7 +1150,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function Update_spuname($spu, $spuname, $lang = 'en') {
@@ -1175,7 +1175,7 @@ class EsProductModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function delete_data($spu, $lang = 'en') {
@@ -1184,6 +1184,7 @@ class EsProductModel extends Model {
             return false;
         }
         $data['status'] = self::STATUS_DELETED;
+        $data['deleted_flag'] = 'Y';
         $id = $spu;
         if ($lang) {
             $type = $this->tableName . '_' . $lang;
@@ -1197,6 +1198,75 @@ class EsProductModel extends Model {
             $es->update_document($this->dbName, $type, $data, $id);
             $type = $this->tableName . '_es';
             $es->update_document($this->dbName, $type, $data, $id);
+        }
+        return true;
+    }
+
+    /* 删除SKU
+     * @param string $sku SKU
+     * @param string $lang 语言
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 商品
+     */
+
+    public function batchdelete($skus, $lang = 'en') {
+        $es = new ESClient();
+        if (empty($skus)) {
+            return false;
+        }
+        if (is_string($skus)) {
+            $skus = [$skus];
+        }
+
+        $type_goods = 'product_' . $lang;
+        $updateParams = array();
+        $updateParams['index'] = $this->dbName;
+        $updateParams['type'] = $type_goods;
+        foreach ($skus as $sku) {
+
+            $updateParams['body'][] = ['update' => ['_id' => $sku]];
+            $updateParams['body'][] = ['doc' => [
+                    'status' => self::STATUS_DELETED,
+                    'deleted_flag' => 'Y']];
+        }
+        $es->bulk($updateParams);
+        return true;
+    }
+
+    public function BatchUpdate_Attachs($spus, $lang = 'en') {
+        $es = new ESClient();
+        if (empty($spus)) {
+            return false;
+        }
+        if (is_string($spus)) {
+            $spus = [$spus];
+        }
+        $product_attach_model = new ProductAttachModel();
+        $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang);
+
+
+        $updateParams = array();
+        $updateParams['index'] = $this->dbName;
+        if ($lang) {
+            $langs = [$lang];
+        } else {
+            $langs = ['en', 'zh', 'es', 'ru'];
+        }
+        foreach ($langs as $lang) {
+            $type_goods = 'goods_' . $lang;
+            $updateParams['type'] = $type_goods;
+            foreach ($spus as $spu) {
+                if (isset($attachs[$spu])) {
+                    $spu_attachs = json_encode($attachs[$spu], 256);
+                } else {
+                    $spu_attachs = '[]';
+                }
+                $updateParams['body'][] = ['update' => ['_id' => $spu]];
+                $updateParams['body'][] = ['doc' => ['attachs' => $spu_attachs]];
+            }
+            $es->bulk($updateParams);
         }
         return true;
     }

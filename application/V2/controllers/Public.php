@@ -34,7 +34,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            
+
         } else {
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
@@ -530,7 +530,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     /**
      * @desc 记录审核日志
-     * 
+     *
      * @param array $condition
      * @return array
      * @author liujf

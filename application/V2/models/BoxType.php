@@ -23,6 +23,30 @@ class BoxTypeModel extends PublicModel {
         parent::__construct($str = '');
     }
 
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('status', 'VALID'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('lang', 'require', '语言不能为空'),
+        array('bn', 'require', '发货箱型简称不能为空'),
+        array('box_type_name', 'require', '发货箱型不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
     /**
      * 获取列表
      * @param data $data;
@@ -62,7 +86,7 @@ class BoxTypeModel extends PublicModel {
             redisHashSet('BoxType', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
-     
+
             return [];
         }
     }
