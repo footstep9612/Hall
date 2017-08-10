@@ -149,9 +149,14 @@ class LogisticsController extends PublicController {
 	public function getQuoteLogiFeeDetailAction() {
 	    $condition = $this->put_data;
 	
-	    $res = $this->quoteLogiFeeModel->getJoinDetail($condition);
-	
-	    $this->jsonReturn($res);
+	    if (!empty($condition['quote_id'])) {
+	        
+    	    $res = $this->quoteLogiFeeModel->getJoinDetail($condition);
+    	
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
 	}
 	
 	/**
@@ -258,7 +263,7 @@ class LogisticsController extends PublicController {
 	        
 	        switch ($quoteLogiFee['trade_terms_bn']) {
 	            case 'EXW' :
-	                 $totalQuotePrice = round(($quote['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8);
+	                $totalQuotePrice = round(($quote['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8);
 	                break;
 	            case 'FCA' || 'FAS' :
 	                $totalQuotePrice = round(($quote['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8);
