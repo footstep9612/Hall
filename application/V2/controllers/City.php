@@ -137,7 +137,7 @@ class CityController extends PublicController {
     public function createAction() {
         $condition = $this->getPut();
         $data = $this->_model->create($condition);
-        $data['created_by'] = UID;
+        $data['created_by'] = defined('UID') ? UID : 0;
         $data['created_at'] = date('Y-m-d H:i:s');
         $result = $this->_model->add($data);
         if ($result) {

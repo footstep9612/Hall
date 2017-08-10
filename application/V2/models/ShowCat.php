@@ -350,13 +350,13 @@ class ShowCatModel extends PublicModel {
                 ->save(['status' => self::STATUS_DELETED,
             'deleted_flag' => 'Y',
             'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => UID]);
+            'updated_by' => defined('UID') ? UID : 0]);
 
         $this->Table('erui2_goods.show_material_cat')->where([
                     'show_cat_no' => $cat_no])
                 ->save(['status' => self::STATUS_DELETED,
                     'updated_at' => date('Y-m-d H:i:s'),
-                    'updated_by' => UID
+                    'updated_by' => defined('UID') ? UID : 0
         ]);
         $es_product_model = new EsProductModel();
         if ($lang) {
@@ -458,10 +458,10 @@ class ShowCatModel extends PublicModel {
      */
     public function update_data($upcondition = []) {
         $condition = $upcondition;
-        list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, UID);
+        list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, defined('UID') ? UID : 0);
         $this->startTrans();
         $langs = ['en', 'es', 'zh', 'ru'];
-        $data['updated_by'] = UID;
+        $data['updated_by'] = defined('UID') ? UID : 0;
         $data['updated_at'] = date('Y-m-d H:i:s');
 
         foreach ($langs as $lang) {
@@ -472,8 +472,8 @@ class ShowCatModel extends PublicModel {
                 $add = $data;
                 $add['cat_no'] = $cat_no;
                 $add['status'] = self::STATUS_APPROVING;
-                $add['cat_no'] = UID;
-                $add['created_by'] = UID;
+
+                $add['created_by'] = defined('UID') ? UID : 0;
                 $add['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($add);
                 if (!$flag) {
@@ -507,9 +507,9 @@ class ShowCatModel extends PublicModel {
                             'material_cat_no' => $material_cat_no,
                             'status' => 'VALID',
                             'created_at' => date('Y-m-d H:i:s'),
-                            'created_by' => UID,
+                            'created_by' => defined('UID') ? UID : 0,
                             'updated_at' => date('Y-m-d H:i:s'),
-                            'updated_by' => UID
+                            'updated_by' => defined('UID') ? UID : 0
                         ];
                     }
 
@@ -528,9 +528,9 @@ class ShowCatModel extends PublicModel {
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => UID,
+                        'created_by' => defined('UID') ? UID : 0,
                         'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => UID
+                        'updated_by' => defined('UID') ? UID : 0
                     ];
                 }
                 $show_material_cat_model->addAll($dataList);
@@ -620,7 +620,7 @@ class ShowCatModel extends PublicModel {
             $data['big_icon'] = $condition['big_icon'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = UID;
+        $data['created_by'] = defined('UID') ? UID : 0;
         return [$data, $where, $cat_no];
     }
 
@@ -715,7 +715,7 @@ class ShowCatModel extends PublicModel {
                 $data['cat_no'] = $cat_no;
             }
         }
-        $data['created_by'] = UID;
+        $data['created_by'] = defined('UID') ? UID : 0;
         $data['created_at'] = date('Y-m-d H:i:s');
         switch ($condition['status']) {
 
@@ -761,7 +761,7 @@ class ShowCatModel extends PublicModel {
                     'material_cat_no' => $material_cat_no,
                     'status' => 'VALID',
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => UID
+                    'created_by' => defined('UID') ? UID : 0
                 ];
                 $dataList[] = $data = $show_material_cat_model->create($data);
             }

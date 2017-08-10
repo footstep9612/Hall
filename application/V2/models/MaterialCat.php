@@ -309,7 +309,7 @@ class MaterialCatModel extends PublicModel {
             if ($flag) {
                 $flag1 = $this->where(['cat_no' => $chang_cat_no])
                         ->save(['sort_order' => $sort_order['sort_order'],
-                    'updated_by' => UID,
+                    'updated_by' => defined('UID') ? UID : 0,
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
                 if ($flag1) {
@@ -354,7 +354,7 @@ class MaterialCatModel extends PublicModel {
             $flag = $this->where($where)
                     ->save([
                 'status' => self::STATUS_VALID,
-                'checked_by' => UID,
+                'checked_by' => defined('UID') ? UID : 0,
                 'checked_at' => date('Y-m-d H:i:s'),
                 'deleted_flag' => 'N'
             ]);
@@ -385,8 +385,8 @@ class MaterialCatModel extends PublicModel {
      * @author zyg
      */
     public function update_data($upcondition = []) {
-        $data = $this->getUpdateCondition($upcondition, UID);
-        $data['created_by'] = UID;
+        $data = $this->getUpdateCondition($upcondition, defined('UID') ? UID : 0);
+        $data['created_by'] = defined('UID') ? UID : 0;
         try {
             $info = $this->info($upcondition['cat_no'], null);
             if (!$data) {
@@ -416,7 +416,7 @@ class MaterialCatModel extends PublicModel {
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
                     $add['status'] = self::STATUS_APPROVING;
-                    $add['id'] = $this->getMaxid() + 1;
+
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
 
                     if (!$flag) {
@@ -525,7 +525,7 @@ class MaterialCatModel extends PublicModel {
             $data['sort_order'] = $upcondition['sort_order'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = UID;
+        $data['created_by'] = defined('UID') ? UID : 0;
         return $data;
     }
 
@@ -649,7 +649,7 @@ class MaterialCatModel extends PublicModel {
             $data['cat_no'] = $cat_no;
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = UID;
+        $data['created_by'] = defined('UID') ? UID : 0;
         if (!isset($condition['status'])) {
             $condition['status'] = self::STATUS_APPROVING;
         }
@@ -677,7 +677,7 @@ class MaterialCatModel extends PublicModel {
 
             if (isset($createcondition[$lang])) {
                 $data['lang'] = $lang;
-                $data['name'] = $createcondition['en']['name'];
+                $data['name'] = $createcondition[$lang]['name'];
                 $flag = $this->add($data);
                 if (!$flag) {
                     $this->rollback();

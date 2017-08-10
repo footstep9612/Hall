@@ -168,7 +168,7 @@ class LogiRateModel extends PublicModel {
             foreach ($create as $key => $name) {
                 $arr['lang'] = $key;
                 $arr['name'] = $name;
-                $arr['created_by'] = UID;
+                $arr['created_by'] = defined('UID') ? UID : 0;
                 $arr['created_at'] = date('Y-m-d H:i:s');
                 $datalist[] = $arr;
             }
@@ -198,14 +198,14 @@ class LogiRateModel extends PublicModel {
                 if ($this->Exits($where)) {
                     $arr['lang'] = $lang;
                     $arr['name'] = $create[$lang]['name'];
-                    $arr['updated_by'] = UID;
+                    $arr['updated_by'] = defined('UID') ? UID : 0;
                     $arr['updated_at'] = date('Y-m-d H:i:s');
                     $this->where($where)->save($arr);
                 } else {
 
                     $arr['lang'] = $lang;
                     $arr['name'] = $create[$lang]['name'];
-                    $arr['updated_by'] = UID;
+                    $arr['updated_by'] = defined('UID') ? UID : 0;
                     $arr['updated_at'] = date('Y-m-d H:i:s');
                     $datalist[] = $arr;
                 }

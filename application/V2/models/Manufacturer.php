@@ -213,28 +213,17 @@ class ManufacturerModel extends PublicModel {
      * @desc   生产商信息
      */
     public function create_data($create = [], $uid = 0) {
-        if (isset($create['en']['name']) && isset($create['zh']['name'])) {
-            $newbn = ucwords($create['en']['name']);
-            $create['en']['name'] = ucwords($create['en']['name']);
-            $langs = ['en', 'zh', 'es', 'ru'];
-            $this->startTrans();
-            foreach ($langs as $lang) {
-                $create['bn'] = $newbn;
-                $flag = $this->_updateandcreate($create, $lang, $newbn, UID);
-                if (!$flag) {
-                    $this->rollback();
+        $create['created_at'] = date('Y-m-d H:i:s');
+        $create['created_by'] = defined('UID') ? UID : 0;
+        $flag = $this->create($create);
 
-                    return false;
-                }
-            }
-            $market_area_team_model = new MarketAreaTeamModel();
-            $market_area_team_model->updateandcreate($create, $newbn, $uid);
-            $this->commit();
+        if (!$flag) {
 
-            return true;
-        } else {
             return false;
         }
+
+
+        return true;
     }
 
     /**
@@ -252,39 +241,12 @@ class ManufacturerModel extends PublicModel {
 
         $this->startTrans();
         $create['updated_at'] = date('Y-m-d H:i:s');
-        $create['updated_by'] = UID;
+        $create['updated_by'] = defined('UID') ? UID : 0;
         $flag = $this->where($where)->save($update);
 
-        $flag = $this->_updateandcreate($create);
         $this->commit();
 
         return $flag;
-    }
-
-    private function _updateandcreate($create, $id) {
-        if (isset($create['supplier_ids']) && $create['supplier_ids'] && $id) {
-            $supplier_ids = $create['supplier_ids'];
-            $create['manufacturer_id'] = $id;
-            $supplier_manufacturer_model = new SupplierManufacturerModel();
-            if (is_array($supplier_ids)) {
-                foreach ($supplier_ids as $supplier_id) {
-                    $where['supplier_id'] = $supplier_id;
-                    $where['manufacturer_id'] = $id;
-                    $flag = $supplier_manufacturer_model->Exits($where);
-                    if ($flag) {
-                        $data = $create;
-                        $data['id'] = $flag;
-                        $supplier_manufacturer_model->update_data($data);
-                    } else {
-                        $supplier_manufacturer_model->create($data);
-                    }
-                }
-            } else {
-                return false;
-            }
-        } else {
-            return true;
-        }
     }
 
 }

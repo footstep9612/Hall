@@ -82,7 +82,7 @@ class MarketAreaTeamModel extends PublicModel {
         } else {
 
             $arr['created_at'] = date('Y-m-d H:i:s');
-            $arr['created_by'] = UID;
+            $arr['created_by'] = defined('UID') ? UID : 0;
             $flag = $this->add($arr);
             return $flag;
         }

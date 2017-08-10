@@ -246,14 +246,17 @@ class MarketAreaModel extends PublicModel {
             $arr['name'] = $data[$lang]['name'];
             if ($this->Exits($where)) {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
-                $arr['updated_by'] = UID;
+                $arr['updated_by'] = defined('UID') ? UID : 0;
+
                 $flag = $this->where($where)->save($arr);
                 return $flag;
             } else {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
-                $arr['updated_by'] = UID;
+                $arr['updated_by'] = defined('UID') ? UID : 0;
+
                 $arr['created_at'] = date('Y-m-d H:i:s');
-                $arr['created_by'] = UID;
+                $arr['created_by'] = defined('UID') ? UID : 0;
+
                 $flag = $this->add($arr);
                 return $flag;
             }

@@ -260,7 +260,7 @@ class BrandModel extends PublicModel {
         } else {
             $where['id'] = $upcondition['id'];
         }
-        $data['updated_by'] = UID;
+        $data['updated_by'] = defined('UID') ? UID : 0;
         $data['updated_at'] = date('Y-m-d H:i:s');
         try {
             $flag = $this->where($where)->save($data);
@@ -310,7 +310,7 @@ class BrandModel extends PublicModel {
         $data['brand'] = $this->_getdata($createcondition);
         unset($data['id']);
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = UID;
+        $data['created_by'] = defined('UID') ? UID : 0;
         try {
             $flag = $this->add($data);
 
