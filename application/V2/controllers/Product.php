@@ -101,7 +101,7 @@ class ProductController extends PublicController {
         }
 
         /**
-         * 查看是否上架
+         * 查看是否存在上架
          */
         $showCatProductModel = new ShowCatProductModel();
         $scp_info = $showCatProductModel->where(array('spu'=>$this->put_data['spu'],'lang'=>$lang))->find();

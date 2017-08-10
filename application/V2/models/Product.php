@@ -400,6 +400,7 @@ class ProductModel extends PublicModel {
             $this->startTrans();
             try {
                 $model = new EsProductModel();
+                $goodsModel = new GoodsModel();
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
                         $where = array(
@@ -408,8 +409,14 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count'=>0));
                         if ($result) {
+                            /**
+                             * 删除ｓｋｕ
+                             * 优化意见：这块最好放入队列，以确保成功删除掉。
+                             */
+                            $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+
                             /**
                              * 更新ES
                              */
