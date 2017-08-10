@@ -274,7 +274,7 @@ class MaterialCatModel extends PublicModel {
         }
         try {
             $flag = $this->where($where)
-                    ->save(['status' => self::STATUS_DELETED]);
+                    ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y',]);
 
             $es_product_model = new EsProductModel();
             if ($lang) {
@@ -773,12 +773,12 @@ class MaterialCatModel extends PublicModel {
     /*
      * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
      * @param mix $cat_no // 物料分类编码数组3f
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  物料分类及上级和顶级信息
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getmaterial_cat($cat_no, $lang = 'en') {
@@ -803,12 +803,12 @@ class MaterialCatModel extends PublicModel {
     /*
      * 根据物料分类编码搜索物料分类 及上级分类信息
      * @param mix $cat_nos // 物料分类编码数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  物料分类及上级和顶级信息
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getmaterial_cats($cat_nos, $lang = 'en') {

@@ -44,6 +44,9 @@ class UserController extends PublicController {
         if(!empty($data['mobile'])){
             $where['mobile'] = $data['mobile'];
         }
+        if(!empty($data['user_no'])){
+            $where['user_no'] = $data['user_no'];
+        }
         if(!empty($data['currentPage'])) {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }

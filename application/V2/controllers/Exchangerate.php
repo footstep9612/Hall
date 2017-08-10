@@ -179,12 +179,12 @@ class ExchangerateController extends PublicController {
 
     public function deleteAction() {
 
-        $where['id'] = $this->getPut('id');
-        if (!$where['id']) {
+        $id = $this->getPut('id');
+        if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $result = $this->_model->where($where)->delete();
+        $result = $this->_model->delete_data($id);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

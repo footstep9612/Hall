@@ -335,16 +335,20 @@ class GoodsController extends PublicController {
      * @author link 2017-08-05
      */
     public function checklogAction() {
-        if (!isset($this->put_data['sku'])) {
-            jsonReturn('', ErrorMsg::NOTNULL_SKU);
+        $sku = ($this->getMethod() == 'GET') ? $this->getQuery('sku','') : (isset($this->put_data['sku']) ? $this->put_data['sku'] : '');
+        $lang = ($this->getMethod() == 'GET') ? $this->getQuery('lang','') : (isset($this->put_data['lang']) ? $this->put_data['lang'] : '');
+
+        if(empty($sku)) {
+            jsonReturn('',ErrorMsg::NOTNULL_SKU);
         }
 
-        if (!isset($this->put_data['lang'])) {
-            jsonReturn('', ErrorMsg::NOTNULL_LANG);
+        if(empty($lang)) {
+            jsonReturn('',ErrorMsg::NOTNULL_LANG);
         }
 
         $pchecklog = new ProductCheckLogModel();
-        $logs = $pchecklog->getRecord(array('spu' => $this->put_data['sku'], 'lang' => $this->put_data['lang']), 'sku,lang,status,remarks,approved_by,approved_at');
+
+        $logs = $pchecklog->getRecord(array('sku' => $sku, 'lang' => $lang), 'sku,lang,status,remarks,approved_by,approved_at');
         if ($logs !== false) {
             jsonReturn($logs);
         } else {

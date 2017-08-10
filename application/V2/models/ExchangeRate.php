@@ -77,8 +77,7 @@ class ExchangeRateModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             try {
-                return $this->where($where)
-                                ->save(['status' => 'DELETED']);
+                return $this->where($where)->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
             } catch (Exception $ex) {
                 LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
                 LOG::write($ex->getMessage(), LOG::ERR);

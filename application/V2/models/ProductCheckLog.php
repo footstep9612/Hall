@@ -5,7 +5,7 @@
  * Date: 2017/8/1
  * Time: 14:56
  */
-class ProductChecklogModel extends PublicModel{
+class ProductCheckLogModel extends PublicModel{
     protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'product_check_log'; //数据表表名
 
