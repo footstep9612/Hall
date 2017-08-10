@@ -183,7 +183,7 @@ class MarketAreaModel extends PublicModel {
      * @version V2.0
      * @desc   营销区域
      */
-    public function create_data($create = [], $uid = 0) {
+    public function create_data($create = []) {
         if (isset($create['en']['name']) && isset($create['zh']['name'])) {
             $newbn = ucwords($create['en']['name']);
             $create['en']['name'] = ucwords($create['en']['name']);
@@ -191,7 +191,7 @@ class MarketAreaModel extends PublicModel {
             $this->startTrans();
             foreach ($langs as $lang) {
                 $create['bn'] = $newbn;
-                $flag = $this->_updateandcreate($create, $lang, $newbn, $uid);
+                $flag = $this->_updateandcreate($create, $lang, $newbn);
                 if (!$flag) {
                     $this->rollback();
 
@@ -199,7 +199,7 @@ class MarketAreaModel extends PublicModel {
                 }
             }
             $market_area_team_model = new MarketAreaTeamModel();
-            $market_area_team_model->updateandcreate($create, $newbn, $uid);
+            $market_area_team_model->updateandcreate($create, $newbn);
             $this->commit();
 
             return true;
@@ -210,11 +210,11 @@ class MarketAreaModel extends PublicModel {
 
     /**
      * 修改数据
-     * @param  int $id id
+     * @param  int $data id
      * @return bool
      * @author jhw
      */
-    public function update_data($data, $uid) {
+    public function update_data($data) {
         if (!isset($data['bn']) || !$data['bn']) {
             return false;
         }
@@ -223,7 +223,7 @@ class MarketAreaModel extends PublicModel {
         $this->startTrans();
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            $flag = $this->_updateandcreate($data, $lang, $newbn, $uid);
+            $flag = $this->_updateandcreate($data, $lang, $newbn);
             if (!$flag) {
                 $this->rollback();
 
@@ -231,13 +231,13 @@ class MarketAreaModel extends PublicModel {
             }
         }
         $market_area_team_model = new MarketAreaTeamModel();
-        $market_area_team_model->updateandcreate($data, $newbn, $uid);
+        $market_area_team_model->updateandcreate($data, $newbn);
         $this->commit();
 
         return true;
     }
 
-    private function _updateandcreate($data, $lang, $newbn, $uid = 0) {
+    private function _updateandcreate($data, $lang, $newbn) {
         if (isset($data[$lang]['name'])) {
             $where['lang'] = $lang;
             $where['bn'] = $data['bn'];
@@ -246,14 +246,14 @@ class MarketAreaModel extends PublicModel {
             $arr['name'] = $data[$lang]['name'];
             if ($this->Exits($where)) {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
-                $arr['updated_by'] = $uid;
+                $arr['updated_by'] = UID;
                 $flag = $this->where($where)->save($arr);
                 return $flag;
             } else {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
-                $arr['updated_by'] = $uid;
+                $arr['updated_by'] = UID;
                 $arr['created_at'] = date('Y-m-d H:i:s');
-                $arr['created_by'] = $uid;
+                $arr['created_by'] = UID;
                 $flag = $this->add($arr);
                 return $flag;
             }

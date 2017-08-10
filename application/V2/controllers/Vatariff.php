@@ -127,7 +127,7 @@ class VatariffController extends PublicController {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
 
-        $result = $va_tariff_model->create_data($data, $this->user['id']);
+        $result = $va_tariff_model->create_data($data);
 
         if ($result) {
             $this->delcache();
@@ -149,7 +149,7 @@ class VatariffController extends PublicController {
     public function updateAction() {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
-        $result = $va_tariff_model->update_data($data, $this->user['id']);
+        $result = $va_tariff_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -170,17 +170,10 @@ class VatariffController extends PublicController {
     public function deleteAction() {
 
         $id = $this->get('id') ?: $this->getPut('id');
-        if ($id) {
-            $ids = explode(',', $id);
-            if (is_array($ids)) {
-                $where['id'] = ['in', $ids];
-            } else {
-                $where['id'] = $id;
-            }
-        }
+
         $va_tariff_model = new VaTariffModel();
-        $result = $va_tariff_model->where($where)
-                ->save(['status' => 'DELETED']);
+        $result = $va_tariff_model->delete_data($id);
+
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

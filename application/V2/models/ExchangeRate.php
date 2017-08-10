@@ -18,8 +18,8 @@ class ExchangeRateModel extends PublicModel {
     protected $dbName = 'erui2_config';
     protected $tableName = 'exchange_rate';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**
@@ -29,6 +29,7 @@ class ExchangeRateModel extends PublicModel {
      * @author jhw
      */
     public function getlist($data, $limit, $order = 'id desc') {
+        $data['deleted_flag'] = 'N';
         if (!empty($limit)) {
             return $this->field('id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at')
                             ->where($data)
@@ -74,10 +75,15 @@ class ExchangeRateModel extends PublicModel {
      * @author jhw
      */
     public function delete_data($id = '') {
-        $where['id'] = $id;
-        if (!empty($where['id'])) {
+        if (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
+            $where['id'] = $id;
+        }
+
+        if (!empty($id)) {
             try {
-                return $this->where($where)->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
+                return $this->where($where)->save(['deleted_flag' => 'Y']);
             } catch (Exception $ex) {
                 LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
                 LOG::write($ex->getMessage(), LOG::ERR);
@@ -142,7 +148,7 @@ class ExchangeRateModel extends PublicModel {
             $arr['rate'] = $create['rate'];
         }
         $arr['created_at'] = date('Y-m-d H:i:s');
-        $arr['created_by'] = $uid;
+        $arr['created_by'] = UID;
         $data = $this->create($arr);
         try {
             return $this->add($data);
@@ -157,7 +163,7 @@ class ExchangeRateModel extends PublicModel {
      * 条件
      */
 
-    function getCondition($condition) {
+    function _getCondition($condition) {
         $where = [];
         if (isset($condition['effective_date']) && $condition['effective_date']) {
             $where['effective_date'] = $condition['effective_date'];
@@ -168,7 +174,7 @@ class ExchangeRateModel extends PublicModel {
         if (isset($condition['cur_bn2']) && $condition['cur_bn2']) {
             $where['cur_bn2'] = $condition['cur_bn2'];
         }
-
+        $where['deleted_flag'] = 'N';
         return $where;
     }
 
@@ -178,7 +184,7 @@ class ExchangeRateModel extends PublicModel {
 
     public function getCount($condition) {
         try {
-            $data = $this->getCondition($condition);
+            $data = $this->_getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -197,7 +203,7 @@ class ExchangeRateModel extends PublicModel {
      * @return array
      */
     public function getListbycondition($condition = '') {
-        $where = $this->getCondition($condition);
+        $where = $this->_getCondition($condition);
         try {
             $field = 'id,effective_date,cur_bn1,cur_bn2,rate,created_by,created_at';
 

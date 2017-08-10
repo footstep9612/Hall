@@ -29,7 +29,6 @@ class BrandController extends PublicController {
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
-               
             }
             $arr[$key] = $brand;
         }
@@ -68,7 +67,6 @@ class BrandController extends PublicController {
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
-              
             }
 
             $arr[$key] = $brand;
@@ -130,7 +128,7 @@ class BrandController extends PublicController {
     public function createAction() {
         $brand_model = new BrandModel();
         $data = $this->getPut();
-        $result = $brand_model->create_data($data, $this->user['id']);
+        $result = $brand_model->create_data($data);
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -144,7 +142,7 @@ class BrandController extends PublicController {
     public function updateAction() {
         $brand_model = new BrandModel();
         $data = $this->getPut();
-        $result = $brand_model->update_data($data, $this->user['id']);
+        $result = $brand_model->update_data($data);
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

@@ -156,7 +156,9 @@ class RateModel extends PublicModel {
     public function delete_data($id = '') {
         if (!$id) {
             return false;
-        } else {
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
             $where['id'] = $id;
         }
         $update_data['updated_by'] = UID;
@@ -176,10 +178,10 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function update_data($update, $uid = 0) {
+    public function update_data($update) {
         $data = $this->create($update);
         $where['id'] = $data['id'];
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = UID;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $flag = $this->where($where)->save($data);
         if ($flag) {
@@ -196,13 +198,13 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function create_data($create = [], $uid = 0) {
+    public function create_data($create = []) {
         if (isset($create['id'])) {
             $create['id'] = null;
             unset($create['id']);
         }
 
-        $create['created_by'] = $uid;
+        $create['created_by'] = UID;
         $create['created_at'] = date('Y-m-d H:i:s');
         $data = $this->create($create);
         $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';

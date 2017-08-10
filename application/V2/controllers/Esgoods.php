@@ -143,7 +143,7 @@ class EsgoodsController extends PublicController {
             $search['country_bn'] = $country_bn;
             $search['search_time'] = date('Y-m-d H:i:s');
             $usersearchmodel = new HotKeywordsModel();
-            $uid = $this->user['id'];
+            $uid = UID;
             $condition = ['keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
             if ($row) {
