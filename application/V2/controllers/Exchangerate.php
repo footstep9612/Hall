@@ -81,7 +81,7 @@ class ExchangerateController extends PublicController {
                 $userids[] = $val['created_by'];
             }
             $usernames = $employee_model->getUserNamesByUserids($userids);
-         
+
             foreach ($arr as $key => $val) {
                 if ($val['created_by'] && isset($usernames[$val['created_by']])) {
                     $val['created_by_name'] = $usernames[$val['created_by']];

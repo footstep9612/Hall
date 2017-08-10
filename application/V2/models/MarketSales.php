@@ -21,25 +21,24 @@ class MarketSalesModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-
     /**
      * 获取列表
      * @param data $data;
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='id desc') {
-        $sql  = 'SELECT m.id,m.market_area_bn,m.user_id,u.name as user_name ';
-        $sql .= ' FROM '.$this->tableName.'as m';
+    public function getlist($data, $limit, $order = 'id desc') {
+        $sql = 'SELECT m.id,m.market_area_bn,m.user_id,u.name as user_name ';
+        $sql .= ' FROM ' . $this->tableName . 'as m';
         $sql .= ' LEFT JOIN t_user AS u ON t_user.`id` = ug.`user_id`';
-        if(!empty($data['group_id'])){
-            $sql .= ' WHERE g.`group_id` = '.$data['group_id'];
+        if (!empty($data['group_id'])) {
+            $sql .= ' WHERE g.`group_id` = ' . $data['group_id'];
         }
-        if(!empty($limit)){
-            $sql .= ' LIMIT '.$limit['page'].','.$limit['num'];
+        if (!empty($limit)) {
+            $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
         }
-        $sql .= ' ORDER BY '.$order;
-        $res = $this->query( $sql );
+        $sql .= ' ORDER BY ' . $order;
+        $res = $this->query($sql);
         return $res;
     }
 
@@ -51,12 +50,12 @@ class MarketSalesModel extends PublicModel {
      */
     public function detail($id = '') {
         $where['id'] = $id;
-        if(!empty($where['id'])){
+        if (!empty($where['id'])) {
             $row = $this->where($where)
-                ->field('id,market_area_bn,user_id')
-                ->find();
+                    ->field('id,market_area_bn,user_id')
+                    ->find();
             return $row;
-        }else{
+        } else {
             return false;
         }
     }
@@ -83,50 +82,48 @@ class MarketSalesModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($data,$where) {
-        if(isset($data['parent_id'])){
+    public function update_data($data, $where) {
+        if (isset($data['parent_id'])) {
             $arr['parent_id'] = $data['parent_id'];
         }
-        if(isset($data['parent_id'])){
+        if (isset($data['parent_id'])) {
             $arr['parent_id'] = $data['parent_id'];
         }
-        if(isset($data['name'])){
+        if (isset($data['name'])) {
             $arr['name'] = $data['name'];
         }
-        if(isset($data['description'])){
+        if (isset($data['description'])) {
             $arr['description'] = $data['description'];
         }
-        if(isset($data['status'])){
+        if (isset($data['status'])) {
             $arr['status'] = $data['status'];
         }
-        if(!empty($where)){
+        if (!empty($where)) {
             return $this->where($where)->save($arr);
-        }else{
+        } else {
             return false;
         }
     }
 
-
-
     /**
      * 新增数据
-     * @param  mix $createcondition 新增条件
+     * @param  mix $create 新增条件
      * @return bool
      * @author jhw
      */
-    public function create_data($create= []) {
-        if(isset($create['parent_id'])){
+    public function create_data($create = []) {
+        if (isset($create['parent_id'])) {
             $arr['parent_id'] = $create['parent_id'];
-        }else{
+        } else {
             $arr['parent_id'] = 0;
         }
-        if(isset($create['name'])){
+        if (isset($create['name'])) {
             $arr['name'] = $create['name'];
         }
-        if(isset($create['description'])){
+        if (isset($create['description'])) {
             $arr['description'] = $create['description'];
         }
-        if(isset($create['status'])){
+        if (isset($create['status'])) {
             $arr['status'] = $create['status'];
         }
         $data = $this->create($arr);

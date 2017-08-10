@@ -7,7 +7,7 @@
 class CurrencyController extends PublicController {
 
     public function init() {
-        //  parent::init();
+        parent::init();
     }
 
     /**
