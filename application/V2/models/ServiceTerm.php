@@ -34,10 +34,16 @@ class ServiceTermModel extends PublicModel{
             $data = array();
             if($result) {
                 foreach($result as $item){
-                    $item['term'] = json_decode($item['term']);
+                    $item['term'] = json_decode($item['term'],true);
                     $ServiceItemModel = new ServiceItemModel();
                     $resultItem = $ServiceItemModel->getInfo($item);
-                    $data[] = $resultItem ? array_merge($item,$resultItem) : $item;
+                     foreach($item['term'] as $value){
+                         if(empty($resultItem)){
+                             $resultItem[$value['lang']] = $resultItem;
+                         }
+                        unset($item['term']);
+                        $data[$value['lang']]['term'][] = array_merge($value,$item,$resultItem[$value['lang']]);
+                    }
                 }
             }
             return $data;

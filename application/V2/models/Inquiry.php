@@ -60,7 +60,10 @@ class InquiryModel extends PublicModel {
      */
     public function getCount($condition = []) {
         $where = $this->getCondition($condition);
-        return $this->where($where)->count('id');
+
+        $count = $this->where($where)->count('id');
+
+        return $count > 0 ? $count : 0;
     }
 
     /**

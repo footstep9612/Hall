@@ -11,7 +11,6 @@ class TradetermsController extends PublicController {
 
     public function init() {
         parent::init();
-
         $this->_model = new TradeTermsModel();
     }
 

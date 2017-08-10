@@ -17,6 +17,10 @@ class RegionController extends PublicController {
 
     //put your code here
     public function init() {
+
+    }
+
+    private function _init() {
         parent::init();
     }
 
@@ -28,7 +32,6 @@ class RegionController extends PublicController {
         $data = $this->getPut();
         $data['lang'] = $this->getPut('lang', 'zh');
         $region_model = new RegionModel();
-
         $arr = $region_model->getlist($data);
 
         if (!empty($arr)) {

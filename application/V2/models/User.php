@@ -22,23 +22,22 @@ class UserModel extends PublicModel {
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
-
     /**
-     * 获取列表
-     * @param  array $condition;
-     * @return array
+     * 根据条件获取查询条件
+     * @param Array $condition
+     * @return Array
      * @author jhw
      */
-    public function getlist($condition = [],$order=" employee.id desc") {
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`gender`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
-        $sql .= ' FROM '.$this->g_table;
-        $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
-        $sql .= ' left join  org on org_member.org_id = org.id ';
-        $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
-        $sql .= ' left join  role on role_member.role_id = role.id ';
-        $sql .= ' WHERE `employee`.`status`= "NORMAL"';
+    protected function getCondition($condition = []) {
+        $sql = ' WHERE 1 = 1';
+        if ( !empty($condition['status']) ){
+            $sql .= ' AND `employee`.`status`= "'.$condition['status'].'"';
+        }
         if ( !empty($condition['group_id']) ){
             $sql .= ' AND org_member.employee_id ='.$condition['group_id'];
+        }
+        if ( !empty($condition['mobile']) ){
+            $sql .= ' AND employee.mobile ="'.$condition['mobile'].'"';
         }
         if ( !empty($condition['role_id']) ){
             $sql .= ' AND role_member.role_id ='.$condition['role_id'];
@@ -47,15 +46,41 @@ class UserModel extends PublicModel {
             $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
         }
         if ( !empty($condition['employee_flag']) ){
-            $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
-        }
-        if ( !empty($condition['employee_flag']) ){
             $sql .= ' AND employee.employee_flag ='.$condition['employee_flag'];
         }
+
+        return $sql;
+    }
+    /**
+     * 获取列表
+     * @param  array $condition;
+     * @return array
+     * @author jhw
+     */
+    public function getlist($condition = [],$order=" employee.id desc") {
+        $where = $this->getCondition($condition);
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`gender`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
+        $sql .= ' FROM '.$this->g_table;
+        $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
+        $sql .= ' left join  org on org_member.org_id = org.id ';
+        $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
+        $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .=$where;
         $sql .= ' group by `employee`.`id`';
         if ( $condition['num'] ){
             $sql .= ' LIMIT '.$condition['page'].','.$condition['num'];
         }
+        return $this->query( $sql );
+    }
+    public function getcount($condition = [],$order=" employee.id desc") {
+        $where = $this->getCondition($condition);
+        $sql = 'SELECT count(`employee`.`id`) as num';
+        $sql .= ' FROM '.$this->g_table;
+        $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
+        $sql .= ' left join  org on org_member.org_id = org.id ';
+        $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
+        $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .=$where;
         return $this->query( $sql );
     }
     /**

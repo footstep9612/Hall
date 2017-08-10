@@ -146,6 +146,20 @@ class PublicModel extends Model {
             if (isset($condition[$name]) && is_array($condition[$name])) {
                 $where[$field] = ['in', $condition[$name]];
             }
+        } elseif ($type == 'between') {
+
+            if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
+                $created_at_start = $condition[$name . '_start'];
+                $created_at_end = $condition[$name . '_end'];
+                $where[$field] = ['between', $created_at_start . ',' . $created_at_end,];
+            } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
+                $created_at_start = $condition[$name . '_start'];
+
+                $where[$field] = ['egt', $created_at_start,];
+            } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
+                $created_at_end = $condition[$name . '_end'];
+                $where[$field] = ['elt', $created_at_start,];
+            }
         }
     }
 
@@ -190,39 +204,50 @@ class PublicModel extends Model {
 
 // 插入数据前的回调方法
     protected function _before_insert(&$data, $options) {
+        if (isset($data['id']) && empty($data['id'])) {
+            unset($data['id']);
+        }
+        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
 
-        $obj_id = $data['id'] ?: 0;
-        self::$op_log_id = $this->_addlog('CREATE', $obj_id, UID, [$data, $options], date('Y-m-d H:i:s') . '开始新增!', 'N');
+        $uid = defined('UID') ? UID : 0;
+
+        self::$op_log_id = $this->_addlog('CREATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '开始新增!', 'N');
     }
 
     // 插入成功后的回调方法
     protected function _after_insert($data, $options) {
-        $obj_id = $data['id'] ?: 0;
-        $this->_addlog('CREATE', $obj_id, UID, [$data, $options], date('Y-m-d H:i:s') . '新增成功!', 'Y');
+        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
+        $uid = defined('UID') ? UID : 0;
+        $this->_addlog('CREATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '新增成功!', 'Y');
     }
 
     // 更新数据前的回调方法
     protected function _before_update(&$data, $options) {
-        $obj_id = $data['id'] ?: 0;
-        self::$op_log_id = $this->_addlog('UPDATE', $obj_id, UID, [$data, $options], date('Y-m-d H:i:s') . '开始更新!', 'N');
+        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
+        $uid = defined('UID') ? UID : 0;
+
+        self::$op_log_id = $this->_addlog('UPDATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '开始更新!', 'N');
     }
 
     // 更新成功后的回调方法
     protected function _after_update($data, $options) {
-        $obj_id = $data['id'] ?: 0;
-        $this->_addlog('UPDATE', $obj_id, UID, [$data, $options], date('Y-m-d H:i:s') . '更新成功!', 'Y');
+        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
+        $uid = defined('UID') ? UID : 0;
+        $this->_addlog('UPDATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '更新成功!', 'Y');
     }
 
     // 删除数据前的回调方法
     protected function _before_delete($options) {
-        $obj_id = $data['id'] ?: 0;
-        self::$op_log_id = $this->_addlog('DELETE', $obj_id, UID, $options, date('Y-m-d H:i:s') . '开始删除', 'N');
+        $obj_id = isset($options['id']) && $options['id'] ? $options['id'] : 0;
+        $uid = defined('UID') ? UID : 0;
+        self::$op_log_id = $this->_addlog('DELETE', $obj_id, $uid, $options, date('Y-m-d H:i:s') . '开始删除', 'N');
     }
 
     // 更新成功后的回调方法
     protected function _after_delete($data, $options) {
-        $obj_id = $data['id'] ?: 0;
-        $this->_addlog('DELETE', $obj_id, UID, [$data, $options], date('Y-m-d H:i:s') . '删除成功', 'Y');
+        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
+        $uid = defined('UID') ? UID : 0;
+        $this->_addlog('DELETE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '删除成功', 'Y');
     }
 
     /**
