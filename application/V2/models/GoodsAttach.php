@@ -254,7 +254,7 @@ class GoodsAttachModel extends PublicModel {
 
         //redis
         if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
-            return json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
+//            return json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
         }
         $field = 'id, sku, supplier_id, attach_type, attach_name, attach_url, default_flag, sort_order, status, created_by,  created_at, updated_by, updated_at, checked_by, checked_at';
         try {

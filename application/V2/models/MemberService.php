@@ -56,7 +56,6 @@ class MemberServiceModel extends PublicModel{
         if(!$data || !is_array($data)){
             return false;
         }
-        $this->startTrans();
         try{
             foreach($data['levels'] as $item){
 //                $res = $this->field('id')->where(['id'=>$item['id']])->find();
