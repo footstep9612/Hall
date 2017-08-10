@@ -206,6 +206,9 @@ class PublicModel extends Model {
     protected function _before_insert(&$data, $options) {
 
         $obj_id = $data['id'] ?: 0;
+        if ($data['id']) {
+            unset($data['id']);
+        }
         self::$op_log_id = $this->_addlog('CREATE', $obj_id, UID, [$data, $options], date('Y-m-d H:i:s') . '开始新增!', 'N');
     }
 
