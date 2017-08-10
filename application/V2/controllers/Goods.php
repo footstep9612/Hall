@@ -206,16 +206,18 @@ class GoodsController extends PublicController {
      * @author  klp  2017/8/1
      */
     public function modifySkuAction() {
-        /* $this->put_data = [
-          'status_type'=> 'valid',
-          0 => [
-          'sku'=> '37518005',
-          'spu'=> '8832211',
-          'lang'=> 'zh',
-          'remarks' =>  ''
-          ],
-          ];
-          return $this->put_data; */
+        /*  $this->put_data = [
+        'status_type'=> 'check',
+            'skus'=>[
+                0 => [
+                'sku'=> '14979553',
+                'spu'=> '8832211',
+                'lang'=> 'zh',
+                'remarks' =>  ''
+                ],
+            ]
+        ];
+     return $this->put_data; */
         if (empty($this->put_data)) {
             return false;
         }
@@ -238,14 +240,13 @@ class GoodsController extends PublicController {
      * @author  klp  2017/8/1
      */
     public function deleteRealSkuAction() {
-        $this->put_data = [
-            'sku' => [
-                '37518005',
-                '37518006'
-            ],
-            'lang' => 'zh'
-        ];
-        /* return $this->put_data; */
+        /*   $this->put_data = [
+              'sku' => [
+                  '14979553'
+              ],
+              'lang' => 'zh'
+          ];
+          return $this->put_data; */
         if (empty($this->put_data)) {
             return false;
         }

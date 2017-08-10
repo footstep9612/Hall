@@ -1000,13 +1000,13 @@ class GoodsModel extends PublicModel {
                     }
                 }
             }
-            if ($sku) {
-                $langs = ['en', 'zh', 'es', 'ru'];
-                $es_goods_model = new EsGoodsModel();
-                foreach ($langs as $lang) {
-                    $es_goods_model->create_data($sku, $lang);
-                }
-            }
+//            if ($sku) {
+//                $langs = ['en', 'zh', 'es', 'ru'];
+//                $es_goods_model = new EsGoodsModel();
+//                foreach ($langs as $lang) {
+//                    $es_goods_model->create_data($sku, $lang);
+//                }
+//            }
             $this->commit();
             return $sku;
         } catch (Exception $e) {
@@ -1032,47 +1032,40 @@ class GoodsModel extends PublicModel {
         unset($input['status_type']);
         $this->startTrans();
         try {
-            $res = $this->modifySku($input, $status);               //sku状态
+            $res = $this->modifySku($input['skus'], $status);               //sku状态
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
 
-//            $pModel = new ProductModel();                         //spu状态
-//            $resp = $pModel->modifySpu($input,$status);
-//            if (!$resp) {
-//                $this->rollback();
-//                return false;
-//            }
-
             $gattr = new GoodsAttrModel();
-            $resAttr = $gattr->modifyAttr($input, $status);        //属性状态
+            $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
                 return false;
             }
 
             $gattach = new GoodsAttachModel();
-            $resAttach = $gattach->modifyAttach($input, $status);  //附件状态
+            $resAttach = $gattach->modifyAttach($input['skus'], $status);  //附件状态
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
                 return false;
             }
             if ('CHECKING' != $status) {
                 $checkLogModel = new ProductChecklogModel();          //审核记录
-                $resLogs = $checkLogModel->takeRecord($input, $status);
+                $resLogs = $checkLogModel->takeRecord($input['skus'], $status);
                 if (!$resLogs || $resLogs['code'] != 1) {
                     $this->rollback();
                     return false;
                 }
             }
-            if ($sku) {
-                $langs = ['en', 'zh', 'es', 'ru'];
-                foreach ($langs as $lang) {
-                    $es_goods_model = new EsGoodsModel();
-                    $es_goods_model->create_data($sku, $lang);
-                }
-            }
+//            if ($sku) {
+//                $langs = ['en', 'zh', 'es', 'ru'];
+//                foreach ($langs as $lang) {
+//                    $es_goods_model = new EsGoodsModel();
+//                    $es_goods_model->create_data($sku, $lang);
+//                }
+//            }
             $this->commit();
             return true;
         } catch (Exception $e) {
@@ -1214,10 +1207,10 @@ class GoodsModel extends PublicModel {
 
 
             $this->commit();
-            if ($input['sku']) {
-                $es_goods_model = new EsGoodsModel();
-                $es_goods_model->delete_data($input['sku'], $lang);
-            }
+//            if ($input['sku']) {
+//                $es_goods_model = new EsGoodsModel();
+//                $es_goods_model->delete_data($input['sku'], $lang);
+//            }
 
             return true;
         } catch (Exception $e) {
@@ -1265,11 +1258,10 @@ class GoodsModel extends PublicModel {
                 $results['code'] = '-101';
                 $results['message'] = '失败!';
             }
-            if ($skus) {
-
-                $es_goods_model = new EsGoodsModel();
-                $es_goods_model->batchdelete($skus, $lang);
-            }
+//            if ($skus) {
+//                $es_goods_model = new EsGoodsModel();
+//                $es_goods_model->batchdelete($skus, $lang);
+//            }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
