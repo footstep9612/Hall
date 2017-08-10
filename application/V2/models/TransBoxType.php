@@ -95,7 +95,7 @@ class TransBoxTypeModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($id = '', $uid = 0) {
+    public function delete_data($id = '') {
         if (!$id) {
             return false;
         } else {
