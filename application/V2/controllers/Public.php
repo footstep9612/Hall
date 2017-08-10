@@ -217,16 +217,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         if (!$this->put_data) {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
-            $data['token'] = null;
-            unset($data['token']);
         }
         if ($name) {
             $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
             return $data;
         } else {
             $data = $this->put_data;
-            $data['token'] = null;
-            unset($data['token']);
             return $data;
         }
     }
