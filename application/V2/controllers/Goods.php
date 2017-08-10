@@ -318,7 +318,7 @@ class GoodsController extends PublicController {
             jsonReturn('',ErrorMsg::NOTNULL_LANG);
         }
 
-        $pchecklog = new ProductChecklogModel();
+        $pchecklog = new ProductCheckLogModel();
         $logs = $pchecklog->getRecord(array('spu' => $sku, 'lang' => $lang), 'sku,lang,status,remarks,approved_by,approved_at');
         if ($logs !== false) {
             jsonReturn($logs);
