@@ -243,36 +243,13 @@ class ServiceCatModel extends PublicModel {
                     }
                 }
                // redisHashSet('ServiceCat', md5(json_encode($condition)), json_encode($data));
-            }var_dump($data);die;
+            }
             return $data;
         } catch(Exception $e) {
             return array();
         }
 
     }
-    function object22array(&$object) {
-        $object =  json_decode( json_encode( $object),true);
-        return  $object;
-    }
-    function object2array($arr) {
-        $array=[];
-        if (is_array($array)) {
-            foreach ($arr as $object) {
-                $array[] = $object;
-            }
-        }
-        return $array;
-    }
 
-    function array2object($array) {
-        if (is_array($array)) {
-            $obj = new StdClass();
-            foreach ($array as $key => $val){
-                $obj->$key = $val;
-            }
-        }
-        else { $obj = $array; }
-        return $obj;
-    }
 
 }
