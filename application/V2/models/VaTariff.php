@@ -36,10 +36,14 @@ class VaTariffModel extends PublicModel {
             if ($userids) {
                 $map['vt.created_by'] = ['in', $userids];
                 $map['c.name'] = ['like', '%' . $keyword . '%'];
+                $map['vt.country_bn'] = $keyword;
                 $map['_logic'] = 'or';
                 $where['_complex'] = $map;
             } else {
-                $where['c.name'] = ['like', '%' . $keyword . '%'];
+                $map['c.name'] = ['like', '%' . $keyword . '%'];
+                $map['vt.country_bn'] = $keyword;
+                $map['_logic'] = 'or';
+                $where['_complex'] = $map;
             }
         }
 
@@ -162,11 +166,15 @@ class VaTariffModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function create_data($create = [], $uid = 0) {
-        $create['created_by'] = $uid;
+    public function create_data($create = []) {
+        $create['created_by'] = UID;
         $create['created_at'] = date('Y-m-d H:i:s');
 
         $data = $this->create($create);
+        if (isset($data['id']) && $data['id']) {
+            $data['id'] = null;
+            unset($data['id']);
+        }
         $data['value_added_tax'] = number_format($data['value_added_tax'], 4, '.', '');
         $data['tariff'] = number_format($data['tariff'], 4, '.', '');
         try {

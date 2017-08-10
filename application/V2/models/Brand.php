@@ -39,7 +39,7 @@ class BrandModel extends PublicModel {
     private function _getcondition($condition, $lang = '') {
 
         $where = [];
-      //  $this->_getValue($where, $condition, 'id', 'string');
+        //  $this->_getValue($where, $condition, 'id', 'string');
         $this->_getValue($where, $condition, 'name', 'like', 'brand');
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
         // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
@@ -284,6 +284,7 @@ class BrandModel extends PublicModel {
     public function create_data($createcondition = [], $uid = '') {
 
         $data['brand'] = $this->_getdata($createcondition);
+        unset($data['id']);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = $uid;
         try {
