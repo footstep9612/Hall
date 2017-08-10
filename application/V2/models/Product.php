@@ -25,7 +25,6 @@ class ProductModel extends PublicModel {
         //'lang' => array('method','checkLang'),
         'material_cat_no' => array('required'),
         'name' => array('required'),
-        'show_name' => array('required'),
         'brand' => array('required'),
     );
 
