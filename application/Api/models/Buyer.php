@@ -266,6 +266,59 @@ class BuyerModel extends PublicModel {
     }
 
     /**
+     * 个人信息查询
+     * @param  $data 条件
+     * @return
+     * @author klp
+     */
+    public function getInfo($data)
+    {
+        $where=array();
+        if(empty($data['customer_id'])) {
+            if (!empty($data['email'])) {
+                $where['email'] = $data['email'];
+            } else {
+                jsonReturn('', '-1001', '用户email不可以为空');
+            }
+            $buyerInfo = $this->where(array("email='".$data['email']."'"))
+                ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                ->find();
+        } else{
+            $buyerInfo = $this->where(array("customer_id='".$data['customer_id']."'"))
+                ->field('customer_id,lang,name,bn,country,province,city,official_website,buyer_level')
+                ->find();
+
+        }
+        if($buyerInfo){
+            //通过顾客id查询用户信息
+            $buyerAccount = new BuyerAccountModel();
+            $userInfo = $buyerAccount->field('email,user_name,mobile,first_name,last_name,status')
+                ->where(array('customer_id' => $buyerInfo['customer_id']))
+                ->find();
+
+
+            //通过顾客id查询用户邮编
+            $buyerAddress = new BuyerAddressModel();
+            $zipCode = $buyerAddress->field('zipcode,address')
+                ->where(array('customer_id' => $buyerInfo['customer_id']))
+                ->find();
+
+            $buyerInfo['email'] = $userInfo['email'];
+            $buyerInfo['user_name'] = $userInfo['user_name'];
+            $buyerInfo['mobile'] = $userInfo['mobile'];
+            $buyerInfo['first_name'] = $userInfo['first_name'];
+            $buyerInfo['last_name'] = $userInfo['last_name'];
+            $buyerInfo['status'] = $userInfo['status'];
+            $buyerInfo['zipcode'] = $zipCode['zipcode'];
+            $buyerInfo['address'] = $zipCode['address'];
+
+            return $buyerInfo;
+        } else{
+            return false;
+        }
+    }
+
+    /**
      * 获取企业信息
      * @author klp
      */
@@ -273,23 +326,23 @@ class BuyerModel extends PublicModel {
         //jsonReturn(123);
         //$info['id'] = '20170630000001'; $info['lang']='en';//测试
         $where=array();
-        if(!empty($info['id'])){
-            $where['id'] = $info['id'];
+        if(!empty($info['customer_id'])){
+            $where['customer_id'] = $info['customer_id'];
         } else{
             jsonReturn('','-1001','用户[buyer_id]不可以为空');
         }
         if (isset($info['lang']) && in_array($info['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($info['lang']);
         }
-        $field = 'lang,serial_no,buyer_type,buyer_no,name,bn,country_code,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,sec_ex_listed_on,line_of_credit,credit_available,credit_cur_bn,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';
+        //$field = 'lang,serial_no,buyer_type,buyer_no,name,bn,country_code,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,sec_ex_listed_on,line_of_credit,credit_available,credit_cur_bn,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';
         try{
-            $buyerInfo =  $this->field($field)->where($where)->find();
-            if($buyerInfo){
+            $buyerInfo =  $this->where($where)->find();
+            /*if($buyerInfo){
                 $BuyerreginfoModel = new BuyerreginfoModel();
                 $result = $BuyerreginfoModel->buyerRegInfo($where);
-                return $result ? array_merge($buyerInfo,$result) : $buyerInfo;
-            }
-            return array();
+                return !empty($result) ? array_merge($buyerInfo,$result) : $buyerInfo;
+            }*/
+            return $buyerInfo;
         }catch (Exception $e){
             return false;
         }
