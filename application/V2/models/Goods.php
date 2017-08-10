@@ -313,8 +313,16 @@ class GoodsModel extends PublicModel {
         $field .= 'name_customs, hs_code, tx_unit, tax_rebates_pct, regulatory_conds, commodity_ori_place';
         try {
             $result = $this->field($field)->where($where)->select();
-            $data = array();
+            $data = $pData = $kData = array();
             if ($result) {
+                //查询对应spu-name
+                $productModel = new ProductModel();
+                $spuNames = $productModel->field('lang,spu,name,show_name')->where(['spu'=>$result[0]['spu']])->select();
+                if($spuNames){
+                    foreach($spuNames as $spuName){
+                        $pData['spu_name'][$spuName['lang']] = $spuName;
+                    }
+                }
                 $employee = new EmployeeModel();
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
@@ -332,17 +340,10 @@ class GoodsModel extends PublicModel {
                     if ($checkeder && isset($checkeder[0])) {
                         $item['checked_by'] = $checkeder[0];
                     }
-                    //查询对应spu-name
-                    $productModel = new ProductModel();
-                    $spuNames = $productModel->field('lang,spu,name,show_name')->where(['spu'=>$item['spu']])->select();
-                    if($spuNames){
-                        foreach($spuNames as $spuName){
-                            $item['spu_name'][$spuName['lang']] = $spuName;
-                        }
-                    }
                     //按语言分组
-                    $data[$item['lang']] = $item;
+                    $kData[$item['lang']] = $item;
                 }
+                $data = array_merge($kData,$pData);
                 redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
             }
             return $data;
