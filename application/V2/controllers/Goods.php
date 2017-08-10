@@ -262,23 +262,45 @@ class GoodsController extends PublicController {
      * @author  klp  2017/7-6
      */
     public function addSkuAttachAction() {
-        $userInfo = getLoinInfo();
-        $this->put_data['user_id'] = $userInfo['id'];
-        $gattach = new GoodsAttachModel();
-        $resAttach = $gattach->editSkuAttach($this->put_data);
-        $this->returnInfo($resAttach);
-    }
+    /*  $this->put_data = [
+          'sku'=>'123',
+            "attachs"=>[
+                   0=>[
+                       'supplier_id'    =>'333',
+                       'attach_type'	 =>'',
+                       'attach_name'	 =>'',
+                       'attach_url'     =>'a/b/c.png',
+                       'sort_order'     =>'0',
+                   ],
+              ],
+         ];*/
+       $userInfo = getLoinInfo();
+       $this->put_data['user_id'] = $userInfo['id'];
+       $gattach = new GoodsAttachModel();
+       $resAttach = $gattach->editSkuAttach($this->put_data);
+       if($resAttach){
+           $this->jsonReturn($resAttach);
+       } else{
+           jsonReturn('',-1,'失败!');
+       }
 
-    /**
-     * sku附件删除
-     * @param  "sku":['000001'，'000002',...]
-     * @author  klp  2017/7-6
-     */
+   }
+
+   /**
+    * sku附件删除
+    * @param  "sku":['000001'，'000002',...]
+    * @author  klp  2017/7-6
+    */
     public function delSkuAttachAction() {
+//        $this->put_data = ['123'];
         $gattach = new GoodsAttachModel();
-        $skus = $this->getPut('sku');
-        $resAttach = $gattach->deleteSkuAttach($skus);
-        $this->returnInfo($resAttach);
+//        $this->put_data = $this->getPut('sku');
+        $resAttach = $gattach->deleteSkuAttach($this->put_data);
+        if($resAttach){
+            $this->jsonReturn($resAttach);
+        } else {
+            jsonReturn('', -1, '失败!');
+        }
     }
 
     /**
@@ -297,7 +319,13 @@ class GoodsController extends PublicController {
      * @author  klp  2017/8/2
      */
     public function checkInfoAction() {
-        $ProductChecklogModel = new ProductChecklogModel();
+     /*   $this->put_data = [
+            'sku' => [
+                '14979553',
+                'lang' => 'zh'
+            ],
+        ];*/
+        $ProductChecklogModel = new ProductCheckLogModel();
         $result = $ProductChecklogModel->getRecord($this->put_data);
         $this->returnInfo($result);
     }
@@ -318,8 +346,9 @@ class GoodsController extends PublicController {
             jsonReturn('',ErrorMsg::NOTNULL_LANG);
         }
 
-        $pchecklog = new ProductChecklogModel();
-        $logs = $pchecklog->getRecord(array('spu' => $sku, 'lang' => $lang), 'sku,lang,status,remarks,approved_by,approved_at');
+        $pchecklog = new ProductCheckLogModel();
+
+        $logs = $pchecklog->getRecord(array('sku' => $sku, 'lang' => $lang), 'sku,lang,status,remarks,approved_by,approved_at');
         if ($logs !== false) {
             jsonReturn($logs);
         } else {

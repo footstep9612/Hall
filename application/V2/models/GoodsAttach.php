@@ -425,7 +425,7 @@ class GoodsAttachModel extends PublicModel {
                 $results['code'] = '-101';
                 $results['message'] = '失败!';
             }
-        
+
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
