@@ -315,7 +315,29 @@ class GoodsModel extends PublicModel {
             $result = $this->field($field)->where($where)->select();
             $data = array();
             if ($result) {
+                $employee = new EmployeeModel();
                 foreach ($result as $item) {
+                    //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
+
+                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+                    if ($updateder && isset($updateder[0])) {
+                        $item['updated_by'] = $updateder[0];
+                    }
+
+                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+                    if ($checkeder && isset($checkeder[0])) {
+                        $item['checked_by'] = $checkeder[0];
+                    }
+                    //查询对应spu-name
+                    $productModel = new ProductModel();
+                    $spuNames = $productModel->field('lang,spu,name,show_name')->where(['spu'=>$item['spu']])->select();
+                    if($spuNames){
+                        $item['spu_name'] = $spuNames;
+                    }
                     //按语言分组
                     $data[$item['lang']] = $item;
                 }
@@ -417,6 +439,13 @@ class GoodsModel extends PublicModel {
                         $data['status'] = self::STATUS_DRAFT;
                         $res = $this->add($data);
                         if (!$res) {
+                            $this->rollback();
+                            return false;
+                        }
+                        $pModel = new ProductModel();                                 //sku_count加一
+                        $presult = $pModel->where(['spu'=>$checkout['spu'],'lang'=>$key])
+                            ->save(array('sku_count'=>array('exp', 'sku_count' . '+' . 1)));
+                        if(!$presult){
                             $this->rollback();
                             return false;
                         }
@@ -647,6 +676,16 @@ class GoodsModel extends PublicModel {
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
+            }
+            $pModel = new ProductModel();                               //sku_count减一
+            $spu = $pModel->field('spu')->where(['sku'=>$input['sku'],'lang'=>$lang,'onshelf_flag'=>'Y'])->find();
+            if($spu){
+                $presult = $pModel->where(['spu'=>$spu['spu'],'lang'=>$lang])
+                    ->save(array('sku_count'=>array('exp', 'sku_count' . '-' . 1)));
+                if(!$presult){
+                    $this->rollback();
+                    return false;
+                }
             }
 
             $gattr = new GoodsAttrModel();

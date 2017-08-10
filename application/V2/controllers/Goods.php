@@ -120,11 +120,11 @@ class GoodsController extends PublicController {
      * @author  klp  2017/7-13
      */
     public function editSkuAction() {
-        /* $this->put_data = [
+       /*  $this->put_data = [
           "sku"=>'',
           "zh"=>[
           'lang'        =>'zh',
-          'spu'		  =>'8832211',
+          'spu'		  =>'417851',
           'name'		  =>'123',
           'show_name'   =>'123',
           "attrs"=>[
@@ -263,7 +263,7 @@ class GoodsController extends PublicController {
      */
     public function addSkuAttachAction() {
     /*  $this->put_data = [
-          'sku'=>'123',
+          'sku'=>'666123',
             "attachs"=>[
                    0=>[
                        'supplier_id'    =>'333',
@@ -319,11 +319,10 @@ class GoodsController extends PublicController {
      * @author  klp  2017/8/2
      */
     public function checkInfoAction() {
-     /*   $this->put_data = [
-            'sku' => [
-                '14979553',
-                'lang' => 'zh'
-            ],
+     /*   $this->put_data =[
+            'sku' =>'14979553',
+            'lang' => 'zh'
+
         ];*/
         $ProductChecklogModel = new ProductCheckLogModel();
         $result = $ProductChecklogModel->getRecord($this->put_data);
