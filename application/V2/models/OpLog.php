@@ -65,7 +65,7 @@ class OpLogModel extends PublicModel {
      */
     public function create_data($create = [], $uid = 0) {
         try {
-            $create['op_id'] = UID;
+            $create['op_id'] = defined('UID') ? UID : 0;
             $create['created_at'] = $create['op_at'] = date('Y-m-d H:i:s');
             if (is_array($create['op_note'])) {
                 $create['op_note'] = json_encode($create['op_note']);
@@ -73,7 +73,7 @@ class OpLogModel extends PublicModel {
                 $create['op_note'] = $create['op_note'];
             }
 
-            $create['op_id'] = UID;
+            $create['op_id'] = defined('UID') ? UID : 0;
             $data = $this->create($create);
             return $this->add($data);
         } catch (Exception $ex) {
@@ -89,7 +89,7 @@ class OpLogModel extends PublicModel {
      */
     public function update_data($create = [], $id = 0, $uid = 0) {
         try {
-            $create['op_id'] = UID;
+            $create['op_id'] = defined('UID') ? UID : 0;
 
             if (is_array($create['op_note'])) {
                 $create['op_note'] = json_encode($create['op_note'], 256);
@@ -97,7 +97,7 @@ class OpLogModel extends PublicModel {
                 $create['op_note'] = $create['op_note'];
             }
 
-            $create['op_id'] = UID;
+            $create['op_id'] = defined('UID') ? UID : 0;
             $data = $this->where(['id' => $id])->save($create);
             return $this->add($data);
         } catch (Exception $ex) {

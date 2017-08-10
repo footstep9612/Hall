@@ -15,6 +15,7 @@ class LogisticsController extends PublicController {
 		$this->quoteItemLogiModel = new QuoteItemLogiModel();
 		$this->exchangeRateModel = new ExchangeRateModel();
 		$this->userModel = new UserModel();
+		$this->inquiryCheckLogModel = new InquiryCheckLogModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -28,6 +29,8 @@ class LogisticsController extends PublicController {
 	public function getQuoteItemLogiListAction() {
 	    $condition = $this->put_data;
 	
+	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	    
 	    $data = $this->quoteItemLogiModel->getJoinList($condition);
 	
 	    $this->_handleList($this->quoteItemLogiModel, $data, $condition, true);
@@ -199,52 +202,52 @@ class LogisticsController extends PublicController {
 	        $data['updated_by'] = $this->user['id'];
 	        $data['updated_at'] = $this->time;
 	        
-	        $data['inspection_fee'] = $condition['inspection_fee'];
+	        $data['inspection_fee'] = $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
 	        
 	        switch ($quoteLogiFee['trade_terms_bn']) {
 	            case 'EXW' :
 	                
 	                break;
 	            case 'FCA' || 'FAS' :
-	                $data['land_freight'] = $condition['land_freight'];
-	                $data['overland_insu_rate'] = $condition['overland_insu_rate'];
+	                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+	                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	                break;
 	            case 'FOB' :
-	                $data['land_freight'] = $condition['land_freight'];
-	                $data['overland_insu_rate'] = $condition['overland_insu_rate'];
-	                $data['port_surcharge'] = $condition['port_surcharge'];
+	                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+	                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+	                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
 	                break;
 	            case 'CPT' || 'CFR' :
-	                $data['land_freight'] = $condition['land_freight'];
-	                $data['overland_insu_rate'] = $condition['overland_insu_rate'];
-	                $data['port_surcharge'] = $condition['port_surcharge'];
-	                $data['inter_shipping'] = $condition['inter_shipping'];
+	                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+	                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+	                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+	                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
 	                break;
 	            case 'CIF' || 'CIP' :
-	                $data['land_freight'] = $condition['land_freight'];
-	                $data['overland_insu_rate'] = $condition['overland_insu_rate'];
-	                $data['port_surcharge'] = $condition['port_surcharge'];
-	                $data['inter_shipping'] = $condition['inter_shipping'];
-	                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'];
+	                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+	                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+	                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+	                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
+	                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
 	                break;
 	            case 'DAP' || 'DAT' :
-	                $data['land_freight'] = $condition['land_freight'];
-	                $data['overland_insu_rate'] = $condition['overland_insu_rate'];
-	                $data['port_surcharge'] = $condition['port_surcharge'];
-	                $data['inter_shipping'] = $condition['inter_shipping'];
-	                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'];
-	                $data['dest_delivery_fee'] = $condition['dest_delivery_fee'];
+	                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+	                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+	                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+	                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
+	                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
+	                $data['dest_delivery_fee'] = $condition['dest_delivery_fee'] > 0 ? $condition['dest_delivery_fee'] : 0;
 	                break;
 	            case 'DDP' || '快递' :
-	                $data['land_freight'] = $condition['land_freight'];
-	                $data['overland_insu_rate'] = $condition['overland_insu_rate'];
-	                $data['port_surcharge'] = $condition['port_surcharge'];
-	                $data['inter_shipping'] = $condition['inter_shipping'];
-	                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'];
-	                $data['dest_delivery_fee'] = $condition['dest_delivery_fee'];
-	                $data['dest_clearance_fee'] = $condition['dest_clearance_fee'];
-	                $data['dest_tariff_rate'] = $condition['dest_tariff_rate'];
-	                $data['dest_va_tax_rate'] = $condition['dest_va_tax_rate'];
+	                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+	                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+	                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+	                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
+	                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
+	                $data['dest_delivery_fee'] = $condition['dest_delivery_fee'] > 0 ? $condition['dest_delivery_fee'] : 0;
+	                $data['dest_clearance_fee'] = $condition['dest_clearance_fee'] > 0 ? $condition['dest_clearance_fee'] : 0;
+	                $data['dest_tariff_rate'] = $condition['dest_tariff_rate'] > 0 ? $condition['dest_tariff_rate'] : 0;
+	                $data['dest_va_tax_rate'] = $condition['dest_va_tax_rate'] > 0 ? $condition['dest_va_tax_rate'] : 0;
 	        }
 	        
 	        $inspectionFeeUSD = $data['inspection_fee'] * $this->_getRateUSD($data['inspection_fee_cur']);
@@ -388,7 +391,7 @@ class LogisticsController extends PublicController {
 	
 	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'APPROVED');
 	        
-	        $res2 = $this->quoteModel->where($where)->save(['status' => 'QUOTED_BY_LOGI']);
+	        $res2 = $this->quoteModel->where(['id' => $condition['quote_id']])->save(['status' => 'QUOTED_BY_LOGI']);
 	        
 	        if ($res1 && $res2) {
 	            $this->quoteLogiFeeModel->commit();
@@ -434,7 +437,7 @@ class LogisticsController extends PublicController {
 	            'op_result' => 'REJECTED'
 	        ];
 	        
-	        $res2 = $this->addCheckLog($checkLog);
+	        $res2 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);
 	        
 	        if ($res1 && $res2) {
 	            $this->quoteLogiFeeModel->commit();
@@ -510,7 +513,7 @@ class LogisticsController extends PublicController {
 	 */
 	private function _getRate($cur, $exchangeCur = 'CNY') {
 	    
-	    if (!epmty($cur)) {
+	    if (!empty($cur)) {
 	        $exchangeRate = $this->exchangeRateModel->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->field('rate')->find();
 	        
 	        return $exchangeRate['rate'];

@@ -192,7 +192,7 @@ class EsproductController extends PublicController {
             $search['country_bn'] = $country_bn;
             $search['search_time'] = date('Y-m-d H:i:s');
             $usersearchmodel = new HotKeywordsModel();
-            $uid = UID;
+            $uid = defined('UID') ? UID : 0;
             $condition = ['keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
             if ($row) {
