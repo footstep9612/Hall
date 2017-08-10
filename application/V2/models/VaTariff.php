@@ -111,12 +111,12 @@ class VaTariffModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($update_data, $uid = 0) {
+    public function update_data($update_data) {
         if (!isset($update_data['id']) || !$update_data['id']) {
             return false;
         }
         $update_data['status'] = 'VALID';
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $where['id'] = $update_data['id'];
         $data = $this->create($update_data);
@@ -167,7 +167,7 @@ class VaTariffModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create = []) {
-        $create['created_by'] = UID;
+        $create['created_by'] = defined('UID') ? UID : 0;
         $create['created_at'] = date('Y-m-d H:i:s');
 
         $data = $this->create($create);
@@ -201,7 +201,7 @@ class VaTariffModel extends PublicModel {
         } elseif ($id) {
             $where['id'] = $id;
         }
-        $update_data['updated_by'] = UID;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $data = ['status' => 'DELETED', 'deleted_flag' => 'Y',];
         $flag = $this->where($where)->save($data);

@@ -207,7 +207,7 @@ class PortModel extends PublicModel {
         $this->startTrans();
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            $flag = $this->_updateandcreate($data, $lang, $newbn, $uid);
+            $flag = $this->_updateandcreate($data, $lang, $newbn, defined('UID') ? UID : 0);
             if (!$flag) {
                 $this->rollback();
                 return false;
@@ -244,7 +244,7 @@ class PortModel extends PublicModel {
             } else {
                 $data = $arr;
                 $data['status'] = 'VALID';
-                $data['created_by'] = $uid;
+                $data['created_by'] = defined('UID') ? UID : 0;
                 $data['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->add($data);
                 return $flag;
@@ -277,7 +277,7 @@ class PortModel extends PublicModel {
             $arr['trans_mode'] = $create['trans_mode'];
             $arr['port_type'] = $create['port_type'];
             $arr['remarks'] = $create['remarks'];
-            $arr['created_by'] = $uid;
+            $arr['created_by'] = defined('UID') ? UID : 0;
             $data['status'] = 'VALID';
             $arr['created_at'] = date('Y-m-d H:i:s');
             $langs = ['en', 'zh', 'es', 'ru'];

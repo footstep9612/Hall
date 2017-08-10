@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-3 15:39:09
  * @version V2.0
- * @desc   
+ * @desc
  */
 class LogiRateModel extends PublicModel {
 
@@ -124,10 +124,14 @@ class LogiRateModel extends PublicModel {
      * @author jhw
      */
     public function delete_data($id = '') {
-        $where['id'] = $id;
+        if (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } else {
+            $where['id'] = $id;
+        }
+
         if (!empty($where['id'])) {
-            return $this->where($where)
-                            ->delete();
+            return $this->where($where)->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
         } else {
             return false;
         }
@@ -159,10 +163,52 @@ class LogiRateModel extends PublicModel {
             $datalist = [];
             $arr['bn'] = ucwords($create['en']['name']);
             $create['en']['name'] = ucwords($create['en']['name']);
+
+
             foreach ($create as $key => $name) {
                 $arr['lang'] = $key;
                 $arr['name'] = $name;
+                $arr['created_by'] = defined('UID') ? UID : 0;
+                $arr['created_at'] = date('Y-m-d H:i:s');
                 $datalist[] = $arr;
+            }
+            return $this->addAll($datalist);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Description of 修改
+     * @param array $create 新增的数据
+     * @author  zhongyg
+     * @date    2017-8-3 15:30:59
+     * @version V2.0
+     * @desc   物流费率
+     */
+    public function update_data($create = []) {
+        if (isset($create['en']['name']) && isset($create['zh']['name'])) {
+            $datalist = [];
+            $where['bn'] = $create['bn'];
+            $arr['bn'] = ucwords($create['en']['name']);
+            $create['en']['name'] = ucwords($create['en']['name']);
+            $langs = ['en', 'zh', 'es', 'ru'];
+            foreach ($langs as $lang) {
+                $where['lang'] = $lang;
+                if ($this->Exits($where)) {
+                    $arr['lang'] = $lang;
+                    $arr['name'] = $create[$lang]['name'];
+                    $arr['updated_by'] = defined('UID') ? UID : 0;
+                    $arr['updated_at'] = date('Y-m-d H:i:s');
+                    $this->where($where)->save($arr);
+                } else {
+
+                    $arr['lang'] = $lang;
+                    $arr['name'] = $create[$lang]['name'];
+                    $arr['updated_by'] = defined('UID') ? UID : 0;
+                    $arr['updated_at'] = date('Y-m-d H:i:s');
+                    $datalist[] = $arr;
+                }
             }
             return $this->addAll($datalist);
         } else {

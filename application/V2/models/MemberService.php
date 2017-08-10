@@ -53,14 +53,13 @@ class MemberServiceModel extends PublicModel{
      * @author klp
      */
     public function editInfo($data = [],$userInfo) {
-        if($data || !is_array($data)){
+        if(!$data || !is_array($data)){
             return false;
         }
-        $this->startTrans();
         try{
-            foreach($data as $item){
-                $res = $this->field('id')->where(['id'=>$item['id']])->find();
-                if($res){
+            foreach($data['levels'] as $item){
+//                $res = $this->field('id')->where(['id'=>$item['id']])->find();
+                if(!empty($item['id'])){
                     $result = $this->update_data($item,$userInfo);
                     if(1 != $result['code']){
                         return false;
@@ -93,14 +92,13 @@ class MemberServiceModel extends PublicModel{
      * @param $id
      * @return bool
      */
-    public function delData($buyer_level) {
-        if (!isset($buyer_level)) {
+    public function delData($id) {
+        if (empty($id)) {
             return false;
         }
-        $status = self::STATUS_DELETED;
         try{
-            $where = ['buyer_level'=>$buyer_level];
-            $res = $this->where($where)->save(['status'=>$status]);
+            $where = ['id'=>$id];
+            $res = $this->where($where)->save(['status'=>self::STATUS_DELETED]);
             if(!$res){
                 return false;
             }
@@ -173,7 +171,7 @@ class MemberServiceModel extends PublicModel{
      * @author klp
      */
     public function update_data($updatecondition = [],$userInfo) {
-        $upcondition = $this->checkParam($updatecondition);
+        $create = $this->checkParam($updatecondition);
         if(isset($create['id'])){
             $where = array('id'=>$create['id']);
         }

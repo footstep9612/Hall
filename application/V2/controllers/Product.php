@@ -97,7 +97,16 @@ class ProductController extends PublicController {
         if(isset($this->put_data['lang']) && !in_array(strtolower($this->put_data['lang']),array('zh','en','es','ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         } else {
-            $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
+            $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : null;
+        }
+
+        /**
+         * 查看是否存在上架
+         */
+        $showCatProductModel = new ShowCatProductModel();
+        $scp_info = $showCatProductModel->where(array('spu'=>$this->put_data['spu'],'lang'=>$lang))->find();
+        if($scp_info) {
+            jsonReturn('',ErrorMsg::NOTDELETE_EXIST_ONSHELF);
         }
 
         $productModel = new ProductModel();

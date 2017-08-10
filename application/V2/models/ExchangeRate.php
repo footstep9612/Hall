@@ -148,7 +148,7 @@ class ExchangeRateModel extends PublicModel {
             $arr['rate'] = $create['rate'];
         }
         $arr['created_at'] = date('Y-m-d H:i:s');
-        $arr['created_by'] = $uid;
+        $arr['created_by'] = defined('UID') ? UID : 0;
         $data = $this->create($arr);
         try {
             return $this->add($data);

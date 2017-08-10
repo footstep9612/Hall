@@ -30,13 +30,13 @@ class UrlPermModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            return $this->field('id,url,description,parent_id,status')
+            return $this->field('id,url,description')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,url,description,parent_id,status')
+            return $this->field('id,url,description')
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -53,7 +53,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,url,parent_id,description,parent_id,status')
+                ->field('id,url,description')
                 ->find();
             return $row;
         }else{
@@ -90,12 +90,6 @@ class UrlPermModel extends PublicModel {
         if(isset($data['description'])){
             $arr['description'] = $data['description'];
         }
-        if(isset($data['parent_id'])){
-            $arr['parent_id'] = $data['parent_id'];
-        }
-        if(isset($data['status'])){
-            $arr['status'] = $data['status'];
-        }
         if(!empty($where)){
             return $this->where($where)->save($arr);
         }else{
@@ -114,12 +108,6 @@ class UrlPermModel extends PublicModel {
     public function create_data($create= []) {
         if(isset($create['url'])){
             $arr['url'] = $create['url'];
-        }
-        if(isset($create['parent_id'])){
-            $arr['parent_id'] = $create['parent_id'];
-        }
-        if(isset($create['status'])){
-            $arr['status'] = $create['status'];
         }
         if(isset($create['description'])){
             $arr['description'] = $create['description'];

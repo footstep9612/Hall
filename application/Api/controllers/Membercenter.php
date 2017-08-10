@@ -21,7 +21,7 @@ class MembercenterController extends ShopMallController
     public function getUserInfoAction(){
 
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->buyerInfo($this->user);
+        $result = $buyerModel->getInfo($this->user);
         if(!empty($result)){
             $data = array(
                 'code' => 1,

@@ -12,7 +12,6 @@ class CountryController extends PublicController {
     public function init() {
         //  parent::init();
         $this->es = new ESClient();
-        $this->_model = new CountryModel();
     }
 
     private function _init() {
@@ -76,7 +75,8 @@ class CountryController extends PublicController {
             $data = true;
             $this->jsonReturn($data);
         } else {
-            $info = $this->model->exist(['name' => $name, 'lang' => $lang]);
+            $country_model = new CountryModel();
+            $info = $country_model->exist(['name' => $name, 'lang' => $lang]);
 
             if ($info) {
                 $this->setCode(1);
@@ -103,7 +103,8 @@ class CountryController extends PublicController {
         $data = [];
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            $result = $this->_model->field('lang,region_bn,code,bn,name,time_zone,status')
+            $country_model = new CountryModel();
+            $result = $country_model->field('lang,region_bn,code,bn,name,time_zone,status')
                             ->where(['bn' => $bn, 'lang' => $lang])->find();
             if ($result) {
                 if (!$data) {
@@ -145,7 +146,8 @@ class CountryController extends PublicController {
 
     public function createAction() {
         $this->_init();
-        $result = $this->_model->create_data($this->getPut(), $this->user['id']);
+        $country_model = new CountryModel();
+        $result = $country_model->create_data($this->getPut());
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -162,14 +164,14 @@ class CountryController extends PublicController {
 
     public function updateAction() {
         $this->_init();
-        $where = [];
+
         $bn = $this->getPut('bn');
         $market_area_bn = $this->getPut('market_area_bn');
         if (!$bn || !$market_area_bn) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
-        }
-        $result = $this->_model->update_data($this->getPut(), $this->user['id']);
+        } $country_model = new CountryModel();
+        $result = $country_model->update_data($this->getPut());
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -186,7 +188,8 @@ class CountryController extends PublicController {
 
     public function updatestatusAction() {
         $this->_init();
-        $result = $this->_model->updatestatus($this->getPut(), $this->user['id']);
+        $country_model = new CountryModel();
+        $result = $country_model->updatestatus($this->getPut());
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -216,7 +219,9 @@ class CountryController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $result = $this->_model->where($where)->save(['status' => 'DELETED']);
+        $result = $this->_model->where($where)->save([
+            'status' => 'DELETED',
+            'deleted_flag' => 'Y']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

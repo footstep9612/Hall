@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-10 9:45:19
  * @version V2.0
- * @desc   
+ * @desc
  */
 class SupplierManufacturerModel extends PublicModel {
 
@@ -51,14 +51,14 @@ class SupplierManufacturerModel extends PublicModel {
         $data = $this->create($create);
         unset($data['id']);
         $create['updated_at'] = date('Y-m-d H:i:s');
-        $create['updated_by'] = UID;
+        $create['updated_by'] = defined('UID') ? UID : 0;
         $this->add($data);
         return true;
     }
 
     /**
      * 修改数据
-     * @param  array $update 
+     * @param  array $update
      * @return bool
      * @author  zhongyg
      * @date    2017-8-2 13:07:21

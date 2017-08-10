@@ -337,7 +337,7 @@ class ShowCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($cat_no = '', $lang = '', $uid = 0) {
+    public function delete_data($cat_no = '', $lang = '') {
         if (!$cat_no) {
             return false;
         } else {
@@ -350,13 +350,13 @@ class ShowCatModel extends PublicModel {
                 ->save(['status' => self::STATUS_DELETED,
             'deleted_flag' => 'Y',
             'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => $uid]);
+            'updated_by' => defined('UID') ? UID : 0]);
 
         $this->Table('erui2_goods.show_material_cat')->where([
                     'show_cat_no' => $cat_no])
                 ->save(['status' => self::STATUS_DELETED,
                     'updated_at' => date('Y-m-d H:i:s'),
-                    'updated_by' => $uid
+                    'updated_by' => defined('UID') ? UID : 0
         ]);
         $es_product_model = new EsProductModel();
         if ($lang) {
@@ -456,12 +456,12 @@ class ShowCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function update_data($upcondition = [], $uid = '') {
+    public function update_data($upcondition = []) {
         $condition = $upcondition;
-        list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, $uid);
+        list($data, $where, $cat_no) = $this->getUpdateCondition($upcondition, defined('UID') ? UID : 0);
         $this->startTrans();
         $langs = ['en', 'es', 'zh', 'ru'];
-        $data['updated_by'] = $uid;
+        $data['updated_by'] = defined('UID') ? UID : 0;
         $data['updated_at'] = date('Y-m-d H:i:s');
 
         foreach ($langs as $lang) {
@@ -472,8 +472,8 @@ class ShowCatModel extends PublicModel {
                 $add = $data;
                 $add['cat_no'] = $cat_no;
                 $add['status'] = self::STATUS_APPROVING;
-                $add['cat_no'] = $uid;
-                $add['created_by'] = $uid;
+
+                $add['created_by'] = defined('UID') ? UID : 0;
                 $add['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($add);
                 if (!$flag) {
@@ -507,9 +507,9 @@ class ShowCatModel extends PublicModel {
                             'material_cat_no' => $material_cat_no,
                             'status' => 'VALID',
                             'created_at' => date('Y-m-d H:i:s'),
-                            'created_by' => $uid,
+                            'created_by' => defined('UID') ? UID : 0,
                             'updated_at' => date('Y-m-d H:i:s'),
-                            'updated_by' => $uid
+                            'updated_by' => defined('UID') ? UID : 0
                         ];
                     }
 
@@ -528,9 +528,9 @@ class ShowCatModel extends PublicModel {
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $uid,
+                        'created_by' => defined('UID') ? UID : 0,
                         'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => $uid
+                        'updated_by' => defined('UID') ? UID : 0
                     ];
                 }
                 $show_material_cat_model->addAll($dataList);
@@ -550,7 +550,7 @@ class ShowCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getUpdateCondition(&$upcondition = [], $uid = '') {
+    public function getUpdateCondition(&$upcondition = []) {
         $data = [];
         $where = [];
         $info = [];
@@ -620,7 +620,7 @@ class ShowCatModel extends PublicModel {
             $data['big_icon'] = $condition['big_icon'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $uid;
+        $data['created_by'] = defined('UID') ? UID : 0;
         return [$data, $where, $cat_no];
     }
 
@@ -683,7 +683,7 @@ class ShowCatModel extends PublicModel {
         }
     }
 
-    public function create_data($createcondition = [], $uid = '') {
+    public function create_data($createcondition = []) {
         $data = $condition = $this->create($createcondition);
 
         if (isset($condition['cat_no'])) {
@@ -715,7 +715,7 @@ class ShowCatModel extends PublicModel {
                 $data['cat_no'] = $cat_no;
             }
         }
-        $data['created_by'] = $uid;
+        $data['created_by'] = defined('UID') ? UID : 0;
         $data['created_at'] = date('Y-m-d H:i:s');
         switch ($condition['status']) {
 
@@ -761,7 +761,7 @@ class ShowCatModel extends PublicModel {
                     'material_cat_no' => $material_cat_no,
                     'status' => 'VALID',
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $uid
+                    'created_by' => defined('UID') ? UID : 0
                 ];
                 $dataList[] = $data = $show_material_cat_model->create($data);
             }
