@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-1 16:20:48
  * @version V2.0
- * @desc   
+ * @desc
  */
 class RegionModel extends PublicModel {
 
@@ -24,8 +24,8 @@ class RegionModel extends PublicModel {
      * 初始化
      */
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**

@@ -81,7 +81,7 @@ class ExchangerateController extends PublicController {
                 $userids[] = $val['created_by'];
             }
             $usernames = $employee_model->getUserNamesByUserids($userids);
-         
+
             foreach ($arr as $key => $val) {
                 if ($val['created_by'] && isset($usernames[$val['created_by']])) {
                     $val['created_by_name'] = $usernames[$val['created_by']];
@@ -151,7 +151,7 @@ class ExchangerateController extends PublicController {
 
     public function createAction() {
         $condition = $this->getPut();
-        $result = $this->_model->create_data($condition, $this->user['id']);
+        $result = $this->_model->create_data($condition);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -179,12 +179,12 @@ class ExchangerateController extends PublicController {
 
     public function deleteAction() {
 
-        $where['id'] = $this->getPut('id');
-        if (!$where['id']) {
+        $id = $this->getPut('id');
+        if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $result = $this->_model->where($where)->delete();
+        $result = $this->_model->delete_data($id);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

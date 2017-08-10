@@ -16,8 +16,8 @@ class BuyerreginfoModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'buyer_reg_info';
-    protected $dbName = 'erui2_buyer';
-
+    protected $dbName = 'erui_buyer';
+    Protected $autoCheckFields = false;
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_INVALID = 'INVALID'; //无效；
@@ -26,152 +26,15 @@ class BuyerreginfoModel extends PublicModel {
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
-    //定义校验规则
-    protected $field = array(
-        'registered_in' => array('required'),
-        'bank_country_code' => array('required'),
-    );
 
     /**
-     * 根据条件获取信息(企业)
+     * 根据条件获取查询条件
      * @param mix $condition
      * @return mix
-     * @author
+     * @author zyg
      */
-    public function buyerRegInfo($condition=[]) {
-        if(empty($condition))
-            return false;
-        $where=array();
-        if(!empty($condition['id'])){
-            $where['buyer_id'] = $condition['id'];
-        } else{
-            jsonReturn('','-1001','用户[buyer_id]不可以为空');
-        }
-//        if (isset($info['lang']) && in_array($info['lang'], array('zh', 'en', 'es', 'ru'))) {
-//            $where['lang'] = strtolower($info['lang']);
-//        }
-        $field = 'legal_person_name,legal_person_gender,reg_date,expiry_date,registered_in,reg_capital,social_credit_code,biz_nature,biz_scope,biz_type,service_type,branch_count,employee_count,equitiy,turnover,profit,total_assets,reg_capital_cur_bn,equity_ratio,equity_capital,created_by,created_at,deleted_flag';
-        try{
-            $buyerRegInfo =  $this->field($field)->where($where)->find();
-            return $buyerRegInfo ? $buyerRegInfo : array();
-        } catch(Exception $e){
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
-            return false;
-        }
-    }
-
-    /**
-     * 企业信息新建/编辑 --门户
-     * @author klp
-     */
-    public function createInfo($token,$input){
-        if (!isset($input))
-            return false;
-        try {
-            if (is_array($input)) {
-                $data = $this->checkParam($input);
-                //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
-                $result = $this->field('buyer_id')->where(['buyer_id' => $token['id']])->find();
-                if ($result) {
-                    $data['updated_at'] = date('Y-m-d H:i:s', time());
-                    $result = $this->where(['buyer_id' => $token['id']])->save($data);
-                    if(!$result){
-                        return false;
-                    }
-                } else {
-                    $data['buyer_id'] =$token['id'];
-//                    $data['created_by'] = $token['buyer_id'];
-                    $data['created_at'] = date('Y-m-d H:i:s', time());
-                    $result = $this->add($data);
-                    if(!$result){
-                        return false;
-                    }
-                }
-            } else {
-                return false;
-            }
-            return true;
-        } catch(Exception $e){
-            // var_dump($e);//测试
-            return false;
-        }
-    }
-
-    /**
-     * 参数校验-门户
-     * @author klp
-     */
-    private function checkParam($params = []) {
-        if (empty($params)) {
-            return false;
-        }
-        $data = $results = array();
-
-        if(!empty($params['registered_in'])) {
-            $data['registered_in'] = $params['registered_in'];
-        } else{
-            $results['code'] = -101;
-            $results['message'] = '[registered_in]不能为空!';
-        }
-        if(!empty($params['legal_person_name'])) {
-            $data['legal_person_name'] = $params['legal_person_name'];
-        }
-        if(!empty($params['legal_person_gender'])) {
-            $data['legal_person_gender'] = $params['legal_person_gender'];
-        }
-        if(!empty($params['reg_date'])) {
-            $data['reg_date'] = $params['reg_date'];
-        }
-        if(!empty($params['expiry_date'])) {
-            $data['expiry_date'] = $params['expiry_date'];
-        }
-        if(!empty($params['reg_capital'])) {
-            $data['reg_capital'] = $params['reg_capital'];
-        }
-        if(!empty($params['reg_capital_cur_bn'])) {
-            $data['reg_capital_cur_bn'] = $params['reg_capital_cur_bn'];
-        }
-        if(!empty($params['social_credit_code'])) {
-            $data['social_credit_code'] = $params['social_credit_code'];
-        }
-        if(!empty($params['biz_nature'])) {
-            $data['biz_nature'] = $params['biz_nature'];
-        }
-        if(!empty($params['biz_scope'])) {
-            $data['biz_scope'] = $params['biz_scope'];
-        }
-        if(!empty($params['biz_type'])) {
-            $data['biz_type'] = $params['biz_type'];
-        }
-        if(!empty($params['service_type'])) {
-            $data['service_type'] = $params['service_type'];
-        }
-        if(!empty($params['employee_count'])) {
-            $data['employee_count'] = $params['employee_count'];
-        }
-        if(!empty($params['equitiy'])) {
-            $data['equitiy'] = $params['equitiy'];
-        }
-        if(!empty($params['turnover'])) {
-            $data['turnover'] = $params['turnover'];
-        }
-        if(!empty($params['profit'])) {
-            $data['profit'] = $params['profit'];
-        }
-        if(!empty($params['total_assets'])) {
-            $data['total_assets'] = $params['total_assets'];
-        }
-        if(!empty($params['equity_ratio'])) {
-            $data['equity_ratio'] = $params['equity_ratio'];
-        }
-        if(!empty($params['equity_capital'])) {
-            $data['equity_capital'] = $params['equity_capital'];
-        }
-        if($results){
-            jsonReturn($results);
-        }
-        return $data;
+    protected function getcondition($condition = []) {
+        
     }
 
     /**

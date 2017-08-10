@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-1 17:08:09
  * @version V2.0
- * @desc   
+ * @desc
  */
 class RateModel extends PublicModel {
 
@@ -39,7 +39,7 @@ class RateModel extends PublicModel {
         $this->_getValue($data, $condition, 'lang'); //语言
         $this->_getValue($data, $condition, 'name'); //名称
         $this->_getValue($data, $condition, 'trade_terms_bn'); //贸易术语简称
-        $this->_getValue($data, $condition, 'trans_mode_bn'); //运输方式简称 
+        $this->_getValue($data, $condition, 'trans_mode_bn'); //运输方式简称
         $this->_getValue($data, $condition, 'port_bn'); //港口简称
         $this->_getValue($data, $condition, 'country_bn'); //目的国简称
         $this->_getValue($data, $condition, 'box_type_bn'); //发货箱型简称
@@ -153,16 +153,18 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function delete_data($id = '', $uid = 0) {
+    public function delete_data($id = '') {
         if (!$id) {
             return false;
-        } else {
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
             $where['id'] = $id;
         }
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $update_data['status'] = 'DELETED';
-
+        $update_data['deleted_flag'] = 'Y';
         $flag = $this->where($where)
                 ->save($update_data);
 
@@ -176,10 +178,10 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function update_data($update, $uid = 0) {
+    public function update_data($update) {
         $data = $this->create($update);
         $where['id'] = $data['id'];
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $flag = $this->where($where)->save($data);
         if ($flag) {
@@ -196,13 +198,13 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function create_data($create = [], $uid = 0) {
+    public function create_data($create = []) {
         if (isset($create['id'])) {
             $create['id'] = null;
             unset($create['id']);
         }
 
-        $create['created_by'] = $uid;
+        $create['created_by'] = defined('UID') ? UID : 0;
         $create['created_at'] = date('Y-m-d H:i:s');
         $data = $this->create($create);
         $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';

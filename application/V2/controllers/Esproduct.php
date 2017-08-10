@@ -192,7 +192,7 @@ class EsproductController extends PublicController {
             $search['country_bn'] = $country_bn;
             $search['search_time'] = date('Y-m-d H:i:s');
             $usersearchmodel = new HotKeywordsModel();
-            $uid = $this->user['id'];
+            $uid = defined('UID') ? UID : 0;
             $condition = ['keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
             if ($row) {
@@ -249,12 +249,12 @@ class EsproductController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             $time = redisGet('ES_PRODUCT_TIME');
-                redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
+            redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->updateproducts($lang, $time);
             }
-        
+
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

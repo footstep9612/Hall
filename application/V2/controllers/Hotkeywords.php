@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-1 18:19:45
  * @version V2.0
- * @desc   
+ * @desc
  */
 class HotkeywordsController extends PublicController {
 
@@ -28,16 +28,13 @@ class HotkeywordsController extends PublicController {
         $data = $this->get();
 
         $hot_keywords_model = new HotKeywordsModel();
-        if (redisGet('HotKeywords_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('HotKeywords_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $hot_keywords_model->getlist($data);
-            if ($arr) {
-                redisSet('HotKeywords_' . md5(json_encode($data)), json_encode($arr));
-            }
-        }
+
+        $arr = $hot_keywords_model->getlist($data);
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
         } else {
             $this->setCode(MSG::MSG_FAILED);
         }

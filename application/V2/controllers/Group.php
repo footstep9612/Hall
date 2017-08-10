@@ -16,7 +16,6 @@ class GroupController extends PublicController {
     public function __init() {
         //   parent::__init();
     }
-
     public function listAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
@@ -55,7 +54,30 @@ class GroupController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+    public function listallAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['parent_id'])){
+            $where['parent_id'] = $data['parent_id'];
+        }
+        if(!empty($data['name'])){
+            $where['name'] = array('like',"%".$data['name']."%");
+        }
+        $where['deleted_flag'] = 'N';
+        $model_group = new GroupModel();
+        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
 
+        $this->jsonReturn($datajson);
+    }
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];

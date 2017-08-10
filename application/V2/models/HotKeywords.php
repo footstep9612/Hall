@@ -18,9 +18,10 @@ class HotKeywordsModel extends PublicModel {
     //put your code here
     protected $dbName = 'erui2_operation';
     protected $tableName = 'hot_keywords';
+    protected $redis_name = 'HotKeywords';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**
@@ -69,8 +70,15 @@ class HotKeywordsModel extends PublicModel {
         $data = $this->_getcondition($condition);
         try {
             list($current_no, $pagesize) = $this->_getPage($condition);
-            return $this->where($data)->limit($current_no, $pagesize)
+
+            $redis_key = md5(json_encode($data)) . $current_no . $pagesize;
+            if (redisHashExist($this->redis_name, $redis_key)) {
+                return json_decode(redisHashGet($this->redis_name, $redis_key), true);
+            }
+            $list = $this->where($data)->limit($current_no, $pagesize)
                             ->order('search_count desc,search_time desc')->select();
+            redisHashSet($this->redis_name, $redis_key, json_encode($list), 3600);
+            return $list;
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
@@ -88,7 +96,14 @@ class HotKeywordsModel extends PublicModel {
      */
     public function info($id = '') {
         try {
-            return $this->where(['id' => $id])->find();
+            $redis_key = $id;
+            if (redisHashExist($this->redis_name, $redis_key)) {
+                return json_decode(redisHashGet($this->redis_name, $redis_key), true);
+            }
+
+            $item = $this->where(['id' => $id])->find();
+            redisHashSet($this->redis_name, $redis_key, json_encode($item), 3600);
+            return $item;
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());

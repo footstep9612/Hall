@@ -55,7 +55,7 @@ class RateController extends PublicController {
 
     /*
      * Description of 获取创建人姓名
-     * @param array $arr 
+     * @param array $arr
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
@@ -125,7 +125,7 @@ class RateController extends PublicController {
     public function createAction() {
         $condition = $this->getPut();
         $rate_model = new RateModel();
-        $result = $rate_model->create_data($condition, $this->user['id']);
+        $result = $rate_model->create_data($condition);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -162,7 +162,7 @@ class RateController extends PublicController {
         $rate_model = new RateModel();
         $condition = $this->getPut();
         $condition['id'] = $this->get('id') ?: $this->getPut('id');
-        $result = $rate_model->update_data($condition, $this->user['id']);
+        $result = $rate_model->update_data($condition);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -182,14 +182,14 @@ class RateController extends PublicController {
      */
 
     public function deleteAction() {
-        $data = $this->getPut();
+
         $id = $this->getPut('id');
         if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
         $rate_model = new RateModel();
-        $result = $rate_model->delete_data($id, $this->user['id']);
+        $result = $rate_model->delete_data($id);
         if ($result) {
             $this->_delcache();
             $this->setCode(MSG::MSG_SUCCESS);

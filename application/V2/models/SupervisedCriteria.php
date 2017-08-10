@@ -20,8 +20,8 @@ class SupervisedCriteriaModel extends PublicModel {
     protected $dbName = 'erui2_dict';
     protected $tableName = 'supervised_criteria';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**

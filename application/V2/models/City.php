@@ -19,7 +19,7 @@ class CityModel extends Model {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc 
+     * @desc
      */
     public function getCityByBn($bn = '', $lang = '') {
         if (empty($bn) || empty($lang)) {
@@ -53,7 +53,7 @@ class CityModel extends Model {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   
+     * @desc
      */
     private function _getCondition($condition) {
         $where = [];
@@ -86,7 +86,7 @@ class CityModel extends Model {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc 
+     * @desc
      */
 
     public function getCount($condition) {
@@ -98,7 +98,7 @@ class CityModel extends Model {
                 return redisHashGet('City', $redis_key);
             }
             $count = $this->where($data)->count();
-             redisHashSet('City', $redis_key, $count);
+            redisHashSet('City', $redis_key, $count);
             return $count;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -117,7 +117,7 @@ class CityModel extends Model {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc 
+     * @desc
      */
     public function getListbycondition($condition = '') {
         $where = $this->_getCondition($condition);
@@ -151,7 +151,7 @@ class CityModel extends Model {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc 
+     * @desc
      */
     public function getAll($condition = '') {
         $where = $this->_getCondition($condition);

@@ -170,7 +170,7 @@ class MarketareaController extends PublicController {
                 $this->jsonReturn();
             }
         }
-        $result = $market_area_model->create_data($data, $this->user['id']);
+        $result = $market_area_model->create_data($data);
 
         if ($result) {
             $this->delcache();
@@ -193,7 +193,7 @@ class MarketareaController extends PublicController {
         $this->_init();
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
-        $result = $market_area_model->update_data($data, $this->user['id']);
+        $result = $market_area_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -223,8 +223,8 @@ class MarketareaController extends PublicController {
             }
         }
         $market_area_model = new MarketAreaModel();
-        $result = $market_area_model->where($where)
-                ->save(['status' => 'DELETED']);
+        $result = $market_area_model->delete_data($bn);
+
         if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

@@ -5,7 +5,7 @@
  * @author  zhongyg
  * @date    2017-8-1 17:34:40
  * @version V2.0
- * @desc  物料分类 
+ * @desc  物料分类
  */
 class MaterialcatController extends PublicController {
 
@@ -166,12 +166,13 @@ class MaterialcatController extends PublicController {
      *
      */
     public function getlistAction() {
-        $lang = $this->get('lang', 'en');
+        $lang = $this->get('lang', 'zh');
         $cat_no = $this->get('cat_no', '');
         $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->get_list($cat_no, $lang);
+            echo $this->_model->_sql();
             redisSet($key, json_encode($arr), 86400);
             if ($arr) {
                 $this->setCode(MSG::MSG_SUCCESS);
@@ -289,7 +290,7 @@ class MaterialcatController extends PublicController {
 
     public function createAction() {
         $data = $this->getPut();
-        $result = $this->_model->create_data($data, $this->user['id']);
+        $result = $this->_model->create_data($data);
         if ($result) {
             $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -307,7 +308,7 @@ class MaterialcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
-        $result = $this->_model->update_data($data, $this->user['id']);
+        $result = $this->_model->update_data($data);
 
         if ($result) {
             $this->_delCache();
@@ -335,7 +336,7 @@ class MaterialcatController extends PublicController {
             $this->setMessage('该分类下存在产品,不能删除');
             $this->jsonReturn();
         }
-        $result = $this->_model->delete_data($cat_no, $lang, $this->user['id']);
+        $result = $this->_model->delete_data($cat_no, $lang);
         if ($result) {
             $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -354,7 +355,7 @@ class MaterialcatController extends PublicController {
     public function approvingAction() {
         $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
         $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
-        $result = $this->_model->approving($cat_no, $lang, $this->user['id']);
+        $result = $this->_model->approving($cat_no, $lang);
 
         if ($result) {
             $this->_delCache();
@@ -372,7 +373,7 @@ class MaterialcatController extends PublicController {
      */
 
     public function changeorderAction() {
-        $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no'], $this->user['id']);
+        $result = $this->_model->changecat_sort_order($this->put_data['cat_no'], $this->put_data['chang_cat_no']);
         if ($result) {
             $this->_delCache();
             $this->setCode(MSG::MSG_SUCCESS);

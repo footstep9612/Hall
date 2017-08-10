@@ -263,7 +263,7 @@ class MaterialCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($cat_no = '', $lang = '', $uid = null) {
+    public function delete_data($cat_no = '', $lang = '') {
         if (!$cat_no) {
 
             return false;
@@ -274,7 +274,7 @@ class MaterialCatModel extends PublicModel {
         }
         try {
             $flag = $this->where($where)
-                    ->save(['status' => self::STATUS_DELETED]);
+                    ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y',]);
 
             $es_product_model = new EsProductModel();
             if ($lang) {
@@ -299,7 +299,7 @@ class MaterialCatModel extends PublicModel {
      * @return string $chang_cat_no 被交换的分类编码
      * @author zyg
      */
-    public function changecat_sort_order($cat_no, $chang_cat_no, $uid = 0) {
+    public function changecat_sort_order($cat_no, $chang_cat_no) {
 
         try {
             $this->startTrans();
@@ -307,8 +307,11 @@ class MaterialCatModel extends PublicModel {
             $sort_order1 = $this->field('sort_order')->where(['cat_no' => $chang_cat_no])->find();
             $flag = $this->where(['cat_no' => $cat_no])->save(['sort_order' => $sort_order1['sort_order']]);
             if ($flag) {
-                $flag1 = $this->where(['cat_no' => $chang_cat_no])->save(['sort_order'
-                    => $sort_order['sort_order']]);
+                $flag1 = $this->where(['cat_no' => $chang_cat_no])
+                        ->save(['sort_order' => $sort_order['sort_order'],
+                    'updated_by' => defined('UID') ? UID : 0,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
                 if ($flag1) {
 
                     $this->commit();
@@ -340,7 +343,7 @@ class MaterialCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function approving($cat_no = '', $lang = '', $uid = 0) {
+    public function approving($cat_no = '', $lang = '') {
 
         $where['cat_no'] = $cat_no;
         if ($lang) {
@@ -349,7 +352,12 @@ class MaterialCatModel extends PublicModel {
 
         try {
             $flag = $this->where($where)
-                    ->save(['status' => self::STATUS_VALID]);
+                    ->save([
+                'status' => self::STATUS_VALID,
+                'checked_by' => defined('UID') ? UID : 0,
+                'checked_at' => date('Y-m-d H:i:s'),
+                'deleted_flag' => 'N'
+            ]);
 
             if ($flag !== false && $cat_no && !$lang) {
                 $es_product_model = new EsProductModel();
@@ -376,9 +384,9 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function update_data($upcondition = [], $uid = 0) {
-        $data = $this->getUpdateCondition($upcondition, $uid);
-        $data['created_by'] = $uid;
+    public function update_data($upcondition = []) {
+        $data = $this->getUpdateCondition($upcondition, defined('UID') ? UID : 0);
+        $data['created_by'] = defined('UID') ? UID : 0;
         try {
             $info = $this->info($upcondition['cat_no'], null);
             if (!$data) {
@@ -408,7 +416,7 @@ class MaterialCatModel extends PublicModel {
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
                     $add['status'] = self::STATUS_APPROVING;
-                    $add['id'] = $this->getMaxid() + 1;
+
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
 
                     if (!$flag) {
@@ -465,7 +473,7 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getUpdateCondition(&$upcondition = [], $uid = 0) {
+    public function getUpdateCondition(&$upcondition = []) {
         $data = [];
         $where = [];
         $info = [];
@@ -517,7 +525,7 @@ class MaterialCatModel extends PublicModel {
             $data['sort_order'] = $upcondition['sort_order'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $uid;
+        $data['created_by'] = defined('UID') ? UID : 0;
         return $data;
     }
 
@@ -611,7 +619,7 @@ class MaterialCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = [], $uid = 0) {
+    public function create_data($createcondition = []) {
         $condition = $this->create($createcondition);
         if (isset($condition['parent_cat_no']) && $condition['parent_cat_no']) {
             $info = $this->info($condition['parent_cat_no'], null);
@@ -641,7 +649,7 @@ class MaterialCatModel extends PublicModel {
             $data['cat_no'] = $cat_no;
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $uid;
+        $data['created_by'] = defined('UID') ? UID : 0;
         if (!isset($condition['status'])) {
             $condition['status'] = self::STATUS_APPROVING;
         }
@@ -669,7 +677,7 @@ class MaterialCatModel extends PublicModel {
 
             if (isset($createcondition[$lang])) {
                 $data['lang'] = $lang;
-                $data['name'] = $createcondition['en']['name'];
+                $data['name'] = $createcondition[$lang]['name'];
                 $flag = $this->add($data);
                 if (!$flag) {
                     $this->rollback();
@@ -773,12 +781,12 @@ class MaterialCatModel extends PublicModel {
     /*
      * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
      * @param mix $cat_no // 物料分类编码数组3f
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  物料分类及上级和顶级信息
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getmaterial_cat($cat_no, $lang = 'en') {
@@ -803,12 +811,12 @@ class MaterialCatModel extends PublicModel {
     /*
      * 根据物料分类编码搜索物料分类 及上级分类信息
      * @param mix $cat_nos // 物料分类编码数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  物料分类及上级和顶级信息
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getmaterial_cats($cat_nos, $lang = 'en') {

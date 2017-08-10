@@ -22,19 +22,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
-        $this->headers = $this->getAllHeaders();
+        $this->headers = getHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
 
-        $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
-        $this->put_data['token'] = null;
-        unset($this->put_data['token']);
+        $this->put_data = $jsondata = $data = $this->getPut();
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            
+
         } else {
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
@@ -219,16 +217,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         if (!$this->put_data) {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
-            $data['token'] = null;
-            unset($data['token']);
         }
         if ($name) {
             $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
             return $data;
         } else {
             $data = $this->put_data;
-            $data['token'] = null;
-            unset($data['token']);
             return $data;
         }
     }
@@ -530,14 +524,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     /**
      * @desc 记录审核日志
-     * 
+     *
      * @param array $condition
+     * @param object $model
      * @return array
      * @author liujf
-     * @time 2017-08-09
+     * @time 2017-08-10
      */
-    public function addCheckLog($condition) {
-        $inquiryCheckLogModel = new InquiryCheckLogModel();
+    public function addCheckLog($condition, &$model) {
+        if (is_object($model)) {
+            $inquiryCheckLogModel = &$model;
+        } else {
+            $inquiryCheckLogModel = new InquiryCheckLogModel();
+        }
         $time = date('Y-m-d H:i:s');
 
         $inquiryIdArr = explode(',', $condition['inquiry_id']);
@@ -557,26 +556,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
 
         return $inquiryCheckLogModel->addAll($checkLogList);
-    }
-
-    /**
-     * 获取自定义header数据
-     * @author link 2017-08-09
-     */
-    public function getAllHeaders() {
-        $ignore = array('host', 'accept', 'content-length', 'content-type'); // 忽略数据
-        $headers = array();
-        foreach ($_SERVER as $key => $value) {
-            if (substr($key, 0, 5) === 'HTTP_') {
-                $key = substr($key, 5);
-                $key = strtolower($key);
-                if (!in_array($key, $ignore)) {
-                    $headers[$key] = $value;
-                }
-            }
-        }
-
-        return $headers;
     }
 
 }

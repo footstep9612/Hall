@@ -29,6 +29,29 @@ class BrandModel extends PublicModel {
         parent::__construct();
     }
 
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('status', 'VALID'),
+        array('created_at', 'getDate', 1, 'callback'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('brand', 'require', '品牌信息不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
     /**
      * 条件解析
      * @param mix $condition 搜索条件
@@ -39,7 +62,7 @@ class BrandModel extends PublicModel {
     private function _getcondition($condition, $lang = '') {
 
         $where = [];
-        //  $this->_getValue($where, $condition, 'id', 'string');
+        $this->_getValue($where, $condition, 'id', 'string');
         $this->_getValue($where, $condition, 'name', 'like', 'brand');
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
         // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
@@ -153,7 +176,7 @@ class BrandModel extends PublicModel {
         $item = $this->where($where)
                 ->find();
         redisHashSet('Brand', $redis_key, json_encode($item));
-        return$item;
+        return $item;
     }
 
     /**
@@ -184,7 +207,7 @@ class BrandModel extends PublicModel {
             $where['id'] = $id;
         }
         $flag = $this->where($where)
-                ->save(['status' => self::STATUS_DELETED]);
+                ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
 
         if ($flag) {
 
@@ -210,7 +233,7 @@ class BrandModel extends PublicModel {
         $this->startTrans();
 
         $flag = $this->where($where)
-                ->save(['status' => self::STATUS_DELETED]);
+                ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
 
         if ($flag) {
             $this->commit();
@@ -229,7 +252,7 @@ class BrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function update_data($upcondition = [], $uid = 0) {
+    public function update_data($upcondition = []) {
         $data['brand'] = $this->_getdata($upcondition);
 
         if (!$upcondition['id']) {
@@ -237,7 +260,7 @@ class BrandModel extends PublicModel {
         } else {
             $where['id'] = $upcondition['id'];
         }
-        $data['updated_by'] = UID;
+        $data['updated_by'] = defined('UID') ? UID : 0;
         $data['updated_at'] = date('Y-m-d H:i:s');
         try {
             $flag = $this->where($where)->save($data);
@@ -261,12 +284,13 @@ class BrandModel extends PublicModel {
         $data = [
             'style' => $create['style'],
             'label' => $create['label'],
-            'logo' => $create['logo'],
                 //   'manufacturer' => $create['manufacturer']
         ];
         $datalist = [];
         foreach ($this->langs as $lang) {
             if (isset($create[$lang]) && isset($create[$lang]['name']) && $create[$lang]['name']) {
+
+                $data['logo'] = $create[$lang]['logo'];
                 $data['lang'] = $lang;
                 $data['name'] = $create[$lang]['name'];
             }
@@ -281,12 +305,12 @@ class BrandModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = [], $uid = '') {
+    public function create_data($createcondition = []) {
 
         $data['brand'] = $this->_getdata($createcondition);
         unset($data['id']);
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $uid;
+        $data['created_by'] = defined('UID') ? UID : 0;
         try {
             $flag = $this->add($data);
 

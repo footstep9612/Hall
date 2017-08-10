@@ -36,7 +36,7 @@ class SupplierAccountModel extends PublicModel
         } else{
             jsonReturn('','-1001','sku不可以为空');
         }
-        //通过spu查询供应商编号
+        //通过sku查询供应商编号
         $supplier_id = $this->where($where)
                             ->field('supplier_id')
                             ->select();

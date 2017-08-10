@@ -39,7 +39,7 @@ class ProductAttachModel extends PublicModel {
         $field = 'attach_type,attach_name,attach_url,default_flag,sort_order,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
         $condition = array(
             'spu' => $spu,
-            'default_flag' => self::DELETED_N
+            'deleted_flag' => self::DELETED_N
         );
         if (!empty($status)) {
             $condition['status'] = $status;
@@ -59,7 +59,7 @@ class ProductAttachModel extends PublicModel {
                     foreach ($result as $item) {
                         $data[$item['attach_type']][] = $item;
                     }
-                    redisHashSet($key_redis, json_encode($data));
+                    redisHashSet('spu_attach',$key_redis, json_encode($data));
                     return $data;
                 }
                 return array();
@@ -86,7 +86,7 @@ class ProductAttachModel extends PublicModel {
         $data['attach_url'] = isset($input['attach_url']) ? $input['attach_url'] : '';
         $data['sort_order'] = isset($input['sort_order']) ? $input['sort_order'] : 0;
         $data['default_flag'] = isset($input['default_flag']) ? 'Y' : 'N';
-        $data['status'] = isset($input['status']) ? $input['status'] : self::STATUS_CHECKING;
+        $data['status'] = isset($input['status']) ? $input['status'] : self::STATUS_VALID;
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
         if(isset($input['id']) && !empty($input['id'])){    //修改

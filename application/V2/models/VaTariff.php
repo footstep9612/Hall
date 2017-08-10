@@ -106,17 +106,17 @@ class VaTariffModel extends PublicModel {
 
     /**
      * 修改数据
-     * @param  array $update_data 
-     * @param  int $uid 
+     * @param  array $update_data
+     * @param  int $uid
      * @return bool
      * @author jhw
      */
-    public function update_data($update_data, $uid = 0) {
+    public function update_data($update_data) {
         if (!isset($update_data['id']) || !$update_data['id']) {
             return false;
         }
         $update_data['status'] = 'VALID';
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $where['id'] = $update_data['id'];
         $data = $this->create($update_data);
@@ -167,7 +167,7 @@ class VaTariffModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create = []) {
-        $create['created_by'] = UID;
+        $create['created_by'] = defined('UID') ? UID : 0;
         $create['created_at'] = date('Y-m-d H:i:s');
 
         $data = $this->create($create);
@@ -185,6 +185,28 @@ class VaTariffModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
+    }
+
+    /**
+     * 删除数据
+     * @param  string $id id
+     * @return bool
+     * @author zyg
+     */
+    public function delete_data($id = '') {
+        if (!$id) {
+            return false;
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
+            $where['id'] = $id;
+        }
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
+        $update_data['updated_at'] = date('Y-m-d H:i:s');
+        $data = ['status' => 'DELETED', 'deleted_flag' => 'Y',];
+        $flag = $this->where($where)->save($data);
+
+        return $flag;
     }
 
 }

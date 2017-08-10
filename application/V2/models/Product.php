@@ -25,7 +25,6 @@ class ProductModel extends PublicModel {
         //'lang' => array('method','checkLang'),
         'material_cat_no' => array('required'),
         'name' => array('required'),
-        'show_name' => array('required'),
         'brand' => array('required'),
     );
 
@@ -257,7 +256,7 @@ class ProductModel extends PublicModel {
                                 'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
                                 'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
-                                'default_flag' => isset($atta['default_flag']) ? 'Y' : 'N',
+                                'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
                             );
                             if (isset($input['spu'])) {    //修改
                                 $data['id'] = isset($atta['id']) ? $atta['id'] : '';
@@ -400,6 +399,7 @@ class ProductModel extends PublicModel {
             $this->startTrans();
             try {
                 $model = new EsProductModel();
+                $goodsModel = new GoodsModel();
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
                         $where = array(
@@ -408,8 +408,14 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count'=>0));
                         if ($result) {
+                            /**
+                             * 删除ｓｋｕ
+                             * 优化意见：这块最好放入队列，以确保成功删除掉。
+                             */
+                            $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+
                             /**
                              * 更新ES
                              */
@@ -426,8 +432,14 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count'=>0));
                     if ($result) {
+                        /**
+                         * 删除ｓｋｕ
+                         * 优化意见：这块最好放入队列，以确保成功删除掉。
+                         */
+                        $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+
                         /**
                          * 更新ES
                          */

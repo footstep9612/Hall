@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-3 15:30:59
  * @version V2.0
- * @desc  物流费率 
+ * @desc  物流费率
  */
 class LogirateController extends PublicController {
 
@@ -102,7 +102,7 @@ class LogirateController extends PublicController {
     public function createAction() {
         $data = $this->getPut();
         $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->create_data($data, $this->user['id']);
+        $result = $Logi_Rate_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -127,7 +127,7 @@ class LogirateController extends PublicController {
             $data['id'] = $id;
         }
         $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->update_data($data, $this->user['id']);
+        $result = $Logi_Rate_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -146,18 +146,15 @@ class LogirateController extends PublicController {
      * @desc   物流费率
      */
     public function deleteAction() {
-        $condition = $this->getPut();
+
         $id = $this->get('id') ?: $this->getPut('id');
-        if ($id) {
-            $ids = explode(',', $id);
-            if (is_array($ids)) {
-                $where['id'] = ['in', $condition['id']];
-            } else {
-                $where['id'] = $id;
-            }
+        if (!$id) {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
+
         $Logi_Rate_model = new LogiRateModel();
-        $result = $Logi_Rate_model->where($where)->save(['status' => 'DELETED']);
+        $result = $Logi_Rate_model->delete_data($id);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

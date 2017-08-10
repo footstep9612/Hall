@@ -97,7 +97,16 @@ class ProductController extends PublicController {
         if(isset($this->put_data['lang']) && !in_array(strtolower($this->put_data['lang']),array('zh','en','es','ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         } else {
-            $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
+            $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : null;
+        }
+
+        /**
+         * 查看是否存在上架
+         */
+        $showCatProductModel = new ShowCatProductModel();
+        $scp_info = $showCatProductModel->where(array('spu'=>$this->put_data['spu'],'lang'=>$lang))->find();
+        if($scp_info) {
+            jsonReturn('',ErrorMsg::NOTDELETE_EXIST_ONSHELF);
         }
 
         $productModel = new ProductModel();
@@ -231,16 +240,19 @@ class ProductController extends PublicController {
      * 审核记录
      */
     public function checklogAction(){
-        if(!isset($this->put_data['spu'])) {
+        $spu = ($this->method == 'GET') ? $this->getQuery('spu','') : (isset($this->put_data['spu']) ? $this->put_data['spu'] : '');
+        $lang = ($this->method == 'GET') ? $this->getQuery('lang','') : (isset($this->put_data['lang']) ? $this->put_data['lang'] : '');
+
+        if(empty($spu)) {
             jsonReturn('',ErrorMsg::NOTNULL_SPU);
         }
 
-        if(!isset($this->put_data['lang'])) {
+        if(empty($lang)) {
             jsonReturn('',ErrorMsg::NOTNULL_LANG);
         }
 
-        $pchecklog = new ProductChecklogModel();
-        $logs = $pchecklog -> getRecord(array('spu'=>$this->put_data['spu'],'lang'=>$this->put_data['lang']),'spu,lang,status,remarks,approved_by,approved_at');
+        $pchecklog = new ProductCheckLogModel();
+        $logs = $pchecklog -> getRecord(array('spu'=>$spu,'lang'=>$lang),'spu,lang,status,remarks,approved_by,approved_at');
         if($logs!==false){
             jsonReturn($logs);
         }else{

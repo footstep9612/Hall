@@ -24,84 +24,6 @@ class CountryModel extends PublicModel {
     parent::__construct($str = '');
   }
 
-  /*
-   * 条件id,lang,bn,name,time_zone,region,pinyin
-   */
-
-  private function getCondition($condition) {
-    $data = [];
-    getValue($data, $condition, 'lang', 'string', 'c.lang');
-    if (isset($condition['bn']) && $condition['bn']) {
-      $data['c.bn'] = $condition['bn'];
-    }
-    getValue($data, $condition, 'name', 'like', 'c.name');
-    getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
-    getValue($data, $condition, 'region', 'like', 'c.region');
-    if (isset($condition['status']) && $condition['status'] == 'ALL') {
-      
-    } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
-      $data['c.status'] = $condition['status'];
-    } else {
-      $data['c.status'] = 'VALID';
-    }
-    getValue($data, $condition, 'market_area_bn', 'like', 'mac.market_area_bn');
-    $condition = null;
-    unset($condition);
-    return $data;
-  }
-
-  /**
-   * 获取列表
-   * @param data $condition;
-   * @return array
-   * @author jhw
-   */
-  public function getlistBycodition($condition, $order = 'c.id desc', $type = true) {
-    try {
-      $data = $this->getCondition($condition);
-
-      if ($type) {
-        $pagesize = 10;
-        $current_no = 1;
-        if (isset($condition['current_no']) && $condition['current_no']) {
-          $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-        }
-        if (isset($condition['pagesize']) && $condition['pagesize']) {
-          $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-        }
-        $from = ($current_no - 1) * $pagesize;
-      }
-      $this->alias('c')
-              ->join('erui_dict.t_market_area_country mac on c.bn=mac.country_bn', 'left')
-              ->join('erui_dict.t_market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
-              ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region,c.pinyin,'
-                      . 'ma.name as market_area_name ,mac.market_area_bn')
-              ->where($data);
-      if ($type) {
-        $this->limit($from . ',' . $pagesize);
-      }
-      return $this->order($order)
-                      ->select();
-    } catch (Exception $ex) {
-      print_r($ex);
-      return [];
-    }
-  }
-
-  /*
-   * 获取数据
-   */
-
-  public function getCount($condition) {
-    try {
-      $data = $this->getCondition($condition);
-      return $this->where($data)->count();
-    } catch (Exception $ex) {
-
-      return 0;
-    }
-  }
-
   /**
    * 获取列表
    * @param data $data;
@@ -160,60 +82,39 @@ class CountryModel extends PublicModel {
 
   /**
    * 修改数据
-   * @param  array $update id
+   * @param  int $id id
    * @return bool
    * @author jhw
    */
-  public function update_data($update) {
-
-    $data = $this->create($update);
-    $where['bn'] = $data['bn'];
-    $arr['status'] = $data['status'] == 'VALID' ? 'VALID' : 'INVALID';
-    $flag = $this->where($where)->save($arr);
-    if ($flag && $update['market_area_bn'] && $where['bn']) {
-      $update = ['market_area_bn' => $update['market_area_bn'],
-          'country_bn' => $arr['bn']];
-      if ($this->getmarket_area_countryexit($update)) {
-        $this->table('erui_dict.t_market_area_country')
-                ->add($update, [], true);
-      }
-
-      return $flag;
+  public function update_data($data, $where) {
+    if (isset($data['lang'])) {
+      $arr['lang'] = $data['lang'];
+    }
+    if (isset($data['bn'])) {
+      $arr['bn'] = $data['bn'];
+    }
+    if (isset($data['name'])) {
+      $arr['name'] = $data['name'];
+    }
+    if (isset($data['time_zone'])) {
+      $arr['time_zone'] = $data['time_zone'];
+    }
+    if (isset($data['region'])) {
+      $arr['region'] = $data['region'];
+    }
+    if (isset($data['pinyin'])) {
+      $arr['pinyin'] = $data['pinyin'];
+    }
+    if (!empty($where)) {
+      return $this->where($where)->save($arr);
     } else {
       return false;
     }
   }
 
   /**
-   * 批量更新状态
-   * @param  array $data 
-   * @return bool
-   * @author zyg
-   */
-  public function updatestatus($data) {
-    if (!is_array($data['countrys'])) {
-      return false;
-    }
-    $this->startTrans();
-    foreach ($data['countrys'] as $item) {
-      $flag = $this->where(['bn' => $item['bn']])->save(['status' => $item['status']]);
-      if (!$flag) {
-        $this->rollback();
-        return FALSE;
-      }
-    }
-    $this->commit();
-    return true;
-  }
-
-  public function getmarket_area_countryexit($where) {
-
-    return $this->table('erui_dict.t_market_area_country')->where($where)->find();
-  }
-
-  /**
    * 新增数据
-   * @param  mix $create 新增条件
+   * @param  mix $createcondition 新增条件
    * @return bool
    * @author jhw
    */
@@ -226,7 +127,6 @@ class CountryModel extends PublicModel {
     }
     if (isset($create['name'])) {
       $arr['name'] = $create['name'];
-      $arr['pinyin'] = Pinyin($create['name']);
     }
     if (isset($create['time_zone'])) {
       $arr['time_zone'] = $create['time_zone'];
@@ -234,23 +134,11 @@ class CountryModel extends PublicModel {
     if (isset($create['region'])) {
       $arr['region'] = $create['region'];
     }
+    if (isset($data['pinyin'])) {
+      $arr['pinyin'] = $data['pinyin'];
+    }
     $data = $this->create($arr);
-    if ($data && $create['market_area_bn']) {
-      $update = ['market_area_bn' => $create['market_area_bn'],
-          'country_bn' => $arr['bn']];
-      $this->table('erui_dict.t_market_area_country')
-              ->create($update);
-    }
-    $flag = $this->add($data);
-    if ($flag && $create['market_area_bn']) {
-      $update = ['market_area_bn' => $create['market_area_bn'],
-          'country_bn' => $arr['bn']];
-      if ($this->getmarket_area_countryexit($update)) {
-        $this->table('erui_dict.t_market_area_country')
-                ->create($update);
-      }
-    }
-    return $flag;
+    return $this->add($data);
   }
 
   /**
@@ -264,24 +152,25 @@ class CountryModel extends PublicModel {
         'lang' => $lang
     );
 
-    if (redisExist(md5(json_encode($condition)))) {
-      $result = json_decode(redisGet(md5(json_encode($condition))), true);
+    if(redisExist(md5(json_encode($condition)))){
+      $result = json_decode(redisGet(md5(json_encode($condition))),true);
       return $result ? $result : array();
-    }
-    $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
-    if ($result) {
-      $data = array();
-      foreach ($result as $val) {
-        $sname = $val['name'];
-        $firstChar = $this->getFirstCharter($sname); //取出第一个汉字或者单词的首字母
-        $data[$firstChar][] = $val; //以这个首字母作为key
       }
-      ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
-      redisSet(md5(json_encode($condition)), $data);
-      return $data;
-    } else {
-      return array();
-    }
+      $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
+      if ($result) {
+        $data = array();
+        foreach ($result as $val) {
+          $sname = $val['name'];
+          $firstChar = $this->getFirstCharter($sname); //取出第一个汉字或者单词的首字母
+          $data[$firstChar][] = $val; //以这个首字母作为key
+        }
+        ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
+        redisSet(md5(json_encode($condition)), $data);
+        return $data;
+      } else {
+        return array();
+      }
+
   }
 
   /**
@@ -426,6 +315,7 @@ class CountryModel extends PublicModel {
   public function getCountryByBn($bn = '', $lang = '') {
     if (empty($bn) || empty($lang))
       return '';
+
     if (redisHashExist('Country', $bn . '_' . $lang)) {
       return redisHashGet('Country', $bn . '_' . $lang);
     }
@@ -442,52 +332,6 @@ class CountryModel extends PublicModel {
       }
       return $result['name'];
     } catch (Exception $e) {
-      return '';
-    }
-  }
-
-  /**
-   * 根据简称与语言获取国家名称
-   * @param string $bn 简称
-   * @param string $lang 语言
-   * @param string
-   */
-  public function import($lang = 'en') {
-    if (empty($lang))
-      return '';
-    try {
-      $condition = array(
-          'lang' => $lang,
-      );
-      $result = $this->where($condition)->select();
-      if (!$result) {
-        return false;
-      }
-      $updateParams = array();
-      $updateParams['index'] = 'erui_dict';
-      $updateParams['type'] = 'country_' . $lang;
-      $city_model = new Model('erui_dict.city', 't_');
-      $port_model = new Model('erui_dict.port', 't_');
-      $market_area_country_model = new Model('erui_dict.market_area_country', 't_');
-      $es = new ESClient();
-      foreach ($result as $item) {
-        $updateParams['body'][] = ['create' => ['_id' => $item['bn']]];
-        $item['citys'] = json_encode($city_model
-                        ->field('id,bn,name')
-                        ->where(['country_bn' => $item['bn'], 'lang' => $lang])
-                        ->select(), 256);
-        $item['ports'] = json_encode($port_model
-                        ->field('id,bn,name,port_type,trans_mode')
-                        ->where(['country_bn' => $item['bn'], 'lang' => $lang])
-                        ->select(), 256);
-        $item['letter'] = strtoupper(mb_substr($item['pinyin'], 0, 1));
-        $market_area_country = $market_area_country_model->field('market_area_bn')->where(['country_bn' => $item['bn']])->find();
-        $item['market_area_bn'] = $market_area_country['market_area_bn'];
-        $es->add_document('erui_dict', 'country_' . $lang, $item, $item['bn']);
-      }
-    } catch (Exception $ex) {
-      var_dump($ex);
-
       return '';
     }
   }

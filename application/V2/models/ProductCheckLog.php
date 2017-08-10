@@ -5,7 +5,7 @@
  * Date: 2017/8/1
  * Time: 14:56
  */
-class ProductChecklogModel extends PublicModel{
+class ProductCheckLogModel extends PublicModel{
     protected $dbName = 'erui2_goods'; //数据库名称
     protected $tableName = 'product_check_log'; //数据表表名
 
@@ -23,14 +23,19 @@ class ProductChecklogModel extends PublicModel{
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
-        switch($checkStatus) {
-            case 'VALID':
-                $status = 'PASS';
-                break;
-            case 'INVALID':
-                $status = 'REJECTED';
-                break;
+        if(!in_array($checkStatus,array('PASS','REJECTED'))){
+            switch($checkStatus) {
+                case 'VALID':
+                    $status = 'PASS';
+                    break;
+                case 'INVALID':
+                    $status = 'REJECTED';
+                    break;
+            }
+        }else {
+            $status = $checkStatus;
         }
+
         $arr = array();
         $results = array();
         if($condition && is_array($condition)) {
