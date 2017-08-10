@@ -207,7 +207,7 @@ class BrandModel extends PublicModel {
             $where['id'] = $id;
         }
         $flag = $this->where($where)
-                ->save(['status' => self::STATUS_DELETED]);
+                ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
 
         if ($flag) {
 
@@ -233,7 +233,7 @@ class BrandModel extends PublicModel {
         $this->startTrans();
 
         $flag = $this->where($where)
-                ->save(['status' => self::STATUS_DELETED]);
+                ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
 
         if ($flag) {
             $this->commit();

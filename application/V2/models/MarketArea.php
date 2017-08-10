@@ -133,18 +133,23 @@ class MarketAreaModel extends PublicModel {
 
     /**
      * 删除数据
-     * @param  int  $id
+     * @param  int  $bn
      * @return bool
      * @author jhw
      */
-    public function delete_data($id = '') {
-        $where['id'] = $id;
-        if (!empty($where['id'])) {
+    public function delete_data($bn = '') {
+        if ($bn) {
+            $bns = explode(',', $bn);
+            if (is_array($bns)) {
+                $where['bn'] = ['in', $bns];
+            } else {
+                $where['bn'] = $bn;
+            }
+        }
+        if (!empty($where['bn'])) {
             try {
 
-
-                $flag = $this->where($where)
-                        ->delete();
+                $flag = $this->where($where)->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
 
                 return $flag;
             } catch (Exception $ex) {
