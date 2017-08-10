@@ -261,12 +261,13 @@ class BrandModel extends PublicModel {
         $data = [
             'style' => $create['style'],
             'label' => $create['label'],
-            'logo' => $create['logo'],
                 //   'manufacturer' => $create['manufacturer']
         ];
         $datalist = [];
         foreach ($this->langs as $lang) {
             if (isset($create[$lang]) && isset($create[$lang]['name']) && $create[$lang]['name']) {
+
+                $data['logo'] = $create[$lang]['logo'];
                 $data['lang'] = $lang;
                 $data['name'] = $create[$lang]['name'];
             }
