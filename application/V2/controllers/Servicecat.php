@@ -6,7 +6,7 @@ class ServicecatController extends PublicController {
 //class ServicecatController extends Yaf_Controller_Abstract{
 
     public function init() {
-//parent::init();
+        parent::init();
         $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
 
     }
@@ -198,21 +198,23 @@ class ServicecatController extends PublicController {
      * @author klp
      */
     public function editLevelAction(){
-        /*$this->put_data = [
-            0=>[
-                'id'=>'',
-                'buyer_level'=>'',
-                'service_cat_id'=>'',
-                'service_term_id'=>'',
-                'service_item_id'=>'',
-            ],
-        ];*/
+        /*  $this->put_data = [
+           'levels'=>[
+                    0=>[
+                           'id'=>'',
+                           'buyer_level'=>'',
+                           'service_cat_id'=>'',
+                           'service_term_id'=>'',
+                           'service_item_id'=>'',
+                       ],
+               ]
+           ]; */
         //获取用户信息
         $userInfo = getLoinInfo();
         $MemberServiceModel = new MemberServiceModel();
         $result = $MemberServiceModel->editInfo($this->put_data,$userInfo);
         if($result && $result['code'] == 1) {
-            jsonReturn($result);
+            $this->jsonReturn($result);
         } else {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
@@ -224,14 +226,14 @@ class ServicecatController extends PublicController {
 
     public function deleteLevelAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data['buyer_level'] = '1';//测试
-        if(empty($data['buyer_level'])){
+//        $data['id'] = '1';//测试
+        if(empty($data['id'])){
             $datajson['code'] = -101;
-            $datajson['message'] = '[buyer_level]不可以都为空!';
+            $datajson['message'] = '用户等级i[id]不可为空!';
             $this->jsonReturn($datajson);
         }
         $MemberServiceModel = new MemberServiceModel();
-        $res = $MemberServiceModel->delData($data['buyer_level']);
+        $res = $MemberServiceModel->delData($data['id']);
         if($res){
             $datajson['code'] = 1;
             $datajson['data'] = $res;
