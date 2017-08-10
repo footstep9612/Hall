@@ -7,11 +7,11 @@
  */
 
 /**
- * Description of UserSearchHisModel
+ * Description of Usersearchhis
  *
  * @author zhongyg
  */
-class UserSearchHisModel extends PublicModel {
+class UsersearchhisModel extends PublicModel {
 
 //put your code here
   protected $tableName = 'user_search_his';
