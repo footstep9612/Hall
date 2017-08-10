@@ -153,7 +153,7 @@ class BrandModel extends PublicModel {
         $item = $this->where($where)
                 ->find();
         redisHashSet('Brand', $redis_key, json_encode($item));
-        return$item;
+        return $item;
     }
 
     /**
