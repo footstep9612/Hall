@@ -337,7 +337,7 @@ class ShowCatModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($cat_no = '', $lang = '', $uid=0) {
+    public function delete_data($cat_no = '', $lang = '', $uid = 0) {
         if (!$cat_no) {
             return false;
         } else {
@@ -348,6 +348,7 @@ class ShowCatModel extends PublicModel {
         }
         $flag = $this->where($where)
                 ->save(['status' => self::STATUS_DELETED,
+            'deleted_flag' => 'Y',
             'updated_at' => date('Y-m-d H:i:s'),
             'updated_by' => $uid]);
 
@@ -861,12 +862,12 @@ class ShowCatModel extends PublicModel {
     /*
      * 根据展示分类编码数组获取展示分类信息
      * @param mix $show_cat_nos // 展示分类编码数组
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getshow_cats($show_cat_nos, $lang = 'en') {
