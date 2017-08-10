@@ -25,9 +25,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->headers = getHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
 
-        $this->put_data = $jsondata = $data = json_decode(file_get_contents("php://input"), true);
-        $this->put_data['token'] = null;
-        unset($this->put_data['token']);
+        $this->put_data = $jsondata = $data = $this->getPut();
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
 

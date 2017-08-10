@@ -62,7 +62,7 @@ class BrandModel extends PublicModel {
     private function _getcondition($condition, $lang = '') {
 
         $where = [];
-        //  $this->_getValue($where, $condition, 'id', 'string');
+        $this->_getValue($where, $condition, 'id', 'string');
         $this->_getValue($where, $condition, 'name', 'like', 'brand');
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
         // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
