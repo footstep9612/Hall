@@ -111,12 +111,12 @@ class VaTariffModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($update_data, $uid = 0) {
+    public function update_data($update_data) {
         if (!isset($update_data['id']) || !$update_data['id']) {
             return false;
         }
         $update_data['status'] = 'VALID';
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = UID;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $where['id'] = $update_data['id'];
         $data = $this->create($update_data);

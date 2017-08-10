@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-10 9:03:58
  * @version V2.0
- * @desc   
+ * @desc
  */
 class ManufacturerModel extends PublicModel {
 
@@ -220,7 +220,7 @@ class ManufacturerModel extends PublicModel {
             $this->startTrans();
             foreach ($langs as $lang) {
                 $create['bn'] = $newbn;
-                $flag = $this->_updateandcreate($create, $lang, $newbn, $uid);
+                $flag = $this->_updateandcreate($create, $lang, $newbn, UID);
                 if (!$flag) {
                     $this->rollback();
 
@@ -239,7 +239,7 @@ class ManufacturerModel extends PublicModel {
 
     /**
      * 修改数据
-     * @param  array $update 
+     * @param  array $update
      * @return bool
      * @author jhw
      */

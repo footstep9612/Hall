@@ -157,7 +157,7 @@ class ExportTariffModel extends PublicModel {
      * @desc   增值税、关税信息
      */
     public function create_data($create = [], $uid = 0) {
-        $create['created_by'] = $uid;
+        $create['created_by'] = UID;
         $create['created_at'] = date('Y-m-d H:i:s');
         $create['cat_name'] = $create['country_bn'];
         $create['unit'] = 1;

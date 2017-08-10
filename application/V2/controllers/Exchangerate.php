@@ -151,7 +151,7 @@ class ExchangerateController extends PublicController {
 
     public function createAction() {
         $condition = $this->getPut();
-        $result = $this->_model->create_data($condition, $this->user['id']);
+        $result = $this->_model->create_data($condition);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

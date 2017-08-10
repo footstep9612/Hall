@@ -282,7 +282,7 @@ class ShowcatController extends PublicController {
 
     public function createAction() {
         $data = $this->getPut();
-        $result = $this->_model->create_data($data, $this->user['id']);
+        $result = $this->_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -295,7 +295,7 @@ class ShowcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
-        $result = $this->_model->update_data($data, $this->user['id']);
+        $result = $this->_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -309,7 +309,7 @@ class ShowcatController extends PublicController {
     public function deleteAction() {
         $cat_no = $this->getPut('cat_no');
         $lang = $this->getPut('lang', '');
-        $result = $this->_model->delete_data($cat_no, $lang, $this->user['id']);
+        $result = $this->_model->delete_data($cat_no, $lang);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -334,7 +334,7 @@ class ShowcatController extends PublicController {
     }
 
     /* 交换顺序
-     * 
+     *
      */
 
     public function changeorderAction() {

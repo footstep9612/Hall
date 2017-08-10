@@ -252,7 +252,7 @@ class BrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function update_data($upcondition = [], $uid = 0) {
+    public function update_data($upcondition = []) {
         $data['brand'] = $this->_getdata($upcondition);
 
         if (!$upcondition['id']) {
@@ -305,12 +305,12 @@ class BrandModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = [], $uid = '') {
+    public function create_data($createcondition = []) {
 
         $data['brand'] = $this->_getdata($createcondition);
         unset($data['id']);
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $uid;
+        $data['created_by'] = UID;
         try {
             $flag = $this->add($data);
 

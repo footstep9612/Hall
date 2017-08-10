@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-5 9:40:40
  * @version V2.0
- * @desc   
+ * @desc
  */
 class MarketAreaTeamModel extends PublicModel {
 
@@ -37,8 +37,8 @@ class MarketAreaTeamModel extends PublicModel {
     }
 
     /**
-     * Description of 获取营销区域运营团队   
-     * @param string $market_area_bn 营销区域简称    
+     * Description of 获取营销区域运营团队
+     * @param string $market_area_bn 营销区域简称
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
@@ -82,7 +82,7 @@ class MarketAreaTeamModel extends PublicModel {
         } else {
 
             $arr['created_at'] = date('Y-m-d H:i:s');
-            $arr['created_by'] = $uid;
+            $arr['created_by'] = UID;
             $flag = $this->add($arr);
             return $flag;
         }

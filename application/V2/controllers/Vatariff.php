@@ -127,7 +127,7 @@ class VatariffController extends PublicController {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
 
-        $result = $va_tariff_model->create_data($data, $this->user['id']);
+        $result = $va_tariff_model->create_data($data);
 
         if ($result) {
             $this->delcache();
@@ -149,7 +149,7 @@ class VatariffController extends PublicController {
     public function updateAction() {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
-        $result = $va_tariff_model->update_data($data, $this->user['id']);
+        $result = $va_tariff_model->update_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
