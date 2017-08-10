@@ -287,14 +287,6 @@ class GoodsAttachModel extends PublicModel {
             try {
                 foreach ($input['attachs'] as $key => $value) {
                     $data = $this->checkParam($value);
-//                    $data = [
-//                        'supplier_id' => !empty($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
-//                        'attach_type' => !empty($checkout['attach_type']) ? $checkout['attach_type'] : 'BIG_IMAGE',
-//                        'attach_name' => !empty($checkout['attach_name']) ? $checkout['attach_name'] : '',
-//                        'attach_url' => $checkout['attach_url'],
-//                        'default_flag' => !empty($checkout['default_flag']) ? $checkout['default_flag'] : 'N',
-//                        'sort_order' => !empty($checkout['sort_order']) ? $checkout['sort_order'] : 0
-//                    ];
                     //存在sku编辑,反之新增,后续扩展性
                     if (isset($data['id']) && !empty($data['id'])) {
                         $data['updated_by'] = $input['user_id'];
