@@ -51,7 +51,22 @@ class UrlpermController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+    public function listallAction() {
+        //$data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $model_url_perm = new UrlPermModel();
+        $data = $model_url_perm->getlist([],$limit); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
 
+        $this->jsonReturn($datajson);
+    }
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];
