@@ -442,6 +442,7 @@ class SupplierController extends PublicController {
                 if($brand_json[$i]){
                     $brand_json[$i]['brand']=json_decode($brand_json[$i]['brand'],true);
                     for($j=0;$j<count($brand_json[$i]['brand']);$j++){
+                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['id'] =$brank_arr[$i];
                         $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['style'] =$brand_json[$i]['brand'][$j]['style'];
                         $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['label'] =$brand_json[$i]['brand'][$j]['label'];
                         $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['logo'] =$brand_json[$i]['brand'][$j]['logo'];
