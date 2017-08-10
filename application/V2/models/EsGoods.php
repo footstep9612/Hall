@@ -29,7 +29,7 @@ class EsGoodsModel extends Model {
      * @param mix $body // 返回的数据
      * @param string $qurey_type // 匹配类型
      * @param string $name // 查询的名称
-     * @param string $field // 匹配的名称    
+     * @param string $field // 匹配的名称
      * @date    2017-8-1 16:50:09
      * @version V2.0
      * @desc   ES 商品
@@ -94,7 +94,7 @@ class EsGoodsModel extends Model {
      * @param mix $body // 返回的数据
      * @param string $qurey_type // 匹配类型
      * @param string $name // 查询的名称
-     * @param string $field // 匹配的名称   
+     * @param string $field // 匹配的名称
      * @param array $array // 匹配范围
      * @param array $default 默认值
      * @date    2017-8-1 16:50:09
@@ -109,7 +109,7 @@ class EsGoodsModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-                
+
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [$qurey_type => [$field => $status]];
@@ -129,7 +129,7 @@ class EsGoodsModel extends Model {
      * @param mix $body // 返回的数据
      * @param string $qurey_type // 匹配类型
      * @param string $name // 查询的名称
-     * @param string $field // 匹配的名称   
+     * @param string $field // 匹配的名称
      * @date    2017-8-1 16:50:09
      * @version V2.0
      * @desc   ES 商品
@@ -157,7 +157,7 @@ class EsGoodsModel extends Model {
      * @param mix $body // 返回的数据
      * @param string $qurey_type // 匹配类型
      * @param string $name // 查询的名称
-     * @param string $field // 匹配的名称   
+     * @param string $field // 匹配的名称
      * @param array $default 默认值
      * @date    2017-8-1 16:50:09
      * @version V2.0
@@ -250,7 +250,7 @@ class EsGoodsModel extends Model {
     /* 通过搜索条件获取数据列表
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
@@ -291,7 +291,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品   
+     * @desc   ES 商品
      */
 
     public function getproductattrsbyspus($skus, $lang = 'en') {
@@ -337,12 +337,12 @@ class EsGoodsModel extends Model {
 
     /*
      * 将数组中的null值转换为空值
-     * @param array $item // 语言 zh en ru es 
-     * @return mix 
+     * @param array $item // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     private function _findnulltoempty(&$item) {
@@ -355,11 +355,11 @@ class EsGoodsModel extends Model {
 
     /* 通过批量导入商品信息到ES
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function importgoodss($lang = 'en') {
@@ -457,11 +457,11 @@ class EsGoodsModel extends Model {
 
     /* 通过批量导入商品信息到ES
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function updategoodss($lang = 'en', $time = '1970-01-01 8:00:00') {
@@ -580,12 +580,12 @@ class EsGoodsModel extends Model {
     /*
      * 批量更新产品数据到ES
      * @author zyg 2017-07-31
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getSkusByTime($time = '1970-01-01 8:00:00') {
@@ -617,11 +617,11 @@ class EsGoodsModel extends Model {
      * @param string $default 默认值
      * @param string $type 判断的类型
      * @param array $arr 状态判断时状态数组
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     private function _getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
@@ -677,11 +677,11 @@ class EsGoodsModel extends Model {
     /* 新增条件组合
      * @param array $condition  条件
      * @param string $lang 语言
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getInsertCodition($condition, $lang = 'en') {
@@ -759,12 +759,12 @@ class EsGoodsModel extends Model {
     /*
      * 添加商品到Es
      * @param array $data 需要更新的数据
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function create_data($sku, $lang = 'en') {
@@ -801,12 +801,12 @@ class EsGoodsModel extends Model {
      * 更新sku
      * @param array $data 需要更新的数据
      * @param string $sku  SKU
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function update_data($data, $sku, $lang = 'en') {
@@ -840,7 +840,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function changestatus($sku, $status = 'VALID', $lang = 'en') {
@@ -876,7 +876,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品  
+     * @desc   ES 产品
      */
 
     public function getshowcats($sku = null, $lang = 'en') {
@@ -897,7 +897,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function update_showcats($old_cat_no, $lang = 'en') {
@@ -942,7 +942,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function Update_Attrs($sku, $lang = 'en', $product_attrs = [], $product_specs = []) {
@@ -974,7 +974,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function Update_Attachs($sku, $lang = 'en') {
@@ -1013,7 +1013,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function delete_data($sku, $lang = 'en') {
@@ -1022,6 +1022,7 @@ class EsGoodsModel extends Model {
             return false;
         }
         $data['status'] = self::STATUS_DELETED;
+        $data['deleted_flag'] = 'Y';
         $id = $sku;
         if ($lang) {
             $type = $this->tableName . '_' . $lang;
@@ -1045,7 +1046,7 @@ class EsGoodsModel extends Model {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function batchdelete($skus, $lang = 'en') {
@@ -1056,8 +1057,6 @@ class EsGoodsModel extends Model {
         if (is_string($skus)) {
             $skus = [$skus];
         }
-        $goods_attach_model = new GoodsAttachModel();
-        $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
         $type_goods = 'goods_' . $lang;
         $updateParams = array();
         $updateParams['index'] = $this->dbName;
@@ -1065,7 +1064,9 @@ class EsGoodsModel extends Model {
         foreach ($skus as $sku) {
 
             $updateParams['body'][] = ['update' => ['_id' => $sku]];
-            $updateParams['body'][] = ['doc' => ['status' => self::STATUS_DELETED]];
+            $updateParams['body'][] = ['doc' => [
+                    'status' => self::STATUS_DELETED,
+                    'deleted_flag' => 'Y']];
         }
         $es->bulk($updateParams);
         return true;
