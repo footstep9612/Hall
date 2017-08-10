@@ -432,7 +432,7 @@ class QuotebizlineController extends PublicController {
     /**
      * @desc 产品线报价->项目经理->提交产品线报价
      * @author 买买提
-     * 操作说明:当前询单的状态改为产品线报价
+     * 操作说明:当前询单的状态改为产品线报价中
      */
     public function submitToBizlineAction(){
 
