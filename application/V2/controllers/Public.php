@@ -526,7 +526,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @desc 记录审核日志
      *
      * @param array $condition
-     * @param object $condition
+     * @param object $model
      * @return array
      * @author liujf
      * @time 2017-08-10
