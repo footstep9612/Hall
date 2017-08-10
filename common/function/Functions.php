@@ -1404,7 +1404,7 @@ function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
  * @return array|bool
  */
 function getLoinInfo() {
-    $headers = getallheaders();
+    $headers = getHeaders();
     $token = isset($headers['token']) ? $headers['token'] : '';
     $jsondata = json_decode(file_get_contents("php://input"), true);
     $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
@@ -1418,6 +1418,26 @@ function getLoinInfo() {
         return array();
     $tokeninfo = JwtInfo($token); //解析token
     return $tokeninfo;
+}
+
+/**
+ * 获取自定义header数据
+ * @author link 2017-08-09
+ */
+function getHeaders() {
+    $ignore = array('host', 'accept', 'content-length', 'content-type'); // 忽略数据
+    $headers = array();
+    foreach ($_SERVER as $key => $value) {
+        if (substr($key, 0, 5) === 'HTTP_') {
+            $key = substr($key, 5);
+            $key = strtolower($key);
+            if (!in_array($key, $ignore)) {
+                $headers[$key] = $value;
+            }
+        }
+    }
+
+    return $headers;
 }
 
 /**
