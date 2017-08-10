@@ -29,6 +29,29 @@ class BrandModel extends PublicModel {
         parent::__construct();
     }
 
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('status', 'VALID'),
+        array('created_at', 'getDate', 1, 'callback'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('brand', 'require', '品牌信息不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
     /**
      * 条件解析
      * @param mix $condition 搜索条件
