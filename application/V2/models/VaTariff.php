@@ -193,10 +193,12 @@ class VaTariffModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($id = '', $uid = 0) {
+    public function delete_data($id = '') {
         if (!$id) {
             return false;
-        } else {
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
             $where['id'] = $id;
         }
         $update_data['updated_by'] = UID;
