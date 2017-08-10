@@ -510,7 +510,7 @@ class GoodsModel extends PublicModel {
                 return false;
             }
             if ('CHECKING' != $status) {
-                $checkLogModel = new ProductChecklogModel();          //审核记录
+                $checkLogModel = new ProductCheckLogModel();          //审核记录
                 $resLogs = $checkLogModel->takeRecord($input['skus'], $status);
                 if (!$resLogs || $resLogs['code'] != 1) {
                     $this->rollback();
