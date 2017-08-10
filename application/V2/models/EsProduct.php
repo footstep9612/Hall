@@ -17,6 +17,7 @@ class EsProductModel extends Model {
 //put your code here
     protected $tableName = 'product';
     protected $dbName = 'erui2_goods'; //数据库名称
+    const STATUS_DELETED = 'DELETED';
 
     public function __construct($str = '') {
         parent::__construct($str = '');
