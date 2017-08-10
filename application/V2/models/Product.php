@@ -257,7 +257,7 @@ class ProductModel extends PublicModel {
                                 'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
                                 'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
-                                'default_flag' => isset($atta['default_flag']) ? 'Y' : 'N',
+                                'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
                             );
                             if (isset($input['spu'])) {    //修改
                                 $data['id'] = isset($atta['id']) ? $atta['id'] : '';
