@@ -36,7 +36,7 @@ class SupplierModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" id desc") {
         $sql =  'SELECT `id`,`lang`,`serial_no`,`supplier_no`,`supplier_type`,`name`,`bn`,`profile`,`reg_capital`,`employee_count`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
-        $sql.=  '`official_email`,`official_phone`,`official_fax`,`first_name`,`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`supplier_level`,`credit_level`,';
+        $sql.=  '`official_email`,`social_credit_code`,`official_phone`,`official_fax`,`first_name`,`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`supplier_level`,`credit_level`,';
         $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`status`,`remarks`,`apply_at`,`created_by`,`created_at`,`checked_by`,`checked_at`';
         $sql_count =  'SELECT count(`id`) as num ';
         $str = ' FROM '.$this->g_table;
@@ -133,6 +133,9 @@ class SupplierModel extends PublicModel {
         }
         if(isset($create['first_name'])){
             $data['first_name'] = $create['first_name'];
+        }
+        if(isset($create['social_credit_code'])){
+            $data['social_credit_code'] = $create['social_credit_code'];
         }
         if(isset($create['last_name'])){
             $data['last_name'] = $create['last_name'];
@@ -290,6 +293,12 @@ class SupplierModel extends PublicModel {
         }
         if($create['status']){
             $data['status'] = $create['status'];
+        }
+        if(isset($create['social_credit_code'])){
+            $data['social_credit_code'] = $create['social_credit_code'];
+        }
+        if(isset($create['supplier_type'])){
+            $data['supplier_type'] = $create['supplier_type'];
         }
         return $this->where($where)->save($data);
 

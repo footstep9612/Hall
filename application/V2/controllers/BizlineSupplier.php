@@ -23,7 +23,7 @@ class BizlineSupplierController extends PublicController {
             if(empty($data['bizline_supplier']['supplier_id'])) {
                 jsonReturn('',-101,'采购商id不能为空!');
             }
-            $bizline_supplier_model =BizlineSupplierModel();
+            $bizline_supplier_model = new BizlineSupplierModel();
            for($i=0;$i<count($data['bizline_supplier']);$i++){
                 if($data['bizline_supplier'][$i]['bizline_id']){
                     $arr['bizline_id'] = $data['bizline_supplier'][$i]['bizline_id'];
