@@ -24,6 +24,7 @@ class ServiceCatModel extends PublicModel {
      */
     public function getList($condition,$limit,$order='id desc') {
         $condition["deleted_flag"] = 'N';
+        $condition["status"] = 'VALID';
         $fields = 'id,parent_id,level_no,category,sort_order,status,created_by,created_at,updated_by,checked_by,checked_at';
         if(!empty($limit)){
             $result = $this->field($fields)
@@ -97,7 +98,6 @@ class ServiceCatModel extends PublicModel {
             return true;
         } catch (Exception $e) {
             $this->rollback();
-            var_dump($e);
             return false;
         }
 	}

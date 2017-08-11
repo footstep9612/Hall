@@ -39,7 +39,6 @@ class ServicecatController extends PublicController {
 
 
 
-
     /**
      * 详情
      */
