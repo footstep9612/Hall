@@ -30,9 +30,9 @@ class MemberServiceModel extends PublicModel{
         $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
             if(!empty($limit)){
-            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->select();
+            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->select();
             } else{
-                $result = $this->field($fields)->where($where)->select();
+                $result = $this->field($fields)->where($where)->order('buyer_level')->select();
             }
             if($result) {
                 return $result;

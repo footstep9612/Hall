@@ -210,7 +210,7 @@ class ServiceCatModel extends PublicModel {
 	}
 
     /**
-     * 会员服务信息列表
+     * 会员服务信息
      * @time  2017-08-05
      * @author klp
      */
@@ -233,7 +233,20 @@ class ServiceCatModel extends PublicModel {
                            ->select();
             $data = array();
             if ($result) {
+                $employee = new EmployeeModel();
                 foreach($result as $item){
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
+                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+                    if ($updateder && isset($updateder[0])) {
+                        $item['updated_by'] = $updateder[0];
+                    }
+                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+                    if ($checkeder && isset($checkeder[0])) {
+                        $item['checked_by'] = $checkeder[0];
+                    }
                     $item['category'] = json_decode($item['category'],true);
                     $ServiceTermModel = new ServiceTermModel();
                     $resultTerm = $ServiceTermModel->getInfo($item);
