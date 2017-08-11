@@ -26,10 +26,10 @@ class VaTariffModel extends PublicModel {
      * 自动表单验证
      */
     protected $_validate = array(
-        array('country_bn', 'require', '目的国简称不能为空', self::MUST_VALIDATE),
-        array('value_added_tax', 'currency', '增值税税率不能为空', self::MUST_VALIDATE),
-        array('tariff', 'currency', '目的地关税税率不能为空', self::MUST_VALIDATE),
-        array('status', 'require', '状态不能为空', self::MUST_VALIDATE),
+        array('country_bn', 'require', '目的国简称不能为空'),
+        array('value_added_tax', 'currency', '增值税税率不能为空'),
+        array('tariff', 'currency', '目的地关税税率不能为空'),
+        array('status', 'require', '状态不能为空'),
     );
 
     /*

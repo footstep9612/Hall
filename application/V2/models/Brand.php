@@ -41,7 +41,7 @@ class BrandModel extends PublicModel {
      * 自动表单验证
      */
     protected $_validate = array(
-        array('brand', 'require', '品牌信息不能为空', self::MUST_VALIDATE),
+        array('brand', 'require', '品牌信息不能为空'),
     );
 
     /*

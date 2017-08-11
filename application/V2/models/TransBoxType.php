@@ -34,9 +34,9 @@ class TransBoxTypeModel extends PublicModel {
      * 自动表单验证
      */
     protected $_validate = array(
-        array('box_type_bn', 'require', '发货箱型简称不能为空', self::MUST_VALIDATE),
-        array('trans_mode_bn', 'require', '运输方式简称不能为空', self::MUST_VALIDATE),
-        array('status', 'require', '状态不能为空', self::MUST_VALIDATE),
+        array('box_type_bn', 'require', '发货箱型简称不能为空'),
+        array('trans_mode_bn', 'require', '运输方式简称不能为空'),
+        array('status', 'require', '状态不能为空'),
     );
 
     /*

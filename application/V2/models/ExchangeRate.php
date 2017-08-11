@@ -33,10 +33,10 @@ class ExchangeRateModel extends PublicModel {
      * 自动表单验证
      */
     protected $_validate = array(
-        array('cur_bn1', 'require', '币种不能为空', self::MUST_VALIDATE),
-        array('cur_bn2', 'require', '承兑币种不能为空', self::MUST_VALIDATE),
-        array('effective_date', 'require', '生效日期不能为空', self::MUST_VALIDATE),
-        array('created_at', 'require', '创建时间不能为空', self::MUST_VALIDATE),
+        array('cur_bn1', 'require', '币种不能为空'),
+        array('cur_bn2', 'require', '承兑币种不能为空'),
+        array('effective_date', 'require', '生效日期不能为空'),
+        array('created_at', 'require', '创建时间不能为空'),
     );
 
     /*

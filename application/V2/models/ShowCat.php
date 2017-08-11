@@ -23,33 +23,16 @@ class ShowCatModel extends PublicModel {
     }
 
     /*
-     * 自动完成
-     */
-
-    protected $_auto = array(
-        array('created_at', 'getDate', 1, 'callback'),
-        array('status', 'VALID'),
-    );
-    /*
      * 自动表单验证
      */
+
     protected $_validate = array(
-        array('lang', 'require', '语言不能为空', self::MUST_VALIDATE),
-        array('cat_no', 'require', '分类编码不能为空', self::MUST_VALIDATE),
-        array('parent_cat_no', 'require', '上级分类编码不能为空'),
-        array('level_no', 'number', '层级不能为空', self::MUST_VALIDATE),
-        array('name', 'require', '名称不能为空', self::MUST_VALIDATE),
-        array('sort_order', 'require', '序号不能为空'),
-        array('status', 'require', '状态不能为空', self::MUST_VALIDATE),
+        array('lang', 'require', '语言不能为空'),
+        array('cat_no', 'require', '分类编码不能为空'),
+        array('level_no', 'number', '层级不能为空'),
+        array('name', 'require', '名称不能为空'),
+        array('status', 'require', '状态不能为空'),
     );
-
-    /*
-     * 获取当前时间
-     */
-
-    function getDate() {
-        return date('Y-m-d H:i:s');
-    }
 
     /**
      * 分类树形

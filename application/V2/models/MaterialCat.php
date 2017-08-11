@@ -28,33 +28,16 @@ class MaterialCatModel extends PublicModel {
     }
 
     /*
-     * 自动完成
-     */
-
-    protected $_auto = array(
-        array('created_at', 'getDate', 1, 'callback'),
-        array('status', 'VALID'),
-    );
-    /*
      * 自动表单验证
      */
+
     protected $_validate = array(
-        array('lang', 'require', '语言不能为空', self::MUST_VALIDATE),
-        array('cat_no', 'require', '分类编码不能为空', self::MUST_VALIDATE),
-        array('parent_cat_no', 'require', '上级分类编码不能为空'),
-        array('level_no', 'number', '层级不能为空', self::MUST_VALIDATE),
-        array('name', 'require', '名称不能为空', self::MUST_VALIDATE),
-        array('sort_order', 'require', '序号不能为空'),
-        array('status', 'require', '状态不能为空', self::MUST_VALIDATE),
+        array('lang', 'require', '语言不能为空'),
+        array('cat_no', 'require', '分类编码不能为空'),
+        array('level_no', 'number', '层级不能为空'),
+        array('name', 'require', '名称不能为空'),
+        array('status', 'require', '状态不能为空'),
     );
-
-    /*
-     * 获取当前时间
-     */
-
-    function getDate() {
-        return date('Y-m-d H:i:s');
-    }
 
     /**
      * 根据条件获取查询条件
@@ -180,7 +163,7 @@ class MaterialCatModel extends PublicModel {
         if ($cat_no) {
             $condition['parent_cat_no'] = $cat_no;
         } else {
-            $condition['parent_cat_no'] = 0;
+            $condition['parent_cat_no'] = '';
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
@@ -445,11 +428,10 @@ class MaterialCatModel extends PublicModel {
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
                     $add['status'] = self::STATUS_APPROVING;
-
+                    $data = $this->create($data);
+                    $add = $this->create($add);
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
-
                     if (!$flag) {
-
                         $this->rollback();
                         return false;
                     }
@@ -525,7 +507,7 @@ class MaterialCatModel extends PublicModel {
             $data['level_no'] = $upcondition['level_no'];
         }
         if (isset($upcondition['level_no']) && $upcondition['level_no'] == 1) {
-            $data['parent_cat_no'] = 0;
+            $data['parent_cat_no'] = '';
         } elseif (isset($upcondition['parent_cat_no']) && $upcondition['parent_cat_no']) {
             $data['parent_cat_no'] = $upcondition['parent_cat_no'];
         }
@@ -654,7 +636,7 @@ class MaterialCatModel extends PublicModel {
             $info = $this->info($condition['parent_cat_no'], null);
             $condition['level_no'] = $info['level_no'] + 1;
         } else {
-            $data['parent_cat_no'] = 0;
+            $data['parent_cat_no'] = '';
             $condition['level_no'] = 1;
         }
         if (isset($condition['cat_no'])) {
@@ -700,13 +682,17 @@ class MaterialCatModel extends PublicModel {
         }
         if ($condition['sort_order']) {
             $data['sort_order'] = $condition['sort_order'];
+        } else {
+            $data['sort_order'] = 0;
         }
         $this->startTrans();
+        $this->data = null;
         foreach ($this->langs as $lang) {
 
             if (isset($createcondition[$lang])) {
                 $data['lang'] = $lang;
                 $data['name'] = $createcondition[$lang]['name'];
+                $data = $this->create($data);
                 $flag = $this->add($data);
                 if (!$flag) {
                     $this->rollback();

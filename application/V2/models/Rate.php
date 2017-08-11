@@ -39,15 +39,15 @@ class RateModel extends PublicModel {
      * 自动表单验证
      */
     protected $_validate = array(
-        array('lang', 'require', '语言不能为空', self::MUST_VALIDATE),
-        array('box_type_bn', 'require', '发货箱型简称不能为空', self::MUST_VALIDATE),
-        array('fee_type_bn', 'require', '费用类型简称不能为空', self::MUST_VALIDATE),
-        array('unit_price', 'require', '单价不能为空', self::MUST_VALIDATE),
-        array('cur_bn', 'require', '币种不能为空', self::MUST_VALIDATE),
-        array('qty', 'number', '数量必须是数字', self::MUST_VALIDATE),
-        array('unit_price', 'require', '单价不能为空', self::MUST_VALIDATE),
-        array('status', 'require', '状态不能为空', self::MUST_VALIDATE),
-        array('created_at', 'require', '创建时间不能为空', self::MUST_VALIDATE),
+        array('lang', 'require', '语言不能为空'),
+        array('box_type_bn', 'require', '发货箱型简称不能为空'),
+        array('fee_type_bn', 'require', '费用类型简称不能为空'),
+        array('unit_price', 'require', '单价不能为空'),
+        array('cur_bn', 'require', '币种不能为空'),
+        array('qty', 'number', '数量必须是数字'),
+        array('unit_price', 'require', '单价不能为空'),
+        array('status', 'require', '状态不能为空'),
+        array('created_at', 'require', '创建时间不能为空'),
     );
 
     /*
