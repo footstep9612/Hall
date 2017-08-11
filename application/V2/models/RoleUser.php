@@ -31,7 +31,7 @@ class RoleUserModel extends PublicModel {
      */
     public function getRolesUserlist($id,$order='id desc') {
 
-        $sql = 'SELECT  `role_member`.`id`,`employee`.`name`, `employee`.`email` , `employee`.`mobile`  , `employee`.`user_no` ';
+        $sql = 'SELECT  `role_member`.`id` as role_member_id,`role_member`.`employee_id`,`employee`.`name`, `employee`.`email` , `employee`.`mobile`  , `employee`.`user_no` ';
         $sql .= ' FROM employee';
         $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
        // $sql_where = '';

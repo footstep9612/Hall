@@ -124,7 +124,7 @@ class BizlineModel extends PublicModel {
             $results['message'] = '缺少名称!';
             return $results;
         }
-        if(empty($condition['userid'])){
+        if(!empty($condition['userid'])){
             $data['created_by'] = $condition['userid'];
             $data['updated_by'] = $condition['userid'];
         }else{

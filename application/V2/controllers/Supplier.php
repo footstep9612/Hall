@@ -265,8 +265,8 @@ class SupplierController extends PublicController {
             if($data['bank_name']){
                 $supplier_bank_info_data['bank_name'] = $data['bank_name'];
             }
-            if($data['address']){
-                $supplier_bank_info_data['address'] = $data['brand_address'];
+            if($data['bank_address']){
+                $supplier_bank_info_data['address'] = $data['bank_address'];
             }
             if($data['bank_account']){
                 $supplier_bank_info_data['bank_account'] = $data['bank_account'];
@@ -432,7 +432,7 @@ class SupplierController extends PublicController {
             $arr['status'] = $data['status'];
 
         }
-        if(!isset($data['brand'])) {
+        if(!isset($data['barnd'])) {
            $brank_arr =  explode(",",$data['brand']) ;
             for($i=0;$i<count($brank_arr);$i++){
                 $brand_modle = new BrandModel();
@@ -482,8 +482,8 @@ class SupplierController extends PublicController {
             if($data['bank_name']){
                 $supplier_bank_info_data['bank_name'] = $data['bank_name'];
             }
-            if($data['brand_address']){
-                $supplier_bank_info_data['address'] = $data['brand_address'];
+            if($data['bank_address']){
+                $supplier_bank_info_data['address'] = $data['bank_address'];
             }
             if($data['bank_account']){
                 $supplier_bank_info_data['bank_account'] = $data['bank_account'];

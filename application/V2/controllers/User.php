@@ -78,6 +78,64 @@ class UserController extends PublicController {
         $this->jsonReturn($datajson);
     }
     /*
+     * 用户列表
+     * */
+    public function listallAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['username'])){
+            $where['username'] = $data['username'];
+        }
+        if(!empty($data['group_id'])){
+            $where['group_id'] = $data['group_id'];
+        }
+        if(!empty($data['role_id'])){
+            $where['role_id'] = $data['role_id'];
+        }
+        if(!empty($data['role_name'])){
+            $where['role_name'] = $data['role_name'];
+        }
+        if(!empty($data['status'])){
+            $where['status'] = $data['status'];
+        }
+        if(!empty($data['gender'])){
+            $where['gender'] = $data['gender'];
+        }
+        if(!empty($data['employee_flag'])){
+            $where['employee_flag'] = $data['employee_flag'];
+        }
+        if(!empty($data['pageSize'])){
+            $where['num'] = $data['pageSize'];
+        }
+        if(!empty($data['mobile'])){
+            $where['mobile'] = $data['mobile'];
+        }
+        if(!empty($data['user_no'])){
+            $where['user_no'] = $data['user_no'];
+        }
+        if(!empty($data['currentPage'])) {
+            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
+        }
+        $user_modle =new UserModel();
+        $data =$user_modle->getlist($where);
+        $count =$user_modle->getcount($where);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            if($count){
+                $datajson['count'] =$count[0]['num'];
+            }else{
+                $datajson['count'] =0;
+            }
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
          * 用户详情
          * */
     public function infoAction() {
