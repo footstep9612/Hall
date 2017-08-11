@@ -30,13 +30,15 @@ class UrlPermModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='sort desc') {
         if(!empty($limit)){
-            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at,'false' as check")
+            //,'false' as check
+            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at,'false' as `check`")
+            //,'false' as `check`
+            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
                 ->where($data)
                 ->order($order)
                 ->select();

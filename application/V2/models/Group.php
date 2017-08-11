@@ -149,7 +149,6 @@ class GroupModel extends PublicModel {
         if(isset($arr)){
             $arr['created_at'] = date("Y-m-d H:i:s");
         }
-
         $data = $this->create($arr);
         return $this->add($data);
     }

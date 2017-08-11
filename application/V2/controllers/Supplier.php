@@ -482,7 +482,7 @@ class SupplierController extends PublicController {
             if($data['bank_name']){
                 $supplier_bank_info_data['bank_name'] = $data['bank_name'];
             }
-            if($data['address']){
+            if($data['brand_address']){
                 $supplier_bank_info_data['address'] = $data['brand_address'];
             }
             if($data['bank_account']){

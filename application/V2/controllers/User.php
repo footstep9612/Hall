@@ -35,6 +35,15 @@ class UserController extends PublicController {
         if(!empty($data['role_id'])){
             $where['role_id'] = $data['role_id'];
         }
+        if(!empty($data['role_name'])){
+            $where['role_name'] = $data['role_name'];
+        }
+        if(!empty($data['status'])){
+            $where['status'] = $data['status'];
+        }
+        if(!empty($data['gender'])){
+            $where['gender'] = $data['gender'];
+        }
         if(!empty($data['employee_flag'])){
             $where['employee_flag'] = $data['employee_flag'];
         }
