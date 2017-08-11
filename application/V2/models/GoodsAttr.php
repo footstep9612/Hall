@@ -330,8 +330,7 @@ class GoodsAttrModel extends PublicModel {
 
                 //按语言分组,类型分组
                 foreach ($attrs as $item) {
-                    $item['flag'] = true;
-                    if (isset($item['spec_attrs'])) {
+                    if (isset($item['spec_attrs'])) {    //对应扩展属性
                         $item['spec_attrs'] = json_decode($item['spec_attrs'],true);
                     }
                     if (isset($item['ex_goods_attrs'])) {
@@ -343,7 +342,7 @@ class GoodsAttrModel extends PublicModel {
                     if (isset($item['other_attrs'])) {
                         $item['other_attrs'] = json_decode($item['other_attrs'],true);
                     }
-                    $data[$item['lang']][] = $item;
+                    $data[$item['lang']] = $item;
                 }
                 redisHashSet('SkuAttrs', md5(json_encode($where)), json_encode($data));
             }

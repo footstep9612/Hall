@@ -58,14 +58,14 @@ class ServiceCatModel extends PublicModel {
 	 * @return  bool
 	 */
 	public function addData($condition) {
-        if (!isset($condition)) {
+        if (!isset($condition['services'])) {
             return false;
         }
         $userInfo = getLoinInfo();
         $this->startTrans();
         try{
-            if(is_array($condition)) {
-                foreach ($condition as $item) {
+            if(is_array($condition['services'])) {
+                foreach ($condition['services'] as $item) {
                     $data = $this->create($item);
                     if(!empty($data['category'])){
                         $save['category'] = json_encode($data['category']);
@@ -130,11 +130,14 @@ class ServiceCatModel extends PublicModel {
 	 * @return bool
 	 */
     public function update_data($condition) {
+        if (!isset($condition['services'])) {
+            return false;
+        }
         $userInfo = getLoinInfo();
         $this->startTrans();
         try{
-            if(is_array($condition)) {
-                foreach ($condition as $item) {
+            if(is_array($condition['services'])) {
+                foreach ($condition['services'] as $item) {
                     $where = ['id'=>$item['id']];
                     if(!empty($item['category'])){
                         $data['category'] = json_encode($item['category']);

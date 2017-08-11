@@ -158,6 +158,7 @@ class GoodsController extends PublicController {
           'attr_name' =>'444',
           'attr_value' =>'4',
           'value_unit' =>'4',
+         'other_flag' =>'Y',
           ]
           ],
           ],

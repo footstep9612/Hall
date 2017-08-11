@@ -65,10 +65,12 @@ class ServicecatController extends PublicController {
 
     /**
      * 新增
+     * {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","services":[{"category":[{"lang":"en","name":"test 1","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd51","remarks":""}],"term":[{"lang":"en","name":"test 2","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd52","remarks":""}],"item":[{"lang":"en","name":"test 3","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd53","remarks":""}]}]}
      */
     public function createServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data=[
+//        $data= [
+//        'service'=>[
 //              0=>[
 //                  'category'=>[
 //                      0=>["lang"=>"en", "name"=>"test 1", "remarks"=>"",],
@@ -83,8 +85,7 @@ class ServicecatController extends PublicController {
 //                      1=>["lang"=>"zh", "name"=>"测试3", "remarks"=>"",],
 //                  ]
 //              ],
-//
-//
+//            ]
 //               ];
         $model = new ServiceCatModel();
         $res = $model->addData($data);
@@ -100,26 +101,29 @@ class ServicecatController extends PublicController {
 
     /**
      * 更新
+     * *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","services":[{"id":"39","category":[{"lang":"en","name":"test 391","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd5391","remarks":""}],"term":[{"lang":"en","name":"test 392","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd5392","remarks":""}],"item":[{"lang":"en","name":"test 393","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd5393","remarks":""}]}]}
      */
 
     public function updateServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data=[
-//            0=>[
-//                'id'=>'36',
-//                'category'=>[
-//                    0=>["lang"=>"en", "name"=>"test 11", "remarks"=>"",],
-//                    1=>["lang"=>"zh", "name"=>"测试11", "remarks"=>"",],
+//        $data= [
+//            'service'=>[
+//                0=>[
+//                    'id'=> '39',
+//                    'category'=>[
+//                        0=>["lang"=>"en", "name"=>"test 391", "remarks"=>"",],
+//                        1=>["lang"=>"zh", "name"=>"测试391", "remarks"=>"",],
+//                    ],
+//                    'term'=>[
+//                        0=>["lang"=>"en", "name"=>"test 392", "remarks"=>"",],
+//                        1=>["lang"=>"zh", "name"=>"测试392", "remarks"=>"",],
+//                    ],
+//                    'item'=>[
+//                        0=>["lang"=>"en", "name"=>"test 393", "remarks"=>"",],
+//                        1=>["lang"=>"zh", "name"=>"测试393", "remarks"=>"",],
+//                    ]
 //                ],
-//                'term'=>[
-//                    0=>["lang"=>"en", "name"=>"test 22", "remarks"=>"",],
-//                    1=>["lang"=>"zh", "name"=>"测试22", "remarks"=>"",],
-//                ],
-//                'item'=>[
-//                    0=>["lang"=>"en", "name"=>"test 33", "remarks"=>"",],
-//                    1=>["lang"=>"zh", "name"=>"测试33", "remarks"=>"",],
-//                ]
-//            ],
+//            ]
 //        ];
         $model = new ServiceCatModel();
         $res = $model->update_data($data);
@@ -195,6 +199,7 @@ class ServicecatController extends PublicController {
     /**
      * 会员等级新建/编辑
      * @time  2017-08-05
+     *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","levels":[{"id":"27","buyer_level":"27","service_cat_id":"27","service_term_id":"27","service_item_id":"27"}]}
      * @author klp
      */
     public function editLevelAction(){
