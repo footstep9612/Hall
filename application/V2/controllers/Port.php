@@ -38,6 +38,10 @@ class PortController extends PublicController {
             $data['count'] = $this->_model->getCount($condtion);
 
             $this->jsonReturn($data);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -71,7 +75,7 @@ class PortController extends PublicController {
 
     /*
      * Description of 获取创建人姓名
-     * @param array $arr 
+     * @param array $arr
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0

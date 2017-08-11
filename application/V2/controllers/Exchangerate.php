@@ -152,6 +152,12 @@ class ExchangerateController extends PublicController {
     public function createAction() {
         $condition = $this->getPut();
         $result = $this->_model->create_data($condition);
+
+        if ($this->_model->error) {
+            $this->setMessage($this->_model->error);
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

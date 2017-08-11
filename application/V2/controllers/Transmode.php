@@ -25,8 +25,12 @@ class TransmodeController extends PublicController {
             $data['code'] = MSG::MSG_SUCCESS;
             $data['data'] = $arr;
             $data['count'] = $this->_model->getCount($condtion);
-            redisSet($key, json_encode($data), 86400);
+
             $this->jsonReturn($data);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
