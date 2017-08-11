@@ -123,29 +123,6 @@ class QuoteBizLineModel extends PublicModel{
     }
 
     /**
-     * 划分产品线
-     * @param $data
-     * @return mixed
-     */
-    public function partitionBizline($data){
-
-        try{
-            if ($this->add($data)){
-                return [
-                    'code' =>'1',
-                    'message'=>'成功!'
-                ];
-            }
-        }catch (Exception $exception){
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
-        }
-
-    }
-
-    /**
      * 产品线报价->产品线报价人->提交产品线负责人审核
      * 操作说明:当前报价单状态改为(........)
      * @param $params
@@ -171,6 +148,11 @@ class QuoteBizLineModel extends PublicModel{
     }
 
 
+    /**
+     * 划分产品线
+     * @param $param
+     * @return array
+     */
     public function setPartitionBizline($param)
     {
         //先查找询单相关的字段 inquiry_id biz_agent_id

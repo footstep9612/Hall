@@ -42,6 +42,21 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * @desc 划分产品线(项目经理)
+     * @author 买买提
+     */
+    public function partitionBizlineAction(){
+
+        $request = $this->_requestParams;
+
+        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['created_by'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+
+        $this->jsonReturn($this->_quoteBizLine->setPartitionBizline($request));
+    }
+
+    /**
      * @desc 产品线报价->列表(角色:产品线相关人员)
      * @author 买买提
      */
@@ -394,17 +409,6 @@ class QuotebizlineController extends PublicController {
         $quoteBizline = new QuoteBizLineModel();
         $this->jsonReturn($quoteBizline->submitToBizlineManager($this->_requestParams));
 
-    }
-
-    /**
-     * 产品线报价->项目经理->划分产品线
-     */
-    public function partitionBizlineAction(){
-        $request = $this->_requestParams;
-        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['created_by'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $this->jsonReturn($this->_quoteBizLine->setPartitionBizline($request));
     }
 
     /**
