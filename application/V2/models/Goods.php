@@ -323,23 +323,50 @@ class GoodsModel extends PublicModel {
                         $pData['spu_name'][$spuName['lang']] = $spuName;
                     }
                 }
+                //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                 $employee = new EmployeeModel();
                 foreach ($result as $item) {
-                    //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                     $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
                     if ($createder && isset($createder[0])) {
                         $item['created_by'] = $createder[0];
                     }
-
                     $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
                     if ($updateder && isset($updateder[0])) {
                         $item['updated_by'] = $updateder[0];
                     }
-
                     $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
                     if ($checkeder && isset($checkeder[0])) {
                         $item['checked_by'] = $checkeder[0];
                     }
+                    $item['goods_attrs'] = [
+                        ['attr_name'=>'exw_days','attr_value'=>$item['exw_days'],'value_unit'=>''],
+                        ['attr_name'=>'min_pack_naked_qty','attr_value'=>$item['min_pack_naked_qty'],'value_unit'=>''],
+                        ['attr_name'=>'nude_cargo_unit','attr_value'=>$item['nude_cargo_unit'],'value_unit'=>''],
+                        ['attr_name'=>'min_pack_unit','attr_value'=>$item['min_pack_unit'],'value_unit'=>''],
+                        ['attr_name'=>'min_order_qty','attr_value'=>$item['min_order_qty'],'value_unit'=>''],
+                        ['attr_name'=>'purchase_price','attr_value'=>$item['purchase_price'],'value_unit'=>''],
+                        ['attr_name'=>'purchase_price_cur_bn','attr_value'=>$item['purchase_price_cur_bn'],'value_unit'=>'']
+                    ];
+                    $item['logi_attrs'] = [
+                        ['attr_name'=>'nude_cargo_l_mm','attr_value'=>$item['nude_cargo_l_mm'],'value_unit'=>''],
+                        ['attr_name'=>'nude_cargo_w_mm','attr_value'=>$item['nude_cargo_w_mm'],'value_unit'=>''],
+                        ['attr_name'=>'nude_cargo_h_mm','attr_value'=>$item['nude_cargo_h_mm'],'value_unit'=>''],
+                        ['attr_name'=>'min_pack_l_mm','attr_value'=>$item['min_pack_l_mm'],'value_unit'=>''],
+                        ['attr_name'=>'min_pack_w_mm','attr_value'=>$item['min_pack_w_mm'],'value_unit'=>''],
+                        ['attr_name'=>'min_pack_h_mm','attr_value'=>$item['min_pack_h_mm'],'value_unit'=>''],
+                        ['attr_name'=>'net_weight_kg','attr_value'=>$item['net_weight_kg'],'value_unit'=>''],
+                        ['attr_name'=>'gross_weight_kg','attr_value'=>$item['gross_weight_kg'],'value_unit'=>''],
+                        ['attr_name'=>'compose_require_pack','attr_value'=>$item['compose_require_pack'],'value_unit'=>''],
+                        ['attr_name'=>'pack_type','attr_value'=>$item['pack_type'],'value_unit'=>'']
+                    ];
+                    $item['hs_attrs'] = [
+                        ['attr_name'=>'name_customs','attr_value'=>$item['name_customs'],'value_unit'=>''],
+                        ['attr_name'=>'hs_code','attr_value'=>$item['hs_code'],'value_unit'=>''],
+                        ['attr_name'=>'tx_unit','attr_value'=>$item['tx_unit'],'value_unit'=>''],
+                        ['attr_name'=>'tax_rebates_pct','attr_value'=>$item['tax_rebates_pct'],'value_unit'=>''],
+                        ['attr_name'=>'regulatory_conds','attr_value'=>$item['regulatory_conds'],'value_unit'=>''],
+                        ['attr_name'=>'commodity_ori_place','attr_value'=>$item['commodity_ori_place'],'value_unit'=>'']
+                    ];
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
