@@ -28,7 +28,7 @@ class GoodsModel extends PublicModel {
         'show_name' => array('required'),
     );
 
-      public function __construct() {
+    public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
 //        $config_obj = Yaf_Registry::get("config");
 //        $config_db = $config_obj->database->config->goods->toArray();
@@ -37,7 +37,7 @@ class GoodsModel extends PublicModel {
 //        $this->tableName = 'goods';
 
         parent::__construct();
-      }
+    }
 
     /**
      * sku 列表 （admin）
@@ -317,9 +317,9 @@ class GoodsModel extends PublicModel {
             if ($result) {
                 //查询对应spu-name
                 $productModel = new ProductModel();
-                $spuNames = $productModel->field('lang,spu,name,show_name')->where(['spu'=>$result[0]['spu']])->select();
-                if($spuNames){
-                    foreach($spuNames as $spuName){
+                $spuNames = $productModel->field('lang,spu,name,show_name')->where(['spu' => $result[0]['spu']])->select();
+                if ($spuNames) {
+                    foreach ($spuNames as $spuName) {
                         $pData['spu_name'][$spuName['lang']] = $spuName;
                     }
                 }
@@ -340,23 +340,23 @@ class GoodsModel extends PublicModel {
                     }
                     //固定商品属性
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty', 'purchase_price', 'purchase_price_cur_bn', 'nude_cargo_l_mm'];
-                    foreach($goodsAttr as $gAttr){
-                        $item['goods_attrs'][] = ['attr_name'=>$gAttr,'attr_value'=>$item[$gAttr],'value_unit'=>'','goods_flag'=>true];
+                    foreach ($goodsAttr as $gAttr) {
+                        $item['goods_attrs'][] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'value_unit' => '', 'goods_flag' => true];
                     }
                     //固定物流属性
-                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm',' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
-                    foreach($logiAttr as $lAttr){
-                        $item['logi_attrs'][] = ['attr_name'=>$lAttr,'attr_value'=>$item[$lAttr],'value_unit'=>'','logi_flag'=>true];
+                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', ' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
+                    foreach ($logiAttr as $lAttr) {
+                        $item['logi_attrs'][] = ['attr_name' => $lAttr, 'attr_value' => $item[$lAttr], 'value_unit' => '', 'logi_flag' => true];
                     }
                     //固定申报要素属性
                     $hsAttr = ['name_customs', 'hs_code', 'tx_unit', 'tax_rebates_pct', 'regulatory_conds', 'commodity_ori_place'];
-                    foreach($hsAttr as $hAttr){
-                        $item['hs_attrs'][] = ['attr_name'=>$hAttr,'attr_value'=>$item[$hAttr],'value_unit'=>'','hs_flag'=>true];
+                    foreach ($hsAttr as $hAttr) {
+                        $item['hs_attrs'][] = ['attr_name' => $hAttr, 'attr_value' => $item[$hAttr], 'value_unit' => '', 'hs_flag' => true];
                     }
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
-                $data = array_merge($kData,$pData);
+                $data = array_merge($kData, $pData);
                 redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
             }
             return $data;
@@ -459,9 +459,9 @@ class GoodsModel extends PublicModel {
                             return false;
                         }
                         $pModel = new ProductModel();                                 //sku_count加一
-                        $presult = $pModel->where(['spu'=>$checkout['spu'],'lang'=>$key])
-                            ->save(array('sku_count'=>array('exp', 'sku_count' . '+' . 1)));
-                        if(!$presult){
+                        $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
+                                ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                        if (!$presult) {
                             $this->rollback();
                             return false;
                         }
@@ -479,9 +479,9 @@ class GoodsModel extends PublicModel {
                     }
                 }
             }
-             if (isset($input['attachs'])) {
+            if (isset($input['attachs'])) {
                 if (is_array($input['attachs']) && !empty($input['attachs'])) {
-                    $input['sku'] = !empty($input['sku'])?$input['sku']:$sku;
+                    $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
                     $input['user_id'] = $userInfo['id'];
                     $gattach = new GoodsAttachModel();
                     $resAttach = $gattach->editSkuAttach($input);  //附件新增
@@ -493,7 +493,7 @@ class GoodsModel extends PublicModel {
             }
             if (isset($input['supplier_cost'])) {
                 if (is_array($input['supplier_cost']) && !empty($input['supplier_cost'])) {
-                    $input['sku'] =!empty($input['sku'])?$input['sku']:$sku;
+                    $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
                     $input['user_id'] = $userInfo['id'];
                     $gcostprice = new GoodsCostPriceModel();
                     $resCost = $gcostprice->editCostprice($input);  //供应商/价格策略
@@ -569,6 +569,7 @@ class GoodsModel extends PublicModel {
 //                    $es_goods_model->create_data($sku, $lang);
 //                }
 //            }
+
             $this->commit();
             return true;
         } catch (Exception $e) {
@@ -622,7 +623,7 @@ class GoodsModel extends PublicModel {
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $check = $pModel->field('status')->where(['spu' => $item['spu'], 'lang' => $item['lang']])->find();
-                                if($check){
+                                if ($check) {
                                     $resp = ('VALID' == $check['status']) ? true : $pModel->updateStatus($item['spu'], $item['lang'], $status);
                                     if (!$resp) {
                                         return false;
@@ -666,7 +667,7 @@ class GoodsModel extends PublicModel {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
         $lang = '';
-        if(isset($input['lang']) && !in_array(strtolower($input['lang']),array('zh','en','es','ru'))) {
+        if (isset($input['lang']) && !in_array(strtolower($input['lang']), array('zh', 'en', 'es', 'ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         } else {
             $lang = !empty($input['lang']) ? strtolower($input['lang']) : '';
@@ -674,38 +675,38 @@ class GoodsModel extends PublicModel {
         $this->startTrans();
         try {
             $showCatGoodsModel = new ShowCatGoodsModel();
-            if(is_array($input['sku'])){
-                foreach($input['sku'] as $sku){
-                    $result = $showCatGoodsModel->field('sku')->where(['sku'=>$sku,'lang'=>$lang,'onshelf_flag'=>'Y'])->select();
-                    if($result){
-                        jsonReturn('',-101,'上架商品不能删除!');
+            if (is_array($input['sku'])) {
+                foreach ($input['sku'] as $sku) {
+                    $result = $showCatGoodsModel->field('sku')->where(['sku' => $sku, 'lang' => $lang, 'onshelf_flag' => 'Y'])->select();
+                    if ($result) {
+                        jsonReturn('', -101, '上架商品不能删除!');
                     }
                 }
             } else {
-                $result = $showCatGoodsModel->field('sku')->where(['sku'=>$input['sku'],'lang'=>$lang,'onshelf_flag'=>'Y'])->select();
-                if($result){
-                    jsonReturn('',-101,'上架商品不能删除!');
+                $result = $showCatGoodsModel->field('sku')->where(['sku' => $input['sku'], 'lang' => $lang, 'onshelf_flag' => 'Y'])->select();
+                if ($result) {
+                    jsonReturn('', -101, '上架商品不能删除!');
                 }
             }
 
-            $res = $this->deleteSku($input['sku'],$lang);                 //sku删除
+            $res = $this->deleteSku($input['sku'], $lang);                 //sku删除
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
             $pModel = new ProductModel();                               //sku_count减一
-            $spu = $pModel->field('spu')->where(['sku'=>$input['sku'],'lang'=>$lang,'onshelf_flag'=>'Y'])->find();
-            if($spu){
-                $presult = $pModel->where(['spu'=>$spu['spu'],'lang'=>$lang])
-                    ->save(array('sku_count'=>array('exp', 'sku_count' . '-' . 1)));
-                if(!$presult){
+            $spu = $pModel->field('spu')->where(['sku' => $input['sku'], 'lang' => $lang, 'onshelf_flag' => 'Y'])->find();
+            if ($spu) {
+                $presult = $pModel->where(['spu' => $spu['spu'], 'lang' => $lang])
+                        ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
+                if (!$presult) {
                     $this->rollback();
                     return false;
                 }
             }
 
             $gattr = new GoodsAttrModel();
-            $resAttr = $gattr->deleteSkuAttr($input['sku'],$lang);        //属性删除
+            $resAttr = $gattr->deleteSkuAttr($input['sku'], $lang);        //属性删除
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
                 return false;
