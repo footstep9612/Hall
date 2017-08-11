@@ -42,6 +42,15 @@ class UserModel extends PublicModel {
         if ( !empty($condition['role_id']) ){
             $sql .= ' AND role_member.role_id ='.$condition['role_id'];
         }
+        if ( !empty($condition['role_name']) ){
+            $sql .= ' AND role_member.name like "'.$condition['role_name'].'"';
+        }
+        if ( !empty($condition['status']) ){
+            $sql .= ' AND employee.status = "'.$condition['status'].'"';
+        }
+        if ( !empty($condition['gender']) ){
+            $sql .= ' AND employee.gender = "'.$condition['gender'].'"';
+        }
         if ( !empty($condition['username']) ){
             $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
         }
@@ -77,7 +86,7 @@ class UserModel extends PublicModel {
     }
     public function getcount($condition = [],$order=" employee.id desc") {
         $where = $this->getCondition($condition);
-        $sql = 'SELECT count(`employee`.`id`) as num';
+        $sql = 'SELECT count(DISTINCT `employee`.`id`) as num';
         $sql .= ' FROM '.$this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id ';

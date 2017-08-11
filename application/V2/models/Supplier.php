@@ -264,7 +264,12 @@ class SupplierModel extends PublicModel {
         if(isset($create['city'])){
             $data['city'] = $create['city'];
         }
-
+        if(isset($create['reg_capital'])){
+            $data['reg_capital'] = $create['reg_capital'];
+        }
+        if(isset($create['employee_count'])){
+            $data['employee_count'] = $create['employee_count'];
+        }
         if(isset($create['brand'])){
             $data['brand'] = $create['brand'];
         }
