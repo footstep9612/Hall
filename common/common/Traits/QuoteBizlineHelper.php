@@ -15,7 +15,7 @@ trait QuoteBizlineHelper{
         //市场经办人
         if (!empty($request['agent_name'])){
             //Z函数实例化一个不存在模型文件的模型
-            $employee = Z('Employee');
+            $employee = new EmployeeModel();
             $agenter = $employee->field('id')->where(['name'=>$request['agent_name']])->find();
             if ($agenter){
                 $where['agent_id'] = intval($agenter['id']);
@@ -24,7 +24,7 @@ trait QuoteBizlineHelper{
         //项目经理
         if (!empty($request['pm_name'])){
             //Z函数实例化一个不存在模型文件的模型
-            $employee = Z('Employee');
+            $employee = new EmployeeModel();
             $projectManager = $employee->field('id')->where(['name'=>$request['pm_name']])->find();
             if ($projectManager){
                 $where['pm_id'] = $projectManager['id'];
@@ -32,7 +32,7 @@ trait QuoteBizlineHelper{
         }
 
         switch ($type){
-            case 'PM' : $where['pm_id'] = $request['pm_id'] ; break ;
+            case 'PM' : $where['pm_id'] = !empty($request['pm_id']) ? $request['pm_id'] : 5 ; break ;
             case 'BIZLINE' : $where['agent_id'] = $request['agent_id'] ; break ;
         }
 
@@ -103,13 +103,15 @@ trait QuoteBizlineHelper{
         foreach ($list as $item=>$value) {
             //经办人
             if(!empty($value['agent_id'])){
-                $employee = Z('Employee')->where(['id'=>$value['agent_id']])->field('name')->find();
+                $employeeModel = new EmployeeModel();
+                $employee = $employeeModel->where(['id'=>$value['agent_id']])->field('name')->find();
                 $list[$item]['agent_name'] = $employee['name'];
                 unset( $list[$item]['agent_id']);
             }
             //项目经理
             if(!empty($value['pm_id'])){
-                $productManager = Z('Employee')->where(['id'=>$value['pm_id']])->field('name')->find();
+                $employeeModel = new EmployeeModel();
+                $productManager = $employeeModel->where(['id'=>$value['pm_id']])->field('name')->find();
                 $list[$item]['pm_name'] = $productManager['name'];
                 unset( $list[$item]['pm_id']);
             }
@@ -157,13 +159,14 @@ trait QuoteBizlineHelper{
 
     static public function restoreInqiryInfo(array $inquiry){
         //市场经办人
-        $agent = Z('Employee')->where(['id'=>$inquiry['agent_id']])->getField('name');
+        $employeeModel = new EmployeeModel();
+        $agent = $employeeModel->where(['id'=>$inquiry['agent_id']])->getField('name');
         if ($agent){
             $inquiry['agent_name'] = $agent;
             unset($inquiry['agent_id']);
         }
         //项目经理
-        $productManager = Z('Employee')->where(['id'=>$inquiry['pm_id']])->getField('name');
+        $productManager = $employeeModel->where(['id'=>$inquiry['pm_id']])->getField('name');
         if ($productManager){
             $inquiry['pm_name'] = $productManager;
             unset($inquiry['pm_id']);

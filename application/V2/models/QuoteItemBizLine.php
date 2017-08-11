@@ -59,7 +59,7 @@ class QuoteItemBizLineModel extends PublicModel
         foreach ($data as $k=>$v){
             $this->where(['quote_id'=>$v['quote_id']])->save(['status'=>QuoteBizLineModel::STATUS_RETURN]);
         }
-
         return true;
     }
+
 }

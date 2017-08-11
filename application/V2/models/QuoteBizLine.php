@@ -193,4 +193,24 @@ class QuoteBizLineModel extends PublicModel{
         }
         return ['code'=>'1','message'=>'成功!'];
     }
+
+    /**
+     * 产品线负责人指派报价人
+     * @param $request 请求参数
+     * @return array 返回结果
+     */
+    public function assignQuoter($request){
+        try{
+            if ($this->where(['quote_id'=>$request['quote_id']])->save(['biz_agent_id'=>$request['biz_agent_id']])){
+                return ['code'=>'1','message'=>'指派成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'指派失败!'];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
 }

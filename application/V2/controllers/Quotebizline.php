@@ -24,7 +24,7 @@ class QuotebizlineController extends PublicController {
      * 构造方法
      */
     public function init() {
-        //parent::init();
+        parent::init();
         $this->_quoteBizLine = new QuoteBizLineModel();
         $this->_quoteItemBizLine = new QuoteItemBizLineModel();
         $this->_requestParams = json_decode(file_get_contents("php://input"), true);
@@ -32,21 +32,13 @@ class QuotebizlineController extends PublicController {
 
 
     /**
-     * @desc 产品线报价->列表(角色:项目经理)
+     * @desc 产品线报价->询单列表(角色:项目经理)
      * @author 买买提
      */
-    public function listPmAction(){
-        $this->jsonReturn($this->listPmHandler($this->_requestParams));
-    }
-    /**
-     * @desc 产品线报价->列表(角色:项目经理)
-     * @author 买买提
-     * 说明:项目经理可以查看自己负责的询单
-     * 数据库操作:查找当前用户id跟inquiry表中pm_id字段值相等的items
-     */
-    private function listPmHandler($request){
-        $filterParams = QuoteBizlineHelper::filterListParams($request,'PM');
-        return QuoteBizlineHelper::getQuotelineInquiryList($filterParams);
+    public function listAction(){
+        //p($this->getUserInfo()[id]);
+        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
+        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
     }
 
     /**
@@ -291,10 +283,10 @@ class QuotebizlineController extends PublicController {
 
     public function assignQuoterAction() {
 
-        if( empty($this->_requestParams['quote_id']) || empty($this->_requestParams['bizline_agent_id']) ){
+        if( empty($this->_requestParams['quote_id']) || empty($this->_requestParams['biz_agent_id']) ){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
         }
-        $this->jsonReturn(QuoteBizlineHelper::assignQuoter($this->_requestParams));
+        $this->jsonReturn($this->_quoteBizLine->assignQuoter($this->_requestParams));
 
     }
 
