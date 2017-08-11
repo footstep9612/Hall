@@ -14,6 +14,7 @@
 class GroupModel extends PublicModel {
 
     //put your code here
+    protected $dbName = 'erui2_sys'; //数据库名称
     protected $tableName = 'org';
     Protected $autoCheckFields = true;
 
