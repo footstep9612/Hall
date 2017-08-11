@@ -7,8 +7,8 @@
  * Time: 10:00
  */
 class BizlineController extends PublicController {
-    public function __init() {
-        parent::__init();
+    public function init() {
+        parent::init();
     }
 
     //产品线列表

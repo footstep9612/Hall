@@ -8,9 +8,9 @@
  */
 class FinalQuoteController extends PublicController {
 
-    public function __init()
+    public function init()
     {
-        parent::__init();
+        parent::init();
     }
 
     /*
