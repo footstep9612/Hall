@@ -911,6 +911,21 @@ class EsproductModel extends PublicModel {
     }
 
     /*
+     * 将数组中的null值转换为空值
+     * @author zyg 2017-07-31
+     * @param array $item // 语言 zh en ru es
+     * @return mix
+     */
+
+    private function _findnulltoempty(&$item) {
+        foreach ($item as $key => $val) {
+            if (is_null($val)) {
+                $item[$key] = '';
+            }
+        }
+    }
+
+    /*
      * 批量导入产品数据到ES
 
      * @param string $lang // 语言 zh en ru es
@@ -970,6 +985,7 @@ class EsproductModel extends PublicModel {
 
                     foreach ($products as $key => $item) {
                         $id = $item['spu'];
+                        $this->_findnulltoempty($item);
                         $body = $item;
 
                         if ($body['source'] == 'ERUI') {
