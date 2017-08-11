@@ -135,7 +135,6 @@ class BizlineModel extends PublicModel {
         if(!empty($condition['description'])){
             $data['description'] = $condition['description'];
         }
-
         $data['status'] = 'VALID';
         $data['created_at'] = $this->getTime();
         $data['updated_at'] = $this->getTime();

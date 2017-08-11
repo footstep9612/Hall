@@ -426,33 +426,31 @@ class SupplierController extends PublicController {
         }
         if(!empty($data['employee_count'])) {
             $arr['employee_count'] = $data['employee_count'];
-
         }
         if(!empty($data['status'])) {
             $arr['status'] = $data['status'];
-
         }
         if(!isset($data['barnd'])) {
            $brank_arr =  explode(",",$data['brand']) ;
             $brand_json =[];
-               for($i=0;$i<count($brank_arr);$i++){
-                   $brand_modle = new BrandModel();
-                   if($brank_arr[$i]){
-                       $brand_json[$i] = $brand_modle->info($brank_arr[$i]);
-                       if($brand_json[$i]){
-                           $brand_json[$i]['brand']=json_decode($brand_json[$i]['brand'],true);
-                           for($j=0;$j<count($brand_json[$i]['brand']);$j++){
-                               $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['id'] =$brank_arr[$i];
-                               $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['style'] =$brand_json[$i]['brand'][$j]['style'];
-                               $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['label'] =$brand_json[$i]['brand'][$j]['label'];
-                               $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['logo'] =$brand_json[$i]['brand'][$j]['logo'];
-                               $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['lang'] =$brand_json[$i]['brand'][$j]['lang'];
-                               $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['name'] =$brand_json[$i]['brand'][$j]['name'];
-                           }
+            for($i=0;$i<count($brank_arr);$i++){
+               $brand_modle = new BrandModel();
+               if($brank_arr[$i]){
+                   $brand_json[$i] = $brand_modle->info($brank_arr[$i]);
+                   if($brand_json[$i]){
+                       $brand_json[$i]['brand']=json_decode($brand_json[$i]['brand'],true);
+                       for($j=0;$j<count($brand_json[$i]['brand']);$j++){
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['id'] =$brank_arr[$i];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['style'] =$brand_json[$i]['brand'][$j]['style'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['label'] =$brand_json[$i]['brand'][$j]['label'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['logo'] =$brand_json[$i]['brand'][$j]['logo'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['lang'] =$brand_json[$i]['brand'][$j]['lang'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['name'] =$brand_json[$i]['brand'][$j]['name'];
                        }
-                       unset($brand_json[$i]['brand']);
                    }
+                   unset($brand_json[$i]['brand']);
                }
+            }
             $arr['brand'] = json_encode($brand_json,JSON_UNESCAPED_UNICODE);
         }
         // 生成供应商编码
@@ -476,7 +474,6 @@ class SupplierController extends PublicController {
                 $supplier_attach_data['attach_name'] = $data['attach_name'];
                 $supplier_attach ->update_data($supplier_attach_data,$where_attach);
             }
-            //
             $supplier_contact = new SupplierContactModel();
             if($supplier_contact_data){
                 $supplier_contact ->update_data($supplier_contact_data,$supplier_contact_where);
