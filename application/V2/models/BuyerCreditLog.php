@@ -24,11 +24,11 @@ class BuyerCreditLogModel extends PublicModel{
      * @return mix
      * @author klp
      */
-    public function getInfo() {
-        $userInfo = getLoinInfo();
+    public function getInfo($user) {
+//        $userInfo = getLoinInfo();
         $where=array();
-        if(!empty($userInfo['id'])){
-            $where['buyer_id'] = $userInfo['id'];
+        if(!empty($user['id'])){
+            $where['buyer_id'] = $user['id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }
@@ -36,7 +36,19 @@ class BuyerCreditLogModel extends PublicModel{
 
         try {
             $result =  $this->field($field)->where($where)->select();
-            return $result ? $result : array();
+            if ($result) {
+                $data = [];
+                $employee = new EmployeeModel();
+                foreach ($result as $item) {
+                    $createder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['checked_by'] = $createder[0];
+                    }
+                    $data[] = $item;
+                }
+                return $data;
+            }
+            return array();
         } catch(Exception $e){
             return array();
         }
@@ -48,14 +60,14 @@ class BuyerCreditLogModel extends PublicModel{
      * @return mix
      * @author klp
      */
-    protected function checkCredit($checkInfo) {
+    public function checkCredit($checkInfo) {
         $condition = $this->checkParam($checkInfo);
         if(empty($condition)){
             return false;
         }
         $data = [];
-        if(!empty($condition['buyer_id'])){
-            $data['buyer_id'] = $condition['buyer_id'];
+        if(!empty($condition['id'])){
+            $data['buyer_id'] = $condition['id'];
         }
         if(!empty($condition['credit_grantor'])){
             $data['credit_grantor'] = $condition['credit_grantor'];
@@ -107,14 +119,14 @@ class BuyerCreditLogModel extends PublicModel{
      * @return mix
      * @author klp
      */
-    protected function sinosureCredit($checkInfo) {
-        $condition = $this->checkParam($checkInfo);
+    protected function sinosureCredit($condition) {
+//        $condition = $this->checkParam($checkInfo);
         if(empty($condition)){
             return false;
         }
         $data = [];
-        if(!empty($condition['buyer_id'])){
-            $data['buyer_id'] = $condition['buyer_id'];
+        if(!empty($condition['id'])){
+            $data['buyer_id'] = $condition['id'];
         }
         if(!empty($condition['credit_grantor'])){
             $data['credit_grantor'] = $condition['credit_grantor'];
@@ -169,13 +181,13 @@ class BuyerCreditLogModel extends PublicModel{
             return false;
         }
         $results = array();
-        if(empty($data['buyer_id'])) {
+        if(empty($data['id'])) {
             $results['code'] = '-1';
-            $results['message'] = '[buyer_id]缺失';
+            $results['message'] = '[id]缺失';
         }
         //新状态可以补充
         if(isset($data['status_type'])) {
-            switch (strtoupper($data['status_type'])) {
+            switch ($data['status_type']) {
                 case 'approved':    //审核(通过)
                     $data['in_status'] = self::STATUS_APPROVED;
                     break;

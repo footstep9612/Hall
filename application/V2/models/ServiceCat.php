@@ -216,8 +216,8 @@ class ServiceCatModel extends PublicModel {
      */
     public function getInfo($data) {
         //$data['id'] = 3;
-        if(isset($data['id']) && !empty($data['id'])) {
-            $condition["id"] = $data['id'];
+        if(isset($data['service_cat_id']) && !empty($data['service_cat_id'])) {
+            $condition["id"] = $data['service_cat_id'];
         }
         $condition["deleted_flag"] = 'N';
         $condition["status"] = 'VALID';
