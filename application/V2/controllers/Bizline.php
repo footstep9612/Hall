@@ -39,7 +39,7 @@ class BizlineController extends PublicController {
     public function getInfoAction() {
         $bizline = new BizlineModel();
         $bizlinecat = new BizlineCatModel();
-        $materialcat = new MaterialcatModel();
+        $materialcat = new MaterialCatModel();
         $createcondition = $this->put_data;
 
         $results = $bizline->getInfo($createcondition);

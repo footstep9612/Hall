@@ -124,8 +124,9 @@ class BizlineModel extends PublicModel {
             $results['message'] = '缺少名称!';
             return $results;
         }
-        if(!empty($condition['userid'])){
-            $data['userid'] = $condition['userid'];
+        if(empty($condition['userid'])){
+            $data['created_by'] = $condition['userid'];
+            $data['updated_by'] = $condition['userid'];
         }else{
             $results['code'] = '-103';
             $results['message'] = '缺少添加人员id!';
@@ -136,9 +137,7 @@ class BizlineModel extends PublicModel {
         }
 
         $data['status'] = 'VALID';
-        $data['created_by'] = $condition['userid'];
         $data['created_at'] = $this->getTime();
-        $data['updated_by'] = $condition['userid'];
         $data['updated_at'] = $this->getTime();
 
         try {

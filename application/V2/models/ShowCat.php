@@ -22,6 +22,18 @@ class ShowCatModel extends PublicModel {
         parent::__construct();
     }
 
+    /*
+     * 自动表单验证
+     */
+
+    protected $_validate = array(
+        array('lang', 'require', '语言不能为空'),
+        array('cat_no', 'require', '分类编码不能为空'),
+        array('level_no', 'number', '层级不能为空'),
+        array('name', 'require', '名称不能为空'),
+        array('status', 'require', '状态不能为空'),
+    );
+
     /**
      * 分类树形
      * @param mix $condition

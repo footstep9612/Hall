@@ -34,6 +34,10 @@ class CityController extends PublicController {
             $data['count'] = $this->_model->getCount($condtion);
 
             $this->jsonReturn($data);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -57,8 +61,12 @@ class CityController extends PublicController {
             $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
             $data['code'] = MSG::MSG_SUCCESS;
             $data['data'] = $arr;
-            redisSet($key, json_encode($data), 86400);
+
             $this->jsonReturn($data);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
