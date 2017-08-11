@@ -432,7 +432,7 @@ class SupplierController extends PublicController {
             $arr['status'] = $data['status'];
 
         }
-        if(!isset($data['brand'])) {
+        if(!isset($data['barnd'])) {
            $brank_arr =  explode(",",$data['brand']) ;
             for($i=0;$i<count($brank_arr);$i++){
                 $brand_modle = new BrandModel();

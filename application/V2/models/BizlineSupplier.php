@@ -66,4 +66,9 @@ class BizlineSupplierModel extends PublicModel
         $data = $this->create($arr);
         return $this->add($data);
     }
+    public function deletes($where){
+        if($where){
+            $this->where($where)->delete();
+        }
+    }
 }

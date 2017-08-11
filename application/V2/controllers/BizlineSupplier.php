@@ -20,20 +20,22 @@ class BizlineSupplierController extends PublicController {
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['bizline_supplier'])) {
-            if(empty($data['bizline_supplier']['supplier_id'])) {
+            if(empty($data['supplier_id'])) {
                 jsonReturn('',-101,'采购商id不能为空!');
             }
             $bizline_supplier_model = new BizlineSupplierModel();
+            $bizline_supplier_model->deletes(['supplier_id'=>$data['supplier_id']]);
            for($i=0;$i<count($data['bizline_supplier']);$i++){
                 if($data['bizline_supplier'][$i]['bizline_id']){
                     $arr['bizline_id'] = $data['bizline_supplier'][$i]['bizline_id'];
-                    $arr['supplier_id'] = $data['bizline_supplier']['supplier_id'];
+                    $arr['supplier_id'] = $data['supplier_id'];
                     $arr['first_name'] = $data['bizline_supplier'][$i]['first_name'];
                     $arr['last_name'] = $data['bizline_supplier'][$i]['last_name'];
                     $arr['gender'] = $data['bizline_supplier'][$i]['gender'];
                     $arr['title'] = $data['bizline_supplier'][$i]['title'];
                     $arr['phone'] = $data['bizline_supplier'][$i]['phone'];
                     $arr['email'] = $data['bizline_supplier'][$i]['email'];
+                    $arr['supply_level'] = $data['bizline_supplier'][$i]['supply_level'];
                     $arr['quote_group_id'] = $data['bizline_supplier'][$i]['quote_group_id'];
                     $bizline_supplier_model->create_data($arr);
                 }
