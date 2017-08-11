@@ -75,9 +75,6 @@ class SupplierContactModel extends PublicModel
      * @author klp
      */
     public function update_data($condition,$where){
-        if(isset($condition['supplier_id'])){
-            $arr['supplier_id'] = $condition['supplier_id'];
-        }
         if(isset($condition['first_name'])){
             $arr['first_name'] = $condition['first_name'];
         }
@@ -99,9 +96,16 @@ class SupplierContactModel extends PublicModel
         if(isset($condition['remarks'])){
             $arr['remarks'] = $condition['remarks'];
         }
-        if(isset($condition['created_by'])){
-            $arr['created_by'] =$condition['created_by'];
+        if (!empty($where)&&isset($arr)) {
+            $info = $this->where($where)->find();
+            if(!$info){
+                $arr['supplier_id']=$where['supplier_id'];
+                $this->create_data($arr);
+            }else{
+                return $this->where($where)->save($arr);
+            }
+        } else {
+            return false;
         }
-        return $this->where($where)->save($arr);
     }
 }

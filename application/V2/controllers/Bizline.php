@@ -30,7 +30,12 @@ class BizlineController extends PublicController {
             //产品线负责人组名称
             $where['group_role'] = 'BIZLINE_MANAGER';
             $grouplist = $bizlinegroup->getList($where);
-            $groupname = $group->field('name')->where('id='.$grouplist['data'][0]['group_id'])->find();
+            if($grouplist['code']==1){
+                $groupname = $group->field('name')->where('id='.$grouplist['data'][0]['group_id'])->find();
+                $results['data'][$key]['group_name'] = $groupname['name'];
+            }else{
+                $results['data'][$key]['group_name'] = $grouplist['data'][0]['group_id'];
+            }
 
             $results['data'][$key]['group_name'] = $groupname['name'];
         }
