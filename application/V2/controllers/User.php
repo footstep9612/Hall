@@ -79,59 +79,44 @@ class UserController extends PublicController {
     }
     /*
      * 用户列表
+     *
      * */
-    public function listallAction() {
+    public function userrolelistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
-        $where = [];
-        if(!empty($data['username'])){
-            $where['username'] = $data['username'];
-        }
-        if(!empty($data['group_id'])){
-            $where['group_id'] = $data['group_id'];
-        }
-        if(!empty($data['role_id'])){
-            $where['role_id'] = $data['role_id'];
-        }
-        if(!empty($data['role_name'])){
-            $where['role_name'] = $data['role_name'];
-        }
-        if(!empty($data['status'])){
-            $where['status'] = $data['status'];
-        }
-        if(!empty($data['gender'])){
-            $where['gender'] = $data['gender'];
-        }
-        if(!empty($data['employee_flag'])){
-            $where['employee_flag'] = $data['employee_flag'];
-        }
-        if(!empty($data['pageSize'])){
-            $where['num'] = $data['pageSize'];
-        }
-        if(!empty($data['mobile'])){
-            $where['mobile'] = $data['mobile'];
-        }
-        if(!empty($data['user_no'])){
-            $where['user_no'] = $data['user_no'];
-        }
-        if(!empty($data['currentPage'])) {
-            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
-        }
-        $user_modle =new UserModel();
-        $data =$user_modle->getlist($where);
-        $count =$user_modle->getcount($where);
+        $role_user_modle =new RoleUserModel();
+        $data =$role_user_modle->userRoleList($data['user_id']);
         if(!empty($data)){
             $datajson['code'] = 1;
-            if($count){
-                $datajson['count'] =$count[0]['num'];
-            }else{
-                $datajson['count'] =0;
-            }
             $datajson['data'] = $data;
         }else{
             $datajson['code'] = -104;
-            $datajson['data'] = "";
             $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
+    * 用户列表
+    *
+    * */
+    public function updatepasswordAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $arr['id'] = $this->user['id'];
+        $arr['password_hash'] = md5($data['old_password']);
+        $new_passwoer['password_hash'] = md5($data['password']);
+        $user_modle =new UserModel();
+        $data =$user_modle->infoList($arr);
+        if($data){
+            $res =$user_modle->update_data($new_passwoer,$arr);
+            if($res!==false){
+                $datajson['code'] = 1;
+            }else{
+                $datajson['code'] = -104;
+                $datajson['message'] = '修改失败!';
+            }
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '密码错误!';
         }
         $this->jsonReturn($datajson);
     }

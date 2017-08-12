@@ -21,7 +21,18 @@ class RoleUserModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-
+    public function userRoleList($user_id){
+        $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`fn` ';
+        $sql .= ' FROM employee';
+        $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
+        $sql .= ' LEFT JOIN  `role_access_perm` ON `role_access_perm`.`role_id` =`role_member`.`role_id`';
+        $sql .= ' LEFT JOIN  `func_perm` ON `func_perm`.`id` =`role_access_perm`.`func_perm_id`';
+        // $sql_where = '';
+        if(!empty($user_id)) {
+            $sql .= ' WHERE `role_member`.`employee_id` =' . $user_id;
+        }
+        return $this->query( $sql );
+    }
 
     /**
      * 获取列表

@@ -275,7 +275,19 @@ class UserModel extends PublicModel {
         }
 
     }
-
+    /**
+     * 获取列表
+     * @param  string $code 编码
+     * @param  int $id id
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function infoList($where) {
+        return $this->where($where)
+            ->field('id,user_no,name,email,mobile,status')
+            ->find();
+    }
     /**
      * 新增数据
      * @param  array $create 新增条件
