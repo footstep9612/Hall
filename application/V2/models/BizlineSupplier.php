@@ -53,6 +53,9 @@ class BizlineSupplierModel extends PublicModel
         if(isset($create['email'])){
             $arr['email'] = $create['email'];
         }
+        if(isset($create['phone'])){
+            $arr['phone'] = $create['phone'];
+        }
         if(isset($create['quote_group_id'])){
             $arr['quote_group_id'] = $create['quote_group_id'];
         }
