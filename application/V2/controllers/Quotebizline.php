@@ -24,7 +24,7 @@ class QuotebizlineController extends PublicController {
      * 构造方法
      */
     public function init() {
-        parent::init();
+//        parent::init();
         $this->_quoteBizLine = new QuoteBizLineModel();
         $this->_quoteItemBizLine = new QuoteItemBizLineModel();
         $this->_requestParams = json_decode(file_get_contents("php://input"), true);
@@ -414,46 +414,16 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 产品线报价->项目经理->退回产品线重新报价
+     * @desc 退回产品线重新报价(项目经理)
      * @author 买买提
-     * 操作说明:(1)更改询单的状态及询单的产品线报价状态 (2)更改产品线报价的状态(quote_bizine)
      */
-    public function sendbackToBizlineAction(){
+    public function rejectBizlineAction(){
 
         if (empty($this->_requestParams['serial_no']) || empty($this->_requestParams['bizline_id'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
-
-        $inquiryModel = new InquiryModel();
-        //开启事务
-        $inquiryModel->startTrans();
-
-        //更改询单的状态和询单中的产品线报价状态
-        $updateInquiryStatus = $inquiryModel->where(['serial_no'=>$this->_requestParams['serial_no']])->save([
-            'status' => 'BZ_QUOTE_REJECTED',//询单的状态
-            'goods_quote_status' => 'REJECTED'//询单的产品线报价状态
-        ]);
-
-        //更改产品线报价表中的status
-        $updateQuotebizlineStatus = $this->_quoteBizLine->where([
-            'bizline_id' => $this->_requestParams['bizline_id']
-        ])->save([
-            'status' => 'REJECTED'
-        ]);
-
-        if ($updateInquiryStatus && $updateQuotebizlineStatus){
-            $inquiryModel->commit();//提交事务
-            $this->jsonReturn([
-                'code' => '1',
-                'messasge' => '退回成功!'
-            ]);
-        }else{
-            $inquiryModel->rollback();//数据回滚
-            $this->jsonReturn([
-                'code' => '-104',
-                'messasge' => '退回失败!'
-            ]);
-        }
+        $result = $this->_quoteBizLine->rejectBizline($this->_requestParams);
+        $this->jsonReturn($result);
     }
 
 
