@@ -86,6 +86,39 @@ class QuoteBizLineModel extends PublicModel{
     }
 
     /**
+     * 提交物流报价(项目经理)
+     * @param $request
+     * @return bool
+     */
+    public function sentLogistics($request){
+
+        //修改询单表(inqury)的数据
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
+        $inquiryUpdates = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status' => self::INQUIRY_QUOTED_BY_LOGI,//物流报价中
+            'goods_quote_status' => self::QUOTE_APPROVED //已审核
+        ]);
+
+        //修改产品线报价单的状态
+        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
+        $this->startTrans();
+        $bizlineUpdates = $this->where(['inquiry_id'=>$inquiryID])->save([
+            'status' => self::QUOTE_APPROVED,//已审核
+        ]);
+
+        if ($inquiryUpdates && $bizlineUpdates){
+            $inquiry->commit();
+            $this->commit();
+            return ['code'=>'1','message'=>'提交成功!'];
+        }else{
+            $inquiry->rollback();
+            $this->rollback();
+            return ['code'=>'-104','message'=>'提交失败!'];
+        }
+    }
+
+    /**
      * 根据条件获取所有产品线报价单
      * @param array $param
      *

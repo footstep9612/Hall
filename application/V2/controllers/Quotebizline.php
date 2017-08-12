@@ -428,17 +428,15 @@ class QuotebizlineController extends PublicController {
 
 
     /**
-     * @desc 产品线报价->项目经理->提交物流报价
+     * @desc 提交物流报价
      * @author 买买提
      */
-    public function submitToLogiAction()
-    {
+    public function sentLogisticsAction(){
 
         if (empty($this->_requestParams['serial_no'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
-        $this->jsonReturn(QuoteBizlineHelper::submitToLogi($this->_requestParams));
-
+        $this->jsonReturn($this->_quoteBizLine->sentLogistics($this->_requestParams));
     }
 
 }
