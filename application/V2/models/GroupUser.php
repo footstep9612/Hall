@@ -14,15 +14,25 @@
 class GroupUserModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'group_user';
-    protected $table = 't_group_user';
+    protected $tableName = 'org_member';
+    protected $table = 'org_member';
     Protected $autoCheckFields = true;
 
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
 
-
+    public function addusers($data){
+        if(!empty($data['user_ids'])){
+            $user_arr = explode(",",$data['user_ids']);
+        }
+        for($i=0;$i<count($user_arr);$i++){
+            $arr['employee_id'] = $user_arr[$i];
+            $arr['org_id'] = $data['group_id'];
+            $this->create_data($arr);
+        }
+        return true ;
+    }
     /**
      * 获取列表
      * @param data $data;
@@ -105,14 +115,20 @@ class GroupUserModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['group_id'])){
-            $arr['group_id'] = $create['group_id'];
+        if(isset($create['employee_id'])){
+            $arr['employee_id'] = $create['employee_id'];
         }
-        if(isset($create['user_id'])){
-            $arr['user_id'] = $create['user_id'];
+        if(isset($create['org_id'])){
+            $arr['org_id'] = $create['org_id'];
         }
-        $data = $this->create($arr);
-        return $this->add($data);
+        $info = $this->where($arr)->find();
+        if(!$info){
+            $arr['created_at'] = Date("Y-m-d H:i:s");
+            $data = $this->create($arr);
+            return $this->add($data);
+        }else{
+            return true;
+        }
     }
 
 }

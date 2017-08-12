@@ -19,8 +19,32 @@ class TransBoxTypeModel extends PublicModel {
     protected $dbName = 'erui2_dict';
     protected $tableName = 'trans_box_type';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
+    }
+
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('status', 'VALID'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('box_type_bn', 'require', '发货箱型简称不能为空'),
+        array('trans_mode_bn', 'require', '运输方式简称不能为空'),
+        array('status', 'require', '状态不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
     }
 
     /**
@@ -133,11 +157,9 @@ class TransBoxTypeModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create = []) {
-
+        unset($create['id']);
+        $create['status'] = $create['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $data = $this->create($create);
-
-        unset($data['id']);
-        $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $flag = $this->add($data);
         if ($flag) {
             return $flag;

@@ -7,12 +7,13 @@
  * Time: 14:46
  */
 class CentercreditController extends PublicController {
-
 //class CentercreditController extends Yaf_Controller_Abstract{
     private $input;
 
     public function __init() {
+        parent::init();
 //        $this->input = json_decode(file_get_contents("php://input"), true);
+        $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
     }
 
     /**
@@ -77,7 +78,7 @@ class CentercreditController extends PublicController {
      */
     public function getBuyerInfoAction() {
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->buyerInfo();
+        $result = $buyerModel->buyerInfo($this->put_data);
         $this->returnInfo($result);
     }
 
@@ -89,29 +90,31 @@ class CentercreditController extends PublicController {
      */
     public function getBuyerBankInfoAction() {
         $buyerModel = new BuyerBankInfoModel();
-        $result = $buyerModel->getBuyerBankInfo();
+        $result = $buyerModel->getBuyerBankInfo($this->put_data);
         $this->returnInfo($result);
     }
 
     /**
      * 查看审核信息
-     * @pararm  buyer_id(采购商编号)
+     * @pararm  buyer_id(采购商id)
      * @author klp
      */
     public function getApprovelInfoAction() {
         $BuyerCreditLogModel = new BuyerCreditLogModel();
-        $result = $BuyerCreditLogModel->getInfo();
+        $result = $BuyerCreditLogModel->getInfo($this->put_data);
         $this->returnInfo($result);
     }
 
     /**
      * 审核会员授信(待完善,触发中信保审核)
+     * {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","id":"111","status_type":"approved"
+    }
      * @author klp
      */
-    public function checkAction() {
-        //获取当前用户信息
-        $userInfo = getLoinInfo();
-        $this->put_data['checked_by'] = $userInfo['id'];
+    public function approvelAction() {
+//        //获取当前用户信息
+//        $userInfo = getLoinInfo();
+//        $this->put_data['checked_by'] = $userInfo['id'];
         $BuyerCreditLogModel = new BuyerCreditLogModel();
         $result = $BuyerCreditLogModel->checkCredit($this->put_data);
         if ($BuyerCreditLogModel::STATUS_APPROVED == $result['in_status']) {
@@ -144,7 +147,7 @@ class CentercreditController extends PublicController {
             );
             jsonReturn($data);
         } else {
-            jsonReturn('', '-1002', '失败');
+            jsonReturn('', '-1002', '失败!');
         }
         exit;
     }

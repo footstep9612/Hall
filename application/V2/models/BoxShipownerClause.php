@@ -44,9 +44,9 @@ class BoxShipownerClauseModel extends PublicModel {
             $map['_logic'] = 'or';
             $data['_complex'] = $map;
         }
-        $this->_getValue($data, $condition, 'status'); //状态
-        if (!isset($data['status'])) {
-            $data['status'] = 'VALID';
+        $this->_getValue($data, $condition, 'status', 'string', 'tbt.status'); //状态
+        if (!isset($data['tbt.status'])) {
+            $data['tbt.status'] = 'VALID';
         }
 
         return $data;
@@ -72,11 +72,11 @@ class BoxShipownerClauseModel extends PublicModel {
                             ->field('tbt.id,bt.box_type_name,sc.clause ')
                             ->where($where)->order($order)->select();
 
-
+            echo $this->_sql();
             redisHashSet('BoxShipownerClause', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+            Log::write($ex->getMessage(), $level);
             return [];
         }
     }

@@ -20,7 +20,10 @@ class DestdeliverylogiController extends PublicController {
     public function listAction() {
         $country = $this->getPut('country');
         $lang = $this->getPut('lang', 'zh');
-
+        if (empty($country) || empty($lang)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->jsonReturn();
+        }
         $dest_delivery_logi_model = new DestDeliveryLogiModel();
         $arr = $dest_delivery_logi_model->getList($country, $lang);
         $this->_setUserName($arr);

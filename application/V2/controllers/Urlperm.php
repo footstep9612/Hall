@@ -25,11 +25,13 @@ class UrlpermController extends PublicController {
         $count = count($data);
         $childrencount=0;
         for($i=0;$i<$count;$i++){
+            $data[$i]['check'] =false ;
             $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id']],$limit);
             $childrencount = count($data[$i]['children']);
             if($childrencount>0){
                 for($j=0;$j<$childrencount;$j++){
                     if(isset($data[$i]['children'][$j]['id'])){
+                        $data[$i]['children'][$j]['check'] =false ;
                         $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
                         if(!$data[$i]['children'][$j]['children']){
                             unset($data[$i]['children'][$j]['children']);
@@ -51,7 +53,22 @@ class UrlpermController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+    public function listallAction() {
+        //$data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $model_url_perm = new UrlPermModel();
+        $data = $model_url_perm->getlist([],$limit); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
 
+        $this->jsonReturn($datajson);
+    }
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];

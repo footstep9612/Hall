@@ -22,6 +22,31 @@ class ExchangeRateModel extends PublicModel {
         parent::__construct();
     }
 
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('created_at', 'getDate', 1, 'callback'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('cur_bn1', 'require', '币种不能为空'),
+        array('cur_bn2', 'require', '承兑币种不能为空'),
+        array('effective_date', 'require', '生效日期不能为空'),
+        array('created_at', 'require', '创建时间不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
     /**
      * 获取列表
      * @param data $data;
@@ -150,6 +175,7 @@ class ExchangeRateModel extends PublicModel {
         $arr['created_at'] = date('Y-m-d H:i:s');
         $arr['created_by'] = defined('UID') ? UID : 0;
         $data = $this->create($arr);
+
         try {
             return $this->add($data);
         } catch (Exception $ex) {

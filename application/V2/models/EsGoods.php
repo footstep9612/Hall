@@ -1082,8 +1082,6 @@ class EsGoodsModel extends Model {
         }
         $goods_attach_model = new GoodsAttachModel();
         $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
-
-
         $updateParams = array();
         $updateParams['index'] = $this->dbName;
         if ($lang) {

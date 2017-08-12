@@ -39,6 +39,7 @@ class GoodsCostPriceModel extends PublicModel {
                 //通过supplier_id查询供应商名称
                 $SupplierModel = new SupplierModel();
                 foreach($result as $item) {
+                    $item['supplier_name'] ='';
                     $info = $SupplierModel->field('name')->where(['id'=>$item['supplier_id']])->find();
                     if($info){
                         $item['supplier_name'] = $info['name'];

@@ -27,6 +27,37 @@ class RateModel extends PublicModel {
         parent::__construct();
     }
 
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('created_at', 'getDate', 1, 'callback'),
+        array('status', 'VALID'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('lang', 'require', '语言不能为空'),
+        array('box_type_bn', 'require', '发货箱型简称不能为空'),
+        array('fee_type_bn', 'require', '费用类型简称不能为空'),
+        array('unit_price', 'require', '单价不能为空'),
+        array('cur_bn', 'require', '币种不能为空'),
+        array('qty', 'number', '数量必须是数字'),
+        array('unit_price', 'require', '单价不能为空'),
+        array('status', 'require', '状态不能为空'),
+        array('created_at', 'require', '创建时间不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
     /**
      * 搜索条件
      * @param array $condition;
@@ -206,8 +237,9 @@ class RateModel extends PublicModel {
 
         $create['created_by'] = defined('UID') ? UID : 0;
         $create['created_at'] = date('Y-m-d H:i:s');
+        $create['status'] = $create['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $data = $this->create($create);
-        $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';
+
         $flag = $this->add($data);
         if ($flag) {
             return $flag;

@@ -35,6 +35,15 @@ class UserController extends PublicController {
         if(!empty($data['role_id'])){
             $where['role_id'] = $data['role_id'];
         }
+        if(!empty($data['role_name'])){
+            $where['role_name'] = $data['role_name'];
+        }
+        if(!empty($data['status'])){
+            $where['status'] = $data['status'];
+        }
+        if(!empty($data['gender'])){
+            $where['gender'] = $data['gender'];
+        }
         if(!empty($data['employee_flag'])){
             $where['employee_flag'] = $data['employee_flag'];
         }
@@ -65,6 +74,49 @@ class UserController extends PublicController {
             $datajson['code'] = -104;
             $datajson['data'] = "";
             $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
+     * 用户列表
+     *
+     * */
+    public function userrolelistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $role_user_modle =new RoleUserModel();
+        $data =$role_user_modle->userRoleList($data['user_id']);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
+    * 用户列表
+    *
+    * */
+    public function updatepasswordAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $arr['id'] = $this->user['id'];
+        $arr['password_hash'] = md5($data['old_password']);
+        $new_passwoer['password_hash'] = md5($data['password']);
+        $user_modle =new UserModel();
+        $data =$user_modle->infoList($arr);
+        if($data){
+            $res =$user_modle->update_data($new_passwoer,$arr);
+            if($res!==false){
+                $datajson['code'] = 1;
+            }else{
+                $datajson['code'] = -104;
+                $datajson['message'] = '修改失败!';
+            }
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '密码错误!';
         }
         $this->jsonReturn($datajson);
     }

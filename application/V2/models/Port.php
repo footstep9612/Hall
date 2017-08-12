@@ -60,9 +60,9 @@ class PortModel extends PublicModel {
      */
     private function _getCondition($condition) {
         $where = [];
-        if (isset($condition['id']) && $condition['id']) {
-            $where['id'] = $condition['id'];
-        }
+//        if (isset($condition['id']) && $condition['id']) {
+//            $where['id'] = $condition['id'];
+//        }
         if (isset($condition['lang']) && $condition['lang']) {
             $where['lang'] = $condition['lang'];
         }

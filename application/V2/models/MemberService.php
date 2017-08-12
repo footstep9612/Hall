@@ -30,9 +30,9 @@ class MemberServiceModel extends PublicModel{
         $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
             if(!empty($limit)){
-            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->select();
+            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->select();
             } else{
-                $result = $this->field($fields)->where($where)->select();
+                $result = $this->field($fields)->where($where)->order('buyer_level')->select();
             }
             if($result) {
                 return $result;
@@ -53,14 +53,13 @@ class MemberServiceModel extends PublicModel{
      * @author klp
      */
     public function editInfo($data = [],$userInfo) {
-        if($data || !is_array($data)){
+        if(!$data || !is_array($data)){
             return false;
         }
-        $this->startTrans();
         try{
-            foreach($data as $item){
-                $res = $this->field('id')->where(['id'=>$item['id']])->find();
-                if($res){
+            foreach($data['levels'] as $item){
+//                $res = $this->field('id')->where(['id'=>$item['id']])->find();
+                if(!empty($item['id'])){
                     $result = $this->update_data($item,$userInfo);
                     if(1 != $result['code']){
                         return false;
@@ -93,14 +92,13 @@ class MemberServiceModel extends PublicModel{
      * @param $id
      * @return bool
      */
-    public function delData($buyer_level) {
-        if (!isset($buyer_level)) {
+    public function delData($id) {
+        if (empty($id)) {
             return false;
         }
-        $status = self::STATUS_DELETED;
         try{
-            $where = ['buyer_level'=>$buyer_level];
-            $res = $this->where($where)->save(['status'=>$status]);
+            $where = ['id'=>$id];
+            $res = $this->where($where)->save(['status'=>self::STATUS_DELETED]);
             if(!$res){
                 return false;
             }
@@ -173,7 +171,7 @@ class MemberServiceModel extends PublicModel{
      * @author klp
      */
     public function update_data($updatecondition = [],$userInfo) {
-        $upcondition = $this->checkParam($updatecondition);
+        $create = $this->checkParam($updatecondition);
         if(isset($create['id'])){
             $where = array('id'=>$create['id']);
         }

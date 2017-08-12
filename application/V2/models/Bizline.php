@@ -56,7 +56,7 @@ class BizlineModel extends PublicModel {
 
         try {
             $count = $this->getcount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
+            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
@@ -125,7 +125,8 @@ class BizlineModel extends PublicModel {
             return $results;
         }
         if(!empty($condition['userid'])){
-            $data['userid'] = $condition['userid'];
+            $data['created_by'] = $condition['userid'];
+            $data['updated_by'] = $condition['userid'];
         }else{
             $results['code'] = '-103';
             $results['message'] = '缺少添加人员id!';
@@ -134,11 +135,8 @@ class BizlineModel extends PublicModel {
         if(!empty($condition['description'])){
             $data['description'] = $condition['description'];
         }
-
         $data['status'] = 'VALID';
-        $data['created_by'] = $condition['userid'];
         $data['created_at'] = $this->getTime();
-        $data['updated_by'] = $condition['userid'];
         $data['updated_at'] = $this->getTime();
 
         try {
@@ -176,8 +174,8 @@ class BizlineModel extends PublicModel {
         if(!empty($condition['name'])){
             $data['name'] = $condition['name'];
         }
-        if(!empty($condition['description'])){
-            $data['description'] = $condition['description'];
+        if(!empty($condition['remarks'])){
+            $data['remarks'] = $condition['remarks'];
         }
         $data['updated_by'] = $condition['userid'];
         $data['updated_at'] = $this->getTime();
@@ -197,6 +195,44 @@ class BizlineModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
+    }
+
+    /**
+     * 删除数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function updateStatus($condition = []) {
+        if(!empty($condition['id'])){
+            $where['id'] = array('in',explode(',',$condition['id']));
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线id!';
+            return $results;
+        }
+        if(!empty($condition['status'])){
+            $data['status'] = $condition['status'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少状态!';
+            return $results;
+        }
+
+        try {
+            $id = $this->where($where)->save($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '删除失败!';
+            }
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+        }
+        return $results;
     }
 
     /**

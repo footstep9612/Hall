@@ -378,11 +378,11 @@ class BuyerModel extends PublicModel {
      * 获取采购商信息
      * @author klp
      */
-    public function buyerInfo(){
-        $userInfo = getLoinInfo();
+    public function buyerInfo($user){
+//        $userInfo = getLoinInfo();
         $where=array();
-        if(!empty($userInfo['id'])){
-            $where['id'] = $userInfo['id'];
+        if(!empty($user['id'])){
+            $where['id'] = $user['id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }

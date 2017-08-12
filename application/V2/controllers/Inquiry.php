@@ -8,8 +8,8 @@
  */
 class InquiryController extends PublicController {
 
-    public function __init() {
-        parent::__init();
+    public function init() {
+        parent::init();
     }
 
     /*
@@ -167,7 +167,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function getAttachListAction() {
-        $attach = new InquiryattachModel();
+        $attach = new InquiryAttachModel();
         $where =  $this->put_data;
 
         $results = $attach->getList($where);
@@ -180,7 +180,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function addAttachAction() {
-        $attach = new InquiryattachModel();
+        $attach = new InquiryAttachModel();
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
 
@@ -194,7 +194,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function deleteAttachAction() {
-        $attach = new InquiryattachModel();
+        $attach = new InquiryAttachModel();
         $data =  $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
@@ -207,7 +207,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function getItemListAction() {
-        $Item = new InquiryitemModel();
+        $Item = new InquiryItemModel();
 
         $where =  $this->put_data;
 
@@ -220,7 +220,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function getItemInfoAction() {
-        $Item = new InquiryitemModel();
+        $Item = new InquiryItemModel();
 
         $where =  $this->put_data;
 
@@ -233,7 +233,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function addItemAction() {
-        $Item = new InquiryitemModel();
+        $Item = new InquiryItemModel();
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
 
@@ -246,7 +246,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function updateItemAction() {
-        $Item = new InquiryitemModel();
+        $Item = new InquiryItemModel();
         $data =  $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
@@ -259,7 +259,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function deleteItemAction() {
-        $Item = new InquiryitemModel();
+        $Item = new InquiryItemModel();
         $data =  $this->put_data;
 
         $results = $Item->deleteData($data);
@@ -272,7 +272,7 @@ class InquiryController extends PublicController {
      */
     public function getItemAttachListAction()
     {
-        $ItemAttach = new InquiryitemattachModel();
+        $ItemAttach = new InquiryItemAttachModel();
 
         $where =  $this->put_data;
 
@@ -285,7 +285,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function addItemAttachAction() {
-        $ItemAttach = new InquiryitemattachModel();
+        $ItemAttach = new InquiryItemAttachModel();
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
 
@@ -298,7 +298,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function deleteItemAttachAction() {
-        $ItemAttach = new InquiryitemattachModel();
+        $ItemAttach = new InquiryItemAttachModel();
         $data =  $this->put_data;
 
         $results = $ItemAttach->deleteData($data);

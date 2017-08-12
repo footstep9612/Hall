@@ -65,7 +65,13 @@ class SupplierBankInfoModel extends PublicModel {
             $arr['bank_account'] = $create['bank_account'];
         }
         if (!empty($where)&&isset($arr)) {
-            return $this->where($where)->save($arr);
+            $info = $this->where($where)->find();
+            if(!$info){
+                $arr['supplier_id']=$where['supplier_id'];
+                $this->create_data($arr);
+            }else{
+                return $this->where($where)->save($arr);
+            }
         } else {
             return false;
         }
