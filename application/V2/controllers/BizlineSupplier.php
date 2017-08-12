@@ -51,59 +51,29 @@ class BizlineSupplierController extends PublicController {
     }
 
 
-//    /*
-//     * 用户列表
-//     * */
-//    public function listAction() {
-//        $data = json_decode(file_get_contents("php://input"), true);
-//        $limit = [];
-//        $where = [];
-//        if(!empty($data['name'])){
-//            $where['name'] = $data['name'];
-//        }
-//        if(!empty($data['supplier_no'])){
-//            $where['supplier_no'] = $data['supplier_no'];
-//        }
-//        if(!empty($data['status'])){
-//            $where['status'] = $data['status'];
-//        }
-//        if(!empty($data['supplier_type'])){
-//            $where['supplier_type'] = $data['supplier_type'];
-//        }
-//        if(!empty($data['checked_by'])){
-//            $where['checked_by'] = $data['checked_by'];
-//        }
-//        if(!empty($data['checked_at_start'])){
-//            $where['checked_at_start'] = $data['checked_at_start'];
-//        }
-//        if(!empty($data['checked_at_end'])){
-//            $where['checked_at_end'] = $data['checked_at_end'];
-//        }
-//        if(!empty($data['created_at_start'])){
-//            $where['created_at_start'] = $data['created_at_start'];
-//        }
-//        if(!empty($data['created_at_end'])){
-//            $where['created_at_end'] = $data['created_at_end'];
-//        }
-//
-//        if(!empty($data['pageSize'])){
-//            $where['num'] = $data['pageSize'];
-//        }
-//        if(!empty($data['currentPage'])) {
-//            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
-//        }
-//        $model = new SupplierModel();
-//        $data =$model->getlist($where);
-//        if(!empty($data)){
-//            $datajson['code'] = 1;
-//            $datajson['data'] = $data;
-//        }else{
-//            $datajson['code'] = -104;
-//            $datajson['data'] = "";
-//            $datajson['message'] = '数据为空!';
-//        }
-//        $this->jsonReturn($datajson);
-//    }
+    /*
+     * 列表
+     * */
+    public function listAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['supplier_id'])){
+            $where['supplier_no'] = $data['supplier_no'];
+        }
+
+        $model = new BizlineSupplierModel();
+        $data =$model->getSupplierList($where);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
 //
 //    public function infoAction() {
 //        $data = json_decode(file_get_contents("php://input"), true);

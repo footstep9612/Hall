@@ -11,7 +11,7 @@
  *
  * @author jhw
  */
-class BuyerContactModel extends PublicModel
+class BuyercontactModel extends PublicModel
 {
 
     //put your code here

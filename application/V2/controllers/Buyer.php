@@ -243,7 +243,7 @@ class BuyerController extends PublicController {
             }
             $buyer_contact_data['buyer_id'] = $id;
             //添加联系人
-            $buyer_contact_model =  new BuyerContactModel();
+            $buyer_contact_model =  new BuyercontactModel();
             $buyer_contact_model ->create_data($buyer_contact_data);
             //添加附件
             $buyer_attach_model =  new BuyerAttachModel();

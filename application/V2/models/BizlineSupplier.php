@@ -32,10 +32,12 @@ class BizlineSupplierModel extends PublicModel
         //TODO 这里后期关联到供应商表获取供应商相关信息
         return $this->where(['bizline_id'=>$bizline_id])->field($field)->select();
     }
-    /**
-     * 创建供应商产品线
-     * @param $bizline_id   产品线id
-     */
+
+    public function getSupplierList($data)
+    {
+        $field = [`bizline_id`,`supplier_id`,`first_name`,`last_name`,`email`,`phone`,`supply_level`,`employee_id`,`quote_group_id`];
+        return $this->where($data)->field($field)->select();
+    }
     public function create_data($create= []) {
         if(isset($create['bizline_id'])){
             $arr['bizline_id'] = $create['bizline_id'];
