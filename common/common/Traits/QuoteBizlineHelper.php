@@ -367,4 +367,31 @@ trait QuoteBizlineHelper{
             ];
         }
     }
+
+    /**
+     * 上传附件(项目经理)
+     * @param $request
+     *
+     * @return array
+     */
+    public static function addAttach($request){
+
+        $quoteAttach = new QuoteAttachModel();
+        //声明附件分组
+        $request['attach_group'] = '产品线附件';
+        $request['created_at'] = date('Y-m-d H:i:s');
+        try{
+            if ($quoteAttach->add($quoteAttach->create($request))){
+                return ['code'=>'1','message'=>'上传成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'上传失败!'];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
 }

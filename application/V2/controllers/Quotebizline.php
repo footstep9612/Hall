@@ -188,19 +188,11 @@ class QuotebizlineController extends PublicController {
         ]);
     }
 
-    /*
-      |--------------------------------------------------------------------------
-      | 产品线报价->附件信息(上传附件)   角色:产品线负责人
-      |--------------------------------------------------------------------------
-      | 说明：
-      | 1、当前环节且本人上传，可删除
-      | 2、A环节，上传了附件，提交出去后，再流转回来，不能删除之前上传的附件
-      | 3、附件排序：按时间顺序正序排列
-      | 4.点击附件名称可以下载附件
-      |
+    /**
+     * 上传附件(项目经理)
      */
-
     public function attachAction() {
+
         $quoteAttach = new QuoteAttachModel();
 
         $attachList = $quoteAttach->where(['quote_id' => $this->_requestParams['quote_id']])->order('created_at desc')->select();
@@ -220,39 +212,21 @@ class QuotebizlineController extends PublicController {
         ]);
     }
 
-    /*
-      |--------------------------------------------------------------------------
-      | 产品线报价->附件信息(上传附件)   角色:产品线负责人
-      |--------------------------------------------------------------------------
-      | 说明：
-      | 1、当前环节且本人上传，可删除
-      | 2、A环节，上传了附件，提交出去后，再流转回来，不能删除之前上传的附件
-      | 3、附件排序：按时间顺序正序排列
-      | 4.点击附件名称可以下载附件
-      |
+    /**
+     * 上传附件(项目经理)
      */
+    public function addAttachAction() {
 
-    public function addAttach() {
-        $requestData = $this->_requestParams;
-
-        $quoteAttach = new QuoteAttachModel();
-        $result = $quoteAttach->add([
-            'quote_id' => $requestData['quote_id'],
-            'attach_group' => isset($requestData['attach_group']) ? $requestData['attach_group'] : '',
-            'attach_type' => isset($requestData['attach_type']) ? $requestData['attach_type'] : '',
-            'attach_name' => isset($requestData['attach_name']) ? $requestData['attach_name'] : '',
-            'attach_url' => $requestData['attach_url'],
-            'status' => 'VALID',
-            //TODO 这里获取当前用户？
-            'created_by' => $requestData['created_by'],
-        ]);
-
-        if ($result) {
+        $request = $this->_requestParams;
+        if (empty($request['quote_id']) || empty($request['attach_url'])){
             $this->jsonReturn([
-                'code' => 1,
-                'message' => '成功'
+                'code' => '-104',
+                'message' => '缺少参数'
             ]);
         }
+
+        $request['created_by'] = $this->user['id'];
+        $this->jsonReturn(QuoteBizlineHelper::addAttach($request));
     }
 
     /*
