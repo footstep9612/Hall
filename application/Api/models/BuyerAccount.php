@@ -217,11 +217,11 @@ class BuyerAccountModel extends PublicModel {
             jsonReturn('','-1001','用户id不可以为空');
         }
         if(!empty($data['password_hash'])){
-            $password = $data['password_hash'];
+            $where['password_hash'] = $data['password_hash'];
         }
         $pwd = $this->where($where)->field('password_hash')->find();
-        if($pwd == $password){
-            return true;
+        if($pwd){
+            return $pwd;
         } else {
             return false;
         }
