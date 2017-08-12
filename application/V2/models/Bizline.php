@@ -174,8 +174,8 @@ class BizlineModel extends PublicModel {
         if(!empty($condition['name'])){
             $data['name'] = $condition['name'];
         }
-        if(!empty($condition['description'])){
-            $data['description'] = $condition['description'];
+        if(!empty($condition['remarks'])){
+            $data['remarks'] = $condition['remarks'];
         }
         $data['updated_by'] = $condition['userid'];
         $data['updated_at'] = $this->getTime();
