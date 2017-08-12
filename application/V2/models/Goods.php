@@ -552,6 +552,7 @@ class GoodsModel extends PublicModel {
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['skus'], $status);  //附件状态
+
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
                 return false;
@@ -600,8 +601,10 @@ class GoodsModel extends PublicModel {
                     if (self::STATUS_CHECKING == $status) {
                         $where = [
                             'sku' => $item['sku'],
-                            'lang' => $item['lang']
                         ];
+                        if(isset($item['lang']) && !empty($item['lang'])){
+                            $where['lang'] = $item['lang'];
+                        }
                         $result = $this->where($where)->save(['status' => $status]);
                         if (!$result) {
                             return false;
@@ -609,8 +612,10 @@ class GoodsModel extends PublicModel {
                     } else {
                         $where = [
                             'sku' => $item['sku'],
-                            'lang' => $item['lang']
                         ];
+                        if(isset($item['lang']) && !empty($item['lang'])){
+                            $where['lang'] = $item['lang'];
+                        }
                         $save = [
                             'status' => $status,
                             'checked_by' => $userInfo['id'],
