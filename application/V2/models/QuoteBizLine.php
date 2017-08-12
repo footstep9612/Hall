@@ -19,13 +19,31 @@ class QuoteBizLineModel extends PublicModel{
     protected $tableName = 'quote_bizline';
 
     /*
-     * 初始状态:待报价
+     * 询单(项目)状态
      */
-    const STATUS_UNQUOTE = 'UNQUOTE';//待报价
-    const STATUS_QUOTED = 'QUOTED';//已报价
-    const STATUS_REJECTED = 'REJECTED';//被驳回
-    const STATUS_TRANSMIT = 'TRANSMIT';//已发送
-    const STATUS_RETURN = 'RETURN';//退回
+    const INQUIRY_DRAFT = 'DRAFT';//起草
+    const INQUIRY_APPROVING_BY_SC = 'APPROVING_BY_SC';//方案中心审核中
+    const INQUIRY_APPROVED_BY_SC = 'APPROVED_BY_SC';//方案中心已确认
+    const INQUIRY_QUOTING_BY_BIZLINE = 'QUOTING_BY_BIZLINE';//产品线报价中
+    const INQUIRY_QUOTED_BY_BIZLINE = 'QUOTED_BY_BIZLINE';//产品负责人已确认
+    const INQUIRY_BZ_QUOTE_REJECTED = 'BZ_QUOTE_REJECTED';//项目经理驳回产品报价
+    const INQUIRY_QUOTING_BY_LOGI = 'QUOTING_BY_LOGI';//物流报价中
+    const INQUIRY_QUOTED_BY_LOGI = 'QUOTED_BY_LOGI';//物流审核人已确认
+    const INQUIRY_LOGI_QUOTE_REJECTED = 'LOGI_QUOTE_REJECTED';//项目经理驳回物流报价
+    const INQUIRY_APPROVED_BY_PM = 'APPROVED_BY_PM';//项目经理已确认
+    const INQUIRY_APPROVING_BY_MARKET = 'APPROVING_BY_MARKET';//市场主管审核中
+    const INQUIRY_APPROVED_BY_MARKET = 'APPROVED_BY_MARKET';//市场主管已审核
+    const INQUIRY_QUOTE_SENT = 'QUOTE_SENT';//报价单已发出
+    const INQUIRY_INQUIRY_CLOSED = 'INQUIRY_CLOSED';//报价关闭
+
+    /*
+     * 报价状态
+     */
+    const QUOTE_NOT_QUOTED = 'NOT_QUOTED';//未报价
+    const QUOTE_QUOTED = 'QUOTED';//已报价
+    const QUOTE_APPROVED = 'APPROVED';//已审核
+    const QUOTE_REJECTED = 'REJECTED';//被驳回
+
 
     public function __construct(){
         parent::__construct();
@@ -123,29 +141,6 @@ class QuoteBizLineModel extends PublicModel{
     }
 
     /**
-     * 划分产品线
-     * @param $data
-     * @return mixed
-     */
-    public function partitionBizline($data){
-
-        try{
-            if ($this->add($data)){
-                return [
-                    'code' =>'1',
-                    'message'=>'成功!'
-                ];
-            }
-        }catch (Exception $exception){
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
-        }
-
-    }
-
-    /**
      * 产品线报价->产品线报价人->提交产品线负责人审核
      * 操作说明:当前报价单状态改为(........)
      * @param $params
@@ -171,6 +166,11 @@ class QuoteBizLineModel extends PublicModel{
     }
 
 
+    /**
+     * 划分产品线
+     * @param $param
+     * @return array
+     */
     public function setPartitionBizline($param)
     {
         //先查找询单相关的字段 inquiry_id biz_agent_id
@@ -192,5 +192,25 @@ class QuoteBizLineModel extends PublicModel{
             $this->add($data);
         }
         return ['code'=>'1','message'=>'成功!'];
+    }
+
+    /**
+     * 产品线负责人指派报价人
+     * @param $request 请求参数
+     * @return array 返回结果
+     */
+    public function assignQuoter($request){
+        try{
+            if ($this->where(['quote_id'=>$request['quote_id']])->save(['biz_agent_id'=>$request['biz_agent_id']])){
+                return ['code'=>'1','message'=>'指派成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'指派失败!'];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
     }
 }

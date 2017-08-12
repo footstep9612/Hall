@@ -24,7 +24,7 @@ class QuotebizlineController extends PublicController {
      * 构造方法
      */
     public function init() {
-        //parent::init();
+        parent::init();
         $this->_quoteBizLine = new QuoteBizLineModel();
         $this->_quoteItemBizLine = new QuoteItemBizLineModel();
         $this->_requestParams = json_decode(file_get_contents("php://input"), true);
@@ -32,21 +32,28 @@ class QuotebizlineController extends PublicController {
 
 
     /**
-     * @desc 产品线报价->列表(角色:项目经理)
+     * @desc 产品线报价->询单列表(角色:项目经理)
      * @author 买买提
      */
-    public function listPmAction(){
-        $this->jsonReturn($this->listPmHandler($this->_requestParams));
+    public function listAction(){
+        //p($this->getUserInfo()[id]);
+        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
+        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
     }
+
     /**
-     * @desc 产品线报价->列表(角色:项目经理)
+     * @desc 划分产品线(项目经理)
      * @author 买买提
-     * 说明:项目经理可以查看自己负责的询单
-     * 数据库操作:查找当前用户id跟inquiry表中pm_id字段值相等的items
      */
-    private function listPmHandler($request){
-        $filterParams = QuoteBizlineHelper::filterListParams($request,'PM');
-        return QuoteBizlineHelper::getQuotelineInquiryList($filterParams);
+    public function partitionBizlineAction(){
+
+        $request = $this->_requestParams;
+
+        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['created_by'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+
+        $this->jsonReturn($this->_quoteBizLine->setPartitionBizline($request));
     }
 
     /**
@@ -181,19 +188,11 @@ class QuotebizlineController extends PublicController {
         ]);
     }
 
-    /*
-      |--------------------------------------------------------------------------
-      | 产品线报价->附件信息(上传附件)   角色:产品线负责人
-      |--------------------------------------------------------------------------
-      | 说明：
-      | 1、当前环节且本人上传，可删除
-      | 2、A环节，上传了附件，提交出去后，再流转回来，不能删除之前上传的附件
-      | 3、附件排序：按时间顺序正序排列
-      | 4.点击附件名称可以下载附件
-      |
+    /**
+     * 上传附件(项目经理)
      */
-
     public function attachAction() {
+
         $quoteAttach = new QuoteAttachModel();
 
         $attachList = $quoteAttach->where(['quote_id' => $this->_requestParams['quote_id']])->order('created_at desc')->select();
@@ -213,39 +212,21 @@ class QuotebizlineController extends PublicController {
         ]);
     }
 
-    /*
-      |--------------------------------------------------------------------------
-      | 产品线报价->附件信息(上传附件)   角色:产品线负责人
-      |--------------------------------------------------------------------------
-      | 说明：
-      | 1、当前环节且本人上传，可删除
-      | 2、A环节，上传了附件，提交出去后，再流转回来，不能删除之前上传的附件
-      | 3、附件排序：按时间顺序正序排列
-      | 4.点击附件名称可以下载附件
-      |
+    /**
+     * 上传附件(项目经理)
      */
+    public function addAttachAction() {
 
-    public function addAttach() {
-        $requestData = $this->_requestParams;
-
-        $quoteAttach = new QuoteAttachModel();
-        $result = $quoteAttach->add([
-            'quote_id' => $requestData['quote_id'],
-            'attach_group' => isset($requestData['attach_group']) ? $requestData['attach_group'] : '',
-            'attach_type' => isset($requestData['attach_type']) ? $requestData['attach_type'] : '',
-            'attach_name' => isset($requestData['attach_name']) ? $requestData['attach_name'] : '',
-            'attach_url' => $requestData['attach_url'],
-            'status' => 'VALID',
-            //TODO 这里获取当前用户？
-            'created_by' => $requestData['created_by'],
-        ]);
-
-        if ($result) {
+        $request = $this->_requestParams;
+        if (empty($request['quote_id']) || empty($request['attach_url'])){
             $this->jsonReturn([
-                'code' => 1,
-                'message' => '成功'
+                'code' => '-104',
+                'message' => '缺少参数'
             ]);
         }
+
+        $request['created_by'] = $this->user['id'];
+        $this->jsonReturn(QuoteBizlineHelper::addAttach($request));
     }
 
     /*
@@ -291,10 +272,10 @@ class QuotebizlineController extends PublicController {
 
     public function assignQuoterAction() {
 
-        if( empty($this->_requestParams['quote_id']) || empty($this->_requestParams['bizline_agent_id']) ){
+        if( empty($this->_requestParams['quote_id']) || empty($this->_requestParams['biz_agent_id']) ){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
         }
-        $this->jsonReturn(QuoteBizlineHelper::assignQuoter($this->_requestParams));
+        $this->jsonReturn($this->_quoteBizLine->assignQuoter($this->_requestParams));
 
     }
 
@@ -402,17 +383,6 @@ class QuotebizlineController extends PublicController {
         $quoteBizline = new QuoteBizLineModel();
         $this->jsonReturn($quoteBizline->submitToBizlineManager($this->_requestParams));
 
-    }
-
-    /**
-     * 产品线报价->项目经理->划分产品线
-     */
-    public function partitionBizlineAction(){
-        $request = $this->_requestParams;
-        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['created_by'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $this->jsonReturn($this->_quoteBizLine->setPartitionBizline($request));
     }
 
     /**
