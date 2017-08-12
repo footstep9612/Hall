@@ -385,7 +385,7 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    if(empty($value)) {
+                    if(empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
                     $checkout = $this->checkParam($value, $this->field);
@@ -443,7 +443,6 @@ class GoodsModel extends PublicModel {
                         $checkout['sku'] = trim($input['sku']);
                         $checkout['lang'] = $key;
                         $checkout['updated_by'] = $userInfo['id'];
-
                         $gattr = new GoodsAttrModel();
                         $resAttr = $gattr->editSkuAttr($checkout);        //属性更新
                         if (!$resAttr || $resAttr['code'] != 1) {
@@ -553,6 +552,7 @@ class GoodsModel extends PublicModel {
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['skus'], $status);  //附件状态
+
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
                 return false;
@@ -601,8 +601,10 @@ class GoodsModel extends PublicModel {
                     if (self::STATUS_CHECKING == $status) {
                         $where = [
                             'sku' => $item['sku'],
-                            'lang' => $item['lang']
                         ];
+                        if(isset($item['lang']) && !empty($item['lang'])){
+                            $where['lang'] = $item['lang'];
+                        }
                         $result = $this->where($where)->save(['status' => $status]);
                         if (!$result) {
                             return false;
@@ -610,8 +612,10 @@ class GoodsModel extends PublicModel {
                     } else {
                         $where = [
                             'sku' => $item['sku'],
-                            'lang' => $item['lang']
                         ];
+                        if(isset($item['lang']) && !empty($item['lang'])){
+                            $where['lang'] = $item['lang'];
+                        }
                         $save = [
                             'status' => $status,
                             'checked_by' => $userInfo['id'],

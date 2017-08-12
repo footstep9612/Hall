@@ -372,14 +372,7 @@ class GoodsAttachModel extends PublicModel {
                     }
                 }
             }
-            if ($res) {
-                $results['code'] = '1';
-                $results['message'] = '成功！';
-            } else {
-                $results['code'] = '-101';
-                $results['message'] = '失败!';
-            }
-            return $results;
+            return array('code'=>1,'message'=>'成功！');
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
