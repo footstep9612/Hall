@@ -385,7 +385,7 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    if(empty($value)) {
+                    if(empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
                     $checkout = $this->checkParam($value, $this->field);
@@ -443,7 +443,6 @@ class GoodsModel extends PublicModel {
                         $checkout['sku'] = trim($input['sku']);
                         $checkout['lang'] = $key;
                         $checkout['updated_by'] = $userInfo['id'];
-
                         $gattr = new GoodsAttrModel();
                         $resAttr = $gattr->editSkuAttr($checkout);        //属性更新
                         if (!$resAttr || $resAttr['code'] != 1) {
