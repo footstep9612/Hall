@@ -204,7 +204,7 @@ class SupplierModel extends PublicModel {
     {
         if($data['id']) {
             $buyerInfo = $this->where(array("id" => $data['id']))
-                              ->fi。nd();
+                              ->find();
             return $buyerInfo;
         } else{
             return false;
