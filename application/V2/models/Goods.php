@@ -25,7 +25,7 @@ class GoodsModel extends PublicModel {
     protected $field = array(
         'spu' => array('required'),
         'name' => array('required'),
-        'show_name' => array('required'),
+        //'show_name' => array('required'),
     );
 
     public function __construct() {
@@ -385,6 +385,9 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
+                    if(empty($value)) {
+                        continue;
+                    }
                     $checkout = $this->checkParam($value, $this->field);
                     $data = [
                         'lang' => $key,
