@@ -187,6 +187,7 @@ class GoodsController extends PublicController {
           ];
         /*return $this->put_data; */
         $goodsModel = new GoodsModel();
+        Log::write(json_encode($this->put_data),Log::INFO);
         $result = $goodsModel->editSku($this->put_data);
         $this->returnInfo($result);
     }
