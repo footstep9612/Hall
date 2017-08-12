@@ -242,11 +242,14 @@ class BuyerModel extends PublicModel {
      */
     public function info($data) {
         if ($data['id']) {
-            $buyerInfo = $this->where(array("id" => $data['id']))
+            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
+                     ->join('erui2_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
-            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N'";
+            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = ".$data['id'];
             $row = $this->query($sql);
-            $buyerInfo['attach`'] = $row;
+            if($row){
+                $buyerInfo['attach`'] = $row;
+            }
             return $buyerInfo;
         } else {
             return false;
