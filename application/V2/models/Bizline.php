@@ -204,6 +204,44 @@ class BizlineModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
+    public function updateStatus($condition = []) {
+        if(!empty($condition['id'])){
+            $where['id'] = array('in',explode(',',$condition['id']));
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线id!';
+            return $results;
+        }
+        if(!empty($condition['status'])){
+            $data['status'] = $condition['status'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少状态!';
+            return $results;
+        }
+
+        try {
+            $id = $this->where($where)->save($data);
+            if(isset($id)){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '删除失败!';
+            }
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+        }
+        return $results;
+    }
+
+    /**
+     * 删除数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
     public function deleteData($condition = []) {
         if(!empty($condition['id'])){
             $where['id'] = array('in',explode(',',$condition['id']));

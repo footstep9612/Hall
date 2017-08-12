@@ -34,10 +34,8 @@ class BizlineController extends PublicController {
                 $groupname = $group->field('name')->where('id='.$grouplist['data'][0]['group_id'])->find();
                 $results['data'][$key]['group_name'] = $groupname['name'];
             }else{
-                $results['data'][$key]['group_name'] = $grouplist['data'][0]['group_id'];
+                $results['data'][$key]['group_name'] = '';
             }
-
-            $results['data'][$key]['group_name'] = $groupname['name'];
         }
 
         $this->jsonReturn($results);
@@ -140,6 +138,16 @@ class BizlineController extends PublicController {
             $results['code'] = '-101';
             $results['message'] = '添加失败!';
         }
+
+        $this->jsonReturn($results);
+    }
+
+    //批量修改状态
+    public function updateStatusAction() {
+        $bizline = new BizlineModel();
+        $createcondition =  $this->put_data;
+
+        $results = $bizline->updateStatus($createcondition);
 
         $this->jsonReturn($results);
     }
