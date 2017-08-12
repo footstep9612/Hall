@@ -37,8 +37,6 @@ class BoxShipownerClauseModel extends PublicModel {
         $this->_getValue($data, $condition, 'shipowner_clause_bn'); //贸易术语简称
         if (isset($condition['keyword']) && $condition['keyword']) {
             $map = [];
-
-
             $this->_getValue($map, $condition, 'keyword', 'like', 'bt.box_type_name');
             $this->_getValue($map, $condition, 'keyword', 'like', 'sc.clause');
             $map['_logic'] = 'or';

@@ -29,7 +29,7 @@ class TradetermsController extends PublicController {
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
             $count = $this->_model->getCount($condtion);
-            echo $this->_model->_sql();
+
             $this->setvalue('count', $count);
             $this->jsonReturn($arr);
         } elseif ($arr === null) {
