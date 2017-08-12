@@ -448,8 +448,11 @@ class GoodsAttrModel extends PublicModel {
                 foreach ($data as $item) {
                     $where = [
                         "sku" => $item['sku'],
-                        "lang" => $item['lang']
                     ];
+                    if(isset($item['lang']) && !empty($item['lang'])) {
+                        $where["lang"] = $item['lang'];
+                    }
+
                     $resatr = $this->field('sku')->where($where)->find();
                     if ($resatr) {
                         $res = $this->where($where)->save(['status' => $status]);
