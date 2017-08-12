@@ -16,8 +16,6 @@ class SupplierController extends PublicController {
 
     public function __init() {
         //   parent::__init();
-
-
     }
     /*
      * 用户列表
@@ -267,8 +265,8 @@ class SupplierController extends PublicController {
             if($data['bank_name']){
                 $supplier_bank_info_data['bank_name'] = $data['bank_name'];
             }
-            if($data['address']){
-                $supplier_bank_info_data['address'] = $data['brand_address'];
+            if($data['bank_address']){
+                $supplier_bank_info_data['address'] = $data['bank_address'];
             }
             if($data['bank_account']){
                 $supplier_bank_info_data['bank_account'] = $data['bank_account'];
@@ -428,28 +426,30 @@ class SupplierController extends PublicController {
         }
         if(!empty($data['employee_count'])) {
             $arr['employee_count'] = $data['employee_count'];
-
         }
         if(!empty($data['status'])) {
             $arr['status'] = $data['status'];
-
         }
-        if(!empty($data['brand'])) {
+        if(!isset($data['barnd'])) {
            $brank_arr =  explode(",",$data['brand']) ;
+            $brand_json =[];
             for($i=0;$i<count($brank_arr);$i++){
-                $brand_modle = new BrandModel();
-                $brand_json[$i] = $brand_modle->info($brank_arr[$i]);
-                if($brand_json[$i]){
-                    $brand_json[$i]['brand']=json_decode($brand_json[$i]['brand'],true);
-                    for($j=0;$j<count($brand_json[$i]['brand']);$j++){
-                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['style'] =$brand_json[$i]['brand'][$j]['style'];
-                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['label'] =$brand_json[$i]['brand'][$j]['label'];
-                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['logo'] =$brand_json[$i]['brand'][$j]['logo'];
-                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['lang'] =$brand_json[$i]['brand'][$j]['lang'];
-                        $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['name'] =$brand_json[$i]['brand'][$j]['name'];
-                    }
-                }
-                unset($brand_json[$i]['brand']);
+               $brand_modle = new BrandModel();
+               if($brank_arr[$i]){
+                   $brand_json[$i] = $brand_modle->info($brank_arr[$i]);
+                   if($brand_json[$i]){
+                       $brand_json[$i]['brand']=json_decode($brand_json[$i]['brand'],true);
+                       for($j=0;$j<count($brand_json[$i]['brand']);$j++){
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['id'] =$brank_arr[$i];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['style'] =$brand_json[$i]['brand'][$j]['style'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['label'] =$brand_json[$i]['brand'][$j]['label'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['logo'] =$brand_json[$i]['brand'][$j]['logo'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['lang'] =$brand_json[$i]['brand'][$j]['lang'];
+                           $brand_json[$i][ $brand_json[$i]['brand'][$j]['lang']]['name'] =$brand_json[$i]['brand'][$j]['name'];
+                       }
+                   }
+                   unset($brand_json[$i]['brand']);
+               }
             }
             $arr['brand'] = json_encode($brand_json,JSON_UNESCAPED_UNICODE);
         }
@@ -457,17 +457,16 @@ class SupplierController extends PublicController {
         $model  =  new SupplierModel();
         $res=$model->update_data($arr,$where);
         if($res!==false){
-            if(!empty($data['user_name'])) {
+            if(!empty($data['user_name'])){
                 $supplier_account_data['user_name']=$data['user_name'];
             }
             if(!empty($data['password'])) {
                 $supplier_account_data['password_hash']=md5($data['password']);
             }
-            if($supplier_account_data) {
+            if($supplier_account_data){
                 $supplier_account = new SupplierAccountModel();
                 $supplier_account ->update_data($supplier_account_data,$where_account);
             }
-
             $supplier_attach = new SupplierAttachModel();
             if(!empty($data['license_attach_url'])){
                 $where_attach['attach_group'] ='LICENSE';
@@ -475,7 +474,6 @@ class SupplierController extends PublicController {
                 $supplier_attach_data['attach_name'] = $data['attach_name'];
                 $supplier_attach ->update_data($supplier_attach_data,$where_attach);
             }
-            //
             $supplier_contact = new SupplierContactModel();
             if($supplier_contact_data){
                 $supplier_contact ->update_data($supplier_contact_data,$supplier_contact_where);
@@ -483,8 +481,8 @@ class SupplierController extends PublicController {
             if($data['bank_name']){
                 $supplier_bank_info_data['bank_name'] = $data['bank_name'];
             }
-            if($data['address']){
-                $supplier_bank_info_data['address'] = $data['brand_address'];
+            if($data['bank_address']){
+                $supplier_bank_info_data['address'] = $data['bank_address'];
             }
             if($data['bank_account']){
                 $supplier_bank_info_data['bank_account'] = $data['bank_account'];
@@ -519,29 +517,7 @@ class SupplierController extends PublicController {
             $datajson['message'] = '数据操作失败!';
         }
         $this->jsonReturn($datajson);
-        $model = new BuyerModel();
-        $model -> update_data($arr,$where);
-        $buyer_account_model = new BuyerAccountModel();
-        if(!empty($data['password'])) {
-            $arr_account['password_hash'] = md5($data['password']);
-            $buyer_account_model -> update_data($arr_account,$where_account);
-        }
-        $buyer_attach_model =  new BuyerAttachModel();
-        if(!empty($data['attach_url'])) {
-            $where_attach['attach_url'] = $data['attach_url'];
-            $buyer_attach_model -> update_data($where_attach);
-        }
-        $model = new UserModel();
-        $res = $model->update_data($arr,$where);
-        if(!empty($res)){
-            $datajson['code'] = 1;
-            $datajson['message'] ='成功';
-        }else{
-            $datajson['code'] = -104;
-            $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
-        }
-        $this->jsonReturn($datajson);
+
     }
 
 

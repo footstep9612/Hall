@@ -18,12 +18,12 @@ class BuyerBankInfoModel extends PublicModel{
      * 获取银行信息
      * @author klp
      */
-    public function getBuyerBankInfo()
+    public function getBuyerBankInfo($userInfo)
     {
-        $info = getLoinInfo();
+//        $info = getLoinInfo();
         $where=array();
-        if(!empty($info['id'])){
-            $where['buyer_id'] = $info['id'];
+        if(!empty($userInfo['id'])){
+            $where['buyer_id'] = $userInfo['id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }

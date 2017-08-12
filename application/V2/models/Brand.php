@@ -62,7 +62,7 @@ class BrandModel extends PublicModel {
     private function _getcondition($condition, $lang = '') {
 
         $where = [];
-        //  $this->_getValue($where, $condition, 'id', 'string');
+        $this->_getValue($where, $condition, 'id', 'string');
         $this->_getValue($where, $condition, 'name', 'like', 'brand');
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
         // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
@@ -252,7 +252,7 @@ class BrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function update_data($upcondition = [], $uid = 0) {
+    public function update_data($upcondition = []) {
         $data['brand'] = $this->_getdata($upcondition);
 
         if (!$upcondition['id']) {
@@ -260,7 +260,7 @@ class BrandModel extends PublicModel {
         } else {
             $where['id'] = $upcondition['id'];
         }
-        $data['updated_by'] = UID;
+        $data['updated_by'] = defined('UID') ? UID : 0;
         $data['updated_at'] = date('Y-m-d H:i:s');
         try {
             $flag = $this->where($where)->save($data);
@@ -305,12 +305,12 @@ class BrandModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = [], $uid = '') {
+    public function create_data($createcondition = []) {
 
         $data['brand'] = $this->_getdata($createcondition);
         unset($data['id']);
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = $uid;
+        $data['created_by'] = defined('UID') ? UID : 0;
         try {
             $flag = $this->add($data);
 

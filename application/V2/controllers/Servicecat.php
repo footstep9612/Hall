@@ -6,7 +6,7 @@ class ServicecatController extends PublicController {
 //class ServicecatController extends Yaf_Controller_Abstract{
 
     public function init() {
-//parent::init();
+        parent::init();
         $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
 
     }
@@ -39,7 +39,6 @@ class ServicecatController extends PublicController {
 
 
 
-
     /**
      * 详情
      */
@@ -65,10 +64,12 @@ class ServicecatController extends PublicController {
 
     /**
      * 新增
+     * {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","services":[{"category":[{"lang":"en","name":"test 1","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd51","remarks":""}],"term":[{"lang":"en","name":"test 2","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd52","remarks":""}],"item":[{"lang":"en","name":"test 3","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd53","remarks":""}]}]}
      */
     public function createServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data=[
+//        $data= [
+//        'service'=>[
 //              0=>[
 //                  'category'=>[
 //                      0=>["lang"=>"en", "name"=>"test 1", "remarks"=>"",],
@@ -83,8 +84,7 @@ class ServicecatController extends PublicController {
 //                      1=>["lang"=>"zh", "name"=>"测试3", "remarks"=>"",],
 //                  ]
 //              ],
-//
-//
+//            ]
 //               ];
         $model = new ServiceCatModel();
         $res = $model->addData($data);
@@ -100,26 +100,29 @@ class ServicecatController extends PublicController {
 
     /**
      * 更新
+     * *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","services":[{"id":"39","category":[{"lang":"en","name":"test 391","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd5391","remarks":""}],"term":[{"lang":"en","name":"test 392","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd5392","remarks":""}],"item":[{"lang":"en","name":"test 393","remarks":""},{"lang":"zh","name":"\u6d4b\u8bd5393","remarks":""}]}]}
      */
 
     public function updateServiceAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data=[
-//            0=>[
-//                'id'=>'36',
-//                'category'=>[
-//                    0=>["lang"=>"en", "name"=>"test 11", "remarks"=>"",],
-//                    1=>["lang"=>"zh", "name"=>"测试11", "remarks"=>"",],
+//        $data= [
+//            'service'=>[
+//                0=>[
+//                    'id'=> '39',
+//                    'category'=>[
+//                        0=>["lang"=>"en", "name"=>"test 391", "remarks"=>"",],
+//                        1=>["lang"=>"zh", "name"=>"测试391", "remarks"=>"",],
+//                    ],
+//                    'term'=>[
+//                        0=>["lang"=>"en", "name"=>"test 392", "remarks"=>"",],
+//                        1=>["lang"=>"zh", "name"=>"测试392", "remarks"=>"",],
+//                    ],
+//                    'item'=>[
+//                        0=>["lang"=>"en", "name"=>"test 393", "remarks"=>"",],
+//                        1=>["lang"=>"zh", "name"=>"测试393", "remarks"=>"",],
+//                    ]
 //                ],
-//                'term'=>[
-//                    0=>["lang"=>"en", "name"=>"test 22", "remarks"=>"",],
-//                    1=>["lang"=>"zh", "name"=>"测试22", "remarks"=>"",],
-//                ],
-//                'item'=>[
-//                    0=>["lang"=>"en", "name"=>"test 33", "remarks"=>"",],
-//                    1=>["lang"=>"zh", "name"=>"测试33", "remarks"=>"",],
-//                ]
-//            ],
+//            ]
 //        ];
         $model = new ServiceCatModel();
         $res = $model->update_data($data);
@@ -195,24 +198,27 @@ class ServicecatController extends PublicController {
     /**
      * 会员等级新建/编辑
      * @time  2017-08-05
+     *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","levels":[{"id":"27","buyer_level":"27","service_cat_id":"27","service_term_id":"27","service_item_id":"27"}]}
      * @author klp
      */
     public function editLevelAction(){
-        /*$this->put_data = [
-            0=>[
-                'id'=>'',
-                'buyer_level'=>'',
-                'service_cat_id'=>'',
-                'service_term_id'=>'',
-                'service_item_id'=>'',
-            ],
-        ];*/
+        /*  $this->put_data = [
+           'levels'=>[
+                    0=>[
+                           'id'=>'',
+                           'buyer_level'=>'',
+                           'service_cat_id'=>'',
+                           'service_term_id'=>'',
+                           'service_item_id'=>'',
+                       ],
+               ]
+           ]; */
         //获取用户信息
         $userInfo = getLoinInfo();
         $MemberServiceModel = new MemberServiceModel();
         $result = $MemberServiceModel->editInfo($this->put_data,$userInfo);
         if($result && $result['code'] == 1) {
-            jsonReturn($result);
+            $this->jsonReturn($result);
         } else {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
@@ -224,14 +230,14 @@ class ServicecatController extends PublicController {
 
     public function deleteLevelAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data['buyer_level'] = '1';//测试
-        if(empty($data['buyer_level'])){
+//        $data['id'] = '1';//测试
+        if(empty($data['id'])){
             $datajson['code'] = -101;
-            $datajson['message'] = '[buyer_level]不可以都为空!';
+            $datajson['message'] = '用户等级i[id]不可为空!';
             $this->jsonReturn($datajson);
         }
         $MemberServiceModel = new MemberServiceModel();
-        $res = $MemberServiceModel->delData($data['buyer_level']);
+        $res = $MemberServiceModel->delData($data['id']);
         if($res){
             $datajson['code'] = 1;
             $datajson['data'] = $res;

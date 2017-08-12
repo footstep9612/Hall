@@ -254,7 +254,7 @@ class GoodsAttachModel extends PublicModel {
 
         //redis
         if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
-            return json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
+//            return json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
         }
         $field = 'id, sku, supplier_id, attach_type, attach_name, attach_url, default_flag, sort_order, status, created_by,  created_at, updated_by, updated_at, checked_by, checked_at';
         try {
@@ -311,6 +311,8 @@ class GoodsAttachModel extends PublicModel {
                     }
                 }
                 if ($res) {
+                    $es_goods_model = new EsGoodsModel();
+                    $es_goods_model->Update_Attachs($input['sku']);
                     $results['code'] = '1';
                     $results['message'] = '成功！';
                 } else {
@@ -402,7 +404,7 @@ class GoodsAttachModel extends PublicModel {
                     "sku" => ['in', $skus],
                 ];
                 $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-            
+
                 if ($res === false) {
                     return false;
                 }
@@ -425,7 +427,7 @@ class GoodsAttachModel extends PublicModel {
                 $results['code'] = '-101';
                 $results['message'] = '失败!';
             }
-        
+
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
@@ -442,32 +444,32 @@ class GoodsAttachModel extends PublicModel {
      *
      */
     private function checkParam($param = []) {
-        if (empty($param)){
-           jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        if (empty($param)) {
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         $data = $results = [];
-        if(!empty($param['supplier_id'])){
+        if (!empty($param['supplier_id'])) {
             $data['supplier_id'] = $param['supplier_id'];
         }
-        if(!empty($param['attach_type'])){
+        if (!empty($param['attach_type'])) {
             $data['attach_type'] = $param['attach_type'];
         }
-        if(!empty($param['attach_name'])){
+        if (!empty($param['attach_name'])) {
             $data['attach_name'] = $param['attach_name'];
         }
-        if(!empty($param['attach_url'])){
+        if (!empty($param['attach_url'])) {
             $data['attach_url'] = $param['attach_url'];
-        } else{
+        } else {
             $results['code'] = -101;
             $results['message'] = '[attach_url]参数缺少!';
         }
-        if(!empty($param['default_flag'])){
+        if (!empty($param['default_flag'])) {
             $data['default_flag'] = $param['default_flag'];
         }
-        if(!empty($param['sort_order'])){
+        if (!empty($param['sort_order'])) {
             $data['sort_order'] = $param['sort_order'];
         }
-        if($results){
+        if ($results) {
             jsonReturn($results);
         }
         return $data;
@@ -476,7 +478,7 @@ class GoodsAttachModel extends PublicModel {
     /* 通过SKU获取数据商品文件列表
      * @param mix $skus // 商品SKU编码数组
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0

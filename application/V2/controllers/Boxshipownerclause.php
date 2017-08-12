@@ -27,15 +27,16 @@ class BoxshipownerclauseController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   费率类型
+     * @desc   所有发货箱型对应船东条款
      */
 
     public function listAction() {
-        $data = $this->get() ? $this->get() : $this->getPut();
+        $data = $this->getPut();
 
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
 
         $arr = $box_shipowner_clause_model->getlist($data);
+
 
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
@@ -52,7 +53,7 @@ class BoxshipownerclauseController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   费率类型
+     * @desc   所有发货箱型对应船东条款
      */
 
     public function infoAction() {
@@ -75,7 +76,7 @@ class BoxshipownerclauseController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   费率类型
+     * @desc   所有发货箱型对应船东条款
      */
 
     public function createAction() {
@@ -96,7 +97,7 @@ class BoxshipownerclauseController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   费率类型
+     * @desc   所有发货箱型对应船东条款
      */
 
     public function updateAction() {
@@ -118,7 +119,7 @@ class BoxshipownerclauseController extends PublicController {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   费率类型
+     * @desc   所有发货箱型对应船东条款
      */
 
     public function deleteAction() {

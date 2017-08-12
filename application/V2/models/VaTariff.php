@@ -16,6 +16,31 @@ class VaTariffModel extends PublicModel {
     }
 
     /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('status', 'VALID'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('country_bn', 'require', '目的国简称不能为空'),
+        array('value_added_tax', 'currency', '增值税税率不能为空'),
+        array('tariff', 'currency', '目的地关税税率不能为空'),
+        array('status', 'require', '状态不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
+    /*
      * 条件id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude
      */
 
@@ -111,12 +136,12 @@ class VaTariffModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($update_data, $uid = 0) {
+    public function update_data($update_data) {
         if (!isset($update_data['id']) || !$update_data['id']) {
             return false;
         }
         $update_data['status'] = 'VALID';
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $where['id'] = $update_data['id'];
         $data = $this->create($update_data);
@@ -151,8 +176,7 @@ class VaTariffModel extends PublicModel {
         }
         $field = 'id,country_bn,value_added_tax,tariff,created_by,created_at';
         try {
-            return $this->field($field)->where($where)
-                            ->find();
+            return $this->field($field)->where($where)->find();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -167,16 +191,17 @@ class VaTariffModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create = []) {
-        $create['created_by'] = UID;
+        $create['created_by'] = defined('UID') ? UID : 0;
         $create['created_at'] = date('Y-m-d H:i:s');
 
-        $data = $this->create($create);
-        if (isset($data['id']) && $data['id']) {
-            $data['id'] = null;
-            unset($data['id']);
+        $create['value_added_tax'] = number_format($create['value_added_tax'], 4, '.', '');
+        $data['tariff'] = number_format($create['tariff'], 4, '.', '');
+        if (isset($create['id']) && $create['id']) {
+            $create['id'] = null;
+            unset($create['id']);
         }
-        $data['value_added_tax'] = number_format($data['value_added_tax'], 4, '.', '');
-        $data['tariff'] = number_format($data['tariff'], 4, '.', '');
+        $data = $this->create($create);
+
         try {
             $flag = $this->add($data);
             return $flag;
@@ -193,13 +218,15 @@ class VaTariffModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function delete_data($id = '', $uid = 0) {
+    public function delete_data($id = '') {
         if (!$id) {
             return false;
-        } else {
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
             $where['id'] = $id;
         }
-        $update_data['updated_by'] = UID;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $data = ['status' => 'DELETED', 'deleted_flag' => 'Y',];
         $flag = $this->where($where)->save($data);

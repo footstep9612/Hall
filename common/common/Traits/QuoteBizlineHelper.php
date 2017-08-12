@@ -275,16 +275,14 @@ trait QuoteBizlineHelper{
      * @param $param 请求参数
      * @return array 结果
      */
-    static public function sendbackToBizline($param){
+    public static function sendbackToBizline($param){
 
-        //TODO 这里处理一些其他逻辑待定
-        //self::sendbackToBizlineDetail();
-
-        $inquiry_id = $param['inquiry_id'];
         $inquiryModel = new InquiryModel();
-
         try{
-            $result = $inquiryModel->where(['id'=>$inquiry_id])->save(['status'=>'BIZLINE_QUOTE']);
+            $result = $inquiryModel->where(['serial_no'=>$param['serial_no']])->save([
+                'status' => 'BZ_QUOTE_REJECTED',//询单的状态
+                'goods_quote_status' => 'REJECTED'//询单的产品线报价状态
+            ]);
             if (!$result){
                 return ['code'=>'-101','message'=>'操作失败!'];
             }
@@ -297,14 +295,6 @@ trait QuoteBizlineHelper{
         }
     }
 
-    /**
-     * 产品线报价->项目经理->退回产品线重新报价时候的其他逻辑
-     * @param $data 参数
-     * @return mixed 结果
-     */
-    static public function sendbackToBizlineDetail($data){
-        return $data;
-    }
 
     /**
      * 产品线负责人->指派报价人

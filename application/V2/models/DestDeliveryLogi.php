@@ -25,9 +25,7 @@ class DestDeliveryLogiModel extends PublicModel {
      * @return array|mixed|string
      */
     public function getList($country = '', $lang = '') {
-        if (empty($country) || empty($lang)) {
-            return [];
-        }
+
         if (redisHashExist('DestDeliveryLogi', md5($country . '_' . $lang))) {
             return json_decode(redisHashGet('DestDeliveryLogi', md5($country . '_' . $lang)), true);
         }

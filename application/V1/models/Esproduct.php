@@ -86,7 +86,7 @@ class EsproductModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-                
+
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
@@ -183,18 +183,18 @@ class EsproductModel extends Model {
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
      * @param mix  $_source //要搜索的字段
-     * @return mix  
+     * @return mix
      */
 
     public function getproducts($condition, $_source, $lang = 'en') {
 
         try {
-            if (!$_source) {
-                $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
-                    , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
-                    'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
-                    'brand', 'supplier_name', 'sku_num'];
-            }
+//            if (!$_source) {
+//                $_source = ['skus', 'meterial_cat_no', 'spu', 'name', 'show_name', 'attrs', 'specs'
+//                    , 'profile', 'supplier_name', 'source', 'supplier_id', 'attachs', 'brand',
+//                    'recommend_flag', 'supply_capabilitys', 'tech_paras', 'meterial_cat',
+//                    'brand', 'supplier_name', 'sku_num'];
+//            }
             $body = $this->getCondition($condition);
             $redis_key = 'es_product_' . md5(json_encode($body));
             $data = json_decode(redisGet($redis_key), true);
@@ -213,7 +213,9 @@ class EsproductModel extends Model {
                 $newbody = $this->getCondition($condition);
                 $allcount = $es->setbody($newbody)
                         ->count($this->dbName, $this->tableName . '_' . $lang);
-                $es->setbody($body)->setfields($_source)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
+                $es->setbody($body)
+                        //   ->setfields($_source)
+                        ->setsort('sort_order', 'desc')->setsort('_id', 'desc');
 
                 if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                     $es->setaggs('sku_num', 'sku_num', 'sum');
@@ -258,7 +260,7 @@ class EsproductModel extends Model {
     }
 
     /*
-     * 
+     *
      */
 
     public function getksucount($condition, $lang = 'en') {
@@ -281,7 +283,7 @@ class EsproductModel extends Model {
     /* 通过搜索条件获取数据列表
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      */
 
     public function getmeterial_catlist($condition, $lang = 'en') {
@@ -311,7 +313,7 @@ class EsproductModel extends Model {
     /* 通过搜索条件获取数据列表
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      */
 
     public function getshow_catlist($condition, $lang = 'en') {
@@ -361,7 +363,7 @@ class EsproductModel extends Model {
     /* 通过ES 获取数据列表
      * @param string $sku // 商品名称 属性名称或属性值
      * @param string $lang // 展示分类编码
-     * @return mix  
+     * @return mix
      */
 
     public function getproductsbysku($sku, $lang = 'en') {
@@ -379,7 +381,7 @@ class EsproductModel extends Model {
     /* 通过ES 获取数据列表
      * @param string $spu // 商品名称 属性名称或属性值
      * @param string $lang // 展示分类编码
-     * @return mix  
+     * @return mix
      */
 
     public function getproductsbyspu($spu, $lang = 'en') {
@@ -397,7 +399,7 @@ class EsproductModel extends Model {
     /*
      * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
      * @param mix $cat_no // 物料分类编码数组3f
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  物料分类及上级和顶级信息
      */
 
@@ -426,7 +428,7 @@ class EsproductModel extends Model {
     /*
      * 根据物料分类编码搜索物料分类 及上级分类信息
      * @param mix $cat_nos // 物料分类编码数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  物料分类及上级和顶级信息
      */
 
@@ -517,7 +519,7 @@ class EsproductModel extends Model {
     /*
      * 根据SPUS 获取商品规格信息
      * @param mix $spus // 产品SPU数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  规格信息
      */
 
@@ -548,7 +550,7 @@ class EsproductModel extends Model {
     /*
      * 根据SPUS 获取产品属性信息
      * @param mix $spus // 产品SPU数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  属性信息
      */
 
@@ -578,7 +580,7 @@ class EsproductModel extends Model {
     /*
      * 根据SPUS 获取产品属性信息
      * @param mix $spus // 产品SPU数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  sku数组信息列表
      */
 
@@ -608,7 +610,7 @@ class EsproductModel extends Model {
     /*
      * 根据SPUS 获取产品展示分类信息
      * @param mix $spus // 产品SPU数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  展示分类信息列表
      */
 
@@ -641,7 +643,7 @@ class EsproductModel extends Model {
     /*
      * 根据SKUS 获取商品规格信息
      * @param mix $sKus // 产品SKU数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  规格信息
      */
 
@@ -671,7 +673,7 @@ class EsproductModel extends Model {
     /*
      * 根据分类编码数组获取物料分类信息
      * @param mix $cat_nos // 物料分类编码数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  规格信息
      */
 
@@ -707,8 +709,8 @@ class EsproductModel extends Model {
     /*
      * 根据展示分类编码数组获取展示分类信息
      * @param mix $show_cat_nos // 展示分类编码数组
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      */
 
     public function getshow_cats($show_cat_nos, $lang = 'en') {
@@ -802,7 +804,7 @@ class EsproductModel extends Model {
     /* 通过SKU获取数据商品文件列表
      * @param mix $skus // 商品SKU编码数组
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      */
 
     public function getproduct_attachsbyspus($spus, $lang = 'en') {
@@ -833,8 +835,8 @@ class EsproductModel extends Model {
     /*
      * 根据SPU数组获取展示属性信息
      * @param mix $spus // 产品SPU数组
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      */
 
     public function getproductattrsbyspus($spus, $lang = 'en') {
@@ -919,8 +921,8 @@ class EsproductModel extends Model {
     /*
      * 将数组中的null值转换为空值
      * @author zyg 2017-07-31
-     * @param array $item // 语言 zh en ru es 
-     * @return mix 
+     * @param array $item // 语言 zh en ru es
+     * @return mix
      */
 
     private function _findnulltoempty(&$item) {
@@ -934,8 +936,8 @@ class EsproductModel extends Model {
     /*
      * 批量导入产品数据到ES
      * @author zyg 2017-07-31
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      */
 
     public function importproducts($lang = 'en') {
@@ -1087,7 +1089,7 @@ class EsproductModel extends Model {
      * @param string $default 默认值
      * @param string $type 判断的类型
      * @param array $arr 状态判断时状态数组
-     * @return mix  
+     * @return mix
      */
 
     private function _getValue($condition, $name, $default = null, $type = 'string', $arr = ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']) {
@@ -1217,8 +1219,8 @@ class EsproductModel extends Model {
 
     /*
      * 添加产品到Es
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      */
 
     public function create_data($data, $lang = 'en') {
@@ -1242,8 +1244,8 @@ class EsproductModel extends Model {
 
     /*
      * 添加产品到Es
-     * @param string $lang // 语言 zh en ru es 
-     * @return mix  
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
      */
 
     public function update_data($data, $spu, $lang = 'en') {
@@ -1269,7 +1271,7 @@ class EsproductModel extends Model {
     }
 
     /* 上架
-     * 
+     *
      */
 
     public function changestatus($spu, $status = 'VALID', $lang = 'en') {
@@ -1290,7 +1292,7 @@ class EsproductModel extends Model {
     }
 
     /* 上下架
-     * 
+     *
      */
 
     public function changesShelvesstatus($spu, $status = 'VALID', $lang = 'en') {
@@ -1325,7 +1327,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function getshowcats($spu = null, $lang = 'en') {
@@ -1380,7 +1382,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function Updatemeterialcatno($material_cat_no, $spu = null, $lang = 'en', $new_cat_no = '') {
@@ -1451,7 +1453,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function Update_Attrs($spu, $lang = 'en') {
@@ -1476,7 +1478,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function Update_Attachs($spu, $lang = 'en') {
@@ -1495,7 +1497,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function Update_skus($spu, $skus = null, $lang = 'en') {
@@ -1522,7 +1524,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function Update_brand($spu, $brand, $lang = 'en') {
@@ -1555,7 +1557,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function Update_spuname($spu, $spuname, $lang = 'en') {
@@ -1575,7 +1577,7 @@ class EsproductModel extends Model {
     }
 
     /* 新增ES
-     * 
+     *
      */
 
     public function Update_supplier_name($spu, $supplier_name, $lang = 'en') {

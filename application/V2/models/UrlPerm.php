@@ -28,15 +28,17 @@ class UrlPermModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='short desc') {
+    public function getlist($data,$limit,$order='sort desc') {
         if(!empty($limit)){
-            return $this->field('id,fn,url,remarks,short,parent_id,grant_flag,created_by,created_at')
+            //,'false' as check
+            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,fn,url,short,remarks,parent_id,grant_flag,created_by,created_at')
+            //,'false' as `check`
+            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -53,7 +55,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,fn,url,short,remarks,parent_id,grant_flag,created_by,created_at')
+                ->field('id,fn,url,sort,remarks,parent_id,grant_flag,created_by,created_at')
                 ->find();
             return $row;
         }else{
@@ -93,8 +95,8 @@ class UrlPermModel extends PublicModel {
         if(isset($data['fn'])){
             $arr['fn'] = $data['fn'];
         }
-        if(isset($create['short'])){
-            $arr['short'] = $create['short'];
+        if(isset($create['sort'])){
+            $arr['sort'] = $create['sort'];
         }
         if(isset($data['parent_id'])){
             $arr['parent_id'] = $data['parent_id'];
@@ -127,8 +129,8 @@ class UrlPermModel extends PublicModel {
         if(isset($create['fn'])){
             $arr['fn'] = $create['fn'];
         }
-        if(isset($create['short'])){
-            $arr['short'] = $create['short'];
+        if(isset($create['sort'])){
+            $arr['sort'] = $create['sort'];
         }
         if(isset($create['remarks'])){
             $arr['remarks'] = $create['remarks'];

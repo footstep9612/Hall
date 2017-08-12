@@ -24,6 +24,7 @@ class ServiceCatModel extends PublicModel {
      */
     public function getList($condition,$limit,$order='id desc') {
         $condition["deleted_flag"] = 'N';
+        $condition["status"] = 'VALID';
         $fields = 'id,parent_id,level_no,category,sort_order,status,created_by,created_at,updated_by,checked_by,checked_at';
         if(!empty($limit)){
             $result = $this->field($fields)
@@ -58,14 +59,14 @@ class ServiceCatModel extends PublicModel {
 	 * @return  bool
 	 */
 	public function addData($condition) {
-        if (!isset($condition)) {
+        if (!isset($condition['services'])) {
             return false;
         }
         $userInfo = getLoinInfo();
         $this->startTrans();
         try{
-            if(is_array($condition)) {
-                foreach ($condition as $item) {
+            if(is_array($condition['services'])) {
+                foreach ($condition['services'] as $item) {
                     $data = $this->create($item);
                     if(!empty($data['category'])){
                         $save['category'] = json_encode($data['category']);
@@ -97,7 +98,6 @@ class ServiceCatModel extends PublicModel {
             return true;
         } catch (Exception $e) {
             $this->rollback();
-            var_dump($e);
             return false;
         }
 	}
@@ -130,11 +130,14 @@ class ServiceCatModel extends PublicModel {
 	 * @return bool
 	 */
     public function update_data($condition) {
+        if (!isset($condition['services'])) {
+            return false;
+        }
         $userInfo = getLoinInfo();
         $this->startTrans();
         try{
-            if(is_array($condition)) {
-                foreach ($condition as $item) {
+            if(is_array($condition['services'])) {
+                foreach ($condition['services'] as $item) {
                     $where = ['id'=>$item['id']];
                     if(!empty($item['category'])){
                         $data['category'] = json_encode($item['category']);
@@ -207,14 +210,14 @@ class ServiceCatModel extends PublicModel {
 	}
 
     /**
-     * 会员服务信息列表
+     * 会员服务信息
      * @time  2017-08-05
      * @author klp
      */
     public function getInfo($data) {
         //$data['id'] = 3;
-        if(isset($data['id']) && !empty($data['id'])) {
-            $condition["id"] = $data['id'];
+        if(isset($data['service_cat_id']) && !empty($data['service_cat_id'])) {
+            $condition["id"] = $data['service_cat_id'];
         }
         $condition["deleted_flag"] = 'N';
         $condition["status"] = 'VALID';
@@ -230,7 +233,20 @@ class ServiceCatModel extends PublicModel {
                            ->select();
             $data = array();
             if ($result) {
+                $employee = new EmployeeModel();
                 foreach($result as $item){
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
+                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+                    if ($updateder && isset($updateder[0])) {
+                        $item['updated_by'] = $updateder[0];
+                    }
+                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+                    if ($checkeder && isset($checkeder[0])) {
+                        $item['checked_by'] = $checkeder[0];
+                    }
                     $item['category'] = json_decode($item['category'],true);
                     $ServiceTermModel = new ServiceTermModel();
                     $resultTerm = $ServiceTermModel->getInfo($item);

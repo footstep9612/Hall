@@ -14,6 +14,7 @@
 class GroupModel extends PublicModel {
 
     //put your code here
+    protected $dbName = 'erui2_sys'; //数据库名称
     protected $tableName = 'org';
     Protected $autoCheckFields = true;
 
@@ -28,21 +29,22 @@ class GroupModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='short desc') {
+    public function getlist($data,$limit,$order='sort desc') {
         $data["deleted_flag"] = 'N';
         if(!empty($limit)){
-            return $this->field('id,short,membership,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
+            return $this->field('id,sort,membership,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,short,membership,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
+            return $this->field('id,sort,membership,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
                 ->where($data)
                 ->order($order)
                 ->select();
         }
     }
+
 
     /**
      * 获取列表
@@ -54,7 +56,7 @@ class GroupModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,membership,short,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
+                ->field('id,membership,sort,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
                 ->find();
             return $row;
         }else{
@@ -100,8 +102,8 @@ class GroupModel extends PublicModel {
         if(isset($data['deleted_flag'])){
             $arr['deleted_flag'] = $data['deleted_flag'];
         }
-        if(isset($create['short'])){
-            $arr['short'] = $create['short'];
+        if(isset($create['sort'])){
+            $arr['sort'] = $create['sort'];
         }
         if(!empty($where)){
             return $this->where($where)->save($arr);
@@ -139,8 +141,8 @@ class GroupModel extends PublicModel {
         if(isset($create['status'])){
             $arr['status'] = $create['status'];
         }
-        if(isset($create['short'])){
-            $arr['short'] = $create['short'];
+        if(isset($create['sort'])){
+            $arr['sort'] = $create['sort'];
         }
         if(isset($create['created_by'])){
             $arr['created_by'] = $create['created_by'];
@@ -148,7 +150,6 @@ class GroupModel extends PublicModel {
         if(isset($arr)){
             $arr['created_at'] = date("Y-m-d H:i:s");
         }
-
         $data = $this->create($arr);
         return $this->add($data);
     }

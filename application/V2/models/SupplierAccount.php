@@ -32,10 +32,6 @@ class SupplierAccountModel extends PublicModel
      */
     public function update_data($create, $where)
     {
-
-        if (isset($create['supplier_id'])) {
-            $arr['supplier_id'] = $create['supplier_id'];
-        }
         if (isset($create['email'])) {
             $arr['email'] = $create['email'];
         }
@@ -58,7 +54,13 @@ class SupplierAccountModel extends PublicModel
             $arr['last_name'] = $create['last_name'];
         }
         if (!empty($where)&&isset($arr)) {
-            return $this->where($where)->save($arr);
+            $info = $this->where($where)->find();
+            if(!$info){
+                $arr['supplier_id']=$where['supplier_id'];
+                $this->create_data($arr);
+            }else{
+                return $this->where($where)->save($arr);
+            }
         } else {
             return false;
         }

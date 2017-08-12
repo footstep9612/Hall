@@ -8,9 +8,9 @@
  */
 class FinalQuoteController extends PublicController {
 
-    public function __init()
+    public function init()
     {
-        parent::__init();
+        parent::init();
     }
 
     /*
@@ -36,6 +36,7 @@ class FinalQuoteController extends PublicController {
         //市场报价单信息
         $finalwhere['inquiry_id'] = $where['id'];
         $results = $finalquote->getInfo($finalwhere);
+
 
 
         $this->jsonReturn($results);

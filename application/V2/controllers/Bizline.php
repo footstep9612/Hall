@@ -7,8 +7,8 @@
  * Time: 10:00
  */
 class BizlineController extends PublicController {
-    public function __init() {
-        parent::__init();
+    public function init() {
+        parent::init();
     }
 
     //产品线列表
@@ -16,6 +16,7 @@ class BizlineController extends PublicController {
         $bizline = new BizlineModel();
         $bizlinecat = new BizlineCatModel();
         $bizlinegroup = new BizlineGroupModel();
+        $group = new GroupModel();
         $createcondition = $this->put_data;
 
         $results = $bizline->getlist($createcondition);
@@ -29,7 +30,12 @@ class BizlineController extends PublicController {
             //产品线负责人组名称
             $where['group_role'] = 'BIZLINE_MANAGER';
             $grouplist = $bizlinegroup->getList($where);
-            $results['data'][$key]['group_name'] = $grouplist['data'][0]['group_id'];
+            if($grouplist['code']==1){
+                $groupname = $group->field('name')->where('id='.$grouplist['data'][0]['group_id'])->find();
+                $results['data'][$key]['group_name'] = $groupname['name'];
+            }else{
+                $results['data'][$key]['group_name'] = '';
+            }
         }
 
         $this->jsonReturn($results);
@@ -39,7 +45,7 @@ class BizlineController extends PublicController {
     public function getInfoAction() {
         $bizline = new BizlineModel();
         $bizlinecat = new BizlineCatModel();
-        $materialcat = new MaterialcatModel();
+        $materialcat = new MaterialCatModel();
         $createcondition = $this->put_data;
 
         $results = $bizline->getInfo($createcondition);
@@ -132,6 +138,16 @@ class BizlineController extends PublicController {
             $results['code'] = '-101';
             $results['message'] = '添加失败!';
         }
+
+        $this->jsonReturn($results);
+    }
+
+    //批量修改状态
+    public function updateStatusAction() {
+        $bizline = new BizlineModel();
+        $createcondition =  $this->put_data;
+
+        $results = $bizline->updateStatus($createcondition);
 
         $this->jsonReturn($results);
     }

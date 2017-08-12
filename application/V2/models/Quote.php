@@ -27,6 +27,10 @@ class QuoteModel extends PublicModel {
      public function getWhere($condition) {
      	$where = array();
 
+     	if(!empty($condition['id'])) {
+     	    $where['id'] = $condition['id'];
+     	}
+     	
      	if(!empty($condition['quote_no'])) {
     		$where['quote_no'] = $condition['quote_no'];
     	}

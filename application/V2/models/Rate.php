@@ -27,6 +27,37 @@ class RateModel extends PublicModel {
         parent::__construct();
     }
 
+    /*
+     * 自动完成
+     */
+
+    protected $_auto = array(
+        array('created_at', 'getDate', 1, 'callback'),
+        array('status', 'VALID'),
+    );
+    /*
+     * 自动表单验证
+     */
+    protected $_validate = array(
+        array('lang', 'require', '语言不能为空'),
+        array('box_type_bn', 'require', '发货箱型简称不能为空'),
+        array('fee_type_bn', 'require', '费用类型简称不能为空'),
+        array('unit_price', 'require', '单价不能为空'),
+        array('cur_bn', 'require', '币种不能为空'),
+        array('qty', 'number', '数量必须是数字'),
+        array('unit_price', 'require', '单价不能为空'),
+        array('status', 'require', '状态不能为空'),
+        array('created_at', 'require', '创建时间不能为空'),
+    );
+
+    /*
+     * 获取当前时间
+     */
+
+    function getDate() {
+        return date('Y-m-d H:i:s');
+    }
+
     /**
      * 搜索条件
      * @param array $condition;
@@ -156,10 +187,12 @@ class RateModel extends PublicModel {
     public function delete_data($id = '') {
         if (!$id) {
             return false;
-        } else {
+        } elseif (is_array($id)) {
+            $where['id'] = ['in', $id];
+        } elseif ($id) {
             $where['id'] = $id;
         }
-        $update_data['updated_by'] = UID;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $update_data['status'] = 'DELETED';
         $update_data['deleted_flag'] = 'Y';
@@ -176,10 +209,10 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function update_data($update, $uid = 0) {
+    public function update_data($update) {
         $data = $this->create($update);
         $where['id'] = $data['id'];
-        $update_data['updated_by'] = $uid;
+        $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $flag = $this->where($where)->save($data);
         if ($flag) {
@@ -196,16 +229,17 @@ class RateModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    public function create_data($create = [], $uid = 0) {
+    public function create_data($create = []) {
         if (isset($create['id'])) {
             $create['id'] = null;
             unset($create['id']);
         }
 
-        $create['created_by'] = $uid;
+        $create['created_by'] = defined('UID') ? UID : 0;
         $create['created_at'] = date('Y-m-d H:i:s');
+        $create['status'] = $create['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $data = $this->create($create);
-        $data['status'] = $data['status'] == 'INVALID' ? 'INVALID' : 'VALID';
+
         $flag = $this->add($data);
         if ($flag) {
             return $flag;

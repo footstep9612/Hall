@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-3 13:38:48
  * @version V2.0
- * @desc   
+ * @desc
  */
 class OpLogModel extends PublicModel {
 
@@ -24,37 +24,37 @@ class OpLogModel extends PublicModel {
     }
 
     protected function _before_update(&$data, $options) {
-        
+
     }
 
     // 更新成功后的回调方法
     protected function _after_update($data, $options) {
-        
+
     }
 
     // 插入数据前的回调方法
     protected function _before_insert(&$data, $options) {
-        
+
     }
 
     // 插入成功后的回调方法
     protected function _after_insert($data, $options) {
-        
+
     }
 
     // 写入数据前的回调方法 包括新增和更新
     protected function _before_write(&$data) {
-        
+
     }
 
     // 删除数据前的回调方法
     protected function _before_delete($options) {
-        
+
     }
 
     // 删除成功后的回调方法
     protected function _after_delete($data, $options) {
-        
+
     }
 
     /**
@@ -65,7 +65,7 @@ class OpLogModel extends PublicModel {
      */
     public function create_data($create = [], $uid = 0) {
         try {
-            $create['op_id'] = $uid;
+            $create['op_id'] = defined('UID') ? UID : 0;
             $create['created_at'] = $create['op_at'] = date('Y-m-d H:i:s');
             if (is_array($create['op_note'])) {
                 $create['op_note'] = json_encode($create['op_note']);
@@ -73,11 +73,11 @@ class OpLogModel extends PublicModel {
                 $create['op_note'] = $create['op_note'];
             }
 
-            $create['op_id'] = $uid;
+            $create['op_id'] = defined('UID') ? UID : 0;
             $data = $this->create($create);
             return $this->add($data);
         } catch (Exception $ex) {
-            
+
         }
     }
 
@@ -89,7 +89,7 @@ class OpLogModel extends PublicModel {
      */
     public function update_data($create = [], $id = 0, $uid = 0) {
         try {
-            $create['op_id'] = $uid;
+            $create['op_id'] = defined('UID') ? UID : 0;
 
             if (is_array($create['op_note'])) {
                 $create['op_note'] = json_encode($create['op_note'], 256);
@@ -97,11 +97,11 @@ class OpLogModel extends PublicModel {
                 $create['op_note'] = $create['op_note'];
             }
 
-            $create['op_id'] = $uid;
+            $create['op_id'] = defined('UID') ? UID : 0;
             $data = $this->where(['id' => $id])->save($create);
             return $this->add($data);
         } catch (Exception $ex) {
-            
+
         }
     }
 

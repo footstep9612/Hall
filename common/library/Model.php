@@ -1103,6 +1103,7 @@ class Model {
                 // 验证因子定义格式
                 // array(field,rule,message,condition,type,when,params)
                 // 判断是否需要执行验证
+
                 if (empty($val[5]) || $val[5] == self::MODEL_BOTH || $val[5] == $type) {
                     if (0 == strpos($val[2], '{%') && strpos($val[2], '}'))
                     // 支持提示信息的多语言 使用 {%语言定义} 方式
@@ -1143,6 +1144,7 @@ class Model {
      * @return boolean
      */
     protected function _validationField($data, $val) {
+
         if ($this->patchValidate && isset($this->error[$val[0]]))
             return; //当前字段已经有规则验证没有通过
         if (false === $this->_validationFieldItem($data, $val)) {
