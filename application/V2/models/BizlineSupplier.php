@@ -35,8 +35,7 @@ class BizlineSupplierModel extends PublicModel
 
     public function getSupplierList($data)
     {
-        $field = [`bizline_id`,`supplier_id`,`first_name`,`last_name`,`email`,`phone`,`supply_level`,`employee_id`,`quote_group_id`];
-        return $this->where($data)->field($field)->select();
+        return $this->where($data)->select();
     }
     public function create_data($create= []) {
         if(isset($create['bizline_id'])){

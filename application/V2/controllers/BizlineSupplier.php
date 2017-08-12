@@ -59,7 +59,7 @@ class BizlineSupplierController extends PublicController {
         $limit = [];
         $where = [];
         if(!empty($data['supplier_id'])){
-            $where['supplier_no'] = $data['supplier_no'];
+            $where['supplier_id'] = $data['supplier_id'];
         }
 
         $model = new BizlineSupplierModel();

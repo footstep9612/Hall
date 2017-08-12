@@ -78,7 +78,7 @@ class DictController extends Yaf_Controller_Abstract {
             $datajson['message'] = '数据为空!';
         }
 
-        $this->jsonReturn($datajson);
+        jsonReturn($datajson);
     }
 
     public function TradeTermsListAction() {
@@ -278,7 +278,7 @@ class DictController extends Yaf_Controller_Abstract {
             $datajson['data'] = $data;
             $datajson['message'] = '添加失败!';
         }
-        $this->jsonReturn($datajson);
+        jsonReturn($datajson);
     }
 
     public function updateAction() {
@@ -303,7 +303,7 @@ class DictController extends Yaf_Controller_Abstract {
             $datajson['code'] = -104;
             $datajson['message'] = '修改失败!';
         }
-        $this->jsonReturn($datajson);
+        jsonReturn($datajson);
     }
 
     public function deleteAction() {
@@ -322,7 +322,7 @@ class DictController extends Yaf_Controller_Abstract {
             $datajson['code'] = -104;
             $datajson['message'] = '数据为空!';
         }
-        $this->jsonReturn($datajson);
+        jsonReturn($datajson);
     }
 
 }
