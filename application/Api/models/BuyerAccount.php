@@ -211,17 +211,17 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      */
     public function checkPassword($data){
-        if(!empty($data['id'])){
-            $where['id'] = $data['id'];
+        if(!empty($data['customer_id'])){
+            $where['customer_id'] = $data['customer_id'];
         } else{
             jsonReturn('','-1001','用户id不可以为空');
         }
-        if(!empty($data['password'])){
-            $password = $data['password'];
+        if(!empty($data['password_hash'])){
+            $where['password_hash'] = $data['password_hash'];
         }
         $pwd = $this->where($where)->field('password_hash')->find();
-        if($pwd == $password){
-            return true;
+        if($pwd){
+            return $pwd;
         } else {
             return false;
         }
