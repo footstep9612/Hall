@@ -246,7 +246,7 @@ class BuyerController extends PublicController {
             $buyer_contact_model =  new BuyercontactModel();
             $buyer_contact_model ->create_data($buyer_contact_data);
             //添加附件
-            $buyer_attach_model =  new BuyerAttachModel();
+            $buyer_attach_model =  new BuyerattachModel();
             $buyer_attach_model ->create_data($buyer_attach_data);
             //采购商帐号表
             $buyer_account_model ->create_data($buyer_account_data);
@@ -355,7 +355,7 @@ class BuyerController extends PublicController {
             $arr_account['password_hash'] = md5($data['password']);
             $buyer_account_model -> update_data($arr_account,$where_account);
         }
-        $buyer_attach_model =  new BuyerAttachModel();
+        $buyer_attach_model =  new BuyerattachModel();
         if(!empty($data['attach_url'])) {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model -> update_data($where_attach);
