@@ -545,4 +545,40 @@ class CountryModel extends PublicModel {
         }
     }
 
+    /*
+     * 根据用户ID 获取用户姓名
+     * @param array $user_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getNamesBybns($bns) {
+
+        try {
+            $where = [];
+
+            if (is_string($bns)) {
+                $where['bn'] = $bns;
+            } elseif (is_array($bns)) {
+                $where['bn'] = ['in', $bns];
+            } else {
+                return false;
+            }
+            $where['lang'] = 'zh';
+            $areas = $this->where($where)->field('bn,name')->select();
+            $area_names = [];
+            foreach ($areas as $area) {
+                $area_names[$area['bn']] = $area['name'];
+            }
+            return $area_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }
