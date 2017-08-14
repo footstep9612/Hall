@@ -7,6 +7,7 @@
  * Time: 14:46
  */
 class CentercreditController extends PublicController {
+
 //class CentercreditController extends Yaf_Controller_Abstract{
     private $input;
 
@@ -22,8 +23,22 @@ class CentercreditController extends PublicController {
      */
     public function listAction() {
         $buyerModel = new BuyerModel();
-        $result = $buyerModel->getListCredit($this->put_data);
-        $this->returnInfo($result);
+        list($result, $count) = $buyerModel->getListCredit($this->put_data);
+
+        if ($result) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->setvalue('count', $count);
+            $this->jsonReturn($result);
+        } elseif ($result === null) {
+
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
+        }
     }
 
     /**
@@ -108,7 +123,7 @@ class CentercreditController extends PublicController {
     /**
      * 审核会员授信(待完善,触发中信保审核)
      * {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","id":"111","status_type":"approved"
-    }
+      }
      * @author klp
      */
     public function approvelAction() {

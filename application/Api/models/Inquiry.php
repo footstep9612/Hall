@@ -101,7 +101,7 @@ class InquiryModel extends PublicModel {
 
         try {
             $count = $this->getcount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
+            $list = $this->where($where)->page($page, $pagesize)->order('id desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';

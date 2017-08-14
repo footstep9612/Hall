@@ -96,6 +96,45 @@ class UserController extends PublicController {
         $this->jsonReturn($datajson);
     }
     /*
+     * 用户列表
+     *
+     * */
+    public function userrolelisttreeAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $role_user_modle =new RoleUserModel();
+        $user_id = $data['user_id'];
+        $data =$role_user_modle->userRoleList($user_id,0);
+        $count = count($data);
+        $childrencount=0;
+        for($i=0;$i<$count;$i++){
+            $data[$i]['check'] =false ;
+            $data[$i]['children'] = $role_user_modle->userRoleList($user_id,$data[$i]['func_perm_id']);
+            $childrencount = count($data[$i]['children']);
+            if($childrencount>0){
+                for($j=0;$j<$childrencount;$j++){
+                    if(isset($data[$i]['children'][$j]['id'])){
+                        $data[$i]['children'][$j]['check'] =false ;
+                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'],$data[$i]['children'][$j]['func_perm_id']);
+                        if(!$data[$i]['children'][$j]['children']){
+                            unset($data[$i]['children'][$j]['children']);
+                        }
+                    }
+                }
+            }else{
+                unset($data[$i]['children']);
+            }
+        }
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
     * 用户列表
     *
     * */

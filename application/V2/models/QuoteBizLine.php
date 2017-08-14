@@ -50,6 +50,75 @@ class QuoteBizLineModel extends PublicModel{
     }
 
     /**
+     * 处理退回产品线重新报价逻辑
+     * 操作说明:(1)更改询单的状态及询单的产品线报价状态 (2)更改产品线报价的状态(quote_bizine)
+     * @param $request
+     * @return bool
+     */
+    public function rejectBizline($request){
+
+        //(1)更改询单的状态及询单的产品线报价状态
+        $inquiry = new InquiryModel();
+        //$inquiry->startTrans();
+        $updateInquiry = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status' => self::INQUIRY_BZ_QUOTE_REJECTED,
+            'goods_quote_status' => self::QUOTE_REJECTED
+        ]);
+
+        //(2)更改产品线报价的状态(quote_bizine)
+        $this->startTrans();
+        $bizline_ids = explode(',',$request['bizline_id']);
+
+        foreach ($bizline_ids as $item=>$value){
+            $this->where(['bizline_id'=>intval($value)])->save(['status' => self::QUOTE_REJECTED]);
+        }
+        //结果
+        if ($updateInquiry){
+            $inquiry->commit();
+            $this->commit();
+            return ['code'=>'1','message'=>'退回成功!'];
+        }else{
+            $inquiry->rollback();
+            $this->rollback();
+            return ['code'=>'-104','message'=>'退回失败!'];
+        }
+
+    }
+
+    /**
+     * 提交物流报价(项目经理)
+     * @param $request
+     * @return bool
+     */
+    public function sentLogistics($request){
+
+        //修改询单表(inqury)的数据
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
+        $inquiryUpdates = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status' => self::INQUIRY_QUOTED_BY_LOGI,//物流报价中
+            'goods_quote_status' => self::QUOTE_APPROVED //已审核
+        ]);
+
+        //修改产品线报价单的状态
+        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
+        $this->startTrans();
+        $bizlineUpdates = $this->where(['inquiry_id'=>$inquiryID])->save([
+            'status' => self::QUOTE_APPROVED,//已审核
+        ]);
+
+        if ($inquiryUpdates && $bizlineUpdates){
+            $inquiry->commit();
+            $this->commit();
+            return ['code'=>'1','message'=>'提交成功!'];
+        }else{
+            $inquiry->rollback();
+            $this->rollback();
+            return ['code'=>'-104','message'=>'提交失败!'];
+        }
+    }
+
+    /**
      * 根据条件获取所有产品线报价单
      * @param array $param
      *

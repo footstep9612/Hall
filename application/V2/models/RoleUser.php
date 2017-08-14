@@ -21,17 +21,22 @@ class RoleUserModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-    public function userRoleList($user_id){
-        $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`fn` ';
-        $sql .= ' FROM employee';
-        $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
-        $sql .= ' LEFT JOIN  `role_access_perm` ON `role_access_perm`.`role_id` =`role_member`.`role_id`';
-        $sql .= ' LEFT JOIN  `func_perm` ON `func_perm`.`id` =`role_access_perm`.`func_perm_id`';
-        // $sql_where = '';
-        if(!empty($user_id)) {
-            $sql .= ' WHERE `role_member`.`employee_id` =' . $user_id;
+    public function userRoleList($user_id,$pid = ''){
+        if($user_id){
+            $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`fn`,`func_perm`.`parent_id` ';
+            $sql .= ' FROM employee';
+            $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
+            $sql .= ' LEFT JOIN  `role_access_perm` ON `role_access_perm`.`role_id` =`role_member`.`role_id`';
+            $sql .= ' LEFT JOIN  `func_perm` ON `func_perm`.`id` =`role_access_perm`.`func_perm_id`';
+            $sql .= "WHERE `func_perm`.`id` is not null ";
+            if(!empty($user_id)) {
+                $sql .= ' and `role_member`.`employee_id` =' . $user_id;
+            }
+            if(!empty($pid)) {
+                $sql .= ' and `func_perm`.`parent_id` =' . $pid;
+            }
+            return $this->query( $sql );
         }
-        return $this->query( $sql );
     }
 
     /**

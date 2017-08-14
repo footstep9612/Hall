@@ -12,9 +12,10 @@ class GoodsController extends PublicController {
     private $input;
 
     public function init() {
-       // error_reporting(E_ERROR);
-     parent::init();
+        // error_reporting(E_ERROR);
+        parent::init();
         $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
+        Log::write(json_encode($this->put_data), Log::INFO);
     }
 
     /**
@@ -117,12 +118,12 @@ class GoodsController extends PublicController {
      *          supplier_cost=>[]
      * ]
      * {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo",
-    "sku":"69460806","zh":{"lang":"zh","spu":"8832211","name":"888123","show_name":"123","attrs":{"spec_attrs":[{"attr_name":"8121","attr_value":"1","value_unit":"1","spec_flag":"Y"}],"ex_goods_attrs":[{"attr_name":"9212","attr_value":"2","value_unit":"2","goods_flag":"Y"}],"ex_hs_attrs":[{"attr_name":"333","attr_value":"3","value_unit":"3","hs_flag":"Y"}],"other_attrs":[{"attr_name":"444","attr_value":"4","value_unit":"4"}]}},"attachs":[{"supplier_id":"11223","attach_type":"","attach_name":"","attach_url":"a\/b\/c.png","sort_order":"0"}],"supplier_cost":[{"supplier_id":"112123","min_purchase_qty":1}]}
+      "sku":"69460806","zh":{"lang":"zh","spu":"8832211","name":"888123","show_name":"123","attrs":{"spec_attrs":[{"attr_name":"8121","attr_value":"1","value_unit":"1","spec_flag":"Y"}],"ex_goods_attrs":[{"attr_name":"9212","attr_value":"2","value_unit":"2","goods_flag":"Y"}],"ex_hs_attrs":[{"attr_name":"333","attr_value":"3","value_unit":"3","hs_flag":"Y"}],"other_attrs":[{"attr_name":"444","attr_value":"4","value_unit":"4"}]}},"attachs":[{"supplier_id":"11223","attach_type":"","attach_name":"","attach_url":"a\/b\/c.png","sort_order":"0"}],"supplier_cost":[{"supplier_id":"112123","min_purchase_qty":1}]}
      *  @return sku编号
      * @author  klp  2017/7-13
      */
     public function editSkuAction() {
-       /*  $this->put_data = [
+        /*  $this->put_data = [
           "sku"=>'',
           "zh"=>[
           'lang'        =>'zh',
@@ -160,14 +161,14 @@ class GoodsController extends PublicController {
           'attr_name' =>'444',
           'attr_value' =>'4',
           'value_unit' =>'4',
-         'other_flag' =>'Y',
+          'other_flag' =>'Y',
           ]
           ],
           ],
           ],
           "attachs"=>[
           0=>[
-//          'id'=>150,
+          //          'id'=>150,
           'supplier_id'    =>'11223',
           'attach_type'	 =>'',
           'attach_name'	 =>'',
@@ -178,16 +179,15 @@ class GoodsController extends PublicController {
           ],
           'supplier_cost'=>[
           0=>[
-//          'id'=>1,
+          //          'id'=>1,
           'supplier_id'	     =>'112123',
           'min_purchase_qty'	 =>1
           ]
           ],
 
           ];
-        /*return $this->put_data; */
+          /*return $this->put_data; */
         $goodsModel = new GoodsModel();
-        Log::write(json_encode($this->put_data),Log::INFO);
         $result = $goodsModel->editSku($this->put_data);
         $this->returnInfo($result);
     }
@@ -198,32 +198,32 @@ class GoodsController extends PublicController {
      *           标志: check(报审)    valid(通过)     invalid(驳回)
      * @param     sku编码  spu编码   lang语言
      * @example    $this->put_data = [
-      *                 'status_type'=> 'check',
-      *                     'skus'=>[
-      *                         0 => [
-      *                         'sku'=> '14979553',
-      *                         'spu'=> '8832211',
-      *                         'lang'=> 'zh',
-      *                         'remarks' =>  ''
-      *                         ],
-      *                    ]
-      *                 ]
+     *                 'status_type'=> 'check',
+     *                     'skus'=>[
+     *                         0 => [
+     *                         'sku'=> '14979553',
+     *                         'spu'=> '8832211',
+     *                         'lang'=> 'zh',
+     *                         'remarks' =>  ''
+     *                         ],
+     *                    ]
+     *                 ]
      * @return true or false
      * @author  klp  2017/8/1
      */
     public function modifySkuAction() {
         /*  $this->put_data = [
-        'status_type'=> 'check',
-            'skus'=>[
-                0 => [
-                'sku'=> '14979553',
-                'spu'=> '8832211',
-                'lang'=> 'zh',
-                'remarks' =>  ''
-                ],
-            ]
-        ];
-     return $this->put_data; */
+          'status_type'=> 'check',
+          'skus'=>[
+          0 => [
+          'sku'=> '14979553',
+          'spu'=> '8832211',
+          'lang'=> 'zh',
+          'remarks' =>  ''
+          ],
+          ]
+          ];
+          return $this->put_data; */
         if (empty($this->put_data)) {
             return false;
         }
@@ -246,13 +246,6 @@ class GoodsController extends PublicController {
      * @author  klp  2017/8/1
      */
     public function deleteRealSkuAction() {
-        /*   $this->put_data = [
-              'sku' => [
-                  '14979553'
-              ],
-              'lang' => 'zh'
-          ];
-          return $this->put_data; */
         if (empty($this->put_data)) {
             return false;
         }
@@ -266,41 +259,40 @@ class GoodsController extends PublicController {
      * @author  klp  2017/7-6
      */
     public function addSkuAttachAction() {
-    /*  $this->put_data = [
+        /*  $this->put_data = [
           'sku'=>'666123',
-            "attachs"=>[
-                   0=>[
-                       'supplier_id'    =>'333',
-                       'attach_type'	 =>'',
-                       'attach_name'	 =>'',
-                       'attach_url'     =>'a/b/c.png',
-                       'sort_order'     =>'0',
-                   ],
-              ],
-         ];*/
-       $userInfo = getLoinInfo();
-       $this->put_data['user_id'] = $userInfo['id'];
-       $gattach = new GoodsAttachModel();
-       $resAttach = $gattach->editSkuAttach($this->put_data);
-       if($resAttach){
-           $this->jsonReturn($resAttach);
-       } else{
-           jsonReturn('',-1,'失败!');
-       }
+          "attachs"=>[
+          0=>[
+          'supplier_id'    =>'333',
+          'attach_type'	 =>'',
+          'attach_name'	 =>'',
+          'attach_url'     =>'a/b/c.png',
+          'sort_order'     =>'0',
+          ],
+          ],
+          ]; */
+        $userInfo = getLoinInfo();
+        $this->put_data['user_id'] = $userInfo['id'];
+        $gattach = new GoodsAttachModel();
+        $resAttach = $gattach->editSkuAttach($this->put_data);
+        if ($resAttach) {
+            $this->jsonReturn($resAttach);
+        } else {
+            jsonReturn('', -1, '失败!');
+        }
+    }
 
-   }
-
-   /**
-    * sku附件删除
-    * @param  "sku":['000001'，'000002',...]
-    * @author  klp  2017/7-6
-    */
+    /**
+     * sku附件删除
+     * @param  "sku":['000001'，'000002',...]
+     * @author  klp  2017/7-6
+     */
     public function delSkuAttachAction() {
 //        $this->put_data = ['123'];
         $gattach = new GoodsAttachModel();
 //        $this->put_data = $this->getPut('sku');
         $resAttach = $gattach->deleteSkuAttach($this->put_data);
-        if($resAttach){
+        if ($resAttach) {
             $this->jsonReturn($resAttach);
         } else {
             jsonReturn('', -1, '失败!');
@@ -323,11 +315,11 @@ class GoodsController extends PublicController {
      * @author  klp  2017/8/2
      */
     public function checkInfoAction() {
-     /*   $this->put_data =[
-            'sku' =>'14979553',
-            'lang' => 'zh'
+        /*   $this->put_data =[
+          'sku' =>'14979553',
+          'lang' => 'zh'
 
-        ];*/
+          ]; */
         $ProductChecklogModel = new ProductCheckLogModel();
         $result = $ProductChecklogModel->getRecord($this->put_data);
         $this->returnInfo($result);
@@ -338,15 +330,15 @@ class GoodsController extends PublicController {
      * @author link 2017-08-05
      */
     public function checklogAction() {
-        $sku = ($this->getMethod() == 'GET') ? $this->getQuery('sku','') : (isset($this->put_data['sku']) ? $this->put_data['sku'] : '');
-        $lang = ($this->getMethod() == 'GET') ? $this->getQuery('lang','') : (isset($this->put_data['lang']) ? $this->put_data['lang'] : '');
+        $sku = ($this->getMethod() == 'GET') ? $this->getQuery('sku', '') : (isset($this->put_data['sku']) ? $this->put_data['sku'] : '');
+        $lang = ($this->getMethod() == 'GET') ? $this->getQuery('lang', '') : (isset($this->put_data['lang']) ? $this->put_data['lang'] : '');
 
-        if(empty($sku)) {
-            jsonReturn('',ErrorMsg::NOTNULL_SKU);
+        if (empty($sku)) {
+            jsonReturn('', ErrorMsg::NOTNULL_SKU);
         }
 
-        if(empty($lang)) {
-            jsonReturn('',ErrorMsg::NOTNULL_LANG);
+        if (empty($lang)) {
+            jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
         $pchecklog = new ProductCheckLogModel();
