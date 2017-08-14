@@ -344,6 +344,30 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * @desc 报价信息(列表)
+     * @author 买买提
+     */
+    public function quoteListAction(){
+
+        $request = $this->_requestParams;
+        if (empty($request['inquiry_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        }
+
+        $response = QuoteHelper::quoteListHandler($request['inquiry_id'],'QUOTER');
+        if (!$response){
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!','data'=>'']);
+        }
+
+       $this->jsonReturn([
+           'code' => '1',
+           'message' => '成功!',
+           'data' => $response
+       ]);
+
+    }
+
+    /**
      * @desc 产品线报价->询单列表(角色:项目经理)
      * @author 买买提
      */
