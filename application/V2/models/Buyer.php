@@ -24,11 +24,10 @@ class BuyerModel extends PublicModel {
     }
 
     //状态
-    const STATUS_VALID = 'VALID'; //有效,通过
-    const STATUS_INVALID = 'INVALID'; //无效；
-    const STATUS_TEST = 'TEST'; //待报审；
-    const STATUS_CHECKING = 'STATUS_CHECKING'; //审核；
-    const STATUS_DELETED = 'DELETED'; //删除；
+
+    const STATUS_APPROVING = 'APPROVING'; //待报审；
+    const STATUS_APPROVED = 'APPROVED'; //审核；
+    const STATUS_REJECTED = 'REJECTED'; //无效；
 
     /**
      * 获取列表
@@ -328,23 +327,22 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_by'])) {
             $data['checked_by'] = $create['checked_by'];
         }
-        if (isset($create['checked_by'])) {
-            $data['checked_by'] = $create['checked_by'];
+        if (isset($create['checked_at'])) {
+            $data['checked_at'] = $create['checked_at'];
         }
         if ($create['status']) {
             switch ($create['status']) {
-                case self::STATUS_VALID:
+                case self::APPROVED:
                     $data['status'] = $create['status'];
                     break;
-                case self::STATUS_INVALID:
+                case self::REJECTED:
                     $data['status'] = $create['status'];
                     break;
-                case self::STATUS_DELETE:
+                case self::APPROVING:
                     $data['status'] = $create['status'];
                     break;
             }
         }
-
         return $this->where($where)->save($data);
     }
 

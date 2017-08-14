@@ -96,7 +96,7 @@ class ProductController extends PublicController {
          * 查看是否存在上架
          */
         $showCatProductModel = new ShowCatProductModel();
-        $scp_info = $showCatProductModel->where(array('spu' => $this->put_data['spu'], 'lang' => $lang))->find();
+        $scp_info = $showCatProductModel->where(array('spu' => is_array($this->put_data['spu']) ? array('in',$this->put_data['spu']) : $this->put_data['spu'], 'lang' => $lang))->find();
         if ($scp_info) {
             jsonReturn('', ErrorMsg::NOTDELETE_EXIST_ONSHELF);
         }
