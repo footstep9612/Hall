@@ -493,31 +493,37 @@ class GoodsAttrModel extends PublicModel {
                 foreach ($skus as $del) {
                     $where = [
                         "sku" => $del,
-                        "lang" => $lang
                     ];
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-                    if (!$res) {
-                        return false;
+                    if(!empty( $lang)){
+                        $where['lang'] = $lang;
+                    }
+                    $find = $this->where($where)->select();
+                    if($find) {
+                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                        if (!$res) {
+                            return false;
+                        }
                     }
                 }
             } else{
                 $where = [
                     "sku" => $skus,
-                    "lang" => $lang
                 ];
-                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-                if (!$res) {
-                    return false;
+                if(!empty( $lang)){
+                    $where['lang'] = $lang;
+                }
+                $find = $this->where($where)->select();
+                if($find) {
+                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    if (!$res) {
+                        return false;
+                    }
                 }
             }
-            if ($res) {
-                $results['code'] = '1';
-                $results['message'] = '成功！';
-            } else {
-                $results['code'] = '-101';
-                $results['message'] = '失败!';
-            }
-                return $results;
+
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
