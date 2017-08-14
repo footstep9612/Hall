@@ -17,6 +17,7 @@ class EsProductModel extends Model {
 //put your code here
     protected $tableName = 'product';
     protected $dbName = 'erui2_goods'; //数据库名称
+
     const STATUS_DELETED = 'DELETED';
 
     public function __construct($str = '') {
@@ -241,7 +242,14 @@ class EsProductModel extends Model {
         }
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"' . $onshelf_flag . '"']]];
+            if ($onshelf_flag === 'N') {
+                $body['query']['bool']['must'][] = ['bool' => ['should' => [
+                            [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"N"']],
+                            [ESClient::TERM => ['show_cats.all' => '[]']],
+                ]]];
+            } else {
+                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"Y"']];
+            }
         }
 
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'onshelf_flag', 'show_cats.all');

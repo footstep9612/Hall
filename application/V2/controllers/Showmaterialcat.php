@@ -20,7 +20,7 @@ class ShowmaterialcatController extends PublicController {
     }
 
     public function listAction() {
-        $model = new ShowmaterialcatModel();
+        $model = new ShowMaterialCatModel();
         $material_cat_no = $this->getPut('material_cat_no');
         if (!$material_cat_no) {
             $this->setCode(MSG::MSG_FAILED);
