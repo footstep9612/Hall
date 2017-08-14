@@ -128,14 +128,14 @@ class QuotebizlineController extends PublicController {
         }
 
         //修改项目状态
-        $inquiry = new InquiryModel();
+        $inquiry =  new InquiryModel();
         $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
         if (!$inquiryID){
             $this->jsonReturn(['code'=>'-104','message'=>'没有对应的询单!']);
         }
         $inquiry->startTrans();
         $inquiuryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'logi_quote_status' => 'werty'
+            'logi_quote_status' => QuoteBizLineModel::QUOTE_REJECTED
         ]);
 
         //写审核日志
@@ -156,11 +156,11 @@ class QuotebizlineController extends PublicController {
         if ($inquiuryResult && $checklogResult){
             $inquiry->commit();
             $inquiryCheckLog->commit();
-            return ['code'=>'1','message'=>'退回成功!'];
+            $this->jsonReturn(['code'=>'1','message'=>'退回成功!']);
         }else{
             $inquiry->rollback();
             $inquiryCheckLog->rollback();
-            return ['code'=>'-104','message'=>'退回失败!'];
+            $this->jsonReturn(['code'=>'-104','message'=>'退回失败!']);
         }
 
     }
