@@ -414,8 +414,39 @@ class QuotebizlineController extends PublicController {
      * @desc 产品线报价->列表(角色:产品线相关人员)
      * @author 买买提
      */
-    public function listBizlineAction(){
-        $this->jsonReturn($this->listBizlineHandler());
+    public function bizlineListAction(){
+
+        $condition = $this->_requestParams;
+
+        $user = new EmployeeModel();
+
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+
+        if (!empty($condition['pm_name'])) {
+            $pm = $user->where(['name' => $condition['pm_name']])->find();
+            $condition['pm_id'] = $pm['id'];
+        }
+
+        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
+
+        foreach ($quoteBizlineList as &$quoteBizline) {
+            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
+            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+        }
+
+        if ($quoteBizlineList) {
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => $this->_quoteBizLine->getListCount($condition),
+                'data' => $quoteBizlineList
+            ]);
+        } else {
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
     }
     /**
      * @desc 产品线报价->列表(角色:产品线相关人员)
