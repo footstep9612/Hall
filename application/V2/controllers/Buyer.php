@@ -359,7 +359,7 @@ class BuyerController extends PublicController {
             }
         }
         $model = new BuyerModel();
-        $model -> update_data($arr,$where);
+        $res = $model -> update_data($arr,$where);
         $buyer_account_model = new BuyerAccountModel();
         if(!empty($data['password'])) {
             $arr_account['password_hash'] = md5($data['password']);
@@ -371,8 +371,8 @@ class BuyerController extends PublicController {
             $buyer_attach_model -> update_data($where_attach);
         }
         $model = new UserModel();
-        $res = $model->update_data($arr,$where);
-        if(!empty($res)){
+        $model->update_data($arr,$where);
+        if($res!==false){
             $datajson['code'] = 1;
             $datajson['message'] ='成功';
         }else{

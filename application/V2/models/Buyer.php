@@ -321,6 +321,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['official_website'])) {
             $data['official_website'] = $create['official_website'];
         }
+        if (isset($create['buyer_level'])) {
+            $data['buyer_level'] = $create['buyer_level'];
+        }
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
@@ -343,6 +346,7 @@ class BuyerModel extends PublicModel {
                     break;
             }
         }
+        $this->where($where)->save($data);
         return $this->where($where)->save($data);
     }
 
