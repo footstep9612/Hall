@@ -268,6 +268,38 @@ class MaterialcatController extends PublicController {
         return [$top_cats, $parent_cats];
     }
 
+    /**
+     * 获取详情的父类和顶级分类数据
+     * @param array $data 详情数据
+     * @return null
+     * @author zyg
+     *
+     */
+    public function getInfoAction() {
+        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
+        $lang = $this->getPut('lang', 'zh');
+        if (!$cat_no) {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+
+        $result = $this->_model->getinfo($cat_no, $lang);
+        if ($result) {
+
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($result);
+        } elseif ($result === []) {
+            $this->setCode(MSG::ERROR_EMPTY);
+
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+
+            $this->jsonReturn(null);
+        }
+        exit;
+    }
+
     /*
      * 删除缓存
      * @author zyg
