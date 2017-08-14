@@ -38,7 +38,7 @@ class CountryModel extends PublicModel {
         getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
         getValue($data, $condition, 'region_bn', 'like', 'c.region_bn');
         if (isset($condition['status']) && $condition['status'] == 'ALL') {
-            
+
         } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
             $data['c.status'] = $condition['status'];
         } else {
@@ -189,7 +189,7 @@ class CountryModel extends PublicModel {
 
     /**
      * 批量更新状态
-     * @param  array $data 
+     * @param  array $data
      * @return bool
      * @author zyg
      */
@@ -458,6 +458,44 @@ class CountryModel extends PublicModel {
             return $result['name'];
         } catch (Exception $e) {
             return '';
+        }
+    }
+
+    /**
+     * 根据简称与语言获取国家名称
+     * @param string $bn 简称
+     * @param string $lang 语言
+     * @param string
+     */
+    public function getBnByName($name = '') {
+        if (empty($name)) {
+            return '';
+        }
+        if (redisHashExist('Country', $name)) {
+            return redisHashGet('Country', $name);
+        }
+        try {
+            $condition = array(
+                'name' => ['like', '%' . $name . '%'],
+                'status' => self::STATUS_VALID
+            );
+            $field = 'bn';
+            $result = $this->field($field)->where($condition)->select();
+            $bns = [];
+            if ($result) {
+                foreach ($result as $bn) {
+                    $bns[] = $bn;
+                }
+            } else {
+                return [];
+            }
+
+            if ($result) {
+                redisHashSet('Country', $name, json_encode($bns));
+            }
+            return $bns;
+        } catch (Exception $e) {
+            return [];
         }
     }
 
