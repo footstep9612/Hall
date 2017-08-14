@@ -44,6 +44,8 @@ class ShowmaterialcatController extends PublicController {
         }
 
         rsort($data);
+        $this->_setMarketAreaName($data);
+        $this->_setCountryName($data);
         if ($data === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
@@ -53,6 +55,44 @@ class ShowmaterialcatController extends PublicController {
         } else {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
+        }
+    }
+
+    private function _setCountryName(&$arr) {
+        if ($arr) {
+            $country_model = new CountryModel();
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = $val['country_bn'];
+            }
+            $country_bns = $country_model->getNamesBybns($country_bns);
+            foreach ($arr as $key => $val) {
+                if ($val['country_bn'] && isset($country_bns[$val['country_bn']])) {
+                    $val['country_name'] = $country_bns[$val['country_bn']];
+                } else {
+                    $val['country_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    private function _setMarketAreaName(&$arr) {
+        if ($arr) {
+            $market_area_model = new MarketAreaModel();
+            $market_area_bns = [];
+            foreach ($arr as $key => $val) {
+                $market_area_bns[] = $val['market_area_bn'];
+            }
+            $areas = $market_area_model->getNamesBybns($market_area_bns);
+            foreach ($arr as $key => $val) {
+                if ($val['market_area_bn'] && isset($areas[$val['market_area_bn']])) {
+                    $val['market_area_name'] = $areas[$val['market_area_bn']];
+                } else {
+                    $val['market_area_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 
