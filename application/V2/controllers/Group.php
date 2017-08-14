@@ -17,7 +17,7 @@ class GroupController extends PublicController {
         //   parent::__init();
     }
     //递归获取子记录
-    function get_group_children($a,$pid){
+    function get_group_children($a,$pid =null){
         if(!$pid){
             $pid =$a[0]['parent_id'];
         }
@@ -51,7 +51,7 @@ class GroupController extends PublicController {
         }
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
-        $arr  =$this->get_group_children($data);
+        $arr  = $this->get_group_children($data);
         if(!empty($arr)){
             $datajson['code'] = 1;
             $datajson['data'] = $arr;
