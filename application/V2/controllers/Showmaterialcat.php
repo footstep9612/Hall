@@ -27,14 +27,22 @@ class ShowmaterialcatController extends PublicController {
             $this->jsonReturn();
         }
         $show_cat_nos = $model->getshowcatnosBymatcatno($material_cat_no, 'zh');
+
         $show_cat_nos_arr = [];
+
         if ($show_cat_nos) {
             foreach ($show_cat_nos as $show_cat_no) {
                 $show_cat_nos_arr[] = $show_cat_no['cat_no'];
             }
         }
-        $show_cat_model = new ShowCatModel();
-        $data = $show_cat_model->getshow_cats($show_cat_nos_arr, 'zh');
+        if ($show_cat_nos_arr) {
+            $show_cat_model = new ShowCatModel();
+            $data = $show_cat_model->getshow_cats($show_cat_nos_arr, 'zh');
+        } else {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn();
+        }
+
         rsort($data);
         if ($data === null) {
             $this->setCode(MSG::ERROR_EMPTY);
