@@ -58,10 +58,10 @@ class GroupController extends PublicController {
         $limit = [];
         $where = [];
         if(!empty($data['parent_id'])){
-            $where['parent_id'] = $data['parent_id'];
+            $where['org.parent_id'] = $data['parent_id'];
         }
         if(!empty($data['name'])){
-            $where['name'] = array('like',"%".$data['name']."%");
+            $where['org.name'] = array('like',"%".$data['name']."%");
         }
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);

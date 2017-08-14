@@ -41,13 +41,14 @@ class GroupModel extends PublicModel {
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('org.id,org.sort,org.membership,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
+           $res = $this->field('org.id,org.sort,org.membership,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
                 ->join('`erui2_sys`.`org_member` om on om.org_id=org.id', 'left')
                 ->join('`erui2_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
                 ->where($data)
                 ->group('org.id')
                 ->order($order)
                 ->select();
+            return $res;
         }
     }
 
