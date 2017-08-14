@@ -67,6 +67,10 @@ class SupplierModel extends PublicModel {
         if ( !empty($condition['created_at_end']) ){
             $where .= ' And created_at  <="'.$condition['created_at_end'].'"';
         }
+        if ( !empty($condition['supplier_type']) ){
+            $where .= ' And supplier_type  ="'.$condition['supplier_type'].'"';
+        }
+
         if ($where) {
             $sql .= $where;
             $sql_count.= $where;
