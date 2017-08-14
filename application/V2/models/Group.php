@@ -30,16 +30,22 @@ class GroupModel extends PublicModel {
      * @author jhw
      */
     public function getlist($data,$limit,$order='sort desc') {
-        $data["deleted_flag"] = 'N';
+        $data["org.deleted_flag"] = 'N';
         if(!empty($limit)){
-            return $this->field('id,sort,membership,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
+            return    $this->field('org.id,org.sort,org.membership,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
+                            ->join('`erui2_sys`.`org_member` om on om.org_id=org.id', 'left')
+                            ->join('`erui2_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
+                            ->group('org.id')
                             ->order($order)
                             ->select();
         }else{
-            return $this->field('id,sort,membership,parent_id,org,name,remarks,created_by,created_at,deleted_flag')
+            return $this->field('org.id,org.sort,org.membership,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
+                ->join('`erui2_sys`.`org_member` om on om.org_id=org.id', 'left')
+                ->join('`erui2_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
                 ->where($data)
+                ->group('org.id')
                 ->order($order)
                 ->select();
         }
