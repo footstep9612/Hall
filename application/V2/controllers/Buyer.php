@@ -348,6 +348,16 @@ class BuyerController extends PublicController {
         if(!empty($data['mobile'])) {
             $arr['official_phone'] = $data['mobile'];
         }
+        if(!empty($data['buyer_level'])) {
+            $arr['buyer_level'] = $data['buyer_level'];
+        }
+        if(!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+            if($data['status']=='APPROVED'|| $data['status']=='REJECTED'){
+                $arr['checked_by'] = $this->user['id'];
+                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            }
+        }
         $model = new BuyerModel();
         $model -> update_data($arr,$where);
         $buyer_account_model = new BuyerAccountModel();
