@@ -203,7 +203,8 @@ class SupplierModel extends PublicModel {
     public function info($data)
     {
         if($data['id']) {
-            $buyerInfo = $this->where(array("id" => $data['id']))
+            $buyerInfo = $this->where(array("supplier.id" => $data['id']))->field('supplier.*,em.name as checked_name')
+                                ->join('erui2_sys.employee em on em.id=supplier.checked_by', 'left')
                               ->find();
             return $buyerInfo;
         } else{

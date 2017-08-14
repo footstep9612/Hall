@@ -15,6 +15,7 @@ class GoodsController extends PublicController {
        // error_reporting(E_ERROR);
      parent::init();
         $this->put_data = $this->put_data ? $this->put_data : json_decode(file_get_contents("php://input"), true);
+        Log::write(json_encode($this->put_data),Log::INFO);
     }
 
     /**
