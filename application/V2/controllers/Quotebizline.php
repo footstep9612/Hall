@@ -24,7 +24,7 @@ class QuotebizlineController extends PublicController {
      * 构造方法
      */
     public function init() {
-//        parent::init();
+        parent::init();
         $this->_quoteBizLine = new QuoteBizLineModel();
         $this->_quoteItemBizLine = new QuoteItemBizLineModel();
         $this->_requestParams = json_decode(file_get_contents("php://input"), true);
@@ -194,20 +194,23 @@ class QuotebizlineController extends PublicController {
      * @desc 产品线负责人上传附件(产品线负责人)
      * @return array
      */
-    public function addBizlineAttach(){
-        return ['code'=>'1','message'=>'上传成功!'];
+    public function addBizlineAttachAction(){
+        $request = $this->_requestParams;
+        if (empty($request['quote_id']) || empty($request['attach_url'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
+        $request['created_by'] = $this->user['id'];
+        $response = QuoteHelper::addBizlineAttach($request);
+        $this->jsonReturn($response);
     }
 
     /**
-     * @desc 指派报价人
+     * @desc 指派报价人(产品线负责人)
      * @author 买买提
      */
     public function assignQuoterAction() {
         /*
-        |--------------------------------------------------------------------------
-        | 产品线报价->指派报价人   角色:产品线负责人
-        |--------------------------------------------------------------------------
-        |
         | 操作说明
         | 前端需要提交的字段 quote_id报价id bizline_agent_id产品线报价人
         | 把当前报价单的产品线报价人字段改为新选择的id
@@ -225,7 +228,7 @@ class QuotebizlineController extends PublicController {
      * @author 买买提
      */
     public function selectQuoteAction(){
-
+        echo 12345678;
     }
 
     /**
@@ -367,6 +370,36 @@ class QuotebizlineController extends PublicController {
 
     }
 
+    public function testAction(){
+        QuoteHelper::quoteList($this->_requestParams['inquiry_id']);
+    }
+
+
+    /**
+     * @desc 询单信息(通用)
+     * @author 买买提
+     */
+    public function inquiryInfoAction(){
+
+        $request = $this->_requestParams;
+        //获取询单本身信息
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['id'=>$request['inquiry_id']])->field([
+            'id','serial_no','status','pm_id'
+        ])->find();
+
+        if (!$inquiryInfo){
+            return ['code'=>'-104','message'=>'没有询单信息','data'=>''];
+        }
+        //重组询单信息数组并追加询单明细列表
+        $this->jsonReturn([
+            'code'=> '1',
+            'message' => '成功!',
+            'data' => QuoteHelper::restoreInquiryInfo($inquiryInfo)
+        ]) ;
+
+    }
+
     /**
      * @desc 产品线报价->询单列表(角色:项目经理)
      * @author 买买提
@@ -395,27 +428,6 @@ class QuotebizlineController extends PublicController {
         return QuoteBizlineHelper::getQuotelineInquiryList($filterParams);
     }
 
-    /**
-     * @desc 详情页询单信息接口(只读)
-     * @author 买买提
-     * 说明:项目经理,产品线相关人员通用
-     * 数据库操作:inquiry询单表 inquiry_item询单明细表
-     */
-    public function inquiryInfoAction(){
-
-        $request = $this->_requestParams;
-        //获取询单本身信息
-        $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field(QuoteBizlineHelper::getInquiryInfoFields())->find();
-
-        if (!$inquiryInfo){
-            return ['code'=>'-104','message'=>'没有询单信息','data'=>''];
-        }
-
-        //重组询单信息数组并追加询单明细列表
-        $this->jsonReturn(QuoteBizlineHelper::restoreInqiryInfo($inquiryInfo)) ;
-
-    }
     /**
      * @desc 详情页报价信息接口
      */

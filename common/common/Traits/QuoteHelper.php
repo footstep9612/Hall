@@ -66,4 +66,79 @@ trait QuoteHelper{
 
         return $response;
     }
+
+    /**
+     * @desc 上传附件(产品线负责人)
+     * @param $request
+     * @return array
+     */
+    public static function addBizlineAttach($request){
+
+        $quoteAttach = new QuoteAttachModel();
+        //声明附件分组
+        $request['attach_group'] = '产品线附件';
+        $request['created_at'] = date('Y-m-d H:i:s');
+        try{
+            if ($quoteAttach->add($quoteAttach->create($request))){
+                return ['code'=>'1','message'=>'上传成功!'];
+            }else{
+                return ['code'=>'-104','message'=>'上传失败!'];
+            }
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+    public static function restoreInquiryInfo(array $inquiry){
+        //市场经办人
+        $employeeModel = new EmployeeModel();
+        $agent = $employeeModel->where(['id'=>$inquiry['agent_id']])->getField('name');
+        if ($agent){
+            $inquiry['agent_name'] = $agent;
+            unset($inquiry['agent_id']);
+        }
+        //项目经理
+        $productManager = $employeeModel->where(['id'=>$inquiry['pm_id']])->getField('name');
+        if ($productManager){
+            $inquiry['pm_name'] = $productManager;
+            unset($inquiry['pm_id']);
+        }
+        //询单(项目)状态
+        switch ($inquiry['status']){
+            case 'DRAFT': $inquiry['status'] = '起草'; break;
+            case 'APPROVING_BY_SC': $inquiry['status'] = '方案中心审核中'; break;
+            case 'APPROVED_BY_SC': $inquiry['status'] = '方案中心已确认'; break;
+            case 'QUOTING_BY_BIZLINE': $inquiry['status'] = '产品线报价中'; break;
+            case 'QUOTED_BY_BIZLINE': $inquiry['status'] = '产品负责人已确认'; break;
+            case 'BZ_QUOTE_REJECTED': $inquiry['status'] = '项目经理驳回产品报价'; break;
+            case 'QUOTING_BY_LOGI': $inquiry['status'] = '物流报价中'; break;
+            case 'QUOTED_BY_LOGI': $inquiry['status'] = '物流审核人已确认'; break;
+            case 'LOGI_QUOTE_REJECTED': $inquiry['status'] = '项目经理驳回物流报价'; break;
+            case 'APPROVED_BY_PM': $inquiry['status'] = '项目经理已确认'; break;
+            case 'APPROVING_BY_MARKET': $inquiry['status'] = '市场主管审核中'; break;
+            case 'APPROVED_BY_MARKET': $inquiry['status'] = '市场主管已审核'; break;
+            case 'QUOTE_SENT': $inquiry['status'] = '报价单已发出'; break;
+            case 'INQUIRY_CLOSED': $inquiry['status'] = '报价关闭'; break;
+        }
+
+        return $inquiry;
+    }
+
+    public static function quoteList($inquiry_id){
+        $quote = new QuoteModel();
+
+        $fieldJoin = 'a.*, b.project_name';
+
+        $data = $quote->alias('a')
+                        ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
+                        ->where(['inquiry_id'=>$inquiry_id])
+                        ->order('a.id DESC')
+                        ->field($fieldJoin)
+                        ->select();
+        p($data);
+    }
+
 }
