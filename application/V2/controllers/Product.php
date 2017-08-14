@@ -13,6 +13,7 @@ class ProductController extends PublicController {
     public function init() {
         parent::init();
         $this->method = $this->getMethod();
+        Log::write(json_encode($this->put_data),Log::INFO);
     }
 
     /**
