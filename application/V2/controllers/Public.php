@@ -24,6 +24,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $this->headers = getHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
+        Log::write('Method:'.$this->getMethod().' Token:'.$this->getQuery('token',''),Log::INFO);
         if($this->getMethod()=='GET'){
             $token = $this->getQuery('token','');
         }

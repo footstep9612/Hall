@@ -5,7 +5,7 @@
  */
 class QuoteItemModel extends PublicModel {
 
-    protected $dbName = 'erui_rfq';
+    protected $dbName = 'erui2_rfq';
     protected $tableName = 'quote_item';
     protected $joinFinal = 'erui_rfq.t_final_quote_item b ON a.id = b.id';
     protected $fieldJoin = 'a.*, b.quote_unit_price AS final_quote_unit_price';
