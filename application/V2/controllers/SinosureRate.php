@@ -88,7 +88,7 @@ class SinosureRateController extends PublicController {
     public function delSinosureRateRecordAction() {
         $condition = $this->put_data;
 
-        if (!empty($condition['r_id'])) {
+        if (!empty($condition['r_id']) || !empty($condition['id'])) {
             $res = $this->sinosureRateModel->delRecord($condition);
 
             $this->jsonReturn($res);

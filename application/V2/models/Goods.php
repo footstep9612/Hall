@@ -25,7 +25,7 @@ class GoodsModel extends PublicModel {
     protected $field = array(
         'spu' => array('required'),
         'name' => array('required'),
-        //'show_name' => array('required'),
+            //'show_name' => array('required'),
     );
 
     public function __construct() {
@@ -385,7 +385,7 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    if(empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
+                    if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
                     $checkout = $this->checkParam($value, $this->field);
@@ -602,7 +602,7 @@ class GoodsModel extends PublicModel {
                         $where = [
                             'sku' => $item['sku'],
                         ];
-                        if(isset($item['lang']) && !empty($item['lang'])){
+                        if (isset($item['lang']) && !empty($item['lang'])) {
                             $where['lang'] = $item['lang'];
                         }
                         $result = $this->where($where)->save(['status' => $status]);
@@ -613,7 +613,7 @@ class GoodsModel extends PublicModel {
                         $where = [
                             'sku' => $item['sku'],
                         ];
-                        if(isset($item['lang']) && !empty($item['lang'])){
+                        if (isset($item['lang']) && !empty($item['lang'])) {
                             $where['lang'] = $item['lang'];
                         }
                         $save = [
@@ -684,13 +684,18 @@ class GoodsModel extends PublicModel {
             $showCatGoodsModel = new ShowCatGoodsModel();
             if (is_array($input['sku'])) {
                 foreach ($input['sku'] as $sku) {
-                    $result = $showCatGoodsModel->field('sku')->where(['sku' => $sku, 'lang' => $lang, 'onshelf_flag' => 'Y'])->select();
+                    $result = $showCatGoodsModel->field('sku')
+                            ->where(['sku' => $sku, 'lang' => $lang, 'onshelf_flag' => 'Y'])
+                            ->select();
                     if ($result) {
                         jsonReturn('', -101, '上架商品不能删除!');
                     }
                 }
             } else {
-                $result = $showCatGoodsModel->field('sku')->where(['sku' => $input['sku'], 'lang' => $lang, 'onshelf_flag' => 'Y'])->select();
+                $result = $showCatGoodsModel
+                        ->field('sku')
+                        ->where(['sku' => $input['sku'], 'lang' => $lang, 'onshelf_flag' => 'Y'])
+                        ->select();
                 if ($result) {
                     jsonReturn('', -101, '上架商品不能删除!');
                 }
