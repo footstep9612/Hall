@@ -237,7 +237,7 @@ class GoodsAttrModel extends PublicModel{
         $condition = array(
             'sku' => $sku,
             'lang' => $lang,
-            'spec_flag' => 'Y',
+            'goods_flag' => 'Y',
             'status' => self::STATUS_VALID
         );
         try{

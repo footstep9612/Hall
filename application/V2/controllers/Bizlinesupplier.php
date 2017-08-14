@@ -28,6 +28,7 @@ class BizlinesupplierController extends PublicController {
            for($i=0;$i<count($data['bizline_supplier']);$i++){
                 if($data['bizline_supplier'][$i]['id']){
                     $arr['bizline_id'] = $data['bizline_supplier'][$i]['id'];
+                    $arr['bizline_id'] = $data['bizline_supplier'][$i]['id'];
                     $arr['supplier_id'] = $data['supplier_id'];
                     $arr['first_name'] = $data['bizline_supplier'][$i]['first_name'];
                     $arr['last_name'] = $data['bizline_supplier'][$i]['last_name'];

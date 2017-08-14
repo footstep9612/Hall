@@ -166,12 +166,17 @@ class ShowCatProductModel extends PublicModel {
         }
 
         try {
-            $result = $this->where($where)->delete();
-            if ($result) {
-                $showCatGoods = new ShowCatGoodsModel();
-                $showCatGoods->downShelf($spu, $lang, $cat_no);
+            $find = $this->where($where)->select();
+            if($find && !empty($find)) {
+                $result = $this->where($where)->delete();
+                if ($result) {
+                    $showCatGoods = new ShowCatGoodsModel();
+                    $showCatGoods->downShelf($spu, $lang, $cat_no);
+                }
+                return $result ? true : false;
+            }else{
+                return true;
             }
-            return $result ? true : false;
         } catch (Exception $e) {
             return false;
         }

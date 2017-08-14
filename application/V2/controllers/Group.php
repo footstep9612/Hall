@@ -21,18 +21,17 @@ class GroupController extends PublicController {
         $limit = [];
         $where = [];
         $where['parent_id'] = 0;
-        $where['deleted_flag'] = 'N';
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
         $count = count($data);
         $childrencount=0;
         for($i=0;$i<$count;$i++){
-            $data[$i]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['id'],'deleted_flag'=>'N'],$limit);
+            $data[$i]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['id']],$limit);
             $childrencount = count($data[$i]['children']);
             if($childrencount>0){
                 for($j=0;$j<$childrencount;$j++){
                     if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['children'][$j]['id'],'deleted_flag'=>'N'],$limit);
+                        $data[$i]['children'][$j]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
                         if(!$data[$i]['children'][$j]['children']){
                             unset($data[$i]['children'][$j]['children']);
                         }
@@ -59,12 +58,11 @@ class GroupController extends PublicController {
         $limit = [];
         $where = [];
         if(!empty($data['parent_id'])){
-            $where['parent_id'] = $data['parent_id'];
+            $where['org.parent_id'] = $data['parent_id'];
         }
         if(!empty($data['name'])){
-            $where['name'] = array('like',"%".$data['name']."%");
+            $where['org.name'] = array('like',"%".$data['name']."%");
         }
-        $where['deleted_flag'] = 'N';
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
         if(!empty($data)){
