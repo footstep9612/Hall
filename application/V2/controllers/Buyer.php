@@ -255,6 +255,7 @@ class BuyerController extends PublicController {
                 $buyer_address_model -> create_data($buyer_address_data);
             }
             $datajson['code'] = 1;
+            $datajson['id'] = $id;
             $datajson['message'] ='成功';
         }else{
             $datajson['code'] = -104;
