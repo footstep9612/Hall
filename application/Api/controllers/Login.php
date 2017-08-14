@@ -156,6 +156,7 @@ class LoginController extends Yaf_Controller_Abstract {
         }
         $id=$model->create_data($arr);
         if($id){
+            $buyer_account_data['status'] = 'VALID';
             $account_id = $buyer_account_model -> create_data($buyer_account_data);
             if(!empty($buyer_address_data)){
                 $buyer_address_model = new BuyerAddressModel();
