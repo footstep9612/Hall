@@ -17,7 +17,7 @@ class GroupController extends PublicController {
         //   parent::__init();
     }
     //递归获取子记录
-    function get_children($a,$pid){
+    function get_group_children($a,$pid){
         if(!$pid){
             $pid =$a[0]['parent_id'];
         }
@@ -26,7 +26,7 @@ class GroupController extends PublicController {
         foreach($a as $v){
             $model_group = new GroupModel();
             if($v['parent_id'] == $pid){
-                $v['children'] = $this->get_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id']); //递归获取子记录
+                $v['children'] = $this->get_group_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id']); //递归获取子记录
                 if($v['children'] == null){
                     unset($v['children']);
                 }
@@ -51,7 +51,7 @@ class GroupController extends PublicController {
         }
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
-        $arr  =$this->get_children($data);
+        $arr  =$this->get_group_children($data);
         if(!empty($arr)){
             $datajson['code'] = 1;
             $datajson['data'] = $arr;
