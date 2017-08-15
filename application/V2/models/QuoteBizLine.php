@@ -254,15 +254,16 @@ class QuoteBizLineModel extends PublicModel{
                                     ->field(['id','agent_id'])
                                     ->find();
         //判断一个quote_id是一个或者是多个
-        $quote = explode(',',$param['quote_id']);
+        $quoteItem = explode(',',$param['quote_item_id']);
         $data = [
             'inquiry_id'=>$inquiryInfo['id'],
             'biz_agent_id'=>$inquiryInfo['agent_id'],
             'bizline_id'=>$param['bizline_id'],
             'created_by'=>$param['created_by'],
-            'created_at'=>date('Y-m-d H:i:s')
+            'created_at'=>date('Y-m-d H:i:s'),
+            'quote_id' => $param['quote_id']
         ];
-        foreach ($quote as $k=>$v){
+        foreach ($quoteItem as $k=>$v){
             $data['quote_id'] = $v;
             $this->add($data);
         }
