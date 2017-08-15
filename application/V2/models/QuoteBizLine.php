@@ -291,11 +291,6 @@ class QuoteBizLineModel extends PublicModel{
 
     /**
      * @desc 获取关联列表
-     *
-     * @param array $condition
-     * @return array
-     * @author liujf
-     * @time 2017-08-02
      */
     public function getJoinList($condition = []) {
 
