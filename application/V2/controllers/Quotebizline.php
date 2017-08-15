@@ -69,9 +69,75 @@ class QuotebizlineController extends PublicController {
         }
     }
 
+    /**
+     * @desc 产品线报价列表(产品线负责人)
+     * @author 买买提
+     */
     public function bizlineManagerListAction()
     {
-        p($this->user);
+        $condition = $this->_requestParams;
+
+        $user = new EmployeeModel();
+
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+
+        if (!empty($condition['pm_name'])) {
+            $pm = $user->where(['name' => $condition['pm_name']])->find();
+            $condition['pm_id'] = $pm['id'];
+        }
+
+        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
+
+        foreach ($quoteBizlineList as &$quoteBizline) {
+            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
+            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+        }
+
+        if ($quoteBizlineList) {
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => $this->_quoteBizLine->getListCount($condition),
+                'data' => $quoteBizlineList
+            ]);
+        } else {
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+
+    }
+
+    /**
+     * @desc 报价单sku列表
+     * @author 买买提
+     */
+    public function quoteSkuListAction(){
+
+        $request = $this->_requestParams;
+        if (empty($request['quote_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
+        $where = ['quote_id'=>$request['quote_id']];
+        $quoteSkuList = QuoteHelper::getQuoteList($where);
+
+        if ($quoteSkuList){
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => QuoteHelper::getQuoteTotalCount($where),
+                'data' => $quoteSkuList
+            ]);
+        }else{
+            $this->jsonReturn([
+                'code' => '-104',
+                'message' => '没有数据!',
+                'data' => ''
+            ]);
+        }
+
     }
 
     /**
@@ -82,7 +148,7 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->_requestParams;
 
-        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id'])){
+        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['quote_item_id']) ){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
 
@@ -120,13 +186,22 @@ class QuotebizlineController extends PublicController {
             ]));
         }
 
+        //更新quote_item
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemModel->startTrans();
+        foreach ($quoteItem as $k=>$v){
+            $quoteItemModel->where(['id'=>$v])->save(['bizline_id'=>$request['bizline_id']]);
+        }
+
         if ($quoteBizlineResult){
             $quoteBizlineModel->commit();
             $quoteItemFormModel->commit();
+            $quoteItemModel->commit();
             $this->jsonReturn(['code'=>'1','message'=>'成功!']);
         }else{
             $quoteBizlineModel->rollback();
             $quoteItemFormModel->rollback();
+            $quoteItemModel->rollback();
             $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
         }
 
@@ -486,40 +561,6 @@ class QuotebizlineController extends PublicController {
         ]) ;
 
     }
-
-
-
-    /**
-     * @desc 报价单sku列表
-     * @author 买买提
-     */
-    public function quoteSkuListAction(){
-
-        $request = $this->_requestParams;
-        if (empty($request['quote_id'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
-        }
-
-        $where = ['quote_id'=>$request['quote_id']];
-        $quoteSkuList = QuoteHelper::getQuoteList($where);
-
-        if ($quoteSkuList){
-            $this->jsonReturn([
-                'code' => '1',
-                'message' => '成功!',
-                'count' => QuoteHelper::getQuoteTotalCount($where),
-                'data' => $quoteSkuList
-            ]);
-        }else{
-            $this->jsonReturn([
-                'code' => '-104',
-                'message' => '没有数据!',
-                'data' => ''
-            ]);
-        }
-
-    }
-
 
     /**
      * @desc 产品线报价->询单列表(角色:项目经理)
