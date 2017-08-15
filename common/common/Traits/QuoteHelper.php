@@ -127,18 +127,51 @@ trait QuoteHelper{
         return $inquiry;
     }
 
-    public static function quoteList($inquiry_id){
-        $quote = new QuoteModel();
+    public static function getQuoteList($where){
 
-        $fieldJoin = 'a.*, b.project_name';
+        $quoteItem = new QuoteItemModel();
 
-        $data = $quote->alias('a')
+        /*===============================
+        关联询单(inquiry)表获取一下字段
+        inquiry_no  客户询单号
+        adhoc_request   客户需求描述
+
+        关联询单明细(inquiry_item)表获取一下字段
+        sku  sku
+        model   型号
+        name   外文品名
+        name_zh   中文品名
+        remarks   客户需求描述
+        remarks_zh   客户需求描述
+        brand   品牌
+        qty   数量
+        unit   单位
+        ===============================*/
+        $fields = ['a.id','d.name bizline_name','c.sku','b.inquiry_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+
+        return $quoteItem->alias('a')
                         ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
-                        ->where(['inquiry_id'=>$inquiry_id])
+                        ->join('erui2_rfq.inquiry_item c ON a.inquiry_id = c.inquiry_id','LEFT')
+                        ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
+                        ->field($fields)
                         ->order('a.id DESC')
-                        ->field($fieldJoin)
+                        ->where($where)
                         ->select();
-        p($data);
+        //p($data);
     }
 
+    public static function getQuoteTotalCount($where)
+    {
+        $quoteItem = new QuoteItemModel();
+        $fields = ['a.id','d.name bizline_name','c.sku','b.inquiry_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+
+        $count = $quoteItem->alias('a')
+            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
+            ->join('erui2_rfq.inquiry_item c ON a.inquiry_id = c.inquiry_id','LEFT')
+            ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
+            ->field($fields)
+            ->where($where)
+            ->count('a.id');
+        return $count > 0 ? $count : 0;
+    }
 }
