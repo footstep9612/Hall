@@ -304,14 +304,16 @@ class QuoteBizLineModel extends PublicModel{
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        return $this->alias('a')
-            ->join($this->joinTable1, 'LEFT')
-            ->join($this->joinTable3, 'LEFT')
-            ->field($this->joinField_)
+        return  $this->alias('a')
+            ->join('erui2_rfq.quote b ON a.quote_id = b.id', 'LEFT')
+            ->join('erui2_rfq.inquiry d ON a.inquiry_id = d.id', 'LEFT')
+            //->field('a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
+            ->field('a.id, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
             ->where($where)
             ->page($currentPage, $pageSize)
             ->order('a.id DESC')
             ->select();
+
     }
 
     /**
