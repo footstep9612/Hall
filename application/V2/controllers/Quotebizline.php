@@ -536,6 +536,15 @@ class QuotebizlineController extends PublicController {
         QuoteHelper::quoteList($this->_requestParams['inquiry_id']);
     }
 
+    /**
+     * @desc 产品线报价->询单列表(角色:项目经理)
+     * @author 买买提
+     */
+    public function listAction(){
+        //p($this->getUserInfo()[id]);
+        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
+        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
+    }
 
     /**
      * @desc 询单信息(通用)
@@ -544,9 +553,13 @@ class QuotebizlineController extends PublicController {
     public function inquiryInfoAction(){
 
         $request = $this->_requestParams;
+        if (empty($request['serial_no'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
         //获取询单本身信息
         $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['id'=>$request['inquiry_id']])->field([
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field([
             'id','serial_no','status','pm_id'
         ])->find();
 
@@ -560,16 +573,6 @@ class QuotebizlineController extends PublicController {
             'data' => QuoteHelper::restoreInquiryInfo($inquiryInfo)
         ]) ;
 
-    }
-
-    /**
-     * @desc 产品线报价->询单列表(角色:项目经理)
-     * @author 买买提
-     */
-    public function listAction(){
-        //p($this->getUserInfo()[id]);
-        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
-        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
     }
 
     /**

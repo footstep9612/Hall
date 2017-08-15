@@ -147,7 +147,7 @@ trait QuoteHelper{
         qty   数量
         unit   单位
         ===============================*/
-        $fields = ['a.id','a.bizline_id','d.name bizline_name','c.sku','b.inquiry_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+        $fields = ['a.id','a.bizline_id','d.name bizline_name','c.sku','b.inquiry_no','b.serial_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
 
         return  $quoteItem->alias('a')
                         ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
