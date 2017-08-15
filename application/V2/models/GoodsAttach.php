@@ -278,21 +278,21 @@ class GoodsAttachModel extends PublicModel {
      * @author klp
      * @return array
      */
-    public function editSkuAttach($input) {
-        if (empty($input)) {
+    public function editSkuAttach($input,$sku='',$admin='') {
+        if (empty($input) || empty($sku)) {
             return false;
         }
         $results = array();
         if ($input && is_array($input)) {
             try {
-                foreach ($input['attachs'] as $key => $value) {
+                foreach ($input as $key => $value) {
                     $data = $this->checkParam($value);
                     //存在sku编辑,反之新增,后续扩展性
                     if (isset($data['id']) && !empty($data['id'])) {
-                        $data['updated_by'] = $input['user_id'];
+                        $data['updated_by'] = $admin;
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $where = [
-                            'sku' => trim($input['sku']),
+                            'sku' => trim($sku),
                             'id' => $data['id']
                         ];
                         $res = $this->where($where)->save($data);
@@ -301,8 +301,8 @@ class GoodsAttachModel extends PublicModel {
                         }
                     } else {
                         $data['status'] = self::STATUS_DRAFT;
-                        $data['sku'] = $input['sku'];
-                        $data['created_by'] = $input['user_id'];
+                        $data['sku'] = $sku;
+                        $data['created_by'] = $admin;
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $res = $this->add($data);
                         if (!$res) {
@@ -312,7 +312,7 @@ class GoodsAttachModel extends PublicModel {
                 }
                 if ($res) {
                     $es_goods_model = new EsGoodsModel();
-                    $es_goods_model->Update_Attachs($input['sku']);
+                    $es_goods_model->Update_Attachs($sku);
                     $results['code'] = '1';
                     $results['message'] = '成功！';
                 } else {
