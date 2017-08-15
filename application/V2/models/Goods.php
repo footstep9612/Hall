@@ -403,7 +403,7 @@ class GoodsModel extends PublicModel {
                             'status' => array('neq','DRAFT')
                         );
                         if (!empty($input['sku'])) {
-                            $exist_condition['spu'] = array('neq', $input['sku']);
+                            $exist_condition['sku'] = array('neq', $input['sku']);
                         }
                         $exist = $this->where($exist_condition)->find();
                         if ($exist) {
