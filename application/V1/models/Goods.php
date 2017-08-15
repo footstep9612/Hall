@@ -458,7 +458,11 @@ class GoodsModel extends PublicModel {
               //获取商品规格
               $gattr = new GoodsAttrModel();
               $spec = $gattr->getSpecBySku($item['sku'], $item['lang']);
-
+              //增加最小
+              $goods = $gattr->field('attr_value')->where(array('sku'=>$item['sku'],'lang'=> $item['lang'],'attr_name'=>'Package Quantity'))->find();
+              if(isset($goods)){
+                $result[$k]['goods'] = $goods['attr_value'];
+              }
               if ($spec_type) {
                 $result[$k]['spec'] = $spec;
               } else {
