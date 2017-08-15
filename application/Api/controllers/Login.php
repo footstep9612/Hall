@@ -122,6 +122,7 @@ class LoginController extends Yaf_Controller_Abstract {
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
         $login_arr['user_name'] = $data['user_name'];
+        jsonReturn('',-101,'The company email or user name already exists.');
         $check = $buyer_account_model->Exist($login_arr);
         if($check){
             jsonReturn('',-101,'The company email or user name already exists.');

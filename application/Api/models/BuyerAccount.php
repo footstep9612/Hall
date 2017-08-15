@@ -147,7 +147,7 @@ class BuyerAccountModel extends PublicModel {
         if(isset($data['phone'])){
             $arr['phone'] = $data['phone'];
         }
-        if($data['status']){
+        if(isset($data['status'])){
             switch ($data['status']) {
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
