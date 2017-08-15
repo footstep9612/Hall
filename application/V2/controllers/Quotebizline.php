@@ -401,16 +401,6 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 产品线报价->询单列表(角色:项目经理)
-     * @author 买买提
-     */
-    public function listAction(){
-        //p($this->getUserInfo()[id]);
-        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
-        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
-    }
-
-    /**
      * @desc 产品线报价->列表(角色:产品线相关人员)
      * @author 买买提
      */
@@ -448,15 +438,47 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
     }
+
     /**
-     * @desc 产品线报价->列表(角色:产品线相关人员)
+     * @desc 报价单sku列表
      * @author 买买提
-     * 说明:产品线相关人员：可以查看自己负责的询单
-     * 数据库操作说明:查找当前用户id跟inquiry表中pm_id字段值相等的items
      */
-    private function listBizlineHandler(){
-        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'BIZLINE');
-        return QuoteBizlineHelper::getQuotelineInquiryList($filterParams);
+    public function quoteSkuListAction(){
+
+        $request = $this->_requestParams;
+        if (empty($request['quote_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
+        $where = ['quote_id'=>$request['quote_id']];
+        $quoteSkuList = QuoteHelper::getQuoteList($where);
+
+        if ($quoteSkuList){
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => QuoteHelper::getQuoteTotalCount($where),
+                'data' => $quoteSkuList
+            ]);
+        }else{
+            $this->jsonReturn([
+                'code' => '-104',
+                'message' => '没有数据!',
+                'data' => ''
+            ]);
+        }
+
+    }
+
+
+    /**
+     * @desc 产品线报价->询单列表(角色:项目经理)
+     * @author 买买提
+     */
+    public function listAction(){
+        //p($this->getUserInfo()[id]);
+        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
+        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
     }
 
     /**
