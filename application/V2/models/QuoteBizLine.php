@@ -308,7 +308,7 @@ class QuoteBizLineModel extends PublicModel{
             ->join('erui2_rfq.quote b ON a.quote_id = b.id', 'LEFT')
             ->join('erui2_rfq.inquiry d ON a.inquiry_id = d.id', 'LEFT')
             //->field('a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
-            ->field('a.id, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
+            ->field('a.id, d.serial_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
             ->where($where)
             ->page($currentPage, $pageSize)
             ->order('a.id DESC')
