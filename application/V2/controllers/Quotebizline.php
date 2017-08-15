@@ -401,16 +401,6 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 产品线报价->询单列表(角色:项目经理)
-     * @author 买买提
-     */
-    public function listAction(){
-        //p($this->getUserInfo()[id]);
-        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
-        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
-    }
-
-    /**
      * @desc 产品线报价->列表(角色:产品线相关人员)
      * @author 买买提
      */
@@ -454,11 +444,41 @@ class QuotebizlineController extends PublicController {
      * @author 买买提
      */
     public function quoteSkuListAction(){
-        $this->jsonReturn([
-            'code' => '-104',
-            'message' => '没有数据!',
-            'data' => ''
-        ]);
+
+        $request = $this->_requestParams;
+        if (empty($request['quote_id'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
+        $where = ['quote_id'=>$request['quote_id']];
+        $quoteSkuList = QuoteHelper::getQuoteList($where);
+
+        if ($quoteSkuList){
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => QuoteHelper::getQuoteTotalCount($where),
+                'data' => $quoteSkuList
+            ]);
+        }else{
+            $this->jsonReturn([
+                'code' => '-104',
+                'message' => '没有数据!',
+                'data' => ''
+            ]);
+        }
+
+    }
+
+
+    /**
+     * @desc 产品线报价->询单列表(角色:项目经理)
+     * @author 买买提
+     */
+    public function listAction(){
+        //p($this->getUserInfo()[id]);
+        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
+        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
     }
 
     /**
