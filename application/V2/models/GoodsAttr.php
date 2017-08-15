@@ -31,11 +31,12 @@ class GoodsAttrModel extends PublicModel {
                 $result = $this->field('id')->where($condition)->find();
                 if($result) {
                     $data['updated_at'] = date('Y-m-d H:i:s',time());
-                    $rel = $this->where($condition)->save($data);
+                    $rel = $this->where(array('id'=>$result['id']))->save($data);
                 }else{
                     $data['created_at'] = date('Y-m-d H:i:s',time());
                     $rel = $this->add($data);
                 }
+
                 return $rel ? true : false;
             }catch (Exception $e){
                 return false;
