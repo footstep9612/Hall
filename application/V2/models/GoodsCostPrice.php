@@ -59,14 +59,14 @@ class GoodsCostPriceModel extends PublicModel {
      * @author klp
      * @return array
      */
-    public function editCostprice($input){
-        if(empty($input)) {
+    public function editCostprice($input,$sku='',$admin=''){
+        if(empty($input) || empty($sku)) {
             return false;
         }
         $results = array();
         try {
-            foreach ($input['supplier_cost']  as $key => $value) {
-                $checkout = $this->checkParam($value,$input['sku']);
+            foreach ($input as $key => $value) {
+                $checkout = $this->checkParam($value,$sku);
                 $data = [
                     'supplier_id' => isset($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
                     'contact_first_name' => isset($checkout['contact_first_name']) ? $checkout['contact_first_name'] : '',
@@ -81,10 +81,10 @@ class GoodsCostPriceModel extends PublicModel {
                 //存在sku编辑,反之新增,后续扩展性
 
                 if(isset($checkout['id']) && !empty($checkout['id'])) {
-                        $data['updated_by'] = $input['user_id'];
+                        $data['updated_by'] = $admin;
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $where = [
-                            'sku' => trim($input['sku']),
+                            'sku' => $sku,
                             'id' => $checkout['id']
                         ];
                         $res = $this->where($where)->save($data);
@@ -93,8 +93,8 @@ class GoodsCostPriceModel extends PublicModel {
                     }
                 } else {
                     $data['status'] = self::STATUS_VALID;
-                    $data['sku'] = $input['sku'];
-                    $data['created_by'] = $input['user_id'];
+                    $data['sku'] = $sku;
+                    $data['created_by'] = $admin;
                     $data['created_at'] = date('Y-m-d H:i:s', time());
                     $res = $this->add($data);
                     if (!$res) {
