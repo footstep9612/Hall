@@ -31,6 +31,50 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * @desc 产品线报价列表(项目经理)
+     * @author 买买提
+     */
+    public function bizlineListAction(){
+
+        $condition = $this->_requestParams;
+
+        $user = new EmployeeModel();
+
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+
+        if (!empty($condition['pm_name'])) {
+            $pm = $user->where(['name' => $condition['pm_name']])->find();
+            $condition['pm_id'] = $pm['id'];
+        }
+
+        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
+
+        foreach ($quoteBizlineList as &$quoteBizline) {
+            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
+            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+        }
+
+        if ($quoteBizlineList) {
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => $this->_quoteBizLine->getListCount($condition),
+                'data' => $quoteBizlineList
+            ]);
+        } else {
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+    }
+
+    public function bizlineManagerListAction()
+    {
+        p($this->user);
+    }
+
+    /**
      * @desc 划分产品线(项目经理)
      * @author 买买提
      */
@@ -38,7 +82,7 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->_requestParams;
 
-        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['created_by'])){
+        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
 
@@ -58,7 +102,7 @@ class QuotebizlineController extends PublicController {
             'inquiry_id'=>$inquiryInfo['id'],
             'biz_agent_id'=>$inquiryInfo['agent_id'],
             'bizline_id'=>$request['bizline_id'],
-            'created_by'=>$request['created_by'],
+            'created_by'=>$this->user['id'],
             'created_at'=>date('Y-m-d H:i:s'),
             'quote_id' => $request['quote_id']
         ];
@@ -443,44 +487,7 @@ class QuotebizlineController extends PublicController {
 
     }
 
-    /**
-     * @desc 产品线报价->列表(角色:产品线相关人员)
-     * @author 买买提
-     */
-    public function bizlineListAction(){
 
-        $condition = $this->_requestParams;
-
-        $user = new EmployeeModel();
-
-        if (!empty($condition['agent_name'])) {
-            $agent = $user->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
-        }
-
-        if (!empty($condition['pm_name'])) {
-            $pm = $user->where(['name' => $condition['pm_name']])->find();
-            $condition['pm_id'] = $pm['id'];
-        }
-
-        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
-
-        foreach ($quoteBizlineList as &$quoteBizline) {
-            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
-            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
-        }
-
-        if ($quoteBizlineList) {
-            $this->jsonReturn([
-                'code' => '1',
-                'message' => '成功!',
-                'count' => $this->_quoteBizLine->getListCount($condition),
-                'data' => $quoteBizlineList
-            ]);
-        } else {
-            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
-        }
-    }
 
     /**
      * @desc 报价单sku列表
