@@ -342,10 +342,10 @@ class GoodsAttachModel extends PublicModel {
         $userInfo = getLoinInfo();
         $results = array();
         try {
-            foreach ($data as $item) {
+            foreach ($data as $sku) {
                 if (self::STATUS_CHECKING == $status) {
                     $where = [
-                        'sku' => $item['sku']
+                        'sku' => $sku
                     ];
                     $resach = $this->field('sku')->where($where)->find();
                     if ($resach) {
@@ -356,7 +356,7 @@ class GoodsAttachModel extends PublicModel {
                     }
                 } else {
                     $where = [
-                        'sku' => $item['sku']
+                        'sku' => $sku
                     ];
                     $save = [
                         'status' => $status,

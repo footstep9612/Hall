@@ -152,10 +152,10 @@ class CountryModel extends PublicModel {
         'lang' => $lang
     );
 
-    if(redisExist(md5(json_encode($condition)))){
+   /* if(redisExist(md5(json_encode($condition)))){
       $result = json_decode(redisGet(md5(json_encode($condition))),true);
       return $result ? $result : array();
-      }
+      }*/
       $result = $this->field('name,bn,region,time_zone')->where($condition)->select();
       if ($result) {
         $data = array();
@@ -165,7 +165,7 @@ class CountryModel extends PublicModel {
           $data[$firstChar][] = $val; //以这个首字母作为key
         }
         ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
-        redisSet(md5(json_encode($condition)), $data);
+        //redisSet(md5(json_encode($condition)), $data);
         return $data;
       } else {
         return array();

@@ -35,8 +35,9 @@ class BizlineSupplierModel extends PublicModel
 
     public function getSupplierList($data)
     {
-        return $this->where($data)->field('bizline_supplier.*,bz.name as bizline_name')
-            ->join('`erui2_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')->select();
+        return $this->where($data)->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name')
+            ->join('`erui2_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')
+            ->join('`erui2_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left')->select();
     }
     public function create_data($create= []) {
         if(isset($create['bizline_id'])){

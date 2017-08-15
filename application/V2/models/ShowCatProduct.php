@@ -74,8 +74,8 @@ class ShowCatProductModel extends PublicModel {
 
         $data = [];
         try {
+            $product = new ProductModel();
             if (is_array($spu)) {
-                $product = new ProductModel();
                 foreach ($spu as $item) {
                     /**
                      * 当没有选择展示分类时根据物料分类查询所有展示分类
@@ -115,6 +115,45 @@ class ShowCatProductModel extends PublicModel {
                         }
                         $data[] = $data_tmp;
                     }
+                }
+            } else {
+                /**
+                 * 当没有选择展示分类时根据物料分类查询所有展示分类
+                 */
+                if (empty($cat_no)) {
+                    /**
+                     * 根据spu获取物料分类
+                     */
+                    $spuInfo = $product->findByCondition(array('spu' => $spu, 'lang' => $lang), 'material_cat_no');
+                    $mcat_no = $spuInfo[0]['material_cat_no'];
+
+                    /**
+                     * 根据物料分类获取展示分类
+                     */
+                    $showCatProduct = new ShowMaterialCatModel();
+                    $cat_no_tmp = $showCatProduct->findByCondition(array('material_cat_no' => $mcat_no), 'show_cat_no');
+                } else {
+                    $cat_no_tmp = $cat_no;
+                }
+
+                if (empty($cat_no_tmp)) {
+                    return false;
+                }
+
+                foreach ($cat_no_tmp as $r) {
+                    $data_tmp = [];
+                    $data_tmp['spu'] = $spu;
+                    $data_tmp['lang'] = $lang;
+                    $data_tmp['onshelf_flag'] = self::STATUS_ONSHELF;
+                    $data_tmp['status'] = self::STATUS_VALID;    //这里上架默认状态是有效的，按常规说应该是审核。
+                    $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                    $data_tmp['created_at'] = date('Y-m-d H:i:s', time());
+                    if (is_array($r)) {
+                        $data_tmp['cat_no'] = $r['show_cat_no'];
+                    } else {
+                        $data_tmp['cat_no'] = $r;
+                    }
+                    $data[] = $data_tmp;
                 }
             }
 
