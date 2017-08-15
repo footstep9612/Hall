@@ -541,37 +541,47 @@ class GoodsModel extends PublicModel {
         if (!$status) {
             jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
         }
+
+        $lang = '';
+        if (isset($input['lang']) && !in_array(strtolower($input['lang']), array('zh', 'en', 'es', 'ru'))) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        } else {
+            $lang = isset($input['lang']) ? strtolower($input['lang']) : '';
+        }
+
+        $remark = isset($input['remark']) ? htmlspecialchars($input['remark']) : '';
+
         unset($input['status_type']);
         $this->startTrans();
         try {
-            $res = $this->modifySku($input['skus'], $status);               //sku状态
+            $res = $this->modifySku($input['sku'],$lang,$status,$remark);               //sku状态
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
 
-            $gattr = new GoodsAttrModel();
+           /* $gattr = new GoodsAttrModel();
             $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
                 return false;
-            }
+            }*/
 
             $gattach = new GoodsAttachModel();
-            $resAttach = $gattach->modifyAttach($input['skus'], $status);  //附件状态
+            $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
 
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
                 return false;
             }
-            if ('CHECKING' != $status) {
+          /*  if ('CHECKING' != $status) {
                 $checkLogModel = new ProductCheckLogModel();          //审核记录
-                $resLogs = $checkLogModel->takeRecord($input['skus'], $status);
+                $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
                 if (!$resLogs || $resLogs['code'] != 1) {
                     $this->rollback();
                     return false;
                 }
-            }
+            }*/
 //            if ($sku) {
 //                $langs = ['en', 'zh', 'es', 'ru'];
 //                foreach ($langs as $lang) {
@@ -593,8 +603,8 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function modifySku($data, $status) {
-        if (empty($data) || empty($status)) {
+    public function modifySku($skuObj,$lang='', $status,$remark='') {
+        if (empty($skuObj) || empty($status)) {
             return false;
         }
         $results = array();
@@ -602,15 +612,16 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $es_goods_model = new EsGoodsModel();
         $es_product_model = new EsProductModel();
-        if ($data && is_array($data)) {
+        if ($skuObj && is_array($skuObj)) {
             try {
-                foreach ($data as $item) {
+                $skuary = [];
+                foreach ($skuObj as $sku) {
                     if (self::STATUS_CHECKING == $status) {
                         $where = [
-                            'sku' => $item['sku'],
+                            'sku' => $sku,
                         ];
-                        if (isset($item['lang']) && !empty($item['lang'])) {
-                            $where['lang'] = $item['lang'];
+                        if (!empty($lang)) {
+                            $where['lang'] = $lang;
                         }
                         $result = $this->where($where)->save(['status' => $status]);
                         if (!$result) {
@@ -618,10 +629,10 @@ class GoodsModel extends PublicModel {
                         }
                     } else {
                         $where = [
-                            'sku' => $item['sku'],
+                            'sku' => $sku,
                         ];
-                        if (isset($item['lang']) && !empty($item['lang'])) {
-                            $where['lang'] = $item['lang'];
+                        if (!empty($lang)) {
+                            $where['lang'] = $lang;
                         }
                         $save = [
                             'status' => $status,
@@ -629,29 +640,39 @@ class GoodsModel extends PublicModel {
                             'checked_at' => date('Y-m-d H:i:s', time())
                         ];
                         $result = $this->where($where)->save($save);
-                        if ($result && $item['sku']) {
-                            $es_goods_model->create_data($item['sku'], $item['lang']);
-                        }
-                        if ($result) {
-
+                        if ($result && $sku) {
+                            $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
-                                $check = $pModel->field('status')->where(['spu' => $item['spu'], 'lang' => $item['lang']])->find();
-                                if ($check) {
-                                    $resp = ('VALID' == $check['status']) ? true : $pModel->updateStatus($item['spu'], $item['lang'], $status);
-                                    if (!$resp) {
-                                        return false;
+                                $spuCode = $this->field('spu')->where($where)->find();
+                                $spuWhere = array(
+                                    'spu'=>$spuCode['spu'],
+                                );
+                                if(!empty($lang)) {
+                                    $spuCode['lang'] = $lang;
+                                }
+                                if($spuCode){
+                                    $result_spu = $pModel->where($spuWhere)->save(array('status'=>$pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s',time())));
+                                    if($result_spu) {
+                                        $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
+                                        $es_product_model->create_data($spuCode['spu'], $lang);
                                     }
                                 }
-                                $es_product_model->create_data($item['spu'], $item['lang']);
                             }
+                            $es_goods_model->create_data($sku, $lang);
                         } else {
                             return false;
                         }
                     }
                 }
-
                 if ($result) {
+                    if(!empty($skuary)) {
+                        $checkLogModel = new ProductCheckLogModel();          //审核记录
+                        $resLogs = $checkLogModel->takeRecord($skuary, $status);
+                        if (!$resLogs || $resLogs['code'] != 1) {
+                            return false;
+                        }
+                    }
 
                     $results['code'] = '1';
                     $results['message'] = '成功！';
