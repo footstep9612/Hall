@@ -42,7 +42,50 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
 
-        $this->jsonReturn($this->_quoteBizLine->setPartitionBizline($request));
+        //获取询单相关的信息
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])
+                                    ->field(['id','agent_id'])
+                                    ->find();
+        if (!$inquiryInfo){
+            $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+        }
+
+        //操作产品线表(quote_bizline)表
+        $quoteBizlineModel = new QuoteBizLineModel();
+        $quoteBizlineModel->startTrans();
+        $data = [
+            'inquiry_id'=>$inquiryInfo['id'],
+            'biz_agent_id'=>$inquiryInfo['agent_id'],
+            'bizline_id'=>$request['bizline_id'],
+            'created_by'=>$request['created_by'],
+            'created_at'=>date('Y-m-d H:i:s'),
+            'quote_id' => $request['quote_id']
+        ];
+        $quoteBizlineResult = $quoteBizlineModel->add($quoteBizlineModel->create($data));
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $quoteItemFormModel->startTrans();
+        $quoteItem = explode(',',$request['quote_item_id']);
+
+        foreach ($quoteItem as $item=>$value){
+            $quoteItemFormModel->add($quoteItemFormModel->create([
+                'quote_id' => $request['quote_id'],
+                'quote_item_id' => (int) $value,
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+        }
+
+        if ($quoteBizlineResult){
+            $quoteBizlineModel->commit();
+            $quoteItemFormModel->commit();
+            $this->jsonReturn(['code'=>'1','message'=>'成功!']);
+        }else{
+            $quoteBizlineModel->rollback();
+            $quoteItemFormModel->rollback();
+            $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+        }
+
     }
 
     /**
