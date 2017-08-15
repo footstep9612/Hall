@@ -25,7 +25,7 @@ class GoodsModel extends PublicModel {
     protected $field = array(
         'spu' => array('required'),
         'name' => array('required'),
-        //'show_name' => array('required'),
+            //'show_name' => array('required'),
     );
 
     public function __construct() {
@@ -385,10 +385,12 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    if(empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
+                    if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
                     $checkout = $this->checkParam($value, $this->field);
+                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+
                     $data = [
                         'lang' => $key,
                         'spu' => $checkout['spu'],
@@ -398,32 +400,32 @@ class GoodsModel extends PublicModel {
                         'description' => !empty($checkout['description']) ? $checkout['description'] : '',
                         'source' => !empty($checkout['source']) ? $checkout['source'] : '',
                         'source_detail' => !empty($checkout['source_detail']) ? $checkout['source_detail'] : '',
-                        //固定商品属性
-                        'exw_days' => !empty($checkout['exw_days']) ? $checkout['exw_days'] : null,
-                        'min_pack_naked_qty' => !empty($checkout['min_pack_naked_qty']) ? $checkout['min_pack_naked_qty'] : null,
-                        'nude_cargo_unit' => !empty($checkout['nude_cargo_unit']) ? $checkout['nude_cargo_unit'] : null,
-                        'min_pack_unit' => !empty($checkout['min_pack_unit']) ? $checkout['min_pack_unit'] : null,
-                        'min_order_qty' => !empty($checkout['min_order_qty']) ? $checkout['min_order_qty'] : null,
-                        'purchase_price' => !empty($checkout['purchase_price']) ? $checkout['purchase_price'] : null,
-                        'purchase_price_cur_bn' => !empty($checkout['purchase_price_cur_bn']) ? $checkout['purchase_price_cur_bn'] : null,
-                        'nude_cargo_l_mm' => !empty($checkout['nude_cargo_l_mm']) ? $checkout['nude_cargo_l_mm'] : null,
+                        //固定商品  属性
+                        'exw_days' => isset($attr['const_attr']['exw_days']) ? $attr['const_attr']['exw_days'] : null,
+                        'min_pack_naked_qty' => isset($attr['const_attr']['min_pack_naked_qty']) ? $attr['const_attr']['min_pack_naked_qty'] : null,
+                        'nude_cargo_unit' => isset($attr['const_attr']['nude_cargo_unit']) ? $attr['const_attr']['nude_cargo_unit'] : null,
+                        'min_pack_unit' => isset($attr['const_attr']['min_pack_unit']) ? $attr['const_attr']['min_pack_unit'] : null,
+                        'min_order_qty' => isset($attr['const_attr']['min_order_qty']) ? $attr['const_attr']['min_order_qty'] : null,
+                        'purchase_price' => isset($attr['const_attr']['purchase_price']) ? $attr['const_attr']['purchase_price'] : null,
+                        'purchase_price_cur_bn' => isset($attr['const_attr']['purchase_price_cur_bn']) ? $attr['const_attr']['purchase_price_cur_bn'] : null,
+                        'nude_cargo_l_mm' => isset($attr['const_attr']['nude_cargo_l_mm']) ? $attr['const_attr']['nude_cargo_l_mm'] : null,
                         //固定物流属性
-                        'nude_cargo_w_mm' => !empty($checkout['nude_cargo_w_mm']) ? $checkout['nude_cargo_w_mm'] : null,
-                        'nude_cargo_h_mm' => !empty($checkout['nude_cargo_h_mm']) ? $checkout['nude_cargo_h_mm'] : null,
-                        'min_pack_l_mm' => !empty($checkout['min_pack_l_mm']) ? $checkout['min_pack_l_mm'] : null,
-                        'min_pack_w_mm' => !empty($checkout['min_pack_w_mm']) ? $checkout['min_pack_w_mm'] : null,
-                        'min_pack_h_mm' => !empty($checkout['min_pack_h_mm']) ? $checkout['min_pack_h_mm'] : null,
-                        'net_weight_kg' => !empty($checkout['net_weight_kg']) ? $checkout['net_weight_kg'] : null,
-                        'gross_weight_kg' => !empty($checkout['gross_weight_kg']) ? $checkout['gross_weight_kg'] : null,
-                        'compose_require_pack' => !empty($checkout['compose_require_pack']) ? $checkout['compose_require_pack'] : '',
-                        'pack_type' => !empty($checkout['pack_type']) ? $checkout['pack_type'] : '',
+                        'nude_cargo_w_mm' => isset($attr['const_attr']['nude_cargo_w_mm']) ? $attr['const_attr']['nude_cargo_w_mm'] : null,
+                        'nude_cargo_h_mm' => isset($attr['const_attr']['nude_cargo_h_mm']) ? $attr['const_attr']['nude_cargo_h_mm'] : null,
+                        'min_pack_l_mm' => isset($attr['const_attr']['min_pack_l_mm']) ? $attr['const_attr']['min_pack_l_mm'] : null,
+                        'min_pack_w_mm' => isset($attr['const_attr']['min_pack_w_mm']) ? $attr['const_attr']['min_pack_w_mm'] : null,
+                        'min_pack_h_mm' => isset($attr['const_attr']['min_pack_h_mm']) ? $attr['const_attr']['min_pack_h_mm'] : null,
+                        'net_weight_kg' => isset($attr['const_attr']['net_weight_kg']) ? $attr['const_attr']['net_weight_kg'] : null,
+                        'gross_weight_kg' => isset($attr['const_attr']['gross_weight_kg']) ? $attr['const_attr']['gross_weight_kg'] : null,
+                        'compose_require_pack' => isset($attr['const_attr']['compose_require_pack']) ? $attr['const_attr']['compose_require_pack'] : '',
+                        'pack_type' => isset($attr['const_attr']['pack_type']) ? $attr['const_attr']['pack_type'] : '',
                         //固定申报要素属性
-                        'name_customs' => !empty($checkout['name_customs']) ? $checkout['name_customs'] : '',
-                        'hs_code' => !empty($checkout['hs_code']) ? $checkout['hs_code'] : '',
-                        'tx_unit' => !empty($checkout['tx_unit']) ? $checkout['tx_unit'] : '',
-                        'tax_rebates_pct' => !empty($checkout['tax_rebates_pct']) ? $checkout['tax_rebates_pct'] : null,
-                        'regulatory_conds' => !empty($checkout['regulatory_conds']) ? $checkout['regulatory_conds'] : '',
-                        'commodity_ori_place' => !empty($checkout['commodity_ori_place']) ? $checkout['commodity_ori_place'] : '',
+                        'name_customs' => isset($attr['const_attr']['name_customs']) ? $attr['const_attr']['name_customs'] : '',
+                        'hs_code' => isset($attr['const_attr']['hs_code']) ? $attr['const_attr']['hs_code'] : '',
+                        'tx_unit' => isset($attr['const_attr']['tx_unit']) ? $attr['const_attr']['tx_unit'] : '',
+                        'tax_rebates_pct' => isset($attr['const_attr']['tax_rebates_pct']) ? $attr['const_attr']['tax_rebates_pct'] : null,
+                        'regulatory_conds' => isset($attr['const_attr']['regulatory_conds']) ? $attr['const_attr']['regulatory_conds'] : '',
+                        'commodity_ori_place' => isset($attr['const_attr']['commodity_ori_place']) ? $attr['const_attr']['commodity_ori_place'] : '',
                     ];
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
@@ -439,19 +441,9 @@ class GoodsModel extends PublicModel {
                             $this->rollback();
                             return false;
                         }
-
-                        $checkout['sku'] = trim($input['sku']);
-                        $checkout['lang'] = $key;
-                        $checkout['updated_by'] = $userInfo['id'];
-                        $gattr = new GoodsAttrModel();
-                        $resAttr = $gattr->editSkuAttr($checkout);        //属性更新
-                        if (!$resAttr || $resAttr['code'] != 1) {
-                            $this->rollback();
-                            return false;
-                        }
                     } else {             //------新增
                         $data['sku'] = $sku;
-                        //                    $data['qrcode'] = setupQrcode();                  //二维码字段
+                        //$data['qrcode'] = setupQrcode();                  //二维码字段
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = self::STATUS_DRAFT;
@@ -460,6 +452,7 @@ class GoodsModel extends PublicModel {
                             $this->rollback();
                             return false;
                         }
+
                         $pModel = new ProductModel();                                 //sku_count加一
                         $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
                                 ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
@@ -467,18 +460,32 @@ class GoodsModel extends PublicModel {
                             $this->rollback();
                             return false;
                         }
-
-                        $checkout['sku'] = $sku;
-                        $checkout['lang'] = $key;
-                        $checkout['created_by'] = $userInfo['id'];
-
-                        $gattr = new GoodsAttrModel();
-                        $resAttr = $gattr->editSkuAttr($checkout);        //属性新增
-                        if (!$resAttr || $resAttr['code'] != 1) {
-                            $this->rollback();
-                            return false;
-                        }
                     }
+
+                    /**
+                     * 扩展属性
+                     */
+                    $gattr = new GoodsAttrModel();
+                    $attr_obj = array(
+                        'lang' => $key,
+                        'spu' => isset($checkout['spu']) ? $checkout['spu'] : null,
+                        'ex_goods_attrs' => json_encode($attr['ex_goods_attrs']),
+                        'ex_hs_attrs' => json_encode($attr['ex_hs_attrs']),
+                        'status' => $gattr::STATUS_VALID
+                    );
+                    if(!empty($input['sku'])){
+                        $attr_obj['sku'] = trim($input['sku']);
+                        $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                    }else{
+                        $attr_obj['sku'] = $sku;
+                        $attr_obj['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                    }
+                    $resAttr = $gattr->editAttr($attr_obj);        //属性新增
+                    if (!$resAttr || $resAttr===false) {
+                        $this->rollback();
+                        return false;
+                    }
+
                 }
             }
             if (isset($input['attachs'])) {
@@ -602,7 +609,7 @@ class GoodsModel extends PublicModel {
                         $where = [
                             'sku' => $item['sku'],
                         ];
-                        if(isset($item['lang']) && !empty($item['lang'])){
+                        if (isset($item['lang']) && !empty($item['lang'])) {
                             $where['lang'] = $item['lang'];
                         }
                         $result = $this->where($where)->save(['status' => $status]);
@@ -613,7 +620,7 @@ class GoodsModel extends PublicModel {
                         $where = [
                             'sku' => $item['sku'],
                         ];
-                        if(isset($item['lang']) && !empty($item['lang'])){
+                        if (isset($item['lang']) && !empty($item['lang'])) {
                             $where['lang'] = $item['lang'];
                         }
                         $save = [
@@ -862,6 +869,45 @@ class GoodsModel extends PublicModel {
                 return self::STATUS_INVALID;
                 break;
         }
+    }
+
+
+    /**
+     * 属性输入格式化
+     * 属性包括商品固定属性 物流固定属性 申报要素固定属性 ，都在 goods 表的字段中，不能新增或减少
+     * 商品扩展属性 对应 goods_attr 中的 ex_goods_attrs
+     * 申报要素扩展属性，对应 goods_attr 中的 ex_hs_attrs
+     * @author link 2017-08-15
+     * @param array $attrs
+     * @return array
+     */
+    function attrGetInit($attrs=[]) {
+        $data = array(
+            'const_attr'=>array(),
+            'ex_goods_attrs'=>array(),
+            'ex_hs_attrs'=>array()
+        );
+        if(empty($attrs)) {
+            return $data;
+        }
+
+        foreach($attrs as $key => $value) {
+            if(!in_array($key,array('goods_attrs','hs_attrs','logic_attrs'))) {
+                continue;
+            }
+            if(!empty($value))  {
+                foreach($value as $attr){
+                    if(isset($attr['flag']) && $attr['flag']=='Y') {    //固定属性
+                        $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
+                    }else{
+                        $data['ex_'.$key][$attr['attr_name']] = $attr['attr_value'];
+                    }
+                }
+            } else {
+                continue;
+            }
+        }
+        return $data;
     }
 
 }

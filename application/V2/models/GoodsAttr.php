@@ -17,13 +17,40 @@ class GoodsAttrModel extends PublicModel {
     const STATUS_CHECKING = 'CHECKING'; //审核
     const STATUS_DRAFT = 'DRAFT'; //草稿
 
+
+    public function editAttr($data=[]){
+        if(!empty($data)) {
+            if(empty($data['lang']) || empty($data['sku'])) {
+                return false;
+            }
+            $condition = array(
+                'lang' => $data['lang'],
+                'sku' => $data['sku'],
+            );
+            try{
+                $result = $this->where($condition)->find();
+                if($result) {
+                    $data['updated_at'] = date('Y-m-d H:i:s',time());
+                    $rel = $this->where($condition)->save($data);
+                }else{
+                    $data['updated_at'] = date('Y-m-d H:i:s',time());
+                    $rel = $this->add($data);
+                }
+                return $rel ? true : false;
+            }catch (Exception $e){
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     /**
      * 商品属性 -- 公共
      * @author link 2017-06-26
      * @param array $condition
      * @return array
      */
-
     public function getAttr($condition = []) {
         if (!isset($condition['sku'])) {
             return array();
