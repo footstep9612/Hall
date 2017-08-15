@@ -437,6 +437,7 @@ class GoodsModel extends PublicModel {
                         $res = $this->where($where)->save($data);
                         if (!$res) {
                             $this->rollback();
+                            echo __LINE__, PHP_EOL;
                             return false;
                         }
 
@@ -447,6 +448,7 @@ class GoodsModel extends PublicModel {
                         $resAttr = $gattr->editSkuAttr($checkout);        //属性更新
                         if (!$resAttr || $resAttr['code'] != 1) {
                             $this->rollback();
+                            echo __LINE__, PHP_EOL;
                             return false;
                         }
                     } else {             //------新增
@@ -458,13 +460,16 @@ class GoodsModel extends PublicModel {
                         $res = $this->add($data);
                         if (!$res) {
                             $this->rollback();
+                            echo __LINE__, PHP_EOL;
                             return false;
                         }
                         $pModel = new ProductModel();                                 //sku_count加一
                         $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
                                 ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+
                         if (!$presult) {
                             $this->rollback();
+
                             return false;
                         }
 
@@ -476,6 +481,7 @@ class GoodsModel extends PublicModel {
                         $resAttr = $gattr->editSkuAttr($checkout);        //属性新增
                         if (!$resAttr || $resAttr['code'] != 1) {
                             $this->rollback();
+
                             return false;
                         }
                     }
@@ -489,6 +495,7 @@ class GoodsModel extends PublicModel {
                     $resAttach = $gattach->editSkuAttach($input);  //附件新增
                     if (!$resAttach || $resAttach['code'] != 1) {
                         $this->rollback();
+
                         return false;
                     }
                 }
@@ -498,9 +505,11 @@ class GoodsModel extends PublicModel {
                     $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
                     $input['user_id'] = $userInfo['id'];
                     $gcostprice = new GoodsCostPriceModel();
-                    $resCost = $gcostprice->editCostprice($input);  //供应商/价格策略
+                    $resCost = $gcostprice->editCostprice($input); //供应商/价格策略
+
                     if (!$resCost || $resCost['code'] != 1) {
                         $this->rollback();
+
                         return false;
                     }
                 }
@@ -514,7 +523,8 @@ class GoodsModel extends PublicModel {
 //            }
             $this->commit();
             return $sku;
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
             $this->rollback();
             return false;
         }
@@ -685,7 +695,7 @@ class GoodsModel extends PublicModel {
             if (is_array($input['sku'])) {
                 foreach ($input['sku'] as $sku) {
                     $where = ['sku' => $sku, 'onshelf_flag' => 'Y'];
-                    if(!empty($lang)) {
+                    if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
                     $result = $showCatGoodsModel->field('sku')->where($where)->select();
@@ -695,7 +705,7 @@ class GoodsModel extends PublicModel {
                 }
             } else {
                 $where = ['sku' => $input['sku'], 'onshelf_flag' => 'Y'];
-                if(!empty($lang)){
+                if (!empty($lang)) {
                     $where['lang'] = $lang;
                 }
                 $result = $showCatGoodsModel->field('sku')->where($where)->select();
@@ -708,22 +718,22 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-           /**
-            * 放到删除方法里面
-            $pModel = new ProductModel();                               //sku_count减一
-            $where_spu = ['sku' => $input['sku'], 'onshelf_flag' => 'Y'];
-            if(!empty($lang)) {
-                $where_spu['lang'] = $lang;
-            }
-            $spu = $pModel->field('spu')->where($where_spu)->find();
-            if ($spu) {
-                $presult = $pModel->where(['spu' => $spu['spu'], 'lang' => $lang])
-                        ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
-                if (!$presult) {
-                    $this->rollback();
-                    return false;
-                }
-            }*/
+            /**
+             * 放到删除方法里面
+              $pModel = new ProductModel();                               //sku_count减一
+              $where_spu = ['sku' => $input['sku'], 'onshelf_flag' => 'Y'];
+              if(!empty($lang)) {
+              $where_spu['lang'] = $lang;
+              }
+              $spu = $pModel->field('spu')->where($where_spu)->find();
+              if ($spu) {
+              $presult = $pModel->where(['spu' => $spu['spu'], 'lang' => $lang])
+              ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
+              if (!$presult) {
+              $this->rollback();
+              return false;
+              }
+              } */
             $gattr = new GoodsAttrModel();
             $resAttr = $gattr->deleteSkuAttr($input['sku'], $lang);        //属性删除
             if (!$resAttr || $resAttr['code'] != 1) {
@@ -731,16 +741,14 @@ class GoodsModel extends PublicModel {
                 return false;
             }
 
-           /**
-            * 这里为什么要删除呢？附件不分语言，如果你删除了一种语言的sku其他语言的不用附件了吗？
-           $gattach = new GoodsAttachModel();
-            $resAttach = $gattach->deleteSkuAttach($input['sku']);  //附件删除
-            if (!$resAttach || $resAttach['code'] != 1) {
-                $this->rollback();
-                return false;
-            }*/
-
-
+            /**
+             * 这里为什么要删除呢？附件不分语言，如果你删除了一种语言的sku其他语言的不用附件了吗？
+              $gattach = new GoodsAttachModel();
+              $resAttach = $gattach->deleteSkuAttach($input['sku']);  //附件删除
+              if (!$resAttach || $resAttach['code'] != 1) {
+              $this->rollback();
+              return false;
+              } */
             $this->commit();
 //            if ($input['sku']) {
 //                $es_goods_model = new EsGoodsModel();
@@ -759,7 +767,7 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function deleteSku($skus, $lang='') {
+    public function deleteSku($skus, $lang = '') {
         if (empty($skus)) {
             return false;
         }
@@ -770,26 +778,26 @@ class GoodsModel extends PublicModel {
                     $where = [
                         "sku" => $del,
                     ];
-                    if(!empty($lang)) {
+                    if (!empty($lang)) {
                         $where["lang"] = $lang;
                     }
                     $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
-                    if($skuInfo && $skuInfo['deleted_flag']!='Y') {
+                    if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
                         $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-                        if($res) {
+                        if ($res) {
                             $pModel = new ProductModel();                               //sku_count减一
                             $where_spu = array(
-                                'spu' =>$skuInfo['spu'],
+                                'spu' => $skuInfo['spu'],
                             );
-                            if(!empty($lang)) {
+                            if (!empty($lang)) {
                                 $where_spu["lang"] = $lang;
                             }
                             $presult = $pModel->where($where_spu)
-                                ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
+                                    ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
                             if (!$presult) {
                                 return false;
                             }
-                        }else{
+                        } else {
                             return false;
                         }
                     }
@@ -798,26 +806,26 @@ class GoodsModel extends PublicModel {
                 $where = [
                     "sku" => $skus,
                 ];
-                if(!empty($lang)) {
+                if (!empty($lang)) {
                     $where["lang"] = $lang;
                 }
                 $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
-                if($skuInfo && $skuInfo['deleted_flag']!='Y') {
+                if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
                     $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
                     if ($res) {
                         $pModel = new ProductModel();                               //sku_count减一
                         $where_spu = array(
                             'spu' => $skuInfo['spu'],
                         );
-                        if(!empty($lang)) {
+                        if (!empty($lang)) {
                             $where_spu["lang"] = $lang;
                         }
                         $presult = $pModel->where($where_spu)
-                            ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
+                                ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
                         if (!$presult) {
                             return false;
                         }
-                    }else{
+                    } else {
                         return false;
                     }
                 }
