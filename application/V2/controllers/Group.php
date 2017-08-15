@@ -16,39 +16,48 @@ class GroupController extends PublicController {
     public function __init() {
         //   parent::__init();
     }
+    //递归获取子记录
+    function get_group_children($a,$pid =null){
+        if(!$pid){
+            $pid =$a[0]['parent_id'];
+        }
+        $tree = array();
+        $limit =[];
+        foreach($a as $v){
+            $model_group = new GroupModel();
+            if($v['parent_id'] == $pid){
+                $v['children'] = $this->get_group_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id']); //递归获取子记录
+                if($v['children'] == null){
+                    unset($v['children']);
+                }
+                $tree[] = $v;
+            }
+        }
+        return $tree;
+    }
     public function listAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
-        $where['parent_id'] = 0;
-        $where['deleted_flag'] = 'N';
+        if(!empty($data['name'])){
+            $where['org.name'] = array('like',"%".$data['name']."%");
+        }
+        if(!empty($data['parent_id'])){
+            $where['org.parent_id'] = $data['parent_id'];
+        }else{
+            if(empty($data['name'])){
+                $where['org.parent_id'] = 0;
+            }
+        }
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
-        $count = count($data);
-        $childrencount=0;
-        for($i=0;$i<$count;$i++){
-            $data[$i]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['id'],'deleted_flag'=>'N'],$limit);
-            $childrencount = count($data[$i]['children']);
-            if($childrencount>0){
-                for($j=0;$j<$childrencount;$j++){
-                    if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['children'] = $model_group->getlist(['parent_id'=> $data[$i]['children'][$j]['id'],'deleted_flag'=>'N'],$limit);
-                        if(!$data[$i]['children'][$j]['children']){
-                            unset($data[$i]['children'][$j]['children']);
-                        }
-                    }
-                }
-            }else{
-                unset($data[$i]['children']);
-            }
-
-        }
-        if(!empty($data)){
+        $arr  = $this->get_group_children($data);
+        if(!empty($arr)){
             $datajson['code'] = 1;
-            $datajson['data'] = $data;
+            $datajson['data'] = $arr;
         }else{
             $datajson['code'] = -104;
-            $datajson['data'] = $data;
+            $datajson['data'] = $arr;
             $datajson['message'] = '数据为空!';
         }
 
@@ -59,12 +68,11 @@ class GroupController extends PublicController {
         $limit = [];
         $where = [];
         if(!empty($data['parent_id'])){
-            $where['parent_id'] = $data['parent_id'];
+            $where['org.parent_id'] = $data['parent_id'];
         }
         if(!empty($data['name'])){
-            $where['name'] = array('like',"%".$data['name']."%");
+            $where['org.name'] = array('like',"%".$data['name']."%");
         }
-        $where['deleted_flag'] = 'N';
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
         if(!empty($data)){

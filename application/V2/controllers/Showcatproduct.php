@@ -7,26 +7,27 @@
  */
 
 /**
- * Description of Showmaterialcat
- *
- * @author zhongyg
- * @date 2017-07-26 10:16
+ * Description of ShowCatProduct
+ * @author  zhongyg
+ * @date    2017-8-15 16:51:28
+ * @version V2.0
+ * @desc
  */
-class ShowmaterialcatController extends PublicController {
+class ShowcatproductController extends PublicController {
 
-    //put your code here
+//put your code here
     public function init() {
         parent::init();
     }
 
     public function listAction() {
-        $model = new ShowMaterialCatModel();
-        $material_cat_no = $this->getPut('material_cat_no');
-        if (!$material_cat_no) {
+        $model = new ShowCatProductModel();
+        $spu = $this->getPut('spu');
+        if (!$spu) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $show_cat_nos = $model->getshowcatnosBymatcatno($material_cat_no, 'zh');
+        $show_cat_nos = $model->getShowcatnosByspu($spu, 'zh');
 
         $show_cat_nos_arr = [];
 

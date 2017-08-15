@@ -49,6 +49,9 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu, $lang, $status);
         if (!empty($result)) {
+            $goodsattr = new GoodsAttrModel();
+            $attrdata = $goodsattr->field('id,attr_name,attr_value')->where('lang="'.$lang.'" and spu='.$spu)->group('attr_name')->select();
+            $result['goodsattr'] = $attrdata;
             $data = array(
                 'data' => $result
             );

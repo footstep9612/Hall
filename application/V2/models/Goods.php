@@ -412,7 +412,6 @@ class GoodsModel extends PublicModel {
                     }
 
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
-
                     $data = [
                         'lang' => $key,
                         'spu' => $checkout['spu'],
@@ -422,32 +421,32 @@ class GoodsModel extends PublicModel {
                         'description' => !empty($checkout['description']) ? $checkout['description'] : '',
                         'source' => !empty($checkout['source']) ? $checkout['source'] : '',
                         'source_detail' => !empty($checkout['source_detail']) ? $checkout['source_detail'] : '',
-                        //固定商品  属性
-                        'exw_days' => isset($attr['const_attr']['exw_days']) ? $attr['const_attr']['exw_days'] : null,
-                        'min_pack_naked_qty' => isset($attr['const_attr']['min_pack_naked_qty']) ? $attr['const_attr']['min_pack_naked_qty'] : null,
-                        'nude_cargo_unit' => isset($attr['const_attr']['nude_cargo_unit']) ? $attr['const_attr']['nude_cargo_unit'] : null,
-                        'min_pack_unit' => isset($attr['const_attr']['min_pack_unit']) ? $attr['const_attr']['min_pack_unit'] : null,
-                        'min_order_qty' => isset($attr['const_attr']['min_order_qty']) ? $attr['const_attr']['min_order_qty'] : null,
-                        'purchase_price' => isset($attr['const_attr']['purchase_price']) ? $attr['const_attr']['purchase_price'] : null,
-                        'purchase_price_cur_bn' => isset($attr['const_attr']['purchase_price_cur_bn']) ? $attr['const_attr']['purchase_price_cur_bn'] : null,
-                        'nude_cargo_l_mm' => isset($attr['const_attr']['nude_cargo_l_mm']) ? $attr['const_attr']['nude_cargo_l_mm'] : null,
+                        //固定商品属性
+                        'exw_days' => !empty($checkout['exw_days']) ? $checkout['exw_days'] : null,
+                        'min_pack_naked_qty' => !empty($checkout['min_pack_naked_qty']) ? $checkout['min_pack_naked_qty'] : null,
+                        'nude_cargo_unit' => !empty($checkout['nude_cargo_unit']) ? $checkout['nude_cargo_unit'] : null,
+                        'min_pack_unit' => !empty($checkout['min_pack_unit']) ? $checkout['min_pack_unit'] : null,
+                        'min_order_qty' => !empty($checkout['min_order_qty']) ? $checkout['min_order_qty'] : null,
+                        'purchase_price' => !empty($checkout['purchase_price']) ? $checkout['purchase_price'] : null,
+                        'purchase_price_cur_bn' => !empty($checkout['purchase_price_cur_bn']) ? $checkout['purchase_price_cur_bn'] : null,
+                        'nude_cargo_l_mm' => !empty($checkout['nude_cargo_l_mm']) ? $checkout['nude_cargo_l_mm'] : null,
                         //固定物流属性
-                        'nude_cargo_w_mm' => isset($attr['const_attr']['nude_cargo_w_mm']) ? $attr['const_attr']['nude_cargo_w_mm'] : null,
-                        'nude_cargo_h_mm' => isset($attr['const_attr']['nude_cargo_h_mm']) ? $attr['const_attr']['nude_cargo_h_mm'] : null,
-                        'min_pack_l_mm' => isset($attr['const_attr']['min_pack_l_mm']) ? $attr['const_attr']['min_pack_l_mm'] : null,
-                        'min_pack_w_mm' => isset($attr['const_attr']['min_pack_w_mm']) ? $attr['const_attr']['min_pack_w_mm'] : null,
-                        'min_pack_h_mm' => isset($attr['const_attr']['min_pack_h_mm']) ? $attr['const_attr']['min_pack_h_mm'] : null,
-                        'net_weight_kg' => isset($attr['const_attr']['net_weight_kg']) ? $attr['const_attr']['net_weight_kg'] : null,
-                        'gross_weight_kg' => isset($attr['const_attr']['gross_weight_kg']) ? $attr['const_attr']['gross_weight_kg'] : null,
-                        'compose_require_pack' => isset($attr['const_attr']['compose_require_pack']) ? $attr['const_attr']['compose_require_pack'] : '',
-                        'pack_type' => isset($attr['const_attr']['pack_type']) ? $attr['const_attr']['pack_type'] : '',
+                        'nude_cargo_w_mm' => !empty($checkout['nude_cargo_w_mm']) ? $checkout['nude_cargo_w_mm'] : null,
+                        'nude_cargo_h_mm' => !empty($checkout['nude_cargo_h_mm']) ? $checkout['nude_cargo_h_mm'] : null,
+                        'min_pack_l_mm' => !empty($checkout['min_pack_l_mm']) ? $checkout['min_pack_l_mm'] : null,
+                        'min_pack_w_mm' => !empty($checkout['min_pack_w_mm']) ? $checkout['min_pack_w_mm'] : null,
+                        'min_pack_h_mm' => !empty($checkout['min_pack_h_mm']) ? $checkout['min_pack_h_mm'] : null,
+                        'net_weight_kg' => !empty($checkout['net_weight_kg']) ? $checkout['net_weight_kg'] : null,
+                        'gross_weight_kg' => !empty($checkout['gross_weight_kg']) ? $checkout['gross_weight_kg'] : null,
+                        'compose_require_pack' => !empty($checkout['compose_require_pack']) ? $checkout['compose_require_pack'] : '',
+                        'pack_type' => !empty($checkout['pack_type']) ? $checkout['pack_type'] : '',
                         //固定申报要素属性
-                        'name_customs' => isset($attr['const_attr']['name_customs']) ? $attr['const_attr']['name_customs'] : '',
-                        'hs_code' => isset($attr['const_attr']['hs_code']) ? $attr['const_attr']['hs_code'] : '',
-                        'tx_unit' => isset($attr['const_attr']['tx_unit']) ? $attr['const_attr']['tx_unit'] : '',
-                        'tax_rebates_pct' => isset($attr['const_attr']['tax_rebates_pct']) ? $attr['const_attr']['tax_rebates_pct'] : null,
-                        'regulatory_conds' => isset($attr['const_attr']['regulatory_conds']) ? $attr['const_attr']['regulatory_conds'] : '',
-                        'commodity_ori_place' => isset($attr['const_attr']['commodity_ori_place']) ? $attr['const_attr']['commodity_ori_place'] : '',
+                        'name_customs' => !empty($checkout['name_customs']) ? $checkout['name_customs'] : '',
+                        'hs_code' => !empty($checkout['hs_code']) ? $checkout['hs_code'] : '',
+                        'tx_unit' => !empty($checkout['tx_unit']) ? $checkout['tx_unit'] : '',
+                        'tax_rebates_pct' => !empty($checkout['tax_rebates_pct']) ? $checkout['tax_rebates_pct'] : null,
+                        'regulatory_conds' => !empty($checkout['regulatory_conds']) ? $checkout['regulatory_conds'] : '',
+                        'commodity_ori_place' => !empty($checkout['commodity_ori_place']) ? $checkout['commodity_ori_place'] : '',
                     ];
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
@@ -462,25 +461,39 @@ class GoodsModel extends PublicModel {
                         $res = $this->where($where)->save($data);
                         if (!$res) {
                             $this->rollback();
+                            echo __LINE__, PHP_EOL;
+                            return false;
+                        }
+
+                        $checkout['sku'] = trim($input['sku']);
+                        $checkout['lang'] = $key;
+                        $checkout['updated_by'] = $userInfo['id'];
+                        $gattr = new GoodsAttrModel();
+                        $resAttr = $gattr->editSkuAttr($checkout);        //属性更新
+                        if (!$resAttr || $resAttr['code'] != 1) {
+                            $this->rollback();
+                            echo __LINE__, PHP_EOL;
                             return false;
                         }
                     } else {             //------新增
                         $data['sku'] = $sku;
-                        //$data['qrcode'] = setupQrcode();                  //二维码字段
+                        //                    $data['qrcode'] = setupQrcode();                  //二维码字段
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
                         $res = $this->add($data);
                         if (!$res) {
                             $this->rollback();
+                            echo __LINE__, PHP_EOL;
                             return false;
                         }
-
                         $pModel = new ProductModel();                                 //sku_count加一
                         $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
                                 ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+
                         if (!$presult) {
                             $this->rollback();
+
                             return false;
                         }
                     }
@@ -537,7 +550,8 @@ class GoodsModel extends PublicModel {
             }
             $this->commit();
             return $sku;
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
             $this->rollback();
             return false;
         }
@@ -557,47 +571,37 @@ class GoodsModel extends PublicModel {
         if (!$status) {
             jsonReturn('', MSG::MSG_FAILED, MSG::ERROR_PARAM);
         }
-
-        $lang = '';
-        if (isset($input['lang']) && !in_array(strtolower($input['lang']), array('zh', 'en', 'es', 'ru'))) {
-            jsonReturn('', ErrorMsg::ERROR_PARAM);
-        } else {
-            $lang = isset($input['lang']) ? strtolower($input['lang']) : '';
-        }
-
-        $remark = isset($input['remark']) ? htmlspecialchars($input['remark']) : '';
-
         unset($input['status_type']);
         $this->startTrans();
         try {
-            $res = $this->modifySku($input['sku'],$lang,$status,$remark);               //sku状态
+            $res = $this->modifySku($input['skus'], $status);               //sku状态
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
 
-           /* $gattr = new GoodsAttrModel();
+            $gattr = new GoodsAttrModel();
             $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
                 return false;
-            }*/
+            }
 
             $gattach = new GoodsAttachModel();
-            $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
+            $resAttach = $gattach->modifyAttach($input['skus'], $status);  //附件状态
 
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
                 return false;
             }
-          /*  if ('CHECKING' != $status) {
+            if ('CHECKING' != $status) {
                 $checkLogModel = new ProductCheckLogModel();          //审核记录
-                $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
+                $resLogs = $checkLogModel->takeRecord($input['skus'], $status);
                 if (!$resLogs || $resLogs['code'] != 1) {
                     $this->rollback();
                     return false;
                 }
-            }*/
+            }
 //            if ($sku) {
 //                $langs = ['en', 'zh', 'es', 'ru'];
 //                foreach ($langs as $lang) {
@@ -619,8 +623,8 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function modifySku($skuObj,$lang='', $status,$remark='') {
-        if (empty($skuObj) || empty($status)) {
+    public function modifySku($data, $status) {
+        if (empty($data) || empty($status)) {
             return false;
         }
         $results = array();
@@ -628,16 +632,15 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $es_goods_model = new EsGoodsModel();
         $es_product_model = new EsProductModel();
-        if ($skuObj && is_array($skuObj)) {
+        if ($data && is_array($data)) {
             try {
-                $skuary = [];
-                foreach ($skuObj as $sku) {
+                foreach ($data as $item) {
                     if (self::STATUS_CHECKING == $status) {
                         $where = [
-                            'sku' => $sku,
+                            'sku' => $item['sku'],
                         ];
-                        if (!empty($lang)) {
-                            $where['lang'] = $lang;
+                        if (isset($item['lang']) && !empty($item['lang'])) {
+                            $where['lang'] = $item['lang'];
                         }
                         $result = $this->where($where)->save(['status' => $status]);
                         if (!$result) {
@@ -645,10 +648,10 @@ class GoodsModel extends PublicModel {
                         }
                     } else {
                         $where = [
-                            'sku' => $sku,
+                            'sku' => $item['sku'],
                         ];
-                        if (!empty($lang)) {
-                            $where['lang'] = $lang;
+                        if (isset($item['lang']) && !empty($item['lang'])) {
+                            $where['lang'] = $item['lang'];
                         }
                         $save = [
                             'status' => $status,
@@ -656,39 +659,29 @@ class GoodsModel extends PublicModel {
                             'checked_at' => date('Y-m-d H:i:s', time())
                         ];
                         $result = $this->where($where)->save($save);
-                        if ($result && $sku) {
-                            $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
+                        if ($result && $item['sku']) {
+                            $es_goods_model->create_data($item['sku'], $item['lang']);
+                        }
+                        if ($result) {
+
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
-                                $spuCode = $this->field('spu')->where($where)->find();
-                                $spuWhere = array(
-                                    'spu'=>$spuCode['spu'],
-                                );
-                                if(!empty($lang)) {
-                                    $spuCode['lang'] = $lang;
-                                }
-                                if($spuCode){
-                                    $result_spu = $pModel->where($spuWhere)->save(array('status'=>$pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s',time())));
-                                    if($result_spu) {
-                                        $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
-                                        $es_product_model->create_data($spuCode['spu'], $lang);
+                                $check = $pModel->field('status')->where(['spu' => $item['spu'], 'lang' => $item['lang']])->find();
+                                if ($check) {
+                                    $resp = ('VALID' == $check['status']) ? true : $pModel->updateStatus($item['spu'], $item['lang'], $status);
+                                    if (!$resp) {
+                                        return false;
                                     }
                                 }
+                                $es_product_model->create_data($item['spu'], $item['lang']);
                             }
-                            $es_goods_model->create_data($sku, $lang);
                         } else {
                             return false;
                         }
                     }
                 }
+
                 if ($result) {
-                    if(!empty($skuary)) {
-                        $checkLogModel = new ProductCheckLogModel();          //审核记录
-                        $resLogs = $checkLogModel->takeRecord($skuary, $status);
-                        if (!$resLogs || $resLogs['code'] != 1) {
-                            return false;
-                        }
-                    }
 
                     $results['code'] = '1';
                     $results['message'] = '成功！';
@@ -729,7 +722,7 @@ class GoodsModel extends PublicModel {
             if (is_array($input['sku'])) {
                 foreach ($input['sku'] as $sku) {
                     $where = ['sku' => $sku, 'onshelf_flag' => 'Y'];
-                    if(!empty($lang)) {
+                    if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
                     $result = $showCatGoodsModel->field('sku')->where($where)->select();
@@ -739,7 +732,7 @@ class GoodsModel extends PublicModel {
                 }
             } else {
                 $where = ['sku' => $input['sku'], 'onshelf_flag' => 'Y'];
-                if(!empty($lang)){
+                if (!empty($lang)) {
                     $where['lang'] = $lang;
                 }
                 $result = $showCatGoodsModel->field('sku')->where($where)->select();
@@ -752,22 +745,22 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-           /**
-            * 放到删除方法里面
-            $pModel = new ProductModel();                               //sku_count减一
-            $where_spu = ['sku' => $input['sku'], 'onshelf_flag' => 'Y'];
-            if(!empty($lang)) {
-                $where_spu['lang'] = $lang;
-            }
-            $spu = $pModel->field('spu')->where($where_spu)->find();
-            if ($spu) {
-                $presult = $pModel->where(['spu' => $spu['spu'], 'lang' => $lang])
-                        ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
-                if (!$presult) {
-                    $this->rollback();
-                    return false;
-                }
-            }*/
+            /**
+             * 放到删除方法里面
+              $pModel = new ProductModel();                               //sku_count减一
+              $where_spu = ['sku' => $input['sku'], 'onshelf_flag' => 'Y'];
+              if(!empty($lang)) {
+              $where_spu['lang'] = $lang;
+              }
+              $spu = $pModel->field('spu')->where($where_spu)->find();
+              if ($spu) {
+              $presult = $pModel->where(['spu' => $spu['spu'], 'lang' => $lang])
+              ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
+              if (!$presult) {
+              $this->rollback();
+              return false;
+              }
+              } */
             $gattr = new GoodsAttrModel();
             $resAttr = $gattr->deleteSkuAttr($input['sku'], $lang);        //属性删除
             if (!$resAttr || $resAttr['code'] != 1) {
@@ -775,16 +768,14 @@ class GoodsModel extends PublicModel {
                 return false;
             }
 
-           /**
-            * 这里为什么要删除呢？附件不分语言，如果你删除了一种语言的sku其他语言的不用附件了吗？
-           $gattach = new GoodsAttachModel();
-            $resAttach = $gattach->deleteSkuAttach($input['sku']);  //附件删除
-            if (!$resAttach || $resAttach['code'] != 1) {
-                $this->rollback();
-                return false;
-            }*/
-
-
+            /**
+             * 这里为什么要删除呢？附件不分语言，如果你删除了一种语言的sku其他语言的不用附件了吗？
+              $gattach = new GoodsAttachModel();
+              $resAttach = $gattach->deleteSkuAttach($input['sku']);  //附件删除
+              if (!$resAttach || $resAttach['code'] != 1) {
+              $this->rollback();
+              return false;
+              } */
             $this->commit();
 //            if ($input['sku']) {
 //                $es_goods_model = new EsGoodsModel();
@@ -803,7 +794,7 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function deleteSku($skus, $lang='') {
+    public function deleteSku($skus, $lang = '') {
         if (empty($skus)) {
             return false;
         }
@@ -814,26 +805,26 @@ class GoodsModel extends PublicModel {
                     $where = [
                         "sku" => $del,
                     ];
-                    if(!empty($lang)) {
+                    if (!empty($lang)) {
                         $where["lang"] = $lang;
                     }
                     $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
-                    if($skuInfo && $skuInfo['deleted_flag']!='Y') {
+                    if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
                         $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
-                        if($res) {
+                        if ($res) {
                             $pModel = new ProductModel();                               //sku_count减一
                             $where_spu = array(
-                                'spu' =>$skuInfo['spu'],
+                                'spu' => $skuInfo['spu'],
                             );
-                            if(!empty($lang)) {
+                            if (!empty($lang)) {
                                 $where_spu["lang"] = $lang;
                             }
                             $presult = $pModel->where($where_spu)
-                                ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
+                                    ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
                             if (!$presult) {
                                 return false;
                             }
-                        }else{
+                        } else {
                             return false;
                         }
                     }
@@ -842,26 +833,26 @@ class GoodsModel extends PublicModel {
                 $where = [
                     "sku" => $skus,
                 ];
-                if(!empty($lang)) {
+                if (!empty($lang)) {
                     $where["lang"] = $lang;
                 }
                 $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
-                if($skuInfo && $skuInfo['deleted_flag']!='Y') {
+                if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
                     $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
                     if ($res) {
                         $pModel = new ProductModel();                               //sku_count减一
                         $where_spu = array(
                             'spu' => $skuInfo['spu'],
                         );
-                        if(!empty($lang)) {
+                        if (!empty($lang)) {
                             $where_spu["lang"] = $lang;
                         }
                         $presult = $pModel->where($where_spu)
-                            ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
+                                ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
                         if (!$presult) {
                             return false;
                         }
-                    }else{
+                    } else {
                         return false;
                     }
                 }

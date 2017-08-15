@@ -122,6 +122,7 @@ class LoginController extends Yaf_Controller_Abstract {
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
         $login_arr['user_name'] = $data['user_name'];
+        jsonReturn('',-101,'The company email or user name already exists.');
         $check = $buyer_account_model->Exist($login_arr);
         if($check){
             jsonReturn('',-101,'The company email or user name already exists.');
@@ -156,6 +157,7 @@ class LoginController extends Yaf_Controller_Abstract {
         }
         $id=$model->create_data($arr);
         if($id){
+            $buyer_account_data['status'] = 'VALID';
             $account_id = $buyer_account_model -> create_data($buyer_account_data);
             if(!empty($buyer_address_data)){
                 $buyer_address_model = new BuyerAddressModel();
@@ -290,9 +292,9 @@ class LoginController extends Yaf_Controller_Abstract {
             $config_shop = $config_obj->shop->toArray();
             $email_arr['url'] = $config_shop['url'];
             $email_arr['key'] = $data_key['key'];
-            $email_arr['first_name'] = $data['first_name'];
+            $email_arr['first_name'] = $check[0]['first_name'];
             $body = $this->getView()->render('login/forgetemail.html',$email_arr);
-            send_Mail($data_key['email'],'Password retrieval on ERUI platform',$body,$data['first_name']);
+            send_Mail($data_key['email'],'Password retrieval on ERUI platform',$body,$check[0]['first_name']);
             jsonReturn($data_key,1,'发送成功');
         }else{
             jsonReturn('',-103,' The email does not exist.');

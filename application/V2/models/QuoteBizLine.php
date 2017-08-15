@@ -18,6 +18,12 @@ class QuoteBizLineModel extends PublicModel{
      */
     protected $tableName = 'quote_bizline';
 
+    protected $joinTable1 = 'erui2_rfq.quote b ON a.quote_id = b.id';
+    protected $joinTable2 = 'erui2_sys.employee c ON a.updated_by = c.id';
+    protected $joinTable3 = 'erui2_rfq.inquiry d ON a.inquiry_id = d.id';
+    protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.box_type_bn, b.quote_remarks, c.name';
+    protected $joinField_ = 'a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, b.period_of_validity';
+
     /*
      * 询单(项目)状态
      */
@@ -47,6 +53,75 @@ class QuoteBizLineModel extends PublicModel{
 
     public function __construct(){
         parent::__construct();
+    }
+
+    /**
+     * 处理退回产品线重新报价逻辑
+     * 操作说明:(1)更改询单的状态及询单的产品线报价状态 (2)更改产品线报价的状态(quote_bizine)
+     * @param $request
+     * @return bool
+     */
+    public function rejectBizline($request){
+
+        //(1)更改询单的状态及询单的产品线报价状态
+        $inquiry = new InquiryModel();
+        //$inquiry->startTrans();
+        $updateInquiry = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status' => self::INQUIRY_BZ_QUOTE_REJECTED,
+            'goods_quote_status' => self::QUOTE_REJECTED
+        ]);
+
+        //(2)更改产品线报价的状态(quote_bizine)
+        $this->startTrans();
+        $bizline_ids = explode(',',$request['bizline_id']);
+
+        foreach ($bizline_ids as $item=>$value){
+            $this->where(['bizline_id'=>intval($value)])->save(['status' => self::QUOTE_REJECTED]);
+        }
+        //结果
+        if ($updateInquiry){
+            $inquiry->commit();
+            $this->commit();
+            return ['code'=>'1','message'=>'退回成功!'];
+        }else{
+            $inquiry->rollback();
+            $this->rollback();
+            return ['code'=>'-104','message'=>'退回失败!'];
+        }
+
+    }
+
+    /**
+     * 提交物流报价(项目经理)
+     * @param $request
+     * @return bool
+     */
+    public function sentLogistics($request){
+
+        //修改询单表(inqury)的数据
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
+        $inquiryUpdates = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status' => self::INQUIRY_QUOTED_BY_LOGI,//物流报价中
+            'goods_quote_status' => self::QUOTE_APPROVED //已审核
+        ]);
+
+        //修改产品线报价单的状态
+        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
+        $this->startTrans();
+        $bizlineUpdates = $this->where(['inquiry_id'=>$inquiryID])->save([
+            'status' => self::QUOTE_APPROVED,//已审核
+        ]);
+
+        if ($inquiryUpdates && $bizlineUpdates){
+            $inquiry->commit();
+            $this->commit();
+            return ['code'=>'1','message'=>'提交成功!'];
+        }else{
+            $inquiry->rollback();
+            $this->rollback();
+            return ['code'=>'-104','message'=>'提交失败!'];
+        }
     }
 
     /**
@@ -179,15 +254,16 @@ class QuoteBizLineModel extends PublicModel{
                                     ->field(['id','agent_id'])
                                     ->find();
         //判断一个quote_id是一个或者是多个
-        $quote = explode(',',$param['quote_id']);
+        $quoteItem = explode(',',$param['quote_item_id']);
         $data = [
             'inquiry_id'=>$inquiryInfo['id'],
             'biz_agent_id'=>$inquiryInfo['agent_id'],
             'bizline_id'=>$param['bizline_id'],
             'created_by'=>$param['created_by'],
-            'created_at'=>date('Y-m-d H:i:s')
+            'created_at'=>date('Y-m-d H:i:s'),
+            'quote_id' => $param['quote_id']
         ];
-        foreach ($quote as $k=>$v){
+        foreach ($quoteItem as $k=>$v){
             $data['quote_id'] = $v;
             $this->add($data);
         }
@@ -212,5 +288,101 @@ class QuoteBizLineModel extends PublicModel{
                 'message' => $exception->getMessage()
             ];
         }
+    }
+
+    /**
+     * @desc 获取关联列表
+     */
+    public function getJoinList($condition = []) {
+
+        $where = $this->getJoinWhere($condition);
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        return  $this->alias('a')
+            ->join('erui2_rfq.quote b ON a.quote_id = b.id', 'LEFT')
+            ->join('erui2_rfq.inquiry d ON a.inquiry_id = d.id', 'LEFT')
+            //->field('a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
+            ->field('a.id, d.serial_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
+
+    }
+
+    /**
+     * @desc 获取关联查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-08-02
+     */
+    public function getJoinWhere($condition = []) {
+
+        $where = [];
+
+        if(!empty($condition['quote_id'])) {
+            $where['a.quote_id'] = $condition['quote_id'];
+        }
+
+        if(!empty($condition['status'])) {
+            $where['a.status'] = $condition['status'];
+        }
+
+        if(!empty($condition['country_bn'])) {
+            $where['d.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+        }
+
+        if(!empty($condition['inquiry_no'])) {
+            $where['d.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+        }
+
+        if(!empty($condition['buyer_name'])) {
+            $where['d.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
+        }
+
+        if (!empty($condition['agent_id'])) {
+            $where['d.agent_id'] = $condition['agent_id'];
+        }
+
+        if (!empty($condition['pm_id'])) {
+            $where['d.pm_id'] = $condition['pm_id'];
+        }
+
+        if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
+            $where['d.inquiry_time'] = [
+                ['egt', $condition['start_inquiry_time']],
+                ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
+            ];
+        }
+
+        $where['a.deleted_flag'] = 'N';
+
+        return $where;
+
+    }
+
+    /**
+     * @desc 获取l列表记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-08-07
+     */
+    public function getListCount($condition = []) {
+
+        $where = $this->getJoinWhere($condition);
+
+        $count = $this->alias('a')
+            ->join($this->joinTable1, 'LEFT')
+            ->join($this->joinTable3, 'LEFT')
+            ->where($where)
+            ->count('a.id');
+
+        return $count > 0 ? $count : 0;
     }
 }

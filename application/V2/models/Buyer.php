@@ -24,11 +24,10 @@ class BuyerModel extends PublicModel {
     }
 
     //状态
-    const STATUS_VALID = 'VALID'; //有效,通过
-    const STATUS_INVALID = 'INVALID'; //无效；
-    const STATUS_TEST = 'TEST'; //待报审；
-    const STATUS_CHECKING = 'STATUS_CHECKING'; //审核；
-    const STATUS_DELETED = 'DELETED'; //删除；
+
+    const STATUS_APPROVING = 'APPROVING'; //待报审；
+    const STATUS_APPROVED = 'APPROVED'; //审核；
+    const STATUS_REJECTED = 'REJECTED'; //无效；
 
     /**
      * 获取列表
@@ -242,11 +241,14 @@ class BuyerModel extends PublicModel {
      */
     public function info($data) {
         if ($data['id']) {
-            $buyerInfo = $this->where(array("id" => $data['id']))
+            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
+                    ->join('erui2_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
-            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N'";
+            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
-            $buyerInfo['attach`'] = $row;
+            if ($row) {
+                $buyerInfo['attach`'] = $row;
+            }
             return $buyerInfo;
         } else {
             return false;
@@ -319,29 +321,32 @@ class BuyerModel extends PublicModel {
         if (isset($create['official_website'])) {
             $data['official_website'] = $create['official_website'];
         }
+        if (isset($create['buyer_level'])) {
+            $data['buyer_level'] = $create['buyer_level'];
+        }
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
         if (isset($create['checked_by'])) {
             $data['checked_by'] = $create['checked_by'];
         }
-        if (isset($create['checked_by'])) {
-            $data['checked_by'] = $create['checked_by'];
+        if (isset($create['checked_at'])) {
+            $data['checked_at'] = $create['checked_at'];
         }
         if ($create['status']) {
             switch ($create['status']) {
-                case self::STATUS_VALID:
+                case self::APPROVED:
                     $data['status'] = $create['status'];
                     break;
-                case self::STATUS_INVALID:
+                case self::REJECTED:
                     $data['status'] = $create['status'];
                     break;
-                case self::STATUS_DELETE:
+                case self::APPROVING:
                     $data['status'] = $create['status'];
                     break;
             }
         }
-
+        $this->where($where)->save($data);
         return $this->where($where)->save($data);
     }
 
@@ -530,12 +535,15 @@ class BuyerModel extends PublicModel {
         //审核人
         $this->_getValue($where, $condition, 'approved_by', 'string', 'cb.approved_by');
         $userids = $this->_getUserids($where, $condition, 'approved_by_name', 'cb.approved_by');
+        if ($userids) {
+            $where['approved_by'] = ['in', $userids];
+        }
         //审核人
         //   $this->_getValue($where, $condition, 'approved_by_name', 'array', 'cb.approved_by');
         //公司名称
         $this->_getValue($where, $condition, 'name', 'like', 'b.name');
         //审核状态
-        $this->_getValue($where, $condition, 'status', 'string', 'b.status');
+        $this->_getValue($where, $condition, 'status', 'string', 'b.status', 'VALID');
         //授信额度(暂无字段,待完善)
         $this->_getValue($where, $condition, 'credit', 'between', 'b.line_of_credit');
         //信保审核时间段(暂无,待完善)
@@ -549,10 +557,11 @@ class BuyerModel extends PublicModel {
         $result = $this->alias('b')->field($field)->order("id desc")
                         ->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
                         ->limit($from, $pagesize)->where($where)->select();
-
+        $count = $this->alias('b')->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
+                        ->where($where)->count('b.id');
         $this->_setUserName($result, 'checked_by');
         $this->_setUserName($result, 'approved_by');
-        return $result ? $result : false;
+        return [$result, $count];
     }
 
     /*
@@ -561,7 +570,7 @@ class BuyerModel extends PublicModel {
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
-     * @desc   
+     * @desc
      */
 
     private function _setUserName(&$arr, $filed) {

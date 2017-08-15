@@ -133,6 +133,10 @@ class InquiryController extends PublicController {
         $attach = new InquiryAttachModel();
         $data =  $this->put_data;
 
+        if(!empty($data['serial_no'])){
+            $attach->where('serial_no='.$data['serial_no'].' and attach_group="BUYER"')->delete();
+        }
+
         $results = $attach->add_data($data);
 
         $this->jsonReturn($results);

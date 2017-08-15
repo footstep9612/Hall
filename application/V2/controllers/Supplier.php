@@ -51,7 +51,9 @@ class SupplierController extends PublicController {
         if(!empty($data['created_at_end'])){
             $where['created_at_end'] = $data['created_at_end'];
         }
-
+        if(!empty($data['supplier_type'])){
+            $where['supplier_type'] = $data['supplier_type'];
+        }
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
@@ -352,7 +354,25 @@ class SupplierController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    public function batchupdatestatusAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model  =  new SupplierModel();
+        if(isset($data['ids'])&&isset($data['status'])){
+            $arr_ids = explode(",",$data['ids']);
+            $arr['status'] = $data['status'];
+            for($i=0;$i<count($arr_ids);$i++){
+                $where['id'] = $arr_ids[$i];
+                $res = $model->update_data($arr,$where);
+            }
+            $datajson['code'] = 1;
+            $datajson['message'] ='成功';
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['id'])) {

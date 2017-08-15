@@ -67,6 +67,10 @@ class SupplierModel extends PublicModel {
         if ( !empty($condition['created_at_end']) ){
             $where .= ' And created_at  <="'.$condition['created_at_end'].'"';
         }
+        if ( !empty($condition['supplier_type']) ){
+            $where .= ' And supplier_type  ="'.$condition['supplier_type'].'"';
+        }
+
         if ($where) {
             $sql .= $where;
             $sql_count.= $where;
@@ -203,8 +207,9 @@ class SupplierModel extends PublicModel {
     public function info($data)
     {
         if($data['id']) {
-            $buyerInfo = $this->where(array("id" => $data['id']))
-                              ->fi。nd();
+            $buyerInfo = $this->where(array("supplier.id" => $data['id']))->field('supplier.*,em.name as checked_name')
+                                ->join('erui2_sys.employee em on em.id=supplier.checked_by', 'left')
+                              ->find();
             return $buyerInfo;
         } else{
             return false;

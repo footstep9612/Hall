@@ -38,7 +38,7 @@ class CountryModel extends PublicModel {
         getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
         getValue($data, $condition, 'region_bn', 'like', 'c.region_bn');
         if (isset($condition['status']) && $condition['status'] == 'ALL') {
-            
+
         } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
             $data['c.status'] = $condition['status'];
         } else {
@@ -189,7 +189,7 @@ class CountryModel extends PublicModel {
 
     /**
      * 批量更新状态
-     * @param  array $data 
+     * @param  array $data
      * @return bool
      * @author zyg
      */
@@ -467,6 +467,44 @@ class CountryModel extends PublicModel {
      * @param string $lang 语言
      * @param string
      */
+    public function getBnByName($name = '') {
+        if (empty($name)) {
+            return '';
+        }
+        if (redisHashExist('Country', $name)) {
+            return redisHashGet('Country', $name);
+        }
+        try {
+            $condition = array(
+                'name' => ['like', '%' . $name . '%'],
+                'status' => self::STATUS_VALID
+            );
+            $field = 'bn';
+            $result = $this->field($field)->where($condition)->select();
+            $bns = [];
+            if ($result) {
+                foreach ($result as $bn) {
+                    $bns[] = $bn;
+                }
+            } else {
+                return [];
+            }
+
+            if ($result) {
+                redisHashSet('Country', $name, json_encode($bns));
+            }
+            return $bns;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * 根据简称与语言获取国家名称
+     * @param string $bn 简称
+     * @param string $lang 语言
+     * @param string
+     */
     public function import($lang = 'en') {
         if (empty($lang))
             return '';
@@ -504,6 +542,42 @@ class CountryModel extends PublicModel {
             var_dump($ex);
 
             return '';
+        }
+    }
+
+    /*
+     * 根据用户ID 获取用户姓名
+     * @param array $user_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getNamesBybns($bns) {
+
+        try {
+            $where = [];
+
+            if (is_string($bns)) {
+                $where['bn'] = $bns;
+            } elseif (is_array($bns)) {
+                $where['bn'] = ['in', $bns];
+            } else {
+                return false;
+            }
+            $where['lang'] = 'zh';
+            $areas = $this->where($where)->field('bn,name')->select();
+            $area_names = [];
+            foreach ($areas as $area) {
+                $area_names[$area['bn']] = $area['name'];
+            }
+            return $area_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 

@@ -255,6 +255,7 @@ class BuyerController extends PublicController {
                 $buyer_address_model -> create_data($buyer_address_data);
             }
             $datajson['code'] = 1;
+            $datajson['id'] = $id;
             $datajson['message'] ='成功';
         }else{
             $datajson['code'] = -104;
@@ -348,8 +349,18 @@ class BuyerController extends PublicController {
         if(!empty($data['mobile'])) {
             $arr['official_phone'] = $data['mobile'];
         }
+        if(!empty($data['buyer_level'])) {
+            $arr['buyer_level'] = $data['buyer_level'];
+        }
+        if(!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+            if($data['status']=='APPROVED'|| $data['status']=='REJECTED'){
+                $arr['checked_by'] = $this->user['id'];
+                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            }
+        }
         $model = new BuyerModel();
-        $model -> update_data($arr,$where);
+        $res = $model -> update_data($arr,$where);
         $buyer_account_model = new BuyerAccountModel();
         if(!empty($data['password'])) {
             $arr_account['password_hash'] = md5($data['password']);
@@ -361,8 +372,8 @@ class BuyerController extends PublicController {
             $buyer_attach_model -> update_data($where_attach);
         }
         $model = new UserModel();
-        $res = $model->update_data($arr,$where);
-        if(!empty($res)){
+        $model->update_data($arr,$where);
+        if($res!==false){
             $datajson['code'] = 1;
             $datajson['message'] ='成功';
         }else{

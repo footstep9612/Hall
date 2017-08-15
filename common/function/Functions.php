@@ -1519,7 +1519,7 @@ function send_Mail($to, $title, $body, $name = null) {
         $mail->Username = $config_db['username']; //SMTP服务器的用户帐号
         $mail->Password = $config_db['password'];        //SMTP服务器的用户密码
         $mail->AddAddress($to, $name); //收件人如果多人发送循环执行AddAddress()方法即可 还有一个方法时清除收件人邮箱ClearAddresses()
-        $mail->SetFrom($config_db['setfrom'], '发件人'); //发件人的邮箱
+        $mail->SetFrom($config_db['setfrom'], 'ERUI'); //发件人的邮箱
         //$mail->AddAttachment('./img/bloglogo.png');      // 添加附件,如果有多个附件则重复执行该方法
         $mail->Subject = $title;
         //以下是邮件内容

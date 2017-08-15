@@ -147,7 +147,7 @@ class BuyerAccountModel extends PublicModel {
         if(isset($data['phone'])){
             $arr['phone'] = $data['phone'];
         }
-        if($data['status']){
+        if(isset($data['status'])){
             switch ($data['status']) {
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
@@ -201,6 +201,9 @@ class BuyerAccountModel extends PublicModel {
         if(isset($create['phone'])){
             $arr['phone'] = $create['phone'];
         }
+        if(isset($create['status'])){
+            $arr['status'] = $create['status'];
+        }
         $arr['created_at'] = Date("Y-m-d H:i:s");
         $data = $this->create($arr);
         return $this->add($data);
@@ -211,17 +214,17 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      */
     public function checkPassword($data){
-        if(!empty($data['id'])){
-            $where['id'] = $data['id'];
+        if(!empty($data['customer_id'])){
+            $where['customer_id'] = $data['customer_id'];
         } else{
             jsonReturn('','-1001','用户id不可以为空');
         }
-        if(!empty($data['password'])){
-            $password = $data['password'];
+        if(!empty($data['password_hash'])){
+            $where['password_hash'] = $data['password_hash'];
         }
         $pwd = $this->where($where)->field('password_hash')->find();
-        if($pwd == $password){
-            return true;
+        if($pwd){
+            return $pwd;
         } else {
             return false;
         }
