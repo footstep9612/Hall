@@ -46,23 +46,6 @@ class InquiryController extends PublicController {
         $where = $this->put_data;
 
         $results = $inquiry->getlist($where);
-        if($results['code'] == '1'){
-            foreach($results['data'] as $key=>$val){
-                if(!empty($val['agent'])){
-                    $userId = json_decode($val['agent']);
-                    $userInfo = $user->where('id='.$userId['1'])->find();
-                    $results['data'][$key]['agent'] = $userInfo['name'];
-                }
-                if(!empty($val['inquiry_region'])){
-                    $areaInfo = $area->where('id='.$val['inquiry_region'])->find();
-                    $results['data'][$key]['inquiry_region'] = $areaInfo['bn'];
-                }
-                if(!empty($val['inquiry_country'])){
-                    $areaInfo = $country->where('id='.$val['inquiry_country'])->find();
-                    $results['data'][$key]['inquiry_country'] = $areaInfo['country_bn'];
-                }
-            }
-        }
 
         $this->jsonReturn($results);
     }
@@ -134,7 +117,9 @@ class InquiryController extends PublicController {
         $data =  $this->put_data;
 
         if(!empty($data['serial_no'])){
-            $attach->where('serial_no='.$data['serial_no'].' and attach_group="BUYER"')->delete();
+            $where['serial_no'] = $data['serial_no'];
+            $where['attach_group'] = "INQUIRY";
+            $attach->where($where)->delete();
         }
 
         $results = $attach->add_data($data);

@@ -5,7 +5,7 @@
  * @author  zhongyg
  * @date    2017-8-5 15:39:16
  * @version V2.0
- * @desc   
+ * @desc
  */
 class EmployeeModel extends PublicModel {
 
@@ -22,22 +22,22 @@ class EmployeeModel extends PublicModel {
     /*
      * 根据用户ID 获取用户姓名
      * @param array $user_ids // 用户ID
-     * @return mix 
+     * @return mix
      * @author  zhongyg
      *  @date    2017-8-5 15:39:16
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getUserNamesByUserids($user_ids) {
 
         try {
             $where = [];
-            
+
             if (is_string($user_ids)) {
                 $where['id'] = $user_ids;
-            } elseif (is_array($user_ids)) {
-                $where['id'] = ['in' , $user_ids];
+            } elseif (is_array($user_ids) && !empty($user_ids)) {
+                $where['id'] = ['in', $user_ids];
             } else {
                 return false;
             }
@@ -57,11 +57,11 @@ class EmployeeModel extends PublicModel {
     /*
      * 根据用户姓 获取用户ID
      * @param array $user_ids // 用户ID
-     * @return mix 
+     * @return mix
      * @author  zhongyg
      *  @date    2017-8-5 15:39:16
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getUseridsByUserName($UserName) {

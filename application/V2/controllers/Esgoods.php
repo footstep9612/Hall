@@ -42,6 +42,7 @@ class EsgoodsController extends PublicController {
         $data = $this->getPut();
         $model = new EsGoodsModel();
         $ret = $model->getgoods($data, null, $lang);
+
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
@@ -80,7 +81,7 @@ class EsgoodsController extends PublicController {
             } else {
                 $list[$key]['img'] = null;
             }
-            $list[$key]['id'] = $item['_id'];
+
             $show_cats = json_decode($item["_source"]["show_cats"], true);
             if ($show_cats) {
                 rsort($show_cats);

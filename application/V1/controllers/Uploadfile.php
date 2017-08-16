@@ -22,6 +22,7 @@ class UploadfileController extends PublicController{
 			$result = array(
 				"code" => '1',
 				"url" => $ret['fileId'],
+				"name" => $ret['file']['name'],
 			);
 		}else{
 			$result = array(

@@ -195,9 +195,9 @@ class EsProductModel extends Model {
 
 
 
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -205,7 +205,7 @@ class EsProductModel extends Model {
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
         // $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'brand.ik');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'real_name', 'name.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope', 'app_scope.ik');
@@ -244,21 +244,21 @@ class EsProductModel extends Model {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
             if ($onshelf_flag === 'N') {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"N"']],
+                            [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"N"*']],
                             [ESClient::TERM => ['show_cats.all' => '[]']],
                 ]]];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"Y"']];
+                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"Y"*']];
             }
         }
 
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'onshelf_flag', 'show_cats.all');
+
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'name', 'name.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']);
+        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik', 'name.ik']);
         return $body;
     }
 
@@ -277,7 +277,7 @@ class EsProductModel extends Model {
 
         try {
             $body = $this->getCondition($condition);
-
+            //echo json_encode($body, 256);
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {

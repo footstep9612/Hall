@@ -50,7 +50,8 @@ class QuotebizlineController extends PublicController {
             $condition['pm_id'] = $pm['id'];
         }
 
-        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
+        $quoteBizlineList = QuoteHelper::getPmQuoteBizlineList($condition);
+        //$quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
 
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
@@ -61,7 +62,7 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
-                'count' => $this->_quoteBizLine->getListCount($condition),
+                'count' => QuoteHelper::getPmQuoteBizlineListCount($condition),
                 'data' => $quoteBizlineList
             ]);
         } else {
@@ -89,18 +90,18 @@ class QuotebizlineController extends PublicController {
             $condition['pm_id'] = $pm['id'];
         }
 
-        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
-
+        $quoteBizlineList = $this->_quoteBizLine->getQuoteList($condition);
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
             $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
         }
 
         if ($quoteBizlineList) {
+            //p($quoteBizlineList);
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
-                'count' => $this->_quoteBizLine->getListCount($condition),
+                'count' => $this->_quoteBizLine->getQuoteCount($condition),
                 'data' => $quoteBizlineList
             ]);
         } else {
@@ -251,6 +252,35 @@ class QuotebizlineController extends PublicController {
 
         $request['created_by'] = $this->user['id'];
         $this->jsonReturn(QuoteBizlineHelper::addAttach($request));
+    }
+
+    /**
+     * @desc 附件列表
+     * @author 买买提
+     */
+    public function attachListAction() {
+
+        $request = $this->_requestParams;
+        if ( empty($request['quote_id']) ){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
+        $quoteAttach = new QuoteAttachModel();
+        $attachList = $quoteAttach->where(['quote_id' => $this->_requestParams['quote_id']])->order('created_at desc')->select();
+
+        if (!$attachList) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => '没有数据',
+                'data' => ''
+            ]);
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'data' => $attachList
+        ]);
     }
 
     /**
@@ -536,6 +566,15 @@ class QuotebizlineController extends PublicController {
         QuoteHelper::quoteList($this->_requestParams['inquiry_id']);
     }
 
+    /**
+     * @desc 产品线报价->询单列表(角色:项目经理)
+     * @author 买买提
+     */
+    public function listAction(){
+        //p($this->getUserInfo()[id]);
+        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
+        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
+    }
 
     /**
      * @desc 询单信息(通用)
@@ -544,9 +583,13 @@ class QuotebizlineController extends PublicController {
     public function inquiryInfoAction(){
 
         $request = $this->_requestParams;
+        if (empty($request['serial_no'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
         //获取询单本身信息
         $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['id'=>$request['inquiry_id']])->field([
+        $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field([
             'id','serial_no','status','pm_id'
         ])->find();
 
@@ -560,16 +603,6 @@ class QuotebizlineController extends PublicController {
             'data' => QuoteHelper::restoreInquiryInfo($inquiryInfo)
         ]) ;
 
-    }
-
-    /**
-     * @desc 产品线报价->询单列表(角色:项目经理)
-     * @author 买买提
-     */
-    public function listAction(){
-        //p($this->getUserInfo()[id]);
-        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
-        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
     }
 
     /**
@@ -653,30 +686,6 @@ class QuotebizlineController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'data' => $data
-        ]);
-    }
-
-    /**
-     * @desc 附件列表
-     * @author 买买提
-     */
-    public function attachAction() {
-
-        $quoteAttach = new QuoteAttachModel();
-        $attachList = $quoteAttach->where(['quote_id' => $this->_requestParams['quote_id']])->order('created_at desc')->select();
-
-        if (!$attachList) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => '没有数据',
-                'data' => ''
-            ]);
-        }
-
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'data' => $attachList
         ]);
     }
 

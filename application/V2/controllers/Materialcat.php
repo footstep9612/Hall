@@ -166,8 +166,8 @@ class MaterialcatController extends PublicController {
      *
      */
     public function getlistAction() {
-        $lang = $this->get('lang', 'zh');
-        $cat_no = $this->get('cat_no', '');
+        $lang = $this->getPut('lang', 'zh');
+        $cat_no = $this->getPut('cat_no', '');
         $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
         $data = json_decode(redisGet($key), true);
         if (!$data) {
@@ -202,25 +202,28 @@ class MaterialcatController extends PublicController {
         foreach ($langs as $lang) {
             $result = $this->_model->info($cat_no, $lang);
             if ($result) {
-                if (!$data) {
-                    $data = $result;
+                if (!$data['cat_no']) {
+                    // $data = $result;
+                    $data = array_merge($data, $result);
                     $data['name'] = $data['id'] = null;
                     unset($data['name'], $data['id']);
                 }
                 $data[$lang]['name'] = $result['name'];
+            } else {
+                $data[$lang]['name'] = '';
             }
         }
 
         if ($data) {
-            list($top_cats, $parent_cats) = $this->_getparentcats($data);
+            list($parent1, $parent2) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->setvalue('top_cats', $top_cats);
-            $this->setvalue('parent_cats', $parent_cats);
+            $this->setvalue('parent1', $parent1);
+            $this->setvalue('parent2', $parent2);
             $this->jsonReturn($data);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
 
-            $this->jsonReturn();
+            $this->jsonReturn(null);
         }
         exit;
     }
@@ -233,39 +236,41 @@ class MaterialcatController extends PublicController {
      *
      */
     private function _getparentcats($data) {
-        $parent_cats = $top_cats = null;
+        $parent2 = $parent1 = null;
         if ($data['level_no'] == 3) {
-            $result = $this->_model->info($data['parent_cat_no'], 'zh');
-            $parent_cats = $this->_model->get_list($result['parent_cat_no'], 'zh');
-            $top_cats = $this->_model->get_list(0, 'zh');
-            foreach ($parent_cats as $key => $item) {
-                if ($item['cat_no'] == $result['cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $parent_cats[$key] = $item;
-            }
-            foreach ($top_cats as $key => $item) {
-                if ($item['cat_no'] == $result['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $top_cats[$key] = $item;
-            }
+            $parent2 = $this->_model->info($data['parent_cat_no'], 'zh');
+            $parent1 = $this->_model->info($parent2['parent_cat_no'], 'zh');
+//            $parent_cats = $this->_model->get_list($result['parent_cat_no'], 'zh');
+//            $top_cats = $this->_model->get_list(0, 'zh');
+//            foreach ($parent_cats as $key => $item) {
+//                if ($item['cat_no'] == $result['cat_no']) {
+//                    $item['checked'] = true;
+//                } else {
+//                    $item['checked'] = false;
+//                }
+//                $parent_cats[$key] = $item;
+//            }
+//            foreach ($top_cats as $key => $item) {
+//                if ($item['cat_no'] == $result['parent_cat_no']) {
+//                    $item['checked'] = true;
+//                } else {
+//                    $item['checked'] = false;
+//                }
+//                $top_cats[$key] = $item;
+//            }
         } elseif ($data['level_no'] == 2) {
-            $top_cats = $this->_model->get_list($data['parent_cat_no'], 'zh');
-            foreach ($top_cats as $key => $item) {
-                if ($item['cat_no'] == $data['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $top_cats[$key] = $item;
-            }
+            $parent1 = $this->_model->info($data['parent_cat_no'], 'zh');
+            $parent2 = null;
+//            foreach ($top_cats as $key => $item) {
+//                if ($item['cat_no'] == $data['parent_cat_no']) {
+//                    $item['checked'] = true;
+//                } else {
+//                    $item['checked'] = false;
+//                }
+//                $top_cats[$key] = $item;
+//            }
         }
-        return [$top_cats, $parent_cats];
+        return [$parent1, $parent2];
     }
 
     /**
@@ -361,11 +366,11 @@ class MaterialcatController extends PublicController {
         $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
         $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
         $product_model = new ProductModel();
-        $data = $product_model->where(['meterial_cat_no' => ['like', $cat_no . '%']])
+        $data = $product_model->where(['material_cat_no' => ['like', $cat_no . '%']])
                 ->find();
         if ($data) {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('该分类下存在产品,不能删除');
+            $this->setCode(MSG::DELETE_MATERIAL_CAT_ERR);
+
             $this->jsonReturn();
         }
         $result = $this->_model->delete_data($cat_no, $lang);

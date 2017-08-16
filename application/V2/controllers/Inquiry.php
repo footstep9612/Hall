@@ -43,6 +43,21 @@ class InquiryController extends PublicController {
     }
 
     /*
+    * 返回询价单流程编码
+    * Author:张玉良
+    */
+    public function getInquiryIdAction() {
+        $inquiry = new InquiryModel();
+        $data['serial_no'] = $this->getSerialNoAction();
+        $data['serial_no'] = '0';
+        $data['created_by'] = $this->user['id'];
+
+        $results = $inquiry->addData($data);
+
+        $this->jsonReturn($results);
+    }
+
+    /*
      * 询价单列表
      * Author:张玉良
      */
@@ -216,7 +231,7 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 明细详情
+     * 询单sku详情
      * Author:张玉良
      */
     public function getItemInfoAction() {
@@ -229,7 +244,7 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 添加明细
+     * 添加询单sku
      * Author:张玉良
      */
     public function addItemAction() {
@@ -242,7 +257,20 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 修改明细
+     * 批量添加询单sku
+     * Author:张玉良
+     */
+    public function addItemBatchAction() {
+        $Item = new InquiryItemModel();
+        $data =  $this->put_data;
+        $data['created_by'] = $this->user['id'];
+
+        $results = $Item->addItemData($data);
+        $this->jsonReturn($results);
+    }
+
+    /*
+     * 修改询单sku
      * Author:张玉良
      */
     public function updateItemAction() {
@@ -255,7 +283,7 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 删除明细
+     * 删除询单sku
      * Author:张玉良
      */
     public function deleteItemAction() {
@@ -267,7 +295,7 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 明细附件列表
+     * 询单sku附件列表
      * Author:张玉良
      */
     public function getItemAttachListAction()
@@ -281,7 +309,7 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 添加明细附件
+     * 添加询单sku附件
      * Author:张玉良
      */
     public function addItemAttachAction() {
@@ -294,7 +322,7 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 删除明细附件
+     * 删除询单sku附件
      * Author:张玉良
      */
     public function deleteItemAttachAction() {
@@ -304,13 +332,5 @@ class InquiryController extends PublicController {
         $results = $ItemAttach->deleteData($data);
         $this->jsonReturn($results);
     }
-
-    /*
-     * 提交到项目经理
-     */
-
-    /*
-     * 提交到方案中心
-     */
 
 }

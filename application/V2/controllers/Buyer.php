@@ -105,7 +105,6 @@ class BuyerController extends PublicController {
     public function accountinfoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new BuyerAccountModel();
-
         $res = $model->info($data);
         if(!empty($res)){
             $datajson['code'] = 1;
@@ -314,6 +313,7 @@ class BuyerController extends PublicController {
 
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+
         if(!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['buyer_id'];

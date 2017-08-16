@@ -18,12 +18,6 @@ class QuoteBizLineModel extends PublicModel{
      */
     protected $tableName = 'quote_bizline';
 
-    protected $joinTable1 = 'erui2_rfq.quote b ON a.quote_id = b.id';
-    protected $joinTable2 = 'erui2_sys.employee c ON a.updated_by = c.id';
-    protected $joinTable3 = 'erui2_rfq.inquiry d ON a.inquiry_id = d.id';
-    protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.box_type_bn, b.quote_remarks, c.name';
-    protected $joinField_ = 'a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, b.period_of_validity';
-
     /*
      * 询单(项目)状态
      */
@@ -130,14 +124,78 @@ class QuoteBizLineModel extends PublicModel{
      *
      * @return array
      */
-    public function getQuoteList(array $param){
-        $where = $this->filterParam($param);
+    public function getQuoteList(array $condition){
 
-        //$fields = [];
+        $where = $this->getQuoteListCondition($condition);
 
-        //$total = $this->getTotal($where);
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        return $this->where($where)->select();
+        return $this->alias('a')
+            ->join('erui2_rfq.quote b ON a.quote_id = b.id','LEFT')
+            ->join('erui2_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
+            ->field('a.id, c.serial_no, c.country_bn, c.buyer_name, c.agent_id, c.pm_id, c.inquiry_time, c.status, b.period_of_validity')
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
+        //p($data);
+    }
+
+    public function getQuoteListCondition($condition){
+
+        $where = [];
+
+        if(!empty($condition['status'])) {
+            $where['c.status'] = $condition['status'];
+        }
+
+        if(!empty($condition['country_bn'])) {
+            $where['c.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+        }
+
+        if(!empty($condition['inquiry_no'])) {
+            $where['c.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+        }
+
+        if(!empty($condition['buyer_name'])) {
+            $where['c.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
+        }
+
+        if (!empty($condition['agent_id'])) {
+            $where['c.agent_id'] = $condition['agent_id'];
+        }
+
+        if (!empty($condition['pm_id'])) {
+            $where['c.pm_id'] = $condition['pm_id'];
+        }
+
+        if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
+            $where['c.inquiry_time'] = [
+                ['egt', $condition['start_inquiry_time']],
+                ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
+            ];
+        }
+
+        $where['a.deleted_flag'] = 'N';
+        //p($where);
+        return $where;
+    }
+
+    public function getQuoteCount(array $condition)
+    {
+        $where = $this->getQuoteListCondition($condition);
+
+        $count = $this->alias('a')
+            ->join('erui2_rfq.quote b ON a.quote_id = b.id','LEFT')
+            ->join('erui2_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
+            ->field('a.id, c.serial_no, c.country_bn, c.buyer_name, c.agent_id, c.pm_id, c.inquiry_time, c.status, b.period_of_validity')
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->count('a.id');
+
+        return $count > 0 ? $count : 0;
     }
 
     /**
@@ -300,11 +358,10 @@ class QuoteBizLineModel extends PublicModel{
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        return  $this->alias('a')
-            ->join('erui2_rfq.quote b ON a.quote_id = b.id', 'LEFT')
-            ->join('erui2_rfq.inquiry d ON a.inquiry_id = d.id', 'LEFT')
-            //->field('a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
-            ->field('a.id, d.serial_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, d.status, b.period_of_validity')
+        $quoteModel = new QuoteModel();
+        return  $quoteModel->alias('a')
+            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
+            ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
             ->where($where)
             ->page($currentPage, $pageSize)
             ->order('a.id DESC')
@@ -377,10 +434,13 @@ class QuoteBizLineModel extends PublicModel{
 
         $where = $this->getJoinWhere($condition);
 
-        $count = $this->alias('a')
-            ->join($this->joinTable1, 'LEFT')
-            ->join($this->joinTable3, 'LEFT')
+        $quoteModel = new QuoteModel();
+
+        $count = $quoteModel->alias('a')
+            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
+            ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
             ->where($where)
+            ->order('a.id DESC')
             ->count('a.id');
 
         return $count > 0 ? $count : 0;
