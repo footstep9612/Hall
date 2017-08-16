@@ -498,14 +498,25 @@ class GoodsModel extends PublicModel {
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
                     if (!empty($input['sku'])) {             //------编辑
-                        $data['updated_by'] = $userInfo['id'];
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $where = [
                             'lang' => $key,
                             'sku' => trim($input['sku'])
                         ];
-                        $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
-                        $res = $this->where($where)->save($data);
+                        /**
+                         * 修改时根据sku语言查询下，不存在则添加。
+                         */
+                        $exist = $this->field('id')->where($where)->find();
+                        if($exist) {
+                            $data['updated_by'] = $userInfo['id'];
+                            $data['updated_at'] = date('Y-m-d H:i:s', time());
+                            $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                            $res = $this->where($where)->save($data);
+                        }else{
+                            $data['created_by'] = $userInfo['id'];
+                            $data['created_at'] = date('Y-m-d H:i:s', time());
+                            $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                            $res = $this->add($data);
+                        }
                         if (!$res) {
                             $this->rollback();
                             echo __LINE__, PHP_EOL;
@@ -540,7 +551,6 @@ class GoodsModel extends PublicModel {
 
                         if (!$presult) {
                             $this->rollback();
-
                             return false;
                         }
                     }
