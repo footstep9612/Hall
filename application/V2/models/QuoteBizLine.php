@@ -124,14 +124,78 @@ class QuoteBizLineModel extends PublicModel{
      *
      * @return array
      */
-    public function getQuoteList(array $param){
-        $where = $this->filterParam($param);
+    public function getQuoteList(array $condition){
 
-        //$fields = [];
+        $where = $this->getQuoteListCondition($condition);
 
-        //$total = $this->getTotal($where);
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        return $this->where($where)->select();
+        return $this->alias('a')
+            ->join('erui2_rfq.quote b ON a.quote_id = b.id','LEFT')
+            ->join('erui2_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
+            ->field('a.id, c.serial_no, c.country_bn, c.buyer_name, c.agent_id, c.pm_id, c.inquiry_time, c.status, b.period_of_validity')
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
+        //p($data);
+    }
+
+    public function getQuoteListCondition($condition){
+
+        $where = [];
+
+        if(!empty($condition['status'])) {
+            $where['c.status'] = $condition['status'];
+        }
+
+        if(!empty($condition['country_bn'])) {
+            $where['c.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+        }
+
+        if(!empty($condition['inquiry_no'])) {
+            $where['c.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+        }
+
+        if(!empty($condition['buyer_name'])) {
+            $where['c.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
+        }
+
+        if (!empty($condition['agent_id'])) {
+            $where['c.agent_id'] = $condition['agent_id'];
+        }
+
+        if (!empty($condition['pm_id'])) {
+            $where['c.pm_id'] = $condition['pm_id'];
+        }
+
+        if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
+            $where['c.inquiry_time'] = [
+                ['egt', $condition['start_inquiry_time']],
+                ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
+            ];
+        }
+
+        $where['a.deleted_flag'] = 'N';
+        //p($where);
+        return $where;
+    }
+
+    public function getQuoteCount(array $condition)
+    {
+        $where = $this->getQuoteListCondition($condition);
+
+        $count = $this->alias('a')
+            ->join('erui2_rfq.quote b ON a.quote_id = b.id','LEFT')
+            ->join('erui2_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
+            ->field('a.id, c.serial_no, c.country_bn, c.buyer_name, c.agent_id, c.pm_id, c.inquiry_time, c.status, b.period_of_validity')
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->count('a.id');
+
+        return $count > 0 ? $count : 0;
     }
 
     /**
