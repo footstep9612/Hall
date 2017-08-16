@@ -89,18 +89,18 @@ class QuotebizlineController extends PublicController {
             $condition['pm_id'] = $pm['id'];
         }
 
-        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
-
+        $quoteBizlineList = $this->_quoteBizLine->getQuoteList($condition);
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
             $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
         }
 
         if ($quoteBizlineList) {
+            //p($quoteBizlineList);
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
-                'count' => $this->_quoteBizLine->getListCount($condition),
+                'count' => $this->_quoteBizLine->getQuoteCount($condition),
                 'data' => $quoteBizlineList
             ]);
         } else {
