@@ -149,7 +149,7 @@ trait QuoteHelper{
         ===============================*/
         $fields = ['a.id','a.bizline_id','d.name bizline_name','a.sku','b.inquiry_no','b.serial_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
 
-        $data = $quoteItem->alias('a')
+        return $quoteItem->alias('a')
                         ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
                         ->join('erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id','LEFT')
                         ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
@@ -157,7 +157,7 @@ trait QuoteHelper{
                         ->where($where)
                         ->order('a.id DESC')
                         ->select();
-        p($data);
+        //p($data);
     }
 
     /**
@@ -168,11 +168,11 @@ trait QuoteHelper{
     public static function getQuoteTotalCount($where)
     {
         $quoteItem = new QuoteItemModel();
-        $fields = ['a.id','d.name bizline_name','c.sku','b.inquiry_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+        $fields = ['a.id','a.bizline_id','d.name bizline_name','a.sku','b.inquiry_no','b.serial_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
 
         $count = $quoteItem->alias('a')
             ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
-            ->join('erui2_rfq.inquiry_item c ON a.inquiry_id = c.inquiry_id','LEFT')
+            ->join('erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id','LEFT')
             ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
             ->field($fields)
             ->where($where)
