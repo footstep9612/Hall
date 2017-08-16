@@ -201,9 +201,9 @@ class LogisticsController extends PublicController {
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
 	        $quote = $this->quoteModel->getDetail(['id' =>$quoteLogiFee['quote_id']]);
 	        
-	        if ($quoteLogiFee['logi_agent_id'] == '') {
+	       // if ($quoteLogiFee['logi_agent_id'] == '') {
 	            $data['logi_agent_id'] = $this->user['id'];
-	        }
+	        //}
 	        
 	        $data['updated_by'] = $this->user['id'];
 	        $data['updated_at'] = $this->time;
