@@ -17,8 +17,9 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function getSerialNoAction() {
-        $data['serial_no'] = $this->getInquirySerialNo();
-        if(!empty($data)){
+        $serial_no = $this->getInquirySerialNo();
+        return $serial_no;
+        /*if(!empty($data)){
             $this->setCode('1');
             $this->setMessage('成功!');
             $this->jsonReturn($data);
@@ -26,7 +27,7 @@ class InquiryController extends PublicController {
             $this->setCode('-101');
             $this->setMessage('生成流水号错误!');
             $this->jsonReturn();
-        }
+        }*/
     }
 
     /*
@@ -49,7 +50,8 @@ class InquiryController extends PublicController {
     public function getInquiryIdAction() {
         $inquiry = new InquiryModel();
         $data['serial_no'] = $this->getSerialNoAction();
-        $data['serial_no'] = '0';
+        $data['buyer_id'] = '1';
+        $data['country_bn'] = 'test';
         $data['created_by'] = $this->user['id'];
 
         $results = $inquiry->addData($data);
@@ -218,7 +220,7 @@ class InquiryController extends PublicController {
     }
 
     /*
-     * 明细列表
+     * 询单sku列表
      * Author:张玉良
      */
     public function getItemListAction() {
