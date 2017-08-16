@@ -358,6 +358,7 @@ class GoodsModel extends PublicModel {
                     foreach ($goodsAttr as $gAttr) {
                         $goods_attrs[] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
                     }
+                    //扩展商品属性
                     if(isset($ex_attrs[$item['lang']]['ex_goods_attrs']) && !empty($ex_attrs[$item['lang']]['ex_goods_attrs'])) {
                         foreach($ex_attrs[$item['lang']]['ex_goods_attrs'] as $ex_key =>$ex_value){
                             $goods_attrs[] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
@@ -383,6 +384,22 @@ class GoodsModel extends PublicModel {
                         }
                     }
                     $item['hs_attrs'] = $hs_attrs;
+
+                    //规格属性（即前台展示的扩展属性，用作页面显示， 上面的商品扩展与申报要素扩展不做展示用）
+                    $item['spec_attrs'] =[];
+                    if(isset($ex_attrs[$item['lang']]['spec_attrs']) && !empty($ex_attrs[$item['lang']]['spec_attrs'])) {
+                        foreach($ex_attrs[$item['lang']]['spec_attrs'] as $ex_key =>$ex_value){
+                            $item['spec_attrs'][] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                        }
+                    }
+                    //其他属性
+                    $item['other_attrs'] =[];
+                    if(isset($ex_attrs[$item['lang']]['other_attrs']) && !empty($ex_attrs[$item['lang']]['other_attrs'])) {
+                        foreach($ex_attrs[$item['lang']]['other_attrs'] as $ex_key =>$ex_value){
+                            $item['other_attrs'][] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                        }
+                    }
+
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
