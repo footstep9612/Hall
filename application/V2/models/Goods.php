@@ -552,6 +552,8 @@ class GoodsModel extends PublicModel {
                     $attr_obj = array(
                         'lang' => $key,
                         'spu' => isset($checkout['spu']) ? $checkout['spu'] : null,
+                        'spec_attrs' => !empty($attr['spec_attrs']) ? json_encode($attr['spec_attrs']) : null,
+                        'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs']) : null,
                         'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs']) : null,
                         'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs']) : null,
                         'status' => $gattr::STATUS_VALID
@@ -960,14 +962,16 @@ class GoodsModel extends PublicModel {
         $data = array(
             'const_attr'=>array(),
             'ex_goods_attrs'=>array(),
-            'ex_hs_attrs'=>array()
+            'ex_hs_attrs'=>array(),
+            'spec_attrs'=>array(),
+            'other_attrs'=>array()
         );
         if(empty($attrs)) {
             return $data;
         }
 
         foreach($attrs as $key => $value) {
-            if(!in_array($key,array('goods_attrs','hs_attrs','logi_attrs'))) {
+            if(!in_array($key,array('goods_attrs','hs_attrs','logi_attrs','spec_attrs','other_attrs'))) {
                 continue;
             }
             if(!empty($value))  {
@@ -975,7 +979,11 @@ class GoodsModel extends PublicModel {
                     if(isset($attr['flag']) && $attr['flag']=='Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
                         $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
                     }else{
-                        $data['ex_'.$key][$attr['attr_name']] = $attr['attr_value'];
+                        if(in_array($key,array('goods_attrs','hs_attrs'))) {
+                            $data['ex_'.$key][$attr['attr_name']] = $attr['attr_value'];
+                        }else{
+                            $data[$key][$attr['attr_name']] = $attr['attr_value'];
+                        }
                     }
                 }
             } else {
