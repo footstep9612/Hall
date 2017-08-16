@@ -166,8 +166,8 @@ class MaterialcatController extends PublicController {
      *
      */
     public function getlistAction() {
-        $lang = $this->get('lang', 'zh');
-        $cat_no = $this->get('cat_no', '');
+        $lang = $this->getPut('lang', 'zh');
+        $cat_no = $this->getPut('cat_no', '');
         $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
         $data = json_decode(redisGet($key), true);
         if (!$data) {
