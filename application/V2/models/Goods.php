@@ -323,6 +323,20 @@ class GoodsModel extends PublicModel {
                         $pData['spu_name'][$spuName['lang']] = $spuName;
                     }
                 }
+
+                /**
+                 * 获取扩展属性
+                 */
+                $goodsAttrModel = new GoodsAttrModel();
+                $condition_attr = array(
+                    "sku" => $condition['sku'],
+                    "status" => $goodsAttrModel::STATUS_VALID
+                );
+                if (isset($condition['lang']) && in_array($condition['lang'], array('zh', 'en', 'es', 'ru'))) {
+                    $condition_attr['lang'] = strtolower($condition['lang']);
+                }
+                $ex_attrs = $goodsAttrModel->getSkuAttrsInfo($condition_attr);
+
                 //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                 $employee = new EmployeeModel();
                 foreach ($result as $item) {
@@ -340,23 +354,39 @@ class GoodsModel extends PublicModel {
                     }
                     //固定商品属性
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty', 'purchase_price', 'purchase_price_cur_bn', 'nude_cargo_l_mm'];
+                    $goods_attrs = [];
                     foreach ($goodsAttr as $gAttr) {
-                        $item['goods_attrs'][] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'value_unit' => '', 'goods_flag' => true];
+                        $goods_attrs[] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
                     }
+                    if(isset($ex_attrs[$item['lang']]['ex_goods_attrs']) && !empty($ex_attrs[$item['lang']]['ex_goods_attrs'])) {
+                        foreach($ex_attrs[$item['lang']]['ex_goods_attrs'] as $ex_key =>$ex_value){
+                            $goods_attrs[] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                        }
+                    }
+                    $item['goods_attrs'] = $goods_attrs;
                     //固定物流属性
                     $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', ' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
                     foreach ($logiAttr as $lAttr) {
-                        $item['logi_attrs'][] = ['attr_name' => $lAttr, 'attr_value' => $item[$lAttr], 'value_unit' => '', 'logi_flag' => true];
+                        $item['logi_attrs'][] = ['attr_name' => $lAttr, 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
                     }
+
                     //固定申报要素属性
                     $hsAttr = ['name_customs', 'hs_code', 'tx_unit', 'tax_rebates_pct', 'regulatory_conds', 'commodity_ori_place'];
+                    $hs_attrs = [];
                     foreach ($hsAttr as $hAttr) {
-                        $item['hs_attrs'][] = ['attr_name' => $hAttr, 'attr_value' => $item[$hAttr], 'value_unit' => '', 'hs_flag' => true];
+                        $hs_attrs[] = ['attr_name' => $hAttr, 'attr_value' => $item[$hAttr], 'attr_key' => $hAttr, 'flag' => 'Y'];
                     }
+                    //扩展申报要素属性
+                    if(isset($ex_attrs[$item['lang']]['ex_hs_attrs']) && !empty($ex_attrs[$item['lang']]['ex_hs_attrs'])) {
+                        foreach($ex_attrs[$item['lang']]['ex_hs_attrs'] as $ex_key =>$ex_value){
+                            $hs_attrs[] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                        }
+                    }
+                    $item['hs_attrs'] = $hs_attrs;
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
-                $data = array_merge($kData, $pData);
+                $data = array_merge($kData, $pData);    
                 redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
             }
             return $data;
