@@ -247,7 +247,7 @@ class BuyerModel extends PublicModel {
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
             if ($row) {
-                $buyerInfo['attach`'] = $row;
+                $buyerInfo['attach'] = $row;
             }
             return $buyerInfo;
         } else {
@@ -346,7 +346,6 @@ class BuyerModel extends PublicModel {
                     break;
             }
         }
-        $this->where($where)->save($data);
         return $this->where($where)->save($data);
     }
 
