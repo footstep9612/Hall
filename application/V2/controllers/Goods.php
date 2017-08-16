@@ -95,7 +95,11 @@ class GoodsController extends PublicController {
     public function supplierCostInfoAction() {
         $GoodsCostPriceModel = new GoodsCostPriceModel();
         $result = $GoodsCostPriceModel->getInfo($this->put_data);
-        $this->returnInfo($result);
+        if($result === false){
+            jsonReturn('',ErrorMsg::FAILED);
+        }else{
+            jsonReturn($result);
+        }
     }
 
     /**
