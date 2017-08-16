@@ -16,7 +16,7 @@ use Elasticsearch\ClientBuilder;
  */
 class ESClient {
     /* match 模糊查询
-     * 上面的查询匹配就会进行分词，比如"宝马多少马力"会被分词为"宝马 多少 马力", 
+     * 上面的查询匹配就会进行分词，比如"宝马多少马力"会被分词为"宝马 多少 马力",
      * 所有有关"宝马 多少 马力", 那么所有包含这三个词中的一个或多个的文档就会被搜索出来。
      * 并且根据lucene的评分机制(TF/IDF)来进行评分
      */
@@ -61,20 +61,20 @@ class ESClient {
      *         "tag",
      *          "content"
      *           ]
-     *     }  
+     *     }
      *      }
-     * }    
+     * }
      */
     const MULTI_MATCH = 'multi_match';
     /* 完全匹配 match_phrase
      * 完全匹配可能比较严，我们会希望有个可调节因子，
      * 少匹配一个也满足，那就需要使用到slop。
      * 类似
-     * { "query": {    
-     * "match_phrase": {        
-     * "content" : {            
-     * "query" : "我的宝马多少马力",            
-     * "slop" : 1        
+     * { "query": {
+     * "match_phrase": {
+     * "content" : {
+     * "query" : "我的宝马多少马力",
+     * "slop" : 1
      * }}}}
      */
     const MATCH_PHRASE = 'match_phrase';
@@ -145,7 +145,7 @@ class ESClient {
      * createindices
      * 创建索引
      * @access public
-     * @param string $index 索引名称    
+     * @param string $index 索引名称
      * @param mix $body 资源定义
      * @param int $number_of_replicas 从分片数量
      * @since 1.0
@@ -547,9 +547,9 @@ class ESClient {
      *         "tag",
      *          "content"
      *           ]
-     *     }  
+     *     }
      *      }
-     * }    
+     * }
      */
 
     public function setmulti_match($query = '', $type = 'best_fields', $fields = []) {
@@ -576,11 +576,11 @@ class ESClient {
      * 完全匹配可能比较严，我们会希望有个可调节因子，
      * 少匹配一个也满足，那就需要使用到slop。
      * 类似
-     * { "query": {    
-     * "match_phrase": {        
-     * "content" : {            
-     * "query" : "我的宝马多少马力",            
-     * "slop" : 1        
+     * { "query": {
+     * "match_phrase": {
+     * "content" : {
+     * "query" : "我的宝马多少马力",
+     * "slop" : 1
      * }}}}
      */
 
@@ -819,7 +819,7 @@ class ESClient {
     /* 聚合查询 类似group by
      *  @param string $field // 字段属性
      *  @param string $do// 指标(Metrics) terms 总条数, stats 统计 avg 平均 min 最小，mean，max 最大以及sum 合计
-     *   
+     *
      *  @param string $alis // 别名
      */
 
@@ -859,6 +859,7 @@ class ESClient {
             $searchParams['body']['size'] = $size;
         }
         try {
+
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);

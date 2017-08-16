@@ -42,6 +42,7 @@ class EsgoodsController extends PublicController {
         $data = $this->getPut();
         $model = new EsGoodsModel();
         $ret = $model->getgoods($data, null, $lang);
+
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
