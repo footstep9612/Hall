@@ -31,6 +31,20 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * 验证指定参数是否存在
+     * @param array $params 请求参数
+     * @return array 验证后的参数
+     */
+    private function validateRequests(array $params){
+        $request = $this->_requestParams;
+        unset($request['token']);
+        foreach ($params as $param){
+            if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+        return $request;
+    }
+
+    /**
      * @desc 产品线报价列表(项目经理)
      * @author 买买提
      */
@@ -539,41 +553,28 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 报价信息(列表)
-     * @author 买买提
+     * @desc 获取综合报价信息(项目经理)
      */
-    public function quoteListAction(){
+    public function quoteGeneralInfoAction(){
 
-        $request = $this->_requestParams;
-        if (empty($request['inquiry_id'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        $request = $this->validateRequests(['quote_id']);
+
+        $fields = 'q.id,q.total_weight,q.package_volumn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.trans_mode_bn,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
+        $quoteModel = new QuoteModel();
+        $result = $quoteModel->alias('q')
+                             ->join('erui2_rfq.final_quote fq ON q.id = fq.quote_id','LEFT')
+                             ->field($fields)
+                             ->where(['q.id'=>$request['quote_id']])
+                             ->find();
+        if (!$result){
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '成功!',
+            'data' => $result
+        ]);
 
-        $response = QuoteHelper::quoteListHandler($request['inquiry_id'],'QUOTER');
-        if (!$response){
-            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!','data'=>'']);
-        }
-
-       $this->jsonReturn([
-           'code' => '1',
-           'message' => '成功!',
-           'data' => $response
-       ]);
-
-    }
-
-    public function testAction(){
-        QuoteHelper::quoteList($this->_requestParams['inquiry_id']);
-    }
-
-    /**
-     * @desc 产品线报价->询单列表(角色:项目经理)
-     * @author 买买提
-     */
-    public function listAction(){
-        //p($this->getUserInfo()[id]);
-        $filterParams = QuoteBizlineHelper::filterListParams($this->_requestParams,'PM');
-        $this->jsonReturn(QuoteBizlineHelper::getQuotelineInquiryList($filterParams));
     }
 
     /**
