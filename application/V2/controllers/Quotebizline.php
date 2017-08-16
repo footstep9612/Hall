@@ -254,6 +254,35 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * @desc 附件列表
+     * @author 买买提
+     */
+    public function attachListAction() {
+
+        $request = $this->_requestParams;
+        if ( empty($request['quote_id']) ){
+            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+        }
+
+        $quoteAttach = new QuoteAttachModel();
+        $attachList = $quoteAttach->where(['quote_id' => $this->_requestParams['quote_id']])->order('created_at desc')->select();
+
+        if (!$attachList) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => '没有数据',
+                'data' => ''
+            ]);
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'data' => $attachList
+        ]);
+    }
+
+    /**
      * @desc 退回产品线重新报价(项目经理)
      * @author 买买提
      */
@@ -656,30 +685,6 @@ class QuotebizlineController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'data' => $data
-        ]);
-    }
-
-    /**
-     * @desc 附件列表
-     * @author 买买提
-     */
-    public function attachAction() {
-
-        $quoteAttach = new QuoteAttachModel();
-        $attachList = $quoteAttach->where(['quote_id' => $this->_requestParams['quote_id']])->order('created_at desc')->select();
-
-        if (!$attachList) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => '没有数据',
-                'data' => ''
-            ]);
-        }
-
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'data' => $attachList
         ]);
     }
 
