@@ -516,6 +516,15 @@ class GoodsModel extends PublicModel {
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
                             $res = $this->add($data);
+                            if($res) {
+                                $pModel = new ProductModel();                                 //sku_count加一
+                                $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
+                                    ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                                if (!$presult) {
+                                    $this->rollback();
+                                    return false;
+                                }
+                            }
                         }
                         if (!$res) {
                             $this->rollback();
