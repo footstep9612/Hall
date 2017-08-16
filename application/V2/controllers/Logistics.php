@@ -154,17 +154,15 @@ class LogisticsController extends PublicController {
 	
 	    if (!empty($condition['quote_id'])) {
 	        
-    	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinDetail($condition);
+    	    $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
     	    
-    	    foreach ($quoteLogiFeeList as &$quoteLogiFee) {
-    	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
-    	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
-    	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge'] + $quoteLogiFee['inspection_fee'] + $quoteLogiFee['inter_shipping'];
-    	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
-    	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
-    	    }
+	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
+	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
+	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge'] + $quoteLogiFee['inspection_fee'] + $quoteLogiFee['inter_shipping'];
+	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
+	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
     	
-    	    $this->jsonReturn($quoteLogiFeeList);
+    	    $this->jsonReturn($quoteLogiFee);
 	    } else {
 	        $this->jsonReturn(false);
 	    }
