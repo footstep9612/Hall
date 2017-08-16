@@ -495,7 +495,6 @@ class GoodsModel extends PublicModel {
                         'regulatory_conds' => !empty($checkout['regulatory_conds']) ? $checkout['regulatory_conds'] : '',
                         'commodity_ori_place' => !empty($checkout['commodity_ori_place']) ? $checkout['commodity_ori_place'] : '',
                     ];
-
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
                     if (!empty($input['sku'])) {             //------编辑
                         $where = [
@@ -512,23 +511,13 @@ class GoodsModel extends PublicModel {
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
                             $res = $this->where($where)->save($data);
                         }else{
+                            $data['sku'] = trim($input['sku']);
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
                             $res = $this->add($data);
                         }
                         if (!$res) {
-                            $this->rollback();
-                            echo __LINE__, PHP_EOL;
-                            return false;
-                        }
-
-                        $checkout['sku'] = trim($input['sku']);
-                        $checkout['lang'] = $key;
-                        $checkout['updated_by'] = $userInfo['id'];
-                        $gattr = new GoodsAttrModel();
-                        $resAttr = $gattr->editSkuAttr($checkout);        //属性更新
-                        if (!$resAttr || $resAttr['code'] != 1) {
                             $this->rollback();
                             echo __LINE__, PHP_EOL;
                             return false;
@@ -580,7 +569,6 @@ class GoodsModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
-
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
                         $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
