@@ -265,7 +265,7 @@ class InquiryController extends PublicController {
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
 
-        $results = $Item->addDataBatch($data);
+        $results = $Item->addItemData($data);
         $this->jsonReturn($results);
     }
 
