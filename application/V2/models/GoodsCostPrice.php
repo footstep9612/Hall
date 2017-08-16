@@ -81,13 +81,13 @@ class GoodsCostPriceModel extends PublicModel {
                 //存在sku编辑,反之新增,后续扩展性
 
                 if(isset($checkout['id']) && !empty($checkout['id'])) {
-                        $data['updated_by'] = $admin;
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());
-                        $where = [
-                            'sku' => $sku,
-                            'id' => $checkout['id']
-                        ];
-                        $res = $this->where($where)->save($data);
+                    $data['updated_by'] = $admin;
+                    $data['updated_at'] = date('Y-m-d H:i:s', time());
+                    $where = [
+                        'sku' => $sku,
+                        'id' => $checkout['id']
+                    ];
+                    $res = $this->where($where)->save($data);
                     if (!$res) {
                         return false;
                     }
@@ -127,19 +127,13 @@ class GoodsCostPriceModel extends PublicModel {
         }
         $results = array();
         if(empty($sku)) {
-            $results['code'] = '-1';
-            $results['message'] = 'sku缺失';
+            jsonReturn('','-1','[sku]缺失');
         }
         if(empty($data['min_purchase_qty'])) {
-            $results['code'] = '-1';
-            $results['message'] = '[最小购买量]缺失';
+            jsonReturn('','-1','[最小购买量]缺失');
         }
         if(empty($data['supplier_id'])) {
-            $results['code'] = '-1';
-            $results['message'] = '[supplier_id]缺失';
-        }
-        if($results){
-            jsonReturn($results);
+            jsonReturn('','-1','[supplier_id]缺失');
         }
         return $data;
     }
