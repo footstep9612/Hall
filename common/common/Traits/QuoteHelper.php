@@ -160,6 +160,11 @@ trait QuoteHelper{
         //p($data);
     }
 
+    /**
+     * @desc 根据条件获取总数(负责人)
+     * @param $where 条件
+     * @return int 总数
+     */
     public static function getQuoteTotalCount($where)
     {
         $quoteItem = new QuoteItemModel();
@@ -172,6 +177,94 @@ trait QuoteHelper{
             ->field($fields)
             ->where($where)
             ->count('a.id');
+        return $count > 0 ? $count : 0;
+    }
+
+
+    /**
+     * @desc 根据筛选条件获取报价列表(项目经理)
+     * @param array $condition 条件
+     * @return array 结果
+     */
+    public static function getPmQuoteBizlineList(array $condition){
+
+        $where = self::getPmQuoteBizlineListCondition($condition);
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        $quoteModel = new QuoteModel();
+        return  $quoteModel->alias('a')
+            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
+            ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
+
+    }
+
+    /**
+     * @desc 形成报价列表筛选数组(项目经理)
+     * @param array $condition 条件
+     * @return array 匹配后的条件
+     */
+    public static function getPmQuoteBizlineListCondition(array $condition=[]){
+
+        $where = [];
+        //项目状态
+        if(!empty($condition['status'])) {
+            $where['b.status'] = $condition['status'];
+        }
+        //国家
+        if(!empty($condition['country_bn'])) {
+            $where['b.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+        }
+        //流程编码
+        if(!empty($condition['serial_no'])) {
+            $where['b.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+        }
+        //客户名称
+        if(!empty($condition['buyer_name'])) {
+            $where['b.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
+        }
+        //市场经办人
+        if (!empty($condition['agent_id'])) {
+            $where['b.agent_id'] = $condition['agent_id'];
+        }
+        //项目经理
+        if (!empty($condition['pm_id'])) {
+            $where['b.pm_id'] = $condition['pm_id'];
+        }
+        //询价时间
+        if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
+            $where['b.inquiry_time'] = [
+                ['egt', $condition['start_inquiry_time']],
+                ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
+            ];
+        }
+
+        $where['a.deleted_flag'] = 'N';
+
+        return $where;
+    }
+
+    /**
+     * @desc 根据条件获取记录总数
+     * @param array $condition 条件
+     * @return int 总数
+     */
+    public static function getPmQuoteBizlineListCount(array $condition)
+    {
+        $where = self::getPmQuoteBizlineListCondition($condition);
+
+        $quoteModel = new QuoteModel();
+        $count = $quoteModel->alias('a')
+            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
+            ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
+            ->where($where)
+            ->count('a.id');
+
         return $count > 0 ? $count : 0;
     }
 }
