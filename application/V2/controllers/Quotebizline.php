@@ -50,7 +50,8 @@ class QuotebizlineController extends PublicController {
             $condition['pm_id'] = $pm['id'];
         }
 
-        $quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
+        $quoteBizlineList = QuoteHelper::getPmQuoteBizlineList($condition);
+        //$quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
 
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
@@ -61,7 +62,7 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
-                'count' => $this->_quoteBizLine->getListCount($condition),
+                'count' => QuoteHelper::getPmQuoteBizlineListCount($condition),
                 'data' => $quoteBizlineList
             ]);
         } else {
