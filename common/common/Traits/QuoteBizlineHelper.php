@@ -259,6 +259,11 @@ trait QuoteBizlineHelper{
         $inquiryModel = new InquiryModel();
 
         try{
+            $status = $inquiryModel->where(['serial_no'=>$param['serial_no']])->getField('status');
+            if ($status =='QUOTING_BY_BIZLINE'){
+                return ['code'=>'-104','message'=>'不能重复提交!'];
+            }
+
             if ($inquiryModel->where(['serial_no'=>$param['serial_no']])->save(['status'=>'QUOTING_BY_BIZLINE'])){
                 return ['code'=>'1','message'=>'成功!'];
             }else{
