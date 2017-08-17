@@ -24,7 +24,7 @@ class ShowMaterialCatModel extends PublicModel {
 
     /*
      * 获取物料分类
-     * 
+     *
      */
 
     public function getmaterialcatnobyshowcatno($showcatno, $lang = 'en') {
@@ -48,12 +48,14 @@ class ShowMaterialCatModel extends PublicModel {
 
     /*
      * 获取物料分类
-     * 
+     *
      */
 
     public function getshowcatsBymaterialcatno($material_cat_nos, $lang = 'en', $show_cat_nos = []) {
 
         try {
+
+
             if ($material_cat_nos) {
                 $material_cat_nos = array_values($material_cat_nos);
                 $where = ['ms.material_cat_no' => ['in', $material_cat_nos]
@@ -79,7 +81,7 @@ class ShowMaterialCatModel extends PublicModel {
                 return [];
             }
         } catch (Exception $ex) {
-
+            var_dump($ex);
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
             return [];
@@ -88,7 +90,7 @@ class ShowMaterialCatModel extends PublicModel {
 
     /*
      * 获取展示分类编号
-     * 
+     *
      */
 
     public function getshowcatnosBymatcatno($material_cat_no, $lang = 'en') {
@@ -113,7 +115,7 @@ class ShowMaterialCatModel extends PublicModel {
 
     /*
      * 获取物料分类
-     * 
+     *
      */
 
     public function getshowcatsBycatno($show_cat_nos, $lang = 'en') {
@@ -142,12 +144,12 @@ class ShowMaterialCatModel extends PublicModel {
     /*
      * 根据分类编码数组获取物料分类信息
      * @param mix $cat_nos // 物料分类编码数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  规格信息
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getshow_material_cats($cat_nos, $lang = 'en') {
@@ -180,7 +182,6 @@ class ShowMaterialCatModel extends PublicModel {
         return $ret;
     }
 
-
     /**
      * 根据条件查询
      * @author link 2017-08-04
@@ -188,31 +189,31 @@ class ShowMaterialCatModel extends PublicModel {
      * @param string $field
      * @return array|bool
      */
-    public function findByCondition($condition=[], $field=''){
-        if(empty($condition) || !is_array($condition)) {
+    public function findByCondition($condition = [], $field = '') {
+        if (empty($condition) || !is_array($condition)) {
             return false;
         }
 
-        if(is_array($field)) {
-            $field = implode(',' , $field);
-        }elseif(empty($field)){
+        if (is_array($field)) {
+            $field = implode(',', $field);
+        } elseif (empty($field)) {
             $field = 'show_cat_no,material_cat_no,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
         }
 
         /**
          * 取缓存
          */
-        if(redisHashExist('show_material_cat',md5(serialize($condition).serialize($field)))){
-            return json_decode(redisHashGet('show_material_cat',md5(serialize($condition).serialize($field))),true);
+        if (redisHashExist('show_material_cat', md5(serialize($condition) . serialize($field)))) {
+            return json_decode(redisHashGet('show_material_cat', md5(serialize($condition) . serialize($field))), true);
         }
 
-        try{
+        try {
             $result = $this->field($field)->where($condition)->select();
-            if($result){
-                redisHashSet('show_material_cat',md5(serialize($condition).serialize($field)),json_encode($result));
+            if ($result) {
+                redisHashSet('show_material_cat', md5(serialize($condition) . serialize($field)), json_encode($result));
                 return $result;
             }
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
         return array();

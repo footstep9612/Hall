@@ -46,7 +46,7 @@ class EsproductController extends PublicController {
             }
             if (!$this->put_data['show_cat_no']) {
                 $material_cat_nos = [];
-                foreach ($data['aggregations']['meterial_cat_no']['buckets'] as $item) {
+                foreach ($data['aggregations']['material_cat_no']['buckets'] as $item) {
                     $material_cats[$item['key']] = $item['doc_count'];
                     $material_cat_nos[] = $item['key'];
                 }
@@ -56,7 +56,7 @@ class EsproductController extends PublicController {
                 $ret1 = $model->getproducts($condition, null, $this->getLang());
                 if ($ret1) {
                     $material_cat_nos = [];
-                    foreach ($ret1[0]['aggregations']['meterial_cat_no']['buckets'] as $item) {
+                    foreach ($ret1[0]['aggregations']['material_cat_no']['buckets'] as $item) {
                         $material_cats[$item['key']] = $item['doc_count'];
                         $material_cat_nos[] = $item['key'];
                     }
@@ -113,6 +113,7 @@ class EsproductController extends PublicController {
         if (!$catlist) {
             $matshowcatmodel = new ShowMaterialCatModel();
             $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
+
             $new_showcats3 = [];
             foreach ($showcats as $showcat) {
                 $material_cat_no = $showcat['material_cat_no'];
