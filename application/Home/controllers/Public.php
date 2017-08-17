@@ -22,6 +22,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
+        $lang = $this->header('lang', 'en');
+        $this->setLang($lang);
         if ($this->token) {
             $this->_token();
         }
@@ -29,8 +31,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected function _token() {
         $this->put_data = $this->getPut();
-        $lang = $this->header('lang', 'en');
-        $this->setLang($lang);
+
         $token = $this->header('token');
         $model = new BuyerModel();
         if (!empty($token)) {

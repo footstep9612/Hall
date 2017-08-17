@@ -266,11 +266,11 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function getProducts($condition, $_source, $lang = 'en') {
+    public function getProducts($condition, $_source = null, $lang = 'en') {
 
         try {
             $body = $this->getCondition($condition);
-            //echo json_encode($body, 256);
+
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
@@ -292,6 +292,7 @@ class EsProductModel extends Model {
             } else {
                 $es->setaggs('material_cat_no', 'material_cat_no');
             }
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;
         } catch (Exception $ex) {
