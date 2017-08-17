@@ -161,6 +161,8 @@ class LogisticsController extends PublicController {
 	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge'] + $quoteLogiFee['inspection_fee'] + $quoteLogiFee['inter_shipping'];
 	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
 	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
+	        $user = $this->getUserInfo();
+	        $quoteLogiFee['current_name'] = $user['name'];
     	
     	    $this->jsonReturn($quoteLogiFee);
 	    } else {

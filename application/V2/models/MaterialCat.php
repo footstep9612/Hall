@@ -662,7 +662,7 @@ class MaterialCatModel extends PublicModel {
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
         if (!isset($condition['status'])) {
-            $condition['status'] = self::STATUS_APPROVING;
+            $condition['status'] = self::STATUS_VALID;
         }
         switch ($condition['status']) {
             case self::STATUS_DELETED:
@@ -678,7 +678,7 @@ class MaterialCatModel extends PublicModel {
                 $data['status'] = $condition['status'];
                 break;
             default :
-                $data['status'] = self::STATUS_APPROVING;
+                $data['status'] = self::STATUS_VALID;
         }
         if ($condition['sort_order']) {
             $data['sort_order'] = $condition['sort_order'];
