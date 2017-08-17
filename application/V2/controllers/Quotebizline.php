@@ -122,47 +122,6 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 产品线报价列表(产品线负责人)
-     * @author 买买提
-     */
-    public function bizlineManagerListAction()
-    {
-        $condition = $this->validateRequests();
-
-        $user = new EmployeeModel();
-
-        if (!empty($condition['agent_name'])) {
-            $agent = $user->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
-        }
-
-        if (!empty($condition['pm_name'])) {
-            $pm = $user->where(['name' => $condition['pm_name']])->find();
-            $condition['pm_id'] = $pm['id'];
-        }
-
-        $quoteBizlineList = $this->_quoteBizLine->getQuoteList($condition);
-
-        foreach ($quoteBizlineList as &$quoteBizline) {
-            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
-            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
-        }
-
-        if ($quoteBizlineList) {
-            //p($quoteBizlineList);
-            $this->jsonReturn([
-                'code' => '1',
-                'message' => '成功!',
-                'count' => $this->_quoteBizLine->getQuoteCount($condition),
-                'data' => $quoteBizlineList
-            ]);
-        } else {
-            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
-        }
-
-    }
-
-    /**
      * @desc 划分产品线(项目经理)
      * @author 买买提
      */
@@ -177,8 +136,8 @@ class QuotebizlineController extends PublicController {
         //获取询单相关的信息
         $inquiryModel = new InquiryModel();
         $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])
-                                    ->field(['id','agent_id'])
-                                    ->find();
+            ->field(['id','agent_id'])
+            ->find();
         if (!$inquiryInfo){
             $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
         }
@@ -230,15 +189,56 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * 产品线报价->项目经理->转交其他人办理
+     * @desc 产品线报价列表(产品线负责人)
+     * @author 买买提
+     */
+    public function bizlineManagerListAction()
+    {
+        $condition = $this->validateRequests();
+
+        $user = new EmployeeModel();
+
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+
+        if (!empty($condition['pm_name'])) {
+            $pm = $user->where(['name' => $condition['pm_name']])->find();
+            $condition['pm_id'] = $pm['id'];
+        }
+
+        $quoteBizlineList = $this->_quoteBizLine->getQuoteList($condition);
+
+        foreach ($quoteBizlineList as &$quoteBizline) {
+            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
+            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+        }
+
+        if ($quoteBizlineList) {
+            //p($quoteBizlineList);
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => $this->_quoteBizLine->getQuoteCount($condition),
+                'data' => $quoteBizlineList
+            ]);
+        } else {
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+
+    }
+
+    /**
+     * @desc 转交其他人办理(项目经理)
      * 操作说明:转交后，当前人员就不是项目经理了，如果也不是方案中心的人，就不能再查看这个项目了
      */
     public function transmitAction(){
 
-        if (empty($this->_requestParams['serial_no']) || empty($this->_requestParams['ori_pm_id']) || empty($this->_requestParams['pm_id'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $response = QuoteBizlineHelper::transmitHandler($this->_requestParams);
+        $request = $this->validateRequests('id,pm_id');
+
+        $response = QuoteBizlineHelper::transmitHandler($request,$this->user['id']);
+
         $this->jsonReturn($response);
 
     }

@@ -222,31 +222,20 @@ trait QuoteBizlineHelper{
      * @param $param
      * @return mixed
      */
-    static public function transmitHandler(array $param){
+    static public function transmitHandler(array $param,$ori_pm_id){
+
         $inquiry = new InquiryModel();
-        try{
-            $result = $inquiry->where(['serial_no'=>$param['serial_no']])
-                              ->save([
-                                  'pm_id'=>$param['pm_id'],//现项目经理
-                                  'ori_pm_id'=>$param['ori_pm_id']//原项目经理
-                              ]);
-            if ($result){
-                return [
-                    'code' => '1',
-                    'message' => '转交成功!'
-                ];
-            }else{
-                return [
-                    'code' => '-104',
-                    'message' => '转交失败!'
-                ];
-            }
-        }catch (Exception $exception){
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
+
+        $result = $inquiry->where(['id'=>$param['id']])->save([
+            'pm_id'=>$param['pm_id'],//现项目经理
+            'ori_pm_id'=>$ori_pm_id//原项目经理
+        ]);
+
+        if (!$result){
+            return ['code' => '-104','message' => '转交失败!'];
         }
+
+        return ['code' => '1','message' => '转交成功!'];
     }
 
     /**
