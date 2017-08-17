@@ -431,7 +431,7 @@ class EsProductModel extends Model {
     public function getMinimumOrderQuantity($spus, $lang = 'en') {
         try {
             $minimumorderquantutys = $this->table('erui2_goods.goods')
-                            ->field('spu,min(min_order_qty) as value ,min(exw_day) as min_exw_day,max(exw_day) as max_exw_day')
+                            ->field('spu,min(min_order_qty) as value ,min(exw_days) as min_exw_day,max(exw_days) as max_exw_day')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang])
                             ->group('spu')->select();
             $ret = [];
