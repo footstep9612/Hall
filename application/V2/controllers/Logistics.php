@@ -16,6 +16,7 @@ class LogisticsController extends PublicController {
 		$this->exchangeRateModel = new ExchangeRateModel();
 		$this->userModel = new UserModel();
 		$this->inquiryCheckLogModel = new InquiryCheckLogModel();
+		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -131,16 +132,8 @@ class LogisticsController extends PublicController {
 	        $quoteLogiFee['agent_name'] = $userAgent['name'];
 	        $quoteLogiFee['pm_name'] = $userPm['name'];
 	    }
-	    
-	    if ($quoteLogiFeeList) {
-	        $res['code'] = 1;
-	        $res['message'] = '成功!';
-	        $res['data'] = $quoteLogiFeeList;
-	        $res['count'] = $this->quoteLogiFeeModel->getListCount($condition);
-	        $this->jsonReturn($res);
-	    } else {
-	        $this->jsonReturn(false);
-	    }
+	    	    
+	    $this->_handleList($this->quoteLogiFeeModel, $quoteLogiFeeList, $condition, true);
 	}
 	
 	/**
@@ -351,6 +344,87 @@ class LogisticsController extends PublicController {
 	                $res = false;
 	            }
 	        }
+	
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 获取物流报价件重尺列表接口
+	 * 
+	 * @author liujf
+	 * @time 2017-08-17
+	 */
+	public function getQuoteLogiQwvListAction() {
+	    $condition = $this->put_data;
+	     
+	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	     
+	    $data = $this->quoteLogiQwvModel->getList($condition);
+	    
+	    $this->handleList($this->quoteLogiQwvModel, $data, $condition);
+	}
+	
+	/**
+	 * @desc 新增物流报价件重尺记录接口
+	 * 
+	 * @author liujf
+	 * @time 2017-08-17
+	 */
+	public function addQuoteLogiQwvRecordAction() {
+	    $condition = $this->put_data;
+	    
+	   $condition['volumn'] = $condition['length'] * $condition['width'] * $condition['height'];
+	   
+	   $condition['volumn'] = $condition['volumn'] > 0 ? $condition['volumn'] : 0;
+	
+	    $condition['created_by'] = $this->user['id'];
+	    $condition['created_at'] = $this->time;
+	    $condition['updated_by'] = $this->user['id'];
+	    $condition['updated_at'] = $this->time;
+	     
+	    $res = $this->quoteLogiQwvModel->addRecord($condition);
+	     
+	    $this->jsonReturn($res);
+	}
+	
+	/**
+	 * @desc 修改物流报价件重尺信息接口
+	 * 
+     * @author liujf
+	 * @time 2017-08-17
+	 */
+	public function updateQuoteLogiQwvInfoAction() {
+	    $condition = $this->put_data;
+	     
+	    if (!empty($condition['r_id'])) {
+	        $where['id'] = $condition['r_id'];
+	        unset($condition['r_id']);
+	        
+	        $condition['updated_by'] = $this->user['id'];
+	        $condition['updated_at'] = $this->time;
+	        
+	        $res = $this->quoteLogiQwvModel->updateInfo($where, $condition);
+	
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 删除物流报价件重尺记录接口
+	 * 
+	 * @author liujf
+	 * @time 2017-08-17
+	 */
+	public function delQuoteLogiQwvRecordAction() {
+	    $condition = $this->put_data;
+	     
+	    if (!empty($condition['r_id'])) {
+	        $res = $this->quoteLogiQwvModel->delRecord($condition);
 	
 	        $this->jsonReturn($res);
 	    } else {
