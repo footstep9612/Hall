@@ -517,7 +517,7 @@ class EsProductModel extends Model {
                     $es = new ESClient();
 
                     $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
-                    $exws = $this->getexwbyspus($spus, $lang);
+
                     foreach ($products as $key => $item) {
                         $spu = $id = $item['spu'];
                         $this->_findnulltoempty($item);
