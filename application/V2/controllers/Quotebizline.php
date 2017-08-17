@@ -32,16 +32,27 @@ class QuotebizlineController extends PublicController {
 
     /**
      * 验证指定参数是否存在
-     * @param array $params 请求参数
-     * @return array 验证后的参数
+     * @param string $params 初始的请求字段
+     * @return array 验证后的请求字段
      */
-    private function validateRequests(array $params){
+    private function validateRequests($params=''){
+
         $request = $this->_requestParams;
         unset($request['token']);
-        foreach ($params as $param){
-            if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+
+        //判断筛选字段为空的情况
+        if ($params){
+
+            $params = explode(',',$params);
+
+            foreach ($params as $param){
+                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+            }
+
         }
+
         return $request;
+
     }
 
     /**
@@ -50,7 +61,7 @@ class QuotebizlineController extends PublicController {
      */
     public function bizlineListAction(){
 
-        $condition = $this->_requestParams;
+        $condition = $this->validateRequests();
 
         $user = new EmployeeModel();
 
@@ -125,8 +136,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 报价单sku列表
-     * @author 买买提
+     * @desc 报价单sku列表(项目经理)
      */
     public function quoteSkuListAction(){
 
@@ -394,6 +404,28 @@ class QuotebizlineController extends PublicController {
         }else{
             $this->jsonReturn(['code'=>'-104','message'=>'提交失败!']);
         }
+    }
+
+    /**
+     * @desc 报价sku列表(产品线负责人sku列表)
+     */
+    public function managerQuoteSkuListAction(){
+
+        $request = $this->validateRequests('quote_id');
+
+        $list = QuoteHelper::getManagerQuoteSkuList($request);
+
+        if (!$list){
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!','data'=>'']);
+        }
+
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '成功!',
+            'count' => QuoteHelper::getManagerQuoteSkuListCount($condition),
+            'data' => $list
+        ]);
+
     }
 
     /**
