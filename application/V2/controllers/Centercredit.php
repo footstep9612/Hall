@@ -122,7 +122,12 @@ class CentercreditController extends PublicController {
     public function getApprovelInfoAction() {
         $BuyerCreditLogModel = new BuyerCreditLogModel();
         $result = $BuyerCreditLogModel->getInfo($this->put_data);
-        $this->returnInfo($result);
+        if($result === false) {
+            jsonReturn('',ErrorMsg::FAILED);
+        }else{
+            jsonReturn($result);
+        }
+        //$this->returnInfo($result);
     }
 
     /**
