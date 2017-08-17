@@ -1,0 +1,333 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of UserController
+ *
+ * @author jhw
+ */
+class DictController extends PublicController {
+
+    public function init() {
+        $this->token = false;
+        parent::init();
+    }
+
+    public function CountryListAction() {
+        $data = $this->getPut();
+
+        $limit = [];
+        $where = [];
+        if (!empty($data['bn'])) {
+            $where['bn'] = $data['bn'];
+        }
+        if (!empty($data['name'])) {
+            $where['name'] = $data['name'];
+        }
+        if (!empty($data['status'])) {
+            $where['status'] = $data['status'];
+        } else {
+            $where['status'] = 'VALID';
+        }
+        if (!empty($data['time_zone'])) {
+            $where['time_zone'] = $data['time_zone'];
+        }
+        if (!empty($data['region_bn'])) {
+            $where['region_bn'] = $data['region_bn'];
+        }
+        if (!empty($data['page'])) {
+            $limit['page'] = $data['page'];
+        }
+        if (!empty($data['countPerPage'])) {
+            $limit['num'] = $data['countPerPage'];
+        }
+        $lang = '';
+        if (!empty($data['lang'])) {
+            $lang = $data['lang'];
+        }
+        $model_group = new CountryModel();
+        if (empty($where) && empty($limit)) {
+            if (!$lang) {
+                $lang = 'zh';
+            }
+            $where['lang'] = $lang;
+            if (redisHashExist('CountryList', $lang)) {
+                $arr = json_decode(redisHashGet('CountryList', $lang), true);
+            } else {
+                $model_group = new CountryModel();
+                $arr = $model_group->getlist($where, $limit, 'bn asc'); //($this->put_data);
+                if ($arr) {
+                    redisHashSet('CountryList', $lang, json_encode($arr));
+                }
+            }
+        } else {
+            if (!empty($data['lang'])) {
+                $where['lang'] = $data['lang'];
+            }
+            $model_group = new CountryModel();
+            $arr = $model_group->getlist($where, $limit, 'bn asc'); //($this->put_data);
+        }
+        if (!empty($arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        } else {
+            $datajson['code'] = -103;
+            $datajson['message'] = '数据为空!';
+        }
+
+        jsonReturn($datajson);
+    }
+
+    public function TradeTermsListAction() {
+        $data = $this->getPut();
+        $limit = [];
+        $where = [];
+        if (!empty($data['page'])) {
+            $limit['page'] = $data['page'];
+        }
+        if (!empty($data['countPerPage'])) {
+            $limit['num'] = $data['countPerPage'];
+        }
+        $lang = '';
+        if (!empty($data['lang'])) {
+            $lang = $data['lang'];
+        }
+
+        $trade_terms = new TradeTermsModel();
+        if (empty($where) && empty($limit)) {
+            if (!$lang) {
+                $lang = 'zh';
+            }
+
+            $where['lang'] = $lang;
+            if (redisHashExist('TradeTermsList', $lang)) {
+                $arr = json_decode(redisHashGet('TradeTermsList', $lang), true);
+            } else {
+                $arr = $trade_terms->getlist($where, $limit); //($this->put_data);
+
+                if ($arr) {
+                    redisHashSet('TradeTermsList', $lang, json_encode($arr));
+                }
+            }
+        } else {
+            if (!empty($data['lang'])) {
+                $where['lang'] = $data['lang'];
+            }
+            $arr = $trade_terms->getlist($where, $limit); //($this->put_data);
+        }
+        if (!empty($arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        } else {
+            $datajson['code'] = -103;
+            $datajson['message'] = '数据为空!';
+        }
+
+        jsonReturn($datajson);
+    }
+
+    public function TransModeListAction() {
+        $data = $this->getPut();
+        $limit = [];
+        $where = [];
+        if (!empty($data['page'])) {
+            $limit['page'] = $data['page'];
+        }
+        if (!empty($data['countPerPage'])) {
+            $limit['num'] = $data['countPerPage'];
+        }
+        $lang = '';
+        if (!empty($data['lang'])) {
+            $lang = $data['lang'];
+        }
+
+        $trade_mode = new TransModeModel();
+        if (empty($where) && empty($limit)) {
+            if (!$lang) {
+                $lang = 'zh';
+            }
+
+            $where['lang'] = $lang;
+            if (redisHashExist('TransModeList', $lang)) {
+                $arr = json_decode(redisHashGet('TransModeList', $lang), true);
+            } else {
+                $arr = $trade_mode->getlist($where, $limit); //($this->put_data);
+
+                if ($arr) {
+                    redisHashSet('TransModeList', $lang, json_encode($arr));
+                }
+            }
+        } else {
+            if (!empty($data['lang'])) {
+                $where['lang'] = $data['lang'];
+            }
+            $arr = $trade_mode->getlist($where, $limit); //($this->put_data);
+        }
+        if (!empty($arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        } else {
+            $datajson['code'] = -103;
+            $datajson['message'] = '数据为空!';
+        }
+
+        jsonReturn($datajson);
+    }
+
+    public function marketAreaListAction() {
+        $data = $this->getPut();
+        $limit = [];
+        $where = [];
+        if (!empty($data['page'])) {
+            $limit['page'] = $data['page'];
+        }
+        if (!empty($data['countPerPage'])) {
+            $limit['num'] = $data['countPerPage'];
+        }
+        $lang = '';
+        if (!empty($data['lang'])) {
+            $lang = $data['lang'];
+        }
+
+        $market_area = new MarketAreaModel();
+        if (empty($where) && empty($limit)) {
+            if (!$lang) {
+                $lang = 'zh';
+            }
+
+            $where['lang'] = $lang;
+            if (redisHashExist('MarketAreaist', $lang)) {
+                $arr = json_decode(redisHashGet('MarketAreaist', $lang), true);
+            } else {
+                $arr = $market_area->getlist($where, $limit); //($this->put_data);
+
+                if ($arr) {
+                    redisHashSet('MarketAreaist', $lang, json_encode($arr));
+                }
+            }
+        } else {
+            if (!empty($data['lang'])) {
+                $where['lang'] = $data['lang'];
+            }
+            $arr = $market_area->getlist($where, $limit); //($this->put_data);
+        }
+        if (!empty($arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        } else {
+            $datajson['code'] = -103;
+            $datajson['message'] = '数据为空!';
+        }
+        jsonReturn($datajson);
+    }
+
+    public function marketAreaCountryListAction() {
+        $data = $this->getPut();
+        $limit = [];
+        $where = [];
+        if (!empty($data['page'])) {
+            $limit['page'] = $data['page'];
+        }
+        if (!empty($data['countPerPage'])) {
+            $limit['num'] = $data['countPerPage'];
+        }
+        $market_area_country = new MarketAreaCountryModel();
+        if (empty($where) && empty($limit)) {
+            if (redisExist('marketAreaCountryList')) {
+                $arr = json_decode(redisGet('marketAreaCountryList'), true);
+            } else {
+                $arr = $market_area_country->getlist($where, $limit); //($this->put_data);
+                if ($arr) {
+                    redisSet('marketAreaCountryList', json_encode($arr));
+                    //var_dump(redisGet('marketAreaCountryList'));
+                }
+            }
+        } else {
+            if (!empty($data['lang'])) {
+                $where['lang'] = $data['lang'];
+            }
+            $arr = $market_area_country->getlist($where, $limit); //($this->put_data);
+        }
+        if (!empty($arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        } else {
+            $datajson['code'] = -103;
+            $datajson['message'] = '数据为空!';
+        }
+        jsonReturn($datajson);
+    }
+
+    public function createAction() {
+        $this->_token();
+        $data = $this->getPut();
+        if (empty($data)) {
+            $datajson['code'] = -101;
+            $datajson['message'] = '数据不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        $model_group = new GroupModel();
+        $id = $model_group->create_data($data);
+        if (!empty($id)) {
+            $datajson['code'] = 1;
+            $datajson['data']['id'] = $id;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '添加失败!';
+        }
+        jsonReturn($datajson);
+    }
+
+    public function updateAction() {
+        $this->_token();
+        $data = $this->getPut();
+        if (empty($data)) {
+            $datajson['code'] = -101;
+            $datajson['message'] = '数据不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        if (empty($data['id'])) {
+            $datajson['code'] = -101;
+            $datajson['message'] = '缺少主键!';
+            $this->jsonReturn($datajson);
+        } else {
+            $where['id'] = $data['id'];
+        }
+        $model_group = new GroupModel();
+        $id = $model_group->update_data($data, $where);
+        if ($id > 0) {
+            $datajson['code'] = 1;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['message'] = '修改失败!';
+        }
+        jsonReturn($datajson);
+    }
+
+    public function deleteAction() {
+        $this->_token();
+        $data = $this->getPut();
+        $id = $data['id'];
+        if (empty($id)) {
+            $datajson['code'] = -101;
+            $datajson['message'] = 'id不可以都为空!';
+            $this->jsonReturn($datajson);
+        }
+        $model_group = new GroupModel();
+        $re = $model_group->delete_data($id);
+        if ($re > 0) {
+            $datajson['code'] = 1;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
+        }
+        jsonReturn($datajson);
+    }
+
+}
