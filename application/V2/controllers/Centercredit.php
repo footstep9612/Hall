@@ -106,7 +106,12 @@ class CentercreditController extends PublicController {
     public function getBuyerBankInfoAction() {
         $buyerModel = new BuyerBankInfoModel();
         $result = $buyerModel->getBuyerBankInfo($this->put_data);
-        $this->returnInfo($result);
+        if($result === false) {
+            jsonReturn('',ErrorMsg::FAILED);
+        }else{
+            jsonReturn($result);
+        }
+        //$this->returnInfo($result);
     }
 
     /**
