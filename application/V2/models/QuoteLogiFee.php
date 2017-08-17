@@ -12,8 +12,8 @@ class QuoteLogiFeeModel extends PublicModel {
     protected $joinTable1 = 'erui2_rfq.quote b ON a.quote_id = b.id';
     protected $joinTable2 = 'erui2_sys.employee c ON a.updated_by = c.id';
     protected $joinTable3 = 'erui2_rfq.inquiry d ON a.inquiry_id = d.id';
-    protected $joinField = 'a.*, b.serial_no, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.box_type_bn, b.quote_remarks, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name';
-    protected $joinField_ = 'a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, b.period_of_validity';
+    protected $joinField = 'a.*, d.serial_no, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.box_type_bn, b.quote_remarks, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name';
+    protected $joinField_ = 'a.*, d.serial_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, b.period_of_validity';
 			    
     public function __construct() {
         parent::__construct();
@@ -43,8 +43,8 @@ class QuoteLogiFeeModel extends PublicModel {
             $where['d.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
         }
         
-        if(!empty($condition['inquiry_no'])) {
-            $where['d.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+        if(!empty($condition['serial_no'])) {
+            $where['d.serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];
         }
         
         if(!empty($condition['buyer_name'])) {
@@ -107,6 +107,7 @@ class QuoteLogiFeeModel extends PublicModel {
          
         $count = $this->alias('a')
                                 ->join($this->joinTable1, 'LEFT')
+                                ->join($this->joinTable2, 'LEFT')
                                 ->join($this->joinTable3, 'LEFT')
                                 ->where($where)
                                 ->count('a.id');
@@ -131,6 +132,7 @@ class QuoteLogiFeeModel extends PublicModel {
     
         return $this->alias('a')
                             ->join($this->joinTable1, 'LEFT')
+                            ->join($this->joinTable2, 'LEFT')
                             ->join($this->joinTable3, 'LEFT')
                             ->field($this->joinField_)
                             ->where($where)
