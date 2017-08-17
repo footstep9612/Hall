@@ -128,16 +128,16 @@ trait QuoteHelper{
         return $inquiry;
     }
 
-    public static function getQuoteList($where){
+    public static function getQuoteList($condition){
 
-        $quoteItem = new QuoteItemModel();
+        $where['inq.id'] = $condition['id'];
 
-        $fields = ['a.id','a.bizline_id','d.name bizline_name','a.sku','b.inquiry_no','b.serial_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+        $quoteItem = new InquiryItemModel();
 
-        return $quoteItem->alias('a')
-                        ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
-                        ->join('erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id','LEFT')
-                        ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
+        $fields = ['a.id','a.sku','inq.inquiry_no','inq.serial_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
+
+        return  $quoteItem->alias('a')
+                        ->join('erui2_rfq.inquiry inq ON a.inquiry_id = inq.id','LEFT')
                         ->field($fields)
                         ->where($where)
                         ->order('a.id DESC')
@@ -224,19 +224,22 @@ trait QuoteHelper{
      * @param $where 条件
      * @return int 总数
      */
-    public static function getQuoteTotalCount($where)
-    {
-        $quoteItem = new QuoteItemModel();
-        $fields = ['a.id','a.bizline_id','d.name bizline_name','a.sku','b.inquiry_no','b.serial_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+    public static function getQuoteTotalCount($condition){
 
-        $count = $quoteItem->alias('a')
-            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
-            ->join('erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id','LEFT')
-            ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
+        $where['inq.id'] = $condition['id'];
+
+        $quoteItem = new InquiryItemModel();
+
+        $fields = ['a.id','a.sku','inq.inquiry_no','inq.serial_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
+
+        return  $quoteItem->alias('a')
+            ->join('erui2_rfq.inquiry inq ON a.inquiry_id = inq.id','LEFT')
             ->field($fields)
             ->where($where)
             ->count('a.id');
+
         return $count > 0 ? $count : 0;
+
     }
 
 

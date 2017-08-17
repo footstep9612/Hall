@@ -96,12 +96,38 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * @desc 报价单sku列表(项目经理)
+     */
+    public function quoteSkuListAction(){
+
+        $request = $this->validateRequests('id');
+
+        $quoteSkuList = QuoteHelper::getQuoteList($request);
+
+        if ($quoteSkuList){
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => QuoteHelper::getQuoteTotalCount($request),
+                'data' => $quoteSkuList
+            ]);
+        }else{
+            $this->jsonReturn([
+                'code' => '-104',
+                'message' => '没有数据!',
+                'data' => ''
+            ]);
+        }
+
+    }
+
+    /**
      * @desc 产品线报价列表(产品线负责人)
      * @author 买买提
      */
     public function bizlineManagerListAction()
     {
-        $condition = $this->_requestParams;
+        $condition = $this->validateRequests();
 
         $user = new EmployeeModel();
 
@@ -116,6 +142,7 @@ class QuotebizlineController extends PublicController {
         }
 
         $quoteBizlineList = $this->_quoteBizLine->getQuoteList($condition);
+
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
             $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
@@ -131,36 +158,6 @@ class QuotebizlineController extends PublicController {
             ]);
         } else {
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
-        }
-
-    }
-
-    /**
-     * @desc 报价单sku列表(项目经理)
-     */
-    public function quoteSkuListAction(){
-
-        $request = $this->_requestParams;
-        if (empty($request['quote_id'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
-        }
-
-        $where = ['quote_id'=>$request['quote_id']];
-        $quoteSkuList = QuoteHelper::getQuoteList($where);
-
-        if ($quoteSkuList){
-            $this->jsonReturn([
-                'code' => '1',
-                'message' => '成功!',
-                'count' => QuoteHelper::getQuoteTotalCount($where),
-                'data' => $quoteSkuList
-            ]);
-        }else{
-            $this->jsonReturn([
-                'code' => '-104',
-                'message' => '没有数据!',
-                'data' => ''
-            ]);
         }
 
     }
