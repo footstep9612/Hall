@@ -69,7 +69,11 @@ class GoodsController extends PublicController {
     public function skuAttachsInfoAction() {
         $goodsModel = new GoodsAttachModel();
         $result = $goodsModel->getSkuAttachsInfo($this->put_data);
-        $this->returnInfo($result);
+        if($result === false) {
+            jsonReturn('',ErrorMsg::FAILED);
+        } else {
+            jsonReturn($result);
+        }
     }
 
     /**
