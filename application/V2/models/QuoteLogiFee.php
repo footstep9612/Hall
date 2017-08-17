@@ -87,6 +87,7 @@ class QuoteLogiFeeModel extends PublicModel {
         $count = $this->alias('a')
                                  ->join($this->joinTable1, 'LEFT')
                                  ->join($this->joinTable2, 'LEFT')
+                                 ->join($this->joinTable3, 'LEFT')
                                  ->where($where)
                                  ->count('a.id');
          
@@ -156,6 +157,7 @@ class QuoteLogiFeeModel extends PublicModel {
         return $this->alias('a')
                             ->join($this->joinTable1, 'LEFT')
                             ->join($this->joinTable2, 'LEFT')
+                            ->join($this->joinTable3, 'LEFT')
                             ->field($this->joinField)
                             ->where($where)
                             ->find();
