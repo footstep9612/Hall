@@ -50,7 +50,7 @@ class BuyerCreditLogModel extends PublicModel{
             }
             return array();
         } catch(Exception $e){
-            return array();
+            return false;
         }
     }
 
