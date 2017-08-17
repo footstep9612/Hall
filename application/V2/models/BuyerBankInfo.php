@@ -22,7 +22,9 @@ class BuyerBankInfoModel extends PublicModel{
     {
 //        $info = getLoinInfo();
         $where=array();
-        if(!empty($userInfo['id'])){
+        if(isset($userInfo['buyer_id'])) {
+            $where['buyer_id'] = $userInfo['buyer_id'];
+        }elseif (!empty($userInfo['id'])){
             $where['buyer_id'] = $userInfo['id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');

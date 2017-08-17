@@ -154,9 +154,17 @@ class LogisticsController extends PublicController {
 	
 	    if (!empty($condition['quote_id'])) {
 	        
-    	    $res = $this->quoteLogiFeeModel->getJoinDetail($condition);
+    	    $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
+    	    
+	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
+	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
+	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge'] + $quoteLogiFee['inspection_fee'] + $quoteLogiFee['inter_shipping'];
+	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
+	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
+	        $user = $this->getUserInfo();
+	        $quoteLogiFee['current_name'] = $user['name'];
     	
-    	    $this->jsonReturn($res);
+    	    $this->jsonReturn($quoteLogiFee);
 	    } else {
 	        $this->jsonReturn(false);
 	    }
@@ -195,9 +203,9 @@ class LogisticsController extends PublicController {
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
 	        $quote = $this->quoteModel->getDetail(['id' =>$quoteLogiFee['quote_id']]);
 	        
-	        if ($quoteLogiFee['logi_agent_id'] == '') {
+	       // if ($quoteLogiFee['logi_agent_id'] == '') {
 	            $data['logi_agent_id'] = $this->user['id'];
-	        }
+	        //}
 	        
 	        $data['updated_by'] = $this->user['id'];
 	        $data['updated_at'] = $this->time;
@@ -300,32 +308,48 @@ class LogisticsController extends PublicController {
 	        $data['shipping_charge_ncny'] = round($totalFeeUSD, 4);
 	        
 	        $this->quoteLogiFeeModel->startTrans();
-	        $this->quoteModel->startTrans();
 	        
 	        $res1 = $this->quoteLogiFeeModel->updateInfo(['quote_id' => $condition['quote_id']], $data);
 	        
-	        $quoteData = [
-	            'from_port' => $condition['from_port'],
-	            'to_port' => $condition['to_port'],
-	            'trans_mode_bn' => $condition['trans_mode_bn'],
-	            'box_type_bn' => $condition['box_type_bn'],
-	            'quote_remarks' => $condition['quote_remarks'],
-	            'total_logi_fee' => $data['shipping_charge_ncny'],
-	            'total_quote_price' => round($totalQuotePrice, 4),
-	            'total_bank_fee' => round($totalBankFeeUSD, 4),
-	            'total_insu_fee' => round($totalInsuFeeUSD, 4)
-	        ];
+	        $quoteData = [];
 	        
-	        $res2 = $this->quoteModel->updateQuote(['quote_no' => $quote['quote_no']], $quoteData);
+	        if ($quote['from_port'] != $condition['from_port']) $quoteData['from_port'] = $condition['from_port'];
+	        if ($quote['to_port'] != $condition['to_port']) $quoteData['to_port'] = $condition['to_port'];
+	        if ($quote['trans_mode_bn'] != $condition['trans_mode_bn']) $quoteData['trans_mode_bn'] = $condition['trans_mode_bn'];
+	        if ($quote['box_type_bn'] != $condition['box_type_bn']) $quoteData['box_type_bn'] = $condition['box_type_bn'];
+	        if ($quote['quote_remarks'] != $condition['quote_remarks']) $quoteData['quote_remarks'] = $condition['quote_remarks'];
 	        
-	        if ($res1 && $res2) {
-	            $this->quoteLogiFeeModel->commit();
-	            $this->quoteModel->commit();
-	            $res = true;
+	        $tmpTotalQuotePrice = round($totalQuotePrice, 4);
+	        $tmpTotalBankFeeUSD = round($totalBankFeeUSD, 4);
+	        $tmpTotalInsuFeeUSD = round($totalInsuFeeUSD, 4);
+	        
+	        if ($tmpTotalQuotePrice != $quote['total_quote_price']) $quoteData['total_quote_price'] = $tmpTotalQuotePrice;
+	        if ($tmpTotalBankFeeUSD != $quote['total_bank_fee']) $quoteData['total_bank_fee'] = $tmpTotalBankFeeUSD;
+	        if ($tmpTotalInsuFeeUSD != $quote['total_insu_fee']) $quoteData['total_insu_fee'] = $tmpTotalInsuFeeUSD;
+	        
+	        if ($quoteData) {
+	            $this->quoteModel->startTrans();
+	            $res2 = $this->quoteModel->updateQuote(['quote_no' => $quote['quote_no']], $quoteData);
+	        }
+	        
+	        if (isset($res2)) {
+	            if ($res1 && $res2) {
+	                $this->quoteLogiFeeModel->commit();
+	                $this->quoteModel->commit();
+	                $res = true;
+	            } else {
+	                $this->quoteLogiFeeModel->rollback();
+	                $this->quoteModel->rollback();
+	                $res = false;
+	            }
 	        } else {
-	            $this->quoteLogiFeeModel->rollback();
-	            $this->quoteModel->rollback();
-	            $res = false;
+	            if ($res1) {
+	                $this->quoteLogiFeeModel->commit();
+	                $res = true;
+	            } else {
+	                $this->quoteLogiFeeModel->rollback();
+	                $res = false;
+	            }
 	        }
 	
 	        $this->jsonReturn($res);

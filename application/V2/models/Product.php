@@ -67,7 +67,7 @@ class ProductModel extends PublicModel {
         //展示名称
         if (isset($input['show_name'])) {
             $data['show_name'] = htmlspecialchars($input['show_name']);
-        } elseif ($type == 'INSERT') {
+        } else {
             $data['show_name'] = '';
         }
 
@@ -172,15 +172,6 @@ class ProductModel extends PublicModel {
             $data['supply_ability'] = '';
         }
 
-        $userInfo = getLoinInfo(); //获取当前用户信息
-        if ($type == 'INSERT') {
-            $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
-            $data['created_at'] = date('Y-m-d H:i:s', time());
-        } else {
-            $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
-            $data['updated_at'] = date('Y-m-d H:i:s', time());
-        }
-
         return $data;
     }
 
@@ -193,9 +184,10 @@ class ProductModel extends PublicModel {
             return false;
         }
 
-        $spu = isset($input['spu']) ? trim($input['spu']) : '';
+        $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu(); //不存在生产spu
         $this->startTrans();
         try {
+            $userInfo = getLoinInfo(); //获取当前用户信息
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
                     $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
@@ -205,7 +197,7 @@ class ProductModel extends PublicModel {
                     }
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT','TEST','CHECKING'))) ? strtoupper($input['status']) : 'CHECKING';
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT','TEST','CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
@@ -215,7 +207,7 @@ class ProductModel extends PublicModel {
                             'name' => $data['name'],
                             'status' => array('neq','DRAFT')
                         );
-                        if ($spu) {
+                        if (isset($input['spu'])) {
                             $exist_condition['spu'] = array('neq', $spu);
                         }
                         $exist = $this->where($exist_condition)->find();
@@ -224,27 +216,29 @@ class ProductModel extends PublicModel {
                         }
                     }
                     $data['status'] = $input['status'];
-                    if (!isset($input['spu'])) { //不存在添加
-                        $spu_tmp = $spu ? $spu : $this->createSpu(); //不存在生产spu
-                        $data['spu'] = $spu_tmp;
-                        $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
-                        if ($this->add($data)) {
-                            $spu = $spu_tmp;
-                        } else {
+
+                    $exist_check = $this->field('id')->where(array('spu'=>$spu,'lang'=>$key))->find();
+                    if($exist_check) {    //修改
+                        $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+                        $data['updated_at'] = date('Y-m-d H:i:s', time());
+                        $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
+                        if (!$result) {
                             $this->rollback();
                             return false;
                         }
-                    } else {    //修改
+                    } else {    //添加
+                        $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
                         $data['spu'] = $spu;
-                        if ($this->where(array('spu' => $spu, 'lang' => $key))->save($data)) {
-                            $spu = $spu;
-                        } else {
+                        $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
+                        $data['created_at'] = date('Y-m-d H:i:s', time());
+                        $result = $this->add($data);
+                        if (!$result) {
                             $this->rollback();
                             return false;
                         }
                     }
                 } elseif ($key == 'attachs') {
-                    if ($item && $spu) {
+                    if ($item) {
                         if (!isset($input['spu'])) {
                             if (!$this->checkAttachImage($item)) {
                                 jsonReturn('', '1000', '产品图不能为空');
@@ -276,7 +270,7 @@ class ProductModel extends PublicModel {
                     continue;
                 }
             }
-            $spu ? $this->commit() : $this->rollback();
+            $this->commit();
             if ($spu) {
                 $langs = ['en', 'zh', 'es', 'ru'];
                 foreach ($langs as $lang) {
@@ -286,6 +280,7 @@ class ProductModel extends PublicModel {
             }
             return $spu;
         } catch (Exception $e) {
+            p($e);die;
             $this->rollback();
         }
     }
@@ -592,26 +587,23 @@ class ProductModel extends PublicModel {
         if (empty($param) || empty($field)) {
             return array();
         }
-        foreach ($param as $k => $v) {
-            if (isset($field[$k])) {
-                $item = $field[$k];
-                switch ($item[0]) {
-                    case 'required':
-                        if ($v == '' || empty($v)) {
-                            jsonReturn('', '1000', 'Param ' . $k . ' Not null !');
-                        }
-                        break;
-                    case 'method':
-                        if (!method_exists($item[1])) {
-                            jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
-                        }
-                        if (!call_user_func($item[1], $v)) {
-                            jsonReturn('', '1000', 'Param ' . $k . ' Validate failed !');
-                        }
-                        break;
-                }
+        foreach($field as $k=>$item){
+            switch ($item[0]) {
+                case 'required':
+                    if ($param[$k] == '' || empty($param[$k])) {
+                        jsonReturn('', '1000', 'Param ' . $k . ' Not null !');
+                    }
+                    break;
+                case 'method':
+                    if (!method_exists($item[1])) {
+                        jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
+                    }
+                    if (!call_user_func($item[1], $param[$k])) {
+                        jsonReturn('', '1000', 'Param ' . $k . ' Validate failed !');
+                    }
+                    break;
             }
-            $param[$k] = htmlspecialchars(trim($v));
+            $param[$k] = htmlspecialchars(trim($param[$k]));
             continue;
         }
         return $param;

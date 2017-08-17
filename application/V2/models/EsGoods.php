@@ -188,18 +188,18 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'skus', 'sku');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'name', 'name.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'real_name', 'name.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'supplier_name', 'suppliers.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
@@ -220,11 +220,11 @@ class EsGoodsModel extends Model {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
             if ($onshelf_flag === 'N') {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"N"']],
+                            [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"N"*']],
                             [ESClient::TERM => ['show_cats.all' => '[]']],
                 ]]];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '"onshelf_flag":"Y"']];
+                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"Y"*']];
             }
         }
         $employee_model = new EmployeeModel();
@@ -250,7 +250,7 @@ class EsGoodsModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
         $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik',
-            'specs.ik', 'spu', 'sku', 'source.ik', 'brand.ik']);
+            'specs.ik', 'spu', 'sku', 'source.ik', 'brand.ik', 'name.ik']);
         return $body;
     }
 

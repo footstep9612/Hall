@@ -90,7 +90,7 @@ class EsproductController extends PublicController {
                 $list[$key]['img'] = null;
             }
             $list[$key]['id'] = $item['_id'];
-            $show_cats = json_decode($item["_source"]["show_cats"], true);
+            //$show_cats = json_decode($item["_source"]["show_cats"], true);
             if ($show_cats) {
                 rsort($show_cats);
             }
@@ -103,10 +103,10 @@ class EsproductController extends PublicController {
             if ($product['checked_by']) {
                 $user_ids[] = $product['checked_by'];
             }
-            $list[$key]['show_cats'] = $show_cats;
+            //   $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
         }

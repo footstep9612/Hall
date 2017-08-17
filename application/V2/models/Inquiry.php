@@ -168,6 +168,7 @@ class InquiryModel extends PublicModel {
 
         try {
             $id = $this->add($data);
+            $data['id'] = $id;
             if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
@@ -231,12 +232,12 @@ class InquiryModel extends PublicModel {
             return false;
         }
         if(!empty($condition['status'])){
-            $status['status'] = $condition['status'];
+            $data['status'] = $condition['status'];
         }
         $data['updated_at'] = $this->getTime();
 
         try {
-            $id = $this->where($where)->save($status);
+            $id = $this->where($where)->save($data);
             if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
