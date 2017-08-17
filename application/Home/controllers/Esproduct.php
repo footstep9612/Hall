@@ -28,7 +28,6 @@ class EsproductController extends PublicController {
     public function listAction() {
         $model = new EsProductModel();
         $ret = $model->getproducts($this->put_data, null, $this->getLang());
-
         if ($ret) {
             $data = $ret[0];
             $list = $this->getdata($data);
@@ -111,7 +110,7 @@ class EsproductController extends PublicController {
         $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang = ' . $this->getLang() . http_build_query($condition));
         $catlist = json_decode(redisGet($catno_key), true);
         if (!$catlist) {
-            $matshowcatmodel = new ShowMaterialCat();
+            $matshowcatmodel = new ShowMaterialCatModel();
             $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
             $new_showcats3 = [];
             foreach ($showcats as $showcat) {
