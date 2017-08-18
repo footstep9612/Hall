@@ -103,7 +103,11 @@ class UserController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $role_user_modle =new RoleUserModel();
-        $user_id = $data['user_id'];
+        if(isset($data['user_id'])){
+            $user_id = $data['user_id'];
+        }else{
+            $user_id=$this->user['id'];
+        }
         $data =$role_user_modle->userRoleList($user_id,0);
         $count = count($data);
         $childrencount=0;
