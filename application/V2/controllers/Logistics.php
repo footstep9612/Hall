@@ -364,7 +364,7 @@ class LogisticsController extends PublicController {
 	     
 	    $data = $this->quoteLogiQwvModel->getList($condition);
 	    
-	    $this->handleList($this->quoteLogiQwvModel, $data, $condition);
+	    $this->_handleList($this->quoteLogiQwvModel, $data, $condition);
 	}
 	
 	/**
