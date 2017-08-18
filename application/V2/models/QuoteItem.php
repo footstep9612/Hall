@@ -27,8 +27,8 @@ class QuoteItemModel extends PublicModel {
 			$where['id'] = $condition['id'];
 		}
     	
-    	if (!empty($condition['quote_no'])) {
-            $where['quote_no'] = $condition['quote_no'];
+    	if (!empty($condition['quote_id'])) {
+            $where['quote_id'] = $condition['quote_id'];
         }
     	
     	return $where;
@@ -43,8 +43,8 @@ class QuoteItemModel extends PublicModel {
      public function getJoinWhere($condition) {
      	$where = array();
      	
-     	if(!empty($condition['quote_no'])) {
-    		$where['a.quote_no'] = $condition['quote_no'];
+     	if(!empty($condition['quote_id'])) {
+    		$where['a.quote_id'] = $condition['quote_id'];
     	}
     	
     	return $where;
@@ -93,11 +93,13 @@ class QuoteItemModel extends PublicModel {
     public function getItemList($condition) {
     	$where = $this->getWhere($condition);
     	
-    	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-    		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
-    	} else {
-    		return $this->where($where)->page(1, 10)->select();
-    	}
+    	//$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+    	//$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+    	
+    	return $this->where($where)
+                        	//->page($currentPage, $pageSize)
+                        	->order('id DESC')
+                        	->select();
     }
     
 	/**
@@ -110,22 +112,16 @@ class QuoteItemModel extends PublicModel {
     	
     	$where = $this->getJoinWhere($condition);
     	
-    	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-    		
-    		return $this->alias('a')
-	    				 ->join($this->joinFinal, 'LEFT')
-	    				 ->field($this->fieldJoin)
-	    				 ->where($where)
-	    				 ->page($condition['currentPage'], $condition['pageSize'])
-	    				 ->select();
-    	} else {
-    		return $this->alias('a')
-    					->join($this->joinFinal, 'LEFT')
-    					->field($this->fieldJoin)
-    					->where($where)
-    					->page(1, 10)
-    					->select();
-    	}
+    	//$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+    	//$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+    	
+    	return $this->alias('a')
+                        	->join($this->joinFinal, 'LEFT')
+                        	->field($this->fieldJoin)
+                        	->where($where)
+                        	//->page($currentPage, $pageSize)
+                        	->order('a.id DESC')
+                        	->select();
     }
 
 	/**
