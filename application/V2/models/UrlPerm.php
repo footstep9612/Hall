@@ -95,8 +95,8 @@ class UrlPermModel extends PublicModel {
         if(isset($data['fn'])){
             $arr['fn'] = $data['fn'];
         }
-        if(isset($create['sort'])){
-            $arr['sort'] = $create['sort'];
+        if(isset($data['sort'])){
+            $arr['sort'] = $data['sort'];
         }
         if(isset($data['parent_id'])){
             $arr['parent_id'] = $data['parent_id'];
