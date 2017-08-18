@@ -179,155 +179,104 @@ class DictController extends PublicController {
         jsonReturn($datajson);
     }
 
-    public function marketAreaListAction() {
+    /**
+     * 获取国家对应营销区域
+     * @author klp
+     */
+    public function getMarketAreaAction() {
         $data = $this->getPut();
-        $limit = [];
-        $where = [];
-        if (!empty($data['page'])) {
-            $limit['page'] = $data['page'];
-        }
-        if (!empty($data['countPerPage'])) {
-            $limit['num'] = $data['countPerPage'];
-        }
-        $lang = '';
-        if (!empty($data['lang'])) {
-            $lang = $data['lang'];
-        }
-
-        $market_area = new MarketAreaModel();
-        if (empty($where) && empty($limit)) {
-            if (!$lang) {
-                $lang = 'zh';
-            }
-
-            $where['lang'] = $lang;
-            if (redisHashExist('MarketAreaist', $lang)) {
-                $arr = json_decode(redisHashGet('MarketAreaist', $lang), true);
-            } else {
-                $arr = $market_area->getlist($where, $limit); //($this->put_data);
-
-                if ($arr) {
-                    redisHashSet('MarketAreaist', $lang, json_encode($arr));
-                }
-            }
+        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        if (!empty($data['name'])) {
+            $country = ucwords($data['name']);
         } else {
-            if (!empty($data['lang'])) {
-                $where['lang'] = $data['lang'];
-            }
-            $arr = $market_area->getlist($where, $limit); //($this->put_data);
+            jsonReturn('', '-1001', '参数[name]不能为空');
         }
-        if (!empty($arr)) {
-            $datajson['code'] = 1;
-            $datajson['data'] = $arr;
+        $countryModel = new CountryModel();
+        $result = $countryModel->getMarketArea($country, $lang);
+        if ($result) {
+            $data = array(
+                'code' => '1',
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         } else {
-            $datajson['code'] = -103;
-            $datajson['message'] = '数据为空!';
+            jsonReturn('', '-1002', '数据获取失败');
         }
-        jsonReturn($datajson);
+        exit;
     }
 
-    public function marketAreaCountryListAction() {
-        $data = $this->getPut();
-        $limit = [];
-        $where = [];
-        if (!empty($data['page'])) {
-            $limit['page'] = $data['page'];
-        }
-        if (!empty($data['countPerPage'])) {
-            $limit['num'] = $data['countPerPage'];
-        }
-        $market_area_country = new MarketAreaCountryModel();
-        if (empty($where) && empty($limit)) {
-            if (redisExist('marketAreaCountryList')) {
-                $arr = json_decode(redisGet('marketAreaCountryList'), true);
-            } else {
-                $arr = $market_area_country->getlist($where, $limit); //($this->put_data);
-                if ($arr) {
-                    redisSet('marketAreaCountryList', json_encode($arr));
-                    //var_dump(redisGet('marketAreaCountryList'));
-                }
-            }
-        } else {
-            if (!empty($data['lang'])) {
-                $where['lang'] = $data['lang'];
-            }
-            $arr = $market_area_country->getlist($where, $limit); //($this->put_data);
-        }
-        if (!empty($arr)) {
-            $datajson['code'] = 1;
-            $datajson['data'] = $arr;
-        } else {
-            $datajson['code'] = -103;
-            $datajson['message'] = '数据为空!';
-        }
-        jsonReturn($datajson);
+    /**
+     * 港口
+     */
+    public function portlistAction() {
+        $lang = isset($this->input['lang']) ? $this->input['lang'] : 'en';
+        //国家简称(bn)
+        $country = isset($this->input['country']) ? $this->input['country'] : '';
+        $portModel = new PortModel();
+        $port = $portModel->getPort($lang, $country);
+        jsonReturn(array('data' => $port));
     }
 
-    public function createAction() {
-        $this->_token();
-        $data = $this->getPut();
-        if (empty($data)) {
-            $datajson['code'] = -101;
-            $datajson['message'] = '数据不可为空!';
-            $this->jsonReturn($datajson);
-        }
-        $model_group = new GroupModel();
-        $id = $model_group->create_data($data);
-        if (!empty($id)) {
-            $datajson['code'] = 1;
-            $datajson['data']['id'] = $id;
-        } else {
-            $datajson['code'] = -104;
-            $datajson['data'] = $data;
-            $datajson['message'] = '添加失败!';
-        }
-        jsonReturn($datajson);
+    /**
+     * 货币
+     */
+    public function currencylistAction() {
+        $curModel = new CurrencyModel();
+        $currency = $curModel->getCurrency();
+        jsonReturn(array('data' => $currency));
     }
 
-    public function updateAction() {
-        $this->_token();
-        $data = $this->getPut();
-        if (empty($data)) {
-            $datajson['code'] = -101;
-            $datajson['message'] = '数据不可为空!';
-            $this->jsonReturn($datajson);
-        }
-        if (empty($data['id'])) {
-            $datajson['code'] = -101;
-            $datajson['message'] = '缺少主键!';
-            $this->jsonReturn($datajson);
-        } else {
-            $where['id'] = $data['id'];
-        }
-        $model_group = new GroupModel();
-        $id = $model_group->update_data($data, $where);
-        if ($id > 0) {
-            $datajson['code'] = 1;
-        } else {
-            $datajson['code'] = -104;
-            $datajson['message'] = '修改失败!';
-        }
-        jsonReturn($datajson);
+    /**
+     * 支付方式列表
+     */
+    public function paymentmodelistAction() {
+        $lang = isset($this->input['lang']) ? $this->input['lang'] : '';
+        $pModel = new PaymentmodeModel();
+        $payment = $pModel->getPaymentmode($lang);
+        jsonReturn(array('data' => $payment));
     }
 
-    public function deleteAction() {
-        $this->_token();
-        $data = $this->getPut();
-        $id = $data['id'];
-        if (empty($id)) {
-            $datajson['code'] = -101;
-            $datajson['message'] = 'id不可以都为空!';
-            $this->jsonReturn($datajson);
-        }
-        $model_group = new GroupModel();
-        $re = $model_group->delete_data($id);
-        if ($re > 0) {
-            $datajson['code'] = 1;
+    /**
+     * 根据IP自动获取国家(新浪接口)
+     * @author klp
+     */
+    public function getCounryAction() {
+        $IpModel = new CountryModel();
+
+        $ip = get_client_ip();
+        $iplocation = new IpLocation();
+        if ($ip != 'Unknown') {
+            $country = $iplocation->getlocation($ip);
+
+            $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
         } else {
-            $datajson['code'] = -104;
-            $datajson['message'] = '数据为空!';
+            $send = 'China';
         }
-        jsonReturn($datajson);
+        $this->setCode(1);
+        $this->jsonReturn($send);
+    }
+
+    /**
+     * 国家地区列表,按首字母分组排序
+     * @author klp
+     */
+    public function listCountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+        $countryModel = new CountryModel();
+        $result = $countryModel->getInfoSort($lang);
+        if (!empty($result)) {
+            $data = array(
+                'code' => '1',
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1002', '数据获取失败');
+        }
+        exit;
     }
 
 }

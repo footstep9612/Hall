@@ -14,8 +14,9 @@
 class MarketAreaCountryModel extends PublicModel {
 
     //put your code here
-    protected $dbName='erui_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'market_area_country';
+
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -26,20 +27,19 @@ class MarketAreaCountryModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='id desc') {
-        if(!empty($limit)){
+    public function getlist($data, $limit, $order = 'id desc') {
+        if (!empty($limit)) {
             return $this->field('market_area_bn,country_bn,id')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
-        }else{
+        } else {
             return $this->field('market_area_bn,country_bn,id')
-                ->where($data)
-                ->order($order)
-                ->select();
+                            ->where($data)
+                            ->order($order)
+                            ->select();
         }
-
     }
 
     /**
@@ -50,12 +50,12 @@ class MarketAreaCountryModel extends PublicModel {
      */
     public function detail($id = '') {
         $where['id'] = $id;
-        if(!empty($where['id'])){
+        if (!empty($where['id'])) {
             $row = $this->where($where)
-                ->field('id,lang,bn,name,time_zone,region')
-                ->find();
+                    ->field('id,lang,bn,name,time_zone,region')
+                    ->find();
             return $row;
-        }else{
+        } else {
             return false;
         }
     }
@@ -68,10 +68,10 @@ class MarketAreaCountryModel extends PublicModel {
      */
     public function delete_data($id = '') {
         $where['id'] = $id;
-        if(!empty($where['id'])){
+        if (!empty($where['id'])) {
             return $this->where($where)
-                ->save(['status' => 'DELETED']);
-        }else{
+                            ->save(['status' => 'DELETED']);
+        } else {
             return false;
         }
     }
@@ -82,51 +82,49 @@ class MarketAreaCountryModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($data,$where) {
-        if(isset($data['lang'])){
+    public function update_data($data, $where) {
+        if (isset($data['lang'])) {
             $arr['lang'] = $data['lang'];
         }
-        if(isset($data['bn'])){
+        if (isset($data['bn'])) {
             $arr['bn'] = $data['bn'];
         }
-        if(isset($data['name'])){
+        if (isset($data['name'])) {
             $arr['name'] = $data['name'];
         }
-        if(isset($data['time_zone'])){
+        if (isset($data['time_zone'])) {
             $arr['time_zone'] = $data['time_zone'];
         }
-        if(isset($data['region'])){
+        if (isset($data['region'])) {
             $arr['region'] = $data['region'];
         }
-        if(!empty($where)){
+        if (!empty($where)) {
             return $this->where($where)->save($arr);
-        }else{
+        } else {
             return false;
         }
     }
 
-
-
     /**
      * 新增数据
-     * @param  mix $createcondition 新增条件
+     * @param  mix $create 新增条件
      * @return bool
      * @author jhw
      */
-    public function create_data($create= []) {
-        if(isset($create['lang'])){
+    public function create_data($create = []) {
+        if (isset($create['lang'])) {
             $arr['lang'] = $create['lang'];
         }
-        if(isset($create['bn'])){
+        if (isset($create['bn'])) {
             $arr['bn'] = $create['bn'];
         }
-        if(isset($create['name'])){
+        if (isset($create['name'])) {
             $arr['name'] = $create['name'];
         }
-        if(isset($create['time_zone'])){
+        if (isset($create['time_zone'])) {
             $arr['time_zone'] = $create['time_zone'];
         }
-        if(isset($create['region'])){
+        if (isset($create['region'])) {
             $arr['region'] = $create['region'];
         }
         $data = $this->create($arr);

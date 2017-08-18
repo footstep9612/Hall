@@ -112,7 +112,7 @@ class BuyerModel extends PublicModel {
      * @author zyg
      */
     public function Exist($data) {
-        $sql = 'SELECT `id`,`serial_no`,`customer_id`,`lang`,`name`,`bn`,`profile`,`country`,`province`,`city`,`reg_date`,';
+        $sql = 'SELECT `id`,`serial_no`,`buyer_no`,`lang`,`name`,`bn`,`profile`,`country`,`province`,`city`,`reg_date`,';
         $sql .= '`logo`,`official_website`,`brand`,`bank_name`,`swift_code`,`bank_address`,`bank_account`,`buyer_level`,`credit_level`,';
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`status`,`remarks`,`apply_at`,`approved_at`';
         $sql .= ' FROM ' . $this->g_table;
@@ -134,11 +134,11 @@ class BuyerModel extends PublicModel {
                 $where .= " where id = '" . $data['id'] . "'";
             }
         }
-        if (!empty($data['customer_id'])) {
+        if (!empty($data['buyer_no'])) {
             if ($where) {
-                $where .= " and customer_id = '" . $data['customer_id'] . "'";
+                $where .= " and buyer_no = '" . $data['buyer_no'] . "'";
             } else {
-                $where .= " where customer_id = '" . $data['customer_id'] . "'";
+                $where .= " where buyer_no = '" . $data['buyer_no'] . "'";
             }
         }
         if ($where) {
@@ -355,8 +355,8 @@ class BuyerModel extends PublicModel {
      */
     public function getService($info, $token) {
         $where = array();
-        if (!empty($token['customer_id'])) {
-            $where['customer_id'] = $token['customer_id'];
+        if (!empty($token['buyer_no'])) {
+            $where['buyer_no'] = $token['buyer_no'];
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
@@ -426,7 +426,7 @@ class BuyerModel extends PublicModel {
                     'remarks' => isset($checkout['remarks']) ? $checkout['remarks'] : '',
                     'recommend_flag' => isset($checkout['recommend_flag']) ? strtoupper($checkout['recommend_flag']) : 'N'
                 ];
-                //判断是新增还是编辑,如果有customer_id就是编辑,反之为新增
+                //判断是新增还是编辑,如果有buyer_no就是编辑,反之为新增
                 $result = $this->field('id')->where(['id' => $token['id']])->find();
                 if ($result) {
                     $result = $this->where(['id' => $token['id']])->save($data);
@@ -598,6 +598,57 @@ class BuyerModel extends PublicModel {
             if ($userids) {
                 $where[$filed] = ['in', $userids];
             }
+        }
+    }
+
+    /**
+     * 个人信息查询
+     * @param  $data 条件
+     * @return
+     * @author klp
+     */
+    public function getInfo($data) {
+        $where = array();
+        if (empty($data['buyer_no'])) {
+            if (!empty($data['id'])) {
+                $where['id'] = $data['id'];
+            } else {
+                jsonReturn('', '-1001', '用户email不可以为空');
+            }
+            $buyerInfo = $this->where("email='" . $data['email'] . "'")
+                    ->field('buyer_no,lang,name,bn,country_bn,province,city,official_website,buyer_level')
+                    ->find();
+        } else {
+            $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
+                    ->field('buyer_no,lang,name,bn,country_bn,province,city,official_website,buyer_level')
+                    ->find();
+        }
+        if ($buyerInfo) {
+            //通过顾客id查询用户信息
+            $buyerAccount = new BuyerAccountModel();
+            $userInfo = $buyerAccount->field('email,user_name,mobile,first_name,last_name,status')
+                    ->where(array('buyer_no' => $buyerInfo['buyer_no']))
+                    ->find();
+
+
+            //通过顾客id查询用户邮编
+            $buyerAddress = new BuyerAddressModel();
+            $zipCode = $buyerAddress->field('zipcode,address')
+                    ->where(array('buyer_no' => $buyerInfo['buyer_no']))
+                    ->find();
+
+            $buyerInfo['email'] = $userInfo['email'];
+            $buyerInfo['user_name'] = $userInfo['user_name'];
+            $buyerInfo['mobile'] = $userInfo['mobile'];
+            $buyerInfo['first_name'] = $userInfo['first_name'];
+            $buyerInfo['last_name'] = $userInfo['last_name'];
+            $buyerInfo['status'] = $userInfo['status'];
+            $buyerInfo['zipcode'] = $zipCode['zipcode'];
+            $buyerInfo['address'] = $zipCode['address'];
+
+            return $buyerInfo;
+        } else {
+            return false;
         }
     }
 
