@@ -64,14 +64,11 @@ class TransBoxTypeModel extends PublicModel {
         $this->_getValue($data, $condition, 'trans_mode_bn'); //贸易术语简称
         if (isset($condition['keyword']) && $condition['keyword']) {
             $map = [];
-
             $this->_getValue($map, $condition, 'keyword', 'like', 'bt.box_type_name');
             $this->_getValue($map, $condition, 'keyword', 'like', 'tm.trans_mode');
             $map['_logic'] = 'or';
             $data['_complex'] = $map;
         }
-
-
         return $data;
     }
 
