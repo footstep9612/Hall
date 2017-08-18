@@ -15,6 +15,7 @@ class ShowcatController extends PublicController {
 
     public function treeAction() {
         ini_set('memory_limit', '800M');
+        set_time_limit(360);
         $lang = $this->getPut('lang', 'zh');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
@@ -31,12 +32,12 @@ class ShowcatController extends PublicController {
                 foreach ($arr as $key => $val) {
                     $children_data = $jsondata;
                     $children_data['level_no'] = 2;
-                    $children_data['parent_catno'] = $val['value'];
+                    $children_data['parent_cat_no'] = $val['value'];
                     $arr[$key]['children'] = $this->_model->tree($children_data);
                     if ($arr[$key]['children']) {
                         foreach ($arr[$key]['children'] as $k => $item) {
                             $children_data['level_no'] = 3;
-                            $children_data['parent_catno'] = $item['value'];
+                            $children_data['parent_cat_no'] = $item['value'];
                             $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
                         }
                     }
