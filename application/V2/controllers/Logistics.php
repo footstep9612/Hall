@@ -145,7 +145,7 @@ class LogisticsController extends PublicController {
 	public function getQuoteLogiFeeDetailAction() {
 	    $condition = $this->put_data;
 	
-	    if (!empty($condition['quote_id'])) {
+	    if (!empty($condition['quote_id']) || !empty($condition['inquiry_id']) ) {
 	        
     	    $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
     	    
