@@ -335,13 +335,13 @@ class BuyerModel extends PublicModel {
         }
         if ($create['status']) {
             switch ($create['status']) {
-                case self::APPROVED:
+                case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];
                     break;
-                case self::REJECTED:
+                case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
-                case self::APPROVING:
+                case self::STATUS_REJECTED:
                     $data['status'] = $create['status'];
                     break;
             }

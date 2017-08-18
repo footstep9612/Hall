@@ -162,18 +162,47 @@ class ShowcatController extends PublicController {
         $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
         $market_area_bn = $this->get('market_area_bn', '') ?: $this->getPut('market_area_bn', '');
 
-        if (!$data) {
-            $arr = $this->_model->geshow_material_catlist($market_area_bn, $country_bn, $show_material_catno, $lang);
-            if ($arr) {
+        $arr = $this->_model->get_list($market_area_bn, $country_bn, $show_material_catno, $lang);
+        if ($arr) {
 
-                $this->setCode(MSG::MSG_SUCCESS);
-                $this->jsonReturn($arr);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+
+        $this->jsonReturn($data);
+    }
+
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                if ($val['created_by']) {
+                    $userids[] = $val['created_by'];
+                }
+                if ($val['updated_by']) {
+                    $userids[] = $val['updated_by'];
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+
+                if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                    $val['updated_by_name'] = $usernames[$val['updated_by']];
+                } else {
+                    $val['updated_by_name'] = '';
+                }
+                $arr[$key] = $val;
             }
         }
-        $this->jsonReturn($data);
     }
 
     /**
@@ -189,39 +218,28 @@ class ShowcatController extends PublicController {
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
             $result = $this->_model->info($cat_no, $lang);
-
+            $arr = [$result];
+            $this->_setUserName($arr);
             if ($result) {
-                if (!$data) {
-                    $data = $result;
+                if (!$data['cat_no']) {
+
+                    $data = array_merge($data, $result);
                     $data['name'] = $data['id'] = null;
                     unset($data['name'], $data['id']);
                 }
                 $data[$lang]['name'] = $result['name'];
+            } else {
+                $data[$lang]['name'] = '';
             }
         }
 
 
         if ($data) {
-            list($top_cats, $parent_cats) = $this->_getparentcats($data);
+            list($parent1, $parent2) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->setvalue('top_cats', $top_cats);
-            $this->setvalue('parent_cats', $parent_cats);
-            if ($data['level_no'] == 3) {
-                $show_material_catnos = $this->_model->Table('erui2_goods.show_material_cat')
-                        ->where(['show_cat_no' => $cat_no])
-                        ->field('material_cat_no')
-                        ->select();
-                $mcashow_material_catnos = [];
-                foreach ($show_material_catnos as $mcashow_material_catno) {
-                    $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
-                }
-
-                $es_producshow_material_catmodel = new EsProductModel();
-                $material_cats = $es_producshow_material_catmodel->getmaterial_cats($mcashow_material_catnos, 'zh');
-            } else {
-                $material_cats = null;
-            }
-            $this->setvalue('material_cats', $material_cats);
+            $this->setvalue('parent1', $parent1);
+            $this->setvalue('parent2', $parent2);
+            $this->_getmaterials($data);
             $this->jsonReturn($data);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -231,41 +249,59 @@ class ShowcatController extends PublicController {
         exit;
     }
 
-    private function _getparentcats($data) {
-        $parenshow_material_catcats = $top_cats = null;
-        if ($data['level_no'] == 3) {
-            $result = $this->_model->info($data['parent_cat_no'], 'zh');
-            $parenshow_material_catcats = $this->_model->getlist($result['market_area_bn'], $result['country_bn'], $result['parent_catno'], 'zh');
-            $top_cats = $this->_model->getlist($result['market_area_bn'], $result['country_bn'], '', 'zh');
+    /**
+     * 获取详情的父类和顶级分类数据
+     * @param array $data 详情数据
+     * @return null
+     * @author zyg
+     *
+     */
+    private function _getmaterials(&$data) {
 
-            foreach ($parenshow_material_catcats as $key => $item) {
-                if ($item['cat_no'] == $result['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $parenshow_material_catcats[$key] = $item;
+        if ($data['level_no'] == 3) {
+            $show_material_catnos = $this->_model->Table('erui2_goods.show_material_cat')
+                    ->where(['show_cat_no' => $data['cat_no']])
+                    ->field('material_cat_no')
+                    ->select();
+            $mcashow_material_catnos = [];
+            foreach ($show_material_catnos as $mcashow_material_catno) {
+                $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
             }
-            foreach ($top_cats as $key => $item) {
-                if ($item['cat_no'] == $result['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $top_cats[$key] = $item;
-            }
-        } elseif ($data['level_no'] == 2) {
-            $top_cats = $this->_model->getlist($data['parent_cat_no'], 'zh');
-            foreach ($top_cats as $key => $item) {
-                if ($item['cat_no'] == $data['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $top_cats[$key] = $item;
-            }
+            $material_cat_model = new MaterialCatModel();
+            $material_cats = $material_cat_model->getmaterial_cats($mcashow_material_catnos, 'zh');
+            $this->setvalue('count', 0);
+            $this->setvalue('material_cats', $material_cats);
+        } else {
+            $material_cats = null;
+
+            $count = $this->_model->getCount(['parent_cat_no' => $data['cat_no'],
+                'level_no' => ($data['level_no'] + 1),
+                'lang' => 'zh']); //下级分类数量
+
+            $this->setvalue('count', intval($count));
+            $this->setvalue('material_cats', $material_cats);
         }
-        return [$top_cats, $parenshow_material_catcats];
+    }
+
+    /**
+     * 获取详情的父类和顶级分类数据
+     * @param array $data 详情数据
+     * @return null
+     * @author zyg
+     *
+     */
+    private function _getparentcats($data) {
+        $parent2 = $parent1 = null;
+
+        if ($data['level_no'] == 3) {
+            $parent2 = $this->_model->info($data['parent_cat_no'], 'zh');
+            $parent1 = $this->_model->info($parent2['parent_cat_no'], 'zh');
+        } elseif ($data['level_no'] == 2) {
+            $parent1 = $this->_model->info($data['parent_cat_no'], 'zh');
+
+            $parent2 = null;
+        }
+        return [$parent1, $parent2];
     }
 
     private function delcache() {
