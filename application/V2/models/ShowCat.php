@@ -229,6 +229,7 @@ class ShowCatModel extends PublicModel {
                     //  ->field('id,user_id,name,email,mobile,status')
                     ->count('id');
             redisHashSet($this->tableName, $redis_key, $count);
+            return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
             return false;
@@ -313,11 +314,19 @@ class ShowCatModel extends PublicModel {
         if ($lang) {
             $where['lang'] = $lang;
         }
-        return $this->where($where)
-                        ->field('id, cat_no, parent_cat_no, level_no, lang, name, status, '
-                                . 'sort_order, created_at, created_by, big_icon, middle_icon, '
-                                . 'small_icon, market_area_bn, country_bn')
-                        ->find();
+        $redis_key = md5(json_encode($where)) . '_INFO';
+
+
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return json_decode(redisHashGet($this->tableName, $redis_key), true);
+        }
+        $data = $this->where($where)
+                ->field('id, cat_no, parent_cat_no, level_no, lang, name, status, '
+                        . 'sort_order, created_at, created_by, big_icon, middle_icon, '
+                        . 'small_icon, market_area_bn, country_bn,updated_at,updated_by')
+                ->find();
+        redisHashSet($this->tableName, $redis_key, json_encode($data));
+        return $data;
     }
 
     /*

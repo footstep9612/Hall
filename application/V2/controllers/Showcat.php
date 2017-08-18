@@ -176,6 +176,36 @@ class ShowcatController extends PublicController {
         $this->jsonReturn($data);
     }
 
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                if ($val['created_by']) {
+                    $userids[] = $val['created_by'];
+                }
+                if ($val['updated_by']) {
+                    $userids[] = $val['updated_by'];
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+
+                if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                    $val['updated_by_name'] = $usernames[$val['updated_by']];
+                } else {
+                    $val['updated_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
     /**
      * 分类详情
      */
@@ -189,6 +219,8 @@ class ShowcatController extends PublicController {
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
             $result = $this->_model->info($cat_no, $lang);
+            $arr = [$result];
+            $this->_setUserName($arr);
             if ($result) {
                 if (!$data['cat_no']) {
 
@@ -208,22 +240,7 @@ class ShowcatController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setvalue('parent1', $parent1);
             $this->setvalue('parent2', $parent2);
-            if ($data['level_no'] == 3) {
-                $show_material_catnos = $this->_model->Table('erui2_goods.show_material_cat')
-                        ->where(['show_cat_no' => $cat_no])
-                        ->field('material_cat_no')
-                        ->select();
-                $mcashow_material_catnos = [];
-                foreach ($show_material_catnos as $mcashow_material_catno) {
-                    $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
-                }
-                $material_cat_model = new MaterialCatModel();
-
-                $material_cats = $material_cat_model->getmaterial_cats($mcashow_material_catnos, 'zh');
-            } else {
-                $material_cats = null;
-            }
-            $this->setvalue('material_cats', $material_cats);
+            $this->_getmaterials($data);
             $this->jsonReturn($data);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -231,6 +248,40 @@ class ShowcatController extends PublicController {
             $this->jsonReturn();
         }
         exit;
+    }
+
+    /**
+     * 获取详情的父类和顶级分类数据
+     * @param array $data 详情数据
+     * @return null
+     * @author zyg
+     *
+     */
+    private function _getmaterials(&$data) {
+
+        if ($data['level_no'] == 3) {
+            $show_material_catnos = $this->_model->Table('erui2_goods.show_material_cat')
+                    ->where(['show_cat_no' => $data['cat_no']])
+                    ->field('material_cat_no')
+                    ->select();
+            $mcashow_material_catnos = [];
+            foreach ($show_material_catnos as $mcashow_material_catno) {
+                $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
+            }
+            $material_cat_model = new MaterialCatModel();
+            $material_cats = $material_cat_model->getmaterial_cats($mcashow_material_catnos, 'zh');
+            $this->setvalue('count', 0);
+            $this->setvalue('material_cats', $material_cats);
+        } else {
+            $material_cats = null;
+
+            $count = $this->_model->getCount(['parent_cat_no' => $data['cat_no'],
+                'level_no' => ($data['level_no'] + 1),
+                'lang' => 'zh']); //下级分类数量
+
+            $this->setvalue('count', intval($count));
+            $this->setvalue('material_cats', $material_cats);
+        }
     }
 
     /**
