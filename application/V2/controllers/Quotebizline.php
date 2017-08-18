@@ -127,64 +127,113 @@ class QuotebizlineController extends PublicController {
      */
     public function partitionBizlineAction(){
 
-        $request = $this->_requestParams;
+        $request = $this->_requestParams['data'];
 
-        if (empty($request['quote_id']) || empty($request['serial_no']) || empty($request['bizline_id']) || empty($request['quote_item_id']) ){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        //1.创建一条报价记录(quote)
+        $quoteModel = new QuoteModel();
+
+        $quotes = $quoteModel->where(['inquiry_id'=>$request[0]['inquiry_id']])->count('id');
+        if ($quotes){
+            $this->jsonReturn(['code'=>'-104','message'=>'不能重复划分']);
         }
 
-        //获取询单相关的信息
-        $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])
-            ->field(['id','agent_id'])
-            ->find();
-        if (!$inquiryInfo){
-            $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+        if (is_array($request)){
+            //开启事务
+            $quoteModel->startTrans();
+            $quote_ids = [];
+            foreach ($request as $key=>$value){
+                $quote_ids[] = $quoteModel->add($quoteModel->create([
+                    'buyer_id' => $value['buyer_id'],
+                    'inquiry_id' => $value['inquiry_id'],
+                    'serial_no' => $value['serial_no'],
+                    'quote_no' => $this->getQuoteNo(),
+                    'quote_lang' => 'zh',//报价单语言
+                    'created_at' => date('Y-m-d H:i:s'),//报价单语言
+                ]));
+            }
         }
 
-        //操作产品线表(quote_bizline)表
+        //2.创建一条产品线报价记录(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
-        $data = [
-            'inquiry_id'=>$inquiryInfo['id'],
-            'biz_agent_id'=>$inquiryInfo['agent_id'],
-            'bizline_id'=>$request['bizline_id'],
-            'created_by'=>$this->user['id'],
-            'created_at'=>date('Y-m-d H:i:s'),
-            'quote_id' => $request['quote_id']
-        ];
-        $quoteBizlineResult = $quoteBizlineModel->add($quoteBizlineModel->create($data));
+        $quoteBizline_ids = [];
 
-        $quoteItemFormModel = new QuoteItemFormModel();
-        $quoteItemFormModel->startTrans();
-        $quoteItem = explode(',',$request['quote_item_id']);
-
-        foreach ($quoteItem as $item=>$value){
-            $quoteItemFormModel->add($quoteItemFormModel->create([
-                'quote_id' => $request['quote_id'],
-                'quote_item_id' => (int) $value,
-                'created_at' => date('Y-m-d H:i:s')
+        foreach ($request as $quote=>$bizline){
+            $quoteBizline_ids[] = $quoteBizlineModel->add($quoteBizlineModel->create([
+                'quote_id' => $quote_ids[$quote],
+                'inquiry_id' => $bizline['inquiry_id'],
+                'biz_agent_id' => '275',
+                'bizline_id' => $bizline['bizline_id'],
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $this->user['id'],
             ]));
         }
 
-        //更新quote_item
-        $quoteItemModel = new QuoteItemModel();
-        $quoteItemModel->startTrans();
-        foreach ($quoteItem as $k=>$v){
-            $quoteItemModel->where(['id'=>$v])->save(['bizline_id'=>$request['bizline_id']]);
+        //p($quoteBizline_ids);
+        //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
+        $inquiryItem = new InquiryItemModel();
+        $inquiryItemList = [];
+        foreach ($request as $inquiry=>$item){
+            $inquiryItemList[] = $inquiryItem->where([
+                'id' => $item['inquiry_item_id']
+            ])->field('id,inquiry_id,sku')->find();
         }
 
-        if ($quoteBizlineResult){
-            $quoteBizlineModel->commit();
-            $quoteItemFormModel->commit();
-            $quoteItemModel->commit();
-            $this->jsonReturn(['code'=>'1','message'=>'成功!']);
-        }else{
-            $quoteBizlineModel->rollback();
-            $quoteItemFormModel->rollback();
-            $quoteItemModel->rollback();
-            $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemModel->startTrans();
+        $quoteItemIds = [];
+
+        foreach ($quote_ids as $quote_key=>$quoteValue){
+            foreach ($inquiryItemList as $quoteItem=>$quoteItemValue){
+                $quoteItemIds[]=$quoteItemModel->add($quoteItemModel->create([
+                    'quote_id' => $quoteValue,
+                    'inquiry_id' => $quoteItemValue['inquiry_id'],
+                    'inquiry_item_id' => $quoteItemValue['id'],
+                    'bizline_id' => $quoteBizline_ids[$quote_key],
+                    'sku' => $quoteItemValue['sku'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'created_by' => $this->user['id'],
+                ]));
+            }
         }
+
+        //p($quoteItemIds);
+
+        $quote_item_form_list = [] ;
+        foreach ($quoteItemIds as $quote_item_key=>$quote_item_value){
+            $quote_item_form_list[] = $quoteItemModel->where(['id'=>$quote_item_value])->field('id,quote_id,inquiry_item_id,bizline_id,sku')->find();
+        }
+        //p($quote_item_form_list);
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $quoteItemFormModel->startTrans();
+        $quote_item_form_ids = [];
+        foreach ($quote_item_form_list as $k=>$v) {
+            $quote_item_form_ids[] = $quoteItemFormModel->add($quoteItemFormModel->create([
+                'quote_id' => $v['quote_id'],
+                'quote_item_id' => $v['id'],
+                'inquiry_item_id' => $v['inquiry_item_id'],
+                'quote_bizline_id' => $v['bizline_id'],
+                'sku' => $v['sku'],
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $this->user['id']
+            ]));
+        }
+
+       if ($quote_ids && $quoteBizline_ids && $quoteItemIds && $quote_item_form_ids){
+           $quoteModel->commit();
+           $quoteBizlineModel->commit();
+           $quoteItemModel->commit();
+           $quoteItemFormModel->commit();
+           $this->jsonReturn(['code'=>'1','message'=>'成功!']);
+       }else{
+           $quote->rollback();
+           $quoteBizlineModel->rollback();
+           $quoteItemModel->rollback();
+           $quoteItemFormModel->rollback();
+           $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+       }
+
 
     }
 

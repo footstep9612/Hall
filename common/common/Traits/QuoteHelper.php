@@ -256,7 +256,7 @@ trait QuoteHelper{
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $inquiry = new InquiryModel();
-        return $inquiry->field('id, serial_no, country_bn, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
+        return $inquiry->field('id, serial_no, country_bn, buyer_id, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
             ->where($where)
             ->page($currentPage, $pageSize)
             ->order('id DESC')
@@ -326,5 +326,23 @@ trait QuoteHelper{
             ->count('id');
 
         return $count > 0 ? $count : 0;
+    }
+
+    public static function partitionBizline(array $request){
+
+        //1.创建一条报价记录(quote)
+        $quote = new QuoteModel();
+        $quoteResult = $quote->add($quote->create([
+            'buyer_id' => $request['buyer_id'],
+            'inquiry_id' => $request['inquiry_id'],
+            'serial_no' => $request['serial_no'],
+            'quote_no' => $request['quote_no'],
+            'quote_lang' => 'zh',//报价单语言
+            'created_at' => date('Y-m-d H:i:s'),//报价单语言
+        ]));
+        p($quoteResult);
+        //2.创建一条产品线报价记录(quote_bizline)
+        //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
+        //4选择的讯单项(inquiry_item)写入到产品线报价单项(quote_item_form)
     }
 }
