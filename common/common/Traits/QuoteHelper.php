@@ -256,7 +256,7 @@ trait QuoteHelper{
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $inquiry = new InquiryModel();
-        return $inquiry->field('id, serial_no, country_bn, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
+        return $inquiry->field('id, serial_no, country_bn, buyer_id, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
             ->where($where)
             ->page($currentPage, $pageSize)
             ->order('id DESC')
