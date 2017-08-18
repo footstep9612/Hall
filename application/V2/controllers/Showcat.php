@@ -162,17 +162,16 @@ class ShowcatController extends PublicController {
         $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
         $market_area_bn = $this->get('market_area_bn', '') ?: $this->getPut('market_area_bn', '');
 
-        if (!$data) {
-            $arr = $this->_model->geshow_material_catlist($market_area_bn, $country_bn, $show_material_catno, $lang);
-            if ($arr) {
+        $arr = $this->_model->get_list($market_area_bn, $country_bn, $show_material_catno, $lang);
+        if ($arr) {
 
-                $this->setCode(MSG::MSG_SUCCESS);
-                $this->jsonReturn($arr);
-            } else {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->jsonReturn();
-            }
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
+
         $this->jsonReturn($data);
     }
 
