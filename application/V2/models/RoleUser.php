@@ -32,8 +32,8 @@ class RoleUserModel extends PublicModel {
             if(!empty($user_id)) {
                 $sql .= ' and `role_member`.`employee_id` =' . $user_id;
             }
-            if(!empty($pid)) {
-                $sql .= ' and `func_perm`.`parent_id` =' . $pid;
+            if($pid!=='') {
+                $sql .= ' and `func_perm`.`parent_id` = ' . $pid;
             }
             $sql .= ' order by `func_perm`.`sort` desc';
             return $this->query( $sql );
