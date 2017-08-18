@@ -133,9 +133,9 @@ trait QuoteHelper{
      * @param $condition
      * @return mixed
      */
-    public static function getBizlineManagerQuoteList($condition){
+    public static function bizlineManagerQuoteList($condition){
 
-        $where = self::getManagerQuoteSkuListCondition($condition);
+        $where = self::bizlineManagerQuoteListCondition($condition);
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
@@ -152,7 +152,7 @@ trait QuoteHelper{
         //p($data);
     }
 
-    public static function getManagerQuoteSkuListCondition(array $condition){
+    public static function bizlineManagerQuoteListCondition(array $condition){
 
         $where = [];
         //项目状态
@@ -198,7 +198,7 @@ trait QuoteHelper{
      * @param $where 条件
      * @return int 总数
      */
-    public static function getManagerQuoteSkuListCount($where){
+    public static function bizlineManagerQuoteListCount($where){
 
         $quoteBizlineModel = new QuoteBizLineModel();
 
@@ -210,6 +210,38 @@ trait QuoteHelper{
             ->count('qb.id');
 
         return $count > 0 ? $count : 0;
+    }
+
+
+    public static function bizlineManagerQuoteSkuList($condition){
+
+        $where['a.quote_id'] = $condition['quote_id'];
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status';
+        return $quoteItemFormModel->alias('a')
+            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->field($fields)
+            ->where($where)
+            ->order('a.id DESC')
+            ->select();
+        //p($data);
+    }
+
+    public static function bizlineManagerQuoteSkuListCount($request){
+
+        $where['a.quote_id'] = $request['quote_id'];
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status';
+        $count = $quoteItemFormModel->alias('a')
+            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->field($fields)
+            ->where($where)
+            ->count('a.id');
+        return $count > 0 ? $count : 0 ;
     }
 
     public static function getQuoteList($condition){

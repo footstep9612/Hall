@@ -216,47 +216,6 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 产品线报价列表(产品线负责人)
-     * @author 买买提
-     */
-    public function bizlineManagerListAction()
-    {
-        $condition = $this->validateRequests();
-
-        $user = new EmployeeModel();
-
-        if (!empty($condition['agent_name'])) {
-            $agent = $user->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
-        }
-
-        if (!empty($condition['pm_name'])) {
-            $pm = $user->where(['name' => $condition['pm_name']])->find();
-            $condition['pm_id'] = $pm['id'];
-        }
-
-        $quoteBizlineList = QuoteHelper::getBizlineManagerQuoteList($condition);
-
-        foreach ($quoteBizlineList as &$quoteBizline) {
-            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
-            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
-        }
-
-        if ($quoteBizlineList) {
-            //p($quoteBizlineList);
-            $this->jsonReturn([
-                'code' => '1',
-                'message' => '成功!',
-                'count' => QuoteHelper::getManagerQuoteSkuListCount($condition),
-                'data' => $quoteBizlineList
-            ]);
-        } else {
-            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
-        }
-
-    }
-
-    /**
      * @desc 转交其他人办理(项目经理)
      * 操作说明:转交后，当前人员就不是项目经理了，如果也不是方案中心的人，就不能再查看这个项目了
      */
@@ -280,6 +239,69 @@ class QuotebizlineController extends PublicController {
         $request = $this->validateRequests('id');
 
         $this->jsonReturn(QuoteBizlineHelper::submitToBizline($request));
+
+    }
+
+    /**
+     * @desc 产品线报价列表(产品线负责人)
+     * @author 买买提
+     */
+    public function bizlineManagerQuoteListAction()
+    {
+        $condition = $this->validateRequests();
+
+        $user = new EmployeeModel();
+
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+
+        if (!empty($condition['pm_name'])) {
+            $pm = $user->where(['name' => $condition['pm_name']])->find();
+            $condition['pm_id'] = $pm['id'];
+        }
+
+        $quoteBizlineList = QuoteHelper::bizlineManagerQuoteList($condition);
+
+        foreach ($quoteBizlineList as &$quoteBizline) {
+            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
+            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+        }
+
+        if ($quoteBizlineList) {
+            //p($quoteBizlineList);
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => QuoteHelper::bizlineManagerQuoteListCount($condition),
+                'data' => $quoteBizlineList
+            ]);
+        } else {
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+
+    }
+
+    /**
+     * @desc 报价sku列表(产品线负责人)
+     */
+    public function bizlineManagerQuoteSkuListAction(){
+
+        $request = $this->validateRequests('quote_id');
+
+        $skuList = QuoteHelper::bizlineManagerQuoteSkuList($request);
+
+        if ($skuList){
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => QuoteHelper::bizlineManagerQuoteSkuListCount($request),
+                'data' => $skuList
+            ]);
+        }
+
+        $this->jsonReturn(['code'=>'-104','message'=>'没有数据!','data'=>'']);
 
     }
 
@@ -427,28 +449,6 @@ class QuotebizlineController extends PublicController {
         }else{
             $this->jsonReturn(['code'=>'-104','message'=>'提交失败!']);
         }
-    }
-
-    /**
-     * @desc 报价sku列表(产品线负责人sku列表)
-     */
-    public function managerQuoteSkuListAction(){
-
-        $request = $this->validateRequests('quote_id');
-
-        $list = QuoteHelper::getManagerQuoteSkuList($request);
-
-        if (!$list){
-            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!','data'=>'']);
-        }
-
-        $this->jsonReturn([
-            'code' => '1',
-            'message' => '成功!',
-            'count' => QuoteHelper::getManagerQuoteSkuListCount($condition),
-            'data' => $list
-        ]);
-
     }
 
     /**
