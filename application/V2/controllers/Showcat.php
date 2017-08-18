@@ -204,7 +204,7 @@ class ShowcatController extends PublicController {
 
 
         if ($data) {
-            list($top_cats, $parent_cats) = $this->_getparentcats($data);
+            list($parent1, $parent2) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setvalue('parent1', $parent1);
             $this->setvalue('parent2', $parent2);
@@ -242,11 +242,13 @@ class ShowcatController extends PublicController {
      */
     private function _getparentcats($data) {
         $parent2 = $parent1 = null;
+
         if ($data['level_no'] == 3) {
             $parent2 = $this->_model->info($data['parent_cat_no'], 'zh');
             $parent1 = $this->_model->info($parent2['parent_cat_no'], 'zh');
         } elseif ($data['level_no'] == 2) {
             $parent1 = $this->_model->info($data['parent_cat_no'], 'zh');
+
             $parent2 = null;
         }
         return [$parent1, $parent2];
