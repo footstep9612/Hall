@@ -88,7 +88,7 @@ class TransBoxTypeModel extends PublicModel {
             return $this->alias('tbt')
                             ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
                             ->join('erui2_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
-                            ->field('tbt.id,bt.box_type_name,tm.trans_mode ')
+                            ->field('tbt.id,bt.box_type_name,tm.trans_mode,tbt.box_type_bn,tbt.trans_mode_bn ')
                             ->order($order)
                             ->where($data)
                             ->select();
