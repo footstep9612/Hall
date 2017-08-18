@@ -127,88 +127,67 @@ class QuotebizlineController extends PublicController {
      */
     public function partitionBizlineAction(){
 
-        $request = $this->_requestParams['data'];
+        $request = $this->validateRequests('inquiry_id,buyer_id,serial_no,inquiry_item_id,bizline_id');
 
         //1.创建一条报价记录(quote)
         $quoteModel = new QuoteModel();
-
-        $quotes = $quoteModel->where(['inquiry_id'=>$request[0]['inquiry_id']])->count('id');
-        if ($quotes){
-            $this->jsonReturn(['code'=>'-104','message'=>'不能重复划分']);
-        }
-
-        if (is_array($request)){
-            //开启事务
-            $quoteModel->startTrans();
-            $quote_ids = [];
-            foreach ($request as $key=>$value){
-                $quote_ids[] = $quoteModel->add($quoteModel->create([
-                    'buyer_id' => $value['buyer_id'],
-                    'inquiry_id' => $value['inquiry_id'],
-                    'serial_no' => $value['serial_no'],
-                    'quote_no' => $this->getQuoteNo(),
-                    'quote_lang' => 'zh',//报价单语言
-                    'created_at' => date('Y-m-d H:i:s'),//报价单语言
-                ]));
-            }
+        $quoteModel->startTrans();
+        //TODO 这里可以添加是否已经划分了产品线的判断，避免发生重复提交数据的事情
+        $inquiry_item_ids = explode(',',$request['inquiry_item_id']);
+        $quote_ids = [];//新增的报价id组合
+        foreach ($inquiry_item_ids as $inquiry_item_id){
+            $quote_ids[] = $quoteModel->add($quoteModel->create([
+                'buyer_id' => $request['buyer_id'],
+                'inquiry_id' => $request['inquiry_id'],
+                'serial_no' => $request['serial_no'],
+                'quote_no' => $this->getQuoteNo(),
+                'quote_lang' => 'zh',
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
         }
 
         //2.创建一条产品线报价记录(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
         $quoteBizline_ids = [];
-
-        foreach ($request as $quote=>$bizline){
+        foreach ($quote_ids as $quote_id){
             $quoteBizline_ids[] = $quoteBizlineModel->add($quoteBizlineModel->create([
-                'quote_id' => $quote_ids[$quote],
-                'inquiry_id' => $bizline['inquiry_id'],
+                'quote_id' => $quote_id,
+                'inquiry_id' => $request['inquiry_id'],
                 'biz_agent_id' => '275',
-                'bizline_id' => $bizline['bizline_id'],
+                'bizline_id' => $request['bizline_id'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->user['id'],
             ]));
         }
 
-        //p($quoteBizline_ids);
         //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
         $inquiryItem = new InquiryItemModel();
-        $inquiryItemList = [];
-        foreach ($request as $inquiry=>$item){
-            $inquiryItemList[] = $inquiryItem->where([
-                'id' => $item['inquiry_item_id']
-            ])->field('id,inquiry_id,sku')->find();
-        }
+        $inquiryItemList = $inquiryItem->where('id IN('.$request['inquiry_item_id'].')')->select();
 
         $quoteItemModel = new QuoteItemModel();
         $quoteItemModel->startTrans();
         $quoteItemIds = [];
-
-        foreach ($quote_ids as $quote_key=>$quoteValue){
-            foreach ($inquiryItemList as $quoteItem=>$quoteItemValue){
-                $quoteItemIds[]=$quoteItemModel->add($quoteItemModel->create([
-                    'quote_id' => $quoteValue,
-                    'inquiry_id' => $quoteItemValue['inquiry_id'],
-                    'inquiry_item_id' => $quoteItemValue['id'],
-                    'bizline_id' => $quoteBizline_ids[$quote_key],
-                    'sku' => $quoteItemValue['sku'],
+        foreach ($quote_ids as $quote_id){
+            foreach ($inquiryItemList as $item){
+                $quote_item_ids[] = $quoteItemModel->add($quoteItemModel->create([
+                    'quote_id' => $quote_id,
+                    'inquiry_id' => $item['inquiry_id'],
+                    'inquiry_item_id' => $item['id'],
+                    'bizline_id' => $request['bizline_id'],
+                    'sku' => $item['sku'],
                     'created_at' => date('Y-m-d H:i:s'),
                     'created_by' => $this->user['id'],
                 ]));
             }
         }
 
-        //p($quoteItemIds);
-
-        $quote_item_form_list = [] ;
-        foreach ($quoteItemIds as $quote_item_key=>$quote_item_value){
-            $quote_item_form_list[] = $quoteItemModel->where(['id'=>$quote_item_value])->field('id,quote_id,inquiry_item_id,bizline_id,sku')->find();
-        }
-        //p($quote_item_form_list);
+        //4选择的讯单项(inquiry_item)写入到产品线报价单项(quote_item_form)
+        $quote_item_form_list = $quoteItemModel->where('id IN('.implode(",",$quote_item_ids).')')->field('quote_id,id,inquiry_item_id,bizline_id,sku')->select();
 
         $quoteItemFormModel = new QuoteItemFormModel();
-        $quoteItemFormModel->startTrans();
         $quote_item_form_ids = [];
-        foreach ($quote_item_form_list as $k=>$v) {
+        foreach ($quote_item_form_list as $v){
             $quote_item_form_ids[] = $quoteItemFormModel->add($quoteItemFormModel->create([
                 'quote_id' => $v['quote_id'],
                 'quote_item_id' => $v['id'],
@@ -220,20 +199,19 @@ class QuotebizlineController extends PublicController {
             ]));
         }
 
-       if ($quote_ids && $quoteBizline_ids && $quoteItemIds && $quote_item_form_ids){
-           $quoteModel->commit();
-           $quoteBizlineModel->commit();
-           $quoteItemModel->commit();
-           $quoteItemFormModel->commit();
-           $this->jsonReturn(['code'=>'1','message'=>'成功!']);
-       }else{
-           $quote->rollback();
-           $quoteBizlineModel->rollback();
-           $quoteItemModel->rollback();
-           $quoteItemFormModel->rollback();
-           $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
-       }
-
+        if ($quote_ids && $quoteBizline_ids && $quote_item_ids && $quote_item_form_ids){
+            $quoteModel->commit();
+            $quoteBizlineModel->commit();
+            $quoteItemModel->commit();
+            $quoteItemFormModel->commit();
+            $this->jsonReturn(['code'=>'1','message'=>'成功!']);
+        }else{
+            $quoteModel->rollback();
+            $quoteBizlineModel->rollback();
+            $quoteItemModel->rollback();
+            $quoteItemFormModel->rollback();
+            $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+        }
 
     }
 
