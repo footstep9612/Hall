@@ -22,8 +22,8 @@ class ShowcatController extends PublicController {
         $marke_area_bn = $this->get('marke_area_bn', '') ?: $this->getPut('marke_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['marke_area_bn'] = $marke_area_bn;
-        $redis_key = 'show_cat_tree_' . $lang . md5($country_bn . $marke_area_bn);
-        $data = json_decode(redisGet($redis_key), true);
+        // $redis_key = 'show_cat_tree_' . $lang . md5($country_bn . $marke_area_bn);
+        //  $data = json_decode(redisGet($redis_key), true);
         if (!$data) {
             $arr = $this->_model->tree($jsondata);
             if ($arr) {
@@ -41,7 +41,7 @@ class ShowcatController extends PublicController {
                         }
                     }
                 }
-                redisSet($redis_key, json_encode($arr), 86400);
+                //  redisSet($redis_key, json_encode($arr), 86400);
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->_setCount($lang, $country_bn, $marke_area_bn);
                 $this->jsonReturn($arr);
@@ -63,28 +63,22 @@ class ShowcatController extends PublicController {
      *
      */
     private function _setCount($lang, $country_bn, $marke_area_bn) {
-        $redis_key = 'show_cat' . $lang;
-        list($count1, $count2, $count3) = json_decode(redisGet($redis_key), true);
-        if ($count1 || $count2 || $count3) {
-            $this->setvalue('count1', $count1);
-            $this->setvalue('count2', $count2);
-            $this->setvalue('count3', $count3);
-        } else {
-            $countData = ['lang' => $lang,
-                'marke_area_bn' => $marke_area_bn,
-                'country_bn' => $country_bn,
-            ];
-            $countData['level_no'] = 1;
-            $count1 = $this->_model->getCount($countData); //一级分类数据
-            $countData['level_no'] = 2;
-            $count2 = $this->_model->getCount($countData); //二级分类数据
-            $countData['level_no'] = 3;
-            $count3 = $this->_model->getCount($countData); //三级分类数据
-            $this->setvalue('count1', $count1);
-            $this->setvalue('count2', $count2);
-            $this->setvalue('count3', $count3);
-            redisSet($redis_key, json_encode([$count1, $count2, $count3]), 86400);
-        }
+
+
+
+        $countData = ['lang' => $lang,
+            'marke_area_bn' => $marke_area_bn,
+            'country_bn' => $country_bn,
+        ];
+        $countData['level_no'] = 1;
+        $count1 = $this->_model->getCount($countData); //一级分类数据
+        $countData['level_no'] = 2;
+        $count2 = $this->_model->getCount($countData); //二级分类数据
+        $countData['level_no'] = 3;
+        $count3 = $this->_model->getCount($countData); //三级分类数据
+        $this->setvalue('count1', $count1);
+        $this->setvalue('count2', $count2);
+        $this->setvalue('count3', $count3);
     }
 
     public function listAction() {
@@ -99,8 +93,8 @@ class ShowcatController extends PublicController {
         $jsondata['cat_no2'] = $this->get('cat_no2', '') ?: $this->getPut('cat_no2', '');
         $jsondata['cat_no3'] = $this->get('cat_no3', '') ?: $this->getPut('cat_no3', '');
         $condition = $jsondata;
-        $key = 'Show_cat_' . $lang . '_' . md5(json_encode($condition));
-        $data = json_decode(redisGet($key), true);
+
+
         if (!$data) {
             $arr = $this->_model->getlist($jsondata);
             if ($arr) {
@@ -123,7 +117,7 @@ class ShowcatController extends PublicController {
                         }
                     }
                 }
-                redisSet($key, json_encode($arr), 86400);
+
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
             } else {
@@ -138,14 +132,14 @@ class ShowcatController extends PublicController {
                                     'marke_area_bn' => $markeshow_material_catarea_bn,
                                     'lang' => $lang]);
                     }
-                    redisSet($key, json_encode($arr), 86400);
+
                     $this->setCode(MSG::MSG_SUCCESS);
                     $this->jsonReturn($arr);
                 } else {
                     $condition['level_no'] = 3;
                     $arr = $this->_model->getlist($condition);
                     if ($arr) {
-                        redisSet($key, json_encode($arr), 86400);
+
                         $this->setCode(MSG::MSG_SUCCESS);
                         $this->jsonReturn($arr);
                     } else {
@@ -166,13 +160,11 @@ class ShowcatController extends PublicController {
         $show_material_catno = $this->get('show_material_catno', '') ?: $this->getPut('show_material_catno', '');
         $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
         $market_area_bn = $this->get('market_area_bn', '') ?: $this->getPut('market_area_bn', '');
-        $key = 'show_material_cat_' . $lang . '_' . $show_material_catno;
 
-        $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->geshow_material_catlist($market_area_bn, $country_bn, $show_material_catno, $lang);
             if ($arr) {
-                redisSet($key, json_encode($arr), 86400);
+
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
             } else {
@@ -277,7 +269,7 @@ class ShowcatController extends PublicController {
 
     private function delcache() {
         $redis = new phpredis();
-        $treekeys = $redis->getKeys('show_cat_*');
+        $treekeys = $redis->getKeys('show_cat');
         $redis->delete($treekeys);
     }
 
