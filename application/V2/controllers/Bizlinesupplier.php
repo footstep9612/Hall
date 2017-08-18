@@ -62,9 +62,40 @@ class BizlinesupplierController extends PublicController {
         if(!empty($data['supplier_id'])){
             $where['supplier_id'] = $data['supplier_id'];
         }
-
+        if(!empty($data['bizline_id'])){
+            $where['bizline_id'] = $data['bizline_id'];
+        }
         $model = new BizlineSupplierModel();
         $data =$model->getSupplierList($where);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /*
+ * 列表
+ * */
+    public function supplierlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['supplier_id'])){
+            $where['bizline_supplier.supplier_id'] = $data['supplier_id'];
+        }
+        if(!empty($data['bizline_id'])){
+            $where['bizline_id'] = $data['bizline_id'];
+        }
+        if(!empty($data['sku'])){
+            $where['sku'] = $data['sku'];
+        }
+        $model = new BizlineSupplierModel();
+        $data =$model->getSupplierGoodsCostList($where);
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
