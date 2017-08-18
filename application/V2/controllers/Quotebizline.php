@@ -299,10 +299,9 @@ class QuotebizlineController extends PublicController {
      */
     public function submitToBizlineAction(){
 
-        if (empty($this->_requestParams['serial_no'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $this->jsonReturn(QuoteBizlineHelper::submitToBizline($this->_requestParams));
+        $request = $this->validateRequests('id');
+
+        $this->jsonReturn(QuoteBizlineHelper::submitToBizline($request));
 
     }
 
