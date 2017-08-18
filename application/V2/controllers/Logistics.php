@@ -376,9 +376,11 @@ class LogisticsController extends PublicController {
 	public function addQuoteLogiQwvRecordAction() {
 	    $condition = $this->put_data;
 	    
-	   $condition['volumn'] = $condition['length'] * $condition['width'] * $condition['height'];
+	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	    
+	    $condition['volumn'] = $condition['length'] * $condition['width'] * $condition['height'];
 	   
-	   $condition['volumn'] = $condition['volumn'] > 0 ? $condition['volumn'] : 0;
+	    $condition['volumn'] = $condition['volumn'] > 0 ? $condition['volumn'] : 0;
 	
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
