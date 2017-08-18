@@ -189,14 +189,16 @@ class ShowcatController extends PublicController {
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
             $result = $this->_model->info($cat_no, $lang);
-
             if ($result) {
-                if (!$data) {
-                    $data = $result;
+                if (!$data['cat_no']) {
+
+                    $data = array_merge($data, $result);
                     $data['name'] = $data['id'] = null;
                     unset($data['name'], $data['id']);
                 }
                 $data[$lang]['name'] = $result['name'];
+            } else {
+                $data[$lang]['name'] = '';
             }
         }
 
@@ -204,8 +206,8 @@ class ShowcatController extends PublicController {
         if ($data) {
             list($top_cats, $parent_cats) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->setvalue('top_cats', $top_cats);
-            $this->setvalue('parent_cats', $parent_cats);
+            $this->setvalue('parent1', $parent1);
+            $this->setvalue('parent2', $parent2);
             if ($data['level_no'] == 3) {
                 $show_material_catnos = $this->_model->Table('erui2_goods.show_material_cat')
                         ->where(['show_cat_no' => $cat_no])
@@ -215,9 +217,9 @@ class ShowcatController extends PublicController {
                 foreach ($show_material_catnos as $mcashow_material_catno) {
                     $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
                 }
+                $material_cat_model = new MaterialCatModel();
 
-                $es_producshow_material_catmodel = new EsProductModel();
-                $material_cats = $es_producshow_material_catmodel->getmaterial_cats($mcashow_material_catnos, 'zh');
+                $material_cats = $material_cat_model->getmaterial_cats($mcashow_material_catnos, 'zh');
             } else {
                 $material_cats = null;
             }
@@ -231,41 +233,23 @@ class ShowcatController extends PublicController {
         exit;
     }
 
+    /**
+     * 获取详情的父类和顶级分类数据
+     * @param array $data 详情数据
+     * @return null
+     * @author zyg
+     *
+     */
     private function _getparentcats($data) {
-        $parenshow_material_catcats = $top_cats = null;
+        $parent2 = $parent1 = null;
         if ($data['level_no'] == 3) {
-            $result = $this->_model->info($data['parent_cat_no'], 'zh');
-            $parenshow_material_catcats = $this->_model->getlist($result['market_area_bn'], $result['country_bn'], $result['parent_catno'], 'zh');
-            $top_cats = $this->_model->getlist($result['market_area_bn'], $result['country_bn'], '', 'zh');
-
-            foreach ($parenshow_material_catcats as $key => $item) {
-                if ($item['cat_no'] == $result['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $parenshow_material_catcats[$key] = $item;
-            }
-            foreach ($top_cats as $key => $item) {
-                if ($item['cat_no'] == $result['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $top_cats[$key] = $item;
-            }
+            $parent2 = $this->_model->info($data['parent_cat_no'], 'zh');
+            $parent1 = $this->_model->info($parent2['parent_cat_no'], 'zh');
         } elseif ($data['level_no'] == 2) {
-            $top_cats = $this->_model->getlist($data['parent_cat_no'], 'zh');
-            foreach ($top_cats as $key => $item) {
-                if ($item['cat_no'] == $data['parent_cat_no']) {
-                    $item['checked'] = true;
-                } else {
-                    $item['checked'] = false;
-                }
-                $top_cats[$key] = $item;
-            }
+            $parent1 = $this->_model->info($data['parent_cat_no'], 'zh');
+            $parent2 = null;
         }
-        return [$top_cats, $parenshow_material_catcats];
+        return [$parent1, $parent2];
     }
 
     private function delcache() {
