@@ -36,6 +36,7 @@ class ProductController extends PublicController {
 
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu, $lang, $status);
+
         if (!empty($result)) {
             $goods_model = new GoodsModel();
             $attrdata = $goods_model->field('id,min_order_qty as attr_value, \'Minimum order quantity\' as attr_name')
@@ -57,6 +58,7 @@ class ProductController extends PublicController {
      * @author link 2017-06-27
      */
     public function getSpecGoodsAction() {
+        // $this->_token();
         if (!isset($this->input['spu']) || empty($this->input['spu'])) {
             jsonReturn('', '1000');
         }
@@ -68,6 +70,7 @@ class ProductController extends PublicController {
         $this->input['spec_type'] = isset($this->input['spec_type']) ? $this->input['spec_type'] : 0;
         $gmodel = new GoodsModel();
         $result = $gmodel->getSpecGoodsBySpu($this->input['spu'], $this->input['lang'], $this->input['spec_type']);
+
         if ($result) {
             jsonReturn(array('data' => $result));
         } else {

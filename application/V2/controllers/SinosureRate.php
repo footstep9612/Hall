@@ -68,9 +68,9 @@ class SinosureRateController extends PublicController {
     public function updateSinosureRateInfoAction() {
         $condition = $this->put_data;
 
-        if (!empty($condition['r_id'])) {
-            $where['id'] = $condition['r_id'];
-            unset($condition['r_id']);
+        if (!empty($condition['id'])) {
+            $where['id'] = $condition['id'];
+            unset($condition['id']);
             $res = $this->sinosureRateModel->updateInfo($where, $condition);
 
             $this->jsonReturn($res);
