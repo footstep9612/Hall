@@ -123,4 +123,85 @@ class ServiceItemModel extends PublicModel{
             return false;
         }
     }
+
+
+    /********************************************************
+     * 根据服务类型获取条款内容
+     * @param string $catId    类型
+     * @return array|bool|mixed
+     * @author link 2017-08-18
+     */
+    public function getItemByCatId($catId=''){
+        if(empty($catId)) {
+            return false;
+        }
+
+        $condition = array(
+            'service_cat_id' => $catId,
+            'deleted_flag' => 'N'
+        );
+
+        try{
+            $result = $this->field('id as service_item_id,service_cat_id,service_term_id,item,status')->where($condition)->select();
+            return $result ? $result : array();
+        }catch (Exception $e) {
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * 添加或编辑服务条款内容
+     * @param $service_cat_id
+     * @param $service_term_id
+     * @param $data
+     * @return bool
+     */
+    public function editItem($service_cat_id,$service_term_id,$data){
+        if(empty($service_cat_id) || empty($service_term_id)) {
+            return false;
+        }
+
+        if(!empty($data)){
+            $userInfo = getLoinInfo();
+            try{
+                foreach($data as $r){
+                    if(isset($r['service_item_id']) && !empty($r['service_item_id'])){    //修改
+                        $id = $r['service_item_id'];
+                        unset($r['service_item_id']);
+                        $data_item = array_values($r);
+                        $data_edit = array(
+                            'service_cat_id' => $service_cat_id,
+                            'service_term_id' => $service_term_id,
+                            'item' => json_encode($data_item),
+                            'updated_by' => isset($userInfo['id']) ? $userInfo['id'] : null,
+                            'updated_at' => date('Y-m-d H:i:s')
+                        );
+                        $rel = $this->where(array('id'=>$id))->save($data_edit);
+                        if(!rel){
+                            return false;
+                        }
+                    }else{    //添加
+                        unset($r['service_item_id']);
+                        $data_item = array_values($r);
+                        $data_edit = array(
+                            'service_cat_id' => $service_cat_id,
+                            'service_term_id' => $service_term_id,
+                            'item' => json_encode($data_item),
+                            'created_by' => isset($userInfo['id']) ? $userInfo['id'] : null,
+                            'created_at' => date('Y-m-d H:i:s')
+                        );
+                        $rel = $this->add($data_edit);
+                        if(!$rel){
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }catch (Exception $e){
+                return false;
+            }
+        }
+        return false;
+    }
 }
