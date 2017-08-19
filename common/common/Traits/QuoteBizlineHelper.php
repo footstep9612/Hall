@@ -316,25 +316,36 @@ trait QuoteBizlineHelper{
 
     }
 
-    //产品此案负责人->提交项目经理审核
-    //数据库操作 inquriy表中的status改为QUOTED_BY_BIZLINE  goods_quote_status字段值改为QUOTED
+    /**
+     * @desc 提交项目经理审核(产品线负责人)
+     * @param $request
+     * @return array
+     */
     public static function submitToManager($request){
+        //数据库操作 inquriy表中的status改为QUOTED_BY_BIZLINE  goods_quote_status字段值改为QUOTED
+
+        //更改当前询单(项目)的状态QUOTED_BY_BIZLINE
         $inquiry = new InquiryModel();
-        try{
-            $result = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-                'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
-                'goods_quote_status'=>'QUOTED'//当前报价的状态
-            ]);
-            if ($result){
-                return ['code'=>'1','message'=>'提交成功!'];
-            }else{
-                return ['code'=>'-104','message'=>'失败!'];
-            }
-        }catch (Exception $exception){
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
+        $inquiry->startTrans();
+        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
+            'goods_quote_status'=>'QUOTED'//当前报价的状态
+        ]);
+
+        $quoteModel = new QuoteModel();
+        $quoteModel->startTrans();
+        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+            'status' => 'QUOTED'
+        ]);
+
+        if ($inquiryResult && $quoteResult){
+            $inquiry->commit();
+            $quoteModel->commit();
+            return ['code'=>'1','message'=>'成功!'];
+        }else{
+            $inquiry->rollback();
+            $quoteModel->rollback();
+            return ['code'=>'-104','message'=>'失败!'];
         }
     }
 

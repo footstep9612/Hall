@@ -514,23 +514,13 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 提交项目经理审核
-     * @author 买买提
+     * @desc 提交项目经理审核(产品线负责人)
      */
     public function sentToManagerAction() {
-        /*
-        |--------------------------------------------------------------------------
-        | 产品线报价->提交项目经理审核   角色:产品线负责人
-        |--------------------------------------------------------------------------
-        |
-        | 操作说明
-        | 项目状态:项目经理审核
-        | 把当前项目(询单)的状态改为项目经理审核
-        */
-        if (empty($this->_requestParams['serial_no'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $this->jsonReturn(QuoteBizlineHelper::submitToManager($this->_requestParams));
+
+        $request = $this->validateRequests('quote_id,serial_no');
+        $response = QuoteBizlineHelper::submitToManager($request);
+        $this->jsonReturn($response);
     }
 
     /**
