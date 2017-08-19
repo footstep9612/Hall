@@ -51,7 +51,8 @@ class ServicecatController extends PublicController {
             $this->jsonReturn($datajson);
         }
         $model = new ServiceCatModel();
-        $res = $model->detail($arr);
+        //$res = $model->detail($arr);
+        $res = $model->getService($arr);
         if(!empty($res)){
             $datajson['code'] = 1;
             $datajson['data'] = $res;
@@ -96,6 +97,21 @@ class ServicecatController extends PublicController {
             $datajson['message'] = '失败!';
         }
         $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 服务编辑或修改
+     * @author link 2017-08-18
+     */
+    public function editAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new ServiceCatModel();
+        $res = $model->editService($data);
+        if($res){
+            jsonReturn($res);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
     }
 
     /**

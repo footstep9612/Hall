@@ -553,7 +553,7 @@ class ShowCatModel extends PublicModel {
                     return false;
                 }
                 if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
-                    $show_material_cat_model = new ShowmaterialcatModel();
+                    $show_material_cat_model = new ShowMaterialCatModel();
                     $show_material_cat_model->where(['show_cat_no' => $val['cat_no']])
                             ->delete();
                     $dataList = [];
@@ -574,12 +574,12 @@ class ShowCatModel extends PublicModel {
         } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
             $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
             if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
-                $show_material_cat_model = new ShowmaterialcatModel();
+                $show_material_cat_model = new ShowMaterialCatModel();
                 $show_material_cat_model->where(['show_cat_no' => $where['cat_no']])
                         ->delete();
                 $dataList = [];
                 foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
-                    $dataList[] = ['show_cat_no' => $data['cat_no'],
+                    $dataList[] = ['show_cat_no' => $where['cat_no'],
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
@@ -680,7 +680,7 @@ class ShowCatModel extends PublicModel {
     }
 
     public function updateothercat($old_cat_no, $new_cat_no) {
-        $show_material_cat_model = new ShowmaterialcatModel();
+        $show_material_cat_model = new ShowMaterialCatModel();
         $flag_show_material = $show_material_cat_model
                 ->where(['show_cat_no' => $old_cat_no])
                 ->save(['show_cat_no' => $new_cat_no]);
@@ -809,7 +809,7 @@ class ShowCatModel extends PublicModel {
 
         if ($data['level_no'] == 3 && isset($createcondition['material_cat_nos']) && $createcondition['material_cat_nos']) {
             $dataList = [];
-            $show_material_cat_model = new ShowmaterialcatModel();
+            $show_material_cat_model = new ShowMaterialCatModel();
             foreach ($createcondition['material_cat_nos'] as $material_cat_no) {
                 $data = [
                     'show_cat_no' => $cat_no,
