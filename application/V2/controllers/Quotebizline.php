@@ -601,6 +601,30 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * @desc 保存报价综合信息(项目经理)
+     */
+    public function saveQuoteGeneralInfoAction(){
+
+        $request = $this->validateRequests('quote_id');
+        //p($request);
+        $quoteModel = new QuoteModel();
+        try{
+            if ($quoteModel->where(['id'=>$request['quote_id']])->save($quoteModel->create($request))){
+                $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
+            }else{
+                //p($quoteModel->getLastSql());
+                $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+            }
+        }catch (Exception $exception){
+            $this->jsonReturn([
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ]);
+        }
+
+    }
+
+    /**
      * @desc 询单信息(通用)
      * @author 买买提
      */
