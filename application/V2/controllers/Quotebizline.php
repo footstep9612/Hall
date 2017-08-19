@@ -484,10 +484,9 @@ class QuotebizlineController extends PublicController {
         | 把当前报价单的产品线报价人字段改为新选择的id
         |
         */
-        if( empty($this->_requestParams['quote_id']) || empty($this->_requestParams['biz_agent_id']) ){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
-        }
-        $this->jsonReturn($this->_quoteBizLine->assignQuoter($this->_requestParams));
+        $request = $this->validateRequests('quote_id,biz_agent_id');
+
+        $this->jsonReturn($this->_quoteBizLine->assignQuoter($request));
 
     }
 
