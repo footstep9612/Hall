@@ -295,8 +295,9 @@ class QuotebizlineController extends PublicController {
         if ($skuList){
 
             $user = new EmployeeModel();
-
+            $supplier = new SupplierModel();
             foreach ($skuList as $key=>$bizlineQuoteSku) {
+                $skuList[$key]['supplier_name'] = $supplier->where(['id'=>$bizlineQuoteSku['supplier_id']])->getField('name');
                 $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['created_by']])->getField('name');
             }
 
