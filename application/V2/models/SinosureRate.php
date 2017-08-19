@@ -152,7 +152,9 @@ class SinosurerateModel extends PublicModel {
      * @time 2017-08-01
      */
     public function addRecord($condition = []) {
-
+        if (isset($condition['id'])) {
+            unset($condition['id']);
+        }
         $data = $this->create($condition);
         try {
             return $this->add($data);
@@ -173,6 +175,9 @@ class SinosurerateModel extends PublicModel {
      */
     public function updateInfo($where = [], $condition = []) {
         try {
+            if (isset($condition['id'])) {
+                unset($condition['id']);
+            }
             $data = $this->create($condition);
 
             return $this->where($where)->save($data);
