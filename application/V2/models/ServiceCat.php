@@ -414,7 +414,6 @@ class ServiceCatModel extends PublicModel {
     protected function initService($category = [] , $term = [] ,$item =[]) {
         if($category !== false && $term !== false && $item !== false){
             $data = $data_term = $data_item = [];
-
             /**
              * 处理条款内容
              */
@@ -430,10 +429,10 @@ class ServiceCatModel extends PublicModel {
                     }
                 }
             }
-
             /**
              * 处理条款
              */
+            $i=0;
             if(!empty($term)) {
                 foreach($term as $tm) {
                     $term_r = json_decode($tm['term'],true);
@@ -443,16 +442,16 @@ class ServiceCatModel extends PublicModel {
                             $term_i['choice_flag'] = $tm['choice_flag'];
                             $term_i['add_flag'] = $tm['add_flag'];
                             $term_i['status'] = $tm['status'];
-                            $data_term[$term_i['lang']][$tm['service_term_id']] = $term_i;
-                            $data_term[$term_i['lang']][$tm['service_term_id']]['item'] = isset($data_item[$term_i['lang']][$tm['service_term_id']]) ? $data_item[$term_i['lang']][$tm['service_term_id']] : array();
+                            $term_i['item']=isset($data_item[$term_i['lang']][$tm['service_term_id']]) ? $data_item[$term_i['lang']][$tm['service_term_id']] : array();
+                            $data_term[$term_i['lang']][] = $term_i;
                         }
                     }
                 }
             }
-
             /**
              * 处理服务类别
              */
+
             if(!empty($category)) {
                 $data['id'] = $category['id'];
                 $category_ary = json_decode($category['category'] , true);
