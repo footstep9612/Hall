@@ -23,7 +23,7 @@ class RoleUserModel extends PublicModel {
 
     public function userRoleList($user_id,$pid = ''){
         if($user_id){
-            $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`fn`,`func_perm`.`parent_id` ';
+            $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`sort`,`func_perm`.`fn`,`func_perm`.`parent_id` ';
             $sql .= ' FROM employee';
             $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
             $sql .= ' LEFT JOIN  `role_access_perm` ON `role_access_perm`.`role_id` =`role_member`.`role_id`';
@@ -35,6 +35,7 @@ class RoleUserModel extends PublicModel {
             if($pid!=='') {
                 $sql .= ' and `func_perm`.`parent_id` = ' . $pid;
             }
+            $sql .= ' group by func_perm_id';
             $sql .= ' order by `func_perm`.`sort` desc';
             return $this->query( $sql );
         }

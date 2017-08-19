@@ -20,6 +20,28 @@ class QuoteLogiFeeModel extends PublicModel {
     }
     
     /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-08-18
+     */
+    public function getWhere($condition = []) {
+         
+        $where = [];
+         
+        if(!empty($condition['quote_id'])) {
+            $where['quote_id'] = $condition['quote_id'];
+        }
+    
+        $where['deleted_flag'] = 'N';
+         
+        return $where;
+    
+    }
+    
+    /**
      * @desc 获取关联查询条件
      *
      * @param array $condition
@@ -120,6 +142,21 @@ class QuoteLogiFeeModel extends PublicModel {
                             ->page($currentPage, $pageSize)
                             ->order('a.id DESC')
                             ->select();
+    }
+    
+    /**
+     * @desc 获取详情
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-08-18
+     */
+    public function getDetail($condition = []) {
+         
+        $where = $this->getWhere($condition);
+         
+        return $this->where($where)->find();
     }
     
     /**
