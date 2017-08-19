@@ -1,20 +1,27 @@
 <?php
 /**
  * @desc 最终报价单明细模型
- * @author liujf 2017-06-21
+ * @author 张玉良
  */
 class FinalQuoteItemModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
     protected $tableName = 'final_quote_item';
-    
-    public function __construct() {
+	protected $joinTable1 = 'erui2_rfq.quote_item b ON a.quote_item_id = b.id';
+	protected $joinTable2 = 'erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id';
+	protected $joinField = 'a.id,a.inquiry_id,a.quote_id,a.sku,a.supplier_id,a.exw_unit_price as final_exw_unit_price,a.quote_unit_price as final_quote_unit_price,'.
+								'b.quote_qty,b.quote_unit,b.brand,b.exw_unit_price,b.quote_unit_price,b.net_weight_kg,b.gross_weight_kg,'.
+								'b.package_mode,b.package_size,b.delivery_days,b.period_of_validity,b.goods_source,b.stock_loc,b.reason_for_no_quote,'.
+								'c.buyer_goods_no,c.name,c.name_zh,c.model,c.remarks,c.remarks_zh';
+
+
+	public function __construct() {
         parent::__construct();
     }
 
 	/**
      * @desc 获取查询条件
- 	 * @author liujf 2017-06-27
+ 	 * @author 张玉良
      * @param $condition array
      * @return $where array
      */
@@ -22,49 +29,78 @@ class FinalQuoteItemModel extends PublicModel {
     	$where = array();
 
 		if (!empty($condition['id'])) {
-			$where['id'] = $condition['id'];
+			$where['a.id'] = $condition['a.id'];
 		}
 
-    	if (!empty($condition['quote_no'])) {
-			$where['quote_no'] = $condition['quote_no'];
+		if (!empty($condition['inquiry_id'])) {
+			$where['a.inquiry_id'] = $condition['a.inquiry_id'];
 		}
-    	
+
+    	if (!empty($condition['quote_id'])) {
+			$where['a.quote_id'] = $condition['a.quote_id'];
+		}
+
+		$where['a.deleted_flag'] = !empty($condition['a.deleted_flag']) ? $condition['a.deleted_flag'] : 'N';
     	return $where;
     }
     
 	/**
      * @desc 获取记录总数
- 	 * @author liujf 2017-06-27
+ 	 * @author 张玉良
      * @param array $condition 
      * @return int $count
      */
     public function getCount($condition) {
     	$where = $this->getWhere($condition);
-    	
-    	$count = $this->where($where)->count('id');
+
+		$count = $this->alias('a')
+				->join($this->joinTable1, 'LEFT')
+				->join($this->joinTable2, 'LEFT')
+				->where($where)
+				->count('a.id');
     	
     	return $count > 0 ? $count : 0;
     }
 
 	/**
      * @desc 获取报价单项目列表
- 	 * @author liujf 2017-06-17
+ 	 * @author 张玉良
      * @param array $condition
      * @return array
      */
     public function getItemList($condition) {
     	$where = $this->getWhere($condition);
-    	
-    	if (!empty($condition['currentPage']) && !empty($condition['pageSize'])) {
-    		return $this->where($where)->page($condition['currentPage'], $condition['pageSize'])->select();
-    	} else {
-    		return $this->where($where)->page(1, 10)->select();
-    	}
+
+		try {
+			$count = $this->getCount($where);
+			$list = $this->alias('a')
+					->join($this->joinTable1, 'LEFT')
+					->join($this->joinTable2, 'LEFT')
+					->field($this->joinField)
+					->where($where)
+					->order('a.id DESC')
+					->select();
+
+			if($list){
+				$results['code'] = '1';
+				$results['message'] = '成功！';
+				$results['count'] = $count;
+				$results['data'] = $list;
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '没有找到相关信息!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
+		}
     }
 
 	/**
 	 * @desc 添加报价单SKU详情
-	 * @author zhangyuliang 2017-06-29
+	 * @author 张玉良
 	 * @param array $condition
 	 * @return array
 	 */
@@ -73,52 +109,91 @@ class FinalQuoteItemModel extends PublicModel {
 		$data['status'] = !empty($condition['status'])?$condition['status']:'ONGOING';
 		$data['created_at'] = time();
 
-		return $this->add($data);
+		try {
+			$id = $this->add($data);
+
+			if($id){
+				$results['code'] = '1';
+				$results['message'] = '添加成功！';
+				$results['data'] = $id;
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '添加失败!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
+		}
 	}
 
 	/**
 	 * @desc 获取报价单SKU详情
-	 * @author zhangyuliang 2017-06-29
+	 * @author 张玉良
 	 * @param array $condition
 	 * @return array
 	 */
 	public function getDetail($condition) {
+		if(!empty($condition['id'])){
+			$where['id'] = $condition['id'];
+		}else{
+			$results['code'] = '-103';
+			$results['message'] = '没有ID!';
+			return $results;
+		}
 
-		$where = $this->getWhere($condition);
+		try {
+			$info = $this->where($where)->find();
 
-		return $this->where($where)->find();
-	}
-
-	/**
-	 * @desc 获取关联询价SKU详情
-	 * @author liujf 2017-06-30
-	 * @param array $condition
-	 * @return array
-	 */
-	public function getJoinDetail($condition) {
-
-		$where = $this->getWhere($condition);
-
-		if (empty($where)) return false;
-
-		return $this->where($where)->find();
+			if($info){
+				$results['code'] = '1';
+				$results['message'] = '成功！';
+				$results['data'] = $info;
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '没有找到相关信息!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
+		}
 	}
 
 	/**
 	 * @desc 修改报价单SKU
-	 * @author zhangyuliang 2017-06-29
+	 * @author 张玉良
 	 * @param array $where , $condition
 	 * @return array
 	 */
-	public function updateItem($where = [], $condition = []) {
-
-		if(empty($where['id'])){
-			return false;
-		}
-
+	public function updateItem($condition = []) {
 		$data = $this->create($condition);
+		if(!empty($condition['id'])){
+			$where['id'] = $condition['id'];
+		}else{
+			$results['code'] = '-103';
+			$results['message'] = '没有ID!';
+			return $results;
+		}
+		$data['updated_at'] = $this->getTime();
 
-		return $this->where($where)->save($data);
+		try {
+			$id = $this->where($where)->save($data);
+			if($id){
+				$results['code'] = '1';
+				$results['message'] = '修改成功！';
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '修改失败!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
+		}
 	}
 
 	/**
@@ -128,17 +203,26 @@ class FinalQuoteItemModel extends PublicModel {
 	 * @return array
 	 */
 	public function delItem($condition = []) {
-		if(!empty($condition['id'])) {
-			$where['id'] = $condition['id'];
+		if(!empty($condition['id'])){
+			$where['id'] = array('in',explode(',',$condition['id']));
 		}else{
-			return false;
-		}
-		if(!empty($condition['quote_no'])) {
-			$where['quote_no'] = $condition['quote_no'];
-		}else{
-			return false;
+
 		}
 
-		return $this->where($where)->save(['status' => 'DELETED']);
+		try {
+			$id = $this->where($where)->save(['deleted_flag' => 'Y']);
+			if($id){
+				$results['code'] = '1';
+				$results['message'] = '成功！';
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '删除失败!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
+		}
 	}
 }
