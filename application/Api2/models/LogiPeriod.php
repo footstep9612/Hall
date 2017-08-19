@@ -197,17 +197,27 @@ class LogiPeriodModel extends PublicModel {
      * @version V2.0
      * @desc   贸易条款对应物流时效
      */
-    public function getListbycondition($condition = '', $type = true) {
-        $where = $this->_getCondition($condition);
-        if ($type) {
-            list($from, $pagesize) = $this->_getPage($condition);
-            $redis_key = md5(json_encode($condition) . $from . $pagesize . $type);
-        } else {
-            $redis_key = md5(json_encode($condition) . $type);
+    public function getList($lang = '', $to_country = '', $from_country = '', $warehouse = '') {
+        if (empty($lang) || empty($to_country)) {
+            return array();
         }
 
-        if (redisHashExist('LogiPeriod', $redis_key)) {
-            return json_decode(redisHashGet('LogiPeriod', $redis_key, true));
+        $countryModel = new CountryModel();
+        $cityModel = new CityModel();
+//库中中国状态暂为无效
+        $from_country = $from_country ? $from_country : $countryModel->getCountryByBn('China', $lang);
+//city库中暂无东营,暂时写死以为效果
+        $warehouse = $warehouse ? $warehouse : $cityModel->getCityByBn('Dongying', $lang);
+
+        $condition = array(
+            'status' => self::STATUS_VALID,
+            'lang' => $lang,
+            'to_country' => $to_country,
+            'from_country' => $from_country,
+            'warehouse' => $warehouse
+        );
+        if (redisHashExist('LogiPeriod', md5(json_encode($condition)))) {
+            return json_decode(redisHashGet('LogiPeriod', md5(json_encode($condition))), true);
         }
         try {
             $field = 'id,lang,logi_no,trade_terms_bn,trans_mode_bn,warehouse,from_country,'
@@ -215,18 +225,18 @@ class LogiPeriodModel extends PublicModel {
                     . 'packing_period_max,collecting_period_min,collecting_period_max,'
                     . 'declare_period_min,declare_period_max,loading_period_min,'
                     . 'loading_period_max,int_trans_period_min,int_trans_period_max,'
-                    . 'remarks,period_min,period_max,status,created_by,created_at';
-            $this->field($field);
-            if ($type) {
-                $this->limit($from, $pagesize);
+                    . 'remarks,period_min,period_max,description';
+            $result = $this->field($field)->where($condition)->select();
+            $data = array();
+            if ($result) {
+                foreach ($result as $item) {
+                    $data[$item['trade_terms']][] = $item;
+                }
+                redisHashSet('LogiPeriod', md5(json_encode($condition)), json_encode($data));
             }
-            $result = $this->where($where)->select();
-            redisHashSet('LogiPeriod', $redis_key, json_encode($result));
-            return $result;
-        } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
-            return [];
+            return $data;
+        } catch (Exception $e) {
+            return array();
         }
     }
 
