@@ -249,13 +249,34 @@ class QuoteBizLineModel extends PublicModel{
 
     /**
      * 产品线负责人退回产品线报价人重新报价
-     * @param $quote_id 报价id
-     *
-     * @return bool
      */
-    public function sendback($quote_id)
-    {
-        return $this->where(['quote_id'=>$quote_id])->save(['status'=>self::STATUS_RETURN]);
+    public function bizlineManagerRejectQuote($request){
+
+        //1.更改当前的报价状态为被退回
+        $this->startTrans();
+        $quoteBizline = $this->where(['quote_id'=>$request['quote_id']])->save(['status'=>'WITHDREW']);
+
+        //2.更改该报价所属的sku状态为被驳回状态
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $quoteItemFormIds = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->getField('id',true);
+
+        $quoteItemForm = [];
+        foreach ($quoteItemFormIds as $quoteItemFormId){
+            $quoteItemForm[] = $quoteItemFormModel->where(['quote_id'=>$quoteItemFormId])->save([
+                'status' => 'WITHDREW'
+            ]);
+        }
+
+        if ($quoteBizline && $quoteItemForm){
+            $this->commit();
+            $quoteItemFormModel->commit();
+            return ['code'=>'1','message'=>'成功!'];
+        }else{
+            $this->rollback();
+            $quoteItemFormModel->rollback();
+            return ['code'=>'-104','message'=>'失败!'];
+        }
+
     }
 
     /**

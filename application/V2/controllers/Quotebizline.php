@@ -503,33 +503,14 @@ class QuotebizlineController extends PublicController {
      * @desc 退回报价(产品线负责人)
      * @author 买买提
      */
-    public function rejectQuoteAction() {
-        /*
-          |--------------------------------------------------------------------------
-          | 产品线报价->退回报价   角色:产品线负责人
-          |--------------------------------------------------------------------------
-          |
-          | 操作说明
-          | 退回报价：全部SKU改为 被驳回状态 只有全部SKU都是“已报价”状态，才能退回
-          |
-         */
-        //1.更改当前的报价状态为被退回
-        $sendBackQuote = $this->_quoteBizLine->sendback($this->_requestParams['quote_id']);
+    public function bizlineManagerRejectQuoteAction() {
 
-        //2.更改该报价所属的sku状态为被驳回状态
-        $sendBackQuoteSku = $this->_quoteItemBizLine->sendback($this->_requestParams['quote_id']);
+        $request = $this->validateRequests('quote_id');
 
-        if ($sendBackQuote && $sendBackQuoteSku) {
-            $this->jsonReturn([
-                'code' => 1,
-                'message' => '退回成功!'
-            ]);
-        }
+        $response = $this->_quoteBizLine->bizlineManagerRejectQuote($request);
 
-        $this->jsonReturn([
-            'code' => -101,
-            'message' => '退回失败！'
-        ]);
+        $this->jsonReturn($response);
+
     }
 
     /**
@@ -689,19 +670,9 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 报价办理->暂存接口
-     * @author 买买提
+     * @desc 暂存(产品线报价人)
      */
     public function storageQuoteAction() {
-        /*
-          |--------------------------------------------------------------------------
-          | 报价单信息暂存   角色:产品线负责人
-          |--------------------------------------------------------------------------
-          |
-          | 操作说明
-          | 提交暂存后，不做校验，市场的进度为待提交
-          |
-         */
 
         $request = $this->_requestParams['data'];
 
@@ -709,6 +680,14 @@ class QuotebizlineController extends PublicController {
 
         $this->jsonReturn($response);
 
+    }
+
+    /**
+     * @desc 暂存(产品线负责人)
+     */
+    public function managerStoreQuoteAction(){
+
+        $request = $this->_requestParams['data'];
     }
 
     /**
