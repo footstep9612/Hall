@@ -31,7 +31,7 @@ class FinalQuoteController extends PublicController {
 
             //获取询单基本信息
             $inquirywhere['id'] = $where['id'];
-            $inquiryinfo = $inquiry->field('id,serial_no,pm_id,status')->where($inquirywhere)->find();
+            $inquiryinfo = $inquiry->field('serial_no,pm_id')->where($inquirywhere)->find();
 
             if(isset($inquiryinfo)){
 
@@ -109,7 +109,7 @@ class FinalQuoteController extends PublicController {
             if($total_exw_price>0){
                 $logistics = new LogisticsController();
                 $logidata['trade_terms_bn'] = $data['trade_terms_bn'];  //贸易术语
-                $logidata['$total_exw_price'] = $total_exw_price;  //报出EXW合计
+                $logidata['total_exw_price'] = $total_exw_price;  //报出EXW合计
                 $logidata['premium_rate'] = $data['premium_rate'];  //保险税率
                 $logidata['payment_period'] = $data['payment_period'];  //回款周期
                 $logidata['bank_interest'] = $data['bank_interest'];  //银行利息
@@ -160,6 +160,7 @@ class FinalQuoteController extends PublicController {
 
 
         //把修改更新到市场报价单表
+        $finaldata['id'] = $data['id']; //市场报价单ID
         $finaldata['payment_period'] =$data['payment_period'];    //回款周期
         $finaldata['delivery_period'] =$data['delivery_period'];   //交货周期
         $finaldata['fund_occupation_rate'] =$data['fund_occupation_rate'];  //占用资金比例
