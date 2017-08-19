@@ -137,6 +137,7 @@ class ESClient {
     public function __construct() {
         $server = Yaf_Application::app()->getConfig()->esapi;
         $source_hosts = [$server];
+
         $this->server = ClientBuilder::create()
                         ->setHosts($source_hosts)->build();
     }

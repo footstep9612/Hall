@@ -1027,29 +1027,67 @@ class GoodsModel extends PublicModel {
     public function getSpecGoodsBySpu($spu = '', $lang = '', $spec_type = 0) {
         if (empty($spu))
             return array();
-
-
         try {
-            $field = 'id,lang,spu,sku,qrcode,name,show_name,model,'
-                    . 'exw_days,min_pack_naked_qty,nude_cargo_unit,'
-                    . 'min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,'
-                    . 'nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,'
-                    . 'min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,'
-                    . 'compose_require_pack,pack_type,name_zh,name_customs,hs_code,'
-                    . 'tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place';
+            $field = "lang,spu,sku,qrcode,name,name_zh,show_name,model,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail";
             $condition = array(
                 "spu" => $spu,
                 "lang" => $lang,
                 "status" => self::STATUS_VALID
             );
             $result = $this->field($field)->where($condition)->select();
-
-
+            $this->getSpecBySku($result, $lang);
             return $result;
         } catch (Exception $e) {
+            print_r($e);
             return array();
         }
         return array();
+    }
+
+    public function getSpecBySku(&$result, $lang) {
+
+        if ($result) {
+
+            $skus = [];
+            foreach ($result as $k => $item) {
+                $skus[] = $item['sku'];
+            }
+
+            if ($skus) {
+                $gattr = new GoodsAttrModel();
+                $specs = $gattr->getgoods_attrbyskus($skus, $lang);
+            }
+
+            foreach ($result as $k => $item) {
+                //获取商品规格
+                //增加最小
+                $sku = $item['sku'];
+                $result[$k]['exw_day'] = $item['exw_days'];
+                $result[$k]['purchase_unit'] = $item['tx_unit'];
+
+
+                $result[$k]['goods'] = $item['min_pack_naked_qty'] . $item['nude_cargo_unit'] . '/' . $item['tx_unit'];
+                $spec = [];
+                if (isset($specs[$sku])) {
+                    $spec = json_decode($specs[$sku][0]['spec_attrs'], true);
+                }
+
+
+                if ($spec_type) {
+                    $result[$k]['spec'] = $spec;
+                } elseif ($spec) {
+                    $spec_str = '';
+
+                    foreach ($spec as $key => $val) {
+                        $spec_str .= $key . ' : ' . $val . ' ;';
+                    }
+
+                    $result[$k]['spec'] = $spec_str;
+                } else {
+                    $result[$k]['spec'] = '';
+                }
+            }
+        }
     }
 
 }
