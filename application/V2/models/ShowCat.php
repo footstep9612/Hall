@@ -572,14 +572,14 @@ class ShowCatModel extends PublicModel {
                 }
             }
         } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
-            $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
+            $flag = $this->updateothercat($where['cat_no'], $cat_no);
             if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
                 $show_material_cat_model = new ShowMaterialCatModel();
                 $show_material_cat_model->where(['show_cat_no' => $where['cat_no']])
                         ->delete();
                 $dataList = [];
                 foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
-                    $dataList[] = ['show_cat_no' => $where['cat_no'],
+                    $dataList[] = ['show_cat_no' => $cat_no,
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
