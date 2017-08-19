@@ -35,14 +35,15 @@ class BizlineSupplierModel extends PublicModel
     public function getSupplierGoodsCostList($data){
         $list = $this
             ->join('`erui2_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')
-            ->join('`erui2_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left');
+            ->join('`erui2_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left')
+            ->join('`erui2_supplier`.`supplier` sp on sp.id=bizline_supplier.supplier_id', 'left');
             if($data['sku']){
                 $list =$list->join('`erui2_goods`.`goods_cost_price` gc on gc.supplier_id=bizline_supplier.supplier_id', 'left');
                 $data[] ='sku=\''.$data['sku'].'\' or sku is null';
-                $list =$list->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name,gc.price,gc.price_validity');
+                $list =$list->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name,gc.price,gc.price_validity,sp.name as supplier_name');
                 unset($data['sku']);
             }else{
-                $list =$list->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name');
+                $list =$list->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name,sp.name as supplier_name');
             }
         $list = $list->where($data);
         $list = $list->group('bizline_supplier.supplier_id,bizline_supplier.bizline_id')->select();
@@ -50,8 +51,9 @@ class BizlineSupplierModel extends PublicModel
     }
     public function getSupplierList($data)
     {
-        return $this->where($data)->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name')
+        return $this->where($data)->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name,sp.name as supplier_name')
             ->join('`erui2_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')
+            ->join('`erui2_supplier`.`supplier` sp on sp.id=bizline_supplier.supplier_id', 'left')
             ->join('`erui2_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left')->select();
     }
     public function create_data($create= []) {
