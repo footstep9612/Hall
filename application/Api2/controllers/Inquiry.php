@@ -9,6 +9,7 @@
 class InquiryController extends PublicController {
 
     public function init() {
+        $this->token = false;
         parent::init();
     }
 
@@ -55,7 +56,7 @@ class InquiryController extends PublicController {
             $data['inquirer'] = $this->user['user_name'];
             $data['inquirer_email'] = $this->user['email'];
 
-            $results = $inquiry->add_data($data);
+            $results = $inquiry->addData($data);
         } else {
             $results = $inquiryNo;
         }
@@ -66,7 +67,7 @@ class InquiryController extends PublicController {
     public function getListAction() {
         $inquiry = new InquiryModel();
         $item = new InquiryItemModel();
-        $where = json_decode(file_get_contents("php://input"), true);
+        $where = $this->getPut();
 
         $results = $inquiry->getlist($where);
 
@@ -81,7 +82,7 @@ class InquiryController extends PublicController {
     //询价单详情
     public function getInfoAction() {
         $inquiry = new InquiryModel();
-        $where = json_decode(file_get_contents("php://input"), true);
+        $where = $this->getPut();
 
         $results = $inquiry->getinfo($where);
 
@@ -91,7 +92,7 @@ class InquiryController extends PublicController {
     //修改询价单
     public function updateAction() {
         $inquiry = new InquiryModel();
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
 
         $results = $inquiry->update_data($data);
         $this->jsonReturn($results);
@@ -100,7 +101,7 @@ class InquiryController extends PublicController {
     //删除询价单
     public function deleteAction() {
         $inquiry = new InquiryModel();
-        $where = json_decode(file_get_contents("php://input"), true);
+        $where = $this->getPut();
         //$where['inquiry_no'] = '10001';
         $results = $inquiry->delete_data($where);
         $this->jsonReturn($results);
@@ -109,7 +110,7 @@ class InquiryController extends PublicController {
     //附件列表
     public function getListAttachAction() {
         $attach = new InquiryAttachModel();
-        $where = json_decode(file_get_contents("php://input"), true);
+        $where = $this->getPut();
 
         $results = $attach->getlist($where);
         //var_dump($data);die;
@@ -119,7 +120,7 @@ class InquiryController extends PublicController {
     //添加附件
     public function addAttachAction() {
         $attach = new InquiryAttachModel();
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
 
         $results = $attach->add_data($data);
 
@@ -129,7 +130,7 @@ class InquiryController extends PublicController {
     //删除附件
     public function delAttachAction() {
         $attach = new InquiryAttachModel();
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
 
         $results = $attach->delete_data($data);
         $this->jsonReturn($results);
@@ -139,7 +140,7 @@ class InquiryController extends PublicController {
     public function getListItemAction() {
         $Item = new InquiryItemModel();
 
-        $where = json_decode(file_get_contents("php://input"), true);
+        $where = $this->getPut();
 
         $results = $Item->getlist($where);
         $this->jsonReturn($results);
@@ -149,7 +150,7 @@ class InquiryController extends PublicController {
     public function getInfoItemAction() {
         $Item = new InquiryItemModel();
 
-        $where = json_decode(file_get_contents("php://input"), true);
+        $where = $this->getPut();
 
         $results = $Item->getinfo($where);
         $this->jsonReturn($results);
@@ -158,7 +159,7 @@ class InquiryController extends PublicController {
     //添加明细
     public function addItemAction() {
         $Item = new InquiryItemModel();
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
 
         $results = $Item->add_data($data);
         $this->jsonReturn($results);
@@ -167,7 +168,7 @@ class InquiryController extends PublicController {
     //删除明细
     public function delItemAction() {
         $Item = new InquiryItemModel();
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
 
         $results = $Item->delete_data($data);
         $this->jsonReturn($results);
@@ -177,7 +178,7 @@ class InquiryController extends PublicController {
     public function getListItemAttachAction() {
         $ItemAttach = new InquiryItemAttachModel();
 
-        $where = json_decode(file_get_contents("php://input"), true);
+        $where = $this->getPut();
 
         $results = $ItemAttach->getlist($where);
         $this->jsonReturn($results);
@@ -186,7 +187,7 @@ class InquiryController extends PublicController {
     //添加明细附件
     public function addItemAttachAction() {
         $ItemAttach = new InquiryItemAttachModel();
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
 
         $results = $ItemAttach->add_data($data);
         $this->jsonReturn($results);
@@ -195,7 +196,7 @@ class InquiryController extends PublicController {
     //删除明细附件
     public function delItemAttachAction() {
         $ItemAttach = new InquiryItemAttachModel();
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
 
         $results = $ItemAttach->delete_data($data);
         $this->jsonReturn($results);
