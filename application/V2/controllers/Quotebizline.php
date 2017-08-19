@@ -293,6 +293,13 @@ class QuotebizlineController extends PublicController {
         $skuList = QuoteHelper::bizlineManagerQuoteSkuList($request);
 
         if ($skuList){
+
+            $user = new EmployeeModel();
+
+            foreach ($skuList as $key=>$bizlineQuoteSku) {
+                $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['created_by']])->getField('name');
+            }
+
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
