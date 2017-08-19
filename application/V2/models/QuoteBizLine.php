@@ -305,11 +305,9 @@ class QuoteBizLineModel extends PublicModel{
      */
     public function submitToBizlineManager($params){
 
-        //TODO 这里可能处理一些逻辑相关的操作
-
         //更新当前的报价单状态为产品线报价
         try{
-            if ($this->where(['quote_id'=>$params['quote_id']])->save(['status'=>self::STATUS_QUOTED])){
+            if ($this->where(['quote_id'=>$params['quote_id']])->save(['status'=>'QUOTED'])){
                 return ['code'=>'1','message'=>'提交成功!'];
             }else{
                 return ['code'=>'-104','message'=>'提交失败!'];

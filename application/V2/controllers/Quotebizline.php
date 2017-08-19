@@ -592,25 +592,15 @@ class QuotebizlineController extends PublicController {
 
     /**
      * @desc 提交产品线负责人审核(产品线报价人)
-     * @author 买买提
      */
     public function sentToBizlineManagerAction() {
-        /*
-        |--------------------------------------------------------------------------
-        | 产品线报价->提交产品线负责人审核   角色:产品线报价人
-        |--------------------------------------------------------------------------
-        | 操作说明
-        | 点击暂存后，不做校验，市场的进度为待提交
-        | 当前报价单状态改为待提交  [quote_bizlie表]
-        |
-        */
-        //判断参数是否正确
-        if (empty($this->_requestParams['quote_id']) || empty($this->_requestParams['bizline_id'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
+
+        $request = $this->validateRequests('quote_id');
+
         //保存数据及更改状态
         $quoteBizline = new QuoteBizLineModel();
-        $this->jsonReturn($quoteBizline->submitToBizlineManager($this->_requestParams));
+
+        $this->jsonReturn($quoteBizline->submitToBizlineManager($request));
 
     }
 
