@@ -178,6 +178,8 @@ class SinosurerateModel extends PublicModel {
             if (isset($condition['id'])) {
                 unset($condition['id']);
             }
+            $condition['updated_by'] = defined('UID') ? UID : 0;
+            $condition['updated_at'] = date('Y-m-d H:i:s');
             $data = $this->create($condition);
 
             return $this->where($where)->save($data);
