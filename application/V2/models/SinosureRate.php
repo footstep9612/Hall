@@ -7,7 +7,7 @@
  * @time 2017-08-01
  */
 
-class SinosureRateModel extends PublicModel {
+class SinosurerateModel extends PublicModel {
 
     protected $dbName = 'erui2_config';
     protected $tableName = 'sinosure_rate';
