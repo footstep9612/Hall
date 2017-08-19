@@ -713,18 +713,12 @@ class QuotebizlineController extends PublicController {
           |
          */
 
-        $result = $this->_quoteBizLine->storageQuote($this->_requestParams['quote_id']);
-        if (!$result) {
-            $this->jsonReturn([
-                'code' => '-104',
-                'message' => '失败!',
-            ]);
-        }
+        $request = $this->_requestParams['data'];
 
-        $this->jsonReturn([
-            'code' => '1',
-            'message' => '成功!'
-        ]);
+        $response = $this->_quoteBizLine->storageQuote($request);
+
+        $this->jsonReturn($response);
+
     }
 
     /**

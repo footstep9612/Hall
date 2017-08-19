@@ -210,17 +210,41 @@ class QuoteBizLineModel extends PublicModel{
 
     /**
      * 产品线负责人暂存报价信息
-     * @param $quote_id 报价单id
-     * @return bool
      */
-    public function storageQuote($quote_id)
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | TODO 这里状态对应值整理好了以后再具体实现逻辑
-        |--------------------------------------------------------------------------
-        */
-        return $this->where(['quote_id'=>$quote_id])->save(['status'=>'SUBMIT']);
+    public function storageQuote($data){
+
+
+        if (!is_array($data) || is_null($data)) return false;
+
+        $supplier = new BizlineSupplierModel();
+
+        //追加供应商信息
+        foreach ($data as $key=>$value){
+            $where = ['supplier_id'=>$value['supplier_id'],'bizline_id'=>$value['bizline_id']];
+            $data[$key]['contact_first_name'] = $supplier->where($where)->getField('first_name');
+            $data[$key]['contact_last_name'] = $supplier->where($where)->getField('last_name');
+            $data[$key]['contact_gender'] = $supplier->where($where)->getField('gender');
+            $data[$key]['contact_email'] = $supplier->where($where)->getField('email');
+            $data[$key]['contact_phone'] = $supplier->where($where)->getField('phone');
+        }
+
+        //更新信息
+        try{
+            $quoteItemFormModel = new QuoteItemFormModel();
+            foreach ($data as $k=>$v){
+                $quoteItemFormModel->save($quoteItemFormModel->create($v));
+            }
+            return [
+                'code' => '1',
+                'message' => '成功!'
+            ];
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' =>$exception->getMessage()
+            ];
+        }
+
     }
 
     /**
