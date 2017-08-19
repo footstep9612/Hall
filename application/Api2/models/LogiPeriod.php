@@ -185,4 +185,49 @@ class LogiPeriodModel extends PublicModel {
         }
     }
 
+    /**
+     * 配送时效列表
+     * 配送时效 不区分产品，只根据目的国（起始国、地点暂定为中国、东营），根据这三个条件查询，并按贸易术语分开展示
+     * @param string $to_country 目的国
+     * @param string $from_country 起始国
+     * @param string $warehouse 起始仓库
+     * @return array
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   贸易条款对应物流时效
+     */
+    public function getListbycondition($condition = '', $type = true) {
+        $where = $this->_getCondition($condition);
+        if ($type) {
+            list($from, $pagesize) = $this->_getPage($condition);
+            $redis_key = md5(json_encode($condition) . $from . $pagesize . $type);
+        } else {
+            $redis_key = md5(json_encode($condition) . $type);
+        }
+
+        if (redisHashExist('LogiPeriod', $redis_key)) {
+            return json_decode(redisHashGet('LogiPeriod', $redis_key, true));
+        }
+        try {
+            $field = 'id,lang,logi_no,trade_terms_bn,trans_mode_bn,warehouse,from_country,'
+                    . 'from_port,to_country,clearance_loc,to_port,packing_period_min,'
+                    . 'packing_period_max,collecting_period_min,collecting_period_max,'
+                    . 'declare_period_min,declare_period_max,loading_period_min,'
+                    . 'loading_period_max,int_trans_period_min,int_trans_period_max,'
+                    . 'remarks,period_min,period_max,status,created_by,created_at';
+            $this->field($field);
+            if ($type) {
+                $this->limit($from, $pagesize);
+            }
+            $result = $this->where($where)->select();
+            redisHashSet('LogiPeriod', $redis_key, json_encode($result));
+            return $result;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }
