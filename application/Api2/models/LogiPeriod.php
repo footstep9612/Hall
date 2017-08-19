@@ -204,9 +204,9 @@ class LogiPeriodModel extends PublicModel {
 
         $countryModel = new CountryModel();
         $cityModel = new CityModel();
-//库中中国状态暂为无效
+        //库中中国状态暂为无效
         $from_country = $from_country ? $from_country : $countryModel->getCountryByBn('China', $lang);
-//city库中暂无东营,暂时写死以为效果
+        //city库中暂无东营,暂时写死以为效果
         $warehouse = $warehouse ? $warehouse : $cityModel->getCityByBn('Dongying', $lang);
 
         $condition = array(
@@ -235,7 +235,7 @@ class LogiPeriodModel extends PublicModel {
                 redisHashSet('LogiPeriod', md5(json_encode($condition)), json_encode($data));
             }
             return $data;
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
             return array();
         }
     }
