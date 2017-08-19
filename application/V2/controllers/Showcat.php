@@ -270,6 +270,7 @@ class ShowcatController extends PublicController {
             $material_cat_model = new MaterialCatModel();
             $material_cats = $material_cat_model->getmaterial_cats($mcashow_material_catnos, 'zh');
             $this->setvalue('count', 0);
+            rsort($material_cats);
             $this->setvalue('material_cats', $material_cats);
         } else {
             $material_cats = null;
