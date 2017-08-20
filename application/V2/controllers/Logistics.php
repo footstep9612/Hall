@@ -231,11 +231,12 @@ class LogisticsController extends PublicController {
 	        foreach ($quoteItemList as $quoteItem) {
 	            $quoteUnitPrice = round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 4);
 	            $quoteUnitPrice = $quoteUnitPrice > 0 ? $quoteUnitPrice : 0;
-	            $tmpRes = $this->quoteItemModel->updateItem(['id' => $quoteItem['id']], ['quote_unit_price' => $quoteUnitPrice]);
-	            
-	            if (!$tmpRes) {
-	                $res3 = false;
-	                break;
+	            if ($quoteItem['quote_unit_price'] != $quoteUnitPrice) {
+	                $tmpRes = $this->quoteItemModel->updateItem(['id' => $quoteItem['id']], ['quote_unit_price' => $quoteUnitPrice]);
+	                if (!$tmpRes) {
+	                    $res3 = false;
+	                    break;
+	                }
 	            }
 	        }
 	        
