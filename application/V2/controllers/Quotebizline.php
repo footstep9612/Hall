@@ -379,9 +379,11 @@ class QuotebizlineController extends PublicController {
      */
     public function sentLogisticsAction(){
 
+
         if (empty($this->_requestParams['serial_no'])){
             $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
         }
+
         $this->jsonReturn($this->_quoteBizLine->sentLogistics($this->_requestParams));
     }
 

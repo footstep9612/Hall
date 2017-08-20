@@ -350,8 +350,6 @@ trait QuoteBizlineHelper{
         $quoteBizlineModel->startTrans();
         $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
 
-
-
         if ($inquiryResult && $quoteResult && $quoteBizlineResult){
             $inquiry->commit();
             $quoteModel->commit();
