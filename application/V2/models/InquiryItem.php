@@ -155,7 +155,7 @@ class InquiryitemModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    public function addItemData($condition = []) {
+    public function addDataBatch($condition = []) {
         if (empty($condition['inquiry_id'])) {
             $results['code'] = '-103';
             $results['message'] = '没有询单ID!';
