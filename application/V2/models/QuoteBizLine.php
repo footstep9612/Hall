@@ -86,34 +86,60 @@ class QuoteBizLineModel extends PublicModel{
     }
 
     /**
-     * 提交物流报价(项目经理)
-     * @param $request
-     * @return bool
+     * @desc 提交物流报价(项目经理)
+     * @param $request 请求
+     * @return array 结果
      */
-    public function sentLogistics($request){
+    public function sentLogistics($request,$user){
 
-        //修改询单表(inqury)的数据
+        //更改询单(inqury项目)的状态
         $inquiry = new InquiryModel();
-        $inquiry->startTrans();
+        //$inquiry->startTrans();
         $inquiryUpdates = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'status' => self::INQUIRY_QUOTED_BY_LOGI,//物流报价中
+            'status' => self::INQUIRY_QUOTING_BY_LOGI,//物流报价中
             'goods_quote_status' => self::QUOTE_APPROVED //已审核
         ]);
 
-        //修改产品线报价单的状态
-        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
-        $this->startTrans();
-        $bizlineUpdates = $this->where(['inquiry_id'=>$inquiryID])->save([
-            'status' => self::QUOTE_APPROVED,//已审核
+        //修改报价的状态
+        $quoteModel = new QuoteModel();
+        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+            'status' => self::INQUIRY_QUOTING_BY_LOGI
         ]);
 
-        if ($inquiryUpdates && $bizlineUpdates){
+        //给物流表创建一条记录
+        $quoteLogiFeeModel = new QuoteLogiFeeModel();
+        $quoteLogiFeeModel->startTrans();
+        $quoteLogiFeeResult = $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
+            'quote_id' => $request['quote_id'],
+            'inquiry_id' => $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id'),
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => $user
+        ]));
+
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemIds = $quoteItemModel->where(['quote_id'=>$request['quote_id']])->getField('id',true);
+
+        //给物流报价单项形成记录
+        $quoteItemLogiModel = new QuoteItemLogiModel();
+        foreach ($quoteItemIds as $quoteItemId){
+            $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                'quote_id' => $request['quote_id'],
+                'quote_item_id' => $quoteItemId,
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $user
+            ]));
+        }
+
+
+        if ($inquiryUpdates && $quoteResult && $quoteLogiFeeResult){
             $inquiry->commit();
-            $this->commit();
+            $quoteModel->commit();
+            $quoteLogiFeeModel->commit();
             return ['code'=>'1','message'=>'提交成功!'];
         }else{
             $inquiry->rollback();
-            $this->rollback();
+            $quoteModel->rollback();
+            $quoteLogiFeeModel->rollback();
             return ['code'=>'-104','message'=>'提交失败!'];
         }
     }
