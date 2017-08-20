@@ -507,7 +507,8 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('quote_id');
 
-        $response = $this->_quoteBizLine->bizlineManagerRejectQuote($request);
+        $quoteBizline = new QuoteBizLineModel();
+        $response = $quoteBizline->bizlineManagerRejectQuote($request);
 
         $this->jsonReturn($response);
 
@@ -690,7 +691,8 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->_requestParams['data'];
 
-        $response = $this->_quoteBizLine->storageQuote($request);
+        $quoteBizline = new QuoteBizLineModel();
+        $response = $quoteBizline->storageQuote($request);
 
         $this->jsonReturn($response);
 

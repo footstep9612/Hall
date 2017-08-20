@@ -214,30 +214,29 @@ class QuoteBizLineModel extends PublicModel{
     public function storageQuote($data){
 
 
-        if (!is_array($data) || is_null($data)) return false;
-
-        $supplier = new BizlineSupplierModel();
+        if (!is_array($data['supplier_info']) || is_null($data['supplier_info'])){
+            return ['code'=>'-104','message'=>'请选择供应商!'];
+        }
 
         //追加供应商信息
         foreach ($data as $key=>$value){
-            $where = ['supplier_id'=>$value['supplier_id'],'bizline_id'=>$value['bizline_id']];
-            $data[$key]['contact_first_name'] = $supplier->where($where)->getField('first_name');
-            $data[$key]['contact_last_name'] = $supplier->where($where)->getField('last_name');
-            $data[$key]['contact_gender'] = $supplier->where($where)->getField('gender');
-            $data[$key]['contact_email'] = $supplier->where($where)->getField('email');
-            $data[$key]['contact_phone'] = $supplier->where($where)->getField('phone');
+            $data[$key]['supplier_id'] = $value['supplier_info'][0]['supplier_id'];
+            $data[$key]['contact_first_name'] = $value['supplier_info'][0]['first_name'];
+            $data[$key]['contact_last_name'] = $value['supplier_info'][0]['last_name'];
+            $data[$key]['contact_gender'] = $value['supplier_info'][0]['gender'];
+            $data[$key]['contact_email'] = $value['supplier_info'][0]['email'];
+            $data[$key]['contact_phone'] = $value['supplier_info'][0]['phone'];
+            unset( $data[$key]['supplier_info']);
         }
-
+        //p($data);
         //更新信息
         try{
             $quoteItemFormModel = new QuoteItemFormModel();
             foreach ($data as $k=>$v){
                 $quoteItemFormModel->save($quoteItemFormModel->create($v));
             }
-            return [
-                'code' => '1',
-                'message' => '成功!'
-            ];
+
+            return ['code' => '1','message' => '成功!'];
         }catch (Exception $exception){
             return [
                 'code' => $exception->getCode(),
