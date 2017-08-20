@@ -325,6 +325,13 @@ trait QuoteBizlineHelper{
 
         //更改当前询单(项目)的状态QUOTED_BY_BIZLINE
         $inquiry = new InquiryModel();
+
+        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
+
+        if ($status=="QUOTED_BY_BIZLINE"){
+            return ['code'=>'-104','message'=>'不能重复提交!'];
+        }
+
         $inquiry->startTrans();
         $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
             'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
