@@ -322,7 +322,6 @@ trait QuoteBizlineHelper{
      * @return array
      */
     public static function submitToManager($request){
-        //数据库操作 inquriy表中的status改为QUOTED_BY_BIZLINE  goods_quote_status字段值改为QUOTED
 
         //更改当前询单(项目)的状态QUOTED_BY_BIZLINE
         $inquiry = new InquiryModel();
@@ -332,19 +331,29 @@ trait QuoteBizlineHelper{
             'goods_quote_status'=>'QUOTED'//当前报价的状态
         ]);
 
+        //更改报价的状态(quote表)
         $quoteModel = new QuoteModel();
         $quoteModel->startTrans();
         $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
-            'status' => 'QUOTED'
+            'status' => 'QUOTED_BY_BIZLINE'
         ]);
 
-        if ($inquiryResult && $quoteResult){
+        //更改产品线报价的状态
+        $quoteBizlineModel = new QuoteBizLineModel();
+        $quoteBizlineModel->startTrans();
+        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
+
+
+
+        if ($inquiryResult && $quoteResult && $quoteBizlineResult){
             $inquiry->commit();
             $quoteModel->commit();
+            $quoteBizlineModel->commit();
             return ['code'=>'1','message'=>'成功!'];
         }else{
             $inquiry->rollback();
             $quoteModel->rollback();
+            $quoteBizlineModel->rollback();
             return ['code'=>'-104','message'=>'失败!'];
         }
     }

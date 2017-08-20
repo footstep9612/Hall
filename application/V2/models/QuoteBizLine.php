@@ -211,24 +211,26 @@ class QuoteBizLineModel extends PublicModel{
     /**
      * 产品线负责人暂存报价信息
      */
-    public function storageQuote($data){
-
-
-        if (!is_array($data['supplier_info']) || is_null($data['supplier_info'])){
-            return ['code'=>'-104','message'=>'请选择供应商!'];
-        }
+    public function storageQuote($data,$user){
 
         //追加供应商信息
         foreach ($data as $key=>$value){
-            $data[$key]['supplier_id'] = $value['supplier_info'][0]['supplier_id'];
-            $data[$key]['contact_first_name'] = $value['supplier_info'][0]['first_name'];
-            $data[$key]['contact_last_name'] = $value['supplier_info'][0]['last_name'];
-            $data[$key]['contact_gender'] = $value['supplier_info'][0]['gender'];
-            $data[$key]['contact_email'] = $value['supplier_info'][0]['email'];
-            $data[$key]['contact_phone'] = $value['supplier_info'][0]['phone'];
-            unset( $data[$key]['supplier_info']);
+
+            if (!empty($value['supplier_info'])){
+
+                $data[$key]['supplier_id'] = $value['supplier_info']['supplier_id'];
+                $data[$key]['contact_first_name'] = $value['supplier_info']['first_name'];
+                $data[$key]['contact_last_name'] = $value['supplier_info']['last_name'];
+                $data[$key]['contact_gender'] = $value['supplier_info']['gender'];
+                $data[$key]['contact_email'] = $value['supplier_info']['email'];
+                $data[$key]['contact_phone'] = $value['supplier_info']['phone'];
+                unset( $data[$key]['supplier_info']);
+            }
+
+            $data[$key]['updated_by'] = $user;
+            $data[$key]['updated_at'] = date('Y-m-d H:i:s');
         }
-        //p($data);
+
         //更新信息
         try{
             $quoteItemFormModel = new QuoteItemFormModel();

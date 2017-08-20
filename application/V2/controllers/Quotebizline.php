@@ -525,44 +525,6 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 选择供应商(产品线报价人)
-     * @author 买买提
-     */
-    public function selectSupplierAction() {
-        /*
-        |--------------------------------------------------------------------------
-        | 产品线报价->选择供应商   角色:产品线报价人
-        |--------------------------------------------------------------------------
-        | 操作说明
-        | 当前用户所在报价小组，对应的供应商
-        |
-        | 当前用户信息
-        | 查找当前用户所在的报价小组(产品线id)  [bizline_group表]
-        | 查找产品线对应的供应商列表 [bizline_supplier表]
-        |
-        */
-        //当前用户所在的产品线id
-        $bizline_id = 1;
-
-        //产品线对应的供应商
-        $bizlineSupplier = new BizlineSupplierModel();
-        //TODO 这里后期可能添加搜索功能
-        $bizline_suppliers = $bizlineSupplier->getList($bizline_id);
-
-        if ($bizline_suppliers) {
-            $this->jsonReturn([
-                'code' => 1,
-                'message' => '成功!'
-            ]);
-        }
-
-        $this->jsonReturn([
-            'code' => -104,
-            'message' => '没有相关记录!'
-        ]);
-    }
-
-    /**
      * @desc 提交产品线负责人审核(产品线报价人)
      */
     public function sentToBizlineManagerAction() {
@@ -677,14 +639,6 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 暂存
-     * @author 买买提
-     */
-    public function manageAction() {
-
-    }
-
-    /**
      * @desc 暂存(产品线报价人)
      */
     public function storageQuoteAction() {
@@ -692,7 +646,7 @@ class QuotebizlineController extends PublicController {
         $request = $this->_requestParams['data'];
 
         $quoteBizline = new QuoteBizLineModel();
-        $response = $quoteBizline->storageQuote($request);
+        $response = $quoteBizline->storageQuote($request,$this->user['id']);
 
         $this->jsonReturn($response);
 
