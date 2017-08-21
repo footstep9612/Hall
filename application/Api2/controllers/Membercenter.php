@@ -11,7 +11,8 @@
  * 2017/6/26
  * @author klp
  */
-class MembercenterController extends PublicController {
+class MembercenterController extends ShopMallController {
+//class MembercenterController extends Yaf_Controller_Abstract {
 
     public function init() {
         parent::init();
@@ -26,7 +27,6 @@ class MembercenterController extends PublicController {
         $buyerModel = new BuyerAccountModel();
 
         $result = $buyerModel->getinfo($this->user);
-
 
         if (!empty($result)) {
             $data = array(
@@ -46,10 +46,10 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function upUserInfoAction() {
-        if (!empty($this->user['customer_id'])) {
-            $where['customer_id'] = $this->user['customer_id'];
+        if (!empty($this->user['id'])) {
+            $where['id'] = $this->user['id'];
         } else {
-            jsonReturn('', '-1001', '参数[customer_id]不能为空');
+            jsonReturn('', '-1001', '参数[id]不能为空');
         }
         $buyerAccount = new BuyerAccountModel();
         $result1 = $buyerAccount->update_data($this->getPut(), $where);

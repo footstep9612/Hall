@@ -214,21 +214,45 @@ class ServicecatController extends PublicController {
     /**
      * 会员等级新建/编辑
      * @time  2017-08-05
-     *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","levels":[{"id":"27","buyer_level":"27","service_cat_id":"27","service_term_id":"27","service_item_id":"27"}]}
+     *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","buyer_level":"\u4f1a\u5458","levels":[{"id":"","category":{"service_cat_id":"1"},"term":[{"service_term_id":"1","item":[{"service_item_id":"1"},{"service_item_id":"2"}]},{"service_term_id":"2","item":[{"service_item_id":"1"},{"service_item_id":"2"}]}]}]}
      * @author klp
      */
     public function editLevelAction(){
-        /*  $this->put_data = [
-           'levels'=>[
-                    0=>[
-                           'id'=>'',
-                           'buyer_level'=>'',
-                           'service_cat_id'=>'',
-                           'service_term_id'=>'',
-                           'service_item_id'=>'',
-                       ],
-               ]
-           ]; */
+        /* $this->put_data = [
+            'buyer_level'=>'会员',
+          'levels'=>[
+                   0=>[
+                          'id'=>'',
+                          'category'=>[
+                              "service_cat_id"=> "1",
+                              ],
+                              "term"=> [
+                                  0=>[
+                                      "service_term_id"=> "1",
+                                      "item"=> [
+                                          0=>[
+                                              "service_item_id"=> "1",
+                                          ],
+                                          1=>[
+                                              "service_item_id"=> "2",
+                                          ]
+                                      ]
+                                  ],
+                                  1=>[
+                                      "service_term_id"=> "2",
+                                      "item"=> [
+                                          0=>[
+                                              "service_item_id"=> "1",
+                                          ],
+                                          1=>[
+                                              "service_item_id"=> "2",
+                                          ]
+                                      ]
+                                  ]
+                               ],
+                            ],
+                   ]
+          ]; */
         //获取用户信息
         $userInfo = getLoinInfo();
         $MemberServiceModel = new MemberServiceModel();
@@ -265,13 +289,13 @@ class ServicecatController extends PublicController {
     }
 
     /**
-     * 会员服务信息详情查询 -- 总的接口 一级二级三级
-     * @time  2017-08-05
+     * 所有服务信息详情查询 -- 总的接口 一级二级三级
+     * @time  2017-08-21
      * @author klp
      */
     public function serviceInfoAction(){
         $ServiceCatModel = new ServiceCatModel();
-        $result = $ServiceCatModel->getInfo($this->put_data);
+        $result = $ServiceCatModel->getAllService();
         if(!empty($result)) {
             jsonReturn($result);
         } else {

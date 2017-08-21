@@ -338,13 +338,13 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['status'])) {
             switch ($create['status']) {
-                case self::STATUS_APPROVED:
-                    $data['status'] = $create['status'];
-                    break;
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
                 case self::STATUS_REJECTED:
+                    $data['status'] = $create['status'];
+                    break;
+                case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];
                     break;
             }
@@ -378,4 +378,285 @@ class BuyerModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取采购商信息
+     * @author klp
+     */
+    public function buyerInfo($user) {
+//        $userInfo = getLoinInfo();
+        $where = array();
+        if (!empty($user['id'])) {
+            $where['id'] = $user['id'];
+        } else {
+            jsonReturn('', '-1001', '用户[id]不可以为空');
+        }
+
+        $field = 'id,lang,serial_no,buyer_type,buyer_no,name,bn,country_code,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,sec_ex_listed_on,line_of_credit,credit_available,credit_cur_bn,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';
+        try {
+            $buyerInfo = $this->field($field)->where($where)->find();
+            if ($buyerInfo) {
+                $BuyerreginfoModel = new BuyerreginfoModel();
+                $result = $BuyerreginfoModel->buyerRegInfo($where);
+                return $result ? array_merge($buyerInfo, $result) : $buyerInfo;
+            }
+            return array();
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * 企业信息新建-门户
+     * @author klp
+     */
+    public function editInfo($token, $input) {
+        if (!isset($input)) {
+            return false;
+        }
+        $this->startTrans();
+        try {
+            if (is_array($input)) {
+                $checkout = $this->checkParam($input);
+                $data = [
+                    'name' => $checkout['name'],
+                    'country_code' => strtoupper($checkout['country_code']),
+                    'country_bn' => strtoupper($checkout['country_code']),
+                    'official_email' => isset($checkout['official_email']) ? $checkout['official_email'] : '',
+                    'official_phone' => isset($checkout['official_phone']) ? $checkout['official_phone'] : '',
+                    'official_fax' => isset($checkout['official_fax']) ? $checkout['official_fax'] : '',
+                    'official_website' => isset($checkout['official_website']) ? $checkout['official_website'] : '',
+                    'province' => isset($checkout['province']) ? $checkout['province'] : '', //暂为办公地址
+                    'remarks' => isset($checkout['remarks']) ? $checkout['remarks'] : '',
+                    'recommend_flag' => isset($checkout['recommend_flag']) ? strtoupper($checkout['recommend_flag']) : 'N'
+                ];
+                //判断是新增还是编辑,如果有buyer_no就是编辑,反之为新增
+                $result = $this->field('id')->where(['id' => $token['id']])->find();
+                if ($result) {
+                    $result = $this->where(['id' => $token['id']])->save($data);
+                    if (!$result) {
+                        $this->rollback();
+                        return false;
+                    }
+                } else {
+                    // 生成用户编码
+                    $condition['page'] = 0;
+                    $condition['countPerPage'] = 1;
+                    $data_t_buyer = $this->getlist($condition);
+                    if ($data_t_buyer && substr($data_t_buyer[0]['buyer_no'], 1, 8) == date("Ymd")) {
+                        $no = substr($data_t_buyer[0]['buyer_no'], -1, 6);
+                        $no++;
+                    } else {
+                        $no = 1;
+                    }
+                    $temp_num = 1000000;
+                    $new_num = $no + $temp_num;
+                    $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”即为buyer_no
+
+                    $data['buyer_no'] = $real_num;
+                    $data['serial_no'] = $real_num;
+                    $data['apply_at'] = date('Y-m-d H:i:s', time());
+                    $data['created_at'] = date('Y-m-d H:i:s', time());
+                    $data['status'] = self::STATUS_CHECKING; //待审状态
+                    $result = $this->add($data);
+                    if (!$result) {
+                        $this->rollback();
+                        return false;
+                    }
+                }
+                //buyer_reg_info
+                $buyerRegInfo = new BuyerreginfoModel();
+                $result = $buyerRegInfo->createInfo($token, $input);
+                if (!$result) {
+                    $this->rollback();
+                    return false;
+                }
+                //buyer_address
+                $BuyerBankInfoModel = new BuyerBankInfoModel();
+                $res = $BuyerBankInfoModel->editInfo($token, $input);
+                if (!$res) {
+                    $this->rollback();
+                    return false;
+                }
+            } else {
+                return false;
+            }
+            $this->commit();
+            return $token['buyer_id'];
+        } catch (Exception $e) {
+            $this->rollback();
+//            var_dump($e);//测试
+            return false;
+        }
+    }
+
+    /**
+     * 参数校验-门户
+     * @author klp
+     */
+    private function checkParam($param = []) {
+        if (empty($param)) {
+            return false;
+        }
+        $results = array();
+        if (empty($param['name'])) {
+            $results['code'] = -101;
+            $results['message'] = '[name]不能为空!';
+        }
+        if (empty($param['bank_name'])) {
+            $results['code'] = -101;
+            $results['message'] = '[bank_name]不能为空!';
+        }
+        if (empty($param['bank_address'])) {
+            $results['code'] = -101;
+            $results['message'] = '[bank_address]不能为空!';
+        }
+        if (empty($param['province'])) {
+            $results['code'] = -101;
+            $results['message'] = '[province]不能为空!';
+        }
+        if ($results) {
+            jsonReturn($results);
+        }
+        return $param;
+    }
+
+    /**
+     * 获取授信的列表
+     * @param  string $code 编码
+     * @param  string $lang 语言
+     * @return mix
+     * @author klp
+     */
+    public function getListCredit($condition) {
+        $BuyerCreditLogModel = new BuyerCreditLogModel(); //取BuyerCreditLog表名
+        $creditLogtable = $BuyerCreditLogModel->getTableName();
+        $where = array();
+        list($from, $pagesize) = $this->_getPage($where);
+        //编号
+        $this->_getValue($where, $condition, 'id', 'string', 'b.id');
+        //审核人
+        $this->_getValue($where, $condition, 'approved_by', 'string', 'cb.approved_by');
+        $userids = $this->_getUserids($where, $condition, 'approved_by_name', 'cb.approved_by');
+        if ($userids) {
+            $where['approved_by'] = ['in', $userids];
+        }
+        //审核人
+        //   $this->_getValue($where, $condition, 'approved_by_name', 'array', 'cb.approved_by');
+        //公司名称
+        $this->_getValue($where, $condition, 'name', 'like', 'b.name');
+        //审核状态
+        $this->_getValue($where, $condition, 'status', 'string', 'b.status', 'VALID');
+        //授信额度(暂无字段,待完善)
+        $this->_getValue($where, $condition, 'credit', 'between', 'b.line_of_credit');
+        //信保审核时间段(暂无,待完善)
+        $this->_getValue($where, $condition, 'approved_at', 'between', 'cl.approved_at');
+        //易瑞审核时间段
+        $this->_getValue($where, $condition, 'checked_at', 'between', 'cl.checked_at');
+        //字段待完善
+        $field = 'b.id,b.buyer_no,b.name,b.apply_at,b.lang,cl.credit_grantor,cl.credit_granted,'
+                . 'cl.in_status,cl.checked_by,cl.checked_at,cl.out_status,cl.approved_by,cl.approved_at';
+
+        $result = $this->alias('b')->field($field)->order("id desc")
+                        ->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
+                        ->limit($from, $pagesize)->where($where)->select();
+        $count = $this->alias('b')->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
+                        ->where($where)->count('b.id');
+        $this->_setUserName($result, 'checked_by');
+        $this->_setUserName($result, 'approved_by');
+        return [$result, $count];
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $filed) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val[$filed];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                    $val[$filed . '_name'] = $usernames[$val[$filed]];
+                } else {
+                    $val[$filed . '_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    private function _getUserids(&$where, &$condition, $name, $filed = 'created_by') {
+        if (isset($condition[$name]) && $condition[$name]) {
+            $employee_model = new EmployeeModel();
+            $userids = $employee_model->getUseridsByUserName($condition[$name]);
+            if ($userids) {
+                $where[$filed] = ['in', $userids];
+            }
+        }
+    }
+
+    /**
+     * 个人信息查询
+     * @param  $data 条件
+     * @return
+     * @author klp
+     */
+    public function getInfo($data) {
+        $where = array();
+        $field = 'buyer_no,lang,name,bn,country_bn,province,city,buyer_level';
+        try {
+            if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+                if (!empty($data['id'])) {
+                    $where['id'] = $data['id'];
+                } else {
+                    jsonReturn('', '-1001', '用户[id]不可以为空');
+                }
+                $buyerInfo = $this->where("id='" . $data['id'] . "'")
+                    ->field($field)
+                    ->find();
+            } else {
+                $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
+                    ->field($field)
+                    ->find();
+            }
+
+            //通过顾客id查询用户信息
+            $buyerAccount = new BuyerAccountModel();
+            $userInfo = $buyerAccount->field('email,mobile,first_name,last_name')
+                ->where(array('id' => $data['id'],'status'=>'VALID'))
+                ->find();
+
+            //通过顾客id查询用户邮编
+            $buyerAddress = new BuyerAddressModel();
+            $zipCode = $buyerAddress->field('zipcode,address')
+                ->where(array('id' => $buyerInfo['id']))
+                ->find();
+            if($buyerInfo){
+                if($userInfo){
+                    $buyerInfo['email'] = $userInfo['email'];
+                    $buyerInfo['user_name'] = $userInfo['user_name'];
+                    $buyerInfo['mobile'] = $userInfo['mobile'];
+                    $buyerInfo['first_name'] = $userInfo['first_name'];
+                    $buyerInfo['last_name'] = $userInfo['last_name'];
+                }
+                if($zipCode){
+                    $buyerInfo['zipcode'] = $zipCode['zipcode'];
+                    $buyerInfo['address'] = $zipCode['address'];
+                }
+                return $buyerInfo;
+            }
+            return array();
+        }catch (Exception $e){
+            return array();
+        }
+    }
 }

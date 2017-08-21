@@ -353,7 +353,7 @@ class GoodsModel extends PublicModel {
                         $item['checked_by'] = $checkeder[0];
                     }
                     //固定商品属性
-                    $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty', 'purchase_price', 'purchase_price_cur_bn', 'nude_cargo_l_mm'];
+                    $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
                     foreach ($goodsAttr as $gAttr) {
                         $goods_attrs[] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
@@ -366,7 +366,7 @@ class GoodsModel extends PublicModel {
                     }
                     $item['goods_attrs'] = $goods_attrs;
                     //固定物流属性
-                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', ' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
+                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'nude_cargo_l_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', ' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
                     foreach ($logiAttr as $lAttr) {
                         $item['logi_attrs'][] = ['attr_name' => $lAttr, 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
                     }
