@@ -242,8 +242,9 @@ class EsProductModel extends Model {
         }
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
+            if ($condition['onshelf_flag'] === 'A') {
 
-            if ($onshelf_flag === 'N') {
+            } elseif ($onshelf_flag === 'N') {
                 $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
             } else {
                 $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
