@@ -218,14 +218,14 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
+
             if ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"N"*']],
-                            [ESClient::TERM => ['show_cats.all' => '[]']],
-                ]]];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"Y"*']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
             }
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
         }
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
