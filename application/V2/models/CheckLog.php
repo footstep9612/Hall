@@ -138,4 +138,12 @@ class CheckLogModel extends PublicModel {
 
         return $results;
     }
+
+    /**
+     * 返回格式化时间
+     * @author zhangyuliang
+     */
+    public function getTime() {
+        return date('Y-m-d h:i:s',time());
+    }
 }
