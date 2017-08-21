@@ -82,15 +82,22 @@ class TransBoxTypeModel extends PublicModel {
     public function getlist($condition, $order = 'tbt.id desc') {
         try {
             $data = $this->_getCondition($condition);
-            return $this->alias('tbt')
-                            ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
-                            ->join('erui2_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
-                            ->field('tbt.id,bt.box_type_name,tm.trans_mode,tbt.box_type_bn,tbt.trans_mode_bn ')
-                            ->order($order)
-                            ->where($data)
-                            ->select();
+            $redis_keys = md5(json_encode($data));
+            if (redisHashExist('TransBoxType', $redis_keys)) {
+                return json_decode(redisHashGet('TransBoxType', $redis_keys), true);
+            }
+            $result = $this->alias('tbt')
+                    ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
+                    ->join('erui2_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
+                    ->field('tbt.id,bt.box_type_name,tm.trans_mode,tbt.box_type_bn,'
+                            . 'tbt.trans_mode_bn,tbt.created_by,tbt.created_at ')
+                    ->order($order)
+                    ->where($data)
+                    ->select();
+            redisHashSet('TransBoxType', $redis_keys, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
-            print_r($ex);
+
             return [];
         }
     }
@@ -104,10 +111,15 @@ class TransBoxTypeModel extends PublicModel {
      */
     public function info($id = '') {
         $where['id'] = $id;
-
-        return $this->where($where)
-                        ->field('id,box_type_bn,trans_mode_bn')
-                        ->find();
+        $redis_keys = $id;
+        if (redisHashExist('TransBoxType', $redis_keys)) {
+            return json_decode(redisHashGet('TransBoxType', $redis_keys), true);
+        }
+        $result = $this->where($where)
+                ->field('id,box_type_bn,trans_mode_bn,created_by,created_at')
+                ->find();
+        redisHashSet('TransBoxType', $redis_keys, json_encode($result));
+        return $result;
     }
 
     /**
@@ -127,7 +139,11 @@ class TransBoxTypeModel extends PublicModel {
         $data = ['status' => 'DELETED', 'deleted_flag' => 'Y',];
         $flag = $this->where($where)->save($data);
 
-        return $flag;
+        if ($flag !== false) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -140,8 +156,8 @@ class TransBoxTypeModel extends PublicModel {
         $data = $this->create($update);
         $where['id'] = $data['id'];
         $flag = $this->where($where)->save($data);
-        if ($flag) {
-            return $flag;
+        if ($flag !== false) {
+            return true;
         } else {
             return false;
         }
@@ -154,12 +170,16 @@ class TransBoxTypeModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create = []) {
-        unset($create['id']);
+        if (isset($create['id'])) {
+            unset($create['id']);
+        }
+        $create['created_by'] = defined('UID') ? UID : 0;
+        $create['created_at'] = date('Y-m-d H:i:s');
         $create['status'] = $create['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $data = $this->create($create);
         $flag = $this->add($data);
-        if ($flag) {
-            return $flag;
+        if ($flag !== false) {
+            return true;
         } else {
             return false;
         }
