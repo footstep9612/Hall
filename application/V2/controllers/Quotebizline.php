@@ -136,8 +136,11 @@ class QuotebizlineController extends PublicController {
         }
 
         $bizline = new BizlineModel();
+        $user = new EmployeeModel();
+
         foreach ($response as $k=>$v){
             $response[$k]['bizline_name'] = $bizline->where(['id'=>$v['bizline_id']])->getField('name');
+            $response[$k]['bizline_agent_name'] = $user->where(['id'=>$v['bizline_agent_id']])->getField('name');
         }
 
         $this->jsonReturn([
