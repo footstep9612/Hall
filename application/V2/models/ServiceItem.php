@@ -156,6 +156,7 @@ class ServiceItemModel extends PublicModel{
      * @param $service_term_id
      * @param $data
      * @return bool
+     * @author link
      */
     public function editItem($service_cat_id,$service_term_id,$data){
         if(empty($service_cat_id) || empty($service_term_id)) {
@@ -178,7 +179,7 @@ class ServiceItemModel extends PublicModel{
                             'updated_at' => date('Y-m-d H:i:s')
                         );
                         $rel = $this->where(array('id'=>$id))->save($data_edit);
-                        if(!rel){
+                        if(!$rel){
                             return false;
                         }
                     }else{    //添加
@@ -203,5 +204,28 @@ class ServiceItemModel extends PublicModel{
             }
         }
         return false;
+    }
+
+    /**
+     * 根据id删除
+     * @param string $id
+     * @return bool
+     * @author link 2017-08-21
+     */
+    public function deleteById($id=''){
+        if(empty($id)) {
+            return false;
+        }
+
+        $condition = array('id'=>$id);
+        $data = array(
+            'deleted_flag' => 'Y'
+        );
+        try{
+            $result = $this->where($condition)->save($data);
+            return $result ? true : false;
+        }catch (Exception $e){
+            return false;
+        }
     }
 }
