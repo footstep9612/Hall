@@ -464,9 +464,9 @@ class EsProductModel extends Model {
             $onshelf_flags = $this->table('erui2_goods.show_cat_product')
                             ->field('spu,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
-                                    . ' ,max(updated_by) as min_updated_by,'
+                                    . ' ,max(updated_by) as min_updated_by'
                                     . ',max(updated_at) as max_updated_at'
-                                    . ' ,max(checked_by) as min_checked_by,'
+                                    . ' ,max(checked_by) as min_checked_by'
                                     . ' ,max(checked_by) as min_checked_at')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('spu')->select();
