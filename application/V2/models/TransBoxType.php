@@ -139,7 +139,11 @@ class TransBoxTypeModel extends PublicModel {
         $data = ['status' => 'DELETED', 'deleted_flag' => 'Y',];
         $flag = $this->where($where)->save($data);
 
-        return $flag;
+        if ($flag !== false) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -174,8 +178,8 @@ class TransBoxTypeModel extends PublicModel {
         $create['status'] = $create['status'] == 'INVALID' ? 'INVALID' : 'VALID';
         $data = $this->create($create);
         $flag = $this->add($data);
-        if ($flag) {
-            return $flag;
+        if ($flag !== false) {
+            return true;
         } else {
             return false;
         }

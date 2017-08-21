@@ -128,7 +128,7 @@ class TransboxtypeController extends PublicController {
         $result = $trans_box_type_model->update_data($condition);
 
         if ($result) {
-
+            $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -149,7 +149,7 @@ class TransboxtypeController extends PublicController {
         }
         $result = $trans_box_type_model->delete_data($id);
         if ($result) {
-
+            $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
