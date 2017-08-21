@@ -151,8 +151,9 @@ class EsproductController extends PublicController {
             $search['created_by'] = null;
             $search['created_at'] = date('Y-m-d H:i:s');
             $usersearchmodel = new BuyerSearchHisModel();
-            $condition = ['buyer_id' => $search['buyer_id'], 'keywords' => $search['keywords']];
+            $condition = ['keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
+
             if ($row) {
                 $search['search_count'] = intval($row['search_count']) + 1;
                 $search['id'] = $row['id'];
