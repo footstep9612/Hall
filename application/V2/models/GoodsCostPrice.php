@@ -66,26 +66,15 @@ class GoodsCostPriceModel extends PublicModel {
         $results = array();
         try {
             foreach ($input as $key => $value) {
-                $checkout = $this->checkParam($value,$sku);
-                $data = [
-                    'supplier_id' => isset($checkout['supplier_id']) ? $checkout['supplier_id'] : '',
-                    'contact_first_name' => isset($checkout['contact_first_name']) ? $checkout['contact_first_name'] : '',
-                    'contact_last_name' => isset($checkout['contact_last_name']) ? $checkout['contact_last_name'] : '',
-                    'price' => isset($checkout['price']) ? $checkout['price'] : null,
-                    'price_unit' => isset($checkout['price_unit']) ? $checkout['price_unit'] : '',
-                    'price_cur_bn' => isset($checkout['price_cur_bn']) ? $checkout['price_cur_bn'] : '',
-                    'min_purchase_qty' => isset($checkout['min_purchase_qty']) ? $checkout['min_purchase_qty'] : 1,
-                    'pricing_date' => isset($checkout['pricing_date']) ? $checkout['pricing_date'] : null,
-                    'price_validity' => isset($checkout['price_validity']) ? $checkout['price_validity'] : null
-                ];
+                $data = $this->checkParam($value,$sku);
                 //存在sku编辑,反之新增,后续扩展性
 
-                if(isset($checkout['id']) && !empty($checkout['id'])) {
+                if(isset($value['id']) && !empty($value['id'])) {
                     $data['updated_by'] = $admin;
                     $data['updated_at'] = date('Y-m-d H:i:s', time());
                     $where = [
                         'sku' => $sku,
-                        'id' => $checkout['id']
+                        'id' => $data['id']
                     ];
                     $res = $this->where($where)->save($data);
                     if (!$res) {
@@ -112,7 +101,7 @@ class GoodsCostPriceModel extends PublicModel {
             return $results;
         }catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
+            $results['message'] = $e->getMessage();var_dump($e);
             return $results;
         }
     }
@@ -121,19 +110,52 @@ class GoodsCostPriceModel extends PublicModel {
      * @author klp
      * @return array
      */
-    public function checkParam($data,$sku){
-        if(empty($data)) {
+    public function checkParam($checkout,$sku){
+        if(empty($checkout)) {
             return false;
         }
-        $results = array();
+        $results = $data = array();
         if(empty($sku)) {
-            jsonReturn('','-1','[sku]缺失');
+            $results['code'] = '-1001';
+            $results['message'] = '[sku]缺失!';
         }
-        if(empty($data['min_purchase_qty'])) {
-            jsonReturn('','-1','[最小购买量]缺失');
+        if(empty($checkout['min_purchase_qty'])) {
+            $results['code'] = '-1001';
+            $results['message'] = '[最小购买量]缺失!';
         }
-        if(empty($data['supplier_id'])) {
-            jsonReturn('','-1','[supplier_id]缺失');
+        if(empty($checkout['supplier_id'])) {
+            $results['code'] = '-1001';
+            $results['message'] = '[supplier_id]缺失!';
+        }
+        if(!empty($checkout['supplier_id'])){
+            $data['supplier_id'] = $checkout['supplier_id'];
+        }
+        if(!empty($checkout['contact_first_name'])){
+            $data['contact_first_name'] = $checkout['contact_first_name'];
+        }
+        if(!empty($checkout['contact_last_name'])){
+            $data['contact_last_name'] = $checkout['contact_last_name'];
+        }
+        if(!empty($checkout['price'])){
+            $data['price'] = $checkout['price'];
+        }
+        if(!empty($checkout['price_unit'])){
+            $data['price_unit'] = $checkout['price_unit'];
+        }
+        if(!empty($checkout['price_cur_bn'])){
+            $data['price_cur_bn'] = $checkout['price_cur_bn'];
+        }
+        if(!empty($checkout['min_purchase_qty'])){
+            $data['min_purchase_qty'] = $checkout['min_purchase_qty'];
+        }
+        if(!empty($checkout['pricing_date'])){
+            $data['pricing_date'] = $checkout['pricing_date'];
+        }
+        if(!empty($checkout['price_validity'])){
+            $data['price_validity'] = $checkout['price_validity'];
+        }
+        if($results){
+            return $results;
         }
         return $data;
     }

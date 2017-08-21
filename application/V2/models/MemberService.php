@@ -42,6 +42,8 @@ class MemberServiceModel extends PublicModel{
                     $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] =$item['service_term_id'];
 
                     $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id']=$item['service_item_id'];
+
+                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['id']=$item['id'];
                 }
                 return $data;
             }
@@ -79,10 +81,10 @@ class MemberServiceModel extends PublicModel{
                            'service_item_id'=>$im['service_item_id'],
                            'buyer_level'=>$data['buyer_level']
                        ];
-                       if(isset($items['id']) && !empty($items['id'])){
+                       if(isset($im['id']) && !empty($im['id'])){
                            $res = $this->field('id')->where(['id'=>$items['id']])->find();
                            if($res){
-                               $save['id'] = $items['id'];
+                               $save['id'] = $im['id'];
                                $result = $this->update_data($save,$userInfo);
                                if(1 != $result['code']){
                                    return false;

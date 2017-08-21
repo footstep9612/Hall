@@ -222,7 +222,6 @@ class ServicecatController extends PublicController {
             'buyer_level'=>'会员',
           'levels'=>[
                    0=>[
-                          'id'=>'',
                           'category'=>[
                               "service_cat_id"=> "1",
                               ],
