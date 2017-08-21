@@ -122,6 +122,28 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * @desc 项目经理报价sku列表(新增)
+     */
+    public function pmQuoteListAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $quoteBizline =  new QuoteBizLineModel();
+        $response = $quoteBizline->getPmQuoteList($request);
+
+        if (!$response){
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '成功!',
+            'total' => $quoteBizline->getPmQuoteListCount($request),
+            'data' => $response
+        ]);
+    }
+
+    /**
      * @desc 划分产品线(项目经理)
      * @author 买买提
      */
@@ -392,10 +414,7 @@ class QuotebizlineController extends PublicController {
      */
     public function rejectLogisticAction(){
 
-        $request = $this->_requestParams;
-        if (empty($request['serial_no']) || empty($request['quote_id']) || empty($request['op_note'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
+        $request = $this->validateRequests('serial_no,quote_id,op_note');
 
         //修改项目状态
         $inquiry =  new InquiryModel();
@@ -506,7 +525,7 @@ class QuotebizlineController extends PublicController {
      */
     public function bizlineManagerRejectQuoteAction() {
 
-        $request = $this->validateRequests('quote_id');
+        $request = $this->validateRequests('inquiry_id,quote_id,op_note');
 
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->bizlineManagerRejectQuote($request);
