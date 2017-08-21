@@ -170,18 +170,21 @@ class SupplierController extends PublicController {
         }
         if(!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
+            $supplier_account_data['first_name']= $data['first_name'];
             $supplier_contact_data['first_name']= $data['first_name'];
-            $supplier_contact_data['created_by']=  $data['first_name'];
+            $bizline_supplier_data['first_name']=  $data['first_name'];
         }
         if(!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
             $supplier_account_data['last_name']= $data['last_name'];
             $supplier_contact_data['last_name']=  $data['last_name'];
+            $bizline_supplier_data['last_name']=  $data['last_name'];
         }
         if(!empty($data['mobile'])) {
             $supplier_account_data['mobile'] = $data['mobile'];
             $supplier_contact_data['mobile']=$data['mobile'];
             $arr['official_phone'] = $data['mobile'];
+            $bizline_supplier_data['phone']=  $data['phone'];
         }
         if(!empty($data['email'])) {
             $supplier_account_data['email'] = $data['email'];
@@ -190,6 +193,7 @@ class SupplierController extends PublicController {
             }
             $arr['official_email'] = $data['email'];
             $supplier_contact_data['email']=$data['email'];
+            $bizline_supplier_data['email']=  $data['email'];
         }else{
             jsonReturn('',-101,'邮箱不可以都为空!');
         }
@@ -223,6 +227,8 @@ class SupplierController extends PublicController {
             $supplier_account_data['created_by']= $this->user['id'];
             $supplier_account_data['created_at']= date("Y-m-d H:i:s");
             $supplier_contact_data['created_by']= $this->user['id'];
+            $bizline_supplier_data['created_by']=  $this->user['id'];
+            $bizline_supplier_data['created_at']= date("Y-m-d H:i:s");
             $arr['created_at']= date("Y-m-d H:i:s");
 
         // 生成供应商编码
@@ -230,9 +236,8 @@ class SupplierController extends PublicController {
         $condition['page']=0;
         $condition['countPerPage']=1;
         $data_t_supplier = $model->getlist($condition); //($this->put_data);
-        //var_dump($data_t_buyer);die;
-        if($data_t_supplier&&substr($data_t_supplier[0]['serial_no'],1,8) == date("Ymd")){
-            $no=substr($data_t_supplier[0]['serial_no'],-1,6);
+        if($data_t_supplier&&substr($data_t_supplier['data'][0]['serial_no'],0,8) == date("Ymd")){
+            $no=substr($data_t_supplier['data'][0]['serial_no'],-1,6);
             $no++;
         }else{
             $no=1;
@@ -252,6 +257,12 @@ class SupplierController extends PublicController {
                 $supplier_account_data['password_hash']=md5($data['password']);
                 $supplier_account = new SupplierAccountModel();
                 $supplier_account ->create_data($supplier_account_data);
+            }
+            if(isset($data['bizline_id'])){
+                $bizline_supplier_data['supplier_id']=$id;
+                $bizline_supplier_data['bizline_id']=$data['bizline_id'];
+                $bizline_supplier = new BizlineSupplierModel();
+                $bizline_supplier ->create_data($bizline_supplier_data);
             }
             $supplier_attach = new SupplierAttachModel();
             if(!empty($data['license_attach_url'])) {
