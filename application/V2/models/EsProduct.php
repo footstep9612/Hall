@@ -611,7 +611,7 @@ class EsProductModel extends Model {
             $body['minimumorderouantity'] = $minimumorderouantitys[$id]['value'];
             $body['max_exw_day'] = $minimumorderouantitys[$id]['max_exw_day'];
             $body['min_exw_day'] = $minimumorderouantitys[$id]['min_exw_day'];
-            $body['min_pack_unit'] = $minimumorderouantitys[$id]['tx_unit'];
+            $body['tx_unit'] = $minimumorderouantitys[$id]['tx_unit'];
         } else {
             $body['minimumorderouantity'] = 0;
             $body['max_exw_day'] = '';
