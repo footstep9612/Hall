@@ -141,6 +141,7 @@ class EsproductController extends PublicController {
         if ($this->getPut('keyword')) {
             $search = [];
             $search['keywords'] = $this->getPut('keyword');
+            $this->_getUser();
 
             if ($this->user['id']) {
                 $search['buyer_id'] = $this->user['buyer_id'];
