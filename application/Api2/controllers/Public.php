@@ -31,7 +31,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected function _token() {
         $this->put_data = $this->getPut();
-
         $token = $this->header('token');
         $model = new BuyerModel();
         if (!empty($token)) {

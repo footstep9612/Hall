@@ -28,6 +28,7 @@ class BuyerModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING'; //待报审；
     const STATUS_APPROVED = 'APPROVED'; //审核；
     const STATUS_REJECTED = 'REJECTED'; //无效；
+    const STATUS_DRAFT = 'DRAFT'; //临时未验证；
 
     /**
      * 获取列表
@@ -333,15 +334,15 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_at'])) {
             $data['checked_at'] = $create['checked_at'];
         }
-        if ($create['status']) {
+        if (isset($create['status'])) {
             switch ($create['status']) {
-                case self::APPROVED:
+                case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];
                     break;
-                case self::REJECTED:
+                case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
-                case self::APPROVING:
+                case self::STATUS_REJECTED:
                     $data['status'] = $create['status'];
                     break;
             }
