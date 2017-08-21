@@ -34,8 +34,16 @@ class MemberServiceModel extends PublicModel{
             } else{
                 $result = $this->field($fields)->where($where)->order('buyer_level')->select();
             }
+            $data = array();
             if($result) {
-                return $result;
+                foreach($result as $item){
+                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['service_cat_id'] = $item['service_cat_id'];
+
+                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] =$item['service_term_id'];
+
+                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id']=$item['service_item_id'];
+                }
+                return $data;
             }
             return array();
         } catch(Exception $e){
