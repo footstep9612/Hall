@@ -79,7 +79,7 @@ class EsgoodsController extends PublicController {
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
             } else {
-                $list[$key]['img'] = null;
+                $list[$key]['img'] = new stdClass();
             }
             $show_cats = json_decode($item["_source"]["show_cats"], true);
             if ($show_cats) {

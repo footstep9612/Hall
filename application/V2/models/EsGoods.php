@@ -197,6 +197,7 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
@@ -216,6 +217,7 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'onshelf_by');
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
             if ($condition['onshelf_flag'] === 'A') {
@@ -249,6 +251,14 @@ class EsGoodsModel extends Model {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
+        }
+
+        if (isset($condition['onshelf_by_name']) && $condition['onshelf_by_name']) {
+            $userids = $employee_model->getUseridsByUserName($condition['onshelf_by_name']);
+            foreach ($userids as $onshelf_by) {
+                $onshelf_by_bool[] = [ESClient::MATCH_PHRASE => ['onshelf_by' => $onshelf_by]];
+            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $onshelf_by_bool]];
         }
         $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik',
             'specs.ik', 'spu', 'sku', 'source.ik', 'brand.ik', 'name.ik']);

@@ -87,10 +87,10 @@ class EsproductController extends PublicController {
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
             } else {
-                $list[$key]['img'] = null;
+                $list[$key]['img'] = new stdClass();
             }
             $list[$key]['id'] = $item['_id'];
-            //$show_cats = json_decode($item["_source"]["show_cats"], true);
+            $show_cats = json_decode($item["_source"]["show_cats"], true);
             if ($show_cats) {
                 rsort($show_cats);
             }
@@ -106,7 +106,7 @@ class EsproductController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-            //   $list[$key]['show_cats'] = $show_cats;
+            $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
 
