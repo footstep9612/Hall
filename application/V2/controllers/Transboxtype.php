@@ -97,13 +97,19 @@ class TransboxtypeController extends PublicController {
         }
     }
 
+    private function delcache() {
+        $redis = new phpredis();
+        $keys = $redis->getKeys('TransBoxType*');
+        $redis->delete($keys);
+    }
+
     public function createAction() {
         $condition = $this->getPut(null);
         $trans_box_type_model = new TransBoxTypeModel();
 
         $result = $trans_box_type_model->create_data($condition);
         if ($result) {
-            // $this->delcache();
+            $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
