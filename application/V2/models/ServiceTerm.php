@@ -224,4 +224,27 @@ class ServiceTermModel extends PublicModel{
             return false;
         }
     }
+
+    /**
+     * 根据id删除
+     * @param string $id
+     * @return bool
+     * @author link 2017-08-21
+     */
+    public function deleteById($id=''){
+        if(empty($id)) {
+            return false;
+        }
+
+        $condition = array('id'=>$id);
+        $data = array(
+            'deleted_flag' => 'Y'
+        );
+        try{
+            $result = $this->where($condition)->save($data);
+            return $result ? true : false;
+        }catch (Exception $e){
+            return false;
+        }
+    }
 }
