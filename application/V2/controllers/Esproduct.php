@@ -372,7 +372,11 @@ class EsproductController extends PublicController {
             'updated_by' => $int_analyzed,
             'spu' => $not_analyzed,
             'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed
+            'status' => $not_analyzed,
+            'minimumorderouantity' => $not_analyzed,
+            'onshelf_flag' => $not_analyzed,
+            'onshelf_flag_by' => $not_analyzed,
+            'onshelf_flag_at' => $not_analyzed,
         ];
 
         return $body;
@@ -460,7 +464,14 @@ class EsproductController extends PublicController {
             'tech_paras' => $ik_analyzed,
             'properties' => $ik_analyzed,
             'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed
+            'status' => $not_analyzed,
+            'max_exw_day' => $not_analyzed,
+            'min_exw_day' => $not_analyzed,
+            'min_pack_unit' => $not_analyzed,
+            'minimumorderouantity' => $not_analyzed,
+            'onshelf_flag' => $not_analyzed,
+            'onshelf_flag_by' => $not_analyzed,
+            'onshelf_flag_at' => $not_analyzed,
         ];
         return $body;
     }
