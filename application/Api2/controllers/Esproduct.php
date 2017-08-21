@@ -27,7 +27,8 @@ class EsproductController extends PublicController {
 
     public function listAction() {
         $model = new EsProductModel();
-        $ret = $model->getproducts($this->put_data, null, $this->getLang());
+        $condition = $this->getPut();
+        $ret = $model->getproducts($condition, null, $this->getLang());
 
         if ($ret) {
             $data = $ret[0];
@@ -40,18 +41,18 @@ class EsproductController extends PublicController {
             } else {
                 $send['allcount'] = $send['count'];
             }
-            if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
+            if (isset($data['sku_count']) && $data['sku_count'] == 'Y') {
                 $es_goods_model = new EsGoodsModel();
-                $send['sku_count'] = $es_goods_model->getgoodscount($this->put_data);
+                $send['sku_count'] = $es_goods_model->getgoodscount($condition);
             }
-            if (!$this->put_data['show_cat_no']) {
+            if (!$data['show_cat_no']) {
                 $material_cat_nos = [];
                 foreach ($data['aggregations']['material_cat_no']['buckets'] as $item) {
                     $material_cats[$item['key']] = $item['doc_count'];
                     $material_cat_nos[] = $item['key'];
                 }
             } else {
-                $condition = $this->put_data;
+                $condition = $data;
                 unset($condition['show_cat_no']);
                 $ret1 = $model->getproducts($condition, null, $this->getLang());
                 if ($ret1) {
@@ -105,7 +106,7 @@ class EsproductController extends PublicController {
 
     private function getcatlist($material_cat_nos, $material_cats) {
         ksort($material_cat_nos);
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         $condition['token'] = $condition['show_cat_no'] = null;
         unset($condition['token'], $condition['show_cat_no']);
         $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang = ' . $this->getLang() . http_build_query($condition));
@@ -137,18 +138,22 @@ class EsproductController extends PublicController {
     }
 
     private function update_keywords() {
-        if ($this->put_data['keyword']) {
+        if ($this->getPut('keyword')) {
             $search = [];
-            $search['keywords'] = $this->put_data['keyword'];
+            $search['keywords'] = $this->getPut('keyword');
+
             if ($this->user['id']) {
-                $search['buyer_id'] = $this->user['id'];
+                $search['buyer_id'] = $this->user['buyer_id'];
             } else {
-                $search['buyer_id'] = '';
+                $search['buyer_id'] = 0;
             }
             $search['search_time'] = date('Y-m-d H:i:s');
+            $search['created_by'] = null;
+            $search['created_at'] = date('Y-m-d H:i:s');
             $usersearchmodel = new BuyerSearchHisModel();
-            $condition = ['buyer_id' => $search['buyer_id'], 'keywords' => $search['keywords']];
+            $condition = ['keywords' => $search['keywords']];
             $row = $usersearchmodel->exist($condition);
+
             if ($row) {
                 $search['search_count'] = intval($row['search_count']) + 1;
                 $search['id'] = $row['id'];
