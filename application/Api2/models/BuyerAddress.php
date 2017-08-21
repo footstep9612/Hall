@@ -11,24 +11,37 @@
  *
  * @author jhw
  */
-class BuyerAddressModel extends PublicModel
-{
+class BuyerAddressModel extends PublicModel {
 
     //put your code here
     protected $dbName = 'erui2_buyer';
     protected $tableName = 'buyer_address';
 
-    public function __construct($str = '')
-    {
+    public function __construct($str = '') {
         parent::__construct($str = '');
+    }
+
+    /**
+     * 获取用户信息
+     * @param  array  $data
+     * @return array
+     * @author jhw
+     */
+    public function info($data) {
+        if (!empty($data['buyer_id'])) {
+            $row = $this->where(['buyer_id' => $data['buyer_id']])
+                    ->find();
+            return $row;
+        } else {
+            return false;
+        }
     }
 
     /**
      * 新增/更新数据
      * @author klp
      */
-    public function createInfo($token,$input)
-    {
+    public function createInfo($token, $input) {
         if (!isset($input))
             return false;
         $this->startTrans();
@@ -63,7 +76,7 @@ class BuyerAddressModel extends PublicModel
             }
             $this->commit();
             return $token['customer_id'];
-        } catch(\Kafka\Exception $e){
+        } catch (\Kafka\Exception $e) {
             $this->rollback();
             return false;
         }
@@ -82,46 +95,46 @@ class BuyerAddressModel extends PublicModel
 
     /**
      * 新增数据
-     * @param  mix $createcondition 新增条件
+     * @param  mix $create 新增条件
      * @return bool
      * @author jhw
      */
-    public function create_data($create= []) {
-        if(isset($create['buyer_id'])){
+    public function create_data($create = []) {
+        if (isset($create['buyer_id'])) {
             $arr['buyer_id'] = $create['buyer_id'];
         }
-        if(isset($create['lang'])){
+        if (isset($create['lang'])) {
             $arr['lang'] = $create['lang'];
         }
-        if(isset($create['address'])){
+        if (isset($create['address'])) {
             $arr['address'] = $create['address'];
         }
-        if(isset($create['zipcode'])){
+        if (isset($create['zipcode'])) {
             $arr['zipcode'] = $create['zipcode'];
         }
-        if(isset($create['longitude'])){
+        if (isset($create['longitude'])) {
             $arr['longitude'] = $create['longitude'];
         }
-        if(isset($create['latitude'])){
+        if (isset($create['latitude'])) {
             $arr['latitude'] = $create['latitude'];
         }
-        if(isset($create['tel_country_code'])){
+        if (isset($create['tel_country_code'])) {
             $arr['tel_country_code'] = md5($create['tel_country_code']);
         }
-        if(isset($create['tel_area_code'])){
+        if (isset($create['tel_area_code'])) {
             $arr['tel_area_code'] = $create['tel_area_code'];
         }
-        if(isset($create['tel_local_number'])){
-            $arr['tel_local_number'] =$create['tel_local_number'];
+        if (isset($create['tel_local_number'])) {
+            $arr['tel_local_number'] = $create['tel_local_number'];
         }
-        if(isset($create['tel_ext_number'])){
-            $arr['tel_ext_number'] =$create['tel_ext_number'];
+        if (isset($create['tel_ext_number'])) {
+            $arr['tel_ext_number'] = $create['tel_ext_number'];
         }
-        if(isset($create['official_email'])){
-            $arr['official_email'] =$create['official_email'];
+        if (isset($create['official_email'])) {
+            $arr['official_email'] = $create['official_email'];
         }
-        $arr['created_at'] =date("Y-m-d H:i:s");
-        try{
+        $arr['created_at'] = date("Y-m-d H:i:s");
+        try {
             $data = $this->create($arr);
             return $this->add($data);
         } catch (Exception $ex) {
@@ -130,13 +143,13 @@ class BuyerAddressModel extends PublicModel
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
-
     }
+
     /**
      * 采购商个人信息更新
      * @author klp
      */
-    public function update_data($condition,$where){
+    public function update_data($condition, $where) {
         if ($condition['address']) {
             $data['address'] = $condition['address'];
         }
@@ -158,4 +171,5 @@ class BuyerAddressModel extends PublicModel
 
         return $this->where($where)->save($data);
     }
+
 }

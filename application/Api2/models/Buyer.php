@@ -241,14 +241,16 @@ class BuyerModel extends PublicModel {
      * @author jhw
      */
     public function info($data) {
-        if ($data['id']) {
-            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
+        if ($data['buyer_id']) {
+            $buyerInfo = $this->where(array("buyer.id" => $data['buyer_id']))->field('buyer.*,em.name as checked_name')
                     ->join('erui2_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
             if ($row) {
                 $buyerInfo['attach'] = $row[0];
+            } else {
+                $buyerInfo['attach'] = new stdClass();
             }
             return $buyerInfo;
         } else {
@@ -354,7 +356,6 @@ class BuyerModel extends PublicModel {
      * 通过顾客id获取会员等级
      * @author klp
      */
-
     public function getService($info, $token) {
         $where = array();
         if (!empty($token['id'])) {

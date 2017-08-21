@@ -36,16 +36,18 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if (!empty($token)) {
             $tks = explode('.', $token);
             $tokeninfo = JwtInfo($token); //解析token
+
             $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+
             if (empty($userinfo)) {
                 echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                 exit;
             } else {
                 $this->user = array(
-                    "account_id" => $userinfo["account_id"],
-                    "customer_id" => $userinfo["customer_id"],
+                    "buyer_id" => $userinfo["buyer_id"],
                     "user_name" => $tokeninfo["user_name"],
                     "email" => $userinfo["email"],
+                    "id" => $userinfo["id"],
                     "token" => $token, //token
                 );
             }

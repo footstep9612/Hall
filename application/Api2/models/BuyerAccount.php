@@ -91,6 +91,30 @@ class BuyerAccountModel extends PublicModel {
     }
 
     /**
+     * 获取用户信息
+     * @param  array  $data
+     * @return array
+     * @author jhw
+     */
+    public function getinfo($data) {
+        $model = new BuyerModel();
+        $table = $model->getTableName();
+        $buyeraddress_model = new BuyerAddressModel();
+
+        $buyeraddress_table = $buyeraddress_model->getTableName();
+        if (!empty($data['buyer_id'])) {
+            $row = $this->alias('b')
+                    ->join($table . ' as ba on b.buyer_id=ba.id', 'left')
+                    ->join($buyeraddress_table . ' as bad on b.buyer_id=bad.buyer_id', 'left')
+                    ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
+                    ->find();
+            return $row;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * 登录
      * @param  string $name 用户名
      * @param  string$enc_password 密码
@@ -115,7 +139,7 @@ class BuyerAccountModel extends PublicModel {
         }
         $where['status'] = 'VALID';
         $row = $this->where($where)
-                ->field('id,email,mobile,user_name,password_hash,role,first_name,last_name,login_count,last_login_time,login_failure_count')
+                ->field('id,buyer_id,email,mobile,user_name,password_hash,role,first_name,last_name,login_count,last_login_time,login_failure_count')
                 ->find();
         return $row;
     }
