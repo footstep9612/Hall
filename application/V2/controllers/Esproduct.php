@@ -284,7 +284,8 @@ class EsproductController extends PublicController {
             $body['mappings']['product_' . $lang]['properties'] = $product_properties;
             $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
         }
-        $this->es->create_index($this->index, $body);
+        $es = new ESClient();
+        $es->create_index($this->index, $body);
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
