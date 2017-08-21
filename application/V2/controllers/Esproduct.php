@@ -103,12 +103,15 @@ class EsproductController extends PublicController {
             if ($product['checked_by']) {
                 $user_ids[] = $product['checked_by'];
             }
+            if ($product['onshelf_by']) {
+                $user_ids[] = $product['onshelf_by'];
+            }
             //   $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
 
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+            $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
         }
 
         $employee_model = new EmployeeModel();
@@ -128,6 +131,12 @@ class EsproductController extends PublicController {
                 $val['checked_by_name'] = $usernames[$val['checked_by']];
             } else {
                 $val['checked_by_name'] = '';
+            }
+
+            if ($val['onshelf_by'] && isset($usernames[$val['onshelf_by']])) {
+                $val['onshelf_by_name'] = $usernames[$val['onshelf_by']];
+            } else {
+                $val['onshelf_by_name'] = '';
             }
             $list[$key] = $val;
         }
@@ -376,8 +385,8 @@ class EsproductController extends PublicController {
             'status' => $not_analyzed,
             'minimumorderouantity' => $not_analyzed,
             'onshelf_flag' => $not_analyzed,
-            'onshelf_flag_by' => $not_analyzed,
-            'onshelf_flag_at' => $not_analyzed,
+            'onshelf_by' => $not_analyzed,
+            'onshelf_at' => $not_analyzed,
         ];
 
         return $body;
@@ -471,8 +480,8 @@ class EsproductController extends PublicController {
             'min_pack_unit' => $not_analyzed,
             'minimumorderouantity' => $not_analyzed,
             'onshelf_flag' => $not_analyzed,
-            'onshelf_flag_by' => $not_analyzed,
-            'onshelf_flag_at' => $not_analyzed,
+            'onshelf_by' => $not_analyzed,
+            'onshelf_at' => $not_analyzed,
         ];
         return $body;
     }

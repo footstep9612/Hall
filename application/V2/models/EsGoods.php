@@ -496,22 +496,22 @@ class EsGoodsModel extends Model {
 
             $body['onshelf_flag'] = 'Y';
             if ($onshelf_flags[$id]['checked_at']) {
-                $body['onshelf_flag_by'] = $onshelf_flags[$id]['checked_at'];
-                $body['onshelf_flag_at'] = $onshelf_flags[$id]['checked_by'];
+                $body['onshelf_by'] = $onshelf_flags[$id]['checked_at'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['checked_by'];
             } elseif ($onshelf_flags[$id]['updated_at']) {
-                $body['onshelf_flag_by'] = $onshelf_flags[$id]['updated_at'];
-                $body['onshelf_flag_at'] = $onshelf_flags[$id]['updated_by'];
+                $body['onshelf_by'] = $onshelf_flags[$id]['updated_at'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['updated_by'];
             } elseif ($onshelf_flags[$id]['created_at']) {
-                $body['onshelf_flag_by'] = $onshelf_flags[$id]['created_at'];
-                $body['onshelf_flag_at'] = $onshelf_flags[$id]['created_by'];
+                $body['onshelf_by'] = $onshelf_flags[$id]['created_at'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['created_by'];
             } else {
-                $body['onshelf_flag_by'] = '';
-                $body['onshelf_flag_at'] = '';
+                $body['onshelf_by'] = '';
+                $body['onshelf_at'] = '';
             }
         } else {
             $body['onshelf_flag'] = 'N';
-            $body['onshelf_flag_by'] = '';
-            $body['onshelf_flag_at'] = '';
+            $body['onshelf_by'] = '';
+            $body['onshelf_at'] = '';
         }
         $body['show_cats'] = $this->_getValue($scats, $sku, [], 'json');
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
