@@ -135,6 +135,11 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
 
+        $bizline = new BizlineModel();
+        foreach ($response as $k=>$v){
+            $response[$k]['bizline_name'] = $bizline->where(['id'=>$v['bizline_id']])->getField('name');
+        }
+
         $this->jsonReturn([
             'code' => '1',
             'message' => '成功!',
