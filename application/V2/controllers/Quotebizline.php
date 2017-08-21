@@ -159,7 +159,7 @@ class QuotebizlineController extends PublicController {
         //1.创建一条报价记录(quote)
         $quoteModel = new QuoteModel();
         $quoteModel->startTrans();
-        //TODO 这里可以添加是否已经划分了产品线的判断，避免发生重复提交数据的事情
+
         $inquiry_item_ids = explode(',',$request['inquiry_item_id']);
         $quote_ids = [];//新增的报价id组合
         foreach ($inquiry_item_ids as $inquiry_item_id){
