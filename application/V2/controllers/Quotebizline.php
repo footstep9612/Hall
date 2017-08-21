@@ -569,14 +569,14 @@ class QuotebizlineController extends PublicController {
      */
     public function quoteGeneralInfoAction(){
 
-        $request = $this->validateRequests(['quote_id']);
+        $request = $this->validateRequests('inquiry_id');
 
         $fields = 'q.id,q.total_weight,q.package_volumn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.trans_mode_bn,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
         $quoteModel = new QuoteModel();
         $result = $quoteModel->alias('q')
                              ->join('erui2_rfq.final_quote fq ON q.id = fq.quote_id','LEFT')
                              ->field($fields)
-                             ->where(['q.id'=>$request['quote_id']])
+                             ->where(['q.inquiry_id'=>$request['inquiry_id']])
                              ->find();
         if (!$result){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
@@ -594,11 +594,11 @@ class QuotebizlineController extends PublicController {
      */
     public function saveQuoteGeneralInfoAction(){
 
-        $request = $this->validateRequests('quote_id');
+        $request = $this->validateRequests('inquiry_id');
         //p($request);
         $quoteModel = new QuoteModel();
         try{
-            if ($quoteModel->where(['id'=>$request['quote_id']])->save($quoteModel->create($request))){
+            if ($quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request))){
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }else{
                 //p($quoteModel->getLastSql());
