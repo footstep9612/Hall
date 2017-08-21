@@ -555,6 +555,9 @@ class EsProductModel extends Model {
                     foreach ($products as $key => $item) {
 
                         $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k);
+                        if ($key === 99) {
+                            $max_id = $item['id'];
+                        }
                     }
                 } else {
                     return false;
@@ -585,9 +588,6 @@ class EsProductModel extends Model {
         }
 
         $material_cat_no = $item['material_cat_no'];
-
-
-
         if (isset($mcats[$material_cat_no])) {
             $body['material_cat'] = json_encode($mcats[$material_cat_no], JSON_UNESCAPED_UNICODE);
         } else {
@@ -645,9 +645,7 @@ class EsProductModel extends Model {
         if ($flag['_shards']['successful'] !== 1) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
-        if ($key === 99) {
-            $max_id = $item['id'];
-        }
+
         $k++;
     }
 
