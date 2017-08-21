@@ -52,11 +52,11 @@ class MembercenterController extends PublicController {
             jsonReturn('', '-1001', '参数[customer_id]不能为空');
         }
         $buyerAccount = new BuyerAccountModel();
-        $result1 = $buyerAccount->update_data($this->put_data, $where);
+        $result1 = $buyerAccount->update_data($this->getPut(), $where);
         $buyer = new BuyerModel();
-        $result2 = $buyer->update_data($this->put_data, $where);
+        $result2 = $buyer->update_data($this->getPut(), $where);
         $buyerAddress = new BuyerAddressModel();
-        $result3 = $buyerAddress->update_data($this->put_data, $where);
+        $result3 = $buyerAddress->update_data($this->getPut(), $where);
         if ($result1 || $result2 || $result3) {
             jsonReturn('', 1, '保存成功');
         } else {
@@ -72,7 +72,7 @@ class MembercenterController extends PublicController {
     public function checkOldPwdAction() {
 
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->put_data);
+        $result = $buyerAccount->checkPassword($this->getPut());
         if ($result) {
             jsonReturn('', 1, '原密码输入正确');
         } else {
@@ -102,7 +102,7 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->update_pwd($this->put_data, $this->user);
+        $result = $buyerAccount->update_pwd($this->getPut(), $this->user);
         if ($result) {
             jsonReturn('', 1, '修改密码成功');
         } else {
@@ -117,7 +117,7 @@ class MembercenterController extends PublicController {
      */
     public function getServiceAction() {
         $BuyerModel = new BuyerModel();
-        $result = $BuyerModel->getService($this->put_data, $this->user);
+        $result = $BuyerModel->getService($this->getPut(), $this->user);
         if ($result) {
             $data = array(
                 'code' => 1,
@@ -138,7 +138,7 @@ class MembercenterController extends PublicController {
     public function listServiceAction() {
 
         $MemberBizServiceModel = new MemberBizServiceModel();
-        $result = $MemberBizServiceModel->getVipService($this->put_data, $this->user);
+        $result = $MemberBizServiceModel->getVipService($this->getPut(), $this->user);
         if ($result) {
             $data = array(
                 'code' => 1,

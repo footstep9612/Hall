@@ -71,7 +71,7 @@ class LoginController extends PublicController {
      * @author jhw
      */
     public function registerAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = $this->getPut();
         if (!empty($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
         } else {
