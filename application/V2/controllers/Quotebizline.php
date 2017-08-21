@@ -162,34 +162,28 @@ class QuotebizlineController extends PublicController {
         //1.创建一条报价记录(quote)
         $quoteModel = new QuoteModel();
         $quoteModel->startTrans();
+        $quoteResult = $quoteModel->add($quoteModel->create([
+            'buyer_id' => $request['buyer_id'],
+            'inquiry_id' => $request['inquiry_id'],
+            'serial_no' => $request['serial_no'],
+            'quote_no' => $this->getQuoteNo(),
+            'quote_lang' => 'zh',
+            'created_at' => date('Y-m-d H:i:s')
+        ]));
 
-        $inquiry_item_ids = explode(',',$request['inquiry_item_id']);
-        $quote_ids = [];//新增的报价id组合
-        foreach ($inquiry_item_ids as $inquiry_item_id){
-            $quote_ids[] = $quoteModel->add($quoteModel->create([
-                'buyer_id' => $request['buyer_id'],
-                'inquiry_id' => $request['inquiry_id'],
-                'serial_no' => $request['serial_no'],
-                'quote_no' => $this->getQuoteNo(),
-                'quote_lang' => 'zh',
-                'created_at' => date('Y-m-d H:i:s')
-            ]));
-        }
+
+        //判断是否已经划分了产品线
 
         //2.创建一条产品线报价记录(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
-        $quoteBizline_ids = [];
-        foreach ($quote_ids as $quote_id){
-            $quoteBizline_ids[] = $quoteBizlineModel->add($quoteBizlineModel->create([
-                'quote_id' => $quote_id,
-                'inquiry_id' => $request['inquiry_id'],
-                'biz_agent_id' => '275',
-                'bizline_id' => $request['bizline_id'],
-                'created_at' => date('Y-m-d H:i:s'),
-                'created_by' => $this->user['id'],
-            ]));
-        }
+        $quoteBizlineResult = $quoteBizlineModel->add($quoteBizlineModel->create([
+            'quote_id' => $quoteResult,
+            'inquiry_id' => $request['inquiry_id'],
+            'bizline_id' => $request['bizline_id'],
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => $this->user['id'],
+        ]));
 
         //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
         $inquiryItem = new InquiryItemModel();
@@ -197,19 +191,18 @@ class QuotebizlineController extends PublicController {
 
         $quoteItemModel = new QuoteItemModel();
         $quoteItemModel->startTrans();
-        $quoteItemIds = [];
-        foreach ($quote_ids as $quote_id){
-            foreach ($inquiryItemList as $item){
-                $quote_item_ids[] = $quoteItemModel->add($quoteItemModel->create([
-                    'quote_id' => $quote_id,
-                    'inquiry_id' => $item['inquiry_id'],
-                    'inquiry_item_id' => $item['id'],
-                    'bizline_id' => $request['bizline_id'],
-                    'sku' => $item['sku'],
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $this->user['id'],
-                ]));
-            }
+
+        $quote_item_ids = [];
+        foreach ($inquiryItemList as $item){
+            $quote_item_ids[] = $quoteItemModel->add($quoteItemModel->create([
+                'quote_id' => $quoteResult,
+                'inquiry_id' => $item['inquiry_id'],
+                'inquiry_item_id' => $item['id'],
+                'bizline_id' => $request['bizline_id'],
+                'sku' => $item['sku'],
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $this->user['id'],
+            ]));
         }
 
         //4选择的讯单项(inquiry_item)写入到产品线报价单项(quote_item_form)
@@ -229,7 +222,7 @@ class QuotebizlineController extends PublicController {
             ]));
         }
 
-        if ($quote_ids && $quoteBizline_ids && $quote_item_ids && $quote_item_form_ids){
+        if ($quoteResult && $quoteBizlineResult && $quote_item_ids && $quote_item_form_ids){
             $quoteModel->commit();
             $quoteBizlineModel->commit();
             $quoteItemModel->commit();
