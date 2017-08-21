@@ -78,6 +78,9 @@ class LogisticsController extends PublicController {
 	            $where['id'] = $item['id'];
 	            unset($item['id']);
 	            
+	            $item['updated_by'] = $this->user['id'];
+	            $item['updated_at'] = $this->time;
+	            
 	            $res = $this->quoteItemLogiModel->updateInfo($where, $item);
 	            
 	            /*if (!$res) {
@@ -330,6 +333,47 @@ class LogisticsController extends PublicController {
 	        $res = $this->quoteLogiQwvModel->updateInfo($where, $condition);
 	
 	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 批量修改物流报价件重尺信息接口
+	 *
+	 * @author liujf
+	 * @time 2017-08-21
+	 */
+	public function batchUpdateQuoteLogiQwvInfoAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['items'])) {
+	         
+	        $flag = true;
+	        $data = [];
+	         
+	        foreach ($condition['items'] as $item) {
+	            $where['id'] = $item['id'];
+	            unset($item['id']);
+	            
+	            $item['updated_by'] = $this->user['id'];
+	            $item['updated_at'] = $this->time;
+	             
+	            $res = $this->quoteLogiQwvModel->updateInfo($where, $item);	             
+	             
+	            if (!$res) {
+	                $data[] = $where['id'];
+	                $flag = false;
+	            }
+	        }
+	    
+	        if ($flag) {
+	            $this->jsonReturn($flag);
+	        } else {
+	            $this->setCode('-101');
+	            $this->setMessage('失败!');
+	            parent::jsonReturn($data);
+	        }
 	    } else {
 	        $this->jsonReturn(false);
 	    }
