@@ -335,13 +335,13 @@ class BuyerModel extends PublicModel {
         }
         if ($create['status']) {
             switch ($create['status']) {
-                case self::APPROVED:
+                case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
-                case self::REJECTED:
+                case self::STATUS_REJECTED:
                     $data['status'] = $create['status'];
                     break;
-                case self::APPROVING:
+                case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];
                     break;
             }
@@ -609,46 +609,51 @@ class BuyerModel extends PublicModel {
      */
     public function getInfo($data) {
         $where = array();
-        if (empty($data['buyer_no'])) {
-            if (!empty($data['id'])) {
-                $where['id'] = $data['id'];
+        $field = 'buyer_no,lang,name,bn,country_bn,province,city,buyer_level';
+        try {
+            if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+                if (!empty($data['id'])) {
+                    $where['id'] = $data['id'];
+                } else {
+                    jsonReturn('', '-1001', '用户[id]不可以为空');
+                }
+                $buyerInfo = $this->where("id='" . $data['id'] . "'")
+                    ->field($field)
+                    ->find();
             } else {
-                jsonReturn('', '-1001', '用户email不可以为空');
+                $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
+                    ->field($field)
+                    ->find();
             }
-            $buyerInfo = $this->where("email='" . $data['email'] . "'")
-                    ->field('buyer_no,lang,name,bn,country_bn,province,city,official_website,buyer_level')
-                    ->find();
-        } else {
-            $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
-                    ->field('buyer_no,lang,name,bn,country_bn,province,city,official_website,buyer_level')
-                    ->find();
-        }
-        if ($buyerInfo) {
+
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
-            $userInfo = $buyerAccount->field('email,user_name,mobile,first_name,last_name,status')
-                    ->where(array('buyer_no' => $buyerInfo['buyer_no']))
-                    ->find();
-
+            $userInfo = $buyerAccount->field('email,mobile,first_name,last_name')
+                ->where(array('id' => $data['id'],'status'=>'VALID'))
+                ->find();
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
             $zipCode = $buyerAddress->field('zipcode,address')
-                    ->where(array('buyer_no' => $buyerInfo['buyer_no']))
-                    ->find();
-
-            $buyerInfo['email'] = $userInfo['email'];
-            $buyerInfo['user_name'] = $userInfo['user_name'];
-            $buyerInfo['mobile'] = $userInfo['mobile'];
-            $buyerInfo['first_name'] = $userInfo['first_name'];
-            $buyerInfo['last_name'] = $userInfo['last_name'];
-            $buyerInfo['status'] = $userInfo['status'];
-            $buyerInfo['zipcode'] = $zipCode['zipcode'];
-            $buyerInfo['address'] = $zipCode['address'];
-
-            return $buyerInfo;
-        } else {
-            return false;
+                ->where(array('id' => $buyerInfo['id']))
+                ->find();
+            if($buyerInfo){
+                if($userInfo){
+                    $buyerInfo['email'] = $userInfo['email'];
+                    $buyerInfo['user_name'] = $userInfo['user_name'];
+                    $buyerInfo['mobile'] = $userInfo['mobile'];
+                    $buyerInfo['first_name'] = $userInfo['first_name'];
+                    $buyerInfo['last_name'] = $userInfo['last_name'];
+                }
+                if($zipCode){
+                    $buyerInfo['zipcode'] = $zipCode['zipcode'];
+                    $buyerInfo['address'] = $zipCode['address'];
+                }
+                return $buyerInfo;
+            }
+            return array();
+        }catch (Exception $e){
+            return array();
         }
     }
 
