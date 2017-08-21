@@ -860,7 +860,7 @@ class ESClient {
             $searchParams['body']['size'] = $size;
         }
         try {
-            echo json_encode($searchParams['body'], 256);
+
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);

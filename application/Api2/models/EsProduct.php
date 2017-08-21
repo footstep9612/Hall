@@ -283,8 +283,7 @@ class EsProductModel extends Model {
             }
 
             $from = ($current_no - 1) * $pagesize;
-            var_dump($from, $current_no);
-            die;
+
             $es = new ESClient();
             unset($condition['source']);
             if ($body) {
