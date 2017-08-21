@@ -5,7 +5,7 @@
  * Date: 2017/8/21
  * Time: 9:41
  */
-class ServicetermController extends publicController{
+class ServiceTermController extends publicController{
     public function init() {
         parent::init();
     }
