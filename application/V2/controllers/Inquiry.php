@@ -364,4 +364,40 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    /*
+     * 审核日志列表
+     * Author:张玉良
+     */
+    public function getCheckLogListAction() {
+        $checklog = new CheckLogModel();
+        $employee = new EmployeeModel();
+        $data =  $this->put_data;
+        if(!empty($data['inquiry_id'])){
+            $results = $checklog->getList($data);
+
+            foreach($results['data'] as $key=>$val){
+                $rs = $employee->field('name')->where('id='.$val['op_id'])->find();
+                $results['data'][$key]['op_name'] = $rs['name'];
+            }
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有询单ID!';
+        }
+
+        $this->jsonReturn($results);
+    }
+
+    /*
+     * 添加审核日志
+     * Author:张玉良
+     */
+    public function addCheckLogAction() {
+        $checklog = new CheckLogModel();
+        $data =  $this->put_data;
+        $data['op_id'] = $this->user['id'];
+        $data['created_by'] = $this->user['id'];
+
+        $results = $checklog->addData($data);
+        $this->jsonReturn($results);
+    }
 }
