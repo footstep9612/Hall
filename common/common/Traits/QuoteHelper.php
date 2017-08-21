@@ -219,7 +219,7 @@ trait QuoteHelper{
 
         $quoteItemFormModel = new QuoteItemFormModel();
 
-        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
         return $quoteItemFormModel->alias('a')
             ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
             ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')

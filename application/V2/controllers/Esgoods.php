@@ -79,9 +79,8 @@ class EsgoodsController extends PublicController {
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
             } else {
-                $list[$key]['img'] = null;
+                $list[$key]['img'] = new stdClass();
             }
-
             $show_cats = json_decode($item["_source"]["show_cats"], true);
             if ($show_cats) {
                 rsort($show_cats);
@@ -95,11 +94,14 @@ class EsgoodsController extends PublicController {
             if ($product['checked_by']) {
                 $user_ids[] = $product['checked_by'];
             }
+            if ($product['onshelf_by']) {
+                $user_ids[] = $product['onshelf_by'];
+            }
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+            $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
         }
 
         $employee_model = new EmployeeModel();
@@ -119,6 +121,11 @@ class EsgoodsController extends PublicController {
                 $val['checked_by_name'] = $usernames[$val['checked_by']];
             } else {
                 $val['checked_by_name'] = '';
+            }
+            if ($val['onshelf_by'] && isset($usernames[$val['onshelf_by']])) {
+                $val['onshelf_by_name'] = $usernames[$val['onshelf_by']];
+            } else {
+                $val['onshelf_by_name'] = '';
             }
             $list[$key] = $val;
         }

@@ -28,6 +28,7 @@ class BuyerModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING'; //待报审；
     const STATUS_APPROVED = 'APPROVED'; //审核；
     const STATUS_REJECTED = 'REJECTED'; //无效；
+    const STATUS_DRAFT = 'DRAFT'; //临时未验证；
 
     /**
      * 获取列表
@@ -240,14 +241,16 @@ class BuyerModel extends PublicModel {
      * @author jhw
      */
     public function info($data) {
-        if ($data['id']) {
-            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
+        if ($data['buyer_id']) {
+            $buyerInfo = $this->where(array("buyer.id" => $data['buyer_id']))->field('buyer.*,em.name as checked_name')
                     ->join('erui2_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
             if ($row) {
                 $buyerInfo['attach'] = $row[0];
+            } else {
+                $buyerInfo['attach'] = new stdClass();
             }
             return $buyerInfo;
         } else {
@@ -333,7 +336,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_at'])) {
             $data['checked_at'] = $create['checked_at'];
         }
-        if ($create['status']) {
+        if (isset($create['status'])) {
             switch ($create['status']) {
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
@@ -355,15 +358,15 @@ class BuyerModel extends PublicModel {
      */
     public function getService($info, $token) {
         $where = array();
-        if (!empty($token['buyer_no'])) {
-            $where['buyer_no'] = $token['buyer_no'];
+        if (!empty($token['id'])) {
+            $where['id'] = $token['id'];
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
         $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
         $buyerLevel = $this->field('buyer_level')
-                ->where($where)
+                ->where("customer_id='" . $where['customer_id'] . "'")
                 ->find();
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
@@ -656,5 +659,4 @@ class BuyerModel extends PublicModel {
             return array();
         }
     }
-
 }

@@ -28,15 +28,13 @@ class TransboxtypeController extends PublicController {
         $data = $this->getPut();
 
         $trans_box_type_model = new TransBoxTypeModel();
-        if (redisGet('TransBoxType_' . md5(json_encode($data)))) {
-            $arr = json_decode(redisGet('TransBoxType_' . md5(json_encode($data))), true);
-        } else {
-            $arr = $trans_box_type_model->getlist($data);
 
-            if ($arr) {
-                redisSet('TransBoxType_' . md5(json_encode($data)), json_encode($arr));
-            }
+        $arr = $trans_box_type_model->getlist($data);
+        $this->_setUserName($arr);
+        if ($arr) {
+            redisSet('TransBoxType_' . md5(json_encode($data)), json_encode($arr));
         }
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } elseif ($arr === null) {
@@ -55,14 +53,14 @@ class TransboxtypeController extends PublicController {
         $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
 
         $trans_box_type_model = new TransBoxTypeModel();
-        if (redisGet('TransBoxType_' . md5($id))) {
-            $arr = json_decode(redisGet('TransBoxType_' . md5($id)), true);
-        } else {
-            $arr = $trans_box_type_model->info($id);
-            if ($arr) {
-                redisSet('TransBoxType_' . md5($id), json_encode($arr));
-            }
+
+        $arr = $info = $trans_box_type_model->info($id);
+        if ($info) {
+            $data = [$info];
+            $this->_setUserName($data);
+            $arr = $data[0];
         }
+
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } else {
@@ -71,13 +69,47 @@ class TransboxtypeController extends PublicController {
         $this->jsonReturn($arr);
     }
 
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   物流费率
+     */
+
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    private function delcache() {
+        $redis = new phpredis();
+        $keys = $redis->getKeys('TransBoxType*');
+        $redis->delete($keys);
+    }
+
     public function createAction() {
         $condition = $this->getPut(null);
         $trans_box_type_model = new TransBoxTypeModel();
 
         $result = $trans_box_type_model->create_data($condition);
         if ($result) {
-            // $this->delcache();
+            $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -96,7 +128,7 @@ class TransboxtypeController extends PublicController {
         $result = $trans_box_type_model->update_data($condition);
 
         if ($result) {
-
+            $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
@@ -117,7 +149,7 @@ class TransboxtypeController extends PublicController {
         }
         $result = $trans_box_type_model->delete_data($id);
         if ($result) {
-
+            $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {

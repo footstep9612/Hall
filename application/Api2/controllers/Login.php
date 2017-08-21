@@ -48,7 +48,7 @@ class LoginController extends PublicController {
         if ($info) {
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
-            $jwt['customer_id'] = $info['customer_id'];
+            $jwt['buyer_no'] = $info['buyer_no'];
             $jwt['ext'] = time();
             $jwt['iat'] = time();
             $jwt['user_name'] = $info['user_name'];
@@ -110,7 +110,7 @@ class LoginController extends PublicController {
             $buyer_account_data['mobile'] = $data['mobile'];
         }
         if (!empty($data['country'])) {
-            $arr['country'] = $data['country'];
+            $arr['country_bn'] = $data['country'];
         } else {
             jsonReturn('', -101, '国家不能为空!');
         }
@@ -139,8 +139,8 @@ class LoginController extends PublicController {
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
         $data_t_buyer = $model->getlist($condition); //($this->put_data);
-        if ($data_t_buyer && substr($data_t_buyer[0]['customer_id'], 1, 8) == date("Ymd")) {
-            $no = substr($data_t_buyer[0]['customer_id'], -1, 6);
+        if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
+            $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
             $no++;
         } else {
             $no = 1;
@@ -148,18 +148,17 @@ class LoginController extends PublicController {
         $temp_num = 1000000;
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
-        $arr['customer_id'] = $real_num;
-        $buyer_account_data['customer_id'] = $arr['customer_id'];
-        if (!empty($buyer_address_data)) {
-            $buyer_address_data['customer_id'] = $arr['customer_id'];
-        }
-
+        $arr['buyer_no'] = $real_num;
         if (empty($arr['serial_no'])) {
-            $arr['serial_no'] = $arr['customer_id'];
+            $arr['serial_no'] = $arr['buyer_no'];
         }
         $id = $model->create_data($arr);
         if ($id) {
-            $buyer_account_data['status'] = 'VALID';
+            if (!empty($buyer_address_data)) {
+                $buyer_address_data['buyer_id'] = $id;
+            }
+            $buyer_account_data['buyer_id'] = $id;
+            $buyer_account_data['status'] = 'DRAFT';
             $account_id = $buyer_account_model->create_data($buyer_account_data);
             if (!empty($buyer_address_data)) {
                 $buyer_address_model = new BuyerAddressModel();
@@ -230,10 +229,9 @@ class LoginController extends PublicController {
         $buyer_model = new BuyerModel();
         $list = $buyer_account_model->Exist($arr);
         $buyer_data['status'] = 'VALID';
-        $buyer_where['customer_id'] = $list[0]['customer_id'];
-        $res = $buyer_model->update_data($buyer_data, $buyer_where);
+        $buyer_where['buyer_no'] = $list[0]['buyer_no'];
+        $res = $buyer_account_model->update_data($buyer_data, $arr);
         if ($res) {
-            $buyer_account_model->update_data($buyer_data, $arr);
             redisHashDel('login_reg_key', $data['key']);
             jsonReturn('', 1, '验证成功');
         } else {

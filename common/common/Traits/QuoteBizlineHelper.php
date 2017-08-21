@@ -323,42 +323,61 @@ trait QuoteBizlineHelper{
      */
     public static function submitToManager($request){
 
-        //更改当前询单(项目)的状态QUOTED_BY_BIZLINE
-        $inquiry = new InquiryModel();
+//        $inquiry = new InquiryModel();
+//        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
+//        if ($status=="QUOTED_BY_BIZLINE"){
+//            return ['code'=>'-104','message'=>'不能重复提交!'];
+//        }
+//
+//        $inquiry->startTrans();
+//        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+//            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
+//            'goods_quote_status'=>'QUOTED'//当前报价的状态
+//        ]);
+//
+//        //更改报价的状态(quote表)
+//        $quoteModel = new QuoteModel();
+//        $quoteModel->startTrans();
+//        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+//            'status' => 'QUOTED_BY_BIZLINE'
+//        ]);
 
-        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
+        //数据回写(从quote_item_form到quote_item)
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $fields = ['quote_item_id,brand,supplier_id,quote_unit,quote_qty,purchase_unit_price,purchase_price_cur_bn,net_weight_kg,gross_weight_kg,package_size,package_mode,goods_source,stock_loc,exw_days,delivery_days,period_of_validity,reason_for_no_quote'];
+        $quoteItems = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->field($fields)->select();
 
-        if ($status=="QUOTED_BY_BIZLINE"){
-            return ['code'=>'-104','message'=>'不能重复提交!'];
+        //p($quoteItems);
+
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemModel->startTrans();
+        $quoteItemResult = true;
+        foreach ($quoteItems as $quote=>$item){
+            $result = $quoteItemModel->where(['id'=>$item['quote_item_id']])->save($quoteItemModel->create($item));
+            p($result);
+            //p($quoteItemModel->getLastSql());
+            if (!$result) {
+                $quoteItemResult = false;
+                break;
+            }
         }
-
-        $inquiry->startTrans();
-        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
-            'goods_quote_status'=>'QUOTED'//当前报价的状态
-        ]);
-
-        //更改报价的状态(quote表)
-        $quoteModel = new QuoteModel();
-        $quoteModel->startTrans();
-        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
-            'status' => 'QUOTED_BY_BIZLINE'
-        ]);
 
         //更改产品线报价的状态
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
         $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
 
-        if ($inquiryResult && $quoteResult && $quoteBizlineResult){
+        if ($inquiryResult && $quoteResult && $quoteBizlineResult && $quoteItemResult){
             $inquiry->commit();
             $quoteModel->commit();
             $quoteBizlineModel->commit();
+            $quoteItemModel->commit();
             return ['code'=>'1','message'=>'成功!'];
         }else{
             $inquiry->rollback();
             $quoteModel->rollback();
             $quoteBizlineModel->rollback();
+            $quoteItemModel->rollback();
             return ['code'=>'-104','message'=>'失败!'];
         }
     }
