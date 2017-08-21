@@ -12,11 +12,34 @@ class QuoteLogiFeeModel extends PublicModel {
     protected $joinTable1 = 'erui2_rfq.quote b ON a.quote_id = b.id';
     protected $joinTable2 = 'erui2_sys.employee c ON a.updated_by = c.id';
     protected $joinTable3 = 'erui2_rfq.inquiry d ON a.inquiry_id = d.id';
-    protected $joinField = 'a.*, b.serial_no, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.box_type_bn, b.quote_remarks, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name';
-    protected $joinField_ = 'a.*, d.inquiry_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, b.period_of_validity';
+    protected $joinTable4 = 'erui2_dict.country e ON d.country_bn = e.bn AND e.lang = \'zh\'';
+    protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.package_mode, b.box_type_bn, b.destination, b.dispatch_place, b.quote_remarks, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name, d.serial_no, e.region_bn';
+    protected $joinField_ = 'a.*, b.period_of_validity, d.serial_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time';
 			    
     public function __construct() {
         parent::__construct();
+    }
+    
+    /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-08-18
+     */
+    public function getWhere($condition = []) {
+         
+        $where = [];
+         
+        if(!empty($condition['quote_id'])) {
+            $where['quote_id'] = $condition['quote_id'];
+        }
+    
+        $where['deleted_flag'] = 'N';
+         
+        return $where;
+    
     }
     
     /**
@@ -35,6 +58,10 @@ class QuoteLogiFeeModel extends PublicModel {
             $where['a.quote_id'] = $condition['quote_id'];
         }
         
+        if(!empty($condition['inquiry_id'])) {
+            $where['a.inquiry_id'] = $condition['inquiry_id'];
+        }
+        
         if(!empty($condition['status'])) {
             $where['a.status'] = $condition['status'];
         }
@@ -43,8 +70,8 @@ class QuoteLogiFeeModel extends PublicModel {
             $where['d.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
         }
         
-        if(!empty($condition['inquiry_no'])) {
-            $where['d.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+        if(!empty($condition['serial_no'])) {
+            $where['d.serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];
         }
         
         if(!empty($condition['buyer_name'])) {
@@ -86,30 +113,9 @@ class QuoteLogiFeeModel extends PublicModel {
          
         $count = $this->alias('a')
                                  ->join($this->joinTable1, 'LEFT')
-                                 ->join($this->joinTable2, 'LEFT')
+                                 ->join($this->joinTable3, 'LEFT')
                                  ->where($where)
                                  ->count('a.id');
-         
-        return $count > 0 ? $count : 0;
-    }
-    
-    /**
-     * @desc 获取l列表记录总数
-     *
-     * @param array $condition
-     * @return int $count
-     * @author liujf
-     * @time 2017-08-07
-     */
-    public function getListCount($condition = []) {
-         
-        $where = $this->getJoinWhere($condition);
-         
-        $count = $this->alias('a')
-                                ->join($this->joinTable1, 'LEFT')
-                                ->join($this->joinTable3, 'LEFT')
-                                ->where($where)
-                                ->count('a.id');
          
         return $count > 0 ? $count : 0;
     }
@@ -140,6 +146,21 @@ class QuoteLogiFeeModel extends PublicModel {
     }
     
     /**
+     * @desc 获取详情
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-08-18
+     */
+    public function getDetail($condition = []) {
+         
+        $where = $this->getWhere($condition);
+         
+        return $this->where($where)->find();
+    }
+    
+    /**
      * @desc 获取关联详情
      *
      * @param array $condition
@@ -154,6 +175,8 @@ class QuoteLogiFeeModel extends PublicModel {
         return $this->alias('a')
                             ->join($this->joinTable1, 'LEFT')
                             ->join($this->joinTable2, 'LEFT')
+                            ->join($this->joinTable3, 'LEFT')
+                            ->join($this->joinTable4, 'LEFT')
                             ->field($this->joinField)
                             ->where($where)
                             ->find();

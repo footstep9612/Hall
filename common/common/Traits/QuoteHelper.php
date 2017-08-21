@@ -7,6 +7,7 @@
  */
 trait QuoteHelper{
 
+
     /**
      * @desc 报价列表(信息)
      * @param string  $inquiry_id 流程编码
@@ -107,7 +108,7 @@ trait QuoteHelper{
             unset($inquiry['pm_id']);
         }
         //询单(项目)状态
-        switch ($inquiry['status']){
+/*        switch ($inquiry['status']){
             case 'DRAFT': $inquiry['status'] = '起草'; break;
             case 'APPROVING_BY_SC': $inquiry['status'] = '方案中心审核中'; break;
             case 'APPROVED_BY_SC': $inquiry['status'] = '方案中心已确认'; break;
@@ -122,37 +123,138 @@ trait QuoteHelper{
             case 'APPROVED_BY_MARKET': $inquiry['status'] = '市场主管已审核'; break;
             case 'QUOTE_SENT': $inquiry['status'] = '报价单已发出'; break;
             case 'INQUIRY_CLOSED': $inquiry['status'] = '报价关闭'; break;
-        }
+        }*/
 
         return $inquiry;
     }
 
-    public static function getQuoteList($where){
+    /**
+     * @desc 报价列表(产品线负责人)
+     * @param $condition
+     * @return mixed
+     */
+    public static function bizlineManagerQuoteList($condition){
 
-        $quoteItem = new QuoteItemModel();
+        $where = self::bizlineManagerQuoteListCondition($condition);
 
-        /*===============================
-        关联询单(inquiry)表获取一下字段
-        inquiry_no  客户询单号
-        adhoc_request   客户需求描述
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        关联询单明细(inquiry_item)表获取一下字段
-        sku  sku
-        model   型号
-        name   外文品名
-        name_zh   中文品名
-        remarks   客户需求描述
-        remarks_zh   客户需求描述
-        brand   品牌
-        qty   数量
-        unit   单位
-        ===============================*/
-        $fields = ['a.id','a.bizline_id','d.name bizline_name','a.sku','b.inquiry_no','b.serial_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+        $quoteBizlineModel = new QuoteBizLineModel();
+        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
+        return $quoteBizlineModel->alias('qb')
+            ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
+            ->field($field)
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('id DESC')
+            ->select();
+        //p($data);
+    }
 
-        return $quoteItem->alias('a')
-                        ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
-                        ->join('erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id','LEFT')
-                        ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
+    public static function bizlineManagerQuoteListCondition(array $condition){
+
+        $where = [];
+        //项目状态
+        if(!empty($condition['status'])) {
+            $where['status'] = $condition['status'];
+        }
+        //国家
+        if(!empty($condition['country_bn'])) {
+            $where['country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+        }
+        //流程编码
+        if(!empty($condition['serial_no'])) {
+            $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];
+        }
+        //客户名称
+        if(!empty($condition['buyer_name'])) {
+            $where['buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
+        }
+        //市场经办人
+        if (!empty($condition['agent_id'])) {
+            $where['agent_id'] = $condition['agent_id'];
+        }
+        //项目经理
+        if (!empty($condition['pm_id'])) {
+            $where['pm_id'] = $condition['pm_id'];
+        }
+        //询价时间
+        if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
+            $where['inquiry_time'] = [
+                ['egt', $condition['start_inquiry_time']],
+                ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
+            ];
+        }
+
+        $where['inq.deleted_flag'] = 'N';
+
+        return $where;
+
+    }
+
+    /**
+     * @desc 获取报价总数(产品线负责人)
+     * @param $where 条件
+     * @return int 总数
+     */
+    public static function bizlineManagerQuoteListCount($where){
+
+        $quoteBizlineModel = new QuoteBizLineModel();
+
+        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
+        $count =  $quoteBizlineModel->alias('qb')
+            ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
+            ->field($field)
+            ->where($where)
+            ->count('qb.id');
+
+        return $count > 0 ? $count : 0;
+    }
+
+
+    public static function bizlineManagerQuoteSkuList($condition){
+
+        $where['a.quote_id'] = $condition['quote_id'];
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
+        return $quoteItemFormModel->alias('a')
+            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')
+            ->field($fields)
+            ->where($where)
+            ->order('a.id DESC')
+            ->select();
+        //p($data);
+    }
+
+    public static function bizlineManagerQuoteSkuListCount($request){
+
+        $where['a.quote_id'] = $request['quote_id'];
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status';
+        $count = $quoteItemFormModel->alias('a')
+            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->field($fields)
+            ->where($where)
+            ->count('a.id');
+        return $count > 0 ? $count : 0 ;
+    }
+
+    public static function getQuoteList($condition){
+
+        $where['inq.id'] = $condition['id'];
+
+        $quoteItem = new InquiryItemModel();
+
+        $fields = ['a.id','a.sku','inq.inquiry_no','inq.serial_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
+
+        return  $quoteItem->alias('a')
+                        ->join('erui2_rfq.inquiry inq ON a.inquiry_id = inq.id','LEFT')
                         ->field($fields)
                         ->where($where)
                         ->order('a.id DESC')
@@ -160,24 +262,80 @@ trait QuoteHelper{
         //p($data);
     }
 
+    private static $mqslFields = [
+            'a.id',
+            'a.sku',
+            'b.inquiry_no',
+            'c.name',
+            'c.name_zh',
+            'c.model',
+            'c.remarks',
+            'c.remarks_zh',
+            'c.qty',
+            'c.unit',
+            'c.brand',
+            'a.purchase_unit_price',
+            'a.purchase_price_cur_bn',
+            'a.quote_qty',
+            'a.supplier_id',
+            's.name supplier_name',
+            'a.remarks quote_remarks',
+            'a.net_weight_kg',
+            'a.gross_weight_kg',
+            'a.package_mode',
+            'a.package_size',
+            'a.delivery_days',
+            'a.period_of_validity',
+            'a.goods_source',
+            'a.stock_loc',
+            'a.status',
+            'a.reason_for_no_quote',
+            'a.bizline_agent_id'
+    ];
+
+    public static function getManagerQuoteSkuList($condition){
+
+        $quoteItem = new QuoteItemModel();
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        $where = self::getManagerQuoteSkuListCondition($condition);
+
+        return $quoteItem->alias('a')
+            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
+            ->join('erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id','LEFT')
+            ->join('erui2_supplier.supplier s ON a.supplier_id = s.id','LEFT')
+            ->field(self::$mqslFields)
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
+
+    }
+
+
     /**
      * @desc 根据条件获取总数(负责人)
      * @param $where 条件
      * @return int 总数
      */
-    public static function getQuoteTotalCount($where)
-    {
-        $quoteItem = new QuoteItemModel();
-        $fields = ['a.id','a.bizline_id','d.name bizline_name','a.sku','b.inquiry_no','b.serial_no','b.adhoc_request','c.name','c.name_zh','c.model','c.remarks','c.remarks_zh','c.qty','c.unit','c.brand'];
+    public static function getQuoteTotalCount($condition){
 
-        $count = $quoteItem->alias('a')
-            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id','LEFT')
-            ->join('erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id','LEFT')
-            ->join('erui2_operation.bizline d ON a.bizline_id = d.id','LEFT')
+        $where['inq.id'] = $condition['id'];
+
+        $quoteItem = new InquiryItemModel();
+
+        $fields = ['a.id','a.sku','inq.inquiry_no','inq.serial_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
+
+        return  $quoteItem->alias('a')
+            ->join('erui2_rfq.inquiry inq ON a.inquiry_id = inq.id','LEFT')
             ->field($fields)
             ->where($where)
             ->count('a.id');
+
         return $count > 0 ? $count : 0;
+
     }
 
 
@@ -193,15 +351,14 @@ trait QuoteHelper{
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        $quoteModel = new QuoteModel();
-        return  $quoteModel->alias('a')
-            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
-            ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
+        $inquiry = new InquiryModel();
+        return $inquiry->field('id, serial_no, country_bn, buyer_id, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
             ->where($where)
             ->page($currentPage, $pageSize)
-            ->order('a.id DESC')
+            ->order('id DESC')
             ->select();
-
+        //p($inquiry->getLastSql());
+        //p($data);
     }
 
     /**
@@ -214,37 +371,37 @@ trait QuoteHelper{
         $where = [];
         //项目状态
         if(!empty($condition['status'])) {
-            $where['b.status'] = $condition['status'];
+            $where['status'] = $condition['status'];
         }
         //国家
         if(!empty($condition['country_bn'])) {
-            $where['b.country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
+            $where['country_bn'] = ['like', '%' . $condition['country_bn'] . '%'];
         }
         //流程编码
         if(!empty($condition['serial_no'])) {
-            $where['b.inquiry_no'] = ['like', '%' . $condition['inquiry_no'] . '%'];
+            $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];
         }
         //客户名称
         if(!empty($condition['buyer_name'])) {
-            $where['b.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
+            $where['buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
         }
         //市场经办人
         if (!empty($condition['agent_id'])) {
-            $where['b.agent_id'] = $condition['agent_id'];
+            $where['agent_id'] = $condition['agent_id'];
         }
         //项目经理
         if (!empty($condition['pm_id'])) {
-            $where['b.pm_id'] = $condition['pm_id'];
+            $where['pm_id'] = $condition['pm_id'];
         }
         //询价时间
         if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
-            $where['b.inquiry_time'] = [
+            $where['inquiry_time'] = [
                 ['egt', $condition['start_inquiry_time']],
                 ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
             ];
         }
 
-        $where['a.deleted_flag'] = 'N';
+        $where['deleted_flag'] = 'N';
 
         return $where;
     }
@@ -258,13 +415,20 @@ trait QuoteHelper{
     {
         $where = self::getPmQuoteBizlineListCondition($condition);
 
-        $quoteModel = new QuoteModel();
-        $count = $quoteModel->alias('a')
-            ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
-            ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
+        $inquiry = new InquiryModel();
+
+        $count = $inquiry->field('id, serial_no, country_bn, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
             ->where($where)
-            ->count('a.id');
+            ->count('id');
 
         return $count > 0 ? $count : 0;
+    }
+
+    public static function partitionBizline(array $request){
+
+        //1.创建一条报价记录(quote)
+        //2.创建一条产品线报价记录(quote_bizline)
+        //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
+        //4选择的讯单项(inquiry_item)写入到产品线报价单项(quote_item_form)
     }
 }

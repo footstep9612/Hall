@@ -64,14 +64,11 @@ class TransBoxTypeModel extends PublicModel {
         $this->_getValue($data, $condition, 'trans_mode_bn'); //贸易术语简称
         if (isset($condition['keyword']) && $condition['keyword']) {
             $map = [];
-
             $this->_getValue($map, $condition, 'keyword', 'like', 'bt.box_type_name');
             $this->_getValue($map, $condition, 'keyword', 'like', 'tm.trans_mode');
             $map['_logic'] = 'or';
             $data['_complex'] = $map;
         }
-
-
         return $data;
     }
 
@@ -88,7 +85,7 @@ class TransBoxTypeModel extends PublicModel {
             return $this->alias('tbt')
                             ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
                             ->join('erui2_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
-                            ->field('tbt.id,bt.box_type_name,tm.trans_mode ')
+                            ->field('tbt.id,bt.box_type_name,tm.trans_mode,tbt.box_type_bn,tbt.trans_mode_bn ')
                             ->order($order)
                             ->where($data)
                             ->select();

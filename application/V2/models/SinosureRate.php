@@ -7,7 +7,7 @@
  * @time 2017-08-01
  */
 
-class SinosureRateModel extends PublicModel {
+class SinosurerateModel extends PublicModel {
 
     protected $dbName = 'erui2_config';
     protected $tableName = 'sinosure_rate';
@@ -72,13 +72,18 @@ class SinosureRateModel extends PublicModel {
     public function getJoinCount($condition = []) {
 
         $where = $this->getJoinWhere($condition);
+        try {
+            $count = $this->alias('a')
+                    ->join($this->joinTable, 'LEFT')
+                    ->where($where)
+                    ->count('a.id');
 
-        $count = $this->alias('a')
-                ->join($this->joinTable, 'LEFT')
-                ->where($where)
-                ->count('a.id');
-
-        return $count > 0 ? $count : 0;
+            return $count > 0 ? $count : 0;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
+        }
     }
 
     /**
@@ -95,14 +100,19 @@ class SinosureRateModel extends PublicModel {
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-
-        return $this->alias('a')
-                        ->join($this->joinTable, 'LEFT')
-                        ->field($this->joinField)
-                        ->where($where)
-                        ->page($currentPage, $pageSize)
-                        ->order('a.id DESC')
-                        ->select();
+        try {
+            return $this->alias('a')
+                            ->join($this->joinTable, 'LEFT')
+                            ->field($this->joinField)
+                            ->where($where)
+                            ->page($currentPage, $pageSize)
+                            ->order('a.id DESC')
+                            ->select();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /**
@@ -120,12 +130,17 @@ class SinosureRateModel extends PublicModel {
             return [];
         }
         // $where = $this->getJoinWhere($condition);
-
-        return $this->alias('a')
-                        ->join($this->joinTable, 'LEFT')
-                        ->field($this->joinField)
-                        ->where($where)
-                        ->find();
+        try {
+            return $this->alias('a')
+                            ->join($this->joinTable, 'LEFT')
+                            ->field($this->joinField)
+                            ->where($where)
+                            ->find();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /**
@@ -137,10 +152,17 @@ class SinosureRateModel extends PublicModel {
      * @time 2017-08-01
      */
     public function addRecord($condition = []) {
-
+        if (isset($condition['id'])) {
+            unset($condition['id']);
+        }
         $data = $this->create($condition);
-
-        return $this->add($data);
+        try {
+            return $this->add($data);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /**
@@ -152,10 +174,20 @@ class SinosureRateModel extends PublicModel {
      * @time 2017-08-01
      */
     public function updateInfo($where = [], $condition = []) {
+        try {
+            if (isset($condition['id'])) {
+                unset($condition['id']);
+            }
+            $condition['updated_by'] = defined('UID') ? UID : 0;
+            $condition['updated_at'] = date('Y-m-d H:i:s');
+            $data = $this->create($condition);
 
-        $data = $this->create($condition);
-
-        return $this->where($where)->save($data);
+            return $this->where($where)->save($data);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /**
@@ -176,8 +208,13 @@ class SinosureRateModel extends PublicModel {
         } else {
             return false;
         }
-
-        return $this->where($where)->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        try {
+            return $this->where($where)->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
 }

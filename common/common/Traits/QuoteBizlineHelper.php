@@ -222,31 +222,20 @@ trait QuoteBizlineHelper{
      * @param $param
      * @return mixed
      */
-    static public function transmitHandler(array $param){
+    static public function transmitHandler(array $param,$ori_pm_id){
+
         $inquiry = new InquiryModel();
-        try{
-            $result = $inquiry->where(['serial_no'=>$param['serial_no']])
-                              ->save([
-                                  'pm_id'=>$param['pm_id'],//现项目经理
-                                  'ori_pm_id'=>$param['ori_pm_id']//原项目经理
-                              ]);
-            if ($result){
-                return [
-                    'code' => '1',
-                    'message' => '转交成功!'
-                ];
-            }else{
-                return [
-                    'code' => '-104',
-                    'message' => '转交失败!'
-                ];
-            }
-        }catch (Exception $exception){
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
+
+        $result = $inquiry->where(['id'=>$param['id']])->save([
+            'pm_id'=>$param['pm_id'],//现项目经理
+            'ori_pm_id'=>$ori_pm_id//原项目经理
+        ]);
+
+        if (!$result){
+            return ['code' => '-104','message' => '转交失败!'];
         }
+
+        return ['code' => '1','message' => '转交成功!'];
     }
 
     /**
@@ -259,12 +248,12 @@ trait QuoteBizlineHelper{
         $inquiryModel = new InquiryModel();
 
         try{
-            $status = $inquiryModel->where(['serial_no'=>$param['serial_no']])->getField('status');
+            $status = $inquiryModel->where(['id'=>$param['id']])->getField('status');
             if ($status =='QUOTING_BY_BIZLINE'){
                 return ['code'=>'-104','message'=>'不能重复提交!'];
             }
 
-            if ($inquiryModel->where(['serial_no'=>$param['serial_no']])->save(['status'=>'QUOTING_BY_BIZLINE'])){
+            if ($inquiryModel->where(['id'=>$param['id']])->save(['status'=>'QUOTING_BY_BIZLINE'])){
                 return ['code'=>'1','message'=>'成功!'];
             }else{
                 return ['code'=>'-104','message'=>'失败!'];
@@ -327,25 +316,50 @@ trait QuoteBizlineHelper{
 
     }
 
-    //产品此案负责人->提交项目经理审核
-    //数据库操作 inquriy表中的status改为QUOTED_BY_BIZLINE  goods_quote_status字段值改为QUOTED
+    /**
+     * @desc 提交项目经理审核(产品线负责人)
+     * @param $request
+     * @return array
+     */
     public static function submitToManager($request){
+
+        //更改当前询单(项目)的状态QUOTED_BY_BIZLINE
         $inquiry = new InquiryModel();
-        try{
-            $result = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-                'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
-                'goods_quote_status'=>'QUOTED'//当前报价的状态
-            ]);
-            if ($result){
-                return ['code'=>'1','message'=>'提交成功!'];
-            }else{
-                return ['code'=>'-104','message'=>'失败!'];
-            }
-        }catch (Exception $exception){
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
-            ];
+
+        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
+
+        if ($status=="QUOTED_BY_BIZLINE"){
+            return ['code'=>'-104','message'=>'不能重复提交!'];
+        }
+
+        $inquiry->startTrans();
+        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
+            'goods_quote_status'=>'QUOTED'//当前报价的状态
+        ]);
+
+        //更改报价的状态(quote表)
+        $quoteModel = new QuoteModel();
+        $quoteModel->startTrans();
+        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+            'status' => 'QUOTED_BY_BIZLINE'
+        ]);
+
+        //更改产品线报价的状态
+        $quoteBizlineModel = new QuoteBizLineModel();
+        $quoteBizlineModel->startTrans();
+        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
+
+        if ($inquiryResult && $quoteResult && $quoteBizlineResult){
+            $inquiry->commit();
+            $quoteModel->commit();
+            $quoteBizlineModel->commit();
+            return ['code'=>'1','message'=>'成功!'];
+        }else{
+            $inquiry->rollback();
+            $quoteModel->rollback();
+            $quoteBizlineModel->rollback();
+            return ['code'=>'-104','message'=>'失败!'];
         }
     }
 

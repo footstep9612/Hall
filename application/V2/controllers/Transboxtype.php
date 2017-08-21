@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-1 17:34:40
  * @version V2.0
- * @desc   
+ * @desc
  */
 class TransboxtypeController extends PublicController {
 
@@ -25,7 +25,7 @@ class TransboxtypeController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get() ? $this->get() : $this->getPut();
+        $data = $this->getPut();
 
         $trans_box_type_model = new TransBoxTypeModel();
         if (redisGet('TransBoxType_' . md5(json_encode($data)))) {

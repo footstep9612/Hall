@@ -59,7 +59,7 @@ class ProductAttachModel extends PublicModel {
                     foreach ($result as $item) {
                         $data[$item['attach_type']][] = $item;
                     }
-                    redisHashSet('spu_attach',$key_redis, json_encode($data));
+                    redisHashSet('spu_attach', $key_redis, json_encode($data));
                     return $data;
                 }
                 return array();
@@ -89,8 +89,8 @@ class ProductAttachModel extends PublicModel {
         $data['status'] = isset($input['status']) ? $input['status'] : self::STATUS_VALID;
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
-        if(isset($input['id']) && !empty($input['id'])){    //修改
-            return $this->where(array('id'=>$input['id']))->save($data);
+        if (isset($input['id']) && !empty($input['id'])) {    //修改
+            return $this->where(array('id' => $input['id']))->save($data);
         }
         return $this->add($data);
     }
@@ -98,11 +98,11 @@ class ProductAttachModel extends PublicModel {
     /* 通过SKU获取数据商品文件列表
      * @param mix $spus // 商品SKU编码数组
      * @param string $lang // 语言
-     * @return mix  
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getproduct_attachsbyspus($spus, $lang = 'en') {
@@ -127,6 +127,62 @@ class ProductAttachModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
+    }
+
+    /**
+     * 获取商品附件   注：此方法用去前台接口调用，因为有错误输出
+     * @param array $condition
+     * @return array|mixed
+     */
+    public function getAttach($condition = []) {
+        $spu = isset($condition['spu']) ? $condition['spu'] : '';
+        if (empty($spu)) {
+            jsonReturn('', 1000);
+        }
+
+        $where = array(
+            'spu' => $spu,
+        );
+        $type = isset($condition['attach_type']) ? strtoupper($condition['attach_type']) : '';
+        if ($type) {
+            if (!in_array($type, array('SMALL_IMAGE', 'MIDDLE_IMAGE', 'BIG_IMAGE', 'DOC'))) {
+                jsonReturn('', 1000);
+            }
+            $where['attach_type'] = $type;
+        }
+        $status = isset($condition['status']) ? strtoupper($condition['status']) : '';
+        if ($status) {
+            if ($status != '' && !in_array($status, array('VALID', 'INVALID', 'DELETED'))) {
+                jsonReturn('', 1000);
+            }
+            $where['status'] = $status;
+        }
+
+        //读取redis缓存
+        if (redisHashExist('Attach', $spu . '_' . $type . '_' . $status)) {
+            return json_decode(redisHashGet('Attach', $spu . '_' . $type . '_' . $status), true);
+        }
+
+        try {
+            $field = 'attach_type,attach_name,attach_url,status,created_at';
+            $result = $this->field($field)->where($where)->select();
+            if ($result) {
+                $data = array();
+                //按类型分组
+                if (empty($type)) {
+                    foreach ($result as $item) {
+                        $data[$item['attach_type']][] = $item;
+                    }
+                    $result = $data;
+                }
+                //添加到缓存
+                redisHashSet('Attach', $spu . '_' . $type . '_' . $status, json_encode($result));
+                return $result;
+            }
+        } catch (Exception $e) {
+            return array();
+        }
+        return array();
     }
 
 }

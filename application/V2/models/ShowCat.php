@@ -42,11 +42,18 @@ class ShowCatModel extends PublicModel {
      */
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
+        $redis_key = md5(json_encode($where));
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return json_decode(redisHashGet($this->tableName, $redis_key), true);
+        }
         try {
-            return $this->where($where)
-                            ->order('sort_order DESC')
-                            ->field('cat_no as value,name as label,parent_cat_no')
-                            ->select();
+            $result = $this->where($where)
+                    ->order('sort_order DESC')
+                    ->field('cat_no as value,name as label,parent_cat_no')
+                    ->select();
+
+            redisHashSet($this->tableName, $redis_key, json_encode($result));
+            return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -68,7 +75,10 @@ class ShowCatModel extends PublicModel {
         //语言默认取en 统一小写
         $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : ( browser_lang() ? browser_lang() : 'en');
         $condition['status'] = self::STATUS_VALID;
-
+        $redis_key = md5(json_encode($condition) . $field);
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return json_decode(redisHashGet($this->tableName, $redis_key), true);
+        }
         try {
             //后期优化缓存的读取
             //这里需要注意排序的顺序（注意与后台一致）
@@ -81,6 +91,7 @@ class ShowCatModel extends PublicModel {
                 $data['data'] = $resouce;
                 $data['count'] = count($resouce);
             }
+            redisHashSet($this->tableName, $redis_key, json_encode($data));
             return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -126,11 +137,15 @@ class ShowCatModel extends PublicModel {
         } else {
             $where['status'] = self::STATUS_VALID;
         }
+        $redis_key = md5(json_encode($where)) . '_cat_no';
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return json_decode(redisHashGet($this->tableName, $redis_key), true);
+        }
         try {
             $data = $this->field(['cat_no'])->where($where)->order('sort_order DESC')
                     ->group('cat_no')
                     ->select();
-
+            redisHashSet($this->tableName, $redis_key, json_encode($data));
             return $data;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -205,10 +220,16 @@ class ShowCatModel extends PublicModel {
     public function getcount($condition = [], $lang = 'en') {
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
+        $redis_key = md5(json_encode($where)) . '_COUNT';
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return redisHashGet($this->tableName, $redis_key);
+        }
         try {
-            return $this->where($where)
-                            //  ->field('id,user_id,name,email,mobile,status')
-                            ->count('id');
+            $count = $this->where($where)
+                    //  ->field('id,user_id,name,email,mobile,status')
+                    ->count('id');
+            redisHashSet($this->tableName, $redis_key, $count);
+            return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
             return false;
@@ -225,20 +246,26 @@ class ShowCatModel extends PublicModel {
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
-            //  $count = $this->getcount($condition);
-            return $this->where($where)
-                            ->limit($condition['page'] . ',' . $condition['countPerPage'])
-                            ->field('id,cat_no,parent_cat_no,level_no,lang,'
-                                    . 'name,status,sort_order,created_at,created_by')
-                            ->order('sort_order DESC')
-                            ->select();
+
+            $redis_key = md5(json_encode($where) . $condition['page'] . ',' . $condition['countPerPage']) . '_LIST';
         } else {
-            return $this->where($where)
-                            ->field('id,cat_no,parent_cat_no,level_no,lang,name,'
-                                    . 'status,sort_order,created_at,created_by')
-                            ->order('sort_order DESC')
-                            ->select();
+            $redis_key = md5(json_encode($where)) . '_LIST';
         }
+
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return json_decode(redisHashGet($this->tableName, $redis_key), true);
+        }
+        $this->where($where);
+        if (isset($condition['page']) && isset($condition['countPerPage'])) {
+            return $this->limit($condition['page'] . ',' . $condition['countPerPage']);
+        }
+
+        $data = $this->field('id,cat_no,parent_cat_no,level_no,lang,name,'
+                        . 'status,sort_order,created_at,created_by')
+                ->order('sort_order DESC')
+                ->select();
+        redisHashSet($this->tableName, $redis_key, json_encode($data));
+        return $data;
     }
 
     public function get_list($market_area_bn, $country_bn, $cat_no = '', $lang = 'en') {
@@ -259,11 +286,19 @@ class ShowCatModel extends PublicModel {
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
+        $redis_key = md5(json_encode($condition)) . '_GETLIST';
 
-        return $this->where($condition)
-                        ->field('id,cat_no,lang,name,status,sort_order')
-                        ->order('sort_order DESC')
-                        ->select();
+
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return json_decode(redisHashGet($this->tableName, $redis_key), true);
+        }
+        $data = $this->where($condition)
+                ->field('id, cat_no, lang, name, status, sort_order')
+                ->order('sort_order DESC')
+                ->select();
+
+        redisHashSet($this->tableName, $redis_key, json_encode($data));
+        return $data;
     }
 
     /**
@@ -279,11 +314,19 @@ class ShowCatModel extends PublicModel {
         if ($lang) {
             $where['lang'] = $lang;
         }
-        return $this->where($where)
-                        ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
-                                . 'sort_order,created_at,created_by,big_icon,middle_icon,'
-                                . 'small_icon,market_area_bn,country_bn')
-                        ->find();
+        $redis_key = md5(json_encode($where)) . '_INFO';
+
+
+        if (redisHashExist($this->tableName, $redis_key)) {
+            return json_decode(redisHashGet($this->tableName, $redis_key), true);
+        }
+        $data = $this->where($where)
+                ->field('id, cat_no, parent_cat_no, level_no, lang, name, status, '
+                        . 'sort_order, created_at, created_by, big_icon, middle_icon, '
+                        . 'small_icon, market_area_bn, country_bn,updated_at,updated_by')
+                ->find();
+        redisHashSet($this->tableName, $redis_key, json_encode($data));
+        return $data;
     }
 
     /*
@@ -296,18 +339,18 @@ class ShowCatModel extends PublicModel {
     public function getinfo($cat_no, $lang = 'en') {
         try {
             if ($cat_no) {
-                $cat3 = $this->field('id,cat_no,name,market_area_bn,country_bn')
+                $cat3 = $this->field('id, cat_no, name, market_area_bn, country_bn')
                         ->where(['cat_no' => $cat_no, 'lang' => $lang, 'status' => 'VALID'])
                         ->find();
                 if ($cat3) {
-                    $cat2 = $this->field('id,cat_no,name')
+                    $cat2 = $this->field('id, cat_no, name')
                             ->where(['cat_no' => $cat3['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                             ->find();
                 } else {
                     return [];
                 }
                 if ($cat2) {
-                    $cat1 = $this->field('id,cat_no,name')
+                    $cat1 = $this->field('id, cat_no, name')
                             ->where(['cat_no' => $cat2['parent_cat_no'], 'lang' => $lang, 'status' => 'VALID'])
                             ->find();
                 } else {
@@ -436,15 +479,15 @@ class ShowCatModel extends PublicModel {
         if ($flag && !$lang) {
             $cat_new_en = $this->getinfo($cat_no, 'en');
             if ($cat_new_en) {
-                $es_product_model->Replaceshowcats($where['cat_no'], ']', ',' . json_encode($cat_new_en, 256), 'en');
+                $es_product_model->Replaceshowcats($where['cat_no'], ']', ', ' . json_encode($cat_new_en, 256), 'en');
             }
             $cat_new_zh = $this->getinfo($cat_no, 'en');
             if ($cat_new_zh) {
-                $es_product_model->Replaceshowcats($where['cat_no'], ']', ',' . json_encode($cat_new_zh, 256), 'zh');
+                $es_product_model->Replaceshowcats($where['cat_no'], ']', ', ' . json_encode($cat_new_zh, 256), 'zh');
             }
             $cat_new_es = $this->getinfo($cat_no, 'es');
             if ($cat_new_es) {
-                $es_product_model->Replaceshowcats($where['cat_no'], ']', ',' . json_encode($cat_new_es, 256), 'es');
+                $es_product_model->Replaceshowcats($where['cat_no'], ']', ', ' . json_encode($cat_new_es, 256), 'es');
             }
             $cat_new_ru = $this->getinfo($cat_no, 'ru');
             if ($cat_new_ru) {
@@ -510,7 +553,7 @@ class ShowCatModel extends PublicModel {
                     return false;
                 }
                 if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
-                    $show_material_cat_model = new ShowmaterialcatModel();
+                    $show_material_cat_model = new ShowMaterialCatModel();
                     $show_material_cat_model->where(['show_cat_no' => $val['cat_no']])
                             ->delete();
                     $dataList = [];
@@ -529,14 +572,14 @@ class ShowCatModel extends PublicModel {
                 }
             }
         } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
-            $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
+            $flag = $this->updateothercat($where['cat_no'], $cat_no);
             if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
-                $show_material_cat_model = new ShowmaterialcatModel();
+                $show_material_cat_model = new ShowMaterialCatModel();
                 $show_material_cat_model->where(['show_cat_no' => $where['cat_no']])
                         ->delete();
                 $dataList = [];
                 foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
-                    $dataList[] = ['show_cat_no' => $data['cat_no'],
+                    $dataList[] = ['show_cat_no' => $cat_no,
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
@@ -637,7 +680,7 @@ class ShowCatModel extends PublicModel {
     }
 
     public function updateothercat($old_cat_no, $new_cat_no) {
-        $show_material_cat_model = new ShowmaterialcatModel();
+        $show_material_cat_model = new ShowMaterialCatModel();
         $flag_show_material = $show_material_cat_model
                 ->where(['show_cat_no' => $old_cat_no])
                 ->save(['show_cat_no' => $new_cat_no]);
@@ -766,7 +809,7 @@ class ShowCatModel extends PublicModel {
 
         if ($data['level_no'] == 3 && isset($createcondition['material_cat_nos']) && $createcondition['material_cat_nos']) {
             $dataList = [];
-            $show_material_cat_model = new ShowmaterialcatModel();
+            $show_material_cat_model = new ShowMaterialCatModel();
             foreach ($createcondition['material_cat_nos'] as $material_cat_no) {
                 $data = [
                     'show_cat_no' => $cat_no,
@@ -802,7 +845,7 @@ class ShowCatModel extends PublicModel {
 
             $condition['lang'] = $lang;
         }
-        $resultTr = $this->field('name,parent_cat_no')->where($condition)->select();
+        $resultTr = $this->field('name, parent_cat_no')->where($condition)->select();
 
         $this->data[] = $resultTr[0]['name'];
         if ($resultTr) {
@@ -829,7 +872,7 @@ class ShowCatModel extends PublicModel {
         }
 
         try {
-            $field = 'lang,cat_no,parent_cat_no,level_no,name,description,sort_order';
+            $field = 'lang, cat_no, parent_cat_no, level_no, name, description, sort_order';
             $condition = array(
                 'cat_no' => $catNo,
                 'status' => self::STATUS_VALID,
@@ -886,7 +929,7 @@ class ShowCatModel extends PublicModel {
 
         try {
             if ($show_cat_nos) {
-                $cat3s = $this->field('market_area_bn,country_bn,parent_cat_no,cat_no,name')
+                $cat3s = $this->field('market_area_bn, country_bn, parent_cat_no, cat_no, name')
                         ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
                         ->select();
                 $cat1_nos = $cat2_nos = [];
@@ -901,7 +944,7 @@ class ShowCatModel extends PublicModel {
                 $cat2_nos[] = $cat['parent_cat_no'];
             }
             if ($cat2_nos) {
-                $cat2s = $this->field('id,cat_no,name,parent_cat_no')
+                $cat2s = $this->field('id, cat_no, name, parent_cat_no')
                                 ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
             if (!$cat2s) {
@@ -920,7 +963,7 @@ class ShowCatModel extends PublicModel {
                 $cat1_nos[] = $cat2['parent_cat_no'];
             }
             if ($cat1_nos) {
-                $cat1s = $this->field('id,cat_no,name')
+                $cat1s = $this->field('id, cat_no, name')
                                 ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
             }
 

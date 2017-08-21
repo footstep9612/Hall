@@ -380,8 +380,8 @@ class SupplierController extends PublicController {
             $where_account['supplier_id'] = $data['id'];
             $where_attach['supplier_id'] = $data['id'];
             $supplier_contact_where['supplier_id'] = $data['id'];
-            $where_supplier_bank_info = $data['id'];
-            $where_supplier_address = $data['id'];
+            $where_supplier_bank_info['supplier_id'] = $data['id'];
+            $where_supplier_address['supplier_id'] = $data['id'];
         }else{
             $this->jsonReturn(array("code" => "-101", "message" => "id不能为空"));
         }

@@ -219,15 +219,35 @@ class FinalQuoteModel extends PublicModel {
 		if(isset($condition['id'])){
 			$where['id'] = array('in',explode(',',$condition['id']));
 		}else{
-			return false;
+			$results['code'] = '-103';
+			$results['message'] = '没有ID!';
+			return $results;
 		}
 		if(isset($condition['status'])){
-			$quote_status = $condition['status'];
+			$data['status'] = $condition['status'];
 		}else{
-			return false;
+			$results['code'] = '-103';
+			$results['message'] = '没有要修改的状态值!';
+			return $results;
 		}
+		$data['updated_by'] = $condition['updated_by'];
+		$data['updated_at'] = $this->getTime();
 
-		return $this->where($where)->save(['quote_status' => $quote_status]);
+		try {
+			$id = $this->where($where)->save($data);
+			if($id){
+				$results['code'] = '1';
+				$results['message'] = '成功！';
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '修改失败!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
+		}
 	}
 
 	/**

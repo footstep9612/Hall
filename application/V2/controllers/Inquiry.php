@@ -267,7 +267,7 @@ class InquiryController extends PublicController {
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
 
-        $results = $Item->addItemData($data);
+        $results = $Item->addDataBatch($data);
         $this->jsonReturn($results);
     }
 
@@ -281,6 +281,35 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         $results = $Item->updateData($data);
+        $this->jsonReturn($results);
+    }
+
+    /*
+     * 批量修改询单sku
+     * Author:张玉良
+     */
+    public function updateItemBatchAction() {
+        $Item = new InquiryItemModel();
+        $data =  $this->put_data;
+
+        if(isset($data['sku'])){
+            $Item->startTrans();
+            foreach($data['sku'] as $val){
+                $condition = $val;
+                $condition['updated_by'] = $this->user['id'];
+
+                $results = $Item->updateData($condition);
+                if($results['code']!=1){
+                    $Item->rollback();
+                    $this->jsonReturn($results);die;
+                }
+            }
+            $Item->commit();
+        }else{
+            $results['code'] = '-101';
+            $results['messaage'] = '修改失败!';
+        }
+
         $this->jsonReturn($results);
     }
 

@@ -155,7 +155,7 @@ class InquiryitemModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    public function addItemData($condition = []) {
+    public function addDataBatch($condition = []) {
         if (empty($condition['inquiry_id'])) {
             $results['code'] = '-103';
             $results['message'] = '没有询单ID!';
@@ -170,7 +170,7 @@ class InquiryitemModel extends PublicModel {
         $inquirydata = [];
         for($i = 0; $i < $condition['inquiry_rows']; $i++){
             $test['inquiry_id'] = $condition['inquiry_id'];
-            $test['qty`']        = '1';
+            $test['qty']        = '1';
             $test['created_by'] = $condition['user_id'];
             $test['created_at'] = $this->getTime();
             $inquirydata[] = $test;

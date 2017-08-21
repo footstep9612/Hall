@@ -172,7 +172,7 @@ class MaterialcatController extends PublicController {
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->get_list($cat_no, $lang);
-            echo $this->_model->_sql();
+
             redisSet($key, json_encode($arr), 86400);
             if ($arr) {
                 $this->setCode(MSG::MSG_SUCCESS);

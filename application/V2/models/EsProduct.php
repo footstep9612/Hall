@@ -422,6 +422,36 @@ class EsProductModel extends Model {
     }
 
     /*
+     * 根据SPUS 获取产品属性信息
+     * @param mix $spus // 产品SPU数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  sku数组信息列表
+     */
+
+    public function getMinimumOrderQuantity($spus, $lang = 'en') {
+        try {
+            $minimumorderquantutys = $this->table('erui2_goods.goods')
+                            ->field('spu,min(min_order_qty) as value ,min(exw_days) as min_exw_day,min_pack_unit,'
+                                    . 'max(exw_days) as max_exw_day')
+                            ->where(['spu' => ['in', $spus], 'lang' => $lang])
+                            ->group('spu')->select();
+            $ret = [];
+            if ($minimumorderquantutys) {
+                foreach ($minimumorderquantutys as $minimumorderquantuty) {
+                    $spu = $minimumorderquantuty['spu'];
+
+                    $ret[$spu] = $minimumorderquantuty;
+                } return $ret;
+            }
+            return [];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
      * 将数组中的null值转换为空值
      * @author zyg 2017-07-31
      * @param array $item // 语言 zh en ru es
@@ -487,6 +517,8 @@ class EsProductModel extends Model {
                     $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
                     $es = new ESClient();
 
+                    $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
+
                     foreach ($products as $key => $item) {
                         $spu = $id = $item['spu'];
                         $this->_findnulltoempty($item);
@@ -529,6 +561,19 @@ class EsProductModel extends Model {
                             $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
                             $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
                         }
+                        if (isset($minimumorderouantitys[$id])) {
+
+                            $body['minimumorderouantity'] = $minimumorderouantitys[$id]['value'];
+                            $body['max_exw_day'] = $minimumorderouantitys[$id]['max_exw_day'];
+                            $body['min_exw_day'] = $minimumorderouantitys[$id]['min_exw_day'];
+                            $body['min_pack_unit'] = $minimumorderouantitys[$id]['min_pack_unit'];
+                        } else {
+                            $body['minimumorderouantity'] = 0;
+                            $body['max_exw_day'] = '';
+                            $body['min_exw_day'] = '';
+                            $body['min_pack_unit'] = '';
+                        }
+
 
                         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
