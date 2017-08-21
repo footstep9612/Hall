@@ -217,7 +217,7 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
-            $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
+            $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
             if ($onshelf_flag === 'N') {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"N"*']],

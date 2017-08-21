@@ -241,7 +241,8 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
-            $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
+            $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
+
             if ($onshelf_flag === 'N') {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"N"*']],
@@ -277,7 +278,7 @@ class EsProductModel extends Model {
 
         try {
             $body = $this->getCondition($condition);
-            //echo json_encode($body, 256);
+            echo json_encode($body, 256);
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
