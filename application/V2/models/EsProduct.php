@@ -241,7 +241,8 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
-            $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
+            $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
+
             if ($onshelf_flag === 'N') {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"N"*']],
@@ -277,7 +278,7 @@ class EsProductModel extends Model {
 
         try {
             $body = $this->getCondition($condition);
-            //echo json_encode($body, 256);
+
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
@@ -452,6 +453,40 @@ class EsProductModel extends Model {
     }
 
     /*
+     * 根据SPUS 获取产品属性信息
+     * @param mix $spus // 产品SPU数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  sku数组信息列表
+     */
+
+    public function getonshelf_flag($spus, $lang = 'en') {
+        try {
+            $onshelf_flags = $this->table('erui2_goods.show_cat_product')
+                            ->field('spu,max(created_by) as max_created_by'
+                                    . ',max(created_at) as max_created_at'
+                                    . ' ,max(updated_by) as min_updated_by'
+                                    . ',max(updated_at) as max_updated_at'
+                                    . ' ,max(checked_by) as min_checked_by'
+                                    . ' ,max(checked_by) as min_checked_at')
+                            ->where(['spu' => ['in', $spus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
+                            ->group('spu')->select();
+            $ret = [];
+            if ($onshelf_flags) {
+                foreach ($onshelf_flags as $onshelf_flag) {
+                    $spu = $onshelf_flag['spu'];
+
+                    $ret[$spu] = $onshelf_flag;
+                } return $ret;
+            }
+            return [];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
      * 将数组中的null值转换为空值
      * @author zyg 2017-07-31
      * @param array $item // 语言 zh en ru es
@@ -491,9 +526,7 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-
                 $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])->limit(0, 100)->order('id asc')->select();
-
                 $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {
@@ -516,76 +549,12 @@ class EsProductModel extends Model {
                     $product_attach_model = new ProductAttachModel();
                     $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
                     $es = new ESClient();
-
                     $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
 
+                    $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                     foreach ($products as $key => $item) {
-                        $spu = $id = $item['spu'];
-                        $this->_findnulltoempty($item);
-                        $body = $item;
 
-                        if ($body['source'] == 'ERUI') {
-                            $body['sort_order'] = 100;
-                        } else {
-                            $body['sort_order'] = 1;
-                        }
-
-                        if (isset($attachs[$spu])) {
-                            $body['attachs'] = json_encode($attachs[$spu], 256);
-                        } else {
-                            $body['attachs'] = '[]';
-                        }
-                        $show_cat = [];
-                        if (isset($scats_no_spu[$spu]) && isset($scats[$scats_no_spu[$spu]])) {
-                            $show_cat[$scats_no_spu[$spu]] = $scats[$scats_no_spu[$spu]];
-                        }
-                        $material_cat_no = $item['material_cat_no'];
-
-
-
-                        if (isset($mcats[$material_cat_no])) {
-                            $body['material_cat'] = json_encode($mcats[$material_cat_no], JSON_UNESCAPED_UNICODE);
-                        } else {
-                            $body['material_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
-                        }
-                        $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
-
-                        if (isset($product_attrs[$spu])) {
-                            $body['attrs'] = json_encode($product_attrs[$spu], JSON_UNESCAPED_UNICODE);
-                            if ($product_attrs[$item['spu']][0]['spec_attrs']) {
-                                $body['specs'] = $product_attrs[$spu][0]['spec_attrs'];
-                            } else {
-                                $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
-                            }
-                        } else {
-                            $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
-                            $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
-                        }
-                        if (isset($minimumorderouantitys[$id])) {
-
-                            $body['minimumorderouantity'] = $minimumorderouantitys[$id]['value'];
-                            $body['max_exw_day'] = $minimumorderouantitys[$id]['max_exw_day'];
-                            $body['min_exw_day'] = $minimumorderouantitys[$id]['min_exw_day'];
-                            $body['min_pack_unit'] = $minimumorderouantitys[$id]['min_pack_unit'];
-                        } else {
-                            $body['minimumorderouantity'] = 0;
-                            $body['max_exw_day'] = '';
-                            $body['min_exw_day'] = '';
-                            $body['min_pack_unit'] = '';
-                        }
-
-
-                        $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-
-
-                        if ($flag['_shards']['successful'] !== 1) {
-                            LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
-                        }
-                        if ($key === 99) {
-                            $max_id = $item['id'];
-                        }
-                        $k++;
-                        // print_r($flag);
+                        $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k);
                     }
                 } else {
                     return false;
@@ -596,6 +565,90 @@ class EsProductModel extends Model {
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
+    }
+
+    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k) {
+
+        $spu = $id = $item['spu'];
+        $this->_findnulltoempty($item);
+        $body = $item;
+        if ($body['source'] == 'ERUI') {
+            $body['sort_order'] = 100;
+        } else {
+            $body['sort_order'] = 1;
+        }
+
+        if (isset($attachs[$spu])) {
+            $body['attachs'] = json_encode($attachs[$spu], 256);
+        } else {
+            $body['attachs'] = '[]';
+        }
+
+        $material_cat_no = $item['material_cat_no'];
+
+
+
+        if (isset($mcats[$material_cat_no])) {
+            $body['material_cat'] = json_encode($mcats[$material_cat_no], JSON_UNESCAPED_UNICODE);
+        } else {
+            $body['material_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
+        }
+        $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
+
+        if (isset($product_attrs[$spu])) {
+            $body['attrs'] = json_encode($product_attrs[$spu], JSON_UNESCAPED_UNICODE);
+            if ($product_attrs[$item['spu']][0]['spec_attrs']) {
+                $body['specs'] = $product_attrs[$spu][0]['spec_attrs'];
+            } else {
+                $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+            }
+        } else {
+            $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+            $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+        }
+        if (isset($minimumorderouantitys[$id])) {
+
+            $body['minimumorderouantity'] = $minimumorderouantitys[$id]['value'];
+            $body['max_exw_day'] = $minimumorderouantitys[$id]['max_exw_day'];
+            $body['min_exw_day'] = $minimumorderouantitys[$id]['min_exw_day'];
+            $body['min_pack_unit'] = $minimumorderouantitys[$id]['min_pack_unit'];
+        } else {
+            $body['minimumorderouantity'] = 0;
+            $body['max_exw_day'] = '';
+            $body['min_exw_day'] = '';
+            $body['min_pack_unit'] = '';
+        }
+        if (isset($onshelf_flags[$id])) {
+
+            $body['onshelf_flag'] = 'Y';
+            if ($onshelf_flags[$id]['checked_at']) {
+                $body['onshelf_flag_by'] = $onshelf_flags[$id]['checked_at'];
+                $body['onshelf_flag_at'] = $onshelf_flags[$id]['checked_by'];
+            } elseif ($onshelf_flags[$id]['updated_at']) {
+                $body['onshelf_flag_by'] = $onshelf_flags[$id]['updated_at'];
+                $body['onshelf_flag_at'] = $onshelf_flags[$id]['updated_by'];
+            } elseif ($onshelf_flags[$id]['created_at']) {
+                $body['onshelf_flag_by'] = $onshelf_flags[$id]['created_at'];
+                $body['onshelf_flag_at'] = $onshelf_flags[$id]['created_by'];
+            } else {
+                $body['onshelf_flag_by'] = '';
+                $body['onshelf_flag_at'] = '';
+            }
+        } else {
+            $body['onshelf_flag'] = 'N';
+            $body['onshelf_flag_by'] = '';
+            $body['onshelf_flag_at'] = '';
+        }
+        $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+
+
+        if ($flag['_shards']['successful'] !== 1) {
+            LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        }
+        if ($key === 99) {
+            $max_id = $item['id'];
+        }
+        $k++;
     }
 
     /*

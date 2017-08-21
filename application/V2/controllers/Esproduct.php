@@ -284,7 +284,8 @@ class EsproductController extends PublicController {
             $body['mappings']['product_' . $lang]['properties'] = $product_properties;
             $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
         }
-        $this->es->create_index($this->index, $body);
+        $es = new ESClient();
+        $es->create_index($this->index, $body);
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -372,7 +373,11 @@ class EsproductController extends PublicController {
             'updated_by' => $int_analyzed,
             'spu' => $not_analyzed,
             'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed
+            'status' => $not_analyzed,
+            'minimumorderouantity' => $not_analyzed,
+            'onshelf_flag' => $not_analyzed,
+            'onshelf_flag_by' => $not_analyzed,
+            'onshelf_flag_at' => $not_analyzed,
         ];
 
         return $body;
@@ -460,7 +465,14 @@ class EsproductController extends PublicController {
             'tech_paras' => $ik_analyzed,
             'properties' => $ik_analyzed,
             'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed
+            'status' => $not_analyzed,
+            'max_exw_day' => $not_analyzed,
+            'min_exw_day' => $not_analyzed,
+            'min_pack_unit' => $not_analyzed,
+            'minimumorderouantity' => $not_analyzed,
+            'onshelf_flag' => $not_analyzed,
+            'onshelf_flag_by' => $not_analyzed,
+            'onshelf_flag_at' => $not_analyzed,
         ];
         return $body;
     }

@@ -62,6 +62,7 @@ class CountryModel extends PublicModel {
                 list($from, $pagesize) = $this->_getPage($condition);
             }
             unset($condition);
+
             $redis_key = md5(json_encode($where) . $order . $from . $pagesize . $type);
             if (redisHashExist('Country', $redis_key)) {
                 return json_decode(redisHashGet('Country', $redis_key), true);

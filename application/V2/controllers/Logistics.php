@@ -230,11 +230,13 @@ class LogisticsController extends PublicController {
 	        $this->quoteItemModel->startTrans();
 	        foreach ($quoteItemList as $quoteItem) {
 	            $quoteUnitPrice = round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 4);
-	            $tmpRes = $this->quoteItemModel->updateItem(['id' => $quoteItem['id']], ['quote_unit_price' => $quoteUnitPrice]);
-	            
-	            if (!$tmpRes) {
-	                $res3 = false;
-	                break;
+	            $quoteUnitPrice = $quoteUnitPrice > 0 ? $quoteUnitPrice : 0;
+	            if ($quoteItem['quote_unit_price'] != $quoteUnitPrice) {
+	                $tmpRes = $this->quoteItemModel->updateItem(['id' => $quoteItem['id']], ['quote_unit_price' => $quoteUnitPrice]);
+	                if (!$tmpRes) {
+	                    $res3 = false;
+	                    break;
+	                }
 	            }
 	        }
 	        
@@ -372,18 +374,23 @@ class LogisticsController extends PublicController {
 	}
 	
 	/**
-	 * @desc 更改物流状态接口
+	 * @desc 提交物流审核接口
 	 *
 	 * @author liujf
 	 * @time 2017-08-08
 	 */
-	public function updateLogiStatusAction() {
+	public function submitLogiCheckAction() {
 	    $condition = $this->put_data;
 	     
-	    if (!empty($condition['quote_id'])) {
+	    if (!empty($condition['quote_id']) && !empty($condition['checked_by'])) {
 	        $where['quote_id'] = $condition['quote_id'];
+	        
+	        $data = [
+	            'status' => 'QUOTED',
+	            'checked_by' => $condition['checked_by']
+	        ];
 	         
-	        $res = $this->quoteLogiFeeModel->updateStatus($where, $condition['status']);
+	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);
 	         
 	        $this->jsonReturn($res);
 	    } else {
@@ -397,26 +404,46 @@ class LogisticsController extends PublicController {
 	 * @author liujf
 	 * @time 2017-08-08
 	 */
-	public function submitLogiCheckAction() {
+	public function submitProjectCheckAction() {
 	    $condition = $this->put_data;
 	
 	    if (!empty($condition['quote_id'])) {
 	        $where['quote_id'] = $condition['quote_id'];
 	        
+	        $quoteLogiFee = $this->quoteLogiFeeModel->where($where)->find();
+	        
 	        $this->quoteLogiFeeModel->startTrans();
 	        $this->quoteModel->startTrans();
+	        $this->inquiryCheckLogModel->startTrans();
+	        
+	        $quoteLogiFeeData = [
+	            'status' => 'APPROVED',
+	            'checked_at' => $this->time
+	        ];
 	
-	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'APPROVED');
+	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $quoteLogiFeeData);
 	        
 	        $res2 = $this->quoteModel->where(['id' => $condition['quote_id']])->save(['status' => 'QUOTED_BY_LOGI']);
+	         
+	        $checkLog= [
+	            'inquiry_id' => $quoteLogiFee['inquiry_id'],
+	            'quote_id' => $condition['quote_id'],
+	            'category' => 'LOGI',
+	            'action' => 'APPROVING',
+	            'op_result' => 'APPROVED'
+	        ];
+	         
+	        $res3 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);
 	        
-	        if ($res1 && $res2) {
+	        if ($res1 && $res2 && $res3) {
 	            $this->quoteLogiFeeModel->commit();
 	            $this->quoteModel->commit();
+	            $this->inquiryCheckLogModel->commit();
 	            $res = true;
 	        } else {
 	            $this->quoteLogiFeeModel->rollback();
 	            $this->quoteModel->rollback();
+	            $this->inquiryCheckLogModel->rollback();
 	            $res = false;
 	        }
 	
@@ -442,8 +469,13 @@ class LogisticsController extends PublicController {
 	        
 	        $this->quoteLogiFeeModel->startTrans();
 	        $this->inquiryCheckLogModel->startTrans();
-	
-	        $res1 = $this->quoteLogiFeeModel->updateStatus($where, 'REJECTED');
+	        
+	        $quoteLogiFeeData = [
+	            'status' => 'REJECTED',
+	            'checked_at' => $this->time
+	        ];
+	        
+	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $quoteLogiFeeData);
 	        
 	        $checkLog= [
 	            'inquiry_id' => $quoteLogiFee['inquiry_id'],

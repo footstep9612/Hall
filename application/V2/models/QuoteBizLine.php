@@ -86,34 +86,60 @@ class QuoteBizLineModel extends PublicModel{
     }
 
     /**
-     * 提交物流报价(项目经理)
-     * @param $request
-     * @return bool
+     * @desc 提交物流报价(项目经理)
+     * @param $request 请求
+     * @return array 结果
      */
-    public function sentLogistics($request){
+    public function sentLogistics($request,$user){
 
-        //修改询单表(inqury)的数据
+        //更改询单(inqury项目)的状态
         $inquiry = new InquiryModel();
-        $inquiry->startTrans();
+        //$inquiry->startTrans();
         $inquiryUpdates = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'status' => self::INQUIRY_QUOTED_BY_LOGI,//物流报价中
+            'status' => self::INQUIRY_QUOTING_BY_LOGI,//物流报价中
             'goods_quote_status' => self::QUOTE_APPROVED //已审核
         ]);
 
-        //修改产品线报价单的状态
-        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
-        $this->startTrans();
-        $bizlineUpdates = $this->where(['inquiry_id'=>$inquiryID])->save([
-            'status' => self::QUOTE_APPROVED,//已审核
+        //修改报价的状态
+        $quoteModel = new QuoteModel();
+        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+            'status' => self::INQUIRY_QUOTING_BY_LOGI
         ]);
 
-        if ($inquiryUpdates && $bizlineUpdates){
+        //给物流表创建一条记录
+        $quoteLogiFeeModel = new QuoteLogiFeeModel();
+        $quoteLogiFeeModel->startTrans();
+        $quoteLogiFeeResult = $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
+            'quote_id' => $request['quote_id'],
+            'inquiry_id' => $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id'),
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => $user
+        ]));
+
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemIds = $quoteItemModel->where(['quote_id'=>$request['quote_id']])->getField('id',true);
+
+        //给物流报价单项形成记录
+        $quoteItemLogiModel = new QuoteItemLogiModel();
+        foreach ($quoteItemIds as $quoteItemId){
+            $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                'quote_id' => $request['quote_id'],
+                'quote_item_id' => $quoteItemId,
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $user
+            ]));
+        }
+
+
+        if ($inquiryUpdates && $quoteResult && $quoteLogiFeeResult){
             $inquiry->commit();
-            $this->commit();
+            $quoteModel->commit();
+            $quoteLogiFeeModel->commit();
             return ['code'=>'1','message'=>'提交成功!'];
         }else{
             $inquiry->rollback();
-            $this->rollback();
+            $quoteModel->rollback();
+            $quoteLogiFeeModel->rollback();
             return ['code'=>'-104','message'=>'提交失败!'];
         }
     }
@@ -211,21 +237,24 @@ class QuoteBizLineModel extends PublicModel{
     /**
      * 产品线负责人暂存报价信息
      */
-    public function storageQuote($data){
-
-
-        if (!is_array($data) || is_null($data)) return false;
-
-        $supplier = new BizlineSupplierModel();
+    public function storageQuote($data,$user){
 
         //追加供应商信息
         foreach ($data as $key=>$value){
-            $where = ['supplier_id'=>$value['supplier_id'],'bizline_id'=>$value['bizline_id']];
-            $data[$key]['contact_first_name'] = $supplier->where($where)->getField('first_name');
-            $data[$key]['contact_last_name'] = $supplier->where($where)->getField('last_name');
-            $data[$key]['contact_gender'] = $supplier->where($where)->getField('gender');
-            $data[$key]['contact_email'] = $supplier->where($where)->getField('email');
-            $data[$key]['contact_phone'] = $supplier->where($where)->getField('phone');
+
+            if (!empty($value['supplier_info'])){
+
+                $data[$key]['supplier_id'] = $value['supplier_info']['supplier_id'];
+                $data[$key]['contact_first_name'] = $value['supplier_info']['first_name'];
+                $data[$key]['contact_last_name'] = $value['supplier_info']['last_name'];
+                $data[$key]['contact_gender'] = $value['supplier_info']['gender'];
+                $data[$key]['contact_email'] = $value['supplier_info']['email'];
+                $data[$key]['contact_phone'] = $value['supplier_info']['phone'];
+                unset( $data[$key]['supplier_info']);
+            }
+
+            $data[$key]['updated_by'] = $user;
+            $data[$key]['updated_at'] = date('Y-m-d H:i:s');
         }
 
         //更新信息
@@ -234,10 +263,8 @@ class QuoteBizLineModel extends PublicModel{
             foreach ($data as $k=>$v){
                 $quoteItemFormModel->save($quoteItemFormModel->create($v));
             }
-            return [
-                'code' => '1',
-                'message' => '成功!'
-            ];
+
+            return ['code' => '1','message' => '成功!'];
         }catch (Exception $exception){
             return [
                 'code' => $exception->getCode(),
@@ -488,4 +515,40 @@ class QuoteBizLineModel extends PublicModel{
 
         return $count > 0 ? $count : 0;
     }
+
+    public function getPmQuoteList($request){
+
+        $where = ['a.id' => $request['inquiry_id']];
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        $inquiry = new InquiryModel();
+        return $inquiry->alias('a')
+                        ->join('erui2_rfq.inquiry_item b ON b.inquiry_id = a.id')
+                        ->join('erui2_rfq.quote_item c ON c.inquiry_item_id = b.id')
+                        ->join('erui2_sys.employee d ON d.id = c.biz_agent_id')
+                        ->field('c.id,c.bizline_id,d.name biz_agent_name,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
+                        ->where($where)
+                        ->page($currentPage, $pageSize)
+                        ->order('c.id DESC')
+                        ->select();
+        //p($data);
+    }
+
+    public function getPmQuoteListCount($request){
+
+        $where = ['a.id' => $request['inquiry_id']];
+
+        $inquiry = new InquiryModel();
+        $count =  $inquiry->alias('a')
+            ->join('erui2_rfq.inquiry_item b ON b.inquiry_id = a.id')
+            ->join('erui2_rfq.quote_item c ON c.inquiry_item_id = b.id')
+            ->join('erui2_sys.employee d ON d.id = c.biz_agent_id')
+            ->field('c.id,c.bizline_id,d.name biz_agent_name,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
+            ->where($where)
+            ->count('c.id');
+        return $count > 0 ? $count : 0;
+    }
+
 }

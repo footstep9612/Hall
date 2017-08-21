@@ -267,7 +267,7 @@ class InquiryController extends PublicController {
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
 
-        $results = $Item->addItemData($data);
+        $results = $Item->addDataBatch($data);
         $this->jsonReturn($results);
     }
 
@@ -281,6 +281,35 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         $results = $Item->updateData($data);
+        $this->jsonReturn($results);
+    }
+
+    /*
+     * 批量修改询单sku
+     * Author:张玉良
+     */
+    public function updateItemBatchAction() {
+        $Item = new InquiryItemModel();
+        $data =  $this->put_data;
+
+        if(isset($data['sku'])){
+            $Item->startTrans();
+            foreach($data['sku'] as $val){
+                $condition = $val;
+                $condition['updated_by'] = $this->user['id'];
+
+                $results = $Item->updateData($condition);
+                if($results['code']!=1){
+                    $Item->rollback();
+                    $this->jsonReturn($results);die;
+                }
+            }
+            $Item->commit();
+        }else{
+            $results['code'] = '-101';
+            $results['messaage'] = '修改失败!';
+        }
+
         $this->jsonReturn($results);
     }
 
@@ -335,4 +364,40 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    /*
+     * 审核日志列表
+     * Author:张玉良
+     */
+    public function getCheckLogListAction() {
+        $checklog = new CheckLogModel();
+        $employee = new EmployeeModel();
+        $data =  $this->put_data;
+        if(!empty($data['inquiry_id'])){
+            $results = $checklog->getList($data);
+
+            foreach($results['data'] as $key=>$val){
+                $rs = $employee->field('name')->where('id='.$val['op_id'])->find();
+                $results['data'][$key]['op_name'] = $rs['name'];
+            }
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有询单ID!';
+        }
+
+        $this->jsonReturn($results);
+    }
+
+    /*
+     * 添加审核日志
+     * Author:张玉良
+     */
+    public function addCheckLogAction() {
+        $checklog = new CheckLogModel();
+        $data =  $this->put_data;
+        $data['op_id'] = $this->user['id'];
+        $data['created_by'] = $this->user['id'];
+
+        $results = $checklog->addData($data);
+        $this->jsonReturn($results);
+    }
 }
