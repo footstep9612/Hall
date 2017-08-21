@@ -15,6 +15,7 @@ class ServiceItemController extends publicController{
      * @author link 2017-08-21
      */
     public function deleteAction(){
+        jsonReturn(123);
         $id = isset($this->put_data['service_item_id']) ? $this->put_data['service_item_id'] : '';
 
         if(empty($id)) {
