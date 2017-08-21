@@ -616,7 +616,7 @@ class EsProductModel extends Model {
             $body['minimumorderouantity'] = 0;
             $body['max_exw_day'] = '';
             $body['min_exw_day'] = '';
-            $body['min_pack_unit'] = '';
+            $body['tx_unit'] = '';
         }
         if (isset($onshelf_flags[$id])) {
 
