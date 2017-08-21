@@ -83,6 +83,7 @@ class ProductModel extends PublicModel {
                         if($r['lang'] == $lang){
                             unset($r['lang']);
                             unset($r['manufacturer']);
+                            $r['id'] = $brandInfo['id'];
                             $data['brand'] = json_encode($r);
                             break;
                         }
