@@ -199,7 +199,7 @@ class SupplierController extends PublicController {
         if(!empty($data['country_bn'])) {
             $arr['country_bn'] = $data['country_bn'];
         }else{
-            jsonReturn('',-101,'国家名不可为空!');
+            jsonReturn('',-101,'地区名不可为空!');
         }
         if(!empty($data['province'])) {
             $arr['province'] = $data['province'];
@@ -246,11 +246,13 @@ class SupplierController extends PublicController {
         }
         $id=$model->create_data($arr);
         if($id){
-            $supplier_account_data['supplier_id']=$id;
-            $supplier_account_data['user_name']=$data['user_name'];
-            $supplier_account_data['password_hash']=md5($data['password']);
-            $supplier_account = new SupplierAccountModel();
-            $supplier_account ->create_data($supplier_account_data);
+            if(isset($data['user_name'])){
+                $supplier_account_data['supplier_id']=$id;
+                $supplier_account_data['user_name']=$data['user_name'];
+                $supplier_account_data['password_hash']=md5($data['password']);
+                $supplier_account = new SupplierAccountModel();
+                $supplier_account ->create_data($supplier_account_data);
+            }
             $supplier_attach = new SupplierAttachModel();
             if(!empty($data['license_attach_url'])) {
                 $supplier_attach_data['supplier_id'] = $id;

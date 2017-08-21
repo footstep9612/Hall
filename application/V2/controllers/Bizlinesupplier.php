@@ -88,6 +88,9 @@ class BizlinesupplierController extends PublicController {
         if(!empty($data['supplier_id'])){
             $where['bizline_supplier.supplier_id'] = $data['supplier_id'];
         }
+        if(!empty($data['supplier_name'])){
+            $where[] = "sp.name like '%".$data['supplier_name']."%'";
+        }
         if(!empty($data['bizline_id'])){
             $where['bizline_id'] = $data['bizline_id'];
         }

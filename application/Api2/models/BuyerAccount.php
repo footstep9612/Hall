@@ -127,7 +127,6 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data, $where) {
-
         if (isset($data['email'])) {
             $arr['email'] = $data['email'];
         }
@@ -205,6 +204,9 @@ class BuyerAccountModel extends PublicModel {
         }
         if (isset($create['phone'])) {
             $arr['phone'] = $create['phone'];
+        }
+        if (isset($create['status'])) {
+            $arr['status'] = $create['status'];
         }
         $arr['created_at'] = Date("Y-m-d H:i:s");
         $data = $this->create($arr);
