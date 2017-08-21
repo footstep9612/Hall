@@ -436,14 +436,12 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
 
-                    $checkout = $value;
-                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
+                    //字段校验
+                    $checkout = $this->checkParam($value, $this->field);
 
+                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT','TEST','CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
-                        //字段校验
-                        $checkout = $this->checkParam($value, $this->field);
-
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $value['name'],
@@ -470,31 +468,32 @@ class GoodsModel extends PublicModel {
                         'source_detail' => !empty($checkout['source_detail']) ? $checkout['source_detail'] : '',
                         //固定商品  属性
                         'exw_days' => isset($attr['const_attr']['exw_days']) ? $attr['const_attr']['exw_days'] : null,
-                        'min_pack_naked_qty' => isset($attr['const_attr']['min_pack_naked_qty']) ? $attr['const_attr']['min_pack_naked_qty'] : null,
+                        'min_pack_naked_qty' => (isset($attr['const_attr']['min_pack_naked_qty']) && !empty($attr['const_attr']['min_pack_naked_qty'])) ? $attr['const_attr']['min_pack_naked_qty'] : null,
                         'nude_cargo_unit' => isset($attr['const_attr']['nude_cargo_unit']) ? $attr['const_attr']['nude_cargo_unit'] : null,
                         'min_pack_unit' => isset($attr['const_attr']['min_pack_unit']) ? $attr['const_attr']['min_pack_unit'] : null,
-                        'min_order_qty' => isset($attr['const_attr']['min_order_qty']) ? $attr['const_attr']['min_order_qty'] : null,
-                        'purchase_price' => isset($attr['const_attr']['purchase_price']) ? $attr['const_attr']['purchase_price'] : null,
+                        'min_order_qty' => (isset($attr['const_attr']['min_order_qty']) && !empty($attr['const_attr']['min_order_qty'])) ? $attr['const_attr']['min_order_qty'] : null,
+                        'purchase_price' => (isset($attr['const_attr']['purchase_price']) && !empty($attr['const_attr']['purchase_price'])) ? $attr['const_attr']['purchase_price'] : null,
                         'purchase_price_cur_bn' => isset($attr['const_attr']['purchase_price_cur_bn']) ? $attr['const_attr']['purchase_price_cur_bn'] : null,
-                        'nude_cargo_l_mm' => isset($attr['const_attr']['nude_cargo_l_mm']) ? $attr['const_attr']['nude_cargo_l_mm'] : null,
+                        'nude_cargo_l_mm' => (isset($attr['const_attr']['nude_cargo_l_mm']) && !empty($attr['const_attr']['nude_cargo_l_mm'])) ? $attr['const_attr']['nude_cargo_l_mm'] : null,
                         //固定物流属性
-                        'nude_cargo_w_mm' => isset($attr['const_attr']['nude_cargo_w_mm']) ? $attr['const_attr']['nude_cargo_w_mm'] : null,
-                        'nude_cargo_h_mm' => isset($attr['const_attr']['nude_cargo_h_mm']) ? $attr['const_attr']['nude_cargo_h_mm'] : null,
-                        'min_pack_l_mm' => isset($attr['const_attr']['min_pack_l_mm']) ? $attr['const_attr']['min_pack_l_mm'] : null,
-                        'min_pack_w_mm' => isset($attr['const_attr']['min_pack_w_mm']) ? $attr['const_attr']['min_pack_w_mm'] : null,
-                        'min_pack_h_mm' => isset($attr['const_attr']['min_pack_h_mm']) ? $attr['const_attr']['min_pack_h_mm'] : null,
-                        'net_weight_kg' => isset($attr['const_attr']['net_weight_kg']) ? $attr['const_attr']['net_weight_kg'] : null,
-                        'gross_weight_kg' => isset($attr['const_attr']['gross_weight_kg']) ? $attr['const_attr']['gross_weight_kg'] : null,
+                        'nude_cargo_w_mm' => (isset($attr['const_attr']['nude_cargo_w_mm']) && !empty($attr['const_attr']['nude_cargo_w_mm'])) ? $attr['const_attr']['nude_cargo_w_mm'] : null,
+                        'nude_cargo_h_mm' => (isset($attr['const_attr']['nude_cargo_h_mm']) && !empty($attr['const_attr']['nude_cargo_h_mm'])) ? $attr['const_attr']['nude_cargo_h_mm'] : null,
+                        'min_pack_l_mm' => (isset($attr['const_attr']['min_pack_l_mm']) && !empty($attr['const_attr']['min_pack_l_mm'])) ? $attr['const_attr']['min_pack_l_mm'] : null,
+                        'min_pack_w_mm' => (isset($attr['const_attr']['min_pack_w_mm']) && !empty($attr['const_attr']['min_pack_w_mm'])) ? $attr['const_attr']['min_pack_w_mm'] : null,
+                        'min_pack_h_mm' => (isset($attr['const_attr']['min_pack_h_mm']) && !empty($attr['const_attr']['min_pack_h_mm'])) ? $attr['const_attr']['min_pack_h_mm'] : null,
+                        'net_weight_kg' => (isset($attr['const_attr']['net_weight_kg']) && !empty($attr['const_attr']['net_weight_kg'])) ? $attr['const_attr']['net_weight_kg'] : null,
+                        'gross_weight_kg' => (isset($attr['const_attr']['gross_weight_kg']) && !empty($attr['const_attr']['gross_weight_kg'])) ? $attr['const_attr']['gross_weight_kg'] : null,
                         'compose_require_pack' => isset($attr['const_attr']['compose_require_pack']) ? $attr['const_attr']['compose_require_pack'] : '',
                         'pack_type' => isset($attr['const_attr']['pack_type']) ? $attr['const_attr']['pack_type'] : '',
                         //固定申报要素属性
                         'name_customs' => isset($attr['const_attr']['name_customs']) ? $attr['const_attr']['name_customs'] : '',
                         'hs_code' => isset($attr['const_attr']['hs_code']) ? $attr['const_attr']['hs_code'] : '',
                         'tx_unit' => isset($attr['const_attr']['tx_unit']) ? $attr['const_attr']['tx_unit'] : '',
-                        'tax_rebates_pct' => isset($attr['const_attr']['tax_rebates_pct']) ? $attr['const_attr']['tax_rebates_pct'] : null,
+                        'tax_rebates_pct' => (isset($attr['const_attr']['tax_rebates_pct']) && !empty($attr['const_attr']['tax_rebates_pct'])) ? $attr['const_attr']['tax_rebates_pct'] : null,
                         'regulatory_conds' => isset($attr['const_attr']['regulatory_conds']) ? $attr['const_attr']['regulatory_conds'] : '',
                         'commodity_ori_place' => isset($attr['const_attr']['commodity_ori_place']) ? $attr['const_attr']['commodity_ori_place'] : '',
                     ];
+
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
                     if (!empty($input['sku'])) {             //------编辑
                         $where = [

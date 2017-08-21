@@ -139,8 +139,8 @@ class LoginController extends PublicController {
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
         $data_t_buyer = $model->getlist($condition); //($this->put_data);
-        if ($data_t_buyer && substr($data_t_buyer[0]['buyer_no'], 1, 8) == date("Ymd")) {
-            $no = substr($data_t_buyer[0]['buyer_no'], -1, 6);
+        if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
+            $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
             $no++;
         } else {
             $no = 1;
@@ -149,9 +149,6 @@ class LoginController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
         $arr['buyer_no'] = $real_num;
-
-
-
         if (empty($arr['serial_no'])) {
             $arr['serial_no'] = $arr['buyer_no'];
         }
