@@ -262,7 +262,35 @@ class BuyerModel extends PublicModel {
      * 采购商个人信息更新  -- 门户通用
      * @author klp
      */
+    public function upUserInfo($data,$where){
+        $this->startTrans();
+        try{
 
+            $resultBuyer = $this->update_data($data, $where);
+            if(!$resultBuyer){
+                $this->rollback();
+                return false;
+            }
+            $buyerAccount = new BuyerAccountModel();
+            $resultAccount = $buyerAccount->update_data($data, $where);
+            if(!$resultAccount){
+                $this->rollback();
+                return false;
+            }
+            $buyerAddress = new BuyerAddressModel();
+            $resultAddress = $buyerAddress->update_data($data, $where);
+            if(!$resultAddress){
+                $this->rollback();
+                return false;
+            }
+
+            $this->commit();
+            return true;
+        }catch (Exception $e){
+            $this->rollback();
+            return false;
+        }
+    }
 
     /**
      * 采购商个人信息更新
@@ -355,7 +383,14 @@ class BuyerModel extends PublicModel {
                     break;
             }
         }
-        return $this->where($where)->save($data);
+        if(empty($data)){
+            return true;
+        }
+        $res =  $this->where($where)->save($data);
+        if($res){
+            return true;
+        }
+        return false;
     }
 
     /**

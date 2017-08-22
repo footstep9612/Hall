@@ -47,13 +47,9 @@ class MembercenterController extends PublicController {
         } else {
             jsonReturn('', '-1001', '参数[id]不能为空');
         }
-        $buyerAccount = new BuyerAccountModel();
-        $result1 = $buyerAccount->update_data($this->getPut(), $where);
         $buyer = new BuyerModel();
-        $result2 = $buyer->update_data($this->getPut(), $where);
-        $buyerAddress = new BuyerAddressModel();
-        $result3 = $buyerAddress->update_data($this->getPut(), $where);
-        if ($result1 || $result2 || $result3) {
+        $result = $buyer->upUserInfo($this->getPut(), $where);
+        if ($result) {
             jsonReturn('', 1, '保存成功');
         } else {
             jsonReturn('', '-1002', '保存失败');
