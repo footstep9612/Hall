@@ -28,6 +28,33 @@ class GoodsModel extends PublicModel {
             //'show_name' => array('required'),
     );
 
+    //固定属性映射
+    protected $const_attr = array(
+        'exw_days' => array('zh'=>'出货周期(天)', 'en'=>'EXW(day)','es'=>'EXW(Día )','ru'=>'Время доставки (дней)'),
+        'min_pack_naked_qty' => array('zh'=>'最小包装内裸货商品数量', 'en'=>'Minimum packing Naked quantity' , 'es' => 'La cantidad mínima de embalaje desnudo' , 'ru' => 'Количество голого товара минимальном упаковке'),
+        'nude_cargo_unit' => array('zh'=>'商品裸货单位', 'en'=>'Goods nude cargo units' , 'es' => 'Las unidades de carga de mercancías Nude' , 'ru' => 'Единица голого товара'),
+        'min_pack_unit' => array('zh'=>'最小包装单位', 'en'=>'Minimum packing unit' , 'es' => 'Mínimo de unidad de embalaje' , 'ru' => 'Минимальная единица упаковки'),
+        'min_order_qty' => array('zh'=>'最小订货数量', 'en'=>'Minimum order quantity' , 'es' => 'Cantidad de orden mínima' , 'ru' => 'Минимальное количество заказа'),
+
+        'nude_cargo_l_mm' => array('zh'=>'裸货尺寸长(mm)', 'en'=>'Length of nude cargo(mm)' , 'es' => 'Longitud de Nude carga (mm)' , 'ru' => 'Длина голого товара（mm）'),
+        'nude_cargo_w_mm' => array('zh'=>'裸货尺寸宽(mm)', 'en'=>'Width of nude cargo(mm)' , 'es' => 'Anchura de Nude carga (mm)' , 'ru' => 'Ширина  голого товара（mm）'),
+        'nude_cargo_h_mm' => array('zh'=>'裸货尺寸高(mm)', 'en'=>'Height of nude cargo(mm)' , 'es' => 'Altura de Nude carga (mm)' , 'ru' => 'Высота голого товара（mm）'),
+        'min_pack_l_mm' => array('zh'=>'最小包装后尺寸长(mm)', 'en'=>'Minimum packing Length size (mm)' , 'es' => 'Longitud mínima de embalaje tama?o (mm)' , 'ru' => 'Длина наименьшего размера упаковки（mm）'),
+        'min_pack_w_mm' => array('zh'=>'最小包装后尺寸宽(mm)', 'en'=>'Minimum packing Width size (mm)' , 'es' => 'Ancho mínimo de embalaje tama?o (mm)' , 'ru' => 'Ширина наименьшего размера упаковки（mm）'),
+        'min_pack_h_mm' => array('zh'=>'最小包装后尺寸高(mm)', 'en'=>'Minimum packing Height size (mm)' , 'es' => 'Altura mínima de embalaje tama?o(mm)' , 'ru' => 'Высота  наименьшего размера упаковки（mm）'),
+        'net_weight_kg' => array('zh'=>'净重(kg)', 'en'=>'Net Weight(kg)' , 'es' => 'Peso neto (kg)' , 'ru' => 'Вес (кг)'),
+        'gross_weight_kg' => array('zh'=>'毛重(kg)', 'en'=>'Gross Weight(kg)' , 'es' => 'Peso bruto (kg)' , 'ru' => 'Брутто (кг)'),
+        'compose_require_pack' => array('zh'=>'仓储运输包装及其他要求', 'en'=>'Compose Require' , 'es' => ' Las plantillas componer incluyen Require' , 'ru' => 'Требования написания'),
+        'pack_type' => array('zh'=>'包装类型', 'en'=>'Packing type' , 'es' => 'Tipo de embalaje' , 'ru' => 'Тип упаковки'),
+
+        'name_customs' => array('zh'=>'中文品名(报关用)', 'en'=>'Name (customs)' , 'es' => 'Nombre (aduanas)' , 'ru' => 'Китайское название (сделать заявку в таможню)'),
+        'hs_code' => array('zh'=>'海关编码', 'en'=>'HS CODE' , 'es' => 'HS CODE' , 'ru' => 'Таможенный кодекс'),
+        'tx_unit' => array('zh'=>'成交单位', 'en'=>'Transaction Unit' , 'es' => 'Unidad de transacción' , 'ru' => 'Единица доставки'),
+        'tax_rebates_pct' => array('zh'=>'退税率(%)', 'en'=>'Tax rebates(%)' , 'es' => 'Rebajas fiscales' , 'ru' => 'Ставка налога'),
+        'regulatory_conds' => array('zh'=>'监管条件', 'en'=>'Regulatory conditions' , 'es' => 'Condiciones reglamentarias' , 'ru' => 'Условие регулирования'),
+        'commodity_ori_place' => array('zh'=>'境内货源地', 'en'=>'Domestic supply of goods to' , 'es' => 'La oferta nacional de bienes' , 'ru' => 'Происхождения товаров в границах'),
+    );
+
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
 //        $config_obj = Yaf_Registry::get("config");
@@ -356,7 +383,7 @@ class GoodsModel extends PublicModel {
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
                     foreach ($goodsAttr as $gAttr) {
-                        $goods_attrs[] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
+                        $goods_attrs[] = ['attr_name' => $this->const_attr[$gAttr][$item['lang']], 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
                     }
                     //扩展商品属性
                     if (isset($ex_attrs[$item['lang']]['ex_goods_attrs']) && !empty($ex_attrs[$item['lang']]['ex_goods_attrs'])) {
@@ -366,16 +393,16 @@ class GoodsModel extends PublicModel {
                     }
                     $item['goods_attrs'] = $goods_attrs;
                     //固定物流属性
-                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'nude_cargo_l_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', ' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
+                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'nude_cargo_l_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', 'net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
                     foreach ($logiAttr as $lAttr) {
-                        $item['logi_attrs'][] = ['attr_name' => $lAttr, 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
+                        $item['logi_attrs'][] = ['attr_name' => $this->const_attr[$lAttr][$item['lang']], 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
                     }
 
                     //固定申报要素属性
                     $hsAttr = ['name_customs', 'hs_code', 'tx_unit', 'tax_rebates_pct', 'regulatory_conds', 'commodity_ori_place'];
                     $hs_attrs = [];
                     foreach ($hsAttr as $hAttr) {
-                        $hs_attrs[] = ['attr_name' => $hAttr, 'attr_value' => $item[$hAttr], 'attr_key' => $hAttr, 'flag' => 'Y'];
+                        $hs_attrs[] = ['attr_name' =>  $this->const_attr[$hAttr][$item['lang']], 'attr_value' => $item[$hAttr], 'attr_key' => $hAttr, 'flag' => 'Y'];
                     }
                     //扩展申报要素属性
                     if (isset($ex_attrs[$item['lang']]['ex_hs_attrs']) && !empty($ex_attrs[$item['lang']]['ex_hs_attrs'])) {
