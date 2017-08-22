@@ -456,9 +456,10 @@ class QuotebizlineController extends PublicController {
         }
         $inquiry->startTrans();
         $inquiryResult = $inquiry->where(['id'=>$request['inquiry_id']])->save([
-            'status' => 'LOGI_QUOTE_REJECTED'
+            'status' => 'LOGI_QUOTE_REJECTED',
             'logi_quote_status' => 'REJECTED'
         ]);
+
 
         //修改报价的状态
         $quoteModel = new QuoteModel();
@@ -476,7 +477,7 @@ class QuotebizlineController extends PublicController {
 
         //写审核日志
         $inquiryCheckLog = new InquiryCheckLogModel();
-        $inquiryCheckLog->startTrans();
+        //$inquiryCheckLog->startTrans();
         $checkInfo = [
             'created_by' => !empty($this->user['id']) ? $this->user['id'] : 1,
             'created_at' => date('Y-m-d H:i:s'),
@@ -487,6 +488,7 @@ class QuotebizlineController extends PublicController {
             'op_note' => $request['op_note'],
             'op_result' => 'REJECTED'
         ];
+
         $checklogResult = $inquiryCheckLog->add($checkInfo);
 
         if ($inquiryResult && $quoteResult && $checklogResult && $quoteLogiFeeResult){
