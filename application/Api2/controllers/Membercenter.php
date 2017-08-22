@@ -98,13 +98,19 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->update_pwd($this->getPut(), $this->user);
+        $result = $buyerAccount->checkPassword($this->getPut());
         if ($result) {
-            jsonReturn('', 1, '修改密码成功');
+            $buyerAccount = new BuyerAccountModel();
+            $res = $buyerAccount->update_pwd($this->getPut(), $this->user);
+            if ($res) {
+                jsonReturn('', 1, '修改密码成功!');
+            } else {
+                jsonReturn('', '-1002', '修改密码失败!');
+            }
         } else {
-            jsonReturn('', '-1002', '修改密码失败');
+            jsonReturn('', '-1003', '原密码输入错误!');
         }
-        exit;
+
     }
 
     /**
