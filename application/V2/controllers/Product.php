@@ -247,4 +247,56 @@ class ProductController extends PublicController {
         }
     }
 
+    /**
+     * 产品导入
+     */
+    public function importAction() {
+        //$remoteFile = $this->put_data['url'];
+        //下载到本地临时文件
+       // $localFile = ExcelHelperTrait::download2local($remoteFile);
+
+        $localFile = MYPATH.'/public/tmp/1501903034.xls';
+        $data = ExcelHelperTrait::ready2import($localFile);
+        var_dump($data);die;
+        $this->jsonReturn($this->importSkuHandler($data));
+    }
+
+    /**
+     * 产品导出
+     */
+    public function exportAction() {
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
+        $objSheet->getStyle("A1:I1")
+            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:I1")->getFont()->setSize(14)->setBold(true);    //粗体
+        $objSheet->getStyle("A1:I1")->getFill()->getStartColor()->setARGB('FF808080');
+        $objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
+        $column_width_20 = ["B","C","D"];
+        foreach($column_width_20 as $column){
+            $objSheet->getColumnDimension($column)->setWidth(20);
+        }
+        $column_width_30 = ["E","F","G","H","I"];
+        foreach($column_width_30 as $column){
+            $objSheet->getColumnDimension($column)->setWidth(30);
+        }
+        $objSheet->setTitle('产品SPU');//设置报价单标题
+        $objSheet->setCellValue("A1","序号");
+        $objSheet->setCellValue("B1","物料分类编码");
+        $objSheet->setCellValue("C1","产品名称");
+        $objSheet->setCellValue("D1","品牌");
+        $objSheet->setCellValue("E1","产品优势");
+        $objSheet->setCellValue("F1","技术参数");
+        $objSheet->setCellValue("G1","执行标准");
+        $objSheet->setCellValue("H1","关键字");
+        $objSheet->setCellValue("I1","产品描述");
+
+        //保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter,time().'.xls');
+    }
+
 }
