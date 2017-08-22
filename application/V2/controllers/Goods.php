@@ -136,8 +136,11 @@ class GoodsController extends PublicController {
         if ($result) {
             $this->updateEsgoods($this->put_data, $result);
         }
-        if ($this->put_data['spu']) {
-            $this->updateEsgoods($this->put_data, $this->put_data['spu']);
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            if ($this->put_data[$lang]['spu']) {
+                $this->updateEsproduct([$lang => $lang], $this->put_data[$lang]['spu']);
+            }
         }
         $this->returnInfo($result);
     }
