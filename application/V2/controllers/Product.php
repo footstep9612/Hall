@@ -12,8 +12,9 @@ class ProductController extends PublicController {
 
     public function init() {
         parent::init();
+
         $this->method = $this->getMethod();
-        Log::write(json_encode($this->put_data),Log::INFO);
+        Log::write(json_encode($this->put_data), Log::INFO);
     }
 
     /**
@@ -62,12 +63,14 @@ class ProductController extends PublicController {
 
     public function updateEsproduct($input, $spu) {
         $es_product_model = new EsProductModel();
-        $productModel = new ProductModel();
         $langs = ['en', 'zh', 'es', 'ru'];
+
         foreach ($langs as $lang) {
+
             if (isset($input[$lang]) && $input[$lang]) {
-                $data = $productModel->getInfo($spu, $lang);
-                $es_product_model->create_data($data[$lang], $lang);
+                $es_product_model->create_data($spu, $lang);
+            } elseif (empty($input)) {
+                $es_product_model->create_data($spu, $lang);
             }
         }
     }
@@ -93,7 +96,7 @@ class ProductController extends PublicController {
          * 查看是否存在上架
          */
         $showCatProductModel = new ShowCatProductModel();
-        $scp_info = $showCatProductModel->where(array('spu' => is_array($this->put_data['spu']) ? array('in',$this->put_data['spu']) : $this->put_data['spu'], 'lang' => $lang))->find();
+        $scp_info = $showCatProductModel->where(array('spu' => is_array($this->put_data['spu']) ? array('in', $this->put_data['spu']) : $this->put_data['spu'], 'lang' => $lang))->find();
         if ($scp_info) {
             jsonReturn('', ErrorMsg::NOTDELETE_EXIST_ONSHELF);
         }
@@ -101,6 +104,11 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $result = $productModel->deleteInfo($this->put_data['spu'], $lang);
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct($lang, $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+            }
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -147,6 +155,11 @@ class ProductController extends PublicController {
                 break;
         }
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct([$lang => $this->put_data['spu']], $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+            }
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -167,6 +180,9 @@ class ProductController extends PublicController {
         $pattach = new ProductAttachModel();
         $result = $pattach->getAttachBySpu($spu, $status);
         if ($result !== false) {
+
+            $this->updateEsproduct(null, $spu);
+
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -186,11 +202,18 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
+        $lang = isset($this->put_data['lang']) ? $this->put_data['lang'] : '';
+        $spu = isset($this->put_data['spu']) ? $this->put_data['spu'] : '';
         $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
 
         $showCatProduct = new ShowCatProductModel();
-        $result = $showCatProduct->onShelf($this->put_data['spu'], $this->put_data['lang'], $cat_no);
+        $result = $showCatProduct->onShelf($spu, $lang, $cat_no);
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct($lang, $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+            }
             jsonReturn(true);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -217,6 +240,11 @@ class ProductController extends PublicController {
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->downShelf($this->put_data['spu'], $lang, $cat_no);
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct($lang, $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+            }
             jsonReturn(true);
         } else {
             jsonReturn('', ErrorMsg::FAILED);

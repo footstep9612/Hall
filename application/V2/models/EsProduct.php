@@ -203,7 +203,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
-        // $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
+// $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'brand.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
@@ -652,7 +652,6 @@ class EsProductModel extends Model {
         }
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
-
         if ($flag['_shards']['successful'] !== 1) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
@@ -953,20 +952,45 @@ class EsProductModel extends Model {
     public function create_data($spu, $lang = 'en') {
         try {
             $es = new ESClient();
-            if ($spu) {
+            if (is_array($spu)) {
+
                 $product_model = new ProductModel();
-                $data = $product_model->where(['sku' => $sku, 'lang' => $lang])->find();
+                $products = $product_model->where(['spu' => ['in', $spu], 'lang' => $lang])->select();
+            } elseif ($spu) {
+
+                $product_model = new ProductModel();
+                $products = $product_model->where(['spu' => $spu, 'lang' => $lang])->select();
+            } else {
+                return false;
+            }
+            if (!$products) {
+                return false;
             }
 
-            $body = $this->getInsertCodition($data);
-            $id = $data['spu'];
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (!isset($flag['created'])) {
-                LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
-                return false;
-            } else {
-                return true;
+            if ($products) {
+                foreach ($products as $item) {
+                    $mcat_nos[] = $item['material_cat_no'];
+                    $spus[] = $item['spu'];
+                }
+                $mcat_nos = array_unique($mcat_nos);
+                $material_cat_model = new MaterialCatModel();
+                $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类
+                $show_cat_product_model = new ShowCatProductModel();
+                $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang); //根据spus获取展示分类编码
+
+                $product_attr_model = new ProductAttrModel();
+                $product_attrs = $product_attr_model->getproduct_attrbyspus($spus, $lang); //根据spus获取产品属性
+
+                $product_attach_model = new ProductAttachModel();
+                $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
+
+                $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
+
+                $onshelf_flags = $this->getonshelf_flag($spus, $lang);
+                $k = 0;
+                $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k);
             }
+            return true;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
