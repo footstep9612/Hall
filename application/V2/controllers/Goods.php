@@ -69,8 +69,8 @@ class GoodsController extends PublicController {
     public function skuAttachsInfoAction() {
         $goodsModel = new GoodsAttachModel();
         $result = $goodsModel->getSkuAttachsInfo($this->put_data);
-        if($result === false) {
-            jsonReturn('',ErrorMsg::FAILED);
+        if ($result === false) {
+            jsonReturn('', ErrorMsg::FAILED);
         } else {
             jsonReturn($result);
         }
@@ -99,9 +99,9 @@ class GoodsController extends PublicController {
     public function supplierCostInfoAction() {
         $GoodsCostPriceModel = new GoodsCostPriceModel();
         $result = $GoodsCostPriceModel->getInfo($this->put_data);
-        if($result === false){
-            jsonReturn('',ErrorMsg::FAILED);
-        }else{
+        if ($result === false) {
+            jsonReturn('', ErrorMsg::FAILED);
+        } else {
             jsonReturn($result);
         }
     }
@@ -133,7 +133,45 @@ class GoodsController extends PublicController {
     public function editSkuAction() {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSku($this->put_data);
+        if ($result) {
+            $this->updateEsgoods($this->put_data, $result);
+        }
+        if ($this->put_data['spu']) {
+            $this->updateEsgoods($this->put_data, $this->put_data['spu']);
+        }
         $this->returnInfo($result);
+    }
+
+    /*
+     * 更新ESproduct
+     */
+
+    public function updateEsproduct($input, $spu) {
+        $es_product_model = new EsProductModel();
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            if (isset($input[$lang]) && $input[$lang]) {
+                $es_product_model->create_data($spu, $lang);
+            } elseif (empty($input)) {
+                $es_product_model->create_data($spu, $lang);
+            }
+        }
+    }
+
+    /*
+     * 更新ESgoods
+     */
+
+    public function updateEsgoods($input, $sku) {
+        $es_product_model = new EsGoodsModel();
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            if (isset($input[$lang]) && $input[$lang]) {
+                $es_product_model->create_data($sku, $lang);
+            } elseif (empty($input)) {
+                $es_product_model->create_data($sku, $lang);
+            }
+        }
     }
 
     /**
@@ -173,6 +211,17 @@ class GoodsController extends PublicController {
         }
         $goodsModel = new GoodsModel();
         $result = $goodsModel->modifySkuStatus($this->put_data);
+        if ($result['code'] == 1) {
+            if ($this->put_data['lang']) {
+                $lang = $this->put_data['lang'];
+                $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);
+            } else {
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
+        }
+        if ($this->put_data['spu']) {
+            $this->updateEsgoods($this->put_data, $this->put_data['spu']);
+        }
         $this->returnInfo($result);
     }
 
@@ -195,6 +244,14 @@ class GoodsController extends PublicController {
         }
         $goodsModel = new GoodsModel();
         $result = $goodsModel->deleteSkuReal($this->put_data);
+        if ($result['code'] == 1) {
+            if ($this->put_data['lang']) {
+                $lang = $this->put_data['lang'];
+                $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);
+            } else {
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
+        }
         $this->returnInfo($result);
     }
 
@@ -220,6 +277,11 @@ class GoodsController extends PublicController {
         $gattach = new GoodsAttachModel();
         $resAttach = $gattach->editSkuAttach($this->put_data);
         if ($resAttach) {
+
+            if ($resAttach['code'] == 1) {
+
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
             $this->jsonReturn($resAttach);
         } else {
             jsonReturn('', -1, '失败!');
@@ -237,6 +299,11 @@ class GoodsController extends PublicController {
 //        $this->put_data = $this->getPut('sku');
         $resAttach = $gattach->deleteSkuAttach($this->put_data);
         if ($resAttach) {
+
+            if ($resAttach['code'] == 1) {
+
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
             $this->jsonReturn($resAttach);
         } else {
             jsonReturn('', -1, '失败!');

@@ -851,25 +851,45 @@ class EsGoodsModel extends Model {
     public function create_data($sku, $lang = 'en') {
         try {
             $es = new ESClient();
-            if ($sku) {
+            if (is_array($sku)) {
                 $goods_model = new GoodsModel();
-                $data = $goods_model->where(['sku' => $sku, 'lang' => $lang])->find();
+                $goods = $goods_model->where(['sku' => ['in', $sku], 'lang' => $lang])->select();
+            } elseif ($sku) {
+
+                $goods_model = new GoodsModel();
+                $goods = $goods_model->where(['sku' => $sku, 'lang' => $lang])->select();
+            } else {
+                return false;
+            }
+            $spus = $skus = [];
+            if ($goods) {
+                foreach ($goods as $item) {
+                    $skus[] = $item['sku'];
+                    $spus[] = $item['spu'];
+                }
             } else {
                 return false;
             }
 
-            if (!$data) {
+            $spus = array_unique($spus);
+            $skus = array_unique($skus);
+            $espoducmodel = new EsProductModel();
+            $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
-                return false;
-            }
-            $body = $this->getInsertCodition($data);
-            $id = $data['sku'];
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (isset($flag['_shards']['successful']) && $flag['_shards']['successful'] !== 1) {
-                LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
-                return true;
-            } else {
-                return false;
+            $goods_attach_model = new GoodsAttachModel();
+            $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
+
+            $goods_attr_model = new GoodsAttrModel();
+            $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
+
+            $goods_supplier_model = new GoodsSupplierModel();
+            $suppliers = $goods_supplier_model->getsuppliersbyskus($skus);
+            $show_cat_goods_model = new ShowCatGoodsModel();
+            $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
+
+            $onshelf_flags = $this->getonshelf_flag($skus, $lang);
+            foreach ($goods as $item) {
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
