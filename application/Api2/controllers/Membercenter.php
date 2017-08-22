@@ -13,6 +13,8 @@
  */
 class MembercenterController extends PublicController {
 
+//class MembercenterController extends Yaf_Controller_Abstract {
+
     public function init() {
         parent::init();
     }
@@ -23,7 +25,9 @@ class MembercenterController extends PublicController {
      */
     public function getUserInfoAction() {
         $buyerModel = new BuyerAccountModel();
+
         $result = $buyerModel->getinfo($this->user);
+
         if (!empty($result)) {
             $data = array(
                 'code' => 1,

@@ -356,6 +356,9 @@ class LogisticsController extends PublicController {
 	            $where['id'] = $item['id'];
 	            unset($item['id']);
 	            
+	            $item['volumn'] = $item['length'] * $item['width'] * $item['height'];
+	            $item['volumn'] = $item['volumn'] > 0 ? $item['volumn'] : 0;
+	            
 	            $item['updated_by'] = $this->user['id'];
 	            $item['updated_at'] = $this->time;
 	             
