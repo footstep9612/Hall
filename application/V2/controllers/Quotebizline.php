@@ -403,7 +403,7 @@ class QuotebizlineController extends PublicController {
      */
     public function sentLogisticsAction(){
 
-        $request = $this->validateRequests('serial_no,quote_id');
+        $request = $this->validateRequests('inquiry_id');
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->sentLogistics($request,$this->user['id']);
         $this->jsonReturn($response);
