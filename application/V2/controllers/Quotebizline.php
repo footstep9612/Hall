@@ -616,20 +616,17 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 询单信息(通用)
-     * @author 买买提
+     * @desc 询单信息
+     * @fields 询单流程编码 询单报价状态 询单项目经理
      */
     public function inquiryInfoAction(){
 
-        $request = $this->_requestParams;
-        if (empty($request['serial_no'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
-        }
+        $request = $this->validateRequests('serial_no');
 
         //获取询单本身信息
         $inquiryModel = new InquiryModel();
         $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field([
-            'id','serial_no','status','pm_id'
+            'id','serial_no','goods_quote_status','pm_id','agent_id'
         ])->find();
 
         if (!$inquiryInfo){

@@ -107,23 +107,6 @@ trait QuoteHelper{
             $inquiry['pm_name'] = $productManager;
             unset($inquiry['pm_id']);
         }
-        //询单(项目)状态
-/*        switch ($inquiry['status']){
-            case 'DRAFT': $inquiry['status'] = '起草'; break;
-            case 'APPROVING_BY_SC': $inquiry['status'] = '方案中心审核中'; break;
-            case 'APPROVED_BY_SC': $inquiry['status'] = '方案中心已确认'; break;
-            case 'QUOTING_BY_BIZLINE': $inquiry['status'] = '产品线报价中'; break;
-            case 'QUOTED_BY_BIZLINE': $inquiry['status'] = '产品负责人已确认'; break;
-            case 'BZ_QUOTE_REJECTED': $inquiry['status'] = '项目经理驳回产品报价'; break;
-            case 'QUOTING_BY_LOGI': $inquiry['status'] = '物流报价中'; break;
-            case 'QUOTED_BY_LOGI': $inquiry['status'] = '物流审核人已确认'; break;
-            case 'LOGI_QUOTE_REJECTED': $inquiry['status'] = '项目经理驳回物流报价'; break;
-            case 'APPROVED_BY_PM': $inquiry['status'] = '项目经理已确认'; break;
-            case 'APPROVING_BY_MARKET': $inquiry['status'] = '市场主管审核中'; break;
-            case 'APPROVED_BY_MARKET': $inquiry['status'] = '市场主管已审核'; break;
-            case 'QUOTE_SENT': $inquiry['status'] = '报价单已发出'; break;
-            case 'INQUIRY_CLOSED': $inquiry['status'] = '报价关闭'; break;
-        }*/
 
         return $inquiry;
     }
