@@ -196,6 +196,10 @@ class ServicecatController extends PublicController {
     public function levelAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
+        $where = [];
+        if(!empty($data['buyer_level'])){
+            $where['buyer_level'] = $data['buyer_level'];
+        }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
@@ -203,7 +207,7 @@ class ServicecatController extends PublicController {
             $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
         }
         $MemberServiceModel = new MemberServiceModel();
-        $result = $MemberServiceModel->levelInfo($limit);
+        $result = $MemberServiceModel->levelInfo($limit,$where);
         if(!empty($result)) {
             jsonReturn($result);
         } else {
@@ -219,39 +223,43 @@ class ServicecatController extends PublicController {
      */
     public function editLevelAction(){
         /* $this->put_data = [
-            'buyer_level'=>'会员',
-          'levels'=>[
-                   0=>[
-                          'category'=>[
-                              "service_cat_id"=> "1",
+              'buyer_level'=>'会员',
+            'levels'=>[
+                     0=>[
+                            'category'=>[
+                                "service_cat_id"=> "1",
+                                ],
+                                "term"=> [
+                                    0=>[
+                                        "service_term_id"=> "1",
+                                        "item"=> [
+                                            0=>[
+                                                "service_item_id"=> "1",
+                                                "id"=> "34",
+                                            ],
+                                            1=>[
+                                                "service_item_id"=> "2",
+                                                "id"=> "35",
+                                            ]
+                                        ]
+                                    ],
+                                    1=>[
+                                        "service_term_id"=> "2",
+                                        "item"=> [
+                                            0=>[
+                                                "service_item_id"=> "1",
+                                                "id"=> "36",
+                                            ],
+                                            1=>[
+                                                "service_item_id"=> "2",
+                                                "id"=> "37",
+                                            ]
+                                        ]
+                                    ]
+                                 ],
                               ],
-                              "term"=> [
-                                  0=>[
-                                      "service_term_id"=> "1",
-                                      "item"=> [
-                                          0=>[
-                                              "service_item_id"=> "1",
-                                          ],
-                                          1=>[
-                                              "service_item_id"=> "2",
-                                          ]
-                                      ]
-                                  ],
-                                  1=>[
-                                      "service_term_id"=> "2",
-                                      "item"=> [
-                                          0=>[
-                                              "service_item_id"=> "1",
-                                          ],
-                                          1=>[
-                                              "service_item_id"=> "2",
-                                          ]
-                                      ]
-                                  ]
-                               ],
-                            ],
-                   ]
-          ]; */
+                     ]
+            ];   */
         //获取用户信息
         $userInfo = getLoinInfo();
         $MemberServiceModel = new MemberServiceModel();

@@ -11,8 +11,7 @@
  * 2017/6/26
  * @author klp
  */
-class MembercenterController extends ShopMallController {
-//class MembercenterController extends Yaf_Controller_Abstract {
+class MembercenterController extends PublicController {
 
     public function init() {
         parent::init();
@@ -23,11 +22,10 @@ class MembercenterController extends ShopMallController {
      * @author klp
      */
     public function getUserInfoAction() {
-
+//        $this->user['buyer_id'] = 123;
+//        jsonReturn(123);
         $buyerModel = new BuyerAccountModel();
-
         $result = $buyerModel->getinfo($this->user);
-
         if (!empty($result)) {
             $data = array(
                 'code' => 1,

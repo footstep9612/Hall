@@ -22,12 +22,10 @@ class MemberServiceModel extends PublicModel{
      * 会员等级查看
      * @author klp
      */
-    public function levelInfo($limit){
-        $where = array(
-            'status'=>'VALID',
-            'deleted_flag'=>'N'
-        );
-        $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
+    public function levelInfo($limit,$where){
+        $where['status'] = 'VALID';
+        $where['deleted_flag'] = 'N';
+        $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
             if(!empty($limit)){
             $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->select();
@@ -36,7 +34,14 @@ class MemberServiceModel extends PublicModel{
             }
             $data = array();
             if($result) {
+                $employee = new EmployeeModel();
                 foreach($result as $item){
+                    $data[$item['buyer_level']]['created_at'] = $item['created_at'];
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $data[$item['buyer_level']]['created_by'] = $createder[0];
+                    }
+
                     $data[$item['buyer_level']][$item['service_cat_id']]['category']['service_cat_id'] = $item['service_cat_id'];
 
                     $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] =$item['service_term_id'];
@@ -44,8 +49,12 @@ class MemberServiceModel extends PublicModel{
                     $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id']=$item['service_item_id'];
 
                     $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['id']=$item['id'];
+
                 }
-                return $data;
+                foreach($data as $key=>$value){
+                    $arr[][$key] = $value;
+                }
+                return $arr;
             }
             return array();
         } catch(Exception $e){
