@@ -33,7 +33,7 @@ class FinalQuoteItemModel extends PublicModel {
 		}
 
 		if (!empty($condition['inquiry_id'])) {
-			$where['a.inquiry_id'] = $condition['a.inquiry_id'];
+			$where['a.inquiry_id'] = $condition['inquiry_id'];
 		}
 
     	if (!empty($condition['quote_id'])) {

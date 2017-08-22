@@ -252,16 +252,18 @@ class EsGoodsModel extends Model {
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
-
-        if (isset($condition['onshelf_by_name']) && $condition['onshelf_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['onshelf_by_name']);
-            foreach ($userids as $onshelf_by) {
-                $onshelf_by_bool[] = [ESClient::MATCH_PHRASE => ['onshelf_by' => $onshelf_by]];
-            }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $onshelf_by_bool]];
+        if (isset($condition['keyword']) && $condition['keyword']) {
+            $show_name = $condition['keyword'];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MULTI_MATCH => [
+                                'query' => $show_name,
+                                'type' => 'most_fields',
+                                'fields' => ['name.ik', 'attrs.ik', 'sku', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
+                            ]],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+            ]]];
         }
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik',
-            'specs.ik', 'spu', 'sku', 'source.ik', 'brand.ik', 'name.ik']);
+
         return $body;
     }
 
