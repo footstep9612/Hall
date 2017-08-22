@@ -371,13 +371,21 @@ class InquiryController extends PublicController {
     public function getCheckLogListAction() {
         $checklog = new CheckLogModel();
         $employee = new EmployeeModel();
+        $roleuser = new RoleUserModel();
         $data =  $this->put_data;
         if(!empty($data['inquiry_id'])){
             $results = $checklog->getList($data);
 
             foreach($results['data'] as $key=>$val){
-                $rs = $employee->field('name')->where('id='.$val['op_id'])->find();
-                $results['data'][$key]['op_name'] = $rs['name'];
+                $employeedata = $employee->field('id,name')->where('id='.$val['op_id'])->find();
+                $results['data'][$key]['op_name'] = $employeedata['name'];
+
+                $roledata = $roleuser->alias('a')
+                                    ->join('erui2_sys.role b ON a.role_id = b.id','LEFT')
+                                    ->where('a.employee_id='.$val['op_id'])
+                                    ->field('b.name,b.name_en,b.remarks')
+                                    ->find();
+                $results['data'][$key]['op_role'] = $roledata['name'];
             }
         }else{
             $results['code'] = '-103';
