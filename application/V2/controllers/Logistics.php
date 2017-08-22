@@ -204,6 +204,11 @@ class LogisticsController extends PublicController {
 	            $data['logi_agent_id'] = $this->user['id'];
 	        //}
 	        
+	        if ($quoteLogiFee['logi_from_port'] != $condition['logi_from_port']) $data['logi_from_port'] = $condition['logi_from_port'];
+	        if ($quoteLogiFee['logi_to_port'] != $condition['logi_to_port']) $data['logi_to_port'] = $condition['logi_to_port'];
+	        if ($quoteLogiFee['logi_trans_mode_bn'] != $condition['logi_trans_mode_bn']) $data['logi_trans_mode_bn'] = $condition['logi_trans_mode_bn'];
+	        if ($quoteLogiFee['logi_box_type_bn'] != $condition['logi_box_type_bn']) $data['logi_box_type_bn'] = $condition['logi_box_type_bn'];
+	        
 	        $data['updated_by'] = $this->user['id'];
 	        $data['updated_at'] = $this->time;
 	        
@@ -211,11 +216,7 @@ class LogisticsController extends PublicController {
 	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
 	        
 	        $quoteData = [];
-	        
-	        if ($quote['from_port'] != $condition['from_port']) $quoteData['from_port'] = $condition['from_port'];
-	        if ($quote['to_port'] != $condition['to_port']) $quoteData['to_port'] = $condition['to_port'];
-	        if ($quote['trans_mode_bn'] != $condition['trans_mode_bn']) $quoteData['trans_mode_bn'] = $condition['trans_mode_bn'];
-	        if ($quote['box_type_bn'] != $condition['box_type_bn']) $quoteData['box_type_bn'] = $condition['box_type_bn'];
+	       
 	        if ($quote['quote_remarks'] != $condition['quote_remarks']) $quoteData['quote_remarks'] = $condition['quote_remarks'];
 	        
 	        if ($data['total_quote_price'] != $quote['total_quote_price']) $quoteData['total_quote_price'] = $data['total_quote_price'];
