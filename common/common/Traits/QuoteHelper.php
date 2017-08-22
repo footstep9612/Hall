@@ -202,6 +202,8 @@ trait QuoteHelper{
 
         $quoteBizlineModel = new QuoteBizLineModel();
 
+        $where = self::bizlineManagerQuoteListCondition($where);
+
         $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
         $count =  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
