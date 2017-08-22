@@ -11,7 +11,8 @@
  * 2017/6/26
  * @author klp
  */
-class MembercenterController extends ShopMallController {
+class MembercenterController extends PublicController {
+
 //class MembercenterController extends Yaf_Controller_Abstract {
 
     public function init() {
