@@ -142,7 +142,7 @@ trait QuoteHelper{
 
         $quoteBizlineModel = new QuoteBizLineModel();
         $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
-        return $quoteBizlineModel->alias('qb')
+         return $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
             ->where($where)
@@ -150,6 +150,7 @@ trait QuoteHelper{
             ->order('id DESC')
             ->select();
         //p($data);
+        //p($quoteBizlineModel->getLastSql());
     }
 
     public static function bizlineManagerQuoteListCondition(array $condition){
