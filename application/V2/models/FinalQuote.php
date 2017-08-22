@@ -216,8 +216,8 @@ class FinalQuoteModel extends PublicModel {
 	 */
 	public function updateFinalStatus($condition = []) {
 
-		if(isset($condition['id'])){
-			$where['id'] = array('in',explode(',',$condition['id']));
+		if(isset($condition['inquiry_id'])){
+			$where['inquiry_id'] = array('in',explode(',',$condition['inquiry_id']));
 		}else{
 			$results['code'] = '-103';
 			$results['message'] = '没有ID!';
