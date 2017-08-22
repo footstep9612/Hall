@@ -577,6 +577,12 @@ class QuotebizlineController extends PublicController {
         if (!$result){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
+
+        $employee = new EmployeeModel();
+        $inquiry = new InquiryModel();
+        $pm_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('pm_id');
+        $result['pm_name'] =  $employee->where(['id'=>$pm_id])->getField('name');
+
         $this->jsonReturn([
             'code' => '1',
             'message' => '成功!',
