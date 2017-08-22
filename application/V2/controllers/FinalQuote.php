@@ -1,12 +1,12 @@
 <?php
 /**
- * name: FinalQuote.php
+ * name: Finalquote.php
  * desc: 市场报价单控制器
  * User: 张玉良
  * Date: 2017/8/3
  * Time: 10:55
  */
-class FinalQuoteController extends PublicController {
+class FinalquoteController extends PublicController {
 
     public function init()
     {
