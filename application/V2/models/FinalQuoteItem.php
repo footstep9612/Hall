@@ -5,7 +5,7 @@
  */
 class FinalQuoteItemModel extends PublicModel {
 
-    protected $dbName = 'erui_rfq';
+    protected $dbName = 'erui2_rfq';
     protected $tableName = 'final_quote_item';
 	protected $joinTable1 = 'erui2_rfq.quote_item b ON a.quote_item_id = b.id';
 	protected $joinTable2 = 'erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id';

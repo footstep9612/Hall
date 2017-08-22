@@ -492,20 +492,67 @@ class QuotebizlineController extends PublicController {
      */
     public function sentMarketAction(){
 
-        $request = $this->_requestParams;
-        if (empty($request['serial_no'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $inquiry = Z('erui2_rfq.Inquiry');
+        $request = $this->validateRequests('inquiry_id');
+
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
         $inquiryResult = $inquiry->where([
-            'serial_no' => $request['serial_no']
+            'id' => $request['inquiry_id']
         ])->save([
-            'status' => QuoteBizLineModel::INQUIRY_APPROVING_BY_MARKET,
+            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
             'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
         ]);
-        //p($inquiryResult);
+
         if ($inquiryResult){
-            $this->jsonReturn(['code'=>'1','message'=>'提交成功!']);
+
+            //1.创建final_quote记录
+            $quote = new QuoteModel();
+            $quoteData = $quote->where(['inquiry_id'=>$request['inquiry_id']])->find();
+
+            $finalQuote = new FinalQuoteModel();
+            $finalQuote->startTrans();
+            $finalQuoteResult = $finalQuote->add($finalQuote->create([
+                'buyer_id' => $quoteData['buyer_id'],
+                'inquiry_id' => $quoteData['inquiry_id'],
+                'quote_id' => $quoteData['id'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+
+            //2.创建final_quote_item记录
+            $quoteItem = new QuoteItemModel();
+            $quoteItemData = $quoteItem->where(['inquiry_id'=>$request['inquiry_id']])->select();
+
+            $finalQuoteItem = new FinalQuoteItemModel();
+            $finalQuoteItem->startTrans();
+            $finalQuoteIds = [];
+            foreach ($quoteItemData as $value){
+                $finalQuoteIds[] = $finalQuoteItem->add($finalQuoteItem->create([
+                    'quote_id' => $value['quote_id'],
+                    'inquiry_id' => $value['inquiry_id'],
+                    'inquiry_item_id' => $value['inquiry_item_id'],
+                    'quote_item_id' => $value['id'],
+                    'sku' => $value['sku'],
+                    'supplier_id' => $value['supplier_id'],
+                    'total_logi_fee' => $value['total_logi_fee'],
+                    'total_logi_fee_cur_bn' => $value['total_logi_fee_cur_bn'],
+                    'total_bank_fee' => $value['total_bank_fee'],
+                    'total_bank_fee_cur_bn' => $value['total_bank_fee_cur_bn'],
+                    'total_insu_fee' => $value['total_insu_fee'],
+                    'total_insu_fee_cur_bn' => $value['total_insu_fee_cur_bn'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]));
+            }
+            if ($finalQuoteResult && $finalQuoteIds){
+                $inquiry->commit();
+                $finalQuote->commit();
+                $finalQuoteItem->commit();
+                $this->jsonReturn(['code'=>'1','message'=>'提交成功!']);
+            }else{
+                $inquiry->rollback();
+                $finalQuote->rollback();
+                $finalQuoteItem->rollback();
+                $this->jsonReturn(['code'=>'-104','message'=>'回归失败!']);
+            }
         }else{
             $this->jsonReturn(['code'=>'-104','message'=>'提交失败!']);
         }
