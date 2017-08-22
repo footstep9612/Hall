@@ -29,24 +29,58 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
     }
 
-    protected function _token() {
-        $this->put_data = $this->getPut();
-
+    protected function _getUser() {
         $token = $this->header('token');
-        $model = new BuyerModel();
+        if (!$token) {
+            $token = $this->getPut('token');
+        }
+        if (!$token) {
+            $token = $this->getPost('token');
+        }
+
         if (!empty($token)) {
             $tks = explode('.', $token);
             $tokeninfo = JwtInfo($token); //解析token
             $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+
+            if (!empty($userinfo)) {
+
+                $this->user = array(
+                    "buyer_id" => $userinfo["buyer_id"],
+                    "user_name" => $tokeninfo["user_name"],
+                    "email" => $userinfo["email"],
+                    "id" => $userinfo["id"],
+                    "token" => $token, //token
+                );
+            }
+        }
+    }
+
+    protected function _token() {
+        $this->put_data = $this->getPut();
+        $token = $this->header('token');
+        if (!$token) {
+            $token = $this->getPut('token');
+        }
+        if (!$token) {
+            $token = $this->getPost('token');
+        }
+
+        if (!empty($token)) {
+            $tks = explode('.', $token);
+            $tokeninfo = JwtInfo($token); //解析token
+
+            $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+
             if (empty($userinfo)) {
                 echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                 exit;
             } else {
                 $this->user = array(
-                    "account_id" => $userinfo["account_id"],
-                    "customer_id" => $userinfo["customer_id"],
+                    "buyer_id" => $userinfo["buyer_id"],
                     "user_name" => $tokeninfo["user_name"],
                     "email" => $userinfo["email"],
+                    "id" => $userinfo["id"],
                     "token" => $token, //token
                 );
             }

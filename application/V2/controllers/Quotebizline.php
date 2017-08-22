@@ -135,6 +135,14 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
 
+        $bizline = new BizlineModel();
+        $user = new EmployeeModel();
+
+        foreach ($response as $k=>$v){
+            $response[$k]['bizline_name'] = $bizline->where(['id'=>$v['bizline_id']])->getField('name');
+            $response[$k]['bizline_agent_name'] = $user->where(['id'=>$v['bizline_agent_id']])->getField('name');
+        }
+
         $this->jsonReturn([
             'code' => '1',
             'message' => '成功!',
@@ -154,34 +162,28 @@ class QuotebizlineController extends PublicController {
         //1.创建一条报价记录(quote)
         $quoteModel = new QuoteModel();
         $quoteModel->startTrans();
-        //TODO 这里可以添加是否已经划分了产品线的判断，避免发生重复提交数据的事情
-        $inquiry_item_ids = explode(',',$request['inquiry_item_id']);
-        $quote_ids = [];//新增的报价id组合
-        foreach ($inquiry_item_ids as $inquiry_item_id){
-            $quote_ids[] = $quoteModel->add($quoteModel->create([
-                'buyer_id' => $request['buyer_id'],
-                'inquiry_id' => $request['inquiry_id'],
-                'serial_no' => $request['serial_no'],
-                'quote_no' => $this->getQuoteNo(),
-                'quote_lang' => 'zh',
-                'created_at' => date('Y-m-d H:i:s')
-            ]));
-        }
+        $quoteResult = $quoteModel->add($quoteModel->create([
+            'buyer_id' => $request['buyer_id'],
+            'inquiry_id' => $request['inquiry_id'],
+            'serial_no' => $request['serial_no'],
+            'quote_no' => $this->getQuoteNo(),
+            'quote_lang' => 'zh',
+            'created_at' => date('Y-m-d H:i:s')
+        ]));
+
+
+        //判断是否已经划分了产品线
 
         //2.创建一条产品线报价记录(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
-        $quoteBizline_ids = [];
-        foreach ($quote_ids as $quote_id){
-            $quoteBizline_ids[] = $quoteBizlineModel->add($quoteBizlineModel->create([
-                'quote_id' => $quote_id,
-                'inquiry_id' => $request['inquiry_id'],
-                'biz_agent_id' => '275',
-                'bizline_id' => $request['bizline_id'],
-                'created_at' => date('Y-m-d H:i:s'),
-                'created_by' => $this->user['id'],
-            ]));
-        }
+        $quoteBizlineResult = $quoteBizlineModel->add($quoteBizlineModel->create([
+            'quote_id' => $quoteResult,
+            'inquiry_id' => $request['inquiry_id'],
+            'bizline_id' => $request['bizline_id'],
+            'created_at' => date('Y-m-d H:i:s'),
+            'created_by' => $this->user['id'],
+        ]));
 
         //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
         $inquiryItem = new InquiryItemModel();
@@ -189,19 +191,18 @@ class QuotebizlineController extends PublicController {
 
         $quoteItemModel = new QuoteItemModel();
         $quoteItemModel->startTrans();
-        $quoteItemIds = [];
-        foreach ($quote_ids as $quote_id){
-            foreach ($inquiryItemList as $item){
-                $quote_item_ids[] = $quoteItemModel->add($quoteItemModel->create([
-                    'quote_id' => $quote_id,
-                    'inquiry_id' => $item['inquiry_id'],
-                    'inquiry_item_id' => $item['id'],
-                    'bizline_id' => $request['bizline_id'],
-                    'sku' => $item['sku'],
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $this->user['id'],
-                ]));
-            }
+
+        $quote_item_ids = [];
+        foreach ($inquiryItemList as $item){
+            $quote_item_ids[] = $quoteItemModel->add($quoteItemModel->create([
+                'quote_id' => $quoteResult,
+                'inquiry_id' => $item['inquiry_id'],
+                'inquiry_item_id' => $item['id'],
+                'bizline_id' => $request['bizline_id'],
+                'sku' => $item['sku'],
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $this->user['id'],
+            ]));
         }
 
         //4选择的讯单项(inquiry_item)写入到产品线报价单项(quote_item_form)
@@ -221,7 +222,7 @@ class QuotebizlineController extends PublicController {
             ]));
         }
 
-        if ($quote_ids && $quoteBizline_ids && $quote_item_ids && $quote_item_form_ids){
+        if ($quoteResult && $quoteBizlineResult && $quote_item_ids && $quote_item_form_ids){
             $quoteModel->commit();
             $quoteBizlineModel->commit();
             $quoteItemModel->commit();
@@ -318,6 +319,7 @@ class QuotebizlineController extends PublicController {
 
             $user = new EmployeeModel();
             $supplier = new SupplierModel();
+
             foreach ($skuList as $key=>$bizlineQuoteSku) {
                 $skuList[$key]['supplier_name'] = $supplier->where(['id'=>$bizlineQuoteSku['supplier_id']])->getField('name');
                 $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['created_by']])->getField('name');
@@ -384,24 +386,54 @@ class QuotebizlineController extends PublicController {
 
     /**
      * @desc 退回产品线重新报价(项目经理)
-     * @author 买买提
      */
     public function rejectBizlineAction(){
 
-        if (empty($this->_requestParams['serial_no']) || empty($this->_requestParams['bizline_id'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        $request = $this->validateRequests('inquiry_id');
+
+        $quote = new QuoteModel();
+        $request['quote_id'] = $quote->where(['inquiry_id'=>$request['inquiry_id']])->getField('id');
+
+        $quoteitem = new QuoteItemModel();
+        $quotebizline = new QuoteBizLineModel();
+        $quoteitemform = new QuoteItemFormModel();
+
+        //查找报价单全部SKU id
+        $ids = $quoteitem->where('quote_id='.$request['quote_id'])->getField('id',true);
+
+        $itemformwhere['quote_item_id'] = array('in',$ids);
+        //事物开始
+        $quoteitemform->startTrans();
+        $upitemform = $quoteitemform->where($itemformwhere)->save(['status' => 'REJECTED']);
+
+        if($upitemform){
+            $upquotetatus = $quote->where('id='.$request['quote_id'])->save(['status' => 'BZ_QUOTE_REJECTED']);//修改报价单状态
+            $upbizlinestatus = $quotebizline->where('quote_id='.$request['quote_id'])->save(['status' => 'REJECTED']);//修改产品线报价状态
+
+            if($upquotetatus && $upbizlinestatus){
+                $quoteitemform->commit();
+                $result['code'] = '1';
+                $result['message'] = '成功!';
+            }else{
+                $quoteitemform->rollback();
+                $result['code'] = '-101';
+                $result['message'] = '返回产品线失败!';
+            }
+        }else{
+            $quoteitemform->rollback();
+            $result['code'] = '-101';
+            $result['message'] = '返回产品线失败!';
         }
-        $result = $this->_quoteBizLine->rejectBizline($this->_requestParams);
+
         $this->jsonReturn($result);
     }
-
     /**
      * @desc 提交物流报价(项目经理)
      * @author 买买提
      */
     public function sentLogisticsAction(){
 
-        $request = $this->validateRequests('serial_no,quote_id');
+        $request = $this->validateRequests('inquiry_id');
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->sentLogistics($request,$this->user['id']);
         $this->jsonReturn($response);
@@ -414,17 +446,33 @@ class QuotebizlineController extends PublicController {
      */
     public function rejectLogisticAction(){
 
-        $request = $this->validateRequests('serial_no,quote_id,op_note');
+        $request = $this->validateRequests('inquiry_id,op_note');
 
         //修改项目状态
         $inquiry =  new InquiryModel();
-        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
+        $inquiryID = $inquiry->where(['id'=>$request['inquiry_id']])->getField('id');
         if (!$inquiryID){
             $this->jsonReturn(['code'=>'-104','message'=>'没有对应的询单!']);
         }
         $inquiry->startTrans();
-        $inquiuryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'logi_quote_status' => QuoteBizLineModel::QUOTE_REJECTED
+        $inquiryResult = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+            'status' => 'LOGI_QUOTE_REJECTED',
+            'logi_quote_status' => 'REJECTED'
+        ]);
+
+
+        //修改报价的状态
+        $quoteModel = new QuoteModel();
+        $quoteModel->startTrans();
+        $quoteResult = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save([
+            'status' => 'LOGI_QUOTE_REJECTED'
+        ]);
+
+        //修改物流表的状态
+        $quoteLogiFee = new QuoteLogiFeeModel();
+        $quoteLogiFee->startTrans();
+        $quoteLogiFeeResult = $quoteLogiFee->where(['inquiry_id'=>$request['inquiry_id']])->save([
+            'status' => 'REJECTED' //被驳回
         ]);
 
         //写审核日志
@@ -440,15 +488,20 @@ class QuotebizlineController extends PublicController {
             'op_note' => $request['op_note'],
             'op_result' => 'REJECTED'
         ];
+
         $checklogResult = $inquiryCheckLog->add($checkInfo);
 
-        if ($inquiuryResult && $checklogResult){
+        if ($inquiryResult && $quoteResult && $checklogResult && $quoteLogiFeeResult){
             $inquiry->commit();
+            $quoteModel->commit();
             $inquiryCheckLog->commit();
+            $quoteLogiFee->commit();
             $this->jsonReturn(['code'=>'1','message'=>'退回成功!']);
         }else{
             $inquiry->rollback();
+            $quoteModel->rollback();
             $inquiryCheckLog->rollback();
+            $quoteLogiFee->rollback();
             $this->jsonReturn(['code'=>'-104','message'=>'退回失败!']);
         }
 
@@ -460,20 +513,67 @@ class QuotebizlineController extends PublicController {
      */
     public function sentMarketAction(){
 
-        $request = $this->_requestParams;
-        if (empty($request['serial_no'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $inquiry = Z('erui2_rfq.Inquiry');
+        $request = $this->validateRequests('inquiry_id');
+
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
         $inquiryResult = $inquiry->where([
-            'serial_no' => $request['serial_no']
+            'id' => $request['inquiry_id']
         ])->save([
-            'status' => QuoteBizLineModel::INQUIRY_APPROVING_BY_MARKET,
+            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
             'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
         ]);
-        //p($inquiryResult);
+
         if ($inquiryResult){
-            $this->jsonReturn(['code'=>'1','message'=>'提交成功!']);
+
+            //1.创建final_quote记录
+            $quote = new QuoteModel();
+            $quoteData = $quote->where(['inquiry_id'=>$request['inquiry_id']])->find();
+
+            $finalQuote = new FinalQuoteModel();
+            $finalQuote->startTrans();
+            $finalQuoteResult = $finalQuote->add($finalQuote->create([
+                'buyer_id' => $quoteData['buyer_id'],
+                'inquiry_id' => $quoteData['inquiry_id'],
+                'quote_id' => $quoteData['id'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+
+            //2.创建final_quote_item记录
+            $quoteItem = new QuoteItemModel();
+            $quoteItemData = $quoteItem->where(['inquiry_id'=>$request['inquiry_id']])->select();
+
+            $finalQuoteItem = new FinalQuoteItemModel();
+            $finalQuoteItem->startTrans();
+            $finalQuoteIds = [];
+            foreach ($quoteItemData as $value){
+                $finalQuoteIds[] = $finalQuoteItem->add($finalQuoteItem->create([
+                    'quote_id' => $value['quote_id'],
+                    'inquiry_id' => $value['inquiry_id'],
+                    'inquiry_item_id' => $value['inquiry_item_id'],
+                    'quote_item_id' => $value['id'],
+                    'sku' => $value['sku'],
+                    'supplier_id' => $value['supplier_id'],
+                    'total_logi_fee' => $value['total_logi_fee'],
+                    'total_logi_fee_cur_bn' => $value['total_logi_fee_cur_bn'],
+                    'total_bank_fee' => $value['total_bank_fee'],
+                    'total_bank_fee_cur_bn' => $value['total_bank_fee_cur_bn'],
+                    'total_insu_fee' => $value['total_insu_fee'],
+                    'total_insu_fee_cur_bn' => $value['total_insu_fee_cur_bn'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]));
+            }
+            if ($finalQuoteResult && $finalQuoteIds){
+                $inquiry->commit();
+                $finalQuote->commit();
+                $finalQuoteItem->commit();
+                $this->jsonReturn(['code'=>'1','message'=>'提交成功!']);
+            }else{
+                $inquiry->rollback();
+                $finalQuote->rollback();
+                $finalQuoteItem->rollback();
+                $this->jsonReturn(['code'=>'-104','message'=>'回归失败!']);
+            }
         }else{
             $this->jsonReturn(['code'=>'-104','message'=>'提交失败!']);
         }
@@ -563,18 +663,24 @@ class QuotebizlineController extends PublicController {
      */
     public function quoteGeneralInfoAction(){
 
-        $request = $this->validateRequests(['quote_id']);
+        $request = $this->validateRequests('inquiry_id');
 
-        $fields = 'q.id,q.total_weight,q.package_volumn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.trans_mode_bn,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
+        $fields = 'q.id,q.total_weight,q.package_volumn,q.dispatch_place,q.clearance_loc,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.trans_mode_bn,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
         $quoteModel = new QuoteModel();
         $result = $quoteModel->alias('q')
                              ->join('erui2_rfq.final_quote fq ON q.id = fq.quote_id','LEFT')
                              ->field($fields)
-                             ->where(['q.id'=>$request['quote_id']])
+                             ->where(['q.inquiry_id'=>$request['inquiry_id']])
                              ->find();
         if (!$result){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
+
+        $employee = new EmployeeModel();
+        $inquiry = new InquiryModel();
+        $pm_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('pm_id');
+        $result['pm_name'] =  $employee->where(['id'=>$pm_id])->getField('name');
+
         $this->jsonReturn([
             'code' => '1',
             'message' => '成功!',
@@ -588,11 +694,11 @@ class QuotebizlineController extends PublicController {
      */
     public function saveQuoteGeneralInfoAction(){
 
-        $request = $this->validateRequests('quote_id');
+        $request = $this->validateRequests('inquiry_id');
         //p($request);
         $quoteModel = new QuoteModel();
         try{
-            if ($quoteModel->where(['id'=>$request['quote_id']])->save($quoteModel->create($request))){
+            if ($quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request))){
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }else{
                 //p($quoteModel->getLastSql());
@@ -608,20 +714,17 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 询单信息(通用)
-     * @author 买买提
+     * @desc 询单信息
+     * @fields 询单流程编码 询单报价状态 询单项目经理
      */
     public function inquiryInfoAction(){
 
-        $request = $this->_requestParams;
-        if (empty($request['serial_no'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
-        }
+        $request = $this->validateRequests('serial_no');
 
         //获取询单本身信息
         $inquiryModel = new InquiryModel();
         $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field([
-            'id','serial_no','status','pm_id'
+            'id','serial_no','goods_quote_status','pm_id','agent_id'
         ])->find();
 
         if (!$inquiryInfo){

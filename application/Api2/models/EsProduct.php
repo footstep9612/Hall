@@ -234,15 +234,16 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
-            $onshelf_flag = $condition['onshelf_flag'] == 'N' ?: 'Y';
-            if ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"N"*']],
-                            [ESClient::TERM => ['show_cats.all' => '[]']],
-                ]]];
+            $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
+            if ($condition['onshelf_flag'] === 'A') {
+
+            } elseif ($onshelf_flag === 'N') {
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*"onshelf_flag":"Y"*']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
             }
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
         }
 
 
@@ -251,7 +252,18 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik', 'name.ik']);
+
+        if (isset($condition['keyword']) && $condition['keyword']) {
+            $show_name = $condition['keyword'];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MULTI_MATCH => [
+                                'query' => $show_name,
+                                'type' => 'most_fields',
+                                'fields' => ['show_name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
+                            ]],
+                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
+            ]]];
+        }
         return $body;
     }
 
@@ -271,27 +283,33 @@ class EsProductModel extends Model {
         try {
             $body = $this->getCondition($condition);
 
+
             $pagesize = 10;
             $current_no = 1;
+
             if (isset($condition['current_no'])) {
                 $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
             }
+
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
+
             $from = ($current_no - 1) * $pagesize;
+
             $es = new ESClient();
             unset($condition['source']);
             if ($body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('sort_order', 'desc')->setsort('_id', 'desc');
+            $es->setbody($body)->setsort('sku_count', 'desc')->setsort('id', 'desc');
 
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');
             } else {
                 $es->setaggs('material_cat_no', 'material_cat_no');
             }
+            $es->sethighlight(['show_name.ik' => new stdClass()]);
 
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;

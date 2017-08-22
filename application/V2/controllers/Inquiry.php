@@ -364,4 +364,48 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    /*
+     * 审核日志列表
+     * Author:张玉良
+     */
+    public function getCheckLogListAction() {
+        $checklog = new CheckLogModel();
+        $employee = new EmployeeModel();
+        $roleuser = new RoleUserModel();
+        $data =  $this->put_data;
+        if(!empty($data['inquiry_id'])){
+            $results = $checklog->getList($data);
+
+            foreach($results['data'] as $key=>$val){
+                $employeedata = $employee->field('id,name')->where('id='.$val['op_id'])->find();
+                $results['data'][$key]['op_name'] = $employeedata['name'];
+
+                $roledata = $roleuser->alias('a')
+                                    ->join('erui2_sys.role b ON a.role_id = b.id','LEFT')
+                                    ->where('a.employee_id='.$val['op_id'])
+                                    ->field('b.name,b.name_en,b.remarks')
+                                    ->find();
+                $results['data'][$key]['op_role'] = $roledata['name'];
+            }
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有询单ID!';
+        }
+
+        $this->jsonReturn($results);
+    }
+
+    /*
+     * 添加审核日志
+     * Author:张玉良
+     */
+    public function addCheckLogAction() {
+        $checklog = new CheckLogModel();
+        $data =  $this->put_data;
+        $data['op_id'] = $this->user['id'];
+        $data['created_by'] = $this->user['id'];
+
+        $results = $checklog->addData($data);
+        $this->jsonReturn($results);
+    }
 }

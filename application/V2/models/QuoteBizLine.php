@@ -94,15 +94,16 @@ class QuoteBizLineModel extends PublicModel{
 
         //更改询单(inqury项目)的状态
         $inquiry = new InquiryModel();
-        //$inquiry->startTrans();
-        $inquiryUpdates = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+        $inquiry->startTrans();
+        $inquiryUpdates = $inquiry->where(['id'=>$request['inquiry_id']])->save([
             'status' => self::INQUIRY_QUOTING_BY_LOGI,//物流报价中
             'goods_quote_status' => self::QUOTE_APPROVED //已审核
         ]);
 
         //修改报价的状态
         $quoteModel = new QuoteModel();
-        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+        $quoteID = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->getField('id');
+        $quoteResult = $quoteModel->where(['id'=>$quoteID])->save([
             'status' => self::INQUIRY_QUOTING_BY_LOGI
         ]);
 
@@ -110,20 +111,20 @@ class QuoteBizLineModel extends PublicModel{
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
         $quoteLogiFeeModel->startTrans();
         $quoteLogiFeeResult = $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
-            'quote_id' => $request['quote_id'],
-            'inquiry_id' => $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id'),
+            'quote_id' => $quoteID,
+            'inquiry_id' => $request['inquiry_id'],
             'created_at' => date('Y-m-d H:i:s'),
             'created_by' => $user
         ]));
 
         $quoteItemModel = new QuoteItemModel();
-        $quoteItemIds = $quoteItemModel->where(['quote_id'=>$request['quote_id']])->getField('id',true);
+        $quoteItemIds = $quoteItemModel->where(['quote_id'=>$quoteID])->getField('id',true);
 
         //给物流报价单项形成记录
         $quoteItemLogiModel = new QuoteItemLogiModel();
         foreach ($quoteItemIds as $quoteItemId){
             $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                'quote_id' => $request['quote_id'],
+                'quote_id' => $quoteID,
                 'quote_item_id' => $quoteItemId,
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $user
@@ -255,6 +256,7 @@ class QuoteBizLineModel extends PublicModel{
 
             $data[$key]['updated_by'] = $user;
             $data[$key]['updated_at'] = date('Y-m-d H:i:s');
+            $data[$key]['status'] = 'QUOTED';//报价状态
         }
 
         //更新信息
@@ -278,23 +280,19 @@ class QuoteBizLineModel extends PublicModel{
      * 产品线负责人退回产品线报价人重新报价
      */
     public function bizlineManagerRejectQuote($request){
-
+        //($request);
         //1.更改当前的报价状态为被退回
         $this->startTrans();
         $quoteBizline = $this->where(['quote_id'=>$request['quote_id']])->save(['status'=>'WITHDREW']);
 
         //2.更改该报价所属的sku状态为被驳回状态
         $quoteItemFormModel = new QuoteItemFormModel();
-        $quoteItemFormIds = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->getField('id',true);
 
-        $quoteItemForm = [];
-        foreach ($quoteItemFormIds as $quoteItemFormId){
-            $quoteItemForm[] = $quoteItemFormModel->where(['quote_id'=>$quoteItemFormId])->save([
-                'status' => 'WITHDREW'
-            ]);
-        }
+        $quoteItemFormResult = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->save([
+            'status' => 'WITHDREW'
+        ]);
 
-        if ($quoteBizline && $quoteItemForm){
+        if ($quoteBizline && $quoteItemFormResult){
             $this->commit();
             $quoteItemFormModel->commit();
             return ['code'=>'1','message'=>'成功!'];
@@ -527,8 +525,8 @@ class QuoteBizLineModel extends PublicModel{
         return $inquiry->alias('a')
                         ->join('erui2_rfq.inquiry_item b ON b.inquiry_id = a.id')
                         ->join('erui2_rfq.quote_item c ON c.inquiry_item_id = b.id')
-                        ->join('erui2_sys.employee d ON d.id = c.biz_agent_id')
-                        ->field('c.id,c.bizline_id,d.name biz_agent_name,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
+                        //->join('erui2_sys.employee d ON d.id = c.biz_agent_id')
+                        ->field('c.id,c.bizline_id,c.bizline_agent_id,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
                         ->where($where)
                         ->page($currentPage, $pageSize)
                         ->order('c.id DESC')
@@ -544,8 +542,7 @@ class QuoteBizLineModel extends PublicModel{
         $count =  $inquiry->alias('a')
             ->join('erui2_rfq.inquiry_item b ON b.inquiry_id = a.id')
             ->join('erui2_rfq.quote_item c ON c.inquiry_item_id = b.id')
-            ->join('erui2_sys.employee d ON d.id = c.biz_agent_id')
-            ->field('c.id,c.bizline_id,d.name biz_agent_name,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
+            ->field('c.id,c.bizline_id,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
             ->where($where)
             ->count('c.id');
         return $count > 0 ? $count : 0;

@@ -107,23 +107,6 @@ trait QuoteHelper{
             $inquiry['pm_name'] = $productManager;
             unset($inquiry['pm_id']);
         }
-        //询单(项目)状态
-/*        switch ($inquiry['status']){
-            case 'DRAFT': $inquiry['status'] = '起草'; break;
-            case 'APPROVING_BY_SC': $inquiry['status'] = '方案中心审核中'; break;
-            case 'APPROVED_BY_SC': $inquiry['status'] = '方案中心已确认'; break;
-            case 'QUOTING_BY_BIZLINE': $inquiry['status'] = '产品线报价中'; break;
-            case 'QUOTED_BY_BIZLINE': $inquiry['status'] = '产品负责人已确认'; break;
-            case 'BZ_QUOTE_REJECTED': $inquiry['status'] = '项目经理驳回产品报价'; break;
-            case 'QUOTING_BY_LOGI': $inquiry['status'] = '物流报价中'; break;
-            case 'QUOTED_BY_LOGI': $inquiry['status'] = '物流审核人已确认'; break;
-            case 'LOGI_QUOTE_REJECTED': $inquiry['status'] = '项目经理驳回物流报价'; break;
-            case 'APPROVED_BY_PM': $inquiry['status'] = '项目经理已确认'; break;
-            case 'APPROVING_BY_MARKET': $inquiry['status'] = '市场主管审核中'; break;
-            case 'APPROVED_BY_MARKET': $inquiry['status'] = '市场主管已审核'; break;
-            case 'QUOTE_SENT': $inquiry['status'] = '报价单已发出'; break;
-            case 'INQUIRY_CLOSED': $inquiry['status'] = '报价关闭'; break;
-        }*/
 
         return $inquiry;
     }
@@ -141,8 +124,8 @@ trait QuoteHelper{
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $quoteBizlineModel = new QuoteBizLineModel();
-        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
-        return $quoteBizlineModel->alias('qb')
+        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
+         return $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
             ->where($where)
@@ -150,6 +133,7 @@ trait QuoteHelper{
             ->order('id DESC')
             ->select();
         //p($data);
+        //p($quoteBizlineModel->getLastSql());
     }
 
     public static function bizlineManagerQuoteListCondition(array $condition){
@@ -202,6 +186,8 @@ trait QuoteHelper{
 
         $quoteBizlineModel = new QuoteBizLineModel();
 
+        $where = self::bizlineManagerQuoteListCondition($where);
+
         $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
         $count =  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
@@ -219,7 +205,7 @@ trait QuoteHelper{
 
         $quoteItemFormModel = new QuoteItemFormModel();
 
-        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
         return $quoteItemFormModel->alias('a')
             ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
             ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')

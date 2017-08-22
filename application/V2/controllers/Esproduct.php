@@ -41,8 +41,9 @@ class EsproductController extends PublicController {
 
     public function listAction() {
         $model = new EsProductModel();
-        $lang = $this->get('lang') ?: $this->getPut('lang', 'zh');
-        $ret = $model->getProducts($this->put_data, null, $lang);
+        $lang = $this->getPut('lang', 'zh');
+
+        $ret = $model->getProducts($this->getPut(), null, $lang);
         if ($ret) {
             $data = $ret[0];
 
@@ -87,10 +88,10 @@ class EsproductController extends PublicController {
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
             } else {
-                $list[$key]['img'] = null;
+                $list[$key]['img'] = new stdClass();
             }
             $list[$key]['id'] = $item['_id'];
-            //$show_cats = json_decode($item["_source"]["show_cats"], true);
+            $show_cats = json_decode($item["_source"]["show_cats"], true);
             if ($show_cats) {
                 rsort($show_cats);
             }
@@ -103,12 +104,15 @@ class EsproductController extends PublicController {
             if ($product['checked_by']) {
                 $user_ids[] = $product['checked_by'];
             }
-            //   $list[$key]['show_cats'] = $show_cats;
+            if ($product['onshelf_by']) {
+                $user_ids[] = $product['onshelf_by'];
+            }
+            $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
 
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
+            $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
         }
 
         $employee_model = new EmployeeModel();
@@ -128,6 +132,12 @@ class EsproductController extends PublicController {
                 $val['checked_by_name'] = $usernames[$val['checked_by']];
             } else {
                 $val['checked_by_name'] = '';
+            }
+
+            if ($val['onshelf_by'] && isset($usernames[$val['onshelf_by']])) {
+                $val['onshelf_by_name'] = $usernames[$val['onshelf_by']];
+            } else {
+                $val['onshelf_by_name'] = '';
             }
             $list[$key] = $val;
         }
@@ -284,7 +294,8 @@ class EsproductController extends PublicController {
             $body['mappings']['product_' . $lang]['properties'] = $product_properties;
             $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
         }
-        $this->es->create_index($this->index, $body);
+        $es = new ESClient();
+        $es->create_index($this->index, $body);
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -372,7 +383,11 @@ class EsproductController extends PublicController {
             'updated_by' => $int_analyzed,
             'spu' => $not_analyzed,
             'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed
+            'status' => $not_analyzed,
+            'minimumorderouantity' => $not_analyzed,
+            'onshelf_flag' => $not_analyzed,
+            'onshelf_by' => $not_analyzed,
+            'onshelf_at' => $not_analyzed,
         ];
 
         return $body;
@@ -460,7 +475,14 @@ class EsproductController extends PublicController {
             'tech_paras' => $ik_analyzed,
             'properties' => $ik_analyzed,
             'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed
+            'status' => $not_analyzed,
+            'max_exw_day' => $not_analyzed,
+            'min_exw_day' => $not_analyzed,
+            'min_pack_unit' => $not_analyzed,
+            'minimumorderouantity' => $not_analyzed,
+            'onshelf_flag' => $not_analyzed,
+            'onshelf_by' => $not_analyzed,
+            'onshelf_at' => $not_analyzed,
         ];
         return $body;
     }

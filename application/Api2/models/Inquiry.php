@@ -1,5 +1,4 @@
 <?php
-
 /**
  * name: Inquiry
  * desc: 询价单表
@@ -37,18 +36,18 @@ class InquiryModel extends PublicModel {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
         if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = $condition['agent_id']; //市场经办人
+            $where['agent_id'] = $condition['agent_id'];//市场经办人
         }
         if (!empty($condition['pm_id'])) {
             $where['pm_id'] = $condition['pm_id'];  //项目经理
         }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
-                array('gt', date('Y-m-d H:i:s', $condition['start_time'])),
-                array('lt', date('Y-m-d H:i:s', $condition['end_time']))
+                array('gt',date('Y-m-d H:i:s',$condition['start_time'])),
+                array('lt',date('Y-m-d H:i:s',$condition['end_time']))
             );
         }
-        $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
+        $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
 
         return $where;
     }
@@ -76,18 +75,18 @@ class InquiryModel extends PublicModel {
     public function getList($condition = []) {
         $where = $this->getCondition($condition);
 
-        $page = !empty($condition['currentPage']) ? $condition['currentPage'] : 1;
-        $pagesize = !empty($condition['pageSize']) ? $condition['pageSize'] : 10;
+        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
+        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
             $count = $this->getCount($where);
             $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
-            if ($list) {
+            if($list){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['count'] = $count;
                 $results['data'] = $list;
-            } else {
+            }else{
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -97,6 +96,7 @@ class InquiryModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
+
     }
 
     /**
@@ -106,9 +106,9 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getInfo($condition = []) {
-        if (!empty($condition['id'])) {
+        if(!empty($condition['id'])){
             $where['id'] = $condition['id'];
-        } else {
+        }else{
             $results['code'] = '-103';
             $results['message'] = '没有id!';
             return $results;
@@ -117,11 +117,11 @@ class InquiryModel extends PublicModel {
         try {
             $info = $this->where($where)->find();
 
-            if ($info) {
+            if($info){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $info;
-            } else {
+            }else{
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -131,6 +131,7 @@ class InquiryModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
+
     }
 
     /**
@@ -141,23 +142,23 @@ class InquiryModel extends PublicModel {
     public function addData($condition = []) {
         $data = $this->create($condition);
 
-        if (!empty($condition['serial_no'])) {
+        if(!empty($condition['serial_no'])) {
             $data['serial_no'] = $condition['serial_no'];
-        } else {
+        }else{
             $results['code'] = '-103';
             $results['message'] = '没有流程编码!';
             return $results;
         }
-        if (!empty($condition['buyer_id'])) {
+        if(!empty($condition['buyer_id'])){
             $data['buyer_id'] = $condition['buyer_id'];
-        } else {
+        }else{
             $results['code'] = '-103';
             $results['message'] = '没有客户ID!';
             return $results;
         }
-        if (!empty($condition['country_bn'])) {
+        if(!empty($condition['country_bn'])){
             $data['country_bn'] = $condition['country_bn'];
-        } else {
+        }else{
             $results['code'] = '-103';
             $results['message'] = '没有国家简称!';
             return $results;
@@ -168,11 +169,11 @@ class InquiryModel extends PublicModel {
         try {
             $id = $this->add($data);
             $data['id'] = $id;
-            if ($id) {
+            if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $data;
-            } else {
+            }else{
                 $results['code'] = '-101';
                 $results['message'] = '添加失败!';
             }
@@ -192,9 +193,9 @@ class InquiryModel extends PublicModel {
      */
     public function updateData($condition = []) {
         $data = $this->create($condition);
-        if (!empty($condition['id'])) {
+        if(!empty($condition['id'])){
             $where['id'] = $condition['id'];
-        } else {
+        }else{
             $results['code'] = '-103';
             $results['message'] = '没有ID!';
             return $results;
@@ -203,10 +204,10 @@ class InquiryModel extends PublicModel {
 
         try {
             $id = $this->where($where)->save($data);
-            if ($id) {
+            if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            } else {
+            }else{
                 $results['code'] = '-101';
                 $results['message'] = '修改失败!';
             }
@@ -224,24 +225,25 @@ class InquiryModel extends PublicModel {
      * @param  int $serial_no 询单号
      * @return bool
      */
-
     public function updateStatus($condition = []) {
-        if (!empty($condition['id'])) {
-            $where['id'] = array('in', explode(',', $condition['id']));
-        } else {
-            return false;
+        if(!empty($condition['id'])){
+            $where['id'] = array('in',explode(',',$condition['id']));
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有ID!';
+            return $results;
         }
-        if (!empty($condition['status'])) {
+        if(!empty($condition['status'])){
             $data['status'] = $condition['status'];
         }
         $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->where($where)->save($data);
-            if ($id) {
+            if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            } else {
+            }else{
                 $results['code'] = '-101';
                 $results['message'] = '修改失败!';
             }
@@ -260,18 +262,18 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function deleteData($condition = []) {
-        if (!empty($condition['id'])) {
-            $where['id'] = array('in', explode(',', $condition['id']));
-        } else {
+        if(!empty($condition['id'])){
+            $where['id'] = array('in',explode(',',$condition['id']));
+        }else{
 
         }
 
         try {
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
-            if ($id) {
+            if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            } else {
+            }else{
                 $results['code'] = '-101';
                 $results['message'] = '删除失败!';
             }
@@ -289,11 +291,10 @@ class InquiryModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-
-    public function checkSerialNo($condition = []) {
-        if (!empty($condition['serial_no'])) {
+    public function checkSerialNo($condition = []){
+        if(!empty($condition['serial_no'])){
             $where['serial_no'] = $condition['serial_no'];
-        } else {
+        }else{
             $results['code'] = '-103';
             $results['message'] = '没有流程编码!';
             return $results;
@@ -301,10 +302,10 @@ class InquiryModel extends PublicModel {
 
         try {
             $id = $this->field('id')->where($where)->find();
-            if ($id) {
+            if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            } else {
+            }else{
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -321,36 +322,6 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d h:i:s', time());
+        return date('Y-m-d h:i:s',time());
     }
-
-    /**
-     * @param  int $inquiryNo 询单号
-     * 验证询单号是否存在
-     * @author zhangyuliang
-     */
-    public function checkInquiryNo($inquiryNo) {
-        if (!empty($inquiryNo)) {
-            $where['inquiry_no'] = $inquiryNo;
-        } else {
-            return false;
-        }
-
-        try {
-            $info = $this->field('id')->where($where)->find();
-            if (!empty($info)) {
-                $results['code'] = '-101';
-                $results['message'] = '询单号已经存在！';
-            } else {
-                $results['code'] = '1';
-                $results['message'] = '没有找到询单号!';
-            }
-            return $results;
-        } catch (Exception $e) {
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
-            return $results;
-        }
-    }
-
 }

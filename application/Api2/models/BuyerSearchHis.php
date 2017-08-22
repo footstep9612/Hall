@@ -26,9 +26,9 @@ class BuyerSearchHisModel extends PublicModel {
      */
 
     protected $_auto = array(
-        array('sort_order', '0'),
-        array('search_count', '1'),
-        array('created_at', 'getDate', 1, 'callback'),
+            // array('sort_order', '0'),
+            //  array('search_count', '1'),
+            //  array('created_at', 'getDate', 1, 'callback'),
     );
     /*
      * 自动表单验证
@@ -151,6 +151,7 @@ class BuyerSearchHisModel extends PublicModel {
         try {
             $data = $this->create($condition);
             $row = $this->where($data)->find();
+
             return empty($row) ? false : $row;
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);

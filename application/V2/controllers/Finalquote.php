@@ -1,12 +1,12 @@
 <?php
 /**
- * name: FinalQuote.php
+ * name: Finalquote.php
  * desc: 市场报价单控制器
  * User: 张玉良
  * Date: 2017/8/3
  * Time: 10:55
  */
-class FinalQuoteController extends PublicController {
+class FinalquoteController extends PublicController {
 
     public function init()
     {
@@ -182,10 +182,36 @@ class FinalQuoteController extends PublicController {
      */
     public function updateStatusAction(){
         $finalquote = new FinalQuoteModel();
+        $inquiry = new InquiryModel();
+        $quote = new QuoteModel();
         $data =  $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
+        $finalquote->startTrans();
         $results = $finalquote->updateFinalStatus($data);
+        if($results['code'] == 1){
+            $inquirywhere['id'] = $data['inquiry_id'];
+            $inquirywhere['status'] = $data['status'];
+            $inquirydata = $inquiry->updateStatus($inquirywhere);
+            if($inquirydata['code'] == 1){
+                $quotedata = $quote->updateQuoteStatus($data);
+                if($quotedata['code'] == 1){
+                    $finalquote->commit();
+                }else{
+                    $finalquote->rollback();
+                    $results['code'] = '-101';
+                    $results['message'] = '修改失败!';
+                }
+            }else{
+                $finalquote->rollback();
+                $results['code'] = '-101';
+                $results['message'] = '修改失败!';
+            }
+        }else{
+            $finalquote->rollback();
+            $results['code'] = '-101';
+            $results['message'] = '修改失败!';
+        }
         $this->jsonReturn($results);
     }
 

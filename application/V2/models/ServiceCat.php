@@ -269,7 +269,41 @@ class ServiceCatModel extends PublicModel {
         }
 
     }
-
+    /**
+    * 所有服务的详情
+    * @param $input
+    * @author klp
+    */
+    public function getAllService() {
+        $condition = array(
+            'deleted_flag' => self::DELETE_N,
+            'status' => self::STATUS_VALID
+        );
+        try{
+            $data = array();
+            $ServiceTermModel = new ServiceTermModel();
+            $ServiceItemModel = new ServiceItemModel();
+            $result = $this->field('id,category,status')->where($condition)->select();
+//            jsonReturn($result);
+            if($result){
+                foreach($result as $category){
+                    //条款
+                    $term = $ServiceTermModel->field('id as service_term_id,term,choice_flag,add_flag,status')->where([ 'deleted_flag' => self::DELETE_N, 'status' => self::STATUS_VALID,'service_cat_id'=>$category['id']])->select();
+                    //内容
+                    $item = $ServiceItemModel->field('id as service_item_id,service_cat_id,service_term_id,item,status')->where([ 'deleted_flag' => self::DELETE_N, 'status' => self::STATUS_VALID,'service_cat_id'=>$category['id']])->select();
+                    $result = $this->initService($category,$term,$item);
+                    if($result === false) {
+                        jsonReturn('',ErrorMsg::FAILED);
+                    }
+                    $data[] = $result;
+                }
+                return $data;
+            }
+            return array();
+        }catch (Exception $e){
+            return false;
+        }
+    }
 
     /**************************************************************
      * 服务详情
@@ -514,6 +548,5 @@ class ServiceCatModel extends PublicModel {
         }
         return $data;
     }
-
 
 }

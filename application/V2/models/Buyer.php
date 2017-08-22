@@ -333,7 +333,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_at'])) {
             $data['checked_at'] = $create['checked_at'];
         }
-        if ($create['status']) {
+        if (isset($create['status'])) {
             switch ($create['status']) {
                 case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];

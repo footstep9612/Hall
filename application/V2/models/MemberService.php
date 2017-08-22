@@ -22,20 +22,40 @@ class MemberServiceModel extends PublicModel{
      * 会员等级查看
      * @author klp
      */
-    public function levelInfo($limit){
-        $where = array(
-            'status'=>'VALID',
-            'deleted_flag'=>'N'
-        );
-        $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
+    public function levelInfo($limit,$where){
+        $where['status'] = 'VALID';
+        $where['deleted_flag'] = 'N';
+        $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
             if(!empty($limit)){
             $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->select();
             } else{
                 $result = $this->field($fields)->where($where)->order('buyer_level')->select();
             }
+            $data = array();
             if($result) {
-                return $result;
+                $employee = new EmployeeModel();
+                foreach($result as $item){
+                    $data[$item['service_cat_id']]['created_at'] = $item['created_at'];
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $data[$item['service_cat_id']]['created_by'] = $createder[0];
+                    }
+                    $data[$item['service_cat_id']]['buyer_level']= $item['buyer_level'];
+
+                    $data[$item['service_cat_id']]['category']['service_cat_id'] = $item['service_cat_id'];
+
+                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] =$item['service_term_id'];
+
+                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id']=$item['service_item_id'];
+
+                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['id']=$item['id'];
+
+                }
+                foreach($data as $key=>$value){
+                    $arr[][$key] = $value;
+                }
+                return $arr;
             }
             return array();
         } catch(Exception $e){
@@ -56,19 +76,42 @@ class MemberServiceModel extends PublicModel{
         if(!$data || !is_array($data)){
             return false;
         }
+        if(empty($data['buyer_level'])){
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
         try{
-            foreach($data['levels'] as $item){
-//                $res = $this->field('id')->where(['id'=>$item['id']])->find();
-                if(!empty($item['id'])){
-                    $result = $this->update_data($item,$userInfo);
-                    if(1 != $result['code']){
-                        return false;
-                    }
-                } else {
-                    $result = $this->create_data($item,$userInfo);
-                    if(1 != $result['code']){
-                        return false;
-                    }
+            foreach($data['levels'] as $items){
+                //处理条款id
+               foreach($items['term'] as $term) {
+               //处理条款内容id
+                   foreach($term['item'] as $im) {
+                       $save = [
+                           'service_cat_id'=>$items['category']['service_cat_id'],
+                           'service_term_id'=>$term['service_term_id'],
+                           'service_item_id'=>$im['service_item_id'],
+                           'buyer_level'=>$data['buyer_level']
+                       ];
+                       if(isset($im['id']) && !empty($im['id'])){
+                           $res = $this->field('id')->where(['id'=>$items['id']])->find();
+                           if($res){
+                               $save['id'] = $im['id'];
+                               $result = $this->update_data($save,$userInfo);
+                               if(1 != $result['code']){
+                                   return false;
+                               }
+                           } else {
+                               $result = $this->create_data($save,$userInfo);
+                               if(1 != $result['code']){
+                                   return false;
+                               }
+                           }
+                       } else {
+                           $result = $this->create_data($save,$userInfo);
+                           if(1 != $result['code']){
+                               return false;
+                           }
+                       }
+                   }
                 }
             }
             if($result){
@@ -85,6 +128,7 @@ class MemberServiceModel extends PublicModel{
             return $results;
         }
     }
+
 
     /**
      * @desc 删除数据
@@ -114,24 +158,24 @@ class MemberServiceModel extends PublicModel{
      * @return bool
      * @author klp
      */
-    public function create_data($createcondition = [],$userInfo) {
+    public function create_data($createcondition,$userInfo) {
         $create = $this->checkParam($createcondition);
-        if(isset($create['buyer_level'])){
+        if(!empty($create['buyer_level'])){
             $data['buyer_level'] = $create['buyer_level'];
         }
-        if(isset($create['service_cat_id'])){
+        if(!empty($create['service_cat_id'])){
             $data['service_cat_id'] = $create['service_cat_id'];
         }
-        if(isset($create['service_term_id'])){
+        if(!empty($create['service_term_id'])){
             $data['service_term_id'] = $create['service_term_id'];
         }
-        if(isset($create['service_item_id'])){
+        if(!empty($create['service_item_id'])){
             $data['service_item_id'] = $create['service_item_id'];
         }
-        if(isset($create['status'])){
+        if(!empty($create['status'])){
             $data['status'] = $create['status'];
         }
-        if(isset($create['created_by'])){
+        if(!empty($create['created_by'])){
             $data['created_by'] = $userInfo['id'];
         }
         $data['created_at'] = $this->getTime();
@@ -172,25 +216,25 @@ class MemberServiceModel extends PublicModel{
      */
     public function update_data($updatecondition = [],$userInfo) {
         $create = $this->checkParam($updatecondition);
-        if(isset($create['id'])){
+        if(!empty($create['id'])){
             $where = array('id'=>$create['id']);
         }
-        if(isset($create['buyer_level'])){
+        if(!empty($create['buyer_level'])){
             $data['buyer_level'] = $create['buyer_level'];
         }
-        if(isset($create['service_cat_id'])){
+        if(!empty($create['service_cat_id'])){
             $data['service_cat_id'] = $create['service_cat_id'];
         }
-        if(isset($create['service_term_id'])){
+        if(!empty($create['service_term_id'])){
             $data['service_term_id'] = $create['service_term_id'];
         }
-        if(isset($create['service_item_id'])){
+        if(!empty($create['service_item_id'])){
             $data['service_item_id'] = $create['service_item_id'];
         }
-        if(isset($create['status'])){
+        if(!empty($create['status'])){
             $data['status'] = $create['status'];
         }
-        if(isset($upcondition['updated_by'])){
+        if(!empty($upcondition['updated_by'])){
             $data['updated_by'] = $userInfo['id'];
         }
         $data['updated_at'] = $this->getTime();

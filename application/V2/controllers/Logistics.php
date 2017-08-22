@@ -10,6 +10,7 @@ class LogisticsController extends PublicController {
 	public function init() {
 		parent::init();
 		
+		$this->inquiryModel = new InquiryModel();
 		$this->quoteModel = new QuoteModel();
 		$this->quoteItemModel = new QuoteItemModel();
 		$this->quoteLogiFeeModel = new QuoteLogiFeeModel();
@@ -77,6 +78,9 @@ class LogisticsController extends PublicController {
 	        foreach ($condition['items'] as $item) {
 	            $where['id'] = $item['id'];
 	            unset($item['id']);
+	            
+	            $item['updated_by'] = $this->user['id'];
+	            $item['updated_at'] = $this->time;
 	            
 	            $res = $this->quoteItemLogiModel->updateInfo($where, $item);
 	            
@@ -201,6 +205,11 @@ class LogisticsController extends PublicController {
 	            $data['logi_agent_id'] = $this->user['id'];
 	        //}
 	        
+	        if ($quoteLogiFee['logi_from_port'] != $condition['logi_from_port']) $data['logi_from_port'] = $condition['logi_from_port'];
+	        if ($quoteLogiFee['logi_to_port'] != $condition['logi_to_port']) $data['logi_to_port'] = $condition['logi_to_port'];
+	        if ($quoteLogiFee['logi_trans_mode_bn'] != $condition['logi_trans_mode_bn']) $data['logi_trans_mode_bn'] = $condition['logi_trans_mode_bn'];
+	        if ($quoteLogiFee['logi_box_type_bn'] != $condition['logi_box_type_bn']) $data['logi_box_type_bn'] = $condition['logi_box_type_bn'];
+	        
 	        $data['updated_by'] = $this->user['id'];
 	        $data['updated_at'] = $this->time;
 	        
@@ -208,11 +217,7 @@ class LogisticsController extends PublicController {
 	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
 	        
 	        $quoteData = [];
-	        
-	        if ($quote['from_port'] != $condition['from_port']) $quoteData['from_port'] = $condition['from_port'];
-	        if ($quote['to_port'] != $condition['to_port']) $quoteData['to_port'] = $condition['to_port'];
-	        if ($quote['trans_mode_bn'] != $condition['trans_mode_bn']) $quoteData['trans_mode_bn'] = $condition['trans_mode_bn'];
-	        if ($quote['box_type_bn'] != $condition['box_type_bn']) $quoteData['box_type_bn'] = $condition['box_type_bn'];
+	       
 	        if ($quote['quote_remarks'] != $condition['quote_remarks']) $quoteData['quote_remarks'] = $condition['quote_remarks'];
 	        
 	        if ($data['total_quote_price'] != $quote['total_quote_price']) $quoteData['total_quote_price'] = $data['total_quote_price'];
@@ -296,10 +301,6 @@ class LogisticsController extends PublicController {
 	    $condition = $this->put_data;
 	    
 	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
-	    
-	    $condition['volumn'] = $condition['length'] * $condition['width'] * $condition['height'];
-	   
-	    $condition['volumn'] = $condition['volumn'] > 0 ? $condition['volumn'] : 0;
 	
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
@@ -324,12 +325,59 @@ class LogisticsController extends PublicController {
 	        $where['id'] = $condition['r_id'];
 	        unset($condition['r_id']);
 	        
+	        $volumn = $condition['length'] * $condition['width'] * $condition['height'];
+	        $condition['volumn'] = $volumn > 0 ? $volumn : 0;
+	        
 	        $condition['updated_by'] = $this->user['id'];
 	        $condition['updated_at'] = $this->time;
 	        
 	        $res = $this->quoteLogiQwvModel->updateInfo($where, $condition);
 	
 	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 批量修改物流报价件重尺信息接口
+	 *
+	 * @author liujf
+	 * @time 2017-08-21
+	 */
+	public function batchUpdateQuoteLogiQwvInfoAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['items'])) {
+	         
+	        $flag = true;
+	        $data = [];
+	         
+	        foreach ($condition['items'] as $item) {
+	            $where['id'] = $item['id'];
+	            unset($item['id']);
+	            
+	            $volumn = $item['length'] * $item['width'] * $item['height'];
+	            $item['volumn'] = $volumn > 0 ? $volumn : 0;
+	            
+	            $item['updated_by'] = $this->user['id'];
+	            $item['updated_at'] = $this->time;
+	             
+	            $res = $this->quoteLogiQwvModel->updateInfo($where, $item);	             
+	             
+	            if (!$res) {
+	                $data[] = $where['id'];
+	                $flag = false;
+	            }
+	        }
+	    
+	        if ($flag) {
+	            $this->jsonReturn($flag);
+	        } else {
+	            $this->setCode('-101');
+	            $this->setMessage('失败!');
+	            parent::jsonReturn($data);
+	        }
 	    } else {
 	        $this->jsonReturn(false);
 	    }
@@ -365,7 +413,12 @@ class LogisticsController extends PublicController {
 	    if (!empty($condition['quote_id'])) {
 	        $where['quote_id'] = $condition['quote_id'];
 	        
-	        $res = $this->quoteLogiFeeModel->updateInfo($where, ['logi_agent_id' => $condition['logi_agent_id']]);
+	        $data = [
+	            'logi_agent_id' => $condition['logi_agent_id'],
+	            'updated_at' => $this->time
+	        ];
+	        
+	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);
 	        
 	        $this->jsonReturn($res);
         } else {
@@ -387,7 +440,8 @@ class LogisticsController extends PublicController {
 	        
 	        $data = [
 	            'status' => 'QUOTED',
-	            'checked_by' => $condition['checked_by']
+	            'checked_by' => $condition['checked_by'],
+	            'updated_at' => $this->time
 	        ];
 	         
 	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);
@@ -414,16 +468,20 @@ class LogisticsController extends PublicController {
 	        
 	        $this->quoteLogiFeeModel->startTrans();
 	        $this->quoteModel->startTrans();
+	        $this->inquiryModel->startTrans();
 	        $this->inquiryCheckLogModel->startTrans();
 	        
 	        $quoteLogiFeeData = [
 	            'status' => 'APPROVED',
+	            'updated_at' => $this->time,
 	            'checked_at' => $this->time
 	        ];
 	
 	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $quoteLogiFeeData);
 	        
 	        $res2 = $this->quoteModel->where(['id' => $condition['quote_id']])->save(['status' => 'QUOTED_BY_LOGI']);
+	        
+	        $res3 = $this->inquiryModel->updateStatus(['id' => $quoteLogiFee['inquiry_id'], 'status' => 'QUOTED_BY_LOGI']);
 	         
 	        $checkLog= [
 	            'inquiry_id' => $quoteLogiFee['inquiry_id'],
@@ -433,16 +491,18 @@ class LogisticsController extends PublicController {
 	            'op_result' => 'APPROVED'
 	        ];
 	         
-	        $res3 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);
+	        $res4 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);
 	        
-	        if ($res1 && $res2 && $res3) {
+	        if ($res1 && $res2 && $res3 && $res4) {
 	            $this->quoteLogiFeeModel->commit();
 	            $this->quoteModel->commit();
+	            $this->inquiryModel->commit();
 	            $this->inquiryCheckLogModel->commit();
 	            $res = true;
 	        } else {
 	            $this->quoteLogiFeeModel->rollback();
 	            $this->quoteModel->rollback();
+	            $this->inquiryModel->commit();
 	            $this->inquiryCheckLogModel->rollback();
 	            $res = false;
 	        }
@@ -472,6 +532,7 @@ class LogisticsController extends PublicController {
 	        
 	        $quoteLogiFeeData = [
 	            'status' => 'REJECTED',
+	            'updated_at' => $this->time,
 	            'checked_at' => $this->time
 	        ];
 	        

@@ -28,6 +28,7 @@ class BuyerModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING'; //待报审；
     const STATUS_APPROVED = 'APPROVED'; //审核；
     const STATUS_REJECTED = 'REJECTED'; //无效；
+    const STATUS_DRAFT = 'DRAFT'; //临时未验证；
 
     /**
      * 获取列表
@@ -240,17 +241,53 @@ class BuyerModel extends PublicModel {
      * @author jhw
      */
     public function info($data) {
-        if ($data['id']) {
-            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
+        if ($data['buyer_id']) {
+            $buyerInfo = $this->where(array("buyer.id" => $data['buyer_id']))->field('buyer.*,em.name as checked_name')
                     ->join('erui2_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
             if ($row) {
                 $buyerInfo['attach'] = $row[0];
+            } else {
+                $buyerInfo['attach'] = new stdClass();
             }
             return $buyerInfo;
         } else {
+            return false;
+        }
+    }
+
+    /**
+     * 采购商个人信息更新  -- 门户通用
+     * @author klp
+     */
+    public function upUserInfo($data,$where){
+        $this->startTrans();
+        try{
+
+            $resultBuyer = $this->update_data($data, $where);
+            if(!$resultBuyer){
+                $this->rollback();
+                return false;
+            }
+            $buyerAccount = new BuyerAccountModel();
+            $resultAccount = $buyerAccount->update_data($data, $where);
+            if(!$resultAccount){
+                $this->rollback();
+                return false;
+            }
+            $buyerAddress = new BuyerAddressModel();
+            $resultAddress = $buyerAddress->update_data($data, $where);
+            if(!$resultAddress){
+                $this->rollback();
+                return false;
+            }
+
+            $this->commit();
+            return true;
+        }catch (Exception $e){
+            $this->rollback();
             return false;
         }
     }
@@ -333,20 +370,27 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_at'])) {
             $data['checked_at'] = $create['checked_at'];
         }
-        if ($create['status']) {
+        if (isset($create['status'])) {
             switch ($create['status']) {
-                case self::APPROVED:
+                case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
-                case self::REJECTED:
+                case self::STATUS_REJECTED:
                     $data['status'] = $create['status'];
                     break;
-                case self::APPROVING:
+                case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];
                     break;
             }
         }
-        return $this->where($where)->save($data);
+        if(empty($data)){
+            return true;
+        }
+        $res =  $this->where($where)->save($data);
+        if($res){
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -355,15 +399,15 @@ class BuyerModel extends PublicModel {
      */
     public function getService($info, $token) {
         $where = array();
-        if (!empty($token['buyer_no'])) {
-            $where['buyer_no'] = $token['buyer_no'];
+        if (!empty($token['id'])) {
+            $where['id'] = $token['id'];
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
         $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
         $buyerLevel = $this->field('buyer_level')
-                ->where($where)
+                ->where("customer_id='" . $where['customer_id'] . "'")
                 ->find();
         //获取服务
         $MemberBizService = new MemberBizServiceModel();
@@ -609,47 +653,51 @@ class BuyerModel extends PublicModel {
      */
     public function getInfo($data) {
         $where = array();
-        if (empty($data['buyer_no'])) {
-            if (!empty($data['id'])) {
-                $where['id'] = $data['id'];
+        $field = 'buyer_no,lang,name,bn,country_bn,province,city,buyer_level';
+        try {
+            if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+                if (!empty($data['id'])) {
+                    $where['id'] = $data['id'];
+                } else {
+                    jsonReturn('', '-1001', '用户[id]不可以为空');
+                }
+                $buyerInfo = $this->where("id='" . $data['id'] . "'")
+                    ->field($field)
+                    ->find();
             } else {
-                jsonReturn('', '-1001', '用户email不可以为空');
+                $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
+                    ->field($field)
+                    ->find();
             }
-            $buyerInfo = $this->where("email='" . $data['email'] . "'")
-                    ->field('buyer_no,lang,name,bn,country_bn,province,city,official_website,buyer_level')
-                    ->find();
-        } else {
-            $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
-                    ->field('buyer_no,lang,name,bn,country_bn,province,city,official_website,buyer_level')
-                    ->find();
-        }
-        if ($buyerInfo) {
+
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
-            $userInfo = $buyerAccount->field('email,user_name,mobile,first_name,last_name,status')
-                    ->where(array('buyer_no' => $buyerInfo['buyer_no']))
-                    ->find();
-
+            $userInfo = $buyerAccount->field('email,mobile,first_name,last_name')
+                ->where(array('id' => $data['id'],'status'=>'VALID'))
+                ->find();
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
             $zipCode = $buyerAddress->field('zipcode,address')
-                    ->where(array('buyer_no' => $buyerInfo['buyer_no']))
-                    ->find();
-
-            $buyerInfo['email'] = $userInfo['email'];
-            $buyerInfo['user_name'] = $userInfo['user_name'];
-            $buyerInfo['mobile'] = $userInfo['mobile'];
-            $buyerInfo['first_name'] = $userInfo['first_name'];
-            $buyerInfo['last_name'] = $userInfo['last_name'];
-            $buyerInfo['status'] = $userInfo['status'];
-            $buyerInfo['zipcode'] = $zipCode['zipcode'];
-            $buyerInfo['address'] = $zipCode['address'];
-
-            return $buyerInfo;
-        } else {
-            return false;
+                ->where(array('id' => $buyerInfo['id']))
+                ->find();
+            if($buyerInfo){
+                if($userInfo){
+                    $buyerInfo['email'] = $userInfo['email'];
+                    $buyerInfo['user_name'] = $userInfo['user_name'];
+                    $buyerInfo['mobile'] = $userInfo['mobile'];
+                    $buyerInfo['first_name'] = $userInfo['first_name'];
+                    $buyerInfo['last_name'] = $userInfo['last_name'];
+                }
+                if($zipCode){
+                    $buyerInfo['zipcode'] = $zipCode['zipcode'];
+                    $buyerInfo['address'] = $zipCode['address'];
+                }
+                return $buyerInfo;
+            }
+            return array();
+        }catch (Exception $e){
+            return array();
         }
     }
-
 }

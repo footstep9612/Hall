@@ -155,6 +155,8 @@ class SinosurerateModel extends PublicModel {
         if (isset($condition['id'])) {
             unset($condition['id']);
         }
+        $condition['deleted_flag'] = isset($condition['deleted_flag']) && $condition['deleted_flag'] === 'Y' ? 'Y' : 'N';
+
         $data = $this->create($condition);
         try {
             return $this->add($data);

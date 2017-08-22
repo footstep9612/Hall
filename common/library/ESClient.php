@@ -107,7 +107,7 @@ class ESClient {
     // "client", "custom", "filter_path", "human", "master_timeout", "timeout", "update_all_types", "wait_for_active_shards"
 
     private $server = '';
-    private $body = [];
+    public $body = [];
     private $regexp = []; //正则式查询
     private $wildcard = []; //模糊查询
     private $prefix = []; //前缀查询
@@ -153,7 +153,7 @@ class ESClient {
      * @return array     *
      */
 
-    public function create_index($index, $body, $number_of_shards = 6, $number_of_replicas = 1) {
+    public function create_index($index, $body, $number_of_shards = 16, $number_of_replicas = 1) {
         $indexParams['index'] = $index;
         // $indexParams['type'] = $type;
         $indexParams['body'] = $body;
