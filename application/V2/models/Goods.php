@@ -642,12 +642,12 @@ class GoodsModel extends PublicModel {
                 return false;
             }
 
-            /* $gattr = new GoodsAttrModel();
+             $gattr = new GoodsAttrModel();
              $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
              if (!$resAttr || $resAttr['code'] != 1) {
                  $this->rollback();
                  return false;
-             }*/
+             }
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
