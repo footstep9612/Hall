@@ -70,7 +70,6 @@ class SupervisedCriteriaModel extends PublicModel {
             if (redisHashExist('SupervisedCriteria', $redis_key)) {
                 return json_decode(redisHashGet('SupervisedCriteria', $redis_key), true);
             }
-
             $result = $this->field('id,criteria_no,license,authority,issued_at,created_by,created_at')->where($where)->order($order)->select();
             redisHashSet('SupervisedCriteria', $redis_key, json_encode($result));
             return $result;

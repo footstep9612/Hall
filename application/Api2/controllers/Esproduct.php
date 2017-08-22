@@ -45,16 +45,17 @@ class EsproductController extends PublicController {
                 $es_goods_model = new EsGoodsModel();
                 $send['sku_count'] = $es_goods_model->getgoodscount($condition);
             }
-            if (!$data['show_cat_no']) {
+            if (!$condition['show_cat_no']) {
                 $material_cat_nos = [];
                 foreach ($data['aggregations']['material_cat_no']['buckets'] as $item) {
                     $material_cats[$item['key']] = $item['doc_count'];
                     $material_cat_nos[] = $item['key'];
                 }
             } else {
-                $condition = $data;
+
                 unset($condition['show_cat_no']);
                 $ret1 = $model->getproducts($condition, null, $this->getLang());
+
                 if ($ret1) {
                     $material_cat_nos = [];
                     foreach ($ret1[0]['aggregations']['material_cat_no']['buckets'] as $item) {
@@ -63,7 +64,9 @@ class EsproductController extends PublicController {
                     }
                 }
             }
+
             $catlist = $this->getcatlist($material_cat_nos, $material_cats);
+
             $send['catlist'] = $catlist;
             $send['data'] = $list;
             $this->update_keywords();

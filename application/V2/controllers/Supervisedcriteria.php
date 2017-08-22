@@ -17,6 +17,8 @@ class SupervisedcriteriaController extends PublicController {
 
     //put your code here
     public function init() {
+        ini_set("display_errors", "On");
+        error_reporting(E_ERROR | E_STRICT);
         //parent::init();
     }
 
