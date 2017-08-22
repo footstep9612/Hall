@@ -446,17 +446,32 @@ class QuotebizlineController extends PublicController {
      */
     public function rejectLogisticAction(){
 
-        $request = $this->validateRequests('serial_no,quote_id,op_note');
+        $request = $this->validateRequests('inquiry_id,op_note');
 
         //修改项目状态
         $inquiry =  new InquiryModel();
-        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
+        $inquiryID = $inquiry->where(['id'=>$request['inquiry_id']])->getField('id');
         if (!$inquiryID){
             $this->jsonReturn(['code'=>'-104','message'=>'没有对应的询单!']);
         }
         $inquiry->startTrans();
-        $inquiuryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'logi_quote_status' => QuoteBizLineModel::QUOTE_REJECTED
+        $inquiryResult = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+            'status' => 'LOGI_QUOTE_REJECTED'
+            'logi_quote_status' => 'REJECTED'
+        ]);
+
+        //修改报价的状态
+        $quoteModel = new QuoteModel();
+        $quoteModel->startTrans();
+        $quoteResult = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save([
+            'status' => 'LOGI_QUOTE_REJECTED'
+        ]);
+
+        //修改物流表的状态
+        $quoteLogiFee = new QuoteLogiFeeModel();
+        $quoteLogiFee->startTrans();
+        $quoteLogiFeeResult = $quoteLogiFee->where(['inquiry_id'=>$request['inquiry_id']])->save([
+            'status' => 'REJECTED' //被驳回
         ]);
 
         //写审核日志
@@ -474,13 +489,17 @@ class QuotebizlineController extends PublicController {
         ];
         $checklogResult = $inquiryCheckLog->add($checkInfo);
 
-        if ($inquiuryResult && $checklogResult){
+        if ($inquiryResult && $quoteResult && $checklogResult && $quoteLogiFeeResult){
             $inquiry->commit();
+            $quoteModel->commit();
             $inquiryCheckLog->commit();
+            $quoteLogiFee->commit();
             $this->jsonReturn(['code'=>'1','message'=>'退回成功!']);
         }else{
             $inquiry->rollback();
+            $quoteModel->rollback();
             $inquiryCheckLog->rollback();
+            $quoteLogiFee->rollback();
             $this->jsonReturn(['code'=>'-104','message'=>'退回失败!']);
         }
 
