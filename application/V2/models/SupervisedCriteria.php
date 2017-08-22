@@ -31,11 +31,23 @@ class SupervisedCriteriaModel extends PublicModel {
      * @date    2017-8-1 16:20:48
      * @author zyg
      */
-    private function _getCondition() {
-        $data = [];
-        $data['status'] = 'VALID';
+    private function _getCondition($condition) {
+        $where = [];
+        $where['status'] = 'VALID';
+
+
+        if (isset($condition['keyword']) && $condition['keyword']) {
+            $keyword = $condition['keyword'];
+            $employee_model = new EmployeeModel();
+            $userids = $employee_model->getUseridsByUserName($keyword);
+            $map1['created_by'] = ['in', $userids];
+            $map1['license'] = ['like', '%' . $keyword . '%'];
+            $map1['_logic'] = 'or';
+            $where['_complex'] = $map1;
+        }
+
         //$data['deleted_flag'] = 'N';
-        return $data;
+        return $where;
     }
 
     /**
@@ -53,7 +65,7 @@ class SupervisedCriteriaModel extends PublicModel {
                 return json_decode(redisHashGet('SupervisedCriteria', $redis_key), true);
             }
 
-            $result = $this->field('id,criteria_no,license,authority,issued_at')->where($where)->order($order)->select();
+            $result = $this->field('id,criteria_no,license,authority,issued_at,created_by,created_at')->where($where)->order($order)->select();
             redisHashSet('SupervisedCriteria', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
