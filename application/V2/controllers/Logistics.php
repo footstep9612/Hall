@@ -491,7 +491,7 @@ class LogisticsController extends PublicController {
 	            'op_result' => 'APPROVED'
 	        ];
 	         
-	        $res3 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);
+	        $res4 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);
 	        
 	        if ($res1 && $res2 && $res3 && $res4) {
 	            $this->quoteLogiFeeModel->commit();
