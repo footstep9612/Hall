@@ -386,17 +386,47 @@ class QuotebizlineController extends PublicController {
 
     /**
      * @desc 退回产品线重新报价(项目经理)
-     * @author 买买提
      */
     public function rejectBizlineAction(){
 
-        if (empty($this->_requestParams['serial_no']) || empty($this->_requestParams['bizline_id'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
+        $request = $this->validateRequests('inquiry_id');
+
+        $quote = new QuoteModel();
+        $request['quote_id'] = $quote->where(['inquiry_id'=>$request['inquiry_id']])->getField('id');
+
+        $quoteitem = new QuoteItemModel();
+        $quotebizline = new QuoteBizLineModel();
+        $quoteitemform = new QuoteItemFormModel();
+
+        //查找报价单全部SKU id
+        $ids = $quoteitem->where('quote_id='.$request['quote_id'])->getField('id',true);
+
+        $itemformwhere['quote_item_id'] = array('in',$ids);
+        //事物开始
+        $quoteitemform->startTrans();
+        $upitemform = $quoteitemform->where($itemformwhere)->save(['status' => 'REJECTED']);
+
+        if($upitemform){
+            $upquotetatus = $quote->where('id='.$request['quote_id'])->save(['status' => 'BZ_QUOTE_REJECTED']);//修改报价单状态
+            $upbizlinestatus = $quotebizline->where('quote_id='.$request['quote_id'])->save(['status' => 'REJECTED']);//修改产品线报价状态
+
+            if($upquotetatus && $upbizlinestatus){
+                $quoteitemform->commit();
+                $result['code'] = '1';
+                $result['message'] = '成功!';
+            }else{
+                $quoteitemform->rollback();
+                $result['code'] = '-101';
+                $result['message'] = '返回产品线失败!';
+            }
+        }else{
+            $quoteitemform->rollback();
+            $result['code'] = '-101';
+            $result['message'] = '返回产品线失败!';
         }
-        $result = $this->_quoteBizLine->rejectBizline($this->_requestParams);
+
         $this->jsonReturn($result);
     }
-
     /**
      * @desc 提交物流报价(项目经理)
      * @author 买买提
