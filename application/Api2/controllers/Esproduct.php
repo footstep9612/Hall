@@ -78,9 +78,18 @@ class EsproductController extends PublicController {
     }
 
     private function getdata($data) {
-
+        $keyword = $this->getPut('keyword');
         foreach ($data['hits']['hits'] as $key => $item) {
+
+
             $list[$key] = $item["_source"];
+
+            if (isset($item['highlight']['show_name.ik'][0])) {
+                $list[$key]['show_name'] = $item['highlight']['show_name.ik'][0];
+            } else {
+                $list[$key]['show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
+            }
+
             $attachs = json_decode($item["_source"]['attachs'], true);
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];

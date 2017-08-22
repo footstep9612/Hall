@@ -323,24 +323,24 @@ trait QuoteBizlineHelper{
      */
     public static function submitToManager($request){
 
-//        $inquiry = new InquiryModel();
-//        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
-//        if ($status=="QUOTED_BY_BIZLINE"){
-//            return ['code'=>'-104','message'=>'不能重复提交!'];
-//        }
-//
-//        $inquiry->startTrans();
-//        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-//            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
-//            'goods_quote_status'=>'QUOTED'//当前报价的状态
-//        ]);
-//
-//        //更改报价的状态(quote表)
-//        $quoteModel = new QuoteModel();
-//        $quoteModel->startTrans();
-//        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
-//            'status' => 'QUOTED_BY_BIZLINE'
-//        ]);
+        $inquiry = new InquiryModel();
+        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
+        if ($status=="QUOTED_BY_BIZLINE"){
+            return ['code'=>'-104','message'=>'不能重复提交!'];
+        }
+
+        $inquiry->startTrans();
+        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
+            'goods_quote_status'=>'QUOTED'//当前报价的状态
+        ]);
+
+        //更改报价的状态(quote表)
+        $quoteModel = new QuoteModel();
+        $quoteModel->startTrans();
+        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+            'status' => 'QUOTED_BY_BIZLINE'
+        ]);
 
         //数据回写(从quote_item_form到quote_item)
         $quoteItemFormModel = new QuoteItemFormModel();
@@ -354,7 +354,7 @@ trait QuoteBizlineHelper{
         $quoteItemResult = true;
         foreach ($quoteItems as $quote=>$item){
             $result = $quoteItemModel->where(['id'=>$item['quote_item_id']])->save($quoteItemModel->create($item));
-            p($result);
+            //p($result);
             //p($quoteItemModel->getLastSql());
             if (!$result) {
                 $quoteItemResult = false;

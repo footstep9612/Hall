@@ -107,7 +107,7 @@ class ESClient {
     // "client", "custom", "filter_path", "human", "master_timeout", "timeout", "update_all_types", "wait_for_active_shards"
 
     private $server = '';
-    private $body = [];
+    public $body = [];
     private $regexp = []; //正则式查询
     private $wildcard = []; //模糊查询
     private $prefix = []; //前缀查询

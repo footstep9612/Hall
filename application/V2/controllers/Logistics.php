@@ -299,10 +299,6 @@ class LogisticsController extends PublicController {
 	    $condition = $this->put_data;
 	    
 	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
-	    
-	    $condition['volumn'] = $condition['length'] * $condition['width'] * $condition['height'];
-	   
-	    $condition['volumn'] = $condition['volumn'] > 0 ? $condition['volumn'] : 0;
 	
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
@@ -326,6 +322,9 @@ class LogisticsController extends PublicController {
 	    if (!empty($condition['r_id'])) {
 	        $where['id'] = $condition['r_id'];
 	        unset($condition['r_id']);
+	        
+	        $condition['volumn'] = $condition['length'] * $condition['width'] * $condition['height'];
+	        $condition['volumn'] = $condition['volumn'] > 0 ? $condition['volumn'] : 0;
 	        
 	        $condition['updated_by'] = $this->user['id'];
 	        $condition['updated_at'] = $this->time;
