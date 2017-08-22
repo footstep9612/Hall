@@ -477,7 +477,7 @@ class QuotebizlineController extends PublicController {
 
         //写审核日志
         $inquiryCheckLog = new InquiryCheckLogModel();
-        //$inquiryCheckLog->startTrans();
+        $inquiryCheckLog->startTrans();
         $checkInfo = [
             'created_by' => !empty($this->user['id']) ? $this->user['id'] : 1,
             'created_at' => date('Y-m-d H:i:s'),
