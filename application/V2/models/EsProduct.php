@@ -20,8 +20,8 @@ class EsProductModel extends Model {
 
     const STATUS_DELETED = 'DELETED';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /*
@@ -259,7 +259,17 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik', 'name.ik']);
+        if (isset($condition['keyword'])) {
+            $show_name = $condition['keyword'];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MULTI_MATCH => [
+                                'query' => $show_name,
+                                'type' => 'most_fields',
+                                'fields' => ['name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
+                            ]],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+            ]]];
+        }
         return $body;
     }
 
