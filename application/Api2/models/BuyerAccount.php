@@ -188,11 +188,14 @@ class BuyerAccountModel extends PublicModel {
                     break;
             }
         }
-        if (!empty($where)) {
-            return $this->where($where)->save($arr);
-        } else {
-            return false;
+        if(empty($arr)){
+            return true;
         }
+        $res =  $this->where($where)->save($arr);
+        if($res){
+            return true;
+        }
+        return false;
     }
 
     /**

@@ -24,7 +24,6 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function getUserInfoAction() {
-
         $buyerModel = new BuyerAccountModel();
 
         $result = $buyerModel->getinfo($this->user);
@@ -52,13 +51,9 @@ class MembercenterController extends PublicController {
         } else {
             jsonReturn('', '-1001', '参数[id]不能为空');
         }
-        $buyerAccount = new BuyerAccountModel();
-        $result1 = $buyerAccount->update_data($this->getPut(), $where);
         $buyer = new BuyerModel();
-        $result2 = $buyer->update_data($this->getPut(), $where);
-        $buyerAddress = new BuyerAddressModel();
-        $result3 = $buyerAddress->update_data($this->getPut(), $where);
-        if ($result1 || $result2 || $result3) {
+        $result = $buyer->upUserInfo($this->getPut(), $where);
+        if ($result) {
             jsonReturn('', 1, '保存成功');
         } else {
             jsonReturn('', '-1002', '保存失败');
@@ -103,13 +98,19 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->update_pwd($this->getPut(), $this->user);
+        $result = $buyerAccount->checkPassword($this->getPut());
         if ($result) {
-            jsonReturn('', 1, '修改密码成功');
+            $buyerAccount = new BuyerAccountModel();
+            $res = $buyerAccount->update_pwd($this->getPut(), $this->user);
+            if ($res) {
+                jsonReturn('', 1, '修改密码成功!');
+            } else {
+                jsonReturn('', '-1002', '修改密码失败!');
+            }
         } else {
-            jsonReturn('', '-1002', '修改密码失败');
+            jsonReturn('', '-1003', '原密码输入错误!');
         }
-        exit;
+
     }
 
     /**

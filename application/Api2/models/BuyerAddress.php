@@ -169,7 +169,14 @@ class BuyerAddressModel extends PublicModel {
             $data['official_email'] = $condition['official_email'];
         }
 
-        return $this->where($where)->save($data);
+        if(empty($data)){
+            return true;
+        }
+        $res =  $this->where($where)->save($data);
+        if($res){
+            return true;
+        }
+        return false;
     }
 
 }
