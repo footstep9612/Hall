@@ -259,6 +259,12 @@ class BuyerModel extends PublicModel {
     }
 
     /**
+     * 采购商个人信息更新  -- 门户通用
+     * @author klp
+     */
+
+
+    /**
      * 采购商个人信息更新
      * @author klp
      */

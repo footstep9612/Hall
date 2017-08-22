@@ -36,19 +36,20 @@ class MemberServiceModel extends PublicModel{
             if($result) {
                 $employee = new EmployeeModel();
                 foreach($result as $item){
-                    $data[$item['buyer_level']]['created_at'] = $item['created_at'];
+                    $data[$item['service_cat_id']]['created_at'] = $item['created_at'];
                     $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
                     if ($createder && isset($createder[0])) {
-                        $data[$item['buyer_level']]['created_by'] = $createder[0];
+                        $data[$item['service_cat_id']]['created_by'] = $createder[0];
                     }
+                    $data[$item['service_cat_id']]['buyer_level']= $item['buyer_level'];
 
-                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['service_cat_id'] = $item['service_cat_id'];
+                    $data[$item['service_cat_id']]['category']['service_cat_id'] = $item['service_cat_id'];
 
-                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] =$item['service_term_id'];
+                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] =$item['service_term_id'];
 
-                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id']=$item['service_item_id'];
+                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id']=$item['service_item_id'];
 
-                    $data[$item['buyer_level']][$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['id']=$item['id'];
+                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['id']=$item['id'];
 
                 }
                 foreach($data as $key=>$value){
