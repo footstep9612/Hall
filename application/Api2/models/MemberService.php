@@ -59,5 +59,34 @@ class MemberServiceModel extends PublicModel{
         }
 
     }
+    /**
+     * 会员等级匹配服务
+     * @author klp
+     */
+    public function service($token){
+        $where['status'] = 'VALID';
+        $where['deleted_flag'] = 'N';
+        $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
 
+            //获取会员等级
+            $buyerLevel = new BuyerModel();
+            $buyer_level = $buyerLevel->field('buyer_level')->where(['id'=>$token['buyer_id']])->find();
+
+            $result = $this->field($fields)->where($where)->select();
+        //--------------
+        $where['status'] = 'VALID';
+        $where['deleted_flag'] = 'N';
+        $result = $this->field('service_cat_id')->where($where)->group('service_cat_id')->select();
+        foreach($result as $key=>$val){
+            $where1 = ['service_cat_id' =>$val['service_cat_id'],'status'=>'VALID','deleted_flag'=>'N'];
+            $rs =  $this->field('service_term_id')->where($where1)->group('service_term_id')->select();
+            foreach($rs as $key1=>$val1){
+                $where2 = ['service_term_id'=>$val1['service_term_id'],'status'=>'VALID','deleted_flag'=>'N'];
+                $rs1 =  $this->field('service_item_id,id')->where($where2)->group('service_item_id')->select();
+                $rs[$key1]['item'] = $rs1;
+            }
+            $result[$key]['term'] = $rs;
+        }
+        return $result? $result:array();
+    }
 }

@@ -461,7 +461,7 @@ class ProductModel extends PublicModel {
 
         //读取redis缓存
         if (redisHashExist('spu', md5(json_encode($condition)))) {
-            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
+//            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
         }
 
         //数据读取
@@ -487,7 +487,10 @@ class ProductModel extends PublicModel {
                     if ($checkeder && isset($checkeder[0])) {
                         $item['checked_by'] = $checkeder[0];
                     }
-
+                    if(json_decode($item['brand'],true) != null){
+                        $brand = json_decode($item['brand'],true);
+                        $item['brand'] = $brand['name'];
+                    }
                     //语言分组
                     $data[$item['lang']] = $item;
                 }

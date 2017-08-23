@@ -20,45 +20,13 @@ class MemberServiceModel extends PublicModel {
     const STATUS_INVALID = 'INVALID';      //无效
     const STATUS_DELETED = 'DELETED';      //删除
 
-    /**
-     * 会员等级查看
-     * @author klp
-     */
-    public function levelInfo($limit){
-        $where['status'] = 'VALID';
-        $where['deleted_flag'] = 'N';
-        $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
-        try{
-            if(!empty($limit)){
-            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->group('buyer_level')->select();
-            } else{
-                $result = $this->field($fields)->where($where)->order('buyer_level')->group('buyer_level')->select();
-            }
-            $data = array();
-            if ($result) {
-                $employee = new EmployeeModel();
-                foreach($result as $item) {
-                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0];
-                    }
-                    $data[$item['buyer_level']][] = $item;
-                }
-                return $data;
-            }
-            return array();
-        } catch (Exception $e) {
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
-            return array();
-        }
-    }
+
     /**
      * 会员等级匹配服务
      * @author klp
      */
-    public function levelService($buyer_level){
-        $where['buyer_level'] = $buyer_level;
+    public function levelService($buyer_level_id){
+        $where['buyer_level_id'] = $buyer_level_id;
         $where['status'] = 'VALID';
         $where['deleted_flag'] = 'N';
         $result = $this->field('service_cat_id')->where($where)->group('service_cat_id')->select();
@@ -85,10 +53,22 @@ class MemberServiceModel extends PublicModel {
         if (!$data || !is_array($data)) {
             return false;
         }
+        if (empty($data['buyer_level_id'])) {
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
+        }
         if (empty($data['buyer_level'])) {
             jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
+        $this->startTrans();
         try {
+            //处理等级
+            $buyerLevelModel = new BuyerLevelModel();
+            $re = $buyerLevelModel->editLevel($data,$userInfo);
+            if(1 != $re['code']){
+                $this->rollback();
+                return false;
+            }
+            //处理服务
             foreach ($data['levels'] as $items) {
                 //处理条款id
                 foreach ($items['term'] as $term) {
@@ -107,32 +87,32 @@ class MemberServiceModel extends PublicModel {
                                 $save['id'] = $im['id'];
                                 $result = $this->update_data($save, $userInfo);
                                 if (1 != $result['code']) {
+                                    $this->rollback();
                                     return false;
                                 }
                             } else {
                                 $result = $this->create_data($save, $userInfo);
                                 if (1 != $result['code']) {
+                                    $this->rollback();
                                     return false;
                                 }
                             }
                         } else {
                             $result = $this->create_data($save, $userInfo);
                             if (1 != $result['code']) {
+                                $this->rollback();
                                 return false;
                             }
                         }
                     }
                 }
             }
-            if ($result) {
-                $results['code'] = '1';
-                $results['message'] = '成功!';
-            } else {
-                $results['code'] = '-101';
-                $results['message'] = '失败!';
-            }
+            $results['code'] = '1';
+            $results['message'] = '成功!';
+            $this->commit();
             return $results;
         } catch (Exception $e) {
+            $this->rollback();
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
@@ -145,18 +125,29 @@ class MemberServiceModel extends PublicModel {
      * @param $id
      * @return bool
      */
-    public function delData($buyer_level) {
-        if (empty($buyer_level)) {
+    public function delData($buyer_level_id) {
+        if (empty($buyer_level_id)) {
             return false;
         }
+        $this->startTrans();
         try {
-            $where = ['buyer_level' => $buyer_level];
+            $where = ['buyer_level_id' => $buyer_level_id];
             $res = $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
             if (!$res) {
+                $this->rollback();
                 return false;
             }
-            return $res;
+            $buyerLevelModel = new BuyerLevelModel();
+            $where1 = ['id' => $buyer_level_id];
+            $res1 = $buyerLevelModel->where($where1)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
+            if (!$res1) {
+                $this->rollback();
+                return false;
+            }
+            $this->commit();
+            return true;
         } catch (Exception $e) {
+            $this->rollback();
             return false;
         }
     }
