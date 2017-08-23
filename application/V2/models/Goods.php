@@ -666,12 +666,13 @@ class GoodsModel extends PublicModel {
                 return false;
             }
 
-            $gattr = new GoodsAttrModel();
+       /*     $gattr = new GoodsAttrModel();
             $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
+            jsonReturn($resAttr);
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
                 return false;
-            }
+            }*/
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
@@ -680,14 +681,14 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-            if ('CHECKING' != $status) {
+          /*  if ('CHECKING' != $status) {
                 $checkLogModel = new ProductCheckLogModel();          //审核记录
                 $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
                 if (!$resLogs || $resLogs['code'] != 1) {
                     $this->rollback();
                     return false;
                 }
-            }
+            }*/
 
 
             $this->commit();
