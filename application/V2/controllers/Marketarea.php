@@ -11,7 +11,8 @@ class MarketareaController extends PublicController {
 
     public function init() {
         // parent::init();
-
+        ini_set("display_errors", "On");
+        error_reporting(E_ERROR | E_STRICT);
         $this->_model = new MarketAreaModel();
     }
 
