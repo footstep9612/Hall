@@ -460,6 +460,9 @@ class SupplierController extends PublicController {
         if(!empty($data['employee_count'])) {
             $arr['employee_count'] = $data['employee_count'];
         }
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
+        }
         if(!empty($data['status'])) {
             $arr['status'] = $data['status'];
             if($data['status']=='APPROVED'|| $data['status']=='REJECTED'){

@@ -187,6 +187,9 @@ class SupplierModel extends PublicModel {
         }
         $data['status'] = 'DRAFT';
         $data['created_at'] = date('Y-m-d H:i:s');
+        if(isset($create['created_by'])){
+            $data['created_by'] = $create['created_by'];
+        }
         try{
             $datajson = $this->create($data);
             $res = $this->add($datajson);
@@ -293,8 +296,8 @@ class SupplierModel extends PublicModel {
         if(isset($create['checked_by'])){
             $data['checked_by'] = $create['checked_by'];
         }
-        if(isset($create['checked_by'])){
-            $data['checked_by'] = $create['checked_by'];
+        if(isset($create['checked_at'])){
+            $data['checked_at'] = $create['checked_at'];
         }
         if($create['status']){
             $data['status'] = $create['status'];
