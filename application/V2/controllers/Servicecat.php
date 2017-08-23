@@ -218,10 +218,10 @@ class ServicecatController extends PublicController {
      */
     public function levelServiceAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!isset($data['buyer_level_id']) || empty($data['buyer_level_id'])){
+        if(!isset($data['id']) || empty($data['id'])){
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        $buyer_level_id = $data['buyer_level_id'];
+        $buyer_level_id = $data['id'];
         $MemberServiceModel = new MemberServiceModel();
         $result = $MemberServiceModel->levelService($buyer_level_id);
         if(!empty($result)) {

@@ -53,9 +53,6 @@ class MemberServiceModel extends PublicModel {
         if (!$data || !is_array($data)) {
             return false;
         }
-        if (empty($data['buyer_level_id'])) {
-            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
-        }
         if (empty($data['buyer_level'])) {
             jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
@@ -78,7 +75,7 @@ class MemberServiceModel extends PublicModel {
                             'service_cat_id' => $items['service_cat_id'],
                             'service_term_id' => $term['service_term_id'],
                             'service_item_id' => $im['service_item_id'],
-                            'buyer_level' => $data['buyer_level']
+                            'buyer_level_id' => $re['buyer_level_id']
                         ];
                         if (isset($im['id']) && !empty($im['id'])) {
                             $res = $this->field('id')->where(['id' => $im['id']])->find();
@@ -160,8 +157,8 @@ class MemberServiceModel extends PublicModel {
      */
     public function create_data($createcondition, $userInfo) {
         $create = $this->checkParam($createcondition);
-        if (!empty($create['buyer_level'])) {
-            $data['buyer_level'] = $create['buyer_level'];
+        if (!empty($create['buyer_level_id'])) {
+            $data['buyer_level_id'] = $create['buyer_level_id'];
         }
         if (!empty($create['service_cat_id'])) {
             $data['service_cat_id'] = $create['service_cat_id'];
@@ -219,8 +216,8 @@ class MemberServiceModel extends PublicModel {
         if (!empty($create['id'])) {
             $where = array('id' => $create['id']);
         }
-        if (!empty($create['buyer_level'])) {
-            $data['buyer_level'] = $create['buyer_level'];
+        if (!empty($create['buyer_level_id'])) {
+            $data['buyer_level_id'] = $create['buyer_level_id'];
         }
         if (!empty($create['service_cat_id'])) {
             $data['service_cat_id'] = $create['service_cat_id'];
@@ -265,9 +262,9 @@ class MemberServiceModel extends PublicModel {
             return false;
         }
         $results = array();
-        if (empty($data['buyer_level'])) {
+        if (empty($data['buyer_level_id'])) {
             $results['code'] = '-1';
-            $results['message'] = '[buyer_level]缺失';
+            $results['message'] = '[buyer_level_id]缺失';
         }
         if (empty($data['service_cat_id'])) {
             $results['code'] = '-1';

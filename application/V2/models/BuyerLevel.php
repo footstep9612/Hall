@@ -41,8 +41,8 @@ class BuyerLevelModel extends PublicModel{
                         $data[$val['lang']]['buyer_level'] = $level[$val['lang']]['buyer_level'];
                     }
                     $arr[]=$data;
-                }jsonReturn($arr);
-                return $data;
+                }
+                return $arr;
             }
             return array();
         } catch (Exception $e) {
@@ -79,9 +79,9 @@ class BuyerLevelModel extends PublicModel{
                     $results['message'] = '失败!';
                 }
             }
-
             if ($res) {
                 $results['code'] = '1';
+                $results['buyer_level_id'] = $res;
                 $results['message'] = '成功!';
             } else {
                 $results['code'] = '-101';
