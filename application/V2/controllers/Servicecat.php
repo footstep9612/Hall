@@ -234,7 +234,7 @@ class ServicecatController extends PublicController {
     /**
      * 会员等级新建/编辑
      * @time  2017-08-05
-     *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","buyer_level":"\u4f1a\u5458","levels":[{"id":"","category":{"service_cat_id":"1"},"term":[{"service_term_id":"1","item":[{"service_item_id":"1"},{"service_item_id":"2"}]},{"service_term_id":"2","item":[{"service_item_id":"1"},{"service_item_id":"2"}]}]}]}
+     *
      * @author klp
      */
     public function editLevelAction(){
@@ -293,17 +293,16 @@ class ServicecatController extends PublicController {
 
     public function deleteLevelAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data['id'] = '1';//测试
-        if(empty($data['id'])){
+        if(empty($data['buyer_level'])){
             $datajson['code'] = -101;
-            $datajson['message'] = '用户等级i[id]不可为空!';
+            $datajson['message'] = '用户等级[buyer_level]不可为空!';
             $this->jsonReturn($datajson);
         }
         $MemberServiceModel = new MemberServiceModel();
-        $res = $MemberServiceModel->delData($data['id']);
+        $res = $MemberServiceModel->delData($data['buyer_level']);
         if($res){
             $datajson['code'] = 1;
-            $datajson['data'] = $res;
+            $datajson['data'] = '成功!';
         }else{
             $datajson['code'] = -104;
             $datajson['message'] = '失败!';
