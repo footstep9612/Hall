@@ -11,7 +11,8 @@ class MarketareaController extends PublicController {
 
     public function init() {
         // parent::init();
-
+        ini_set("display_errors", "On");
+        error_reporting(E_ERROR | E_STRICT);
         $this->_model = new MarketAreaModel();
     }
 
@@ -144,7 +145,7 @@ class MarketareaController extends PublicController {
      */
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Market_Area_*');
+        $keys = $redis->getKeys('Market_Area*');
         $redis->delete($keys);
     }
 

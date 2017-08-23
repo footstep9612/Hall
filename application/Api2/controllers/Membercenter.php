@@ -46,8 +46,8 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function upUserInfoAction() {
-        if (!empty($this->user['id'])) {
-            $where['id'] = $this->user['id'];
+        if (!empty($this->user['buyer_id'])) {
+            $where['buyer_id'] = $this->user['buyer_id'];
         } else {
             jsonReturn('', '-1001', '参数[id]不能为空');
         }
@@ -98,7 +98,7 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->getPut());
+        $result = $buyerAccount->checkPassword($this->getPut(),$this->user);
         if ($result) {
             $buyerAccount = new BuyerAccountModel();
             $res = $buyerAccount->update_pwd($this->getPut(), $this->user);
@@ -138,20 +138,15 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function listServiceAction() {
-
-        $MemberBizServiceModel = new MemberBizServiceModel();
-        $result = $MemberBizServiceModel->getVipService($this->getPut(), $this->user);
-        if ($result) {
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
+        $MemberServiceModel = new MemberServiceModel();
+        $result = $MemberServiceModel->levelService($this->user);
+//        $ServiceCatModel = new ServiceCatModel();
+//        $result = $ServiceCatModel->getAllService($this->user);
+        if(!empty($result)) {
+            jsonReturn($result);
         } else {
-            jsonReturn('', '-1002', '获取失败');
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        exit;
     }
 
     /**

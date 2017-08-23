@@ -160,9 +160,6 @@ class BuyerAccountModel extends PublicModel {
         if (isset($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
         }
-        if (isset($data['password_hash'])) {
-            $arr['password_hash'] = md5($data['password_hash']);
-        }
         if (isset($data['role'])) {
             $arr['role'] = $data['role'];
         }
@@ -171,9 +168,6 @@ class BuyerAccountModel extends PublicModel {
         }
         if (isset($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
-        }
-        if (isset($data['phone'])) {
-            $arr['phone'] = $data['phone'];
         }
         if ($data['status']) {
             switch ($data['status']) {
@@ -191,7 +185,7 @@ class BuyerAccountModel extends PublicModel {
         if(empty($arr)){
             return true;
         }
-        $res =  $this->where($where)->save($arr);
+        $res =  $this->where(['buyer_id'=>$where['buyer_id']])->save($arr);
         if($res){
             return true;
         }
@@ -244,17 +238,18 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data) {
-        if (!empty($data['id'])) {
-            $where['id'] = $data['id'];
+    public function checkPassword($data,$userId) {
+        if (!empty($userId['buyer_id'])) {
+            $where['buyer_id'] = $userId['buyer_id'];
         } else {
-            jsonReturn('', '-1001', '用户id不可以为空');
+            jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
-        if (!empty($data['password'])) {
-            $password = $data['password'];
+        if (!empty($data['oldpassword'])) {
+            $password = $data['oldpassword'];
         }
-        $pwd = $this->where($where)->field('password_hash')->find();
-        if ($pwd == $password) {
+        $pwd = $this->where(['buyer_id'=>$where['buyer_id']])->field('password_hash')->find();
+
+        if ($pwd['password_hash'] == $password) {
             return true;
         } else {
             return false;
@@ -271,14 +266,14 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($token['buyer_id'])) {
             $where['buyer_id'] = $token['buyer_id'];
         } else {
-            jsonReturn('', '-1001', '用户id不可以为空');
+            jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
-        if (!empty($data['password_hash'])) {
-            $new['password_hash'] = $data['password_hash'];
+        if (!empty($data['password'])) {
+            $new['password_hash'] = $data['password'];
         } else {
             jsonReturn('', '-1001', '新密码不可以为空');
         }
-        return $this->where($where)->save($new);
+        return $this->where(['buyer_id'=>$where['buyer_id']])->save($new);
     }
 
 }

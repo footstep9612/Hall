@@ -132,8 +132,8 @@ class BizlineModel extends PublicModel {
             $results['message'] = '缺少添加人员id!';
             return $results;
         }
-        if(!empty($condition['description'])){
-            $data['description'] = $condition['description'];
+        if(!empty($condition['remarks'])){
+            $data['remarks'] = $condition['remarks'];
         }
         $data['status'] = 'VALID';
         $data['created_at'] = $this->getTime();

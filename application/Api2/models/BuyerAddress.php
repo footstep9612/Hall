@@ -150,29 +150,29 @@ class BuyerAddressModel extends PublicModel {
      * @author klp
      */
     public function update_data($condition, $where) {
-        if ($condition['address']) {
+        if (!empty($condition['address'])) {
             $data['address'] = $condition['address'];
         }
-        if ($condition['zipcode']) {
+        if (!empty($condition['zipcode'])) {
             $data['zipcode'] = $condition['zipcode'];
         }
-        if ($condition['tel_country_code']) {
+        if (!empty($condition['tel_country_code'])) {
             $data['tel_country_code'] = $condition['tel_country_code'];
         }
-        if ($condition['tel_area_code']) {
+        if (!empty($condition['tel_area_code'])) {
             $data['tel_area_code'] = $condition['tel_area_code'];
         }
-        if ($condition['tel_ext_number']) {
+        if (!empty($condition['tel_ext_number'])) {
             $data['tel_ext_number'] = $condition['tel_ext_number'];
         }
-        if ($condition['official_email']) {
+        if (!empty($condition['official_email'])) {
             $data['official_email'] = $condition['official_email'];
         }
 
         if(empty($data)){
             return true;
         }
-        $res =  $this->where($where)->save($data);
+        $res =  $this->where(['buyer_id'=>$where['buyer_id']])->save($data);
         if($res){
             return true;
         }

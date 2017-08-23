@@ -61,6 +61,34 @@ class ProductController extends PublicController {
         exit;
     }
 
+    /*
+     * 更新ESgoods
+     */
+
+    public function updateEsgoods($input, $spu) {
+        $es_goods_model = new EsGoodsModel();
+        $goods_model = new GoodsModel();
+        $langs = ['en', 'zh', 'es', 'ru'];
+
+        foreach ($langs as $lang) {
+            if (isset($input[$lang]) && $input[$lang]) {
+                $list = $goods_model->getskubyspu($spu, $lang);
+                $skus = [];
+                foreach ($list as $item) {
+                    $skus[] = $item['sku'];
+                }
+                $es_goods_model->create_data($skus, $lang);
+            } elseif (empty($input)) {
+                $list = $goods_model->getskubyspu($spu, $lang);
+                $skus = [];
+                foreach ($list as $item) {
+                    $skus[] = $item['sku'];
+                }
+                $es_goods_model->create_data($skus, $lang);
+            }
+        }
+    }
+
     public function updateEsproduct($input, $spu) {
         $es_product_model = new EsProductModel();
         $langs = ['en', 'zh', 'es', 'ru'];
@@ -105,10 +133,14 @@ class ProductController extends PublicController {
         $result = $productModel->deleteInfo($this->put_data['spu'], $lang);
         if ($result) {
             if ($lang) {
-                $this->updateEsproduct($lang, $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
             }
+
+
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -205,14 +237,15 @@ class ProductController extends PublicController {
         $lang = isset($this->put_data['lang']) ? $this->put_data['lang'] : '';
         $spu = isset($this->put_data['spu']) ? $this->put_data['spu'] : '';
         $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
-
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->onShelf($spu, $lang, $cat_no);
         if ($result) {
             if ($lang) {
-                $this->updateEsproduct($lang, $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
             }
             jsonReturn(true);
         } else {
@@ -241,9 +274,11 @@ class ProductController extends PublicController {
         $result = $showCatProduct->downShelf($this->put_data['spu'], $lang, $cat_no);
         if ($result) {
             if ($lang) {
-                $this->updateEsproduct($lang, $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
             }
             jsonReturn(true);
         } else {
@@ -281,11 +316,12 @@ class ProductController extends PublicController {
     public function importAction() {
         //$remoteFile = $this->put_data['url'];
         //下载到本地临时文件
-       // $localFile = ExcelHelperTrait::download2local($remoteFile);
+        // $localFile = ExcelHelperTrait::download2local($remoteFile);
 
-        $localFile = MYPATH.'/public/tmp/1501903034.xls';
+        $localFile = MYPATH . '/public/tmp/1501903034.xls';
         $data = ExcelHelperTrait::ready2import($localFile);
-        var_dump($data);die;
+        var_dump($data);
+        die;
         $this->jsonReturn($this->importSkuHandler($data));
     }
 
@@ -349,7 +385,7 @@ class ProductController extends PublicController {
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
 
-        return ExcelHelperTrait::createExcelToLocalDir($objWriter,time().'.xls');
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
     }
 
 }

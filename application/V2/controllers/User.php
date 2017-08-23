@@ -159,7 +159,7 @@ class UserController extends PublicController {
             }
         }else{
             $datajson['code'] = -104;
-            $datajson['message'] = '密码错误!';
+            $datajson['message'] = '原密码错误!';
         }
         $this->jsonReturn($datajson);
     }

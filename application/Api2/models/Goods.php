@@ -119,7 +119,7 @@ class GoodsModel extends PublicModel {
             $this->getSpecBySku($result, $lang);
             return $result;
         } catch (Exception $e) {
-            print_r($e);
+
             return array();
         }
         return array();
