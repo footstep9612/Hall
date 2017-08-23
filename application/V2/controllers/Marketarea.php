@@ -144,7 +144,7 @@ class MarketareaController extends PublicController {
      */
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Market_Area_*');
+        $keys = $redis->getKeys('Market_Area*');
         $redis->delete($keys);
     }
 
