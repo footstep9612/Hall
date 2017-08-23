@@ -666,29 +666,32 @@ class GoodsModel extends PublicModel {
                 return false;
             }
 
-       /*     $gattr = new GoodsAttrModel();
-            $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
-            jsonReturn($resAttr);
+            $gattr = new GoodsAttrModel();
+            $resAttr = $gattr->modifyAttr($input['sku'], $status);        //属性状态
+
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
+
                 return false;
-            }*/
+            }
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
 
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
+
                 return false;
             }
-          /*  if ('CHECKING' != $status) {
-                $checkLogModel = new ProductCheckLogModel();          //审核记录
-                $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
-                if (!$resLogs || $resLogs['code'] != 1) {
-                    $this->rollback();
-                    return false;
-                }
-            }*/
+            /*  if ('CHECKING' != $status) {
+              $checkLogModel = new ProductCheckLogModel();          //审核记录
+              $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
+              if (!$resLogs || $resLogs['code'] != 1) {
+              $this->rollback();
+
+              return false;
+              }
+              } */
 
 
             $this->commit();
@@ -722,7 +725,8 @@ class GoodsModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(['status' => $status]);
+                        $result = $this->where($where)
+                                ->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
                         if (!$result) {
                             return false;
                         }

@@ -202,7 +202,7 @@ class BuyerController extends PublicController {
         if(!empty($data['address'])) {
             $buyer_address_data['address'] = $data['address'];
         }
-        $arr['created_at'] = $this->user['id'];
+        $arr['created_by'] = $this->user['id'];
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
@@ -316,8 +316,8 @@ class BuyerController extends PublicController {
 
         if(!empty($data['id'])) {
             $where['id'] = $data['id'];
-            $where_account['buyer_id'] = $data['buyer_id'];
-            $where_attach['buyer_id'] = $data['buyer_id'];
+            $where_account['buyer_id'] = $data['id'];
+            $where_attach['buyer_id'] = $data['id'];
 
         }else{
             $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
