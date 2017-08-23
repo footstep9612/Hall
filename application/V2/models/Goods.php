@@ -667,9 +667,11 @@ class GoodsModel extends PublicModel {
             }
 
             $gattr = new GoodsAttrModel();
-            $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
+            $resAttr = $gattr->modifyAttr($input['sku'], $status);        //属性状态
+
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
+
                 return false;
             }
 
@@ -678,6 +680,7 @@ class GoodsModel extends PublicModel {
 
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
+
                 return false;
             }
             if ('CHECKING' != $status) {
@@ -685,6 +688,7 @@ class GoodsModel extends PublicModel {
                 $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
                 if (!$resLogs || $resLogs['code'] != 1) {
                     $this->rollback();
+
                     return false;
                 }
             }
@@ -721,7 +725,8 @@ class GoodsModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(['status' => $status]);
+                        $result = $this->where($where)
+                                ->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
                         if (!$result) {
                             return false;
                         }

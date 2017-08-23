@@ -214,7 +214,7 @@ class GoodsController extends PublicController {
         }
         $goodsModel = new GoodsModel();
         $result = $goodsModel->modifySkuStatus($this->put_data);
-        if ($result['code'] == 1) {
+        if ($result) {
             if ($this->put_data['lang']) {
                 $lang = $this->put_data['lang'];
                 $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);

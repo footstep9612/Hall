@@ -255,7 +255,7 @@ class GoodsAttachModel extends PublicModel {
         //redis
         if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
             $data = json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
-            if($data){
+            if ($data) {
                 return $data;
             }
         }
@@ -281,7 +281,7 @@ class GoodsAttachModel extends PublicModel {
      * @author klp
      * @return array
      */
-    public function editSkuAttach($input,$sku='',$admin='') {
+    public function editSkuAttach($input, $sku = '', $admin = '') {
         if (empty($input) || empty($sku)) {
             return false;
         }
@@ -352,7 +352,7 @@ class GoodsAttachModel extends PublicModel {
                     ];
                     $resach = $this->field('sku')->where($where)->find();
                     if ($resach) {
-                        $res = $this->where($where)->save(['status' => $status]);
+                        $res = $this->where($where)->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
                         if (!$res) {
                             return false;
                         }
@@ -375,7 +375,7 @@ class GoodsAttachModel extends PublicModel {
                     }
                 }
             }
-            return array('code'=>1,'message'=>'成功！');
+            return array('code' => 1, 'message' => '成功！');
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
