@@ -433,8 +433,10 @@ class ProductModel extends PublicModel {
     /**
      * 列表查询
      */
-    public function getList() {
-
+    public function getList($condition = [],$field = '', $offset = 0,$length = 20) {
+        $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty' : $field;
+        $result = $this->field($field)->where($condition)->limit($offset,$length)->select();
+        return $result ? $result : array();
     }
 
     /**
