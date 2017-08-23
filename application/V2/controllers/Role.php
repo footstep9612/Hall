@@ -31,6 +31,7 @@ class RoleController extends PublicController {
         if(!empty($data['currentPage'])){
             $limit['page'] = ($data['currentPage']-1)* $limit['num'];
         }
+        $where['deleted_flag'] = "N";
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where,$limit);
         if($limit){
