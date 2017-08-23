@@ -61,6 +61,34 @@ class ProductController extends PublicController {
         exit;
     }
 
+    /*
+     * 更新ESgoods
+     */
+
+    public function updateEsgoods($input, $spu) {
+        $es_goods_model = new EsGoodsModel();
+        $goods_model = new GoodsModel();
+        $langs = ['en', 'zh', 'es', 'ru'];
+
+        foreach ($langs as $lang) {
+            if (isset($input[$lang]) && $input[$lang]) {
+                $list = $goods_model->getskubyspu($spu, $lang);
+                $skus = [];
+                foreach ($list as $item) {
+                    $skus[] = $item['sku'];
+                }
+                $es_goods_model->create_data($skus, $lang);
+            } elseif (empty($input)) {
+                $list = $goods_model->getskubyspu($spu, $lang);
+                $skus = [];
+                foreach ($list as $item) {
+                    $skus[] = $item['sku'];
+                }
+                $es_goods_model->create_data($skus, $lang);
+            }
+        }
+    }
+
     public function updateEsproduct($input, $spu) {
         $es_product_model = new EsProductModel();
         $langs = ['en', 'zh', 'es', 'ru'];
@@ -105,10 +133,14 @@ class ProductController extends PublicController {
         $result = $productModel->deleteInfo($this->put_data['spu'], $lang);
         if ($result) {
             if ($lang) {
-                $this->updateEsproduct($lang, $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
             }
+
+
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -205,14 +237,15 @@ class ProductController extends PublicController {
         $lang = isset($this->put_data['lang']) ? $this->put_data['lang'] : '';
         $spu = isset($this->put_data['spu']) ? $this->put_data['spu'] : '';
         $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
-
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->onShelf($spu, $lang, $cat_no);
         if ($result) {
             if ($lang) {
-                $this->updateEsproduct($lang, $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
             }
             jsonReturn(true);
         } else {
@@ -241,9 +274,11 @@ class ProductController extends PublicController {
         $result = $showCatProduct->downShelf($this->put_data['spu'], $lang, $cat_no);
         if ($result) {
             if ($lang) {
-                $this->updateEsproduct($lang, $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
             }
             jsonReturn(true);
         } else {
@@ -281,11 +316,12 @@ class ProductController extends PublicController {
     public function importAction() {
         //$remoteFile = $this->put_data['url'];
         //下载到本地临时文件
-       // $localFile = ExcelHelperTrait::download2local($remoteFile);
+        // $localFile = ExcelHelperTrait::download2local($remoteFile);
 
-        $localFile = MYPATH.'/public/tmp/1501903034.xls';
+        $localFile = MYPATH . '/public/tmp/1501903034.xls';
         $data = ExcelHelperTrait::ready2import($localFile);
-        var_dump($data);die;
+        var_dump($data);
+        die;
         $this->jsonReturn($this->importSkuHandler($data));
     }
 
@@ -297,34 +333,34 @@ class ProductController extends PublicController {
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
         $objSheet->getStyle("A1:I1")
-            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objSheet->getStyle("A1:I1")->getFont()->setSize(14)->setBold(true);    //粗体
         $objSheet->getStyle("A1:I1")->getFill()->getStartColor()->setARGB('FF808080');
         $objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-        $column_width_20 = ["B","C","D"];
-        foreach($column_width_20 as $column){
+        $column_width_20 = ["B", "C", "D"];
+        foreach ($column_width_20 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(20);
         }
-        $column_width_30 = ["E","F","G","H","I"];
-        foreach($column_width_30 as $column){
+        $column_width_30 = ["E", "F", "G", "H", "I"];
+        foreach ($column_width_30 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(30);
         }
-        $objSheet->setTitle('产品SPU');//设置报价单标题
-        $objSheet->setCellValue("A1","序号");
-        $objSheet->setCellValue("B1","物料分类编码");
-        $objSheet->setCellValue("C1","产品名称");
-        $objSheet->setCellValue("D1","品牌");
-        $objSheet->setCellValue("E1","产品优势");
-        $objSheet->setCellValue("F1","技术参数");
-        $objSheet->setCellValue("G1","执行标准");
-        $objSheet->setCellValue("H1","关键字");
-        $objSheet->setCellValue("I1","产品描述");
+        $objSheet->setTitle('产品SPU'); //设置报价单标题
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "物料分类编码");
+        $objSheet->setCellValue("C1", "产品名称");
+        $objSheet->setCellValue("D1", "品牌");
+        $objSheet->setCellValue("E1", "产品优势");
+        $objSheet->setCellValue("F1", "技术参数");
+        $objSheet->setCellValue("G1", "执行标准");
+        $objSheet->setCellValue("H1", "关键字");
+        $objSheet->setCellValue("I1", "产品描述");
 
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
 
-        return ExcelHelperTrait::createExcelToLocalDir($objWriter,time().'.xls');
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
     }
 
 }
