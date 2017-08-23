@@ -48,7 +48,7 @@ class ProductModel extends PublicModel {
      * @param array $input 请求数据
      * @param string $type 操作类型（INSERT/UPDATE）
      */
-    public function getData($input = [], $type = 'INSERT', $lang='') {
+    public function getData($input = [], $type = 'INSERT', $lang = '') {
         $data = array();
         //展示分类
         if (isset($input['material_cat_no'])) {
@@ -73,14 +73,14 @@ class ProductModel extends PublicModel {
 
         //品牌  看前台传什么如果传id则需要查询brand表，否则直至存json
         if (isset($input['brand'])) {
-            if(is_numeric($input['brand'])) {
+            if (is_numeric($input['brand'])) {
                 $data['brand'] = '';
                 $brand = new BrandModel();
                 $brandInfo = $brand->info($input['brand']);
-                if($brandInfo){
-                    $brandAry = json_decode($brandInfo['brand'],true);
-                    foreach($brandAry as $r){
-                        if($r['lang'] == $lang){
+                if ($brandInfo) {
+                    $brandAry = json_decode($brandInfo['brand'], true);
+                    foreach ($brandAry as $r) {
+                        if ($r['lang'] == $lang) {
                             unset($r['lang']);
                             unset($r['manufacturer']);
                             $r['id'] = $brandInfo['id'];
@@ -89,7 +89,7 @@ class ProductModel extends PublicModel {
                         }
                     }
                 }
-            }else{
+            } else {
                 $data['brand'] = is_array($input['brand']) ? json_encode($input['brand']) : $input['brand'];
             }
         } elseif ($type == 'INSERT') {
@@ -198,7 +198,7 @@ class ProductModel extends PublicModel {
                     }
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT','TEST','CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
@@ -206,7 +206,7 @@ class ProductModel extends PublicModel {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $data['name'],
-                            'status' => array('neq','DRAFT')
+                            'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {
                             $exist_condition['spu'] = array('neq', $spu);
@@ -218,8 +218,8 @@ class ProductModel extends PublicModel {
                     }
                     $data['status'] = $input['status'];
 
-                    $exist_check = $this->field('id')->where(array('spu'=>$spu,'lang'=>$key))->find();
-                    if($exist_check) {    //修改
+                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
+                    if ($exist_check) {    //修改
                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
@@ -272,16 +272,8 @@ class ProductModel extends PublicModel {
                 }
             }
             $this->commit();
-            if ($spu) {
-                $langs = ['en', 'zh', 'es', 'ru'];
-                foreach ($langs as $lang) {
-                    $esproductmodel = new EsProductModel();
-                    $esproductmodel->create_data($spu, $lang);
-                }
-            }
             return $spu;
         } catch (Exception $e) {
-            p($e);die;
             $this->rollback();
         }
     }
@@ -301,7 +293,7 @@ class ProductModel extends PublicModel {
         if ($spu) {
             $this->startTrans();
             try {
-                $model = new EsProductModel();
+
                 $spuary = [];
                 $userInfo = getLoinInfo();
                 if (is_array($spu)) {
@@ -316,17 +308,13 @@ class ProductModel extends PublicModel {
                         /**
                          * 审核人跟时间
                          */
-                        if($status==self::STATUS_VALID || $status==self::STATUS_INVALID) {
-                            $updata['checked_at'] = date('Y-m-d H:i:s',time());
+                        if ($status == self::STATUS_VALID || $status == self::STATUS_INVALID) {
+                            $updata['checked_at'] = date('Y-m-d H:i:s', time());
                             $updata['checked_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         }
                         $result = $this->where($where)->save($updata);
                         if ($result) {
                             $spuary[] = array('spu' => $r, 'lang' => $lang, 'remarks' => $remark);
-                            /**
-                             * 更新ES
-                             */
-                            $model->changestatus($r, $status, $lang);
                         } else {
                             $this->rollback();
                             return false;
@@ -343,17 +331,13 @@ class ProductModel extends PublicModel {
                     /**
                      * 审核人跟时间
                      */
-                    if($status==self::STATUS_VALID || $status==self::STATUS_INVALID) {
-                        $updata['checked_at'] = date('Y-m-d H:i:s',time());
+                    if ($status == self::STATUS_VALID || $status == self::STATUS_INVALID) {
+                        $updata['checked_at'] = date('Y-m-d H:i:s', time());
                         $updata['checked_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     }
                     $result = $this->where($where)->save($updata);
                     if ($result) {
                         $spuary[] = array('spu' => $spu, 'lang' => $lang, 'remarks' => $remark);
-                        /**
-                         * 更新ES
-                         */
-                        $model->changestatus($spu, $status, $lang);
                     } else {
                         $this->rollback();
                         return false;
@@ -394,7 +378,7 @@ class ProductModel extends PublicModel {
         if ($spu) {
             $this->startTrans();
             try {
-                $model = new EsProductModel();
+
                 $goodsModel = new GoodsModel();
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
@@ -404,18 +388,13 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count'=>0));
+                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                         if ($result) {
                             /**
                              * 删除ｓｋｕ
                              * 优化意见：这块最好放入队列，以确保成功删除掉。
                              */
                             $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
-
-                            /**
-                             * 更新ES
-                             */
-                            $model->delete_data($r,$lang);
                         } else {
                             $this->rollback();
                             return false;
@@ -428,18 +407,13 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count'=>0));
+                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                     if ($result) {
                         /**
                          * 删除ｓｋｕ
                          * 优化意见：这块最好放入队列，以确保成功删除掉。
                          */
                         $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
-
-                        /**
-                         * 更新ES
-                         */
-                        $model->delete_data($spu, $lang);
                     } else {
                         $this->rollback();
                         return false;
@@ -460,7 +434,7 @@ class ProductModel extends PublicModel {
      * 列表查询
      */
     public function getList() {
-        
+
     }
 
     /**
@@ -487,7 +461,7 @@ class ProductModel extends PublicModel {
 
         //读取redis缓存
         if (redisHashExist('spu', md5(json_encode($condition)))) {
-            return json_decode(redisHashGet('spu',md5(json_encode($condition))),true);
+            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
         }
 
         //数据读取
@@ -499,18 +473,18 @@ class ProductModel extends PublicModel {
                 $employee = new EmployeeModel();
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-                    $createder = $employee->getInfoByCondition(array('id'=>$item['created_by']), 'id,name,name_en');
-                    if($createder && isset($createder[0])) {
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
                         $item['created_by'] = $createder[0];
                     }
 
-                    $updateder = $employee->getInfoByCondition(array('id'=>$item['updated_by']), 'id,name,name_en');
-                    if($updateder && isset($updateder[0])) {
+                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+                    if ($updateder && isset($updateder[0])) {
                         $item['updated_by'] = $updateder[0];
                     }
 
-                    $checkeder = $employee->getInfoByCondition(array('id'=>$item['checked_by']), 'id,name,name_en');
-                    if($checkeder && isset($checkeder[0])) {
+                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+                    if ($checkeder && isset($checkeder[0])) {
                         $item['checked_by'] = $checkeder[0];
                     }
 
@@ -588,7 +562,7 @@ class ProductModel extends PublicModel {
         if (empty($param) || empty($field)) {
             return array();
         }
-        foreach($field as $k=>$item){
+        foreach ($field as $k => $item) {
             switch ($item[0]) {
                 case 'required':
                     if ($param[$k] == '' || empty($param[$k])) {

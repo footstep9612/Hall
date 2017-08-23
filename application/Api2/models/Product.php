@@ -489,31 +489,18 @@ class ProductModel extends PublicModel {
         if (redisHashExist('spu', md5(json_encode($condition)))) {
             return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
         }
-
         //数据读取
         try {
-            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
+            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,'
+                    . 'keywords,exe_standard,tech_paras,advantages,description,'
+                    . 'profile,principle,app_scope,properties,warranty,supply_ability,'
+                    . 'source,source_detail,sku_count,recommend_flag,status,created_by,'
+                    . 'created_at,updated_by,updated_at,checked_by,checked_at,target_market';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
-                $employee = new EmployeeModel();
+                $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
-                    //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0];
-                    }
-
-                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
-                    if ($updateder && isset($updateder[0])) {
-                        $item['updated_by'] = $updateder[0];
-                    }
-
-                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-                    if ($checkeder && isset($checkeder[0])) {
-                        $item['checked_by'] = $checkeder[0];
-                    }
-
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
@@ -522,6 +509,40 @@ class ProductModel extends PublicModel {
             return $data;
         } catch (Exception $e) {
             return false;
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 

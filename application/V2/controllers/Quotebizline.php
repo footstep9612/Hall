@@ -446,17 +446,33 @@ class QuotebizlineController extends PublicController {
      */
     public function rejectLogisticAction(){
 
-        $request = $this->validateRequests('serial_no,quote_id,op_note');
+        $request = $this->validateRequests('inquiry_id,op_note');
 
         //修改项目状态
         $inquiry =  new InquiryModel();
-        $inquiryID = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('id');
+        $inquiryID = $inquiry->where(['id'=>$request['inquiry_id']])->getField('id');
         if (!$inquiryID){
             $this->jsonReturn(['code'=>'-104','message'=>'没有对应的询单!']);
         }
         $inquiry->startTrans();
-        $inquiuryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'logi_quote_status' => QuoteBizLineModel::QUOTE_REJECTED
+        $inquiryResult = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+            'status' => 'LOGI_QUOTE_REJECTED',
+            'logi_quote_status' => 'REJECTED'
+        ]);
+
+
+        //修改报价的状态
+        $quoteModel = new QuoteModel();
+        $quoteModel->startTrans();
+        $quoteResult = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save([
+            'status' => 'LOGI_QUOTE_REJECTED'
+        ]);
+
+        //修改物流表的状态
+        $quoteLogiFee = new QuoteLogiFeeModel();
+        $quoteLogiFee->startTrans();
+        $quoteLogiFeeResult = $quoteLogiFee->where(['inquiry_id'=>$request['inquiry_id']])->save([
+            'status' => 'REJECTED' //被驳回
         ]);
 
         //写审核日志
@@ -472,15 +488,20 @@ class QuotebizlineController extends PublicController {
             'op_note' => $request['op_note'],
             'op_result' => 'REJECTED'
         ];
+
         $checklogResult = $inquiryCheckLog->add($checkInfo);
 
-        if ($inquiuryResult && $checklogResult){
+        if ($inquiryResult && $quoteResult && $checklogResult && $quoteLogiFeeResult){
             $inquiry->commit();
+            $quoteModel->commit();
             $inquiryCheckLog->commit();
+            $quoteLogiFee->commit();
             $this->jsonReturn(['code'=>'1','message'=>'退回成功!']);
         }else{
             $inquiry->rollback();
+            $quoteModel->rollback();
             $inquiryCheckLog->rollback();
+            $quoteLogiFee->rollback();
             $this->jsonReturn(['code'=>'-104','message'=>'退回失败!']);
         }
 
@@ -492,20 +513,67 @@ class QuotebizlineController extends PublicController {
      */
     public function sentMarketAction(){
 
-        $request = $this->_requestParams;
-        if (empty($request['serial_no'])){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数!']);
-        }
-        $inquiry = Z('erui2_rfq.Inquiry');
+        $request = $this->validateRequests('inquiry_id');
+
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
         $inquiryResult = $inquiry->where([
-            'serial_no' => $request['serial_no']
+            'id' => $request['inquiry_id']
         ])->save([
-            'status' => QuoteBizLineModel::INQUIRY_APPROVING_BY_MARKET,
+            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
             'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
         ]);
-        //p($inquiryResult);
+
         if ($inquiryResult){
-            $this->jsonReturn(['code'=>'1','message'=>'提交成功!']);
+
+            //1.创建final_quote记录
+            $quote = new QuoteModel();
+            $quoteData = $quote->where(['inquiry_id'=>$request['inquiry_id']])->find();
+
+            $finalQuote = new FinalQuoteModel();
+            $finalQuote->startTrans();
+            $finalQuoteResult = $finalQuote->add($finalQuote->create([
+                'buyer_id' => $quoteData['buyer_id'],
+                'inquiry_id' => $quoteData['inquiry_id'],
+                'quote_id' => $quoteData['id'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+
+            //2.创建final_quote_item记录
+            $quoteItem = new QuoteItemModel();
+            $quoteItemData = $quoteItem->where(['inquiry_id'=>$request['inquiry_id']])->select();
+
+            $finalQuoteItem = new FinalQuoteItemModel();
+            $finalQuoteItem->startTrans();
+            $finalQuoteIds = [];
+            foreach ($quoteItemData as $value){
+                $finalQuoteIds[] = $finalQuoteItem->add($finalQuoteItem->create([
+                    'quote_id' => $value['quote_id'],
+                    'inquiry_id' => $value['inquiry_id'],
+                    'inquiry_item_id' => $value['inquiry_item_id'],
+                    'quote_item_id' => $value['id'],
+                    'sku' => $value['sku'],
+                    'supplier_id' => $value['supplier_id'],
+                    'total_logi_fee' => $value['total_logi_fee'],
+                    'total_logi_fee_cur_bn' => $value['total_logi_fee_cur_bn'],
+                    'total_bank_fee' => $value['total_bank_fee'],
+                    'total_bank_fee_cur_bn' => $value['total_bank_fee_cur_bn'],
+                    'total_insu_fee' => $value['total_insu_fee'],
+                    'total_insu_fee_cur_bn' => $value['total_insu_fee_cur_bn'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]));
+            }
+            if ($finalQuoteResult && $finalQuoteIds){
+                $inquiry->commit();
+                $finalQuote->commit();
+                $finalQuoteItem->commit();
+                $this->jsonReturn(['code'=>'1','message'=>'提交成功!']);
+            }else{
+                $inquiry->rollback();
+                $finalQuote->rollback();
+                $finalQuoteItem->rollback();
+                $this->jsonReturn(['code'=>'-104','message'=>'回归失败!']);
+            }
         }else{
             $this->jsonReturn(['code'=>'-104','message'=>'提交失败!']);
         }
@@ -597,7 +665,7 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-        $fields = 'q.id,q.total_weight,q.package_volumn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.trans_mode_bn,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
+        $fields = 'q.id,q.total_weight,q.package_volumn,q.dispatch_place,q.delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.trans_mode_bn,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
         $quoteModel = new QuoteModel();
         $result = $quoteModel->alias('q')
                              ->join('erui2_rfq.final_quote fq ON q.id = fq.quote_id','LEFT')

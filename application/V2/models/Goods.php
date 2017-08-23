@@ -27,6 +27,30 @@ class GoodsModel extends PublicModel {
         'name' => array('required'),
             //'show_name' => array('required'),
     );
+    //固定属性映射
+    protected $const_attr = array(
+        'exw_days' => array('zh' => '出货周期(天)', 'en' => 'EXW(day)', 'es' => 'EXW(Día )', 'ru' => 'Время доставки (дней)'),
+        'min_pack_naked_qty' => array('zh' => '最小包装内裸货商品数量', 'en' => 'Minimum packing Naked quantity', 'es' => 'La cantidad mínima de embalaje desnudo', 'ru' => 'Количество голого товара минимальном упаковке'),
+        'nude_cargo_unit' => array('zh' => '商品裸货单位', 'en' => 'Goods nude cargo units', 'es' => 'Las unidades de carga de mercancías Nude', 'ru' => 'Единица голого товара'),
+        'min_pack_unit' => array('zh' => '最小包装单位', 'en' => 'Minimum packing unit', 'es' => 'Mínimo de unidad de embalaje', 'ru' => 'Минимальная единица упаковки'),
+        'min_order_qty' => array('zh' => '最小订货数量', 'en' => 'Minimum order quantity', 'es' => 'Cantidad de orden mínima', 'ru' => 'Минимальное количество заказа'),
+        'nude_cargo_l_mm' => array('zh' => '裸货尺寸长(mm)', 'en' => 'Length of nude cargo(mm)', 'es' => 'Longitud de Nude carga (mm)', 'ru' => 'Длина голого товара（mm）'),
+        'nude_cargo_w_mm' => array('zh' => '裸货尺寸宽(mm)', 'en' => 'Width of nude cargo(mm)', 'es' => 'Anchura de Nude carga (mm)', 'ru' => 'Ширина  голого товара（mm）'),
+        'nude_cargo_h_mm' => array('zh' => '裸货尺寸高(mm)', 'en' => 'Height of nude cargo(mm)', 'es' => 'Altura de Nude carga (mm)', 'ru' => 'Высота голого товара（mm）'),
+        'min_pack_l_mm' => array('zh' => '最小包装后尺寸长(mm)', 'en' => 'Minimum packing Length size (mm)', 'es' => 'Longitud mínima de embalaje tama?o (mm)', 'ru' => 'Длина наименьшего размера упаковки（mm）'),
+        'min_pack_w_mm' => array('zh' => '最小包装后尺寸宽(mm)', 'en' => 'Minimum packing Width size (mm)', 'es' => 'Ancho mínimo de embalaje tama?o (mm)', 'ru' => 'Ширина наименьшего размера упаковки（mm）'),
+        'min_pack_h_mm' => array('zh' => '最小包装后尺寸高(mm)', 'en' => 'Minimum packing Height size (mm)', 'es' => 'Altura mínima de embalaje tama?o(mm)', 'ru' => 'Высота  наименьшего размера упаковки（mm）'),
+        'net_weight_kg' => array('zh' => '净重(kg)', 'en' => 'Net Weight(kg)', 'es' => 'Peso neto (kg)', 'ru' => 'Вес (кг)'),
+        'gross_weight_kg' => array('zh' => '毛重(kg)', 'en' => 'Gross Weight(kg)', 'es' => 'Peso bruto (kg)', 'ru' => 'Брутто (кг)'),
+        'compose_require_pack' => array('zh' => '仓储运输包装及其他要求', 'en' => 'Compose Require', 'es' => ' Las plantillas componer incluyen Require', 'ru' => 'Требования написания'),
+        'pack_type' => array('zh' => '包装类型', 'en' => 'Packing type', 'es' => 'Tipo de embalaje', 'ru' => 'Тип упаковки'),
+        'name_customs' => array('zh' => '中文品名(报关用)', 'en' => 'Name (customs)', 'es' => 'Nombre (aduanas)', 'ru' => 'Китайское название (сделать заявку в таможню)'),
+        'hs_code' => array('zh' => '海关编码', 'en' => 'HS CODE', 'es' => 'HS CODE', 'ru' => 'Таможенный кодекс'),
+        'tx_unit' => array('zh' => '成交单位', 'en' => 'Transaction Unit', 'es' => 'Unidad de transacción', 'ru' => 'Единица доставки'),
+        'tax_rebates_pct' => array('zh' => '退税率(%)', 'en' => 'Tax rebates(%)', 'es' => 'Rebajas fiscales', 'ru' => 'Ставка налога'),
+        'regulatory_conds' => array('zh' => '监管条件', 'en' => 'Regulatory conditions', 'es' => 'Condiciones reglamentarias', 'ru' => 'Условие регулирования'),
+        'commodity_ori_place' => array('zh' => '境内货源地', 'en' => 'Domestic supply of goods to', 'es' => 'La oferta nacional de bienes', 'ru' => 'Происхождения товаров в границах'),
+    );
 
     public function __construct() {
         //动态读取配置中的数据库配置   便于后期维护
@@ -356,54 +380,54 @@ class GoodsModel extends PublicModel {
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
                     foreach ($goodsAttr as $gAttr) {
-                        $goods_attrs[] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
+                        $goods_attrs[] = ['attr_name' => $this->const_attr[$gAttr][$item['lang']], 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
                     }
                     //扩展商品属性
-                    if(isset($ex_attrs[$item['lang']]['ex_goods_attrs']) && !empty($ex_attrs[$item['lang']]['ex_goods_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['ex_goods_attrs'] as $ex_key =>$ex_value){
-                            $goods_attrs[] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    if (isset($ex_attrs[$item['lang']]['ex_goods_attrs']) && !empty($ex_attrs[$item['lang']]['ex_goods_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['ex_goods_attrs'] as $ex_key => $ex_value) {
+                            $goods_attrs[] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
                     $item['goods_attrs'] = $goods_attrs;
                     //固定物流属性
-                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'nude_cargo_l_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', ' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
+                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'nude_cargo_l_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', 'net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
                     foreach ($logiAttr as $lAttr) {
-                        $item['logi_attrs'][] = ['attr_name' => $lAttr, 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
+                        $item['logi_attrs'][] = ['attr_name' => $this->const_attr[$lAttr][$item['lang']], 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
                     }
 
                     //固定申报要素属性
                     $hsAttr = ['name_customs', 'hs_code', 'tx_unit', 'tax_rebates_pct', 'regulatory_conds', 'commodity_ori_place'];
                     $hs_attrs = [];
                     foreach ($hsAttr as $hAttr) {
-                        $hs_attrs[] = ['attr_name' => $hAttr, 'attr_value' => $item[$hAttr], 'attr_key' => $hAttr, 'flag' => 'Y'];
+                        $hs_attrs[] = ['attr_name' => $this->const_attr[$hAttr][$item['lang']], 'attr_value' => $item[$hAttr], 'attr_key' => $hAttr, 'flag' => 'Y'];
                     }
                     //扩展申报要素属性
-                    if(isset($ex_attrs[$item['lang']]['ex_hs_attrs']) && !empty($ex_attrs[$item['lang']]['ex_hs_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['ex_hs_attrs'] as $ex_key =>$ex_value){
-                            $hs_attrs[] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    if (isset($ex_attrs[$item['lang']]['ex_hs_attrs']) && !empty($ex_attrs[$item['lang']]['ex_hs_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['ex_hs_attrs'] as $ex_key => $ex_value) {
+                            $hs_attrs[] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
                     $item['hs_attrs'] = $hs_attrs;
 
                     //规格属性（即前台展示的扩展属性，用作页面显示， 上面的商品扩展与申报要素扩展不做展示用）
-                    $item['spec_attrs'] =[];
-                    if(isset($ex_attrs[$item['lang']]['spec_attrs']) && !empty($ex_attrs[$item['lang']]['spec_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['spec_attrs'] as $ex_key =>$ex_value){
-                            $item['spec_attrs'][] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    $item['spec_attrs'] = [];
+                    if (isset($ex_attrs[$item['lang']]['spec_attrs']) && !empty($ex_attrs[$item['lang']]['spec_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['spec_attrs'] as $ex_key => $ex_value) {
+                            $item['spec_attrs'][] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
                     //其他属性
-                    $item['other_attrs'] =[];
-                    if(isset($ex_attrs[$item['lang']]['other_attrs']) && !empty($ex_attrs[$item['lang']]['other_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['other_attrs'] as $ex_key =>$ex_value){
-                            $item['other_attrs'][] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    $item['other_attrs'] = [];
+                    if (isset($ex_attrs[$item['lang']]['other_attrs']) && !empty($ex_attrs[$item['lang']]['other_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['other_attrs'] as $ex_key => $ex_value) {
+                            $item['other_attrs'][] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
 
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
-                $data = array_merge($kData, $pData);    
+                $data = array_merge($kData, $pData);
                 redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
             }
             return $data;
@@ -440,12 +464,12 @@ class GoodsModel extends PublicModel {
                     $checkout = $this->checkParam($value, $this->field);
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT','TEST','CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $value['name'],
-                            'status' => array('neq','DRAFT')
+                            'status' => array('neq', 'DRAFT')
                         );
                         if (!empty($input['sku'])) {
                             $exist_condition['sku'] = array('neq', $input['sku']);
@@ -504,21 +528,21 @@ class GoodsModel extends PublicModel {
                          * 修改时根据sku语言查询下，不存在则添加。
                          */
                         $exist = $this->field('id')->where($where)->find();
-                        if($exist) {
+                        if ($exist) {
                             $data['updated_by'] = $userInfo['id'];
                             $data['updated_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
                             $res = $this->where($where)->save($data);
-                        }else{
+                        } else {
                             $data['sku'] = trim($input['sku']);
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
                             $res = $this->add($data);
-                            if($res) {
+                            if ($res) {
                                 $pModel = new ProductModel();                                 //sku_count加一
                                 $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
-                                    ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                                        ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
                                 if (!$presult) {
                                     $this->rollback();
                                     return false;
@@ -527,7 +551,7 @@ class GoodsModel extends PublicModel {
                         }
                         if (!$res) {
                             $this->rollback();
-                            echo __LINE__, PHP_EOL;
+
                             return false;
                         }
                     } else {             //------新增
@@ -539,7 +563,7 @@ class GoodsModel extends PublicModel {
                         $res = $this->add($data);
                         if (!$res) {
                             $this->rollback();
-                            echo __LINE__, PHP_EOL;
+
                             return false;
                         }
                         $pModel = new ProductModel();                                 //sku_count加一
@@ -564,15 +588,15 @@ class GoodsModel extends PublicModel {
                         'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs']) : null,
                         'status' => $gattr::STATUS_VALID
                     );
-                    if(!empty($input['sku'])){
+                    if (!empty($input['sku'])) {
                         $attr_obj['sku'] = trim($input['sku']);
                         $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                    }else{
+                    } else {
                         $attr_obj['sku'] = $sku;
                         $attr_obj['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     }
                     $resAttr = $gattr->editAttr($attr_obj);        //属性新增
-                    if (!$resAttr || $resAttr===false) {
+                    if (!$resAttr || $resAttr === false) {
                         $this->rollback();
                         return false;
                     }
@@ -581,7 +605,7 @@ class GoodsModel extends PublicModel {
                         $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gattach = new GoodsAttachModel();
-                        $resAttach = $gattach->editSkuAttach($value,$input['sku'],$input['user_id']);  //附件新增
+                        $resAttach = $gattach->editSkuAttach($value, $input['sku'], $input['user_id']);  //附件新增
                         if (!$resAttach || $resAttach['code'] != 1) {
                             $this->rollback();
                             return false;
@@ -592,13 +616,13 @@ class GoodsModel extends PublicModel {
                         $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
-                        $resCost = $gcostprice->editCostprice($value,$input['sku'],$input['user_id']);  //供应商/价格策略
+                        $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
                         if (!$resCost || $resCost['code'] != 1) {
                             $this->rollback();
                             return false;
                         }
                     }
-                }else{
+                } else {
                     continue;
                 }
             }
@@ -636,18 +660,19 @@ class GoodsModel extends PublicModel {
         unset($input['status_type']);
         $this->startTrans();
         try {
-            $res = $this->modifySku($input['sku'],$lang,$status,$remark);               //sku状态
+            $res = $this->modifySku($input['sku'], $lang, $status, $remark);               //sku状态
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
 
-             $gattr = new GoodsAttrModel();
-             $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
-             if (!$resAttr || $resAttr['code'] != 1) {
-                 $this->rollback();
-                 return false;
-             }
+       /*     $gattr = new GoodsAttrModel();
+            $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
+            jsonReturn($resAttr);
+            if (!$resAttr || $resAttr['code'] != 1) {
+                $this->rollback();
+                return false;
+            }*/
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
@@ -656,21 +681,15 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-            if ('CHECKING' != $status) {
+          /*  if ('CHECKING' != $status) {
                 $checkLogModel = new ProductCheckLogModel();          //审核记录
                 $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
                 if (!$resLogs || $resLogs['code'] != 1) {
                     $this->rollback();
                     return false;
                 }
-            }
-//            if ($sku) {
-//                $langs = ['en', 'zh', 'es', 'ru'];
-//                foreach ($langs as $lang) {
-//                    $es_goods_model = new EsGoodsModel();
-//                    $es_goods_model->create_data($sku, $lang);
-//                }
-//            }
+            }*/
+
 
             $this->commit();
             return true;
@@ -685,15 +704,13 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function modifySku($skuObj,$lang='', $status,$remark='') {
+    public function modifySku($skuObj, $lang = '', $status, $remark = '') {
         if (empty($skuObj) || empty($status)) {
             return false;
         }
         $results = array();
         //获取当前用户信息
         $userInfo = getLoinInfo();
-        $es_goods_model = new EsGoodsModel();
-        $es_product_model = new EsProductModel();
         if ($skuObj && is_array($skuObj)) {
             try {
                 $skuary = [];
@@ -728,27 +745,25 @@ class GoodsModel extends PublicModel {
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
                                 $spuWhere = array(
-                                    'spu'=>$spuCode['spu'],
+                                    'spu' => $spuCode['spu'],
                                 );
-                                if(!empty($lang)) {
+                                if (!empty($lang)) {
                                     $spuCode['lang'] = $lang;
                                 }
-                                if($spuCode){
-                                    $result_spu = $pModel->where($spuWhere)->save(array('status'=>$pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s',time())));
-                                    if($result_spu) {
+                                if ($spuCode) {
+                                    $result_spu = $pModel->where($spuWhere)->save(array('status' => $pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s', time())));
+                                    if ($result_spu) {
                                         $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
-                                        $es_product_model->create_data($spuCode['spu'], $lang);
                                     }
                                 }
                             }
-                            $es_goods_model->create_data($sku, $lang);
                         } else {
                             return false;
                         }
                     }
                 }
                 if ($result) {
-                    if(!empty($skuary)) {
+                    if (!empty($skuary)) {
                         $checkLogModel = new ProductCheckLogModel();          //审核记录
                         $resLogs = $checkLogModel->takeRecord($skuary, $status);
                         if (!$resLogs || $resLogs['code'] != 1) {
@@ -771,7 +786,6 @@ class GoodsModel extends PublicModel {
         }
         return false;
     }
-
 
     /**
      * sku真实删除-（BOSS后台）
@@ -851,10 +865,7 @@ class GoodsModel extends PublicModel {
               return false;
               } */
             $this->commit();
-//            if ($input['sku']) {
-//                $es_goods_model = new EsGoodsModel();
-//                $es_goods_model->delete_data($input['sku'], $lang);
-//            }
+
 
             return true;
         } catch (Exception $e) {
@@ -938,10 +949,7 @@ class GoodsModel extends PublicModel {
                 $results['code'] = '-101';
                 $results['message'] = '失败!';
             }
-//            if ($skus) {
-//                $es_goods_model = new EsGoodsModel();
-//                $es_goods_model->batchdelete($skus, $lang);
-//            }
+
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
@@ -973,7 +981,6 @@ class GoodsModel extends PublicModel {
         }
     }
 
-
     /**
      * 属性输入格式化
      * 属性包括商品固定属性 物流固定属性 申报要素固定属性 ，都在 goods 表的字段中，不能新增或减少
@@ -983,30 +990,30 @@ class GoodsModel extends PublicModel {
      * @param array $attrs
      * @return array
      */
-    function attrGetInit($attrs=[]) {
+    function attrGetInit($attrs = []) {
         $data = array(
-            'const_attr'=>array(),
-            'ex_goods_attrs'=>array(),
-            'ex_hs_attrs'=>array(),
-            'spec_attrs'=>array(),
-            'other_attrs'=>array()
+            'const_attr' => array(),
+            'ex_goods_attrs' => array(),
+            'ex_hs_attrs' => array(),
+            'spec_attrs' => array(),
+            'other_attrs' => array()
         );
-        if(empty($attrs)) {
+        if (empty($attrs)) {
             return $data;
         }
 
-        foreach($attrs as $key => $value) {
-            if(!in_array($key,array('goods_attrs','hs_attrs','logi_attrs','spec_attrs','other_attrs'))) {
+        foreach ($attrs as $key => $value) {
+            if (!in_array($key, array('goods_attrs', 'hs_attrs', 'logi_attrs', 'spec_attrs', 'other_attrs'))) {
                 continue;
             }
-            if(!empty($value))  {
-                foreach($value as $attr){
-                    if(isset($attr['flag']) && $attr['flag']=='Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
+            if (!empty($value)) {
+                foreach ($value as $attr) {
+                    if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
                         $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
-                    }else{
-                        if(in_array($key,array('goods_attrs','hs_attrs'))) {
-                            $data['ex_'.$key][$attr['attr_name']] = $attr['attr_value'];
-                        }else{
+                    } else {
+                        if (in_array($key, array('goods_attrs', 'hs_attrs'))) {
+                            $data['ex_' . $key][$attr['attr_name']] = $attr['attr_value'];
+                        } else {
                             $data[$key][$attr['attr_name']] = $attr['attr_value'];
                         }
                     }

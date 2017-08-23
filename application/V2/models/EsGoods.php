@@ -252,16 +252,18 @@ class EsGoodsModel extends Model {
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
-
-        if (isset($condition['onshelf_by_name']) && $condition['onshelf_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['onshelf_by_name']);
-            foreach ($userids as $onshelf_by) {
-                $onshelf_by_bool[] = [ESClient::MATCH_PHRASE => ['onshelf_by' => $onshelf_by]];
-            }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $onshelf_by_bool]];
+        if (isset($condition['keyword']) && $condition['keyword']) {
+            $show_name = $condition['keyword'];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MULTI_MATCH => [
+                                'query' => $show_name,
+                                'type' => 'most_fields',
+                                'fields' => ['name.ik', 'attrs.ik', 'sku', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
+                            ]],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+            ]]];
         }
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name.ik', 'attrs.ik',
-            'specs.ik', 'spu', 'sku', 'source.ik', 'brand.ik', 'name.ik']);
+
         return $body;
     }
 
@@ -529,9 +531,6 @@ class EsGoodsModel extends Model {
         if (!isset($flag['create'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
-        print_r($flag);
-        ob_flush();
-        flush();
     }
 
     /* 通过批量导入商品信息到ES
@@ -849,25 +848,45 @@ class EsGoodsModel extends Model {
     public function create_data($sku, $lang = 'en') {
         try {
             $es = new ESClient();
-            if ($sku) {
+            if (is_array($sku)) {
                 $goods_model = new GoodsModel();
-                $data = $goods_model->where(['sku' => $sku, 'lang' => $lang])->find();
+                $goods = $goods_model->where(['sku' => ['in', $sku], 'lang' => $lang])->select();
+            } elseif ($sku) {
+
+                $goods_model = new GoodsModel();
+                $goods = $goods_model->where(['sku' => $sku, 'lang' => $lang])->select();
+            } else {
+                return false;
+            }
+            $spus = $skus = [];
+            if ($goods) {
+                foreach ($goods as $item) {
+                    $skus[] = $item['sku'];
+                    $spus[] = $item['spu'];
+                }
             } else {
                 return false;
             }
 
-            if (!$data) {
+            $spus = array_unique($spus);
+            $skus = array_unique($skus);
+            $espoducmodel = new EsProductModel();
+            $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
-                return false;
-            }
-            $body = $this->getInsertCodition($data);
-            $id = $data['sku'];
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (isset($flag['_shards']['successful']) && $flag['_shards']['successful'] !== 1) {
-                LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
-                return true;
-            } else {
-                return false;
+            $goods_attach_model = new GoodsAttachModel();
+            $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
+
+            $goods_attr_model = new GoodsAttrModel();
+            $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
+
+            $goods_supplier_model = new GoodsSupplierModel();
+            $suppliers = $goods_supplier_model->getsuppliersbyskus($skus);
+            $show_cat_goods_model = new ShowCatGoodsModel();
+            $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
+
+            $onshelf_flags = $this->getonshelf_flag($skus, $lang);
+            foreach ($goods as $item) {
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

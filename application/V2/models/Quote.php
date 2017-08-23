@@ -230,21 +230,32 @@ class QuoteModel extends PublicModel {
 	 */
 	public function updateQuoteStatus($condition = [], $data = []) {
 
-		if(isset($condition['quote_no'])){
-			$where['quote_no'] = array('in',explode(',',$condition['quote_no']));
+		if(isset($condition['inquiry_id'])){
+			$where['inquiry_id'] = array('in',explode(',',$condition['inquiry_id']));
 		}else{
-			return false;
+			$results['code'] = '-103';
+			$results['message'] = '没有ID!';
+			return $results;
 		}
-		if(isset($condition['quote_status'])){
-			$status['quote_status'] = $condition['quote_status'];
+		if(!empty($condition['status'])){
+			$data['status'] = $condition['status'];
 		}
-		if(isset($condition['biz_quote_status'])){
-			$status['biz_quote_status'] = $condition['biz_quote_status'];
+
+		try {
+			$id = $this->where($where)->save($data);
+			if($id){
+				$results['code'] = '1';
+				$results['message'] = '成功！';
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '修改失败!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
 		}
-		if(isset($condition['logi_quote_status'])){
-			$status['logi_quote_status'] = $condition['logi_quote_status'];
-		}
-		return $this->where($where)->save($status);
 	}
 
 	/**

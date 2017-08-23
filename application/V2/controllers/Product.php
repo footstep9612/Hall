@@ -12,8 +12,9 @@ class ProductController extends PublicController {
 
     public function init() {
         parent::init();
+
         $this->method = $this->getMethod();
-        Log::write(json_encode($this->put_data),Log::INFO);
+        Log::write(json_encode($this->put_data), Log::INFO);
     }
 
     /**
@@ -60,14 +61,44 @@ class ProductController extends PublicController {
         exit;
     }
 
-    public function updateEsproduct($input, $spu) {
-        $es_product_model = new EsProductModel();
-        $productModel = new ProductModel();
+    /*
+     * 更新ESgoods
+     */
+
+    public function updateEsgoods($input, $spu) {
+        $es_goods_model = new EsGoodsModel();
+        $goods_model = new GoodsModel();
         $langs = ['en', 'zh', 'es', 'ru'];
+
         foreach ($langs as $lang) {
             if (isset($input[$lang]) && $input[$lang]) {
-                $data = $productModel->getInfo($spu, $lang);
-                $es_product_model->create_data($data[$lang], $lang);
+                $list = $goods_model->getskubyspu($spu, $lang);
+                $skus = [];
+                foreach ($list as $item) {
+                    $skus[] = $item['sku'];
+                }
+                $es_goods_model->create_data($skus, $lang);
+            } elseif (empty($input)) {
+                $list = $goods_model->getskubyspu($spu, $lang);
+                $skus = [];
+                foreach ($list as $item) {
+                    $skus[] = $item['sku'];
+                }
+                $es_goods_model->create_data($skus, $lang);
+            }
+        }
+    }
+
+    public function updateEsproduct($input, $spu) {
+        $es_product_model = new EsProductModel();
+        $langs = ['en', 'zh', 'es', 'ru'];
+
+        foreach ($langs as $lang) {
+
+            if (isset($input[$lang]) && $input[$lang]) {
+                $es_product_model->create_data($spu, $lang);
+            } elseif (empty($input)) {
+                $es_product_model->create_data($spu, $lang);
             }
         }
     }
@@ -93,7 +124,7 @@ class ProductController extends PublicController {
          * 查看是否存在上架
          */
         $showCatProductModel = new ShowCatProductModel();
-        $scp_info = $showCatProductModel->where(array('spu' => is_array($this->put_data['spu']) ? array('in',$this->put_data['spu']) : $this->put_data['spu'], 'lang' => $lang))->find();
+        $scp_info = $showCatProductModel->where(array('spu' => is_array($this->put_data['spu']) ? array('in', $this->put_data['spu']) : $this->put_data['spu'], 'lang' => $lang))->find();
         if ($scp_info) {
             jsonReturn('', ErrorMsg::NOTDELETE_EXIST_ONSHELF);
         }
@@ -101,6 +132,15 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $result = $productModel->deleteInfo($this->put_data['spu'], $lang);
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
+            }
+
+
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -147,6 +187,11 @@ class ProductController extends PublicController {
                 break;
         }
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct([$lang => $this->put_data['spu']], $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+            }
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -167,6 +212,9 @@ class ProductController extends PublicController {
         $pattach = new ProductAttachModel();
         $result = $pattach->getAttachBySpu($spu, $status);
         if ($result !== false) {
+
+            $this->updateEsproduct(null, $spu);
+
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -186,11 +234,19 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
+        $lang = isset($this->put_data['lang']) ? $this->put_data['lang'] : '';
+        $spu = isset($this->put_data['spu']) ? $this->put_data['spu'] : '';
         $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
-
         $showCatProduct = new ShowCatProductModel();
-        $result = $showCatProduct->onShelf($this->put_data['spu'], $this->put_data['lang'], $cat_no);
+        $result = $showCatProduct->onShelf($spu, $lang, $cat_no);
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
+            }
             jsonReturn(true);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -217,6 +273,13 @@ class ProductController extends PublicController {
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->downShelf($this->put_data['spu'], $lang, $cat_no);
         if ($result) {
+            if ($lang) {
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
+            }
             jsonReturn(true);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -245,6 +308,59 @@ class ProductController extends PublicController {
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
+    }
+
+    /**
+     * 产品导入
+     */
+    public function importAction() {
+        //$remoteFile = $this->put_data['url'];
+        //下载到本地临时文件
+        // $localFile = ExcelHelperTrait::download2local($remoteFile);
+
+        $localFile = MYPATH . '/public/tmp/1501903034.xls';
+        $data = ExcelHelperTrait::ready2import($localFile);
+        var_dump($data);
+        die;
+        $this->jsonReturn($this->importSkuHandler($data));
+    }
+
+    /**
+     * 产品导出
+     */
+    public function exportAction() {
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
+        $objSheet->getStyle("A1:I1")
+                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:I1")->getFont()->setSize(14)->setBold(true);    //粗体
+        $objSheet->getStyle("A1:I1")->getFill()->getStartColor()->setARGB('FF808080');
+        $objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
+        $column_width_20 = ["B", "C", "D"];
+        foreach ($column_width_20 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(20);
+        }
+        $column_width_30 = ["E", "F", "G", "H", "I"];
+        foreach ($column_width_30 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(30);
+        }
+        $objSheet->setTitle('产品SPU'); //设置报价单标题
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "物料分类编码");
+        $objSheet->setCellValue("C1", "产品名称");
+        $objSheet->setCellValue("D1", "品牌");
+        $objSheet->setCellValue("E1", "产品优势");
+        $objSheet->setCellValue("F1", "技术参数");
+        $objSheet->setCellValue("G1", "执行标准");
+        $objSheet->setCellValue("H1", "关键字");
+        $objSheet->setCellValue("I1", "产品描述");
+
+        //保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
     }
 
 }

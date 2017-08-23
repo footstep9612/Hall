@@ -300,7 +300,7 @@ class ExcelmanagerController extends PublicController
             'borders' => [
                 'outline' => [
                     'style' => PHPExcel_Style_Border::BORDER_THIN,
-                    'color' => ['rgb' => '333333'],
+                                                                                                                                                                                   'color' => ['rgb' => '333333'],
                 ],
             ],
         ];

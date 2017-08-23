@@ -5,7 +5,7 @@
  */
 class FinalQuoteItemModel extends PublicModel {
 
-    protected $dbName = 'erui_rfq';
+    protected $dbName = 'erui2_rfq';
     protected $tableName = 'final_quote_item';
 	protected $joinTable1 = 'erui2_rfq.quote_item b ON a.quote_item_id = b.id';
 	protected $joinTable2 = 'erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id';
@@ -33,7 +33,7 @@ class FinalQuoteItemModel extends PublicModel {
 		}
 
 		if (!empty($condition['inquiry_id'])) {
-			$where['a.inquiry_id'] = $condition['a.inquiry_id'];
+			$where['a.inquiry_id'] = $condition['inquiry_id'];
 		}
 
     	if (!empty($condition['quote_id'])) {
@@ -224,5 +224,13 @@ class FinalQuoteItemModel extends PublicModel {
 			$results['message'] = $e->getMessage();
 			return $results;
 		}
+	}
+
+	/**
+	 * 返回格式化时间
+	 * @author zhangyuliang
+	 */
+	public function getTime() {
+		return date('Y-m-d h:i:s',time());
 	}
 }
