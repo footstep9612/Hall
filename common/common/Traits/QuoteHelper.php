@@ -125,7 +125,7 @@ trait QuoteHelper{
 
         $quoteBizlineModel = new QuoteBizLineModel();
         $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
-         return $quoteBizlineModel->alias('qb')
+        return  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
             ->where($where)
@@ -141,7 +141,7 @@ trait QuoteHelper{
         $where = [];
         //项目状态
         if(!empty($condition['status'])) {
-            $where['status'] = $condition['status'];
+            $where['inq.status'] = $condition['status'];
         }
         //国家
         if(!empty($condition['country_bn'])) {
@@ -166,8 +166,8 @@ trait QuoteHelper{
         //询价时间
         if(!empty($condition['start_inquiry_time']) && !empty($condition['end_inquiry_time'])){
             $where['inquiry_time'] = [
-                ['egt', $condition['start_inquiry_time']],
-                ['elt', $condition['end_inquiry_time'] . ' 23:59:59']
+                ['gt', $condition['start_inquiry_time']],
+                ['lt', $condition['end_inquiry_time']]
             ];
         }
 

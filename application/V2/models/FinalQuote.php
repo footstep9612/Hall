@@ -266,4 +266,12 @@ class FinalQuoteModel extends PublicModel {
 
 		return $this->where($where)->save(['deleted_flag' => 'Y']);
 	}
+
+	/**
+	 * 返回格式化时间
+	 * @author zhangyuliang
+	 */
+	public function getTime() {
+		return date('Y-m-d h:i:s',time());
+	}
 }

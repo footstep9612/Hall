@@ -683,15 +683,15 @@ class GoodsModel extends PublicModel {
 
                 return false;
             }
-            if ('CHECKING' != $status) {
-                $checkLogModel = new ProductCheckLogModel();          //审核记录
-                $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
-                if (!$resLogs || $resLogs['code'] != 1) {
-                    $this->rollback();
+            /*  if ('CHECKING' != $status) {
+              $checkLogModel = new ProductCheckLogModel();          //审核记录
+              $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
+              if (!$resLogs || $resLogs['code'] != 1) {
+              $this->rollback();
 
-                    return false;
-                }
-            }
+              return false;
+              }
+              } */
 
 
             $this->commit();
