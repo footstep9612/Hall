@@ -196,10 +196,6 @@ class ServicecatController extends PublicController {
     public function levelAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
-        $where = [];
-        if(!empty($data['buyer_level'])){
-            $where['buyer_level'] = $data['buyer_level'];
-        }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
@@ -207,7 +203,27 @@ class ServicecatController extends PublicController {
             $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
         }
         $MemberServiceModel = new MemberServiceModel();
-        $result = $MemberServiceModel->levelInfo($limit,$where);
+        $result = $MemberServiceModel->levelInfo($limit);
+        if(!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
+    /**
+     * 会员等级对应服务条款
+     * @time  2017-08-23
+     * @author klp
+     */
+    public function levelServiceAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!isset($data['buyer_level']) || empty($data['buyer_level'])){
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+        $buyer_level = $data['buyer_level'];
+        $MemberServiceModel = new MemberServiceModel();
+        $result = $MemberServiceModel->levelService($buyer_level);
         if(!empty($result)) {
             jsonReturn($result);
         } else {
@@ -223,43 +239,43 @@ class ServicecatController extends PublicController {
      */
     public function editLevelAction(){
         /* $this->put_data = [
-              'buyer_level'=>'会员',
-            'levels'=>[
-                     0=>[
-                            'category'=>[
-                                "service_cat_id"=> "1",
+                'buyer_level'=>'会员',
+              'levels'=>[
+                       0=>[
+                              'category'=>[
+                                  "service_cat_id"=> "1",
+                                  "term"=> [
+                                      0=>[
+                                          "service_term_id"=> "1",
+                                          "item"=> [
+                                              0=>[
+                                                  "service_item_id"=> "1",
+                                                  "id"=> "34",
+                                              ],
+                                              1=>[
+                                                  "service_item_id"=> "2",
+                                                  "id"=> "35",
+                                              ]
+                                          ]
+                                      ],
+                                      1=>[
+                                          "service_term_id"=> "2",
+                                          "item"=> [
+                                              0=>[
+                                                  "service_item_id"=> "1",
+                                                  "id"=> "36",
+                                              ],
+                                              1=>[
+                                                  "service_item_id"=> "2",
+                                                  "id"=> "37",
+                                              ]
+                                          ]
+                                      ]
+                                   ],
                                 ],
-                                "term"=> [
-                                    0=>[
-                                        "service_term_id"=> "1",
-                                        "item"=> [
-                                            0=>[
-                                                "service_item_id"=> "1",
-                                                "id"=> "34",
-                                            ],
-                                            1=>[
-                                                "service_item_id"=> "2",
-                                                "id"=> "35",
-                                            ]
-                                        ]
-                                    ],
-                                    1=>[
-                                        "service_term_id"=> "2",
-                                        "item"=> [
-                                            0=>[
-                                                "service_item_id"=> "1",
-                                                "id"=> "36",
-                                            ],
-                                            1=>[
-                                                "service_item_id"=> "2",
-                                                "id"=> "37",
-                                            ]
-                                        ]
-                                    ]
-                                 ],
-                              ],
-                     ]
-            ];   */
+                           ],
+                       ]
+              ];     */
         //获取用户信息
         $userInfo = getLoinInfo();
         $MemberServiceModel = new MemberServiceModel();

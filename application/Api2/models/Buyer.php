@@ -28,7 +28,6 @@ class BuyerModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING'; //待报审；
     const STATUS_APPROVED = 'APPROVED'; //审核；
     const STATUS_REJECTED = 'REJECTED'; //无效；
-    const STATUS_DRAFT = 'DRAFT'; //临时未验证；
 
     /**
      * 获取列表
@@ -306,8 +305,6 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
-        } else {
-            $data['lang'] = 'en';
         }
         if (isset($create['name'])) {
             $data['name'] = $create['name'];
@@ -348,12 +345,8 @@ class BuyerModel extends PublicModel {
         if (isset($create['city'])) {
             $data['city'] = $create['city'];
         }
-
         if (isset($create['brand'])) {
             $data['brand'] = $create['brand'];
-        }
-        if (isset($create['bank_name'])) {
-            $data['bank_name'] = $create['bank_name'];
         }
         if (isset($create['official_website'])) {
             $data['official_website'] = $create['official_website'];
@@ -386,7 +379,7 @@ class BuyerModel extends PublicModel {
         if(empty($data)){
             return true;
         }
-        $res =  $this->where($where)->save($data);
+        $res =  $this->where(['id'=>$where['buyer_id']])->save($data);
         if($res){
             return true;
         }

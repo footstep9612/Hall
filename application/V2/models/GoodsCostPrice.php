@@ -101,7 +101,7 @@ class GoodsCostPriceModel extends PublicModel {
             return $results;
         }catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();var_dump($e);
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }

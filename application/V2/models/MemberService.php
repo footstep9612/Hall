@@ -22,40 +22,27 @@ class MemberServiceModel extends PublicModel{
      * 会员等级查看
      * @author klp
      */
-    public function levelInfo($limit,$where){
+    public function levelInfo($limit){
         $where['status'] = 'VALID';
         $where['deleted_flag'] = 'N';
         $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
             if(!empty($limit)){
-            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->select();
+            $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->group('buyer_level')->select();
             } else{
-                $result = $this->field($fields)->where($where)->order('buyer_level')->select();
+                $result = $this->field($fields)->where($where)->order('buyer_level')->group('buyer_level')->select();
             }
             $data = array();
             if($result) {
                 $employee = new EmployeeModel();
-                foreach($result as $item){
-                    $data[$item['service_cat_id']]['created_at'] = $item['created_at'];
+                foreach($result as $item) {
                     $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
                     if ($createder && isset($createder[0])) {
-                        $data[$item['service_cat_id']]['created_by'] = $createder[0];
+                        $item['created_by'] = $createder[0];
                     }
-                    $data[$item['service_cat_id']]['buyer_level']= $item['buyer_level'];
-
-                    $data[$item['service_cat_id']]['category']['service_cat_id'] = $item['service_cat_id'];
-
-                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] =$item['service_term_id'];
-
-                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id']=$item['service_item_id'];
-
-                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['id']=$item['id'];
-
+                    $data[$item['buyer_level']][] = $item;
                 }
-                foreach($data as $key=>$value){
-                    $arr[][$key] = $value;
-                }
-                return $arr;
+                return $data;
             }
             return array();
         } catch(Exception $e){
@@ -64,6 +51,27 @@ class MemberServiceModel extends PublicModel{
             return array();
         }
 
+    }
+    /**
+     * 会员等级匹配服务
+     * @author klp
+     */
+    public function levelService($buyer_level){
+        $where['buyer_level'] = $buyer_level;
+        $where['status'] = 'VALID';
+        $where['deleted_flag'] = 'N';
+        $result = $this->field('service_cat_id')->where($where)->group('service_cat_id')->select();
+        foreach($result as $key=>$val){
+            $where1 = ['service_cat_id' =>$val['service_cat_id'],'status'=>'VALID','deleted_flag'=>'N'];
+            $rs =  $this->field('service_term_id')->where($where1)->group('service_term_id')->select();
+            foreach($rs as $key1=>$val1){
+                $where2 = ['service_term_id'=>$val1['service_term_id'],'status'=>'VALID','deleted_flag'=>'N'];
+                $rs1 =  $this->field('service_item_id')->where($where2)->group('service_item_id')->select();
+                $rs[$key1]['item'] = $rs1;
+            }
+            $result[$key]['term'] = $rs;
+        }
+        return $result? $result:array();
     }
 
     /**
