@@ -332,31 +332,56 @@ class ProductController extends PublicController {
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
-        $objSheet->getStyle("A1:I1")
-                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:I1")->getFont()->setSize(14)->setBold(true);    //粗体
-        $objSheet->getStyle("A1:I1")->getFill()->getStartColor()->setARGB('FF808080');
+        $objSheet->getStyle("A1:K1")
+            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:K1")->getFont()->setSize(14)->setBold(true);    //粗体
+        $objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
         $objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-        $column_width_20 = ["B", "C", "D"];
-        foreach ($column_width_20 as $column) {
+        $column_width_20 = ["B","D","E","F"];
+        foreach($column_width_20 as $column){
             $objSheet->getColumnDimension($column)->setWidth(20);
         }
-        $column_width_30 = ["E", "F", "G", "H", "I"];
-        foreach ($column_width_30 as $column) {
+        $column_width_30 = ["G","H","I","J","K"];
+        foreach($column_width_30 as $column){
             $objSheet->getColumnDimension($column)->setWidth(30);
         }
-        $objSheet->setTitle('产品SPU'); //设置报价单标题
-        $objSheet->setCellValue("A1", "序号");
-        $objSheet->setCellValue("B1", "物料分类编码");
-        $objSheet->setCellValue("C1", "产品名称");
-        $objSheet->setCellValue("D1", "品牌");
-        $objSheet->setCellValue("E1", "产品优势");
-        $objSheet->setCellValue("F1", "技术参数");
-        $objSheet->setCellValue("G1", "执行标准");
-        $objSheet->setCellValue("H1", "关键字");
-        $objSheet->setCellValue("I1", "产品描述");
+        $objSheet->setTitle('产品SPU');//设置报价单标题
+        $objSheet->setCellValue("A1","序号");
+        $objSheet->setCellValue("B1","SPU编码");
+        $objSheet->setCellValue("C1","语言");
+        $objSheet->setCellValue("D1","物料分类编码");
+        $objSheet->setCellValue("E1","产品名称");
+        $objSheet->setCellValue("F1","品牌");
+        $objSheet->setCellValue("G1","产品优势");
+        $objSheet->setCellValue("H1","技术参数");
+        $objSheet->setCellValue("I1","执行标准");
+        $objSheet->setCellValue("J1","关键字");
+        $objSheet->setCellValue("K1","产品描述");
 
+        $i = 0;
+        $length = 20;
+        do{
+            $pModel = new ProductModel();
+            $condition = [];
+            $result = $pModel ->getList($condition , '' , $i*$length , $length);
+            if($result) {
+                foreach($result as $r){
+                    $objSheet->setCellValue("A".($i+2) , $i+1);
+                    $objSheet->setCellValue("B".($i+2) , $r['spu']);
+                    $objSheet->setCellValue("C".($i+2) , $r['lang']);
+                    $objSheet->setCellValue("D".($i+2) , $r['material_cat_no']);
+                    $objSheet->setCellValue("E".($i+2) , $r['name']);
+                    $objSheet->setCellValue("F".($i+2) , $r['brand']);
+                    $objSheet->setCellValue("G".($i+2) , $r['advantages']);
+                    $objSheet->setCellValue("H".($i+2) , $r['tech_paras']);
+                    $objSheet->setCellValue("I".($i+2) , $r['exe_standard']);
+                    $objSheet->setCellValue("J".($i+2) , $r['keywords']);
+                    $objSheet->setCellValue("K".($i+2) , $r['description']);
+                }
+            }
+            $i++;
+        }while(count($result) >= 20);
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
 
