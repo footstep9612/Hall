@@ -154,6 +154,9 @@ class GoodsCostPriceModel extends PublicModel {
         if(!empty($checkout['price_validity'])){
             $data['price_validity'] = $checkout['price_validity'];
         }
+        if(!empty($checkout['id'])) {
+            $data['id'] = $checkout['id'];
+        }
         if($results){
             return $results;
         }
