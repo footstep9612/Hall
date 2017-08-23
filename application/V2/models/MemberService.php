@@ -24,7 +24,6 @@ class MemberServiceModel extends PublicModel {
      * 会员等级查看
      * @author klp
      */
-<<<<<<< HEAD
     public function levelInfo($limit){
         $where['status'] = 'VALID';
         $where['deleted_flag'] = 'N';
@@ -34,48 +33,16 @@ class MemberServiceModel extends PublicModel {
             $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->group('buyer_level')->select();
             } else{
                 $result = $this->field($fields)->where($where)->order('buyer_level')->group('buyer_level')->select();
-=======
-
-    public function levelInfo($limit, $where) {
-        $where['status'] = 'VALID';
-        $where['deleted_flag'] = 'N';
-        $fields = 'id, buyer_level, service_cat_id, service_term_id, service_item_id, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
-        try {
-            if (!empty($limit)) {
-                $result = $this->field($fields)->where($where)->limit($limit['page'] . ',' . $limit['num'])->order('buyer_level')->select();
-            } else {
-                $result = $this->field($fields)->where($where)->order('buyer_level')->select();
->>>>>>> Branch_dev
             }
             $data = array();
             if ($result) {
                 $employee = new EmployeeModel();
-<<<<<<< HEAD
                 foreach($result as $item) {
-=======
-                foreach ($result as $item) {
-                    $data[$item['service_cat_id']]['created_at'] = $item['created_at'];
->>>>>>> Branch_dev
                     $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
                     if ($createder && isset($createder[0])) {
                         $item['created_by'] = $createder[0];
                     }
-<<<<<<< HEAD
                     $data[$item['buyer_level']][] = $item;
-=======
-                    $data[$item['service_cat_id']]['buyer_level'] = $item['buyer_level'];
-
-                    $data[$item['service_cat_id']]['category']['service_cat_id'] = $item['service_cat_id'];
-
-                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['service_term_id'] = $item['service_term_id'];
-
-                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['service_item_id'] = $item['service_item_id'];
-
-                    $data[$item['service_cat_id']]['category']['term'][$item['service_term_id']]['item'][$item['service_item_id']]['id'] = $item['id'];
-                }
-                foreach ($data as $key => $value) {
-                    $arr[] = $value;
->>>>>>> Branch_dev
                 }
                 return $data;
             }
@@ -100,7 +67,7 @@ class MemberServiceModel extends PublicModel {
             $rs =  $this->field('service_term_id')->where($where1)->group('service_term_id')->select();
             foreach($rs as $key1=>$val1){
                 $where2 = ['service_term_id'=>$val1['service_term_id'],'status'=>'VALID','deleted_flag'=>'N'];
-                $rs1 =  $this->field('service_item_id')->where($where2)->group('service_item_id')->select();
+                $rs1 =  $this->field('service_item_id,id')->where($where2)->group('service_item_id')->select();
                 $rs[$key1]['item'] = $rs1;
             }
             $result[$key]['term'] = $rs;
@@ -128,13 +95,14 @@ class MemberServiceModel extends PublicModel {
                     //处理条款内容id
                     foreach ($term['item'] as $im) {
                         $save = [
-                            'service_cat_id' => $items['category']['service_cat_id'],
+                            'service_cat_id' => $items['service_cat_id'],
                             'service_term_id' => $term['service_term_id'],
                             'service_item_id' => $im['service_item_id'],
                             'buyer_level' => $data['buyer_level']
                         ];
                         if (isset($im['id']) && !empty($im['id'])) {
-                            $res = $this->field('id')->where(['id' => $items['id']])->find();
+                            $res = $this->field('id')->where(['id' => $im['id']])->find();
+
                             if ($res) {
                                 $save['id'] = $im['id'];
                                 $result = $this->update_data($save, $userInfo);
@@ -177,13 +145,13 @@ class MemberServiceModel extends PublicModel {
      * @param $id
      * @return bool
      */
-    public function delData($id) {
-        if (empty($id)) {
+    public function delData($buyer_level) {
+        if (empty($buyer_level)) {
             return false;
         }
         try {
-            $where = ['id' => $id];
-            $res = $this->where($where)->save(['status' => self::STATUS_DELETED]);
+            $where = ['buyer_level' => $buyer_level];
+            $res = $this->where($where)->save(['status' => self::STATUS_DELETED,'deleted_flag'=>'Y']);
             if (!$res) {
                 return false;
             }
