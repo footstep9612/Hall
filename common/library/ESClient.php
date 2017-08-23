@@ -447,7 +447,7 @@ class ESClient {
             }
             return true;
         } catch (Exception $ex) {
-            print_r($ex->getMessage());
+
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }

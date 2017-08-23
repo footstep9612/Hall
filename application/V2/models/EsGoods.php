@@ -531,9 +531,6 @@ class EsGoodsModel extends Model {
         if (!isset($flag['create'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
-        print_r($flag);
-        ob_flush();
-        flush();
     }
 
     /* 通过批量导入商品信息到ES

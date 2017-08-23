@@ -75,7 +75,7 @@ class MarketAreaModel extends PublicModel {
             return $this->order($order)
                             ->select();
         } catch (Exception $ex) {
-            print_r($ex);
+
             return [];
         }
     }
