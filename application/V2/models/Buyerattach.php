@@ -88,14 +88,14 @@ class BuyerattachModel extends PublicModel {
      */
     public function update_data($upcondition = []) {
         if($upcondition['attach_url']&&$upcondition['buyer_id']){
-            $info = $this->where($upcondition)->find();
-            if(!$info){
-                $this->where(['buyer_id'=>$upcondition['buyer_id']])->save(['deleted_flag' => 'Y']);
-                $data = $this->create($upcondition);
-                return $this->add($data);
+            $info = $this->where(['buyer_id'=>$upcondition['buyer_id'],'deleted_flag' => 'N'])->find();
+            if($info){
+                $this->where(['buyer_id'=>$upcondition['buyer_id'],'deleted_flag' => 'N'])->save(['deleted_flag' => 'Y']);
             }
+            $upcondition['created_at'] =date("Y-m-d H:i:s");
+            $data = $this->create($upcondition);
+            return $this->add($data);
         }
-
     }
 
     /**
