@@ -179,8 +179,8 @@ class SupplierModel extends PublicModel {
          if(isset($create['remarks'])){
             $data['remarks'] = $create['remarks'];
         }
-        if(isset($create['checked_by'])){
-            $data['checked_by'] = $create['checked_by'];
+        if(isset($create['checked_at'])){
+            $data['checked_at'] = $create['checked_at'];
         }
         if(isset($create['checked_by'])){
             $data['checked_by'] = $create['checked_by'];
