@@ -95,13 +95,14 @@ class MemberServiceModel extends PublicModel {
                     //处理条款内容id
                     foreach ($term['item'] as $im) {
                         $save = [
-                            'service_cat_id' => $items['category']['service_cat_id'],
+                            'service_cat_id' => $items['service_cat_id'],
                             'service_term_id' => $term['service_term_id'],
                             'service_item_id' => $im['service_item_id'],
                             'buyer_level' => $data['buyer_level']
                         ];
                         if (isset($im['id']) && !empty($im['id'])) {
-                            $res = $this->field('id')->where(['id' => $items['id']])->find();
+                            $res = $this->field('id')->where(['id' => $im['id']])->find();
+
                             if ($res) {
                                 $save['id'] = $im['id'];
                                 $result = $this->update_data($save, $userInfo);
