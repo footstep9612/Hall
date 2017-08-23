@@ -110,9 +110,13 @@ class EsproductController extends PublicController {
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-
+            $list[$key]['brand'] = json_decode($list[$key]['brand'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
+            if (!empty($list[$key]['material_cat'])) {
+                $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
+            } else {
+                $list[$key]['material_cat'] = new \stdClass();
+            }
         }
 
         $employee_model = new EmployeeModel();
