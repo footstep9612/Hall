@@ -31,11 +31,10 @@ class GroupController extends PublicController {
             if($v['parent_id'] == $pid){
                 $v['children'] = $this->get_group_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id'],$employee); //递归获取子记录
                 if($v['children'] == null){
-                    unset($v['children']);
-                }
-                if($employee){
-                    $where_user['group_id'] = $v['id'];
-                    $v['employee'] =$user_modle->getlist($where_user);
+                    if($employee){
+                        $where_user['group_id'] = $v['id'];
+                        $v['children'] =$user_modle->getlist($where_user);
+                    }
                 }
                 $tree[] = $v;
             }
