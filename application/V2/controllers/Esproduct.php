@@ -306,6 +306,36 @@ class EsproductController extends PublicController {
     }
 
     /**
+     * Description of 创建索引
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function mappingAction() {
+        $body['mappings'] = [];
+        $product_properties = $this->productAction('en');
+        $goods_properties = $this->goodsAction('en');
+        $es = new ESClient();
+        foreach ($this->langs as $lang) {
+            $goods_mapParam = [
+                'properties' => $goods_properties,
+                '_all' => ['enabled' => false]
+            ];
+            $product_mapParam = [
+                'properties' => $product_properties,
+                '_all' => ['enabled' => false]
+            ];
+            $es->putMapping($this->index, 'goods_' . $lang, $goods_mapParam);
+            $es->putMapping($this->index, 'product_' . $lang, $product_mapParam);
+        }
+
+        $this->setCode(1);
+        $this->setMessage('成功!');
+        $this->jsonReturn();
+    }
+
+    /**
      * Description of 商品索引信息组合
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
@@ -342,56 +372,59 @@ class EsproductController extends PublicController {
             'type' => 'string'
         ];
         $body = [
-            'min_order_qty' => $int_analyzed,
-            'min_pack_naked_qty' => $int_analyzed,
-            'min_pack_unit' => $ik_analyzed,
-            'nude_cargo_w_mm' => $int_analyzed,
-            'suppliers' => $ik_analyzed,
-            'shelves_status' => $not_analyzed,
-            'compose_require_pack' => $not_analyzed,
-            'qrcode' => $not_analyzed,
-            'checked_by' => $int_analyzed,
-            'show_name' => $ik_analyzed,
-            'nude_cargo_h_mm' => $int_analyzed,
-            'created_at' => $not_analyzed,
-            'description' => $ik_analyzed,
-            'hs_code' => $ik_analyzed,
-            'specs' => $ik_analyzed,
-            'updated_at' => $not_analyzed,
-            'commodity_ori_place' => $ik_analyzed,
-            'nude_cargo_l_mm' => $int_analyzed,
-            'tx_unit' => $ik_analyzed,
-            'material_cat_no' => $not_analyzed,
-            'model' => $ik_analyzed,
-            'show_cats' => $ik_analyzed,
-            'id' => $int_analyzed,
-            'lang' => $not_analyzed,
-            'sku' => $not_analyzed,
-            'nude_cargo_unit' => $ik_analyzed,
-            'min_pack_w_mm' => $int_analyzed,
-            'name_customs' => $ik_analyzed,
-            'checked_at' => $not_analyzed,
-            'gross_weight_kg' => $not_analyzed,
-            'regulatory_conds' => $ik_analyzed,
-            'min_pack_h_mm' => $int_analyzed,
-            'created_by' => $int_analyzed,
-            'net_weight_kg' => $not_analyzed,
-            'exw_days' => $ik_analyzed,
-            'tax_rebates_pct' => $not_analyzed,
-            'attrs' => $ik_analyzed,
-            'pack_type' => $ik_analyzed,
-            'min_pack_l_mm' => $int_analyzed,
-            'name' => $ik_analyzed,
-            'purchase_price' => $not_analyzed,
-            'purchase_price_cur_bn' => $not_analyzed,
-            'updated_by' => $int_analyzed,
-            'spu' => $not_analyzed,
-            'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed,
-            'minimumorderouantity' => $not_analyzed,
-            'onshelf_flag' => $not_analyzed,
-            'onshelf_by' => $not_analyzed,
-            'onshelf_at' => $not_analyzed,
+            'id' => $int_analyzed, //id
+            'lang' => $not_analyzed, //语言
+            'spu' => $not_analyzed, //SPU
+            'sku' => $not_analyzed, //SKU
+            'qrcode' => $not_analyzed, //商品二维码
+            'name' => $ik_analyzed, //商品名称
+            'name_zh' => $ik_analyzed, //中文品名
+            'show_name' => $ik_analyzed, //商品展示名称
+            'model' => $ik_analyzed, //型号
+            'description' => $ik_analyzed, //描述
+            'exw_days' => $ik_analyzed, //出货周期（天）
+            'min_pack_naked_qty' => $int_analyzed, //最小包装内裸货商品数量
+            'nude_cargo_unit' => $ik_analyzed, //商品裸货单位
+            'min_pack_unit' => $ik_analyzed, //最小包装单位
+            'min_order_qty' => $int_analyzed, //最小订货数量
+            'purchase_price' => $not_analyzed, //进货价格
+            'purchase_price_cur_bn' => $not_analyzed, //进货价格币种
+            'nude_cargo_l_mm' => $int_analyzed, //裸货尺寸长(mm)
+            'nude_cargo_w_mm' => $int_analyzed, //裸货尺寸宽(mm)
+            'nude_cargo_h_mm' => $int_analyzed, //裸货尺寸高(mm)
+            'min_pack_l_mm' => $int_analyzed, //最小包装后尺寸长(mm)
+            'min_pack_w_mm' => $int_analyzed, //最小包装后尺寸宽(mm)
+            'min_pack_h_mm' => $int_analyzed, //最小包装后尺寸高(mm)
+            'net_weight_kg' => $not_analyzed, //净重(kg)
+            'gross_weight_kg' => $not_analyzed, //毛重(kg)
+            'compose_require_pack' => $not_analyzed, //仓储运输包装及其他要求
+            'pack_type' => $ik_analyzed, //包装类型
+            'name_customs' => $ik_analyzed, //报关名称
+            'hs_code' => $ik_analyzed, //海关编码
+            'tx_unit' => $ik_analyzed, //成交单位
+            'tax_rebates_pct' => $not_analyzed, //退税率(%)
+            'regulatory_conds' => $ik_analyzed, //监管条件
+            'commodity_ori_place' => $ik_analyzed, //境内货源地
+            'source' => $ik_analyzed, //数据来源
+            'source_detail' => $ik_analyzed, //数据来源详情
+            'status' => $not_analyzed, //状态
+            'created_by' => $int_analyzed, //创建人
+            'created_at' => $not_analyzed, //创建时间
+            'updated_by' => $int_analyzed, //修改人
+            'updated_at' => $not_analyzed, //修改时间
+            'checked_by' => $int_analyzed, //审核人
+            'checked_at' => $not_analyzed, //审核时间
+            'deleted_flag' => $not_analyzed, //删除标志
+            /* 扩展内容 */
+            'suppliers' => $ik_analyzed, //供应商数组 json
+            'specs' => $ik_analyzed, //规格数组 json
+            'material_cat_no' => $not_analyzed, //物料编码
+            'show_cats' => $ik_analyzed, //展示分类数组 json
+            'attrs' => $ik_analyzed, //属性数组 json
+            'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'onshelf_flag' => $not_analyzed, //上架状态
+            'onshelf_by' => $not_analyzed, //上架人
+            'onshelf_at' => $not_analyzed, //上架时间
         ];
 
         return $body;
@@ -436,57 +469,60 @@ class EsproductController extends PublicController {
         ];
 
         $body = [
-            'principle' => $ik_analyzed,
-            'recommend_flag' => $not_analyzed,
-            'skus' => $ik_analyzed,
-            'keywords' => $ik_analyzed,
-            'suppliers' => $ik_analyzed,
-            'supply_ability' => $ik_analyzed,
-            'qrcode' => $not_analyzed,
-            'checked_by' => $int_analyzed,
-            'show_name' => $ik_analyzed,
-            'created_at' => $not_analyzed,
-            'description' => $ik_analyzed,
-            'availability' => $ik_analyzed,
-            'source' => $ik_analyzed,
-            'resp_time' => $ik_analyzed,
-            'specs' => $ik_analyzed,
-            'updated_at' => $not_analyzed,
-            'delivery_cycle' => $ik_analyzed,
-            'material_cat_no' => $not_analyzed,
-            'warranty' => $ik_analyzed,
-            'show_cats' => $ik_analyzed,
-            'customizability' => $ik_analyzed,
-            'id' => $int_analyzed,
-            'lang' => $not_analyzed,
-            'brand' => $ik_analyzed,
-            'checked_at' => $not_analyzed,
-            'resp_rate' => $not_analyzed,
-            'profile' => $ik_analyzed,
-            'created_by' => $int_analyzed,
-            'attrs' => $ik_analyzed,
-            'exe_standard' => $ik_analyzed,
-            'attachs' => $ik_analyzed,
-            'source_detail' => $ik_analyzed,
-            'advantages' => $ik_analyzed,
-            'sku_count' => $int_analyzed,
-            'name' => $ik_analyzed,
-            'updated_by' => $int_analyzed,
-            'spu' => $not_analyzed,
-            'availability_ratings' => $int_analyzed,
-            'app_scope' => $ik_analyzed,
-            'target_market' => $ik_analyzed,
-            'tech_paras' => $ik_analyzed,
-            'properties' => $ik_analyzed,
-            'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed,
-            'max_exw_day' => $not_analyzed,
-            'min_exw_day' => $not_analyzed,
-            'min_pack_unit' => $not_analyzed,
-            'minimumorderouantity' => $not_analyzed,
-            'onshelf_flag' => $not_analyzed,
-            'onshelf_by' => $not_analyzed,
-            'onshelf_at' => $not_analyzed,
+            'id' => $int_analyzed, //ID
+            'lang' => $not_analyzed, //语言
+            'material_cat_no' => $not_analyzed, //物料分类编码
+            'spu' => $not_analyzed, //SPU
+            'qrcode' => $not_analyzed, //二维码
+            'name' => $ik_analyzed, //产品名称
+            'show_name' => $ik_analyzed, // 产品展示
+            'brand' => $ik_analyzed, //品牌
+            'keywords' => $ik_analyzed, //关键词
+            'exe_standard' => $ik_analyzed, //执行标准
+            'tech_paras' => $ik_analyzed, //简介',
+            'advantages' => $ik_analyzed, //产品优势
+            'description' => $ik_analyzed, //详情介绍
+            'profile' => $ik_analyzed, //产品简介
+            'principle' => $ik_analyzed, //工作原理
+            'app_scope' => $ik_analyzed, //适用范围
+            'properties' => $ik_analyzed, //使用特点
+            'warranty' => $ik_analyzed, //质保期
+            'customization_flag' => $not_analyzed, //定制标志
+            'customizability' => $ik_analyzed, //定制能力
+            'availability' => $ik_analyzed, //供应能力
+            'availability_ratings' => $int_analyzed, //供应能力评级
+            'resp_time' => $ik_analyzed, //响应时间
+            'resp_rate' => $not_analyzed, //响应率
+            'delivery_cycle' => $ik_analyzed, //出货周期
+            'target_market' => $not_analyzed, //目标市场
+            'supply_ability' => $ik_analyzed, //供应能力
+            'source' => $ik_analyzed, //数据来源
+            'source_detail' => $ik_analyzed, //数据来源详情
+            'sku_count' => $int_analyzed, //SKU数
+            'recommend_flag' => $not_analyzed, //推荐
+            'status' => $not_analyzed, //状态
+            'created_by' => $int_analyzed, //创建人
+            'created_at' => $not_analyzed, //创建时间
+            'updated_by' => $int_analyzed, //修改人
+            'updated_at' => $not_analyzed, //修改时间
+            'checked_by' => $int_analyzed, //审核人
+            'checked_at' => $not_analyzed, //审核时间
+            'deleted_flag' => $not_analyzed, //删除标志
+            /* 扩展内容 */
+            'attrs' => $ik_analyzed, //属性
+            'attachs' => $ik_analyzed, //附件
+            'max_exw_day' => $not_analyzed, //出货周期（天）
+            'min_exw_day' => $not_analyzed, //出货周期（天）
+            'min_pack_unit' => $not_analyzed, //成交单位
+            'minimumorderouantity' => $not_analyzed, //最小订货数量
+            'specs' => $ik_analyzed, //规格数组 json
+            'material_cat_no' => $not_analyzed, //物料编码
+            'show_cats' => $ik_analyzed, //展示分类数组 json
+            'attrs' => $ik_analyzed, //属性数组 json
+            'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'onshelf_flag' => $not_analyzed, //上架状态
+            'onshelf_by' => $not_analyzed, //上架人
+            'onshelf_at' => $not_analyzed, //上架时间
         ];
         return $body;
     }

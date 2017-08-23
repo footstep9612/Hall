@@ -227,7 +227,7 @@ class BuyerModel extends PublicModel {
             $res = $this->add($datajson);
             return $res;
         } catch (Exception $ex) {
-            print_r($ex);
+
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
@@ -262,31 +262,31 @@ class BuyerModel extends PublicModel {
      * 采购商个人信息更新  -- 门户通用
      * @author klp
      */
-    public function upUserInfo($data,$where){
+    public function upUserInfo($data, $where) {
         $this->startTrans();
-        try{
+        try {
 
             $resultBuyer = $this->update_data($data, $where);
-            if(!$resultBuyer){
+            if (!$resultBuyer) {
                 $this->rollback();
                 return false;
             }
             $buyerAccount = new BuyerAccountModel();
             $resultAccount = $buyerAccount->update_data($data, $where);
-            if(!$resultAccount){
+            if (!$resultAccount) {
                 $this->rollback();
                 return false;
             }
             $buyerAddress = new BuyerAddressModel();
             $resultAddress = $buyerAddress->update_data($data, $where);
-            if(!$resultAddress){
+            if (!$resultAddress) {
                 $this->rollback();
                 return false;
             }
 
             $this->commit();
             return true;
-        }catch (Exception $e){
+        } catch (Exception $e) {
             $this->rollback();
             return false;
         }
@@ -383,11 +383,11 @@ class BuyerModel extends PublicModel {
                     break;
             }
         }
-        if(empty($data)){
+        if (empty($data)) {
             return true;
         }
-        $res =  $this->where($where)->save($data);
-        if($res){
+        $res = $this->where($where)->save($data);
+        if ($res) {
             return true;
         }
         return false;
@@ -662,42 +662,43 @@ class BuyerModel extends PublicModel {
                     jsonReturn('', '-1001', '用户[id]不可以为空');
                 }
                 $buyerInfo = $this->where("id='" . $data['id'] . "'")
-                    ->field($field)
-                    ->find();
+                        ->field($field)
+                        ->find();
             } else {
                 $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
-                    ->field($field)
-                    ->find();
+                        ->field($field)
+                        ->find();
             }
 
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
             $userInfo = $buyerAccount->field('email,mobile,first_name,last_name')
-                ->where(array('id' => $data['id'],'status'=>'VALID'))
-                ->find();
+                    ->where(array('id' => $data['id'], 'status' => 'VALID'))
+                    ->find();
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
             $zipCode = $buyerAddress->field('zipcode,address')
-                ->where(array('id' => $buyerInfo['id']))
-                ->find();
-            if($buyerInfo){
-                if($userInfo){
+                    ->where(array('id' => $buyerInfo['id']))
+                    ->find();
+            if ($buyerInfo) {
+                if ($userInfo) {
                     $buyerInfo['email'] = $userInfo['email'];
                     $buyerInfo['user_name'] = $userInfo['user_name'];
                     $buyerInfo['mobile'] = $userInfo['mobile'];
                     $buyerInfo['first_name'] = $userInfo['first_name'];
                     $buyerInfo['last_name'] = $userInfo['last_name'];
                 }
-                if($zipCode){
+                if ($zipCode) {
                     $buyerInfo['zipcode'] = $zipCode['zipcode'];
                     $buyerInfo['address'] = $zipCode['address'];
                 }
                 return $buyerInfo;
             }
             return array();
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return array();
         }
     }
+
 }
