@@ -206,8 +206,6 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'cat_name', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'checked_desc');
-
-
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED',
             'DELETED', 'DRAFT', 'INVALID']);
         $this->_getQureyByBool($condition, $body, ESClient::MATCH_PHRASE, 'recommend_flag', 'recommend_flag', 'N');
@@ -296,6 +294,7 @@ class EsGoodsModel extends Model {
             $es = new ESClient();
 
             return [$es->setbody($body)
+                        ->setsort('created_at', 'desc')
                         ->setsort('sort_order', 'desc')
                         ->setsort('_id', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
@@ -321,7 +320,7 @@ class EsGoodsModel extends Model {
                                     . ',max(updated_by) as min_updated_by'
                                     . ',max(updated_at) as max_updated_at'
                                     . ',max(checked_by) as min_checked_by'
-                                    . ' ,max(checked_by) as min_checked_at')
+                                    . ',max(checked_by) as min_checked_at')
                             ->where(['sku' => ['in', $skus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('sku')->select();
             $ret = [];
@@ -363,7 +362,6 @@ class EsGoodsModel extends Model {
             $skus = array_unique($skus);
             $espoducmodel = new EsProductModel();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-
             $goods_attr_model = new GoodsAttrModel();
             $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
 
@@ -486,6 +484,12 @@ class EsGoodsModel extends Model {
         if (!$body['material_cat']) {
             $body['material_cat'] = '{}';
         }
+
+        $body['material_cat_zh'] = $this->_getValue($product_attr, 'material_cat_zh', [], 'string');
+        if (!$body['material_cat_zh']) {
+            $body['material_cat_zh'] = '{}';
+        }
+
         $body['attachs'] = $this->_getValue($attachs, $sku, [], 'json');
         if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
             $body['attrs'] = json_encode($goods_attrs[$sku], JSON_UNESCAPED_UNICODE);

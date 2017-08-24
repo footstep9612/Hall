@@ -422,6 +422,7 @@ class EsproductController extends PublicController {
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
             'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
@@ -520,6 +521,7 @@ class EsproductController extends PublicController {
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
             'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间

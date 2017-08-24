@@ -433,9 +433,9 @@ class ProductModel extends PublicModel {
     /**
      * 列表查询
      */
-    public function getList($condition = [],$field = '', $offset = 0,$length = 20) {
+    public function getList($condition = [], $field = '', $offset = 0, $length = 20) {
         $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty' : $field;
-        $result = $this->field($field)->where($condition)->limit($offset,$length)->select();
+        $result = $this->field($field)->where($condition)->limit($offset, $length)->select();
         return $result ? $result : array();
     }
 
@@ -443,6 +443,7 @@ class ProductModel extends PublicModel {
      * spu详情
      * @param string $spu    spu编码
      * @param string $lang    语言
+     * @param string $status    状态
      * return array
      */
     public function getInfo($spu = '', $lang = '', $status = '') {
@@ -463,7 +464,7 @@ class ProductModel extends PublicModel {
 
         //读取redis缓存
         if (redisHashExist('spu', md5(json_encode($condition)))) {
-//            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
+            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
         }
 
         //数据读取
@@ -473,6 +474,7 @@ class ProductModel extends PublicModel {
             $data = array();
             if ($result) {
                 $employee = new EmployeeModel();
+                $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                     $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
@@ -501,6 +503,40 @@ class ProductModel extends PublicModel {
             return $data;
         } catch (Exception $e) {
             return false;
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 
