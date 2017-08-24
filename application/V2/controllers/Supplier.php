@@ -249,6 +249,11 @@ class SupplierController extends PublicController {
         if(!empty($arr['serial_no'])){
             $arr['supplier_no'] = $arr['serial_no'];
         }
+        if(!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+        }else{
+            $arr['status'] = 'DRAFT';
+        }
         $id=$model->create_data($arr);
         if($id){
             if(isset($data['user_name'])){
@@ -373,6 +378,10 @@ class SupplierController extends PublicController {
         if(isset($data['ids'])&&isset($data['status'])){
             $arr_ids = explode(",",$data['ids']);
             $arr['status'] = $data['status'];
+            if($data['status']=='APPROVED'|| $data['status']=='REJECTED'){
+                $arr['checked_by'] = $this->user['id'];
+                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            }
             for($i=0;$i<count($arr_ids);$i++){
                 $where['id'] = $arr_ids[$i];
                 $res = $model->update_data($arr,$where);
