@@ -520,7 +520,7 @@ class ShowCatModel extends PublicModel {
         $data['updated_at'] = date('Y-m-d H:i:s');
 
         foreach ($langs as $lang) {
-            if (isset($condition[$lang])) {
+            if (isset($condition[$lang]) && $condition[$lang]['name']) {
                 $data['lang'] = $lang;
                 $data['name'] = $condition[$lang]['name'];
 
@@ -532,6 +532,8 @@ class ShowCatModel extends PublicModel {
                 $add['created_by'] = defined('UID') ? UID : 0;
                 $add['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($add);
+
+
                 if (!$flag) {
                     $this->rollback();
                     return false;
@@ -595,6 +597,22 @@ class ShowCatModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
+        } elseif ($upcondition['level_no'] == 3) {
+            $show_material_cat_model = new ShowMaterialCatModel();
+            $show_material_cat_model->where(['show_cat_no' => $where['cat_no']])
+                    ->delete();
+            $dataList = [];
+            foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
+                $dataList[] = ['show_cat_no' => $cat_no,
+                    'material_cat_no' => $material_cat_no,
+                    'status' => 'VALID',
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'created_by' => defined('UID') ? UID : 0,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'updated_by' => defined('UID') ? UID : 0
+                ];
+            }
+            $show_material_cat_model->addAll($dataList);
         }
         $this->commit();
         return $flag;
