@@ -102,6 +102,7 @@ class EsgoodsController extends PublicController {
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
+            $list[$key]['material_cat_zh'] = json_decode($list[$key]['material_cat_zh'], true);
         }
 
         $employee_model = new EmployeeModel();
