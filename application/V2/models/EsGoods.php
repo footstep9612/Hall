@@ -447,6 +447,12 @@ class EsGoodsModel extends Model {
                 $skus = array_unique($skus);
                 $espoducmodel = new EsProductModel();
                 $es = new ESClient();
+                $goodsmodel = new GoodsModel();
+                if ($lang == 'zh') {
+                    $name_locs = $goodsmodel->getNamesBySkus($spus, 'en');
+                } else {
+                    $name_locs = $goodsmodel->getNamesBySkus($spus, 'zh');
+                }
                 $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
                 $goods_attach_model = new GoodsAttachModel();
@@ -462,7 +468,7 @@ class EsGoodsModel extends Model {
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 foreach ($goods as $item) {
-                    $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es);
+                    $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
                 }
             }
         } catch (Exception $ex) {
@@ -472,7 +478,7 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
@@ -490,6 +496,11 @@ class EsGoodsModel extends Model {
             $body['material_cat_zh'] = '{}';
         }
 
+        if (isset($name_locs[$sku]) && $name_locs[$sku]) {
+            $body['name_loc'] = $name_locs[$sku];
+        } else {
+            $body['name_loc'] = '';
+        }
         $body['attachs'] = $this->_getValue($attachs, $sku, [], 'json');
         if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
             $body['attrs'] = json_encode($goods_attrs[$sku], JSON_UNESCAPED_UNICODE);
@@ -875,6 +886,13 @@ class EsGoodsModel extends Model {
 
             $spus = array_unique($spus);
             $skus = array_unique($skus);
+
+            $goodsmodel = new GoodsModel();
+            if ($lang == 'zh') {
+                $name_locs = $goodsmodel->getNamesBySkus($spus, 'en');
+            } else {
+                $name_locs = $goodsmodel->getNamesBySkus($spus, 'zh');
+            }
             $espoducmodel = new EsProductModel();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
@@ -891,7 +909,7 @@ class EsGoodsModel extends Model {
 
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
             foreach ($goods as $item) {
-                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es);
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

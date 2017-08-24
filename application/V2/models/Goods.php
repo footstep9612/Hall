@@ -1029,4 +1029,32 @@ class GoodsModel extends PublicModel {
         return $data;
     }
 
+    /*
+     *
+     */
+
+    public function getNamesBySkus($skus, $lang = 'zh') {
+        $where = [];
+        if (is_array($skus) && $skus) {
+            $where['sku'] = ['in', $skus];
+        } else {
+            return [];
+        }
+        if (empty($lang)) {
+            $where['lang'] = 'zh';
+        } else {
+            $where['lang'] = $lang;
+        }
+        $result = $this->where($where)->field('name,sku')->select();
+        if ($result) {
+            $data = [];
+            foreach ($result as $item) {
+                $data[$item['sku']] = $item['name'];
+            }
+            return $data;
+        } else {
+            return [];
+        }
+    }
+
 }
