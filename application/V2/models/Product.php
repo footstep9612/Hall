@@ -665,7 +665,7 @@ class ProductModel extends PublicModel {
      * 根据spus 获取SPU名称
      */
 
-    public function getNamesBySkus($spus, $lang = 'zh') {
+    public function getNamesBySpus($spus, $lang = 'zh') {
         $where = [];
         if (is_array($spus) && $spus) {
             $where['spu'] = ['in', $spus];
