@@ -37,7 +37,7 @@ class SupplierModel extends PublicModel {
     public function getlist($condition = [],$order=" id desc") {
         $sql =  'SELECT `supplier`.`id`,`lang`,`serial_no`,`supplier_no`,`supplier_type`,`supplier`.`name`,`bn`,`profile`,`reg_capital`,`employee_count`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
         $sql.=  '`official_email`,`social_credit_code`,`official_phone`,`official_fax`,`first_name`,`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`supplier_level`,`credit_level`,';
-        $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`supplier`.`status`,`supplier`.`remarks`,`apply_at`,`supplier`.`created_by`,`checked_by`,`em`.`name` as `checked_name`,`checked_at`';
+        $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`supplier`.`status`,`supplier`.`remarks`,`apply_at`,`supplier`.`created_by`,`supplier`.`created_at`,`checked_by`,`em`.`name` as `checked_name`,`checked_at`';
         $sql_count =  'SELECT count(`supplier`.`id`) as num ';
         $str = ' FROM '.$this->g_table;
         $str .= ' left join `erui2_sys`.`employee` as `em` on `em`.`id` = `erui2_supplier`.`supplier`.`checked_by` ';
