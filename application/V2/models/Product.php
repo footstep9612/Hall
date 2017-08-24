@@ -249,7 +249,7 @@ class ProductModel extends PublicModel {
                             $data = array(
                                 'spu' => $spu,
                                 'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
-                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
+                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : $atta['attach_url'],
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
                                 'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
                             );
@@ -388,13 +388,16 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
+                        $result = $this->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                         if ($result) {
                             /**
                              * 删除ｓｋｕ
                              * 优化意见：这块最好放入队列，以确保成功删除掉。
                              */
-                            $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                            $res = $goodsModel->field('spu')->where($where)->select();
+                            if($res){
+                                $goodsModel->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y));
+                            }
                         } else {
                             $this->rollback();
                             return false;
@@ -407,13 +410,16 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
+                    $result = $this->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                     if ($result) {
                         /**
                          * 删除ｓｋｕ
                          * 优化意见：这块最好放入队列，以确保成功删除掉。
                          */
-                        $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                        $res = $goodsModel->field('spu')->where($where)->select();
+                        if($res){
+                            $goodsModel->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y));
+                        }
                     } else {
                         $this->rollback();
                         return false;
