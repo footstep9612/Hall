@@ -37,13 +37,13 @@ class SinosurerateModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where['b.name'] = ['like', '%' . $condition['name'] . '%'];
         }
-
         if (isset($condition['keyword']) && $condition['keyword']) {
             $map = [];
             $keyword = $condition['keyword'];
             $country_model = new CountryModel();
             $bns = $country_model->getBnByName($keyword);
             if ($bns) {
+
                 $map['a.country_bn'] = ['in', $bns];
                 $this->_getValue($map, $condition, 'keyword', 'like', 'b.name');
                 $map['_logic'] = 'or';

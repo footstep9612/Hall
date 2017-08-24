@@ -473,7 +473,7 @@ class CountryModel extends PublicModel {
             return '';
         }
         if (redisHashExist('Country', $name)) {
-            return redisHashGet('Country', $name);
+            return json_decode(redisHashGet('Country', $name), true);
         }
         try {
             $condition = array(
@@ -485,7 +485,7 @@ class CountryModel extends PublicModel {
             $bns = [];
             if ($result) {
                 foreach ($result as $bn) {
-                    $bns[] = $bn;
+                    $bns[] = $bn['bn'];
                 }
             } else {
                 return [];
