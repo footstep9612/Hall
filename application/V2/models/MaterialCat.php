@@ -27,18 +27,6 @@ class MaterialCatModel extends PublicModel {
         parent::__construct();
     }
 
-    /*
-     * 自动表单验证
-     */
-
-    protected $_validate = array(
-        array('lang', 'require', '语言不能为空'),
-        array('cat_no', 'require', '分类编码不能为空'),
-        array('level_no', 'number', '层级不能为空'),
-        array('name', 'require', '名称不能为空'),
-        array('status', 'require', '状态不能为空'),
-    );
-
     /**
      * 根据条件获取查询条件
      * @param mix $condition
@@ -420,14 +408,15 @@ class MaterialCatModel extends PublicModel {
             $this->startTrans();
 
             foreach ($this->langs as $lang) {
-                if (isset($upcondition[$lang])) {
+                if (isset($upcondition[$lang]) && $upcondition[$lang]['name']) {
                     $data['lang'] = $lang;
                     $data['name'] = $upcondition[$lang]['name'];
                     $where['lang'] = $lang;
+
                     $exist_flag = $this->Exist($where);
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
-                    $add['status'] = self::STATUS_APPROVING;
+                    $add['status'] = self::STATUS_VALID;
                     $data = $this->create($data);
                     $add = $this->create($add);
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
@@ -689,7 +678,7 @@ class MaterialCatModel extends PublicModel {
         $this->data = null;
         foreach ($this->langs as $lang) {
 
-            if (isset($createcondition[$lang])) {
+            if (isset($createcondition[$lang]) && $createcondition[$lang]['name']) {
                 $data['lang'] = $lang;
                 $data['name'] = $createcondition[$lang]['name'];
                 $data = $this->create($data);
