@@ -11,7 +11,7 @@ class ProductController extends PublicController {
     private $input;
 
     public function init() {
-        $this->token = false;
+//        $this->token = false;
         parent::init();
         $this->input = $this->getPut();
     }
