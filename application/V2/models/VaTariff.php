@@ -57,6 +57,7 @@ class VaTariffModel extends PublicModel {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
             $employee_model = new EmployeeModel();
+
             $userids = $employee_model->getUseridsByUserName($keyword);
             if ($userids) {
                 $map['vt.created_by'] = ['in', $userids];
