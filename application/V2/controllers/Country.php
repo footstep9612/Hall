@@ -50,7 +50,7 @@ class CountryController extends PublicController {
 
         $data['lang'] = $this->getPut('lang', 'zh');
         $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data, 'c.bn ASCS', false);
+        $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
 
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
