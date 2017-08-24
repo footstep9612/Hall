@@ -378,6 +378,7 @@ class EsproductController extends PublicController {
             'sku' => $not_analyzed, //SKU
             'qrcode' => $not_analyzed, //商品二维码
             'name' => $ik_analyzed, //商品名称
+            'name_loc' => $ik_analyzed, //中文品名
             'show_name_loc' => $ik_analyzed, //中文品名
             'show_name' => $ik_analyzed, //商品展示名称
             'model' => $ik_analyzed, //型号
