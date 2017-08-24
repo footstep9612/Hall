@@ -523,6 +523,7 @@ class ShowCatModel extends PublicModel {
             if (isset($condition[$lang])) {
                 $data['lang'] = $lang;
                 $data['name'] = $condition[$lang]['name'];
+
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;

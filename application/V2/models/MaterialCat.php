@@ -406,17 +406,21 @@ class MaterialCatModel extends PublicModel {
                 }
             }
             $this->startTrans();
-
+            $data['updated_by'] = defined('UID') ? UID : 0;
+            $data['updated_at'] = date('Y-m-d H:i:s');
             foreach ($this->langs as $lang) {
                 if (isset($upcondition[$lang]) && $upcondition[$lang]['name']) {
                     $data['lang'] = $lang;
                     $data['name'] = $upcondition[$lang]['name'];
+
                     $where['lang'] = $lang;
 
                     $exist_flag = $this->Exist($where);
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
                     $add['status'] = self::STATUS_VALID;
+                    $add['created_by'] = defined('UID') ? UID : 0;
+                    $add['created_at'] = date('Y-m-d H:i:s');
                     $data = $this->create($data);
                     $add = $this->create($add);
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
@@ -524,8 +528,7 @@ class MaterialCatModel extends PublicModel {
         if ($upcondition['sort_order']) {
             $data['sort_order'] = $upcondition['sort_order'];
         }
-        $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = defined('UID') ? UID : 0;
+
         return $data;
     }
 
