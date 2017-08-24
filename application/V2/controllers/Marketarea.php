@@ -201,7 +201,19 @@ class MarketareaController extends PublicController {
         $this->_init();
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
+        $newbn = ucwords($data['en']['name']);
+        if ($newbn != $data['bn']) {
+            $row = $market_area_model->Exits(['bn' => $newbn]);
+            if ($row && $row['status'] == 'VALID') {
+
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+            $result = $market_area_model->update_data($data);
+        }
+
         $result = $market_area_model->update_data($data);
+
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

@@ -299,7 +299,7 @@ class GoodsModel extends PublicModel {
         } else {
             $where['spu'] = $spu;
         }
-        return $this->field('sku,name,model,show_name')->where(['spu' => $spu, 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        return $this->field('sku,name,model,show_name')->where($where)->select();
     }
 
     /**
