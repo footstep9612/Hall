@@ -1,41 +1,80 @@
 <?php
 
 /**
- * 系统Excel相关操作处理
- * Class ExcelManagerController
- * @author 买买提
+ * @desc   系统Excel相关操作处理
+ * @Author 买买提
  */
 class ExcelmanagerController extends PublicController
 {
 
-    private $_requestParams = [];
     public function init(){
-        parent::init();
-        $this->_requestParams = json_decode(file_get_contents("php://input"),true);
+        //parent::init();
+    }
+
+
+    public function uploadAction(){
+        $this->getView()->assign("content", "Hello World");
+        $this->display('upload');
+    }
+    /**
+     * @desc 获取请求
+     * @return mixed
+     */
+    private function requestParams(){
+        return json_decode(file_get_contents("php://input"),true);
     }
 
     /**
-     * 下载sku导入模板(询单管理->新增询单)
+     * 验证指定参数是否存在
+     * @param string $params 初始的请求字段
+     * @return array 验证后的请求字段
+     */
+    private function validateRequests($params=''){
+
+        $request = $this->requestParams();
+        unset($request['token']);
+
+        //判断筛选字段为空的情况
+        if ($params){
+            $params = explode(',',$params);
+            foreach ($params as $param){
+                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+            }
+        }
+        return $request;
+    }
+
+    /**
+     * @desc 下载sku导入模板(询单管理->新增询单)
      */
     public function downloadInquirySkuTemplateAction(){
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
             'data' => [
-                'url' => 'http://file01.erui.com/group1/M00/00/00/rBFgyFlnMmeAHxJkAAAhcdF4c_o558.xls'
+                'url' => 'http://file01.erui.com/group1/M00/00/03/rBFgyFmegqKAIt1pAAAm7A4b9LA55.xlsx'
             ]
         ]);
     }
 
     /**
-     * 导入sku(询单管理->新增询单)
+     * @desc 导入sku(询单管理->新增询单)
      */
     public function importSkuAction(){
-        $remoteFile = $this->_requestParams['url'];
+
+        //测试地址 有数据 http://file01.erui.com/group1/M00/00/03/rBFgyFmegTCATPDzAAAniCErWEI19.xlsx
+        //测试地址 没有数据 http://file01.erui.com/group1/M00/00/03/rBFgyFmegqKAIt1pAAAm7A4b9LA55.xlsx
+        $request = $this->validateRequests('inquiry_id,file_url');
+
+        $remoteFile = $request['file_url'];
+        $inquiry_id = $request['inquiry_id'];
         //下载到本地临时文件
         $localFile = ExcelHelperTrait::download2local($remoteFile);
         $data = ExcelHelperTrait::ready2import($localFile);
-        $this->jsonReturn($this->importSkuHandler($data));
+
+        $response = $this->importSkuHandler($localFile,$data,$inquiry_id);
+        $this->jsonReturn($response);
+
     }
 
     /**
@@ -44,41 +83,42 @@ class ExcelmanagerController extends PublicController
      *
      * @return array
      */
-    private function importSkuHandler($data){
+    private function importSkuHandler($localFile,$data,$inquiry_id){
+
         array_shift($data);//去掉第一行数据(excel文件的标题)
+        //p($data);
         if (empty($data)){
-            return [
-                'code' => '-104',
-                'message' => '没有可导入的数据',
-                'data' => ''
-            ];
+            return ['code' => '-104','message' => '没有可导入的数据','data' => ''];
         }
 
         //遍历重组
         foreach ($data as $k=>$v){
-            $sku[$k]['sku'] = $v[0];//平台sku
-            $sku[$k]['inquiry_id'] = $v[1];//客户询单号
-            $sku[$k]['name'] = $v[2];//外文品名
-            $sku[$k]['name_zh'] = $v[3];//中文品名
-            $sku[$k]['model'] = $v[4];//型号
-            $sku[$k]['remarks'] = $v[5];//客户需求描述
-            $sku[$k]['remarks_zh'] = $v[6];//客户需求描述(澄清)
-            $sku[$k]['qty'] = $v[7];//数量
-            $sku[$k]['unit'] = $v[8];//单位
-            $sku[$k]['brand'] = $v[9];//品牌
+            $sku[$k]['sku'] = $v[1];//平台sku
+            $sku[$k]['inquiry_id'] = $inquiry_id;//询单id
+            $sku[$k]['buyer_goods_no'] = $v[2];//客户询单号
+            $sku[$k]['name'] = $v[3];//外文品名
+            $sku[$k]['name_zh'] = $v[4];//中文品名
+            $sku[$k]['model'] = $v[5];//型号
+            $sku[$k]['remarks'] = $v[6];//客户需求描述
+            $sku[$k]['remarks_zh'] = $v[7];//客户需求描述(澄清)
+            $sku[$k]['qty'] = $v[8];//数量
+            $sku[$k]['unit'] = $v[9];//单位
+            $sku[$k]['brand'] = $v[10];//品牌
             $sku[$k]['created_at'] = date('Y-m-d H:i:s',time());//添加时间
         }
-
+        //p($sku);
         //写入数据库
         $inquiryItem = new InquiryItemModel();
         try{
             foreach ($sku as $item=>$value){
-                $inquiryItem->add($value);
+                $inquiryItem->add($inquiryItem->create($value));
             }
-            return [
-                'code' => '1',
-                'message' => '导入成功'
-            ];
+            //删除本地临时文件
+            if (is_file($localFile) && file_exists($localFile)){
+                unlink($localFile);
+            }
+            return ['code' => '1','message' => '导入成功'];
+
         }catch (Exception $exception){
             return [
                 'code' => $exception->getCode(),
@@ -92,6 +132,11 @@ class ExcelmanagerController extends PublicController
      * 下载报价单(询单管理->报价信息)
      */
     public function downQuotationAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $exportData = $this->getFinalQuoteData($request['inquiry_id']);
+
         //获取数据并重组格式
         //$data = $this->getResortData($this->_requestParams['serial_no']);
         $data = $this->simulateData();
@@ -113,6 +158,16 @@ class ExcelmanagerController extends PublicController
                 'url' => $remoteUrl
             ]
         ]);
+    }
+
+    private function getFinalQuoteData($inquiry_id){
+
+        /**
+         |
+         | 询单综合信息 (询价单位 流程编码 项目代码)
+         | 报价综合信息 (报价人，电话，邮箱，报价时间)
+         |
+         */
     }
 
     /**

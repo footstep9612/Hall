@@ -24,6 +24,7 @@ class SinosureRateController extends PublicController {
         $condition = $this->put_data;
 
         $data = $this->sinosureRateModel->getJoinList($condition);
+
         $this->_setCountryName($data);
         $this->_handleList($this->sinosureRateModel, $data, $condition, true);
     }

@@ -82,7 +82,7 @@ class CityController extends PublicController {
      */
 
     public function infoAction() {
-        $bn = $this->get('bn') ?: $this->getPut('bn');
+        $bn = $this->getPut('bn');
         if ($bn) {
             $data = [];
             $langs = ['en', 'zh', 'es', 'ru'];

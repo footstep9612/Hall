@@ -45,8 +45,8 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['employee_name'])) {
             $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
             $str .= " left Join `erui2_sys`.`employee` on `erui2_buyer`.`buyer_agent`.`agent_id` = `erui2_sys`.`employee`.`id` ";
-            $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         }
+        $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $sql .= $str;
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
@@ -66,7 +66,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
         }
         if (!empty($condition['status'])) {
-            $where .= ' And `erui2_buyer`.`buyer_account`.status  ="' . $condition['status'] . '"';
+            $where .= ' And `erui2_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
         }
         if (!empty($condition['user_name'])) {
             $where .= ' And `erui2_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
@@ -93,6 +93,7 @@ class BuyerModel extends PublicModel {
             $sql .= $where;
             $sql_count .= $where;
         }
+        $sql .= ' Group By `erui2_buyer`.`buyer`.`id`';
         $sql .= ' Order By ' . $order;
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
@@ -533,16 +534,41 @@ class BuyerModel extends PublicModel {
         $this->_getValue($where, $condition, 'id', 'string', 'b.id');
         //审核人
         $this->_getValue($where, $condition, 'approved_by', 'string', 'cb.approved_by');
-        $userids = $this->_getUserids($where, $condition, 'approved_by_name', 'cb.approved_by');
-        if ($userids) {
-            $where['approved_by'] = ['in', $userids];
-        }
+        $this->_getUserids($where, $condition, 'approved_by_name', 'cb.approved_by');
+
+
+        $this->_getUserids($where, $condition, 'checked_by_name', 'cb.checked_by');
+
         //审核人
         //   $this->_getValue($where, $condition, 'approved_by_name', 'array', 'cb.approved_by');
         //公司名称
         $this->_getValue($where, $condition, 'name', 'like', 'b.name');
         //审核状态
-        $this->_getValue($where, $condition, 'status', 'string', 'b.status', 'VALID');
+        $where['b.status'] = self::STATUS_APPROVED;
+
+
+        if (isset($condition['status']) && $condition['status']) {
+            switch ($condition['status']) {
+                case '05'://信保通过
+
+                    $where['cl.out_status'] = 'APPROVED';
+                    break;
+                case '04'://信保驳回
+                    $where['cl.out_status'] = 'REJECTED';
+                    break;
+                case '03'://易瑞通过
+                    $where['cl.in_status'] = 'APPROVED';
+                    break;
+                case '02'://易瑞驳回
+                    $where['cl.in_status'] = 'REJECTED';
+                    break;
+                case '01'://待易瑞审核
+                    $where['cl.in_status'] = 'APPROVING';
+                    break;
+                default :
+                    break;
+            }
+        }
         //授信额度(暂无字段,待完善)
         $this->_getValue($where, $condition, 'credit', 'between', 'b.line_of_credit');
         //信保审核时间段(暂无,待完善)
@@ -554,8 +580,9 @@ class BuyerModel extends PublicModel {
                 . 'cl.in_status,cl.checked_by,cl.checked_at,cl.out_status,cl.approved_by,cl.approved_at';
 
         $result = $this->alias('b')->field($field)->order("id desc")
-                        ->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
+                        ->join($creditLogtable . ' as cl ON b.id = cl.id', 'INNER')
                         ->limit($from, $pagesize)->where($where)->select();
+
         $count = $this->alias('b')->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
                         ->where($where)->count('b.id');
         $this->_setUserName($result, 'checked_by');

@@ -24,7 +24,7 @@ class MaterialcatController extends PublicController {
      */
 
     public function treeAction() {
-        $lang = $this->get('lang', 'zh');
+        $lang = $this->getPut('lang', 'zh');
 
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
@@ -135,7 +135,7 @@ class MaterialcatController extends PublicController {
      */
     public function listAction() {
 
-        $condition = $this->get() ? $this->get() : $this->getPut();
+        $condition = $this->getPut();
         $condition['token'] = null;
         unset($condition['token']);
         $key = 'Material_cat_list_' . md5(json_encode($condition));
@@ -192,7 +192,7 @@ class MaterialcatController extends PublicController {
      *
      */
     public function infoAction() {
-        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
+        $cat_no = $this->getPut('cat_no');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -281,7 +281,7 @@ class MaterialcatController extends PublicController {
      *
      */
     public function getInfoAction() {
-        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
+        $cat_no = $this->getPut('cat_no');
         $lang = $this->getPut('lang', 'zh');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
@@ -363,8 +363,8 @@ class MaterialcatController extends PublicController {
      */
 
     public function deleteAction() {
-        $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
-        $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
+        $cat_no = $this->getPut('cat_no');
+        $lang = $this->getPut('lang');
         $product_model = new ProductModel();
         $data = $product_model->where(['material_cat_no' => ['like', $cat_no . '%']])
                 ->find();
@@ -390,8 +390,8 @@ class MaterialcatController extends PublicController {
      */
 
     public function approvingAction() {
-        $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
-        $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
+        $cat_no = $this->getPut('cat_no');
+        $lang = $this->getPut('lang');
         $result = $this->_model->approving($cat_no, $lang);
 
         if ($result) {

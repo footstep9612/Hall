@@ -172,7 +172,10 @@ class MarketAreaModel extends PublicModel {
      */
     public function Exits($where) {
 
-        return $this->_exist($where);
+        $row = $this->where($where)
+                ->field('id,status')
+                ->find();
+        return empty($row) ? false : $row;
     }
 
     /**
@@ -243,6 +246,7 @@ class MarketAreaModel extends PublicModel {
             $arr['bn'] = $newbn;
             $arr['lang'] = $lang;
             $arr['name'] = $data[$lang]['name'];
+            $arr['status'] = 'VALID';
             if ($this->Exits($where)) {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
                 $arr['updated_by'] = defined('UID') ? UID : 0;

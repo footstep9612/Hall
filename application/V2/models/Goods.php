@@ -290,7 +290,16 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskubyspu($spu, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['spu' => $spu, 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        if (!$spu) {
+            return [];
+        }
+        $where = ['lang' => $lang, 'status' => self::STATUS_VALID];
+        if (is_array($spu) && $spu) {
+            $where['spu'] = ['in', $spu];
+        } else {
+            $where['spu'] = $spu;
+        }
+        return $this->field('sku,name,model,show_name')->where($where)->select();
     }
 
     /**
@@ -298,7 +307,10 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskusbyskus($skus, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        if (!$skus && !is_array($skus)) {
+            return [];
+        }
+        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => self::STATUS_VALID])->select();
     }
 
     //--------------------------------BOSS.V2--------------------------------------------------------//
@@ -485,7 +497,7 @@ class GoodsModel extends PublicModel {
                         'lang' => $key,
                         'spu' => $checkout['spu'],
                         'name' => $checkout['name'],
-                        'show_name' => isset($checkout['show_name'])?$checkout['show_name']:'',
+                        'show_name' => isset($checkout['show_name']) ? $checkout['show_name'] : '',
                         'model' => !empty($checkout['model']) ? $checkout['model'] : '',
                         'description' => !empty($checkout['description']) ? $checkout['description'] : '',
                         'source' => !empty($checkout['source']) ? $checkout['source'] : '',
@@ -538,9 +550,9 @@ class GoodsModel extends PublicModel {
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
-                            if($key == 'zh'){
+                            if ($key == 'zh') {
                                 $data['show_name_loc'] = $input['en']['name'];
-                            } else{
+                            } else {
                                 $data['show_name_loc'] = $input['zh']['name'];
                             }
                             $res = $this->add($data);
@@ -564,9 +576,9 @@ class GoodsModel extends PublicModel {
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
-                        if($key == 'zh'){
+                        if ($key == 'zh') {
                             $data['show_name_loc'] = $input['en']['name'];
-                        } else{
+                        } else {
                             $data['show_name_loc'] = $input['zh']['name'];
                         }
                         $res = $this->add($data);
@@ -1039,7 +1051,7 @@ class GoodsModel extends PublicModel {
     }
 
     /*
-     *
+     * 根据skus 获取SKU名称
      */
 
     public function getNamesBySkus($skus, $lang = 'zh') {
