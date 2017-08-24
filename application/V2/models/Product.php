@@ -489,14 +489,14 @@ class ProductModel extends PublicModel {
                     if ($checkeder && isset($checkeder[0])) {
                         $item['checked_by'] = $checkeder[0];
                     }
-                    if(json_decode($item['brand'],true) != null){
+                    if(!is_null(json_decode($item['brand'],true))){
                         $brand = json_decode($item['brand'],true);
                         $item['brand'] = $brand['name'];
                     }
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
-                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
+//                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {

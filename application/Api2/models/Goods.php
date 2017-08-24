@@ -19,6 +19,8 @@ class GoodsModel extends PublicModel {
     const STATUS_DELETED = 'DELETED';      //删除
     const STATUS_CHECKING = 'CHECKING';    //审核中
     const STATUS_DRAFT = 'DRAFT';          //草稿
+    const DELETED_Y = 'Y';          //Y
+    const DELETED_N = 'N';          //N
 
     //定义校验规则
 
@@ -113,19 +115,19 @@ class GoodsModel extends PublicModel {
             $condition = array(
                 "spu" => $spu,
                 "lang" => $lang,
-                "status" => self::STATUS_VALID
+                "status" => self::STATUS_VALID,
+                "deleted_flag" => self::DELETED_N
             );
             $result = $this->field($field)->where($condition)->select();
-            $this->getSpecBySku($result, $lang);
+            $this->getSpecBySku($result, $lang, $spec_type);
             return $result;
         } catch (Exception $e) {
 
             return array();
         }
-        return array();
     }
 
-    public function getSpecBySku(&$result, $lang) {
+    public function getSpecBySku(&$result, $lang, $spec_type) {
 
         if ($result) {
 
