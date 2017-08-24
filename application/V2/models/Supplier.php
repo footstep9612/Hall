@@ -235,8 +235,6 @@ class SupplierModel extends PublicModel {
         }
         if(isset($create['lang'])){
             $data['lang'] = $create['lang'];
-        }else{
-            $data['lang'] = 'en';
         }
         if(isset($create['name'])){
             $data['name'] = $create['name'];

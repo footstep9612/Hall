@@ -419,9 +419,6 @@ class SupplierController extends PublicController {
         if(!empty($data['lang'])) {
             $arr['lang'] = $data['lang'];
         }
-        if(!empty($data['lang'])) {
-            $arr['lang'] = $data['lang'];
-        }
         if(!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
             $supplier_contact_data['first_name']= $data['first_name'];
