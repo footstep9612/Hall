@@ -412,7 +412,9 @@ class MaterialCatModel extends PublicModel {
                     $data['lang'] = $lang;
                     $data['name'] = $upcondition[$lang]['name'];
                     $where['lang'] = $lang;
+
                     $exist_flag = $this->Exist($where);
+
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
                     $add['status'] = self::STATUS_APPROVING;
@@ -423,10 +425,6 @@ class MaterialCatModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
-                } elseif (isset($upcondition[$lang])) {
-                    $where['lang'] = $lang;
-                    $data['status'] = self::STATUS_DELETED;
-                    $this->where($where)->save($data);
                 }
             }
 
