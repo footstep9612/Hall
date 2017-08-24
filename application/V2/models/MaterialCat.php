@@ -27,18 +27,6 @@ class MaterialCatModel extends PublicModel {
         parent::__construct();
     }
 
-    /*
-     * 自动表单验证
-     */
-
-    protected $_validate = array(
-        array('lang', 'require', '语言不能为空'),
-        array('cat_no', 'require', '分类编码不能为空'),
-        array('level_no', 'number', '层级不能为空'),
-        array('name', 'require', '名称不能为空'),
-        array('status', 'require', '状态不能为空'),
-    );
-
     /**
      * 根据条件获取查询条件
      * @param mix $condition
@@ -435,9 +423,8 @@ class MaterialCatModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
-                } else {
+                } elseif (isset($upcondition[$lang])) {
                     $where['lang'] = $lang;
-                    $data['cat_no'] = $data['cat_no'];
                     $data['status'] = self::STATUS_DELETED;
                     $this->where($where)->save($data);
                 }
