@@ -245,6 +245,7 @@ class ExchangeRateModel extends PublicModel {
             $result = $this->field($field)
                     ->limit($from, $pagesize)
                     ->where($where)
+                    ->order('id desc')
                     ->select();
             return $result;
         } catch (Exception $ex) {
