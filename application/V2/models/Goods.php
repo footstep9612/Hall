@@ -448,7 +448,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        $sku = !empty($input['sku']) ? trim($input['sku']) : $this->setupSku();
+        $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
@@ -485,7 +485,7 @@ class GoodsModel extends PublicModel {
                         'lang' => $key,
                         'spu' => $checkout['spu'],
                         'name' => $checkout['name'],
-                        'show_name' => $checkout['show_name'],
+                        'show_name' => isset($checkout['show_name'])?$checkout['show_name']:'',
                         'model' => !empty($checkout['model']) ? $checkout['model'] : '',
                         'description' => !empty($checkout['description']) ? $checkout['description'] : '',
                         'source' => !empty($checkout['source']) ? $checkout['source'] : '',
@@ -519,7 +519,7 @@ class GoodsModel extends PublicModel {
                     ];
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
-                    if (!empty($input['sku'])) {             //------编辑
+                    if (isset($input['sku'])) {             //------编辑
                         $where = [
                             'lang' => $key,
                             'sku' => trim($input['sku'])
@@ -538,6 +538,11 @@ class GoodsModel extends PublicModel {
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                            if($key == 'zh'){
+                                $data['show_name_loc'] = $input['en']['name'];
+                            } else{
+                                $data['show_name_loc'] = $input['zh']['name'];
+                            }
                             $res = $this->add($data);
                             if ($res) {
                                 $pModel = new ProductModel();                                 //sku_count加一
@@ -551,7 +556,6 @@ class GoodsModel extends PublicModel {
                         }
                         if (!$res) {
                             $this->rollback();
-
                             return false;
                         }
                     } else {             //------新增
@@ -588,7 +592,7 @@ class GoodsModel extends PublicModel {
                         'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs']) : null,
                         'status' => $gattr::STATUS_VALID
                     );
-                    if (!empty($input['sku'])) {
+                    if (isset($input['sku'])) {
                         $attr_obj['sku'] = trim($input['sku']);
                         $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     } else {
@@ -602,7 +606,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = isset($input['sku']) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gattach = new GoodsAttachModel();
                         $resAttach = $gattach->editSkuAttach($value, $input['sku'], $input['user_id']);  //附件新增
@@ -613,7 +617,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'supplier_cost') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = isset($input['sku']) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
                         $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
