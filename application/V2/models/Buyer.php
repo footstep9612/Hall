@@ -543,7 +543,31 @@ class BuyerModel extends PublicModel {
         //公司名称
         $this->_getValue($where, $condition, 'name', 'like', 'b.name');
         //审核状态
-        $this->_getValue($where, $condition, 'status', 'string', 'b.status', 'APPROVING');
+        $where['b.status'] = self::STATUS_APPROVED;
+
+
+        if (isset($condition['status']) && $condition['status']) {
+            switch ($condition['status']) {
+                case '05'://信保通过
+
+                    $where['cl.out_status'] = 'APPROVED';
+                    break;
+                case '04'://信保驳回
+                    $where['cl.out_status'] = 'REJECTED';
+                    break;
+                case '03'://易瑞通过
+                    $where['cl.in_status'] = 'APPROVED';
+                    break;
+                case '02'://易瑞驳回
+                    $where['cl.in_status'] = 'REJECTED';
+                    break;
+                case '01'://待易瑞审核
+                    $where['cl.in_status'] = 'APPROVING';
+                    break;
+                default :
+                    break;
+            }
+        }
         //授信额度(暂无字段,待完善)
         $this->_getValue($where, $condition, 'credit', 'between', 'b.line_of_credit');
         //信保审核时间段(暂无,待完善)
