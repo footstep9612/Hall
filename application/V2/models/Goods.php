@@ -293,7 +293,7 @@ class GoodsModel extends PublicModel {
         if (!$spu) {
             return [];
         }
-        $where = ['lang' => $lang, 'satus' => self::STATUS_VALID];
+        $where = ['lang' => $lang, 'status' => self::STATUS_VALID];
         if (is_array($spu) && $spu) {
             $where['spu'] = ['in', $spu];
         } else {
@@ -310,7 +310,7 @@ class GoodsModel extends PublicModel {
         if (!$skus && !is_array($skus)) {
             return [];
         }
-        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => self::STATUS_VALID])->select();
     }
 
     //--------------------------------BOSS.V2--------------------------------------------------------//
