@@ -564,6 +564,11 @@ class GoodsModel extends PublicModel {
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                        if($key == 'zh'){
+                            $data['show_name_loc'] = $input['en']['name'];
+                        } else{
+                            $data['show_name_loc'] = $input['zh']['name'];
+                        }
                         $res = $this->add($data);
                         if (!$res) {
                             $this->rollback();
