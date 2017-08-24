@@ -388,7 +388,7 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
+                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                         if ($result) {
                             /**
                              * 删除ｓｋｕ
@@ -396,7 +396,7 @@ class ProductModel extends PublicModel {
                              */
                             $res = $goodsModel->field('spu')->where($where)->select();
                             if($res){
-                                $goodsModel->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y));
+                                $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                             }
                         } else {
                             $this->rollback();
@@ -410,7 +410,7 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
+                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                     if ($result) {
                         /**
                          * 删除ｓｋｕ
@@ -418,7 +418,7 @@ class ProductModel extends PublicModel {
                          */
                         $res = $goodsModel->field('spu')->where($where)->select();
                         if($res){
-                            $goodsModel->where($where)->save(array('status' => self::STATUS_DELETED,'deleted_flag' => self::DELETE_Y));
+                            $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                         }
                     } else {
                         $this->rollback();

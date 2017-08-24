@@ -27,7 +27,7 @@ class LogiperiodController extends PublicController {
 
         $logiModel = new LogiPeriodModel();
         $logis = $logiModel->getList($this->input['lang'], $this->input['to_country']);
-        if ($logis) {
+        if ($logis || empty($logis)) {
             jsonReturn(array('data' => $logis));
         } else {
             jsonReturn('', '400', '失败');

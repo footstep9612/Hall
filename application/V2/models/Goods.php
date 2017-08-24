@@ -757,13 +757,13 @@ class GoodsModel extends PublicModel {
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
-                                $spuWhere = array(
-                                    'spu' => $spuCode['spu'],
-                                );
-                                if (!empty($lang)) {
-                                    $spuCode['lang'] = $lang;
-                                }
                                 if ($spuCode) {
+                                    $spuWhere = array(
+                                        'spu' => $spuCode['spu'],
+                                    );
+                                    if (!empty($lang)) {
+                                        $spuCode['lang'] = $lang;
+                                    }
                                     $result_spu = $pModel->where($spuWhere)->save(array('status' => $pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s', time())));
                                     if ($result_spu) {
                                         $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
@@ -908,7 +908,7 @@ class GoodsModel extends PublicModel {
                     }
                     $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
                     if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
-                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                        $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if ($res) {
                             $pModel = new ProductModel();                               //sku_count减一
                             $where_spu = array(
@@ -936,7 +936,7 @@ class GoodsModel extends PublicModel {
                 }
                 $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
                 if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                     if ($res) {
                         $pModel = new ProductModel();                               //sku_count减一
                         $where_spu = array(

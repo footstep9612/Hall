@@ -102,7 +102,7 @@ class DictController extends PublicController {
         $trade_terms = new TradeTermsModel();
         if (empty($where) && empty($limit)) {
             if (!$lang) {
-                $lang = 'zh';
+                $lang = 'en';
             }
 
             $where['lang'] = $lang;
@@ -293,11 +293,25 @@ class DictController extends PublicController {
         $this->input['lang'] = isset($this->input['lang']) ? $this->input['lang'] : 'en';
         $ddlModel = new DestDeliveryLogiModel();
         $data = $ddlModel->getList($this->input['country'], $this->input['lang']);
-        if ($data) {
+        if ($data  || empty($data)) {
             jsonReturn(array('data' => $data));
         } else {
             jsonReturn('', '400', '失败');
         }
     }
+
+    /**
+     * 贸易术语
+     */
+//    public function tradeTermsListAction() {
+//        $this->input['lang'] = isset($this->input['lang']) ? $this->input['lang'] : 'en';
+//        $ddlModel = new TradeTermsModel();
+//        $data = $ddlModel->getList($this->input['country'], $this->input['lang']);
+//        if ($data  || empty($data)) {
+//            jsonReturn(array('data' => $data));
+//        } else {
+//            jsonReturn('', '400', '失败');
+//        }
+//    }
 
 }

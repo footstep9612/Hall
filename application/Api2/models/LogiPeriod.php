@@ -221,11 +221,11 @@ class LogiPeriodModel extends PublicModel {
         }
         try {
             $field = 'id,lang,logi_no,trade_terms_bn,trans_mode_bn,warehouse,from_country,'
-                    . 'from_port,to_country,clearance_loc,to_port,packing_period_min,'
+                    . 'from_port,to_country,clearance_loc,to_port,packing_period_min,delivery_addr,transfer_flag,'
                     . 'packing_period_max,collecting_period_min,collecting_period_max,'
                     . 'declare_period_min,declare_period_max,loading_period_min,'
                     . 'loading_period_max,int_trans_period_min,int_trans_period_max,'
-                    . 'remarks,period_min,period_max,description';
+                    . 'remarks,period_min,period_max';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
@@ -236,7 +236,7 @@ class LogiPeriodModel extends PublicModel {
             }
             return $data;
         } catch (Exception $ex) {
-            return array();
+            return false;
         }
     }
 

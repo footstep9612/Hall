@@ -41,12 +41,13 @@ class DestDeliveryLogiModel extends PublicModel {
 
             if ($result) {
                 redisHashSet('DestDeliveryLogi', md5($country . '_' . $lang), json_encode($result));
+                return $result;
             }
-            return $result;
+            return array();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
-            return '';
+            return false;
         }
     }
 

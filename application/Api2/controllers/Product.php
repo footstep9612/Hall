@@ -86,10 +86,10 @@ class ProductController extends PublicController {
         $pAttach = new ProductAttachModel();
         $attachs = $pAttach->getAttach($this->input);
 
-        if ($attachs) {
+        if ($attachs || empty($attachs)) {
             jsonReturn(array('data' => $attachs));
         } else {
-            jsonReturn('', 400, '');
+            jsonReturn('', -1, '失败!');
         }
     }
 
