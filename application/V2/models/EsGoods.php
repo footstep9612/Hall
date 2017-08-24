@@ -379,6 +379,8 @@ class EsGoodsModel extends Model {
                 } else {
                     $body['specs'] = json_encode([]);
                 }
+
+
                 $ret[$id] = $body;
             }
             return $ret;
@@ -495,7 +497,10 @@ class EsGoodsModel extends Model {
         if (!$body['material_cat_zh']) {
             $body['material_cat_zh'] = '{}';
         }
-
+        $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
+        if (!$body['brand']) {
+            $body['brand'] = '{}';
+        }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
             $body['name_loc'] = $name_locs[$sku];
         } else {
