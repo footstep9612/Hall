@@ -414,10 +414,9 @@ class MaterialCatModel extends PublicModel {
                     $where['lang'] = $lang;
 
                     $exist_flag = $this->Exist($where);
-
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
-                    $add['status'] = self::STATUS_APPROVING;
+                    $add['status'] = self::STATUS_VALID;
                     $data = $this->create($data);
                     $add = $this->create($add);
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
