@@ -552,7 +552,12 @@ class EsProductModel extends Model {
                     }
                     $spus = array_unique($spus);
                     $mcat_nos = array_unique($mcat_nos);
-
+                    $productmodel = new ProductModel();
+                    if ($lang == 'zh') {
+                        $name_locs = $productmodel->getNamesBySpus($spus, 'en');
+                    } else {
+                        $name_locs = $productmodel->getNamesBySpus($spus, 'zh');
+                    }
                     $material_cat_model = new MaterialCatModel();
                     $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类
                     $mcats_zh = $material_cat_model->getmaterial_cats($mcat_nos, 'zh');
@@ -571,7 +576,7 @@ class EsProductModel extends Model {
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                     foreach ($products as $key => $item) {
 
-                        $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh);
+                        $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
                         if ($key === 99) {
                             $max_id = $item['id'];
                         }
@@ -587,7 +592,7 @@ class EsProductModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh) {
+    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs) {
 
         $spu = $id = $item['spu'];
         $this->_findnulltoempty($item);
@@ -617,7 +622,11 @@ class EsProductModel extends Model {
             $body['material_cat_zh'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
         }
         $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
-
+        if (isset($name_locs[$spu]) && $name_locs[$spu]) {
+            $body['name_loc'] = $name_locs[$spu];
+        } else {
+            $body['name_loc'] = '';
+        }
         if (isset($product_attrs[$spu])) {
             $body['attrs'] = json_encode($product_attrs[$spu], JSON_UNESCAPED_UNICODE);
             if ($product_attrs[$item['spu']][0]['spec_attrs']) {
@@ -998,10 +1007,15 @@ class EsProductModel extends Model {
                 $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
 
                 $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
-
+                $productmodel = new ProductModel();
+                if ($lang == 'zh') {
+                    $name_locs = $productmodel->getNamesBySpus($spus, 'en');
+                } else {
+                    $name_locs = $productmodel->getNamesBySpus($spus, 'zh');
+                }
                 $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                 $k = 0;
-                $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh);
+                $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs);
             }
             return true;
         } catch (Exception $ex) {

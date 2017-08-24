@@ -519,7 +519,16 @@ class EsGoodsModel extends Model {
             $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
         }
 
-        $body['suppliers'] = $this->_getValue($suppliers, $sku, [], 'json');
+        if (isset($suppliers[$sku]) && $suppliers[$sku]) {
+            $body['suppliers'] = json_encode($suppliers[$sku], 256);
+            $body['sppplier_count'] = count($suppliers[$sku]);
+        } else {
+            $body['suppliers'] = json_encode([], 256);
+            $body['sppplier_count'] = 0;
+        }
+
+
+
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {

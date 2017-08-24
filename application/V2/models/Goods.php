@@ -485,7 +485,7 @@ class GoodsModel extends PublicModel {
                         'lang' => $key,
                         'spu' => $checkout['spu'],
                         'name' => $checkout['name'],
-                        'show_name' => isset($checkout['show_name'])?$checkout['show_name']:'',
+                        'show_name' => isset($checkout['show_name']) ? $checkout['show_name'] : '',
                         'model' => !empty($checkout['model']) ? $checkout['model'] : '',
                         'description' => !empty($checkout['description']) ? $checkout['description'] : '',
                         'source' => !empty($checkout['source']) ? $checkout['source'] : '',
@@ -538,9 +538,9 @@ class GoodsModel extends PublicModel {
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
-                            if($key == 'zh'){
+                            if ($key == 'zh') {
                                 $data['show_name_loc'] = $input['en']['name'];
-                            } else{
+                            } else {
                                 $data['show_name_loc'] = $input['zh']['name'];
                             }
                             $res = $this->add($data);
@@ -564,9 +564,9 @@ class GoodsModel extends PublicModel {
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
-                        if($key == 'zh'){
+                        if ($key == 'zh') {
                             $data['show_name_loc'] = $input['en']['name'];
-                        } else{
+                        } else {
                             $data['show_name_loc'] = $input['zh']['name'];
                         }
                         $res = $this->add($data);
@@ -1039,7 +1039,7 @@ class GoodsModel extends PublicModel {
     }
 
     /*
-     *
+     * 根据skus 获取SKU名称
      */
 
     public function getNamesBySkus($skus, $lang = 'zh') {
