@@ -192,7 +192,7 @@ class ServiceCatModel extends PublicModel {
         try{
             $status = self::STATUS_DELETED;
             $where = ['id'=>$id];
-            $res = $this->where($where)->save(['status'=>$status]);
+            $res = $this->where($where)->save(['deleted_flag' => 'Y']);
             if (!$res) {
                 $this->rollback();
                 return false;

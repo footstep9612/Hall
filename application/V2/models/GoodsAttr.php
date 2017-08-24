@@ -532,7 +532,7 @@ class GoodsAttrModel extends PublicModel {
                     }
                     $find = $this->where($where)->select();
                     if ($find) {
-                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                        $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if (!$res) {
                             return false;
                         }
@@ -547,7 +547,7 @@ class GoodsAttrModel extends PublicModel {
                 }
                 $find = $this->where($where)->select();
                 if ($find) {
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                     if (!$res) {
                         return false;
                     }
