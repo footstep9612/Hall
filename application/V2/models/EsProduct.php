@@ -112,7 +112,10 @@ class EsProductModel extends Model {
             $status = $condition[$name];
             if ($status == 'ALL') {
 
-                $body['query']['bool']['must_not'][] = [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]];
+                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD =>
+                        [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
+                        [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]
+                ]];
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
@@ -220,6 +223,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);

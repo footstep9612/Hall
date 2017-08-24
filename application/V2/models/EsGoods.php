@@ -111,7 +111,10 @@ class EsGoodsModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-                $body['query']['bool']['must_not'][] = [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]];
+                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD =>
+                        [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
+                        [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]
+                ]];
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [$qurey_type => [$field => $status]];
@@ -219,6 +222,7 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'onshelf_by');
+        $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
             if ($condition['onshelf_flag'] === 'A') {

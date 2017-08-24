@@ -106,9 +106,9 @@ class CentercreditController extends PublicController {
     public function getBuyerBankInfoAction() {
         $buyerModel = new BuyerBankInfoModel();
         $result = $buyerModel->getBuyerBankInfo($this->put_data);
-        if($result === false) {
-            jsonReturn('',ErrorMsg::FAILED);
-        }else{
+        if ($result === false) {
+            jsonReturn('', ErrorMsg::FAILED);
+        } else {
             jsonReturn($result);
         }
         //$this->returnInfo($result);
@@ -122,9 +122,9 @@ class CentercreditController extends PublicController {
     public function getApprovelInfoAction() {
         $BuyerCreditLogModel = new BuyerCreditLogModel();
         $result = $BuyerCreditLogModel->getInfo($this->put_data);
-        if($result === false) {
-            jsonReturn('',ErrorMsg::FAILED);
-        }else{
+        if ($result === false) {
+            jsonReturn('', ErrorMsg::FAILED);
+        } else {
             jsonReturn($result);
         }
         //$this->returnInfo($result);

@@ -543,7 +543,7 @@ class BuyerModel extends PublicModel {
         //公司名称
         $this->_getValue($where, $condition, 'name', 'like', 'b.name');
         //审核状态
-        $this->_getValue($where, $condition, 'status', 'string', 'b.status', 'VALID');
+        $this->_getValue($where, $condition, 'status', 'string', 'b.status', 'APPROVING');
         //授信额度(暂无字段,待完善)
         $this->_getValue($where, $condition, 'credit', 'between', 'b.line_of_credit');
         //信保审核时间段(暂无,待完善)
@@ -557,6 +557,7 @@ class BuyerModel extends PublicModel {
         $result = $this->alias('b')->field($field)->order("id desc")
                         ->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
                         ->limit($from, $pagesize)->where($where)->select();
+
         $count = $this->alias('b')->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
                         ->where($where)->count('b.id');
         $this->_setUserName($result, 'checked_by');
