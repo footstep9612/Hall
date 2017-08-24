@@ -173,7 +173,7 @@ class MarketAreaModel extends PublicModel {
     public function Exits($where) {
 
         $row = $this->where($where)
-                ->field('id')
+                ->field('id,status')
                 ->find();
         return empty($row) ? false : $row;
     }

@@ -166,19 +166,19 @@ class MarketareaController extends PublicController {
         } else {
             $newbn = ucwords($data['en']['name']);
             $row = $market_area_model->Exits(['bn' => $newbn]);
+
             if ($row && $row['status'] == 'VALID') {
+
                 $this->setCode(MSG::MSG_EXIST);
                 $this->jsonReturn();
             } elseif ($row && $row['status'] != 'VALID') {
                 $data['bn'] = $newbn;
-                $data['deleted_flag'] = 'N';
-                $data['status'] = 'VALID';
+
                 $result = $market_area_model->update_data($data);
             } else {
                 $result = $market_area_model->create_data($data);
             }
         }
-
 
         if ($result) {
             $this->delcache();
