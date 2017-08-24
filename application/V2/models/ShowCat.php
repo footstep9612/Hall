@@ -575,14 +575,15 @@ class ShowCatModel extends PublicModel {
                 }
             }
         } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
-            $flag = $this->updateothercat($where['cat_no'], $cat_no);
+            $flag = $this->updateothercat($where['cat_no'], !empty($cat_no) ? $cat_no : $where['cat_no']);
             if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
                 $show_material_cat_model = new ShowMaterialCatModel();
                 $show_material_cat_model->where(['show_cat_no' => $where['cat_no']])
                         ->delete();
                 $dataList = [];
+                $condition['material_cat_nos'] = array_unique($condition['material_cat_nos']);
                 foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
-                    $dataList[] = ['show_cat_no' => $cat_no,
+                    $dataList[] = ['show_cat_no' => !empty($cat_no) ? $cat_no : $where['cat_no'],
                         'material_cat_no' => $material_cat_no,
                         'status' => 'VALID',
                         'created_at' => date('Y-m-d H:i:s'),
@@ -591,7 +592,7 @@ class ShowCatModel extends PublicModel {
                         'updated_by' => defined('UID') ? UID : 0
                     ];
                 }
-                $show_material_cat_model->addAll($dataList);
+                $falg = $show_material_cat_model->addAll($dataList);
             }
             if (!$flag) {
                 $this->rollback();
@@ -602,6 +603,8 @@ class ShowCatModel extends PublicModel {
             $show_material_cat_model->where(['show_cat_no' => $where['cat_no']])
                     ->delete();
             $dataList = [];
+            $condition['material_cat_nos'] = array_unique($condition['material_cat_nos']);
+
             foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
                 $dataList[] = ['show_cat_no' => $cat_no,
                     'material_cat_no' => $material_cat_no,
@@ -612,7 +615,7 @@ class ShowCatModel extends PublicModel {
                     'updated_by' => defined('UID') ? UID : 0
                 ];
             }
-            $show_material_cat_model->addAll($dataList);
+            $falg = $show_material_cat_model->addAll($dataList);
         }
         $this->commit();
         return $flag;
@@ -659,13 +662,15 @@ class ShowCatModel extends PublicModel {
             $data['top_no'] = $upcondition['top_no'];
         }
 
-        if (!isset($data['parent_cat_no']) && $data['parent_cat_no'] != $info['parent_cat_no']) {
+        if (!isset($data['parent_cat_no']) || $data['parent_cat_no'] != $info['parent_cat_no']) {
             $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
             if (!$cat_no) {
                 return false;
             } else {
                 $data['cat_no'] = $cat_no;
             }
+        } else {
+            $cat_no = $where['cat_no'];
         }
         switch ($condition['status']) {
 
