@@ -111,27 +111,23 @@ class BizlineController extends PublicController {
         $bizline->startTrans();
         $results = $bizline->updateData($createcondition);
         if($results['code'] == 1){
-            if(!empty($createcondition['material_cat'])){
-                $createcondition['bizline_id'] = $createcondition['id'];
+            $createcondition['bizline_id'] = $createcondition['id'];
 
-                $delcat = $bizlinecat->deleteBizlineCat($createcondition);
-                if($delcat['code'] == 1){
-                    $catid = $bizlinecat->addData($createcondition);
+            $delcat = $bizlinecat->deleteBizlineCat($createcondition);
+            if($delcat['code'] == 1){
+                $catid = $bizlinecat->addData($createcondition);
 
-                    if($catid['code'] == 1){
-                        $bizline->commit();
-                    }else{
-                        $bizline->rollback();
-                        $results['code'] = '-101';
-                        $results['message'] = '添加失败!';
-                    }
+                if($catid['code'] == 1){
+                    $bizline->commit();
                 }else{
                     $bizline->rollback();
                     $results['code'] = '-101';
                     $results['message'] = '添加失败!';
                 }
             }else{
-                $bizline->commit();
+                $bizline->rollback();
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
             }
         }else{
             $bizline->rollback();

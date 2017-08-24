@@ -191,9 +191,25 @@ class InquiryController extends PublicController {
      */
     public function getAttachListAction() {
         $attach = new InquiryAttachModel();
+        $employee = new EmployeeModel();
+        $roleuser = new RoleUserModel();
         $where =  $this->put_data;
 
         $results = $attach->getList($where);
+
+        if($results['code'] == 1){
+            foreach($results['data'] as $key=>$val){
+                $employeedata = $employee->field('id,name')->where('id='.$val['created_by'])->find();
+                $results['data'][$key]['created_name'] = $employeedata['name'];
+
+                $roledata = $roleuser->alias('a')
+                    ->join('erui2_sys.role b ON a.role_id = b.id','LEFT')
+                    ->where('a.employee_id='.$val['created_by'])
+                    ->field('b.name,b.name_en,b.remarks')
+                    ->find();
+                $results['data'][$key]['created_role'] = $roledata['name'];
+            }
+        }
 
         $this->jsonReturn($results);
     }
