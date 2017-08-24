@@ -66,7 +66,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
         }
         if (!empty($condition['status'])) {
-            $where .= ' And `erui2_buyer`.`buyer_account`.status  ="' . $condition['status'] . '"';
+            $where .= ' And `buyer_account`.`buyer_account`.status  ="' . $condition['status'] . '"';
         }
         if (!empty($condition['user_name'])) {
             $where .= ' And `erui2_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
