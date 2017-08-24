@@ -132,6 +132,11 @@ class ExcelmanagerController extends PublicController
      * 下载报价单(询单管理->报价信息)
      */
     public function downQuotationAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $exportData = $this->getFinalQuoteData($request['inquiry_id']);
+
         //获取数据并重组格式
         //$data = $this->getResortData($this->_requestParams['serial_no']);
         $data = $this->simulateData();
@@ -153,6 +158,16 @@ class ExcelmanagerController extends PublicController
                 'url' => $remoteUrl
             ]
         ]);
+    }
+
+    private function getFinalQuoteData($inquiry_id){
+
+        /**
+         |
+         | 询单综合信息 (询价单位 流程编码 项目代码)
+         | 报价综合信息 (报价人，电话，邮箱，报价时间)
+         |
+         */
     }
 
     /**
