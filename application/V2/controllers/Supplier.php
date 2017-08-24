@@ -460,8 +460,15 @@ class SupplierController extends PublicController {
         if(!empty($data['employee_count'])) {
             $arr['employee_count'] = $data['employee_count'];
         }
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
+        }
         if(!empty($data['status'])) {
             $arr['status'] = $data['status'];
+            if($data['status']=='APPROVED'|| $data['status']=='REJECTED'){
+                $arr['checked_by'] = $this->user['id'];
+                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            }
         }
         if(!isset($data['barnd'])) {
            $brank_arr =  explode(",",$data['brand']) ;

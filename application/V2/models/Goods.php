@@ -326,7 +326,7 @@ class GoodsModel extends PublicModel {
         }
         //redis
         if (redisHashExist('Sku', md5(json_encode($where)))) {
-//            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
+            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
         $field = 'lang, spu, sku, qrcode, name, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, source, source_detail, deleted_flag,';
         //固定商品属性

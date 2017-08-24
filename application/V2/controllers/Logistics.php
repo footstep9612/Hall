@@ -502,7 +502,7 @@ class LogisticsController extends PublicController {
 	        } else {
 	            $this->quoteLogiFeeModel->rollback();
 	            $this->quoteModel->rollback();
-	            $this->inquiryModel->commit();
+	            $this->inquiryModel->rollback();
 	            $this->inquiryCheckLogModel->rollback();
 	            $res = false;
 	        }
