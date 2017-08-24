@@ -443,6 +443,7 @@ class ProductModel extends PublicModel {
      * spu详情
      * @param string $spu    spu编码
      * @param string $lang    语言
+     * @param string $status    状态
      * return array
      */
     public function getInfo($spu = '', $lang = '', $status = '') {
