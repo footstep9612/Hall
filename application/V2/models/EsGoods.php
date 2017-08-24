@@ -379,6 +379,8 @@ class EsGoodsModel extends Model {
                 } else {
                     $body['specs'] = json_encode([]);
                 }
+
+
                 $ret[$id] = $body;
             }
             return $ret;
@@ -495,7 +497,10 @@ class EsGoodsModel extends Model {
         if (!$body['material_cat_zh']) {
             $body['material_cat_zh'] = '{}';
         }
-
+        $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
+        if (!$body['brand']) {
+            $body['brand'] = '{}';
+        }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
             $body['name_loc'] = $name_locs[$sku];
         } else {
@@ -514,7 +519,16 @@ class EsGoodsModel extends Model {
             $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
         }
 
-        $body['suppliers'] = $this->_getValue($suppliers, $sku, [], 'json');
+        if (isset($suppliers[$sku]) && $suppliers[$sku]) {
+            $body['suppliers'] = json_encode($suppliers[$sku], 256);
+            $body['sppplier_count'] = count($suppliers[$sku]);
+        } else {
+            $body['suppliers'] = json_encode([], 256);
+            $body['sppplier_count'] = 0;
+        }
+
+
+
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {
