@@ -293,6 +293,12 @@ class GoodsModel extends PublicModel {
         if (!$spu) {
             return [];
         }
+        $where = ['lang' => $lang, 'satus' => self::STATUS_VALID];
+        if (is_array($spu) && $spu) {
+            $where['spu'] = ['in', $spu];
+        } else {
+            $where['spu'] = $spu;
+        }
         return $this->field('sku,name,model,show_name')->where(['spu' => $spu, 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
     }
 
