@@ -534,10 +534,11 @@ class BuyerModel extends PublicModel {
         $this->_getValue($where, $condition, 'id', 'string', 'b.id');
         //审核人
         $this->_getValue($where, $condition, 'approved_by', 'string', 'cb.approved_by');
-        $userids = $this->_getUserids($where, $condition, 'approved_by_name', 'cb.approved_by');
-        if ($userids) {
-            $where['approved_by'] = ['in', $userids];
-        }
+        $this->_getUserids($where, $condition, 'approved_by_name', 'cb.approved_by');
+
+
+        $this->_getUserids($where, $condition, 'checked_by_name', 'cb.checked_by');
+
         //审核人
         //   $this->_getValue($where, $condition, 'approved_by_name', 'array', 'cb.approved_by');
         //公司名称
@@ -579,7 +580,7 @@ class BuyerModel extends PublicModel {
                 . 'cl.in_status,cl.checked_by,cl.checked_at,cl.out_status,cl.approved_by,cl.approved_at';
 
         $result = $this->alias('b')->field($field)->order("id desc")
-                        ->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
+                        ->join($creditLogtable . ' as cl ON b.id = cl.id', 'INNER')
                         ->limit($from, $pagesize)->where($where)->select();
 
         $count = $this->alias('b')->join($creditLogtable . ' as cl ON b.id = cl.id', 'LEFT')
