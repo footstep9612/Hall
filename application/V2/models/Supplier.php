@@ -80,7 +80,6 @@ class SupplierModel extends PublicModel {
         if ( $condition['num'] ){
             $sql .= ' LIMIT '.$condition['page'].','.$condition['num'];
         }
-        echo $sql;
         $count =$this->query( $sql_count );
         $res['count'] =$count[0]['num'];
         $res['data'] =  $this->query( $sql );
