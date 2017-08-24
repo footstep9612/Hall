@@ -35,11 +35,12 @@ class SupplierModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition = [],$order=" id desc") {
-        $sql =  'SELECT `id`,`lang`,`serial_no`,`supplier_no`,`supplier_type`,`name`,`bn`,`profile`,`reg_capital`,`employee_count`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
+        $sql =  'SELECT `supplier`.`id`,`lang`,`serial_no`,`supplier_no`,`supplier_type`,`supplier`.`name`,`bn`,`profile`,`reg_capital`,`employee_count`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
         $sql.=  '`official_email`,`social_credit_code`,`official_phone`,`official_fax`,`first_name`,`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`supplier_level`,`credit_level`,';
-        $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`status`,`remarks`,`apply_at`,`created_by`,`created_at`,`checked_by`,`checked_at`';
-        $sql_count =  'SELECT count(`id`) as num ';
+        $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`supplier`.`status`,`supplier`.`remarks`,`apply_at`,`supplier`.`created_by`,`supplier`.`created_at`,`checked_by`,`em`.`name` as `checked_name`,`checked_at`';
+        $sql_count =  'SELECT count(`supplier`.`id`) as num ';
         $str = ' FROM '.$this->g_table;
+        $str .= ' left join `erui2_sys`.`employee` as `em` on `em`.`id` = `erui2_supplier`.`supplier`.`checked_by` ';
         $sql .= $str;
         $sql_count .= $str;
         $where =" WHERE 1 = 1";
@@ -47,13 +48,13 @@ class SupplierModel extends PublicModel {
             $where .= ' And country_bn ="'.$condition['country_bn'].'"';
         }
         if ( !empty($condition['name']) ){
-            $where .= " And name like '%".$condition['name'] ."%'";
+            $where .= " And supplier.name like '%".$condition['name'] ."%'";
         }
         if ( !empty($condition['supplier_no']) ){
             $where .= ' And supplier_no  ="'.$condition['supplier_no'].'"';
         }
         if ( !empty($condition['status']) ){
-            $where .= ' And status  ="'.$condition['status'].'"';
+            $where .= ' And supplier.status  ="'.$condition['status'].'"';
         }
         if ( !empty($condition['checked_at_start']) ){
             $where .= ' And checked_at  >="'.$condition['checked_at_start'].'"';
@@ -62,10 +63,10 @@ class SupplierModel extends PublicModel {
             $where .= ' And checked_at  <="'.$condition['checked_at_end'].'"';
         }
         if ( !empty($condition['created_at_start']) ){
-            $where .= ' And created_at  >="'.$condition['created_at_start'].'"';
+            $where .= ' And supplier.created_at  >="'.$condition['created_at_start'].'"';
         }
         if ( !empty($condition['created_at_end']) ){
-            $where .= ' And created_at  <="'.$condition['created_at_end'].'"';
+            $where .= ' And supplier.created_at  <="'.$condition['created_at_end'].'"';
         }
         if ( !empty($condition['supplier_type']) ){
             $where .= ' And supplier_type  ="'.$condition['supplier_type'].'"';
@@ -89,8 +90,6 @@ class SupplierModel extends PublicModel {
 
     public function create_data($create = [])
     {
-
-
         if(isset($create['serial_no'])){
             $data['serial_no'] = $create['serial_no'];
         }
@@ -185,7 +184,9 @@ class SupplierModel extends PublicModel {
         if(isset($create['checked_by'])){
             $data['checked_by'] = $create['checked_by'];
         }
-        $data['status'] = 'DRAFT';
+        if(isset($create['status'])){
+            $data['status'] = $create['status'];
+        }
         $data['created_at'] = date('Y-m-d H:i:s');
         if(isset($create['created_by'])){
             $data['created_by'] = $create['created_by'];
@@ -210,8 +211,9 @@ class SupplierModel extends PublicModel {
     public function info($data)
     {
         if($data['id']) {
-            $buyerInfo = $this->where(array("supplier.id" => $data['id']))->field('supplier.*,em.name as checked_name')
+            $buyerInfo = $this->where(array("supplier.id" => $data['id']))->field('supplier.*,em.name as checked_name,ma.name as country_name ')
                                 ->join('erui2_sys.employee em on em.id=supplier.checked_by', 'left')
+                ->join('erui2_operation.market_area ma on ma.`bn`=supplier.country_bn and  ma.`lang`=supplier.lang', 'left')
                               ->find();
             return $buyerInfo;
         } else{
@@ -233,8 +235,6 @@ class SupplierModel extends PublicModel {
         }
         if(isset($create['lang'])){
             $data['lang'] = $create['lang'];
-        }else{
-            $data['lang'] = 'en';
         }
         if(isset($create['name'])){
             $data['name'] = $create['name'];

@@ -249,7 +249,7 @@ class ProductModel extends PublicModel {
                             $data = array(
                                 'spu' => $spu,
                                 'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
-                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
+                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : $atta['attach_url'],
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
                                 'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
                             );
@@ -388,13 +388,16 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
+                        $result = $this->where($where)->save(array('status' => self::STATUS_DELETED, 'deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                         if ($result) {
                             /**
                              * 删除ｓｋｕ
                              * 优化意见：这块最好放入队列，以确保成功删除掉。
                              */
-                            $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                            $res = $goodsModel->field('spu')->where($where)->select();
+                            if ($res) {
+                                $goodsModel->where($where)->save(array('status' => self::STATUS_DELETED, 'deleted_flag' => self::DELETE_Y));
+                            }
                         } else {
                             $this->rollback();
                             return false;
@@ -407,13 +410,16 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
+                    $result = $this->where($where)->save(array('status' => self::STATUS_DELETED, 'deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                     if ($result) {
                         /**
                          * 删除ｓｋｕ
                          * 优化意见：这块最好放入队列，以确保成功删除掉。
                          */
-                        $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                        $res = $goodsModel->field('spu')->where($where)->select();
+                        if ($res) {
+                            $goodsModel->where($where)->save(array('status' => self::STATUS_DELETED, 'deleted_flag' => self::DELETE_Y));
+                        }
                     } else {
                         $this->rollback();
                         return false;
@@ -473,14 +479,32 @@ class ProductModel extends PublicModel {
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
-
+                $employee = new EmployeeModel();
                 $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
+
+                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+                    if ($updateder && isset($updateder[0])) {
+                        $item['updated_by'] = $updateder[0];
+                    }
+
+                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+                    if ($checkeder && isset($checkeder[0])) {
+                        $item['checked_by'] = $checkeder[0];
+                    }
+                    if (!is_null(json_decode($item['brand'], true))) {
+                        $brand = json_decode($item['brand'], true);
+                        $item['brand'] = $brand['name'];
+                    }
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
-                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
+//                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
@@ -635,6 +659,34 @@ class ProductModel extends PublicModel {
             continue;
         }
         return false;
+    }
+
+    /*
+     * 根据spus 获取SPU名称
+     */
+
+    public function getNamesBySpus($spus, $lang = 'zh') {
+        $where = [];
+        if (is_array($spus) && $spus) {
+            $where['spu'] = ['in', $spus];
+        } else {
+            return [];
+        }
+        if (empty($lang)) {
+            $where['lang'] = 'zh';
+        } else {
+            $where['lang'] = $lang;
+        }
+        $result = $this->where($where)->field('name,spu')->select();
+        if ($result) {
+            $data = [];
+            foreach ($result as $item) {
+                $data[$item['spu']] = $item['name'];
+            }
+            return $data;
+        } else {
+            return [];
+        }
     }
 
 }

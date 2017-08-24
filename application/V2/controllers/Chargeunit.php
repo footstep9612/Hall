@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-1 17:32:49
  * @version V2.0
- * @desc   
+ * @desc
  */
 class ChargeunitController extends PublicController {
 
@@ -25,8 +25,8 @@ class ChargeunitController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
-        $data['lang'] = $this->get('lang', 'zh');
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', 'zh');
         $charge_unit_model = new ChargeUnitModel();
         if (redisGet('ChargeUnit_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('ChargeUnit_' . md5(json_encode($data))), true);

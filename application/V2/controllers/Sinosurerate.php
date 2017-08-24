@@ -25,7 +25,27 @@ class SinosureRateController extends PublicController {
 
         $data = $this->sinosureRateModel->getJoinList($condition);
 
+        $this->_setCountryName($data);
         $this->_handleList($this->sinosureRateModel, $data, $condition, true);
+    }
+
+    private function _setCountryName(&$arr) {
+        if ($arr) {
+            $country_model = new CountryModel();
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = $val['country_bn'];
+            }
+            $country_bns = $country_model->getNamesBybns($country_bns);
+            foreach ($arr as $key => $val) {
+                if ($val['country_bn'] && isset($country_bns[$val['country_bn']])) {
+                    $val['country_name'] = $country_bns[$val['country_bn']];
+                } else {
+                    $val['country_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
     /**

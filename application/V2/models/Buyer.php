@@ -43,10 +43,10 @@ class BuyerModel extends PublicModel {
         $sql_count = 'SELECT count(`erui2_buyer`.`buyer`.`id`) as num ';
         $str = ' FROM ' . $this->g_table;
         if (!empty($condition['employee_name'])) {
-            $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
-            $str .= " left Join `erui2_sys`.`employee` on `erui2_buyer`.`buyer_agent`.`agent_id` = `erui2_sys`.`employee`.`id` ";
-            $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
+             $str .= " left Join `erui2_sys`.`employee` on `erui2_buyer`.`buyer_agent`.`agent_id` = `erui2_sys`.`employee`.`id` ";
         }
+        $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
+        $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $sql .= $str;
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
@@ -66,7 +66,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
         }
         if (!empty($condition['status'])) {
-            $where .= ' And `erui2_buyer`.`buyer_account`.status  ="' . $condition['status'] . '"';
+            $where .= ' And `erui2_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
         }
         if (!empty($condition['user_name'])) {
             $where .= ' And `erui2_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';

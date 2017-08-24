@@ -50,7 +50,7 @@ class TransboxtypeController extends PublicController {
      */
 
     public function infoAction() {
-        $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
+        $id = $this->getPut('id');
 
         $trans_box_type_model = new TransBoxTypeModel();
 
@@ -122,9 +122,7 @@ class TransboxtypeController extends PublicController {
         $trans_box_type_model = new TransBoxTypeModel();
         $condition = $this->getPut(null);
 
-        if (!$condition['id']) {
-            $condition['id'] = $this->get('id');
-        }
+
         $result = $trans_box_type_model->update_data($condition);
 
         if ($result) {
@@ -139,7 +137,7 @@ class TransboxtypeController extends PublicController {
 
     public function deleteAction() {
         $trans_box_type_model = new TransBoxTypeModel();
-        $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
+        $id = $this->getPut('id');
         $where['id'] = $id;
         if ($id) {
             $where['id'] = $id;

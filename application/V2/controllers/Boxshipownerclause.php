@@ -57,7 +57,7 @@ class BoxshipownerclauseController extends PublicController {
      */
 
     public function infoAction() {
-        $id = $this->get('id') ? $this->get('id') : $this->getPut('id');
+        $id = $this->getPut('id');
 
         $box_shipowner_clause_model = new BoxShipownerClauseModel();
 

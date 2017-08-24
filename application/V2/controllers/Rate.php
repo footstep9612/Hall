@@ -161,7 +161,7 @@ class RateController extends PublicController {
     public function updateAction() {
         $rate_model = new RateModel();
         $condition = $this->getPut();
-        $condition['id'] = $this->get('id') ?: $this->getPut('id');
+        $condition['id'] = $this->getPut('id');
         $result = $rate_model->update_data($condition);
         if ($result) {
             $this->_delcache();

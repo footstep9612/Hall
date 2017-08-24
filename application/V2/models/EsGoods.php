@@ -206,8 +206,6 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'cat_name', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'checked_desc');
-
-
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED',
             'DELETED', 'DRAFT', 'INVALID']);
         $this->_getQureyByBool($condition, $body, ESClient::MATCH_PHRASE, 'recommend_flag', 'recommend_flag', 'N');
@@ -296,6 +294,7 @@ class EsGoodsModel extends Model {
             $es = new ESClient();
 
             return [$es->setbody($body)
+                        ->setsort('created_at', 'desc')
                         ->setsort('sort_order', 'desc')
                         ->setsort('_id', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
@@ -321,7 +320,7 @@ class EsGoodsModel extends Model {
                                     . ',max(updated_by) as min_updated_by'
                                     . ',max(updated_at) as max_updated_at'
                                     . ',max(checked_by) as min_checked_by'
-                                    . ' ,max(checked_by) as min_checked_at')
+                                    . ',max(checked_by) as min_checked_at')
                             ->where(['sku' => ['in', $skus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('sku')->select();
             $ret = [];
@@ -363,7 +362,6 @@ class EsGoodsModel extends Model {
             $skus = array_unique($skus);
             $espoducmodel = new EsProductModel();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-
             $goods_attr_model = new GoodsAttrModel();
             $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
 
@@ -381,6 +379,8 @@ class EsGoodsModel extends Model {
                 } else {
                     $body['specs'] = json_encode([]);
                 }
+
+
                 $ret[$id] = $body;
             }
             return $ret;
@@ -449,6 +449,12 @@ class EsGoodsModel extends Model {
                 $skus = array_unique($skus);
                 $espoducmodel = new EsProductModel();
                 $es = new ESClient();
+                $goodsmodel = new GoodsModel();
+                if ($lang == 'zh') {
+                    $name_locs = $goodsmodel->getNamesBySkus($skus, 'en');
+                } else {
+                    $name_locs = $goodsmodel->getNamesBySkus($skus, 'zh');
+                }
                 $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
                 $goods_attach_model = new GoodsAttachModel();
@@ -464,7 +470,7 @@ class EsGoodsModel extends Model {
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 foreach ($goods as $item) {
-                    $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es);
+                    $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
                 }
             }
         } catch (Exception $ex) {
@@ -474,7 +480,7 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
@@ -485,6 +491,20 @@ class EsGoodsModel extends Model {
         $body['material_cat'] = $this->_getValue($product_attr, 'material_cat', [], 'string');
         if (!$body['material_cat']) {
             $body['material_cat'] = '{}';
+        }
+
+        $body['material_cat_zh'] = $this->_getValue($product_attr, 'material_cat_zh', [], 'string');
+        if (!$body['material_cat_zh']) {
+            $body['material_cat_zh'] = '{}';
+        }
+        $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
+        if (!$body['brand']) {
+            $body['brand'] = '{}';
+        }
+        if (isset($name_locs[$sku]) && $name_locs[$sku]) {
+            $body['name_loc'] = $name_locs[$sku];
+        } else {
+            $body['name_loc'] = '';
         }
         $body['attachs'] = $this->_getValue($attachs, $sku, [], 'json');
         if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
@@ -499,7 +519,16 @@ class EsGoodsModel extends Model {
             $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
         }
 
-        $body['suppliers'] = $this->_getValue($suppliers, $sku, [], 'json');
+        if (isset($suppliers[$sku]) && $suppliers[$sku]) {
+            $body['suppliers'] = json_encode($suppliers[$sku], 256);
+            $body['sppplier_count'] = count($suppliers[$sku]);
+        } else {
+            $body['suppliers'] = json_encode([], 256);
+            $body['sppplier_count'] = 0;
+        }
+
+
+
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {
@@ -871,6 +900,13 @@ class EsGoodsModel extends Model {
 
             $spus = array_unique($spus);
             $skus = array_unique($skus);
+
+            $goodsmodel = new GoodsModel();
+            if ($lang == 'zh') {
+                $name_locs = $goodsmodel->getNamesBySkus($spus, 'en');
+            } else {
+                $name_locs = $goodsmodel->getNamesBySkus($spus, 'zh');
+            }
             $espoducmodel = new EsProductModel();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
@@ -887,7 +923,7 @@ class EsGoodsModel extends Model {
 
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
             foreach ($goods as $item) {
-                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es);
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
