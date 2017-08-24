@@ -420,7 +420,7 @@ class MaterialCatModel extends PublicModel {
             $this->startTrans();
 
             foreach ($this->langs as $lang) {
-                if (isset($upcondition[$lang]) && $upcondition[$lang]) {
+                if (isset($upcondition[$lang]) && $upcondition[$lang]['name']) {
                     $data['lang'] = $lang;
                     $data['name'] = $upcondition[$lang]['name'];
                     $where['lang'] = $lang;
@@ -694,7 +694,7 @@ class MaterialCatModel extends PublicModel {
         $this->data = null;
         foreach ($this->langs as $lang) {
 
-            if (isset($createcondition[$lang]) && $createcondition[$lang]) {
+            if (isset($createcondition[$lang]) && $createcondition[$lang]['name']) {
                 $data['lang'] = $lang;
                 $data['name'] = $createcondition[$lang]['name'];
                 $data = $this->create($data);
