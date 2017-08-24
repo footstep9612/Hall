@@ -449,9 +449,9 @@ class EsGoodsModel extends Model {
                 $es = new ESClient();
                 $goodsmodel = new GoodsModel();
                 if ($lang == 'zh') {
-                    $name_locs = $goodsmodel->getNamesBySkus($spus, 'en');
+                    $name_locs = $goodsmodel->getNamesBySkus($skus, 'en');
                 } else {
-                    $name_locs = $goodsmodel->getNamesBySkus($spus, 'zh');
+                    $name_locs = $goodsmodel->getNamesBySkus($skus, 'zh');
                 }
                 $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
