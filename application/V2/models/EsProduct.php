@@ -112,6 +112,7 @@ class EsProductModel extends Model {
             $status = $condition[$name];
             if ($status == 'ALL') {
 
+                $body['query']['bool']['must_not'][] = [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]];
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];

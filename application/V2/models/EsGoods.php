@@ -17,6 +17,8 @@ class EsGoodsModel extends Model {
     protected $tableName = 'goods';
     protected $dbName = 'erui2_goods'; //数据库名称
 
+    const STATUS_DELETED = 'DELETED';
+
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -109,7 +111,7 @@ class EsGoodsModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-
+                $body['query']['bool']['must_not'][] = [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]];
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [$qurey_type => [$field => $status]];
