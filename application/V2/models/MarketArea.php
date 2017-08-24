@@ -194,7 +194,6 @@ class MarketAreaModel extends PublicModel {
                 $flag = $this->_updateandcreate($create, $lang, $newbn);
                 if (!$flag) {
                     $this->rollback();
-
                     return false;
                 }
             }
