@@ -29,7 +29,7 @@ class ExporttariffController extends PublicController {
      */
     public function listAction() {
         $data = $this->getPut();
-        $data['lang'] = $this->get('lang', 'zh');
+        $data['lang'] = $this->getPut('lang', 'zh');
         $export_tariff_model = new ExportTariffModel();
         if (redisGet('Export_Tariff_listall_' . md5(json_encode($data)))) {
             $arr = json_decode(redisGet('Export_Tariff_listall_' . md5(json_encode($data))), true);

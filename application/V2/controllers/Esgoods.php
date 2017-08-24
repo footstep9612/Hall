@@ -38,7 +38,7 @@ class EsgoodsController extends PublicController {
      * @desc   ES 商品
      */
     public function listAction() {
-        $lang = $this->get('lang', '') ?: $this->getPut('lang', 'zh');
+        $lang = $this->getPut('lang', 'zh');
         $data = $this->getPut();
         $model = new EsGoodsModel();
         $ret = $model->getgoods($data, null, $lang);

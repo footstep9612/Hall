@@ -25,7 +25,7 @@ class HotkeywordsController extends PublicController {
      */
 
     public function listAction() {
-        $data = $this->get();
+        $data = $this->getPut();
 
         $hot_keywords_model = new HotKeywordsModel();
 

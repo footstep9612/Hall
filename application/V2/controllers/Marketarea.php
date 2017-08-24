@@ -28,8 +28,8 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function listAction() {
-        $data = $this->get() ?: $this->getPut();
-        $data['lang'] = $this->get('lang', '') ?: $this->getPut('lang', '');
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', '');
         $market_area_model = new MarketAreaModel();
 
         $arr = $market_area_model->getlist($data, false);
@@ -73,7 +73,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function infoAction() {
-        $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
+        $bn = $this->getPut('bn', '');
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -214,7 +214,7 @@ class MarketareaController extends PublicController {
      */
     public function deleteAction() {
         $this->_init();
-        $bn = $this->get('bn') ?: $this->getPut('bn');
+        $bn = $this->getPut('bn');
         if ($bn) {
             $bns = explode(',', $bn);
             if (is_array($bns)) {

@@ -19,8 +19,8 @@ class ShowcatController extends PublicController {
         $lang = $this->getPut('lang', 'zh');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
-        $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
-        $marke_area_bn = $this->get('marke_area_bn', '') ?: $this->getPut('marke_area_bn', '');
+        $country_bn = $this->getPut('country_bn', '');
+        $marke_area_bn = $this->getPut('marke_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['marke_area_bn'] = $marke_area_bn;
         // $redis_key = 'show_cat_tree_' . $lang . md5($country_bn . $marke_area_bn);
@@ -90,9 +90,9 @@ class ShowcatController extends PublicController {
         $marke_area_bn = $this->getPut('marke_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['marke_area_bn'] = $marke_area_bn;
-        $jsondata['cat_no1'] = $this->get('cat_no1', '') ?: $this->getPut('cat_no1', '');
-        $jsondata['cat_no2'] = $this->get('cat_no2', '') ?: $this->getPut('cat_no2', '');
-        $jsondata['cat_no3'] = $this->get('cat_no3', '') ?: $this->getPut('cat_no3', '');
+        $jsondata['cat_no1'] = $this->getPut('cat_no1', '');
+        $jsondata['cat_no2'] = $this->getPut('cat_no2', '');
+        $jsondata['cat_no3'] = $this->getPut('cat_no3', '');
         $condition = $jsondata;
 
 
@@ -157,10 +157,10 @@ class ShowcatController extends PublicController {
 
     public function getlistAction() {
 
-        $lang = $this->get('lang') ?: $this->getPut('lang', 'en');
-        $show_material_catno = $this->get('show_material_catno', '') ?: $this->getPut('show_material_catno', '');
-        $country_bn = $this->get('country_bn', '') ?: $this->getPut('country_bn', '');
-        $market_area_bn = $this->get('market_area_bn', '') ?: $this->getPut('market_area_bn', '');
+        $lang = $this->getPut('lang', 'en');
+        $show_material_catno = $this->getPut('show_material_catno', '');
+        $country_bn = $this->getPut('country_bn', '');
+        $market_area_bn = $this->getPut('market_area_bn', '');
 
         $arr = $this->_model->get_list($market_area_bn, $country_bn, $show_material_catno, $lang);
         if ($arr) {
@@ -209,7 +209,7 @@ class ShowcatController extends PublicController {
      * 分类详情
      */
     public function infoAction() {
-        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
+        $cat_no = $this->getPut('cat_no');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
