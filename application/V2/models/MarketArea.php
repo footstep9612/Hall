@@ -172,7 +172,10 @@ class MarketAreaModel extends PublicModel {
      */
     public function Exits($where) {
 
-        return $this->_exist($where);
+        $row = $this->where($where)
+                ->field('id')
+                ->find();
+        return empty($row) ? false : $row;
     }
 
     /**
