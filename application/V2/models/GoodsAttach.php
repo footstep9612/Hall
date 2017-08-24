@@ -453,6 +453,9 @@ class GoodsAttachModel extends PublicModel {
         if (!empty($param['attach_name'])) {
             $data['attach_name'] = $param['attach_name'];
         }
+        if (empty($param['attach_name'])) {
+            $data['attach_name'] = $param['attach_url'];
+        }
         if (!empty($param['attach_url'])) {
             $data['attach_url'] = $param['attach_url'];
         } else {

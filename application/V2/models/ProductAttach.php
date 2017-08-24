@@ -82,7 +82,7 @@ class ProductAttachModel extends PublicModel {
         $data = [];
         $data['spu'] = isset($input['spu']) ? $input['spu'] : '';
         $data['attach_type'] = isset($input['attach_type']) ? $input['attach_type'] : '';
-        $data['attach_name'] = isset($input['attach_name']) ? $input['attach_name'] : '';
+        $data['attach_name'] = isset($input['attach_name']) ? $input['attach_name'] : $input['attach_url'];
         $data['attach_url'] = isset($input['attach_url']) ? $input['attach_url'] : '';
         $data['sort_order'] = isset($input['sort_order']) ? $input['sort_order'] : 0;
         $data['default_flag'] = isset($input['default_flag']) ? 'Y' : 'N';
