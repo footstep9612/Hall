@@ -296,6 +296,7 @@ class EsGoodsModel extends Model {
             $es = new ESClient();
 
             return [$es->setbody($body)
+                        ->setsort('created_at', 'desc')
                         ->setsort('sort_order', 'desc')
                         ->setsort('_id', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];

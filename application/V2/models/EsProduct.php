@@ -304,7 +304,7 @@ class EsProductModel extends Model {
             if ($body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('sku_count', 'desc')
+            $es->setbody($body)->setsort('created_at', 'desc')->setsort('sku_count', 'desc')
                     ->setsort('_id', 'desc');
 
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
