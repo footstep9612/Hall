@@ -26,7 +26,7 @@ class BizlineModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where['name'] = $condition['name'];
         }
-        $where['status'] = !empty($condition['status'])?$condition['status']:"VALID";
+        //$where['status'] = !empty($condition['status'])?$condition['status']:"VALID";
 
         return $where;
     }
