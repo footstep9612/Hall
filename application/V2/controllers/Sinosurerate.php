@@ -73,7 +73,15 @@ class SinosureRateController extends PublicController {
 
         $condition['creator_by'] = $this->user['id'];
         $condition['created_at'] = date('Y-m-d H:i:s');
+        if (isset($condition['country_bn']) && $condition['country_bn']) {
+            $country_bn = $condition['country_bn'];
+            $row = $this->sinosureRateModel->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
 
+            if ($row) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
         $res = $this->sinosureRateModel->addRecord($condition);
 
         $this->jsonReturn($res);
@@ -91,6 +99,16 @@ class SinosureRateController extends PublicController {
         if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
             unset($condition['id']);
+            if (isset($condition['country_bn']) && $condition['country_bn']) {
+                $country_bn = $condition['country_bn'];
+                $row = $this->sinosureRateModel->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
+
+                if ($row && $row['id'] != $where['id']) {
+                    $this->setCode(MSG::MSG_EXIST);
+                    $this->jsonReturn();
+                }
+            }
+
             $res = $this->sinosureRateModel->updateInfo($where, $condition);
 
             $this->jsonReturn($res);
