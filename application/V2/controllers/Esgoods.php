@@ -97,6 +97,9 @@ class EsgoodsController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
+            if (json_decode($list[$key]['brand'], true)) {
+                $list[$key]['brand'] = json_decode($list[$key]['brand'], true);
+            }
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);

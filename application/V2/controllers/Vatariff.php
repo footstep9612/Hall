@@ -126,8 +126,17 @@ class VatariffController extends PublicController {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
 
-        $result = $va_tariff_model->create_data($data);
 
+        if (isset($data['country_bn']) && $data['country_bn']) {
+            $country_bn = $data['country_bn'];
+            $row = $va_tariff_model->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
+
+            if ($row) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
+        $result = $va_tariff_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -148,6 +157,15 @@ class VatariffController extends PublicController {
     public function updateAction() {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
+        if (isset($data['country_bn']) && $data['country_bn']) {
+            $country_bn = $data['country_bn'];
+            $row = $va_tariff_model->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
+
+            if ($row && $row['id'] != $data['id']) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
         $result = $va_tariff_model->update_data($data);
         if ($result) {
             $this->delcache();

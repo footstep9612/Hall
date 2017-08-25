@@ -11,6 +11,7 @@ class MarketareaController extends PublicController {
 
     public function init() {
         // parent::init();
+
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
         $this->_model = new MarketAreaModel();
@@ -165,21 +166,15 @@ class MarketareaController extends PublicController {
             $this->jsonReturn();
         } else {
             $newbn = ucwords($data['en']['name']);
-            $row = $market_area_model->Exits(['bn' => $newbn]);
+            $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
 
-            if ($row && $row['status'] == 'VALID') {
+            if ($row) {
 
                 $this->setCode(MSG::MSG_EXIST);
                 $this->jsonReturn();
-            } elseif ($row && $row['status'] != 'VALID') {
-                $data['bn'] = $newbn;
-
-                $result = $market_area_model->update_data($data);
-            } else {
-                $result = $market_area_model->create_data($data);
             }
         }
-
+        $result = $market_area_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -203,15 +198,13 @@ class MarketareaController extends PublicController {
         $market_area_model = new MarketAreaModel();
         $newbn = ucwords($data['en']['name']);
         if ($newbn != $data['bn']) {
-            $row = $market_area_model->Exits(['bn' => $newbn]);
-            if ($row && $row['status'] == 'VALID') {
+            $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
+            if ($row) {
 
                 $this->setCode(MSG::MSG_EXIST);
                 $this->jsonReturn();
             }
-            $result = $market_area_model->update_data($data);
         }
-
         $result = $market_area_model->update_data($data);
 
         if ($result) {

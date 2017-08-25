@@ -26,6 +26,7 @@ class SinosureRateController extends PublicController {
         $data = $this->sinosureRateModel->getJoinList($condition);
 
         $this->_setCountryName($data);
+        $this->_setUserName($data, ['created_by', 'updated_by', 'checked_by']);
         $this->_handleList($this->sinosureRateModel, $data, $condition, true);
     }
 
@@ -42,6 +43,40 @@ class SinosureRateController extends PublicController {
                     $val['country_name'] = $country_bns[$val['country_bn']];
                 } else {
                     $val['country_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
                 }
                 $arr[$key] = $val;
             }
@@ -70,10 +105,17 @@ class SinosureRateController extends PublicController {
      */
     public function addSinosureRateRecordAction() {
         $condition = $this->put_data;
-
-        $condition['creator_by'] = $this->user['id'];
+        $condition['created_by'] = $this->user['id'];
         $condition['created_at'] = date('Y-m-d H:i:s');
+        if (isset($condition['country_bn']) && $condition['country_bn']) {
+            $country_bn = $condition['country_bn'];
+            $row = $this->sinosureRateModel->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
 
+            if ($row) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
         $res = $this->sinosureRateModel->addRecord($condition);
 
         $this->jsonReturn($res);
@@ -91,6 +133,16 @@ class SinosureRateController extends PublicController {
         if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
             unset($condition['id']);
+            if (isset($condition['country_bn']) && $condition['country_bn']) {
+                $country_bn = $condition['country_bn'];
+                $row = $this->sinosureRateModel->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
+
+                if ($row && $row['id'] != $where['id']) {
+                    $this->setCode(MSG::MSG_EXIST);
+                    $this->jsonReturn();
+                }
+            }
+
             $res = $this->sinosureRateModel->updateInfo($where, $condition);
 
             $this->jsonReturn($res);

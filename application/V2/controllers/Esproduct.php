@@ -117,6 +117,11 @@ class EsproductController extends PublicController {
             } else {
                 $list[$key]['material_cat'] = new \stdClass();
             }
+            if (!empty($list[$key]['material_cat_zh'])) {
+                $list[$key]['material_cat_zh'] = json_decode($list[$key]['material_cat_zh'], true);
+            } else {
+                $list[$key]['material_cat_zh'] = new \stdClass();
+            }
         }
 
         $employee_model = new EmployeeModel();

@@ -22,6 +22,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
+
         $this->headers = getHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
         //Log::write('Method:'.$this->getMethod().' Token:'.$this->getQuery('token',''),Log::INFO);
@@ -68,6 +69,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
+                            "group_id" => $userinfo["group_id"],
+                            "group_org" => $userinfo["group_org"],
                         );
                         $this->_setUid($userinfo);
                     }

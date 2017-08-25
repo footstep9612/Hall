@@ -3,7 +3,10 @@
 error_reporting(E_ALL);
 header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
-header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS;');
+header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    die('{"code":"200","message":"OK"}');
+}
 define('DS', DIRECTORY_SEPARATOR);
 /* INI配置文件支持常量替换 */
 define('MYPATH', dirname(__FILE__));
@@ -17,6 +20,7 @@ if (file_exists(MYPATH . DS . 'application' . DS . $module)) {
     die('{"code":"-1","message":"系统错误!"}');
 }
 define('COMMON_PATH', MYPATH . DS . 'common');
+
 
 /**
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节

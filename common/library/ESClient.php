@@ -207,6 +207,19 @@ class ESClient {
     }
 
     /*
+     * 开启索引
+     */
+
+    public function refresh($index) {
+        $params['index'] = $index;
+        try {
+            $this->server->indices()->refresh($params);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+        }
+    }
+
+    /*
      * 查询
      *
      */

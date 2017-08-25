@@ -396,7 +396,7 @@ class ProductModel extends PublicModel {
                              */
                             $res = $goodsModel->field('spu')->where($where)->select();
 
-                            if($res){
+                            if ($res) {
                                 $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                             }
                         } else {
@@ -420,7 +420,7 @@ class ProductModel extends PublicModel {
                          */
                         $res = $goodsModel->field('spu')->where($where)->select();
 
-                        if($res){
+                        if ($res) {
                             $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                         }
                     } else {
@@ -444,8 +444,12 @@ class ProductModel extends PublicModel {
      */
     public function getList($condition = [], $field = '', $offset = 0, $length = 20) {
         $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty' : $field;
-        $result = $this->field($field)->where($condition)->limit($offset, $length)->select();
-        return $result ? $result : array();
+        try {
+            $result = $this->field($field)->where($condition)->limit($offset, $length)->select();
+            return $result ? $result : array();
+        } catch (Exception $e) {
+            return array();
+        }
     }
 
     /**

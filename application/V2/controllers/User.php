@@ -296,6 +296,7 @@ class UserController extends PublicController {
                 $this->jsonReturn(array("code" => "-101", "message" => "手机格式不正确"));
             }
         }
+
         if(!empty($data['name'])) {
             $arr['name'] = $data['name'];
         }

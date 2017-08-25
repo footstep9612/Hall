@@ -112,9 +112,9 @@ class EsProductModel extends Model {
             $status = $condition[$name];
             if ($status == 'ALL') {
 
-                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD =>
-                        [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
-                        [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]
+                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
+                            [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
+                            [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]]
                 ]];
             } elseif (in_array($status, $array)) {
 
@@ -199,9 +199,15 @@ class EsProductModel extends Model {
 
 
 
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
+        if ($lang !== 'zh') {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
+        } else {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        }
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -683,6 +689,7 @@ class EsProductModel extends Model {
         }
 
         $k++;
+        return $flag;
     }
 
     /*
@@ -1020,8 +1027,11 @@ class EsProductModel extends Model {
                 }
                 $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                 $k = 0;
-                $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs);
+                foreach ($products as $item) {
+                    $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs);
+                }
             }
+            $es->refresh($this->dbName);
             return true;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

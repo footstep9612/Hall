@@ -331,6 +331,9 @@ class UserModel extends PublicModel {
         if(isset($data)){
             $data['created_at']=date("Y-m-d H:i:s");
         }
+        if(isset($create['employee_flag'])){
+            $data['employee_flag']=$create['employee_flag'];
+        }
         $datajson = $this->create($data);
         return $this->add($datajson);
     }

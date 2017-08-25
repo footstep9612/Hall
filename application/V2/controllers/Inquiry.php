@@ -50,8 +50,6 @@ class InquiryController extends PublicController {
     public function getInquiryIdAction() {
         $inquiry = new InquiryModel();
         $data['serial_no'] = $this->getSerialNoAction();
-        $data['buyer_id'] = '1';
-        $data['country_bn'] = 'test';
         $data['created_by'] = $this->user['id'];
 
         $results = $inquiry->addData($data);
@@ -128,6 +126,11 @@ class InquiryController extends PublicController {
         if(!empty($results['data']['pm_id'])){
             $rs2 = $employee->field('name')->where('id='.$results['data']['pm_id'])->find();
             $results['data']['pm_name'] = $rs2['name'];
+        }
+        //询单创建人
+        if(!empty($results['data']['created_by'])){
+            $rs3 = $employee->field('name')->where('id='.$results['data']['created_by'])->find();
+            $results['data']['created_name'] = $rs3['name'];
         }
 
         $this->jsonReturn($results);
