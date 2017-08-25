@@ -84,6 +84,33 @@ class DictController extends PublicController {
         jsonReturn($datajson);
     }
 
+    public function TransModeAction() {
+        $condition = $this->getPut();
+        if (!empty($condition['terms'])) {
+            $where['terms'] = $condition['terms'];
+        } else{
+            jsonReturn('',MSG::MSG_FAILED,'[terms]缺少!');
+        }
+        if (!empty($condition['lang'])) {
+            $where['lang'] = $condition['lang'];
+        } else{
+            $where['lang'] = 'en';
+        }
+        $trade_terms = new TradeTermsModel();
+        try {
+            $field = 'id,trans_mode_bn,lang';
+
+            $result = $trade_terms->field($field)->where($where)->select();
+            if($result){
+                jsonReturn($result);
+            }
+            jsonReturn('',MSG::MSG_FAILED,'');
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
     public function TradeTermsListAction() {
         $data = $this->getPut();
         $limit = [];
@@ -106,14 +133,13 @@ class DictController extends PublicController {
             }
 
             $where['lang'] = $lang;
-            if (redisHashExist('TradeTermsList', $lang)) {
-                $arr = json_decode(redisHashGet('TradeTermsList', $lang), true);
-            } else {
-                $arr = $trade_terms->getlist($where, $limit); //($this->put_data);
-
-                if ($arr) {
-                    redisHashSet('TradeTermsList', $lang, json_encode($arr));
-                }
+            if (redisHashExist('TradeTerms', 'TradeTerms'.$lang)) {
+//                $arr = json_decode(redisHashGet('TradeTerms', 'TradeTerms'.$lang), true);
+//                return $arr;
+            }
+            $arr = $trade_terms->getlist($where, $limit); //($this->put_data);
+            if ($arr) {
+                redisHashSet('TradeTerms', 'TradeTerms'.$lang, json_encode($arr));
             }
         } else {
             if (!empty($data['lang'])) {
@@ -156,12 +182,12 @@ class DictController extends PublicController {
             $where['lang'] = $lang;
             if (redisHashExist('TransModeList', $lang)) {
                 $arr = json_decode(redisHashGet('TransModeList', $lang), true);
-            } else {
-                $arr = $trade_mode->getlist($where, $limit); //($this->put_data);
+//                return $arr;
+            }
+            $arr = $trade_mode->getlist($where, $limit); //($this->put_data);
 
-                if ($arr) {
-                    redisHashSet('TransModeList', $lang, json_encode($arr));
-                }
+            if ($arr) {
+                redisHashSet('TransModeList', $lang, json_encode($arr));
             }
         } else {
             if (!empty($data['lang'])) {
