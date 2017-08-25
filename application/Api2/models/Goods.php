@@ -19,6 +19,8 @@ class GoodsModel extends PublicModel {
     const STATUS_DELETED = 'DELETED';      //删除
     const STATUS_CHECKING = 'CHECKING';    //审核中
     const STATUS_DRAFT = 'DRAFT';          //草稿
+    const DELETED_Y = 'Y';          //Y
+    const DELETED_N = 'N';          //N
 
     //定义校验规则
 
@@ -109,23 +111,24 @@ class GoodsModel extends PublicModel {
         if (empty($spu))
             return array();
         try {
-            $field = "lang,spu,sku,qrcode,name,name_zh,show_name,model,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail";
+            $field = "lang,spu,sku,qrcode,name,show_name_loc,show_name,model,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail";
             $condition = array(
                 "spu" => $spu,
                 "lang" => $lang,
-                "status" => self::STATUS_VALID
+                "status" => self::STATUS_VALID,
+                "deleted_flag" => self::DELETED_N
             );
             $result = $this->field($field)->where($condition)->select();
-            $this->getSpecBySku($result, $lang);
+
+            $this->getSpecBySku($result, $lang, $spec_type, $spu);
             return $result;
         } catch (Exception $e) {
 
             return array();
         }
-        return array();
     }
 
-    public function getSpecBySku(&$result, $lang) {
+    public function getSpecBySku(&$result, $lang, $spec_type, $spu) {
 
         if ($result) {
 
@@ -140,6 +143,23 @@ class GoodsModel extends PublicModel {
             }
 
             foreach ($result as $k => $item) {
+                $condition = array(
+                    "spu" => $spu,
+                    "lang" => $lang,
+                    "status" => self::STATUS_VALID,
+                    "deleted_flag" => self::DELETED_N
+                );
+                //获取spu的brand
+                $result[$k]['brand']='';
+                $productModel = new ProductModel();
+                $brand = $productModel->field('brand')->where($condition)->find();
+                if($brand){
+                    if(!is_null(json_decode($brand['brand'],true))){
+                        $resBrand = json_decode($brand['brand'],true);
+                        $result[$k]['brand'] = $resBrand['name'];
+                    }
+                    $result[$k]['brand'] = $brand['brand'];
+                }
                 //获取商品规格
                 //增加最小
                 $sku = $item['sku'];

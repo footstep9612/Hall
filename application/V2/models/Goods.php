@@ -290,7 +290,16 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskubyspu($spu, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['spu' => $spu, 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        if (!$spu) {
+            return [];
+        }
+        $where = ['lang' => $lang, 'status' => self::STATUS_VALID];
+        if (is_array($spu) && $spu) {
+            $where['spu'] = ['in', $spu];
+        } else {
+            $where['spu'] = $spu;
+        }
+        return $this->field('sku,name,model,show_name')->where($where)->select();
     }
 
     /**
@@ -298,7 +307,10 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskusbyskus($skus, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        if (!$skus && !is_array($skus)) {
+            return [];
+        }
+        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => self::STATUS_VALID])->select();
     }
 
     //--------------------------------BOSS.V2--------------------------------------------------------//
@@ -328,7 +340,7 @@ class GoodsModel extends PublicModel {
         if (redisHashExist('Sku', md5(json_encode($where)))) {
 //            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
-        $field = 'lang, spu, sku, qrcode, name, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, source, source_detail, deleted_flag,';
+        $field = 'lang, spu, sku, qrcode, name, show_name_loc, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, source, source_detail, deleted_flag,';
         //固定商品属性
         $field .= 'exw_days, min_pack_naked_qty, nude_cargo_unit, min_pack_unit, min_order_qty, purchase_price, purchase_price_cur_bn, nude_cargo_l_mm,';
         //固定物流属性
@@ -428,7 +440,7 @@ class GoodsModel extends PublicModel {
                     $kData[$item['lang']] = $item;
                 }
                 $data = array_merge($kData, $pData);
-                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
+//                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
@@ -448,7 +460,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        $sku = !empty($input['sku']) ? trim($input['sku']) : $this->setupSku();
+        $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
@@ -485,7 +497,7 @@ class GoodsModel extends PublicModel {
                         'lang' => $key,
                         'spu' => $checkout['spu'],
                         'name' => $checkout['name'],
-                        'show_name' => $checkout['show_name'],
+                        'show_name' => isset($checkout['show_name']) ? $checkout['show_name'] : '',
                         'model' => !empty($checkout['model']) ? $checkout['model'] : '',
                         'description' => !empty($checkout['description']) ? $checkout['description'] : '',
                         'source' => !empty($checkout['source']) ? $checkout['source'] : '',
@@ -519,7 +531,7 @@ class GoodsModel extends PublicModel {
                     ];
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
-                    if (!empty($input['sku'])) {             //------编辑
+                    if (isset($input['sku'])) {             //------编辑
                         $where = [
                             'lang' => $key,
                             'sku' => trim($input['sku'])
@@ -538,6 +550,11 @@ class GoodsModel extends PublicModel {
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                            if ($key == 'zh') {
+                                $data['show_name_loc'] = $input['en']['name'];
+                            } else {
+                                $data['show_name_loc'] = $input['zh']['name'];
+                            }
                             $res = $this->add($data);
                             if ($res) {
                                 $pModel = new ProductModel();                                 //sku_count加一
@@ -551,7 +568,6 @@ class GoodsModel extends PublicModel {
                         }
                         if (!$res) {
                             $this->rollback();
-
                             return false;
                         }
                     } else {             //------新增
@@ -560,6 +576,11 @@ class GoodsModel extends PublicModel {
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                        if ($key == 'zh') {
+                            $data['show_name_loc'] = $input['en']['name'];
+                        } else {
+                            $data['show_name_loc'] = $input['zh']['name'];
+                        }
                         $res = $this->add($data);
                         if (!$res) {
                             $this->rollback();
@@ -588,7 +609,7 @@ class GoodsModel extends PublicModel {
                         'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs']) : null,
                         'status' => $gattr::STATUS_VALID
                     );
-                    if (!empty($input['sku'])) {
+                    if (isset($input['sku'])) {
                         $attr_obj['sku'] = trim($input['sku']);
                         $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     } else {
@@ -602,7 +623,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = isset($input['sku']) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gattach = new GoodsAttachModel();
                         $resAttach = $gattach->editSkuAttach($value, $input['sku'], $input['user_id']);  //附件新增
@@ -613,7 +634,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'supplier_cost') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = isset($input['sku']) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
                         $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
@@ -748,13 +769,13 @@ class GoodsModel extends PublicModel {
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
-                                $spuWhere = array(
-                                    'spu' => $spuCode['spu'],
-                                );
-                                if (!empty($lang)) {
-                                    $spuCode['lang'] = $lang;
-                                }
                                 if ($spuCode) {
+                                    $spuWhere = array(
+                                        'spu' => $spuCode['spu'],
+                                    );
+                                    if (!empty($lang)) {
+                                        $spuCode['lang'] = $lang;
+                                    }
                                     $result_spu = $pModel->where($spuWhere)->save(array('status' => $pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s', time())));
                                     if ($result_spu) {
                                         $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
@@ -899,7 +920,7 @@ class GoodsModel extends PublicModel {
                     }
                     $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
                     if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
-                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                        $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if ($res) {
                             $pModel = new ProductModel();                               //sku_count减一
                             $where_spu = array(
@@ -927,7 +948,7 @@ class GoodsModel extends PublicModel {
                 }
                 $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
                 if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                     if ($res) {
                         $pModel = new ProductModel();                               //sku_count减一
                         $where_spu = array(
@@ -1027,6 +1048,34 @@ class GoodsModel extends PublicModel {
             }
         }
         return $data;
+    }
+
+    /*
+     * 根据skus 获取SKU名称
+     */
+
+    public function getNamesBySkus($skus, $lang = 'zh') {
+        $where = [];
+        if (is_array($skus) && $skus) {
+            $where['sku'] = ['in', $skus];
+        } else {
+            return [];
+        }
+        if (empty($lang)) {
+            $where['lang'] = 'zh';
+        } else {
+            $where['lang'] = $lang;
+        }
+        $result = $this->where($where)->field('name,sku')->select();
+        if ($result) {
+            $data = [];
+            foreach ($result as $item) {
+                $data[$item['sku']] = $item['name'];
+            }
+            return $data;
+        } else {
+            return [];
+        }
     }
 
 }

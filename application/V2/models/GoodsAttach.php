@@ -399,7 +399,7 @@ class GoodsAttachModel extends PublicModel {
                 $where = [
                     "sku" => ['in', $skus],
                 ];
-                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                $res = $this->where($where)->save(['deleted_flag' => 'Y']);
 
                 if ($res === false) {
                     return false;
@@ -408,7 +408,7 @@ class GoodsAttachModel extends PublicModel {
                 $where = [
                     "sku" => $skus
                 ];
-                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                 if ($res === false) {
                     return false;
                 }
@@ -452,6 +452,9 @@ class GoodsAttachModel extends PublicModel {
         }
         if (!empty($param['attach_name'])) {
             $data['attach_name'] = $param['attach_name'];
+        }
+        if (empty($param['attach_name'])) {
+            $data['attach_name'] = $param['attach_url'];
         }
         if (!empty($param['attach_url'])) {
             $data['attach_url'] = $param['attach_url'];

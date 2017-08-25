@@ -114,7 +114,7 @@ class ServiceItemModel extends PublicModel{
         }
         try{
             $where = ['service_cat_id'=>$id];
-            $res = $this->where($where)->save(['status'=>$status]);
+            $res = $this->where($where)->save(['deleted_flag' => 'Y']);
             if(!$res){
                 return false;
             }

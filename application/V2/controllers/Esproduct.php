@@ -117,6 +117,11 @@ class EsproductController extends PublicController {
             } else {
                 $list[$key]['material_cat'] = new \stdClass();
             }
+            if (!empty($list[$key]['material_cat_zh'])) {
+                $list[$key]['material_cat_zh'] = json_decode($list[$key]['material_cat_zh'], true);
+            } else {
+                $list[$key]['material_cat_zh'] = new \stdClass();
+            }
         }
 
         $employee_model = new EmployeeModel();
@@ -378,7 +383,7 @@ class EsproductController extends PublicController {
             'sku' => $not_analyzed, //SKU
             'qrcode' => $not_analyzed, //商品二维码
             'name' => $ik_analyzed, //商品名称
-            'name_zh' => $ik_analyzed, //中文品名
+            'show_name_loc' => $ik_analyzed, //中文品名
             'show_name' => $ik_analyzed, //商品展示名称
             'model' => $ik_analyzed, //型号
             'description' => $ik_analyzed, //描述
@@ -416,12 +421,16 @@ class EsproductController extends PublicController {
             'checked_at' => $not_analyzed, //审核时间
             'deleted_flag' => $not_analyzed, //删除标志
             /* 扩展内容 */
+            'name_loc' => $ik_analyzed, //中文品名
+            'brand' => $ik_analyzed, //品牌
             'suppliers' => $ik_analyzed, //供应商数组 json
+            'sppplier_count' => $not_analyzed,
             'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
             'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
@@ -511,6 +520,7 @@ class EsproductController extends PublicController {
             /* 扩展内容 */
             'attrs' => $ik_analyzed, //属性
             'attachs' => $ik_analyzed, //附件
+            'name_loc' => $ik_analyzed, //中文品名
             'max_exw_day' => $not_analyzed, //出货周期（天）
             'min_exw_day' => $not_analyzed, //出货周期（天）
             'min_pack_unit' => $not_analyzed, //成交单位
@@ -520,6 +530,7 @@ class EsproductController extends PublicController {
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
             'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间

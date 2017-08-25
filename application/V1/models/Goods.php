@@ -984,7 +984,7 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskubyspu($spu, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['spu' => $spu, 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        return $this->field('sku,name,model,show_name')->where(['spu' => $spu, 'lang' => $lang, 'status' => self::STATUS_VALID])->select();
     }
 
     /**
@@ -992,7 +992,7 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskusbyskus($skus, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => self::STATUS_VALID])->select();
     }
 
 }

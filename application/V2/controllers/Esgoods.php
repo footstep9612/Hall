@@ -38,7 +38,7 @@ class EsgoodsController extends PublicController {
      * @desc   ES 商品
      */
     public function listAction() {
-        $lang = $this->get('lang', '') ?: $this->getPut('lang', 'zh');
+        $lang = $this->getPut('lang', 'zh');
         $data = $this->getPut();
         $model = new EsGoodsModel();
         $ret = $model->getgoods($data, null, $lang);
@@ -97,11 +97,15 @@ class EsgoodsController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
+            if (json_decode($list[$key]['brand'], true)) {
+                $list[$key]['brand'] = json_decode($list[$key]['brand'], true);
+            }
             $list[$key]['show_cats'] = $show_cats;
             $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
+            $list[$key]['material_cat_zh'] = json_decode($list[$key]['material_cat_zh'], true);
         }
 
         $employee_model = new EmployeeModel();

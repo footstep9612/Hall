@@ -66,18 +66,19 @@ class InquiryController extends PublicController {
     public function getListAction(){
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
+        $country = new CountryModel();
 
         $where = $this->put_data;
         //如果搜索条件有经办人，转换成id
         if(!empty($where['agent_name'])){
-            $agent = $employee->field('id')->where('name='.$where['agent_name'])->find();
+            $agent = $employee->field('id')->where('name="'.$where['agent_name'].'"')->find();
             if($agent){
                 $where['agent_id']=$agent['id'];
             }
         }
         //如果搜索条件有项目经理，转换成id
         if(!empty($where['pm_name'])){
-            $pm = $employee->field('id')->where('name='.$where['agent_name'])->find();
+            $pm = $employee->field('id')->where('name="'.$where['agent_name'].'"')->find();
             if($agent){
                 $where['pm_id']=$pm['id'];
             }
@@ -89,13 +90,18 @@ class InquiryController extends PublicController {
             foreach($results['data'] as $key=>$val){
                 //经办人
                 if(!empty($val['agent_id'])){
-                    $rs1 = $employee->where('id='.$val['agent_id'])->find();
+                    $rs1 = $employee->field('name')->where('id='.$val['agent_id'])->find();
                     $results['data'][$key]['agent_name'] = $rs1['name'];
                 }
                 //项目经理
                 if(!empty($val['pm_id'])){
-                    $rs2 = $employee->where('id='.$val['pm_id'])->find();
+                    $rs2 = $employee->field('name')->where('id='.$val['pm_id'])->find();
                     $results['data'][$key]['pm_name'] = $rs2['name'];
+                }
+                //国家
+                if(!empty($val['country_bn'])){
+                    $rs3 = $country->field('name')->where("lang='zh' and bn='".$val['country_bn']."'")->find();
+                    $results['data'][$key]['country_name'] = $rs3['name'];
                 }
             }
         }
@@ -185,9 +191,25 @@ class InquiryController extends PublicController {
      */
     public function getAttachListAction() {
         $attach = new InquiryAttachModel();
+        $employee = new EmployeeModel();
+        $roleuser = new RoleUserModel();
         $where =  $this->put_data;
 
         $results = $attach->getList($where);
+
+        if($results['code'] == 1){
+            foreach($results['data'] as $key=>$val){
+                $employeedata = $employee->field('id,name')->where('id='.$val['created_by'])->find();
+                $results['data'][$key]['created_name'] = $employeedata['name'];
+
+                $roledata = $roleuser->alias('a')
+                    ->join('erui2_sys.role b ON a.role_id = b.id','LEFT')
+                    ->where('a.employee_id='.$val['created_by'])
+                    ->field('b.name,b.name_en,b.remarks')
+                    ->find();
+                $results['data'][$key]['created_role'] = $roledata['name'];
+            }
+        }
 
         $this->jsonReturn($results);
     }

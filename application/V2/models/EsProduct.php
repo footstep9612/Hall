@@ -112,6 +112,10 @@ class EsProductModel extends Model {
             $status = $condition[$name];
             if ($status == 'ALL') {
 
+                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
+                            [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
+                            [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]]
+                ]];
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
@@ -195,9 +199,15 @@ class EsProductModel extends Model {
 
 
 
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
+        if ($lang !== 'zh') {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
+        } else {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        }
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -219,6 +229,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
@@ -304,7 +315,7 @@ class EsProductModel extends Model {
             if ($body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('sku_count', 'desc')
+            $es->setbody($body)->setsort('created_at', 'desc')->setsort('sku_count', 'desc')
                     ->setsort('_id', 'desc');
 
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
@@ -411,7 +422,7 @@ class EsProductModel extends Model {
 
             $material_cat_model = new MaterialCatModel();
             $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang);
-
+            $mcats_zh = $material_cat_model->getmaterial_cats($mcat_nos, 'zh');
 
             $ret = [];
             foreach ($products as $item) {
@@ -420,6 +431,11 @@ class EsProductModel extends Model {
                     $body['material_cat'] = json_encode($mcats[$item['material_cat_no']], JSON_UNESCAPED_UNICODE);
                 } else {
                     $body['material_cat'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
+                }
+                if (isset($mcats_zh[$item['material_cat_no']])) {
+                    $body['material_cat_zh'] = json_encode($mcats_zh[$item['material_cat_no']], JSON_UNESCAPED_UNICODE);
+                } else {
+                    $body['material_cat_zh'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
                 }
                 $spu = $item['spu'];
                 $body['brand'] = $brands[$spu];
@@ -547,10 +563,15 @@ class EsProductModel extends Model {
                     }
                     $spus = array_unique($spus);
                     $mcat_nos = array_unique($mcat_nos);
-
+                    $productmodel = new ProductModel();
+                    if ($lang == 'zh') {
+                        $name_locs = $productmodel->getNamesBySpus($spus, 'en');
+                    } else {
+                        $name_locs = $productmodel->getNamesBySpus($spus, 'zh');
+                    }
                     $material_cat_model = new MaterialCatModel();
                     $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类
-
+                    $mcats_zh = $material_cat_model->getmaterial_cats($mcat_nos, 'zh');
 
                     $show_cat_product_model = new ShowCatProductModel();
                     $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang); //根据spus获取展示分类编码
@@ -566,7 +587,7 @@ class EsProductModel extends Model {
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                     foreach ($products as $key => $item) {
 
-                        $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k);
+                        $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
                         if ($key === 99) {
                             $max_id = $item['id'];
                         }
@@ -582,7 +603,7 @@ class EsProductModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k) {
+    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs) {
 
         $spu = $id = $item['spu'];
         $this->_findnulltoempty($item);
@@ -605,8 +626,18 @@ class EsProductModel extends Model {
         } else {
             $body['material_cat'] = json_encode(new \stdClass(), JSON_UNESCAPED_UNICODE);
         }
-        $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
 
+        if (isset($mcats_zh[$item['material_cat_no']])) {
+            $body['material_cat_zh'] = json_encode($mcats_zh[$item['material_cat_no']], JSON_UNESCAPED_UNICODE);
+        } else {
+            $body['material_cat_zh'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
+        }
+        $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
+        if (isset($name_locs[$spu]) && $name_locs[$spu]) {
+            $body['name_loc'] = $name_locs[$spu];
+        } else {
+            $body['name_loc'] = '';
+        }
         if (isset($product_attrs[$spu])) {
             $body['attrs'] = json_encode($product_attrs[$spu], JSON_UNESCAPED_UNICODE);
             if ($product_attrs[$item['spu']][0]['spec_attrs']) {
@@ -976,6 +1007,7 @@ class EsProductModel extends Model {
                 $mcat_nos = array_unique($mcat_nos);
                 $material_cat_model = new MaterialCatModel();
                 $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang); //获取物料分类
+                $mcats_zh = $material_cat_model->getmaterial_cats($mcat_nos, 'zh'); //获取物料分类
                 $show_cat_product_model = new ShowCatProductModel();
                 $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang); //根据spus获取展示分类编码
 
@@ -986,10 +1018,15 @@ class EsProductModel extends Model {
                 $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
 
                 $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
-
+                $productmodel = new ProductModel();
+                if ($lang == 'zh') {
+                    $name_locs = $productmodel->getNamesBySpus($spus, 'en');
+                } else {
+                    $name_locs = $productmodel->getNamesBySpus($spus, 'zh');
+                }
                 $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                 $k = 0;
-                $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k);
+                $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs);
             }
             return true;
         } catch (Exception $ex) {

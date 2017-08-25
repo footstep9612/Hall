@@ -179,10 +179,10 @@ class ProductAttachModel extends PublicModel {
                 redisHashSet('Attach', $spu . '_' . $type . '_' . $status, json_encode($result));
                 return $result;
             }
-        } catch (Exception $e) {
             return array();
+        } catch (Exception $e) {
+            return false;
         }
-        return array();
     }
 
 }

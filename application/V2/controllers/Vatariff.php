@@ -28,7 +28,7 @@ class VatariffController extends PublicController {
      * @desc   目的国 增值税、关税
      */
     public function listAction() {
-        $data = $this->get() ?: $this->getPut();
+        $data = $this->getPut();
 
         $va_tariff_model = new VaTariffModel();
         $key = $data['id'] . $data['current_no'] . $data['pagesize'] . md5($data['keyword']);
@@ -36,7 +36,6 @@ class VatariffController extends PublicController {
             $arr = json_decode(redisHashGet('Vatariff', $key), true);
         } else {
             $arr = $va_tariff_model->getlist($data, false);
-
 
             $this->_setUserName($arr);
             if ($arr) {
@@ -169,7 +168,7 @@ class VatariffController extends PublicController {
      */
     public function deleteAction() {
 
-        $id = $this->get('id') ?: $this->getPut('id');
+        $id = $this->getPut('id');
 
         $va_tariff_model = new VaTariffModel();
         $result = $va_tariff_model->delete_data($id);

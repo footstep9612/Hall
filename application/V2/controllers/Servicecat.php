@@ -195,15 +195,15 @@ class ServicecatController extends PublicController {
      */
     public function levelAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $limit = [];
+        /*$limit = [];
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
         if(!empty($data['currentPage'])) {
             $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
-        }
-        $MemberServiceModel = new MemberServiceModel();
-        $result = $MemberServiceModel->levelInfo($limit);
+        }*/
+        $MemberServiceModel = new BuyerLevelModel();
+        $result = $MemberServiceModel->levelInfo();
         if(!empty($result)) {
             jsonReturn($result);
         } else {
@@ -218,12 +218,12 @@ class ServicecatController extends PublicController {
      */
     public function levelServiceAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!isset($data['buyer_level']) || empty($data['buyer_level'])){
+        if(!isset($data['id']) || empty($data['id'])){
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        $buyer_level = $data['buyer_level'];
+        $buyer_level_id = $data['id'];
         $MemberServiceModel = new MemberServiceModel();
-        $result = $MemberServiceModel->levelService($buyer_level);
+        $result = $MemberServiceModel->levelService($buyer_level_id);
         if(!empty($result)) {
             jsonReturn($result);
         } else {
@@ -239,7 +239,7 @@ class ServicecatController extends PublicController {
      */
     public function editLevelAction(){
         /* $this->put_data = [
-                'buyer_level'=>'会员',
+                'buyer_level_id'=>'1',
               'levels'=>[
                        0=>[
                               'category'=>[
@@ -293,13 +293,13 @@ class ServicecatController extends PublicController {
 
     public function deleteLevelAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if(empty($data['buyer_level'])){
+        if(empty($data['buyer_level_id'])){
             $datajson['code'] = -101;
             $datajson['message'] = '用户等级[buyer_level]不可为空!';
             $this->jsonReturn($datajson);
         }
         $MemberServiceModel = new MemberServiceModel();
-        $res = $MemberServiceModel->delData($data['buyer_level']);
+        $res = $MemberServiceModel->delData($data['buyer_level_id']);
         if($res){
             $datajson['code'] = 1;
             $datajson['data'] = '成功!';

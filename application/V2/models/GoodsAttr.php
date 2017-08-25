@@ -340,7 +340,7 @@ class GoodsAttrModel extends PublicModel {
 
         //redis
         if (redisHashExist('SkuAttrs', md5(json_encode($where)))) {
-//            return json_decode(redisHashGet('SkuAttrs', md5(json_encode($where))), true);
+            return json_decode(redisHashGet('SkuAttrs', md5(json_encode($where))), true);
         }
         $field = 'lang, spu, sku, spec_attrs, ex_goods_attrs, ex_hs_attrs, other_attrs, status, created_by,  created_at';
         //spec_attrs--规格属性   ex_goods_attrs--其它商品属性  ex_hs_attrs--其它申报要素  other_attrs--其它属性
@@ -532,7 +532,7 @@ class GoodsAttrModel extends PublicModel {
                     }
                     $find = $this->where($where)->select();
                     if ($find) {
-                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                        $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if (!$res) {
                             return false;
                         }
@@ -547,7 +547,7 @@ class GoodsAttrModel extends PublicModel {
                 }
                 $find = $this->where($where)->select();
                 if ($find) {
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                     if (!$res) {
                         return false;
                     }

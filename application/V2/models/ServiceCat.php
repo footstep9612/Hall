@@ -45,7 +45,12 @@ class ServiceCatModel extends PublicModel {
         $data =array();
         if($result){
             $termModel = new ServiceTermModel();
+            $employee = new EmployeeModel();
             foreach($result as $item){
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
                 $count = $termModel->field('id')->where(['service_cat_id'=>$item['id']])->count();
                 $item['count']=$count?$count:0;
                 $item['category'] = json_decode($item['category']);
@@ -187,7 +192,7 @@ class ServiceCatModel extends PublicModel {
         try{
             $status = self::STATUS_DELETED;
             $where = ['id'=>$id];
-            $res = $this->where($where)->save(['status'=>$status]);
+            $res = $this->where($where)->save(['deleted_flag' => 'Y']);
             if (!$res) {
                 $this->rollback();
                 return false;

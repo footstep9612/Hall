@@ -249,7 +249,7 @@ class ProductModel extends PublicModel {
                             $data = array(
                                 'spu' => $spu,
                                 'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
-                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : '',
+                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : $atta['attach_url'],
                                 'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
                                 'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
                             );
@@ -394,7 +394,11 @@ class ProductModel extends PublicModel {
                              * 删除ｓｋｕ
                              * 优化意见：这块最好放入队列，以确保成功删除掉。
                              */
-                            $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                            $res = $goodsModel->field('spu')->where($where)->select();
+
+                            if($res){
+                                $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                            }
                         } else {
                             $this->rollback();
                             return false;
@@ -407,13 +411,18 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
+
                     $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
                     if ($result) {
                         /**
                          * 删除ｓｋｕ
                          * 优化意见：这块最好放入队列，以确保成功删除掉。
                          */
-                        $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                        $res = $goodsModel->field('spu')->where($where)->select();
+
+                        if($res){
+                            $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
+                        }
                     } else {
                         $this->rollback();
                         return false;
@@ -433,7 +442,7 @@ class ProductModel extends PublicModel {
     /**
      * 列表查询
      */
-    public function getList($condition = [],$field = '', $offset = 0,$length = 20) {
+    public function getList($condition = [], $field = '', $offset = 0, $length = 20) {
         $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty' : $field;
         try{
             $result = $this->field($field)->where($condition)->limit($offset,$length)->select();
@@ -447,6 +456,7 @@ class ProductModel extends PublicModel {
      * spu详情
      * @param string $spu    spu编码
      * @param string $lang    语言
+     * @param string $status    状态
      * return array
      */
     public function getInfo($spu = '', $lang = '', $status = '') {
@@ -477,6 +487,7 @@ class ProductModel extends PublicModel {
             $data = array();
             if ($result) {
                 $employee = new EmployeeModel();
+                $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                     $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
@@ -493,15 +504,52 @@ class ProductModel extends PublicModel {
                     if ($checkeder && isset($checkeder[0])) {
                         $item['checked_by'] = $checkeder[0];
                     }
-
+                    if (!is_null(json_decode($item['brand'], true))) {
+                        $brand = json_decode($item['brand'], true);
+                        $item['brand'] = $brand['name'];
+                    }
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
-                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
+//                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
             return false;
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 
@@ -618,6 +666,34 @@ class ProductModel extends PublicModel {
             continue;
         }
         return false;
+    }
+
+    /*
+     * 根据spus 获取SPU名称
+     */
+
+    public function getNamesBySpus($spus, $lang = 'zh') {
+        $where = [];
+        if (is_array($spus) && $spus) {
+            $where['spu'] = ['in', $spus];
+        } else {
+            return [];
+        }
+        if (empty($lang)) {
+            $where['lang'] = 'zh';
+        } else {
+            $where['lang'] = $lang;
+        }
+        $result = $this->where($where)->field('name,spu')->select();
+        if ($result) {
+            $data = [];
+            foreach ($result as $item) {
+                $data[$item['spu']] = $item['name'];
+            }
+            return $data;
+        } else {
+            return [];
+        }
     }
 
 }
