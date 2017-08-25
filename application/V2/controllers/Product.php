@@ -381,11 +381,11 @@ class ProductController extends PublicController {
                 }
             }
             $i++;
-        }while(count($result) >= 20);
+        }while(count($result) >= $length);
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
 
-        return ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
+        ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
     }
 
 }
