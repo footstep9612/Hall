@@ -402,6 +402,9 @@ class QuoteBizLineModel extends PublicModel{
      * @return array 返回结果
      */
     public function assignQuoter($request){
+        $this->select();
+        p($this->getLastSql());
+        p($request);
         try{
             if ($this->where(['quote_id'=>$request['quote_id']])->save(['biz_agent_id'=>$request['biz_agent_id']])){
                 return ['code'=>'1','message'=>'指派成功!'];
