@@ -196,6 +196,9 @@ class BuyerController extends PublicController {
         if(!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
+        if(!empty($data['area_bn'])) {
+            $arr['area_bn'] = $data['area_bn'];
+        }
         if(!empty($data['zipcode'])) {
             $buyer_address_data['zipcode'] = $data['zipcode'];
         }
@@ -351,6 +354,9 @@ class BuyerController extends PublicController {
         }
         if(!empty($data['buyer_level'])) {
             $arr['buyer_level'] = $data['buyer_level'];
+        }
+        if(!empty($data['area_bn'])) {
+            $arr['area_bn'] = $data['area_bn'];
         }
         if(!empty($data['status'])) {
             $arr['status'] = $data['status'];
