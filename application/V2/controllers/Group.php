@@ -248,8 +248,8 @@ class GroupController extends PublicController {
             $datajson['message'] = '数据不可为空!';
             $this->jsonReturn($datajson);
         }
-        if($data[id]){
-            $where['id'] =$data[id];
+        if($data['id']){
+            $where['id'] =$data['id'];
             $model_group = new GroupModel();
             $id = $model_group->update_data($data,$where);
             if(!empty($id)){

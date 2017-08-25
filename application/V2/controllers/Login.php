@@ -47,6 +47,23 @@ class LoginController extends Yaf_Controller_Abstract {
         $model = new UserModel();
         $info = $model->login($arr);
         if ($info) {
+            $group_model = new GroupModel();
+            $group_where['em.id']=$info['id'];
+            $list = $group_model->getlist($group_where,"");
+            if($list){
+                for($i=0;$i<count($list);$i++){
+                    $info['group_id'][] =$list[$i]['id'] ;
+                    $info['group_org'][] =$list[$i]['org'] ;
+                }
+            }
+//            $role_model = new RoleModel();
+//            $role_where['em.id']=$info['id'];
+//            $list_role = $role_model->getlist($group_where,"");
+//            if($list_role){
+//                for($i=0;$i<count($list_role);$i++){
+//                    $info['role_id'][] =$list_role[$i]['id'] ;
+//                }
+//            }
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['ext'] = time();
@@ -56,6 +73,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $datajson['email'] = $info['email'];
             $datajson['name'] = $info['name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
+            var_dump($info);
             redisSet('user_info_'.$info['id'],json_encode($info),18000);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
