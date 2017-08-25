@@ -222,9 +222,7 @@ class GoodsController extends PublicController {
                 $this->updateEsgoods(null, $this->put_data['sku']);
             }
         }
-        if ($this->put_data['spu']) {
-            $this->updateEsproduct($this->put_data, $this->put_data['spu']);
-        }
+
         $this->returnInfo($result);
     }
 
