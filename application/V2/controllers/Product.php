@@ -189,7 +189,7 @@ class ProductController extends PublicController {
 
         if ($result) {
             if ($lang) {
-                $this->updateEsproduct([$lang => $this->put_data['spu']], $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
             }
