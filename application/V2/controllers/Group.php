@@ -56,7 +56,7 @@ class GroupController extends PublicController {
                 $list = $this->get_group_tree($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id']); //递归获取子记录
                 if($list != null){
                     for($i = 0; $i < count($list); $i++){
-                        $list[$i]['name']='-|'.$list[$i]['name'];
+                        $list[$i]['name']='|-'.$list[$i]['name'];
                         $tree[] = $list[$i];
                     }
                 }
