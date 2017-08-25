@@ -35,10 +35,6 @@ class UrlpermController extends PublicController {
                         $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
                         if(!$data[$i]['children'][$j]['children']){
                             unset($data[$i]['children'][$j]['children']);
-                        }else{
-                            for($k=0;$k<$data[$i]['children'][$j]['children'];$k++){
-                                $data[$i]['children'][$j]['children'][$k]['check'] =false ;
-                            }
                         }
                     }
                 }
