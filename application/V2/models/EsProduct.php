@@ -199,9 +199,15 @@ class EsProductModel extends Model {
 
 
 
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
+        if ($lang !== 'zh') {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
+        } else {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        }
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');

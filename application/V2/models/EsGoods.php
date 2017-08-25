@@ -111,9 +111,9 @@ class EsGoodsModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
-                            [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]]
+                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD =>
+                        [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
+                        [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]
                 ]];
             } elseif (in_array($status, $array)) {
 
@@ -187,7 +187,7 @@ class EsGoodsModel extends Model {
      * @desc   ES 商品
      */
 
-    private function getCondition($condition) {
+    private function getCondition($condition, $lang = 'en') {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
@@ -196,9 +196,16 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+
+        if ($lang !== 'zh') {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
+        } else {
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
+            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        }
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -284,7 +291,7 @@ class EsGoodsModel extends Model {
 
     public function getgoods($condition, $_source = null, $lang = 'en') {
         try {
-            $body = $this->getCondition($condition);
+            $body = $this->getCondition($condition, $lang);
             if ($body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
