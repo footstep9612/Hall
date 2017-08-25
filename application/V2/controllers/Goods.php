@@ -246,11 +246,20 @@ class GoodsController extends PublicController {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->deleteSkuReal($this->put_data);
         if ($result['code'] == 1) {
-            if ($this->put_data['lang']) {
+           /* if ($this->put_data['lang']) {
                 $lang = $this->put_data['lang'];
                 $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);
             } else {
                 $this->updateEsgoods(null, $this->put_data['sku']);
+            }*/
+
+            $lang = isset($this->put_data['lang']) ? [$this->put_data['lang'] => $this->put_data['lang']] : null;
+            if(is_array( $this->put_data['sku'])){
+                foreach( $this->put_data['sku'] as $sku){
+                    $this->updateEsgoods($lang, $sku);
+                }
+            }else{
+                $this->updateEsgoods($lang, $this->put_data['sku']);
             }
         }
         $this->returnInfo($result);
