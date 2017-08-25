@@ -111,9 +111,9 @@ class EsGoodsModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD =>
-                        [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
-                        [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]
+                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
+                            [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
+                            [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]]
                 ]];
             } elseif (in_array($status, $array)) {
 
