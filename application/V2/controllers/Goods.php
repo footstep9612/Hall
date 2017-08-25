@@ -214,8 +214,7 @@ class GoodsController extends PublicController {
         }
         $goodsModel = new GoodsModel();
         $result = $goodsModel->modifySkuStatus($this->put_data);
-        var_dump($result);
-        die;
+
         if ($result) {
             if ($this->put_data['lang']) {
                 $lang = $this->put_data['lang'];

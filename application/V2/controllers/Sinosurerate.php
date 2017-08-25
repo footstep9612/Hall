@@ -105,8 +105,7 @@ class SinosureRateController extends PublicController {
      */
     public function addSinosureRateRecordAction() {
         $condition = $this->put_data;
-
-        $condition['creator_by'] = $this->user['id'];
+        $condition['created_by'] = $this->user['id'];
         $condition['created_at'] = date('Y-m-d H:i:s');
         if (isset($condition['country_bn']) && $condition['country_bn']) {
             $country_bn = $condition['country_bn'];
