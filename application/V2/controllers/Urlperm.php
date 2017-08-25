@@ -16,35 +16,55 @@ class UrlpermController extends PublicController {
     public function __init() {
         //   parent::__init();
     }
-
+    //递归获取子记录
+    function get_urlperm_children($a,$pid =null,$employee=null){
+        if(!$pid){
+            $pid =$a[0]['parent_id'];
+        }
+        $tree = array();
+        $limit =[];
+        $model_group = new UrlPermModel();
+        foreach($a as $v){
+            $v['check']= false;
+            if($v['parent_id'] == $pid){
+                $v['children'] = $this->get_urlperm_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id'],$employee); //递归获取子记录
+                if($v['children'] == null ){
+                    unset($v['children']);
+                }
+                $tree[] = $v;
+            }
+        }
+        return $tree;
+    }
     public function listAction() {
         //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $model_url_perm = new UrlPermModel();
         $data = $model_url_perm->getlist(['parent_id'=>0],$limit); //($this->put_data);
         $count = count($data);
-        $childrencount=0;
-        for($i=0;$i<$count;$i++){
-            $data[$i]['check'] =false ;
-            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id']],$limit);
-            $childrencount = count($data[$i]['children']);
-            if($childrencount>0){
-                for($j=0;$j<$childrencount;$j++){
-                    if(isset($data[$i]['children'][$j]['id'])){
-                        $data[$i]['children'][$j]['check'] =false ;
-                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
-                        if(!$data[$i]['children'][$j]['children']){
-                            unset($data[$i]['children'][$j]['children']);
-                        }
-                    }
-                }
-            }else{
-                unset($data[$i]['children']);
-            }
-        }
+        $res = $this -> get_urlperm_children($data);
+//        $childrencount=0;
+//        for($i=0;$i<$count;$i++){
+//            $data[$i]['check'] =false ;
+//            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id']],$limit);
+//            $childrencount = count($data[$i]['children']);
+//            if($childrencount>0){
+//                for($j=0;$j<$childrencount;$j++){
+//                    if(isset($data[$i]['children'][$j]['id'])){
+//                        $data[$i]['children'][$j]['check'] =false ;
+//                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
+//                        if(!$data[$i]['children'][$j]['children']){
+//                            unset($data[$i]['children'][$j]['children']);
+//                        }
+//                    }
+//                }
+//            }else{
+//                unset($data[$i]['children']);
+//            }
+//        }
         if(!empty($data)){
             $datajson['code'] = 1;
-            $datajson['data'] = $data;
+            $datajson['data'] = $res;
         }else{
             $datajson['code'] = -104;
             $datajson['data'] = $data;
