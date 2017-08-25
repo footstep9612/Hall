@@ -663,7 +663,6 @@ class QuotebizlineController extends PublicController {
 
     /**
      * @desc 选择报价(产品线负责人)
-     * @author 买买提
      */
     public function selectQuoteAction(){
         echo 12345678;
@@ -671,7 +670,6 @@ class QuotebizlineController extends PublicController {
 
     /**
      * @desc 退回报价(产品线负责人)
-     * @author 买买提
      */
     public function bizlineManagerRejectQuoteAction() {
 
