@@ -26,6 +26,7 @@ class GroupController extends PublicController {
         if($employee){
             $user_modle =new UserModel();
         }
+        $i=0;
         foreach($a as $v){
             $model_group = new GroupModel();
             if($v['parent_id'] == $pid){
@@ -40,6 +41,57 @@ class GroupController extends PublicController {
             }
         }
         return $tree;
+    }
+    //递归获取子记录
+    function get_group_tree($a,$pid =null){
+        if(!$pid){
+            $pid =$a[0]['parent_id'];
+        }
+        $tree = array();
+        $limit =[];
+        foreach($a as $v){
+            $model_group = new GroupModel();
+            if($v['parent_id'] == $pid){
+                $tree[] = $v;
+                $list = $this->get_group_tree($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id']); //递归获取子记录
+                if($list != null){
+                    for($i = 0; $i < count($list); $i++){
+                        $list[$i]['name']='-|'.$list[$i]['name'];
+                        $tree[] = $list[$i];
+                    }
+                }
+
+            }
+        }
+        return $tree;
+    }
+    public function grouptreelistAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['name'])){
+            $where['org.name'] = array('like',"%".$data['name']."%");
+        }
+        if(!empty($data['parent_id'])){
+            $where['org.parent_id'] = $data['parent_id'];
+        }else{
+            if(empty($data['name'])){
+                $where['org.parent_id'] = 0;
+            }
+        }
+        $model_group = new GroupModel();
+        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        $arr  = $this->get_group_tree($data);
+        if(!empty($arr)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $arr;
+            $datajson['message'] = '数据为空!';
+        }
+
+        $this->jsonReturn($datajson);
     }
     public function listAction(){
         $data = json_decode(file_get_contents("php://input"), true);
@@ -91,10 +143,9 @@ class GroupController extends PublicController {
         if(!isset( $where_user['group_id'])){
             $where_user['group_id']=$data[0]['id'];
         }
-        $data['employee'] =$user_modle->getlist($where_user);
         $arr  = $this->get_group_children($data,'',1);
         if(!empty($arr)){
-            $datajson['code'] = 1;
+            $datajson['code'] = 0;
             $datajson['data'] = $arr;
         }else{
             $datajson['code'] = -104;
