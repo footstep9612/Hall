@@ -79,7 +79,7 @@ class InquiryModel extends PublicModel {
         $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            $count = $this->getCount($where);
+            $count = $this->getCount($condition);
             $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
             if($list){
                 $results['code'] = '1';

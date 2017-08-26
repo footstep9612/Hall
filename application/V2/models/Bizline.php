@@ -55,7 +55,7 @@ class BizlineModel extends PublicModel {
         $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            $count = $this->getcount($where);
+            $count = $this->getcount($condition);
             $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
