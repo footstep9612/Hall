@@ -30,6 +30,10 @@ class QuotebizlineController extends PublicController {
         $this->_requestParams = json_decode(file_get_contents("php://input"), true);
     }
 
+    public function testAction(){
+        p($this->user);
+    }
+
     /**
      * 验证指定参数是否存在
      * @param string $params 初始的请求字段
@@ -42,17 +46,12 @@ class QuotebizlineController extends PublicController {
 
         //判断筛选字段为空的情况
         if ($params){
-
             $params = explode(',',$params);
-
             foreach ($params as $param){
                 if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
             }
-
         }
-
         return $request;
-
     }
 
     /**
@@ -70,10 +69,9 @@ class QuotebizlineController extends PublicController {
             $condition['agent_id'] = $agent['id'];
         }
 
-        if (!empty($condition['pm_name'])) {
-            $pm = $user->where(['name' => $condition['pm_name']])->find();
-            $condition['pm_id'] = $pm['id'];
-        }
+
+        //项目经理 列表
+        $condition['pm_id'] = $this->user['id'];
 
         $quoteBizlineList = QuoteHelper::getPmQuoteBizlineList($condition);
         //$quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
