@@ -674,6 +674,7 @@ class QuotebizlineController extends PublicController {
     public function bizlineManagerRejectQuoteAction() {
 
         $request = $this->validateRequests('inquiry_id,quote_id,op_note');
+        $request['user_id'] = $this->user['id'];
 
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->bizlineManagerRejectQuote($request);
