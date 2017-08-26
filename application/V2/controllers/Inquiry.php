@@ -12,6 +12,46 @@ class InquiryController extends PublicController {
         parent::init();
     }
 
+    /**
+     * 验证用户权限
+     * Author:张玉良
+     * @return string
+     */
+    public function checkAuthAction(){
+        $groupid = $this->user['group_id'];
+        if(isset($groupid)){
+            $maketareateam = new MarketAreaTeamModel();
+            $users[] = $this->user['id'];
+
+            $team = [];
+            //查询方案中心下面有多少市场部门
+            foreach($groupid as $val){
+                $grs = $maketareateam->field('market_org_id')->where('biz_tech_org_id='.$val)->select();
+                $team = array_merge($team,$grs);
+            }
+
+            //如果有市场部门就查询市场部门下面的所有人员ID
+            if(isset($team)){
+                $model = new Model();
+                //查找每个市场部门下面有多少人员
+                foreach($team as $org){
+                    $ors = $model->table('erui2_sys.org_member')->field('employee_id')->where('org_id='.$org)->select();
+                    $users = array_merge($users,$ors);
+                }
+                array_unique($users);
+            }
+
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            $results['data'] = $users;
+        }else{
+            $results['code'] = '-101';
+            $results['message'] = '用户没有权限此操作！';
+        }
+
+        return $results;
+    }
+
     /*
      * 返回询价单流程编码
      * Author:张玉良
