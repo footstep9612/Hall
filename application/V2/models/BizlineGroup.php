@@ -206,6 +206,12 @@ class BizlineGroupModel extends PublicModel {
             $results['code'] = '-103';
             $results['message'] = '缺少产品线id!';
         }
+        if(!empty($condition['group_role'])){
+            $where['group_role'] = $condition['group_role'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线组角色!';
+        }
 
         try {
             $id = $this->where($where)->delete();
