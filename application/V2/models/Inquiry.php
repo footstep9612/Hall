@@ -149,20 +149,6 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有流程编码!';
             return $results;
         }
-        if(!empty($condition['buyer_id'])){
-            $data['buyer_id'] = $condition['buyer_id'];
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有客户ID!';
-            return $results;
-        }
-        if(!empty($condition['country_bn'])){
-            $data['country_bn'] = $condition['country_bn'];
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有国家简称!';
-            return $results;
-        }
         $data['status'] = 'DRAFT';
         $data['created_at'] = $this->getTime();
 
