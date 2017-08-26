@@ -36,7 +36,7 @@ class InquiryModel extends PublicModel {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
         if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = $condition['agent_id'];//市场经办人
+            $where['agent_id'] = array('in',$condition['agent_id']);//市场经办人
         }
         if (!empty($condition['pm_id'])) {
             $where['pm_id'] = $condition['pm_id'];  //项目经理

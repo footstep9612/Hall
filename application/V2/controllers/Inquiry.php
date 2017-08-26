@@ -101,16 +101,31 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function getListAction(){
+        $auth = $this->checkAuthAction();
+        //判断是否有权限访问
+        if($auth['code'] == '-101'){
+            $this->jsonReturn($auth);
+        }
+
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
         $country = new CountryModel();
-
         $where = $this->put_data;
+
+        $where['agent_id'][] = $this->user['id'];   //经办人为自己
+        //如果有方案中心权限
+        if($auth['code'] == 1){
+            foreach($auth['data'] as $epl){
+                $where['agent_id'][] = $epl['employee_id'];
+             }
+        }
+
         //如果搜索条件有经办人，转换成id
         if(!empty($where['agent_name'])){
             $agent = $employee->field('id')->where('name="'.$where['agent_name'].'"')->find();
-            if($agent){
-                $where['agent_id']=$agent['id'];
+            if(in_array($agent['id'],$where['agent_id'])){
+                $where['agent_id'] = [];
+                $where['agent_id'][] = $agent['id'];
             }
         }
         //如果搜索条件有项目经理，转换成id
