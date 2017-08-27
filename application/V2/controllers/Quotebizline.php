@@ -30,10 +30,6 @@ class QuotebizlineController extends PublicController {
         $this->_requestParams = json_decode(file_get_contents("php://input"), true);
     }
 
-    public function testAction(){
-        p($this->user);
-    }
-
     /**
      * 验证指定参数是否存在
      * @param string $params 初始的请求字段
@@ -52,6 +48,30 @@ class QuotebizlineController extends PublicController {
             }
         }
         return $request;
+    }
+
+    /**
+     * 权限
+     * @return array
+     */
+    public function validateAuth(){
+        //p($this->user);
+        if (!isset($this->user['group_id']) && empty($this->user['group_id'])){
+            return ['code'=>'-104','message'=>'没有权限'];
+        }
+
+//        $userGroupIds= $this->user['group_id'];
+//        $bizlineGroupModel = new BizlineGroupModel();
+//        $users = [];
+//        foreach($userGroupIds as $item){
+//            $users[] = $bizlineGroupModel->alias('bg')
+//                ->join('erui2_sys.org_member om on om.org_id = bg.group_id')
+//                ->where(['bg.group_id'=>$item])
+//                ->group('bg.group_id')
+//                ->select();
+//        }
+//        p($users);
+
     }
 
     /**
