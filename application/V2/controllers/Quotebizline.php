@@ -819,7 +819,7 @@ class QuotebizlineController extends PublicController {
         //获取询单本身信息
         $inquiryModel = new InquiryModel();
         $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field([
-            'id','serial_no','goods_quote_status','pm_id','agent_id'
+            'id','serial_no','status','pm_id','agent_id'
         ])->find();
 
         if (!$inquiryInfo){
