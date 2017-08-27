@@ -340,6 +340,8 @@ class QuotebizlineController extends PublicController {
             foreach ($skuList as $key=>$bizlineQuoteSku) {
                 $skuList[$key]['supplier_name'] = $supplier->where(['id'=>$bizlineQuoteSku['supplier_id']])->getField('name');
                 $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['created_by']])->getField('name');
+                // TODO 对应原型上的已报价供应商数量字段
+                $skuList[$key]['supplier_count'] = 0;
             }
 
             $this->jsonReturn([
