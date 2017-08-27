@@ -680,10 +680,36 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 选择报价(产品线负责人)
+     * 选择报价(产品线负责人)
      */
     public function selectQuoteAction(){
-        echo 12345678;
+
+        $request = $this->validateRequests('quote_item_id');
+
+        $quoteBizline = new QuoteBizLineModel();
+        $response = $quoteBizline->selectQuote($request);
+        if (!$response){
+            $this->jsonReturn(['code'=>'-104','message'=>'暂没有数据!']);
+        }
+
+        $user = new EmployeeModel();
+        $supplier = new SupplierModel();
+        foreach ($response as $key=>$value){
+            if (!empty($value['created_by'])){
+                $response[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
+                $response[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
+                //是否被指派
+                $response[$key]['is_assign'] = 'Y';
+            }
+            $response[$key]['is_assign'] = 'N';
+            $response[$key]['is_selected'] = 'N';
+        }
+
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '成功!',
+            'data' => $response
+        ]);
     }
 
     /**

@@ -568,4 +568,20 @@ class QuoteBizLineModel extends PublicModel{
         return $count > 0 ? $count : 0;
     }
 
+
+    /**
+     * 选择报价(产品线负责人)
+     * @param $request
+     *
+     * @return \Model
+     */
+    public function selectQuote($request){
+
+        $quoteItemForm = new QuoteItemFormModel();
+        return $quoteItemForm->where([
+            'quote_item_id' => $request['quote_item_id'],
+        ])
+        ->field('id,created_by,status,supplier_id,contact_first_name,contact_last_name,contact_phone,purchase_unit_price,period_of_validity')
+        ->select();
+    }
 }
