@@ -58,6 +58,12 @@ class QuoteItemFormModel extends PublicModel{
         return $data;
     }
 
+    /**
+     * 统计sku总数
+     * @param array $condition
+     *
+     * @return int
+     */
     public function getSkuListCount(array $condition){
 
         $where = ['a.quote_item_id' => $condition['quote_item_id'] ];
