@@ -44,7 +44,7 @@ class QuoteItemFormModel extends PublicModel{
      */
     public function getSkuList(array $condition){
 
-        $where = ['a.quote_item_id' => $condition['quote_item_id'] ];
+        $where = ['a.quote_id' => $condition['quote_item_id'] ];
         $field = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,c.bizline_id';
 
         $data = $this->alias('a')
@@ -66,7 +66,7 @@ class QuoteItemFormModel extends PublicModel{
      */
     public function getSkuListCount(array $condition){
 
-        $where = ['a.quote_item_id' => $condition['quote_item_id'] ];
+        $where = ['a.quote_id' => $condition['quote_item_id'] ];
         $field = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by';
 
         $count = $this->alias('a')
