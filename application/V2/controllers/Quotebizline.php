@@ -380,6 +380,35 @@ class QuotebizlineController extends PublicController {
 
     }
 
+    public function bizlineQuoterSkuListAction(){
+
+        $request = $this->validateRequests('quote_item_id');
+
+        $quoteItemForm = new QuoteItemFormModel();
+
+        $quoterSkuList = $quoteItemForm->getSkuList($request);
+
+        if (!$quoterSkuList){
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+
+        $user = new EmployeeModel();
+        $supplier = new SupplierModel();
+
+        foreach ($quoterSkuList as $key=>$value){
+            $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
+            $quoterSkuList[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
+        }
+        //p($quoterSkuList);
+
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '成功!',
+            'count' => $quoteItemForm->getSkuListCount($request),
+            'data' => $quoterSkuList
+        ]);
+    }
+
     /**
      * @desc 上传附件(项目经理)
      * @author 买买提
