@@ -380,6 +380,9 @@ class QuotebizlineController extends PublicController {
 
     }
 
+    /**
+     * 报价人sku列表
+     */
     public function bizlineQuoterSkuListAction(){
 
         $request = $this->validateRequests('quote_item_id');
@@ -763,12 +766,13 @@ class QuotebizlineController extends PublicController {
         foreach ($response as $key=>$value){
             if (!empty($value['created_by'])){
                 $response[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
-                $response[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
                 //是否被指派
                 $response[$key]['is_assign'] = 'Y';
             }else{
                 $response[$key]['is_assign'] = 'N';
             }
+
+            $response[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
 
             $response[$key]['is_selected'] = $supplier_id==$value['supplier_id'] ? 'Y' : 'N';
 
@@ -943,12 +947,14 @@ class QuotebizlineController extends PublicController {
      */
     public function pmStorageQuoteAction(){
 
-        $request = $this->validateRequests();
+        $where = $this->validateRequests();
+        $request = $where['data'];
+
 
         $quoteItem = new QuoteItemModel();
 
         try{
-            $result = $quoteItem->where(['id'=>$request['quote_item_id']])->save($quoteItem->create([
+            $result = $quoteItem->where(['id'=>$request['id']])->save($quoteItem->create([
                 'supplier_id' => $request['supplier_id'],
                 'brand' => $request['brand'],
                 'purchase_unit_price' => $request['purchase_unit_price'],
@@ -965,6 +971,7 @@ class QuotebizlineController extends PublicController {
             if ($result){
                 $this->jsonReturn(['code'=>'1','messsage'=>'成功!']);
             }else{
+                //p($quoteItem->getLastSql());
                 $this->jsonReturn(['code'=>'-104','messsage'=>'失败!']);
             }
         }catch(Exception $exception){
