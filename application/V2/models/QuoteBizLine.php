@@ -263,7 +263,10 @@ class QuoteBizLineModel extends PublicModel{
         try{
             $quoteItemFormModel = new QuoteItemFormModel();
             foreach ($data as $k=>$v){
-                $quoteItemFormModel->save($quoteItemFormModel->create($v));
+                $result = $quoteItemFormModel->save($quoteItemFormModel->create($v));
+                if (!$result){
+                    return ['code' => '1','message' => '暂存失败!'];
+                }
             }
 
             return ['code' => '1','message' => '成功!'];

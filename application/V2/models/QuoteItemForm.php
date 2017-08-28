@@ -49,7 +49,7 @@ class QuoteItemFormModel extends PublicModel{
 
         $data = $this->alias('a')
                     ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-                    ->join('erui2_rfq.quote_bizline c ON a.quote_bizline_id = c.id')
+                    ->join('erui2_rfq.quote_bizline c ON a.quote_id = c.quote_id')
                     ->field($field)
                     ->where($where)
                     ->order('a.id DESC')
