@@ -76,7 +76,7 @@ class EmployeeModel extends PublicModel {
             $users = $this->where($where)->field('id')->select();
             $userids = [];
             foreach ($users as $user) {
-                $userids = $user['id'];
+                $userids[] = $user['id'];
             }
             return $userids;
         } catch (Exception $ex) {

@@ -233,6 +233,7 @@ class EsProductModel extends Model {
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+            var_dump($userids);
             foreach ($userids as $created_by) {
                 $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
             }
