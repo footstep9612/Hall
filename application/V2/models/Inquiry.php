@@ -251,7 +251,9 @@ class InquiryModel extends PublicModel {
         if(!empty($condition['id'])){
             $where['id'] = array('in',explode(',',$condition['id']));
         }else{
-
+            $results['code'] = '-103';
+            $results['message'] = '没有ID!';
+            return $results;
         }
 
         try {
