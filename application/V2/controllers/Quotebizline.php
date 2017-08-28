@@ -910,6 +910,44 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * 暂存(产品线负责人)
+     */
+    public function pmStorageQuoteAction(){
+
+        $request = $this->validateRequests();
+
+        $quoteItem = new QuoteItemModel();
+
+        try{
+            $result = $quoteItem->where(['id'=>$request['quote_item_id']])->save($quoteItem->create([
+                'supplier_id' => $request['supplier_id'],
+                'brand' => $request['brand'],
+                'purchase_unit_price' => $request['purchase_unit_price'],
+                'goods_desc' => $request['goods_desc'],
+                'net_weight_kg' => $request['net_weight_kg'],
+                'gross_weight_kg' => $request['gross_weight_kg'],
+                'package_size' => $request['package_size'],
+                'package_mode' => $request['package_mode'],
+                'goods_source' => $request['goods_source'],
+                'stock_loc' => $request['stock_loc'],
+                'delivery_days' => $request['delivery_days'],
+                'period_of_validity' => $request['period_of_validity']
+            ]));
+            if ($result){
+                $this->jsonReturn(['code'=>'1','messsage'=>'成功!']);
+            }else{
+                $this->jsonReturn(['code'=>'-104','messsage'=>'失败!']);
+            }
+        }catch(Exception $exception){
+            $this->jsonReturn([
+                'code' =>$exception->getCode(),
+                'message' => $exception->getMessage()
+            ]);
+        }
+
+    }
+
+    /**
      * @desc 暂存(产品线负责人)
      */
     public function managerStoreQuoteAction(){
