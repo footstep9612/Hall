@@ -57,20 +57,36 @@ class QuotebizlineController extends PublicController {
     public function validateAuth(){
         //p($this->user);
         if (!isset($this->user['group_id']) && empty($this->user['group_id'])){
-            return ['code'=>'-104','message'=>'没有权限'];
+            $this->jsonReturn(['code'=>'-104','message'=>'没有权限']);
         }
 
-//        $userGroupIds= $this->user['group_id'];
-//        $bizlineGroupModel = new BizlineGroupModel();
-//        $users = [];
-//        foreach($userGroupIds as $item){
-//            $users[] = $bizlineGroupModel->alias('bg')
-//                ->join('erui2_sys.org_member om on om.org_id = bg.group_id')
-//                ->where(['bg.group_id'=>$item])
-//                ->group('bg.group_id')
-//                ->select();
-//        }
-//        p($users);
+        $groupid = $this->user['group_id'];
+        $bizlinegroup = new BizlineGroupModel();
+
+        $data = $bizlinegroup->where('group_id IN('.implode(",",$groupid).')')->select();
+        if (!$data){
+            $this->jsonReturn(['code'=>'-104','message'=>'没有权限']);
+        }
+        //p($data);
+
+        $bizlineids = [];
+        $grouprole = [];
+        foreach ($data as $key=>$val){
+            $bizlineids[] = $val['bizline_id'];
+            if($val['group_role']=='SKU_QUOTE'){
+                $grouprole[] = $val['group_role'];
+            }else{
+                $grouprole[] = $val['group_role'];
+            }
+        }
+        array_unique($bizlineids);
+
+        $results['bizlineid'] = $bizlineids;
+        $results['grouprole'] = $grouprole;
+
+        //p($results);
+
+        return $results;
 
     }
 
@@ -290,6 +306,13 @@ class QuotebizlineController extends PublicController {
     {
         $condition = $this->validateRequests();
 
+        $auth = $this->validateAuth();
+
+        foreach ($auth['bizlineid'] as $val){
+            $condition['bizline_id'][] = $val;
+        }
+
+
         $user = new EmployeeModel();
 
         if (!empty($condition['agent_name'])) {
@@ -315,6 +338,7 @@ class QuotebizlineController extends PublicController {
                 'code' => '1',
                 'message' => '成功!',
                 'count' => QuoteHelper::bizlineManagerQuoteListCount($condition),
+                'role' => implode(',',$auth['grouprole']),
                 'data' => $quoteBizlineList
             ]);
         } else {

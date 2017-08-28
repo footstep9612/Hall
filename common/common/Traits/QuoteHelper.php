@@ -119,12 +119,13 @@ trait QuoteHelper{
     public static function bizlineManagerQuoteList($condition){
 
         $where = self::bizlineManagerQuoteListCondition($condition);
+        //p($where);
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $quoteBizlineModel = new QuoteBizLineModel();
-        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
+        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id';
         return  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -132,13 +133,18 @@ trait QuoteHelper{
             ->page($currentPage, $pageSize)
             ->order('id DESC')
             ->select();
-        //p($data);
         //p($quoteBizlineModel->getLastSql());
+        //p($data);
     }
 
     public static function bizlineManagerQuoteListCondition(array $condition){
 
         $where = [];
+
+        if(!empty($condition['bizline_id'])) {
+            $where['qb.bizline_id'] = array('in',implode(",",$condition['bizline_id']));
+        }
+        //p($where);
         //项目状态
         if(!empty($condition['status'])) {
             $where['inq.status'] = $condition['status'];
