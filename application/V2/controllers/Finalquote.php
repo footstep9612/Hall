@@ -200,17 +200,17 @@ class FinalquoteController extends PublicController {
                 }else{
                     $finalquote->rollback();
                     $results['code'] = '-101';
-                    $results['message'] = '修改失败!';
+                    $results['message'] = '修改失败1!';
                 }
             }else{
                 $finalquote->rollback();
                 $results['code'] = '-101';
-                $results['message'] = '修改失败!';
+                $results['message'] = '修改失败2!';
             }
         }else{
             $finalquote->rollback();
             $results['code'] = '-101';
-            $results['message'] = '修改失败!';
+            $results['message'] = '修改失败3!';
         }
         $this->jsonReturn($results);
     }
