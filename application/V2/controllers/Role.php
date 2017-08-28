@@ -160,7 +160,7 @@ class RoleController extends PublicController {
                 $model_role_user = new RoleUserModel();
                 $role_user_arr['role_user_ids'] = $data['role_user_ids'];
                 $role_user_arr['role_id'] = $id;
-                $model_role_user->update_datas($role_arr);
+                $model_role_user->update_datas($role_user_arr);
             }
             $datajson['code'] = 1;
             $datajson['data']['id'] = $id;
