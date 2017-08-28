@@ -88,9 +88,9 @@ class EsproductController extends PublicController {
             $list[$key] = $item["_source"];
 
             if (isset($item['highlight']['show_name.ik'][0])) {
-                $list[$key]['show_name'] = $item['highlight']['show_name.ik'][0];
+                $list[$key]['highlight_show_name'] = $item['highlight']['show_name.ik'][0];
             } else {
-                $list[$key]['show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
+                $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
             }
 
             $attachs = json_decode($item["_source"]['attachs'], true);

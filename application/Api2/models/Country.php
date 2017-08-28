@@ -111,7 +111,8 @@ class CountryModel extends PublicModel {
      */
     public function getMarketArea($country, $lang) {
         $where = array(
-            'name' => $country
+            'name' => $country,
+            'lang' => $lang
         );
         $country_bn = $this->field('bn')->where($where)->find();
 

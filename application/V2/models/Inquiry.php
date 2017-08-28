@@ -36,7 +36,7 @@ class InquiryModel extends PublicModel {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
         if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = $condition['agent_id'];//市场经办人
+            $where['agent_id'] = array('in',$condition['agent_id']);//市场经办人
         }
         if (!empty($condition['pm_id'])) {
             $where['pm_id'] = $condition['pm_id'];  //项目经理
@@ -79,7 +79,7 @@ class InquiryModel extends PublicModel {
         $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            $count = $this->getCount($where);
+            $count = $this->getCount($condition);
             $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
             if($list){
                 $results['code'] = '1';
@@ -147,20 +147,6 @@ class InquiryModel extends PublicModel {
         }else{
             $results['code'] = '-103';
             $results['message'] = '没有流程编码!';
-            return $results;
-        }
-        if(!empty($condition['buyer_id'])){
-            $data['buyer_id'] = $condition['buyer_id'];
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有客户ID!';
-            return $results;
-        }
-        if(!empty($condition['country_bn'])){
-            $data['country_bn'] = $condition['country_bn'];
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有国家简称!';
             return $results;
         }
         $data['status'] = 'DRAFT';

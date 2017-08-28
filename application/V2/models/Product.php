@@ -396,7 +396,7 @@ class ProductModel extends PublicModel {
                              */
                             $res = $goodsModel->field('spu')->where($where)->select();
 
-                            if($res){
+                            if ($res) {
                                 $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                             }
                         } else {
@@ -420,7 +420,7 @@ class ProductModel extends PublicModel {
                          */
                         $res = $goodsModel->field('spu')->where($where)->select();
 
-                        if($res){
+                        if ($res) {
                             $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                         }
                     } else {
@@ -444,10 +444,10 @@ class ProductModel extends PublicModel {
      */
     public function getList($condition = [], $field = '', $offset = 0, $length = 20) {
         $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty' : $field;
-        try{
-            $result = $this->field($field)->where($condition)->limit($offset,$length)->select();
+        try {
+            $result = $this->field($field)->where($condition)->limit($offset, $length)->select();
             return $result ? $result : array();
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return array();
         }
     }
@@ -492,17 +492,17 @@ class ProductModel extends PublicModel {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                     $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
                     if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0];
+                        $item['created_by'] = $createder[0]['name'];
                     }
 
                     $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
                     if ($updateder && isset($updateder[0])) {
-                        $item['updated_by'] = $updateder[0];
+                        $item['updated_by'] = $updateder[0]['name'];
                     }
 
                     $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
                     if ($checkeder && isset($checkeder[0])) {
-                        $item['checked_by'] = $checkeder[0];
+                        $item['checked_by'] = $checkeder[0]['name'];
                     }
                     if (!is_null(json_decode($item['brand'], true))) {
                         $brand = json_decode($item['brand'], true);

@@ -9,7 +9,6 @@
 class InquiryController extends PublicController {
 
     public function init() {
-        $this->token = false;
         parent::init();
     }
 
@@ -50,13 +49,12 @@ class InquiryController extends PublicController {
         $data = $this->getPut();
 
         $inquiryNo = $inquiry->checkInquiryNo($data['inquiry_no']);
-
         if ($inquiryNo['code'] == 1) {
-            $data['customer_id'] = $this->user['customer_id'];
+            $data['buyer_id'] = $this->user['buyer_id'];
             $data['inquirer'] = $this->user['user_name'];
             $data['inquirer_email'] = $this->user['email'];
 
-            $results = $inquiry->addData($data);
+            $results = $inquiry->addInquiry($data);
         } else {
             $results = $inquiryNo;
         }
@@ -122,7 +120,7 @@ class InquiryController extends PublicController {
         $attach = new InquiryAttachModel();
         $data = $this->getPut();
 
-        $results = $attach->add_data($data);
+        $results = $attach->addData($data);
 
         $this->jsonReturn($results);
     }

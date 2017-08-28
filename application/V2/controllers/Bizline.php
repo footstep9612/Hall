@@ -165,17 +165,23 @@ class BizlineController extends PublicController {
         $createcondition['group_role'] = 'BIZLINE_MANAGER';
         $createcondition['userid'] = $this->user['id'];
 
-        $results = $bizlinegroup->addData($createcondition);
+        $bizlinegroup->startTrans();
+        $results = $bizlinegroup->deleteBizlineGroup($createcondition);
 
-        $this->jsonReturn($results);
-    }
-
-    //修改产品线负责人
-    public function updateManagerAction() {
-        $bizlinegroup = new BizlineGroupModel();
-        $createcondition =  $this->put_data;
-
-        $results = $bizlinegroup->updateData($createcondition);
+        if($results['code'] == 1){
+            $resdata = $bizlinegroup->addData($createcondition);
+            if($resdata['code'] == 1){
+                $bizlinegroup->commit();
+            }else{
+                $bizlinegroup->rollback();
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
+            }
+        }else{
+            $bizlinegroup->rollback();
+            $results['code'] = '-101';
+            $results['message'] = '添加失败!';
+        }
 
         $this->jsonReturn($results);
     }
@@ -198,18 +204,6 @@ class BizlineController extends PublicController {
         $createcondition['group_role'] = 'SKU_QUOTER';
         $createcondition['userid'] = $this->user['id'];
 
-        $results = $bizlinegroup->addData($createcondition);
-
-        $this->jsonReturn($results);
-    }
-
-    //修改产品线报价人
-    public function updateQuoterAction() {
-        $bizlinegroup = new BizlineGroupModel();
-        $createcondition =  $this->put_data;
-        $createcondition['group_role'] = 'SKU_QUOTER';
-        $createcondition['userid'] = $this->user['id'];
-
         $bizlinegroup->startTrans();
         $results = $bizlinegroup->deleteBizlineGroup($createcondition);
 
@@ -227,17 +221,6 @@ class BizlineController extends PublicController {
             $results['code'] = '-101';
             $results['message'] = '添加失败!';
         }
-
-
-        $this->jsonReturn($results);
-    }
-
-    //删除产品线报价人
-    public function deleteQuoterAction() {
-        $bizlinegroup = new BizlineGroupModel();
-        $createcondition =  $this->put_data;
-
-        $results = $bizlinegroup->deleteBizlineGroup($createcondition);
 
         $this->jsonReturn($results);
     }

@@ -402,8 +402,7 @@ trait QuoteHelper{
         $where = self::getPmQuoteBizlineListCondition($condition);
 
         $inquiry = new InquiryModel();
-
-        $count = $inquiry->field('id, serial_no, country_bn, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
+        $count = $inquiry->field('id, serial_no, country_bn, buyer_id, buyer_name, agent_id, pm_id, inquiry_time, status, quote_deadline')
             ->where($where)
             ->count('id');
 

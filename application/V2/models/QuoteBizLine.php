@@ -280,25 +280,42 @@ class QuoteBizLineModel extends PublicModel{
      * 产品线负责人退回产品线报价人重新报价
      */
     public function bizlineManagerRejectQuote($request){
-        //($request);
+
         //1.更改当前的报价状态为被退回
         $this->startTrans();
-        $quoteBizline = $this->where(['quote_id'=>$request['quote_id']])->save(['status'=>'WITHDREW']);
+        $quoteBizline = $this->where(['quote_id'=>$request['quote_id']])->save(['status'=>'REJECTED']);
 
         //2.更改该报价所属的sku状态为被驳回状态
         $quoteItemFormModel = new QuoteItemFormModel();
-
+        $quoteItemFormModel->startTrans();
         $quoteItemFormResult = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->save([
-            'status' => 'WITHDREW'
+            'status' => 'REJECTED'
         ]);
 
-        if ($quoteBizline && $quoteItemFormResult){
+        //记录审核日志
+        $inquiryCheckLog = new InquiryCheckLogModel();
+        $inquiryCheckLog->startTrans();
+        $inquiryCheckLogResult = $inquiryCheckLog->add($inquiryCheckLog->create([
+            'op_id' => $request['user_id'],
+            'inquiry_id' => $request['inquiry_id'],
+            'quote_id' => $request['quote_id'],
+            'category' => 'BIZLINE',
+            'action' => 'APPROVING',
+            'op_note' => $request['op_note'],
+            'op_result' => 'REJECTED',
+            'created_by' => $request['user_id'],
+            'created_at' => date('Y-m-d H:i:s')
+        ]));
+
+        if ($quoteBizline && $quoteItemFormResult && $inquiryCheckLogResult){
             $this->commit();
             $quoteItemFormModel->commit();
+            $inquiryCheckLog->commit();
             return ['code'=>'1','message'=>'成功!'];
         }else{
             $this->rollback();
             $quoteItemFormModel->rollback();
+            $inquiryCheckLog->rollback();
             return ['code'=>'-104','message'=>'失败!'];
         }
 
@@ -402,6 +419,9 @@ class QuoteBizLineModel extends PublicModel{
      * @return array 返回结果
      */
     public function assignQuoter($request){
+        $this->select();
+        p($this->getLastSql());
+        p($request);
         try{
             if ($this->where(['quote_id'=>$request['quote_id']])->save(['biz_agent_id'=>$request['biz_agent_id']])){
                 return ['code'=>'1','message'=>'指派成功!'];
@@ -548,4 +568,20 @@ class QuoteBizLineModel extends PublicModel{
         return $count > 0 ? $count : 0;
     }
 
+
+    /**
+     * 选择报价(产品线负责人)
+     * @param $request
+     *
+     * @return \Model
+     */
+    public function selectQuote($request){
+
+        $quoteItemForm = new QuoteItemFormModel();
+        return $quoteItemForm->where([
+            'quote_item_id' => $request['quote_item_id'],
+        ])
+        ->field('id,created_by,status,supplier_id,contact_first_name,contact_last_name,contact_phone,purchase_unit_price,period_of_validity')
+        ->select();
+    }
 }

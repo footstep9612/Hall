@@ -128,6 +128,8 @@ class LogisticsController extends PublicController {
 	        $pm = $this->userModel->where(['name' => $condition['pm_name']])->find();
 	        $condition['pm_id'] = $pm['id'];
 	    }
+	    
+	    $condition['logi_agent_id'] = $this->user['id'];
 	
 	    $quoteLogiFeeList= $this->quoteLogiFeeModel->getJoinList($condition);
 	    

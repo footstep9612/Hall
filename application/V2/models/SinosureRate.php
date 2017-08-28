@@ -92,6 +92,11 @@ class SinosurerateModel extends PublicModel {
         }
     }
 
+    public function Exits($where) {
+
+        return $this->where($where)->find();
+    }
+
     /**
      * @desc 获取关联列表
      *

@@ -85,7 +85,7 @@ class UserController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $role_user_modle =new RoleUserModel();
-        $data =$role_user_modle->userRoleList($data['user_id']);
+        $data =$role_user_modle->userRoleList($this->user['id']);
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -296,6 +296,7 @@ class UserController extends PublicController {
                 $this->jsonReturn(array("code" => "-101", "message" => "手机格式不正确"));
             }
         }
+
         if(!empty($data['name'])) {
             $arr['name'] = $data['name'];
         }

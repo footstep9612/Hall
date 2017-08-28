@@ -112,6 +112,9 @@ class GroupModel extends PublicModel {
         if(isset($create['sort'])){
             $arr['sort'] = $create['sort'];
         }
+        if(isset($create['org'])){
+            $arr['org'] = $create['org'];
+        }
         if(!empty($where)){
             return $this->where($where)->save($arr);
         }else{

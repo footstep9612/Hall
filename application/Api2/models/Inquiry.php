@@ -16,6 +16,68 @@ class InquiryModel extends PublicModel {
     }
 
     /**
+     * @param  int $inquiry_no 询单号
+     * 验证询单号是否存在
+     * @author zhangyuliang
+     */
+    public function checkInquiryNo($inquiryNo) {
+        if(!empty($inquiryNo)){
+            $where['inquiry_no'] = $inquiryNo;
+        }else{
+            return false;
+        }
+
+        try {
+            $info = $this->field('id')->where($where)->find();
+            if(!empty($info)){
+                $results['code'] = '-101';
+                $results['message'] = '询单号已经存在！';
+            }else{
+                $results['code'] = '1';
+                $results['message'] = '没有找到询单号!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
+     * @param  添加询单/添加sku询单项明细
+     * 验证询单号是否存在
+     * @author zhangyuliang
+     */
+    public function addInquiry($data) {
+
+        $this->startTrans();
+        try {
+            $res = $this->addData($data);
+            if(!$res || $res['code'] != 1){
+                $this->rollback();
+                return false;
+            }
+            $InquiryItemModel = new InquiryItemModel();
+            if($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])){
+                foreach($data['arr_sku'] as $item){
+                    $item['inquiry_id'] = $res['data']['id'];
+                    $result = $InquiryItemModel->addData($item);
+                    if(!$result || $result['code'] != 1){
+                        $InquiryItemModel->rollback();
+                        return false;
+                    }
+                }
+            }
+            $this->commit();
+            return $res['data']['id'];
+        } catch (Exception $e) {
+            $this->rollback();
+            return false;
+        }
+    }
+
+    /**
      * 根据条件获取查询条件
      * @param Array $condition
      * @return Array

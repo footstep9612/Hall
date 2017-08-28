@@ -37,7 +37,7 @@ class BuyerModel extends PublicModel {
      */
 
     public function getlist($condition = [], $order = " id desc") {
-        $sql = 'SELECT `erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
+        $sql = 'SELECT `erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`erui2_buyer`.`buyer`.`area_bn`,`province`,`city`,`official_email`,';
         $sql .= '`official_email`,`official_phone`,`official_fax`,`erui2_buyer`.`buyer`.`first_name`,`erui2_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`buyer_level`,`credit_level`,';
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
         $sql_count = 'SELECT count(`erui2_buyer`.`buyer`.`id`) as num ';
@@ -176,6 +176,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['country_bn'])) {
             $data['country_bn'] = $create['country_bn'];
         }
+        if (isset($create['area_bn'])) {
+            $data['area_bn'] = $create['area_bn'];
+        }
         if (isset($create['official_email'])) {
             $data['official_email'] = $create['official_email'];
         }
@@ -305,6 +308,9 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['province'])) {
             $data['province'] = $create['province'];
+        }
+        if (isset($create['area_bn'])) {
+            $data['area_bn'] = $create['area_bn'];
         }
         if (isset($create['logo'])) {
             $data['logo'] = $create['logo'];

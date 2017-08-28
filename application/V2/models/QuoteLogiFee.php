@@ -93,6 +93,10 @@ class QuoteLogiFeeModel extends PublicModel {
             ];
         }
         
+        if (!empty($condition['logi_agent_id'])) {
+            $where['a.logi_agent_id'] = [['eq', $condition['logi_agent_id']], ['exp', 'is null'], 'or'];
+        }
+        
         $where['a.deleted_flag'] = 'N';
          
         return $where;
