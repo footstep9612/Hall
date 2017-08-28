@@ -125,7 +125,7 @@ trait QuoteHelper{
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $quoteBizlineModel = new QuoteBizLineModel();
-        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id';
+        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id,qb.status quote_status';
         return  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -194,7 +194,7 @@ trait QuoteHelper{
 
         $where = self::bizlineManagerQuoteListCondition($where);
 
-        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
+        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.status quote_status';
         $count =  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
