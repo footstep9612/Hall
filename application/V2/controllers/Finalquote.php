@@ -199,18 +199,16 @@ class FinalquoteController extends PublicController {
                     $finalquote->commit();
                 }else{
                     $finalquote->rollback();
-                    $results['code'] = '-101';
-                    $results['message'] = '修改失败1!';
+                    $results['code'] = $quotedata['code'];
+                    $results['message'] = $quotedata['message'];
                 }
             }else{
                 $finalquote->rollback();
-                $results['code'] = '-101';
-                $results['message'] = '修改失败2!';
+                $results['code'] = $inquirydata['code'];
+                $results['message'] = $inquirydata['message'];
             }
         }else{
             $finalquote->rollback();
-            $results['code'] = '-101';
-            $results['message'] = '修改失败3!';
         }
         $this->jsonReturn($results);
     }
