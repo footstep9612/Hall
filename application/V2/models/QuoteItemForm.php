@@ -21,4 +21,18 @@ class QuoteItemFormModel extends PublicModel{
     public function __construct(){
         parent::__construct();
     }
+
+    /**
+     * 选择报价
+     * @param $where
+     *
+     * @return mixed
+     */
+    public function getList($where){
+
+        $field = 'id,created_by,status,supplier_id,contact_first_name,contact_last_name,contact_phone,purchase_unit_price,period_of_validity';
+        //按价格由低到高显示
+        return $this->where($where)->field($field)->order('purchase_unit_price ASC')->select();
+    }
+
 }
