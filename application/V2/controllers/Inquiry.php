@@ -21,29 +21,28 @@ class InquiryController extends PublicController {
         $groupid = $this->user['group_id'];
         if(isset($groupid)){
             $maketareateam = new MarketAreaTeamModel();
-            $users[] = $this->user['id'];
+            $users = [];
 
-            $team = [];
             //查询方案中心下面有多少市场部门
             foreach($groupid as $val){
-                $grs = $maketareateam->field('market_org_id')->where('biz_tech_org_id='.$val)->select();
-                $team = array_merge($team,$grs);
-            }
+                $grs = $maketareateam->field('om.employee_id')
+                    ->join('`erui2_sys`.`org_member` om on om.org_id=market_area_team.market_org_id', 'left')
+                    ->where('market_area_team.biz_tech_org_id='.$val)
+                    ->group('om.employee_id')
+                    ->select();
 
-            //如果有市场部门就查询市场部门下面的所有人员ID
-            if(isset($team)){
-                $model = new Model();
-                //查找每个市场部门下面有多少人员
-                foreach($team as $org){
-                    $ors = $model->table('erui2_sys.org_member')->field('employee_id')->where('org_id='.$org)->select();
-                    $users = array_merge($users,$ors);
-                }
-                array_unique($users);
+                $users = array_merge($users,$grs);
             }
+            array_unique($users);
 
-            $results['code'] = '1';
-            $results['message'] = '成功！';
-            $results['data'] = $users;
+            if(isset($users)){
+                $results['code'] = '1';
+                $results['message'] = '方案中心！';
+                $results['data'] = $users;
+            }else{
+                $results['code'] = '2';
+                $results['message'] = '市场人员！';
+            }
         }else{
             $results['code'] = '-101';
             $results['message'] = '用户没有权限此操作！';
@@ -91,6 +90,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data['serial_no'] = $this->getSerialNoAction();
         $data['created_by'] = $this->user['id'];
+        $data['agent_id'] = $this->user['id'];
 
         $results = $inquiry->addData($data);
 
@@ -102,16 +102,31 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function getListAction(){
+        $auth = $this->checkAuthAction();
+        //判断是否有权限访问
+        if($auth['code'] == '-101'){
+            $this->jsonReturn($auth);
+        }
+
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
         $country = new CountryModel();
-
         $where = $this->put_data;
+
+        $where['agent_id'][] = $this->user['id'];   //经办人为自己
+        //如果有方案中心权限
+        if($auth['code'] == 1){
+            foreach($auth['data'] as $epl){
+                $where['agent_id'][] = $epl['employee_id'];
+             }
+        }
+
         //如果搜索条件有经办人，转换成id
         if(!empty($where['agent_name'])){
             $agent = $employee->field('id')->where('name="'.$where['agent_name'].'"')->find();
-            if($agent){
-                $where['agent_id']=$agent['id'];
+            if(in_array($agent['id'],$where['agent_id'])){
+                $where['agent_id'] = [];
+                $where['agent_id'][] = $agent['id'];
             }
         }
         //如果搜索条件有项目经理，转换成id

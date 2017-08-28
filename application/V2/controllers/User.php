@@ -171,6 +171,7 @@ class UserController extends PublicController {
         $model = new UserModel();
         $res = $model->info($data['id']);
         if(!empty($res)){
+            unset($res['password_hash']);
             $datajson['code'] = 1;
             $datajson['data'] = $res;
         }else{

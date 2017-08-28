@@ -64,7 +64,7 @@ class FinalQuoteModel extends PublicModel {
 				$page = !empty($condition['currentPage'])?$condition['currentPage']:1;
 				$pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
-				$count = $this->getCount($where);
+				$count = $this->getCount($condition);
 				$list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
 			}else{
 				$count = 0;

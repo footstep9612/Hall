@@ -72,7 +72,7 @@ class FinalQuoteItemModel extends PublicModel {
     	$where = $this->getWhere($condition);
 
 		try {
-			$count = $this->getCount($where);
+			$count = $this->getCount($condition);
 			$list = $this->alias('a')
 					->join($this->joinTable1, 'LEFT')
 					->join($this->joinTable2, 'LEFT')
