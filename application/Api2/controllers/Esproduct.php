@@ -41,10 +41,12 @@ class EsproductController extends PublicController {
             } else {
                 $send['allcount'] = $send['count'];
             }
-            if (isset($data['sku_count']) && $data['sku_count'] == 'Y') {
-                $es_goods_model = new EsGoodsModel();
-                $send['sku_count'] = $es_goods_model->getgoodscount($condition);
+            if ($this->getPut('sku_count') == 'Y') {
+                if (isset($data['aggregations']['sku_count']['value'])) {
+                    $send['sku_count'] = $data['aggregations']['sku_count']['value'];
+                }
             }
+
             if (!$condition['show_cat_no']) {
                 $material_cat_nos = [];
                 foreach ($data['aggregations']['material_cat_no']['buckets'] as $item) {
@@ -110,9 +112,9 @@ class EsproductController extends PublicController {
             $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
-            $list[$key]['skus'] = json_decode($list[$key]['skus'], true);
-            $list[$key]['sku_num'] = count($list[$key]['skus']);
         }
+
+
         return $list;
     }
 
