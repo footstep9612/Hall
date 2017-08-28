@@ -712,23 +712,37 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('quote_item_id');
 
-        $quoteBizline = new QuoteBizLineModel();
-        $response = $quoteBizline->selectQuote($request);
+        //$quoteBizline = new QuoteBizLineModel();
+        //$response = $quoteBizline->selectQuote($request);
+        $quoteItemForm = new QuoteItemFormModel();
+
+        $response = $quoteItemForm->getList($request);
+
         if (!$response){
             $this->jsonReturn(['code'=>'-104','message'=>'暂没有数据!']);
         }
 
         $user = new EmployeeModel();
         $supplier = new SupplierModel();
+        $quoteItem = new QuoteItemModel();
+
+        //可以选的供应商id
+        $supplier_id = $quoteItem->where(['id'=>$request['quote_item_id']])->getField('supplier_id');
+        $supplier_ids = $quoteItemForm->where($request)->getField('supplier_id',true);
+        //p(implode(',',$supplier_ids));
+
         foreach ($response as $key=>$value){
             if (!empty($value['created_by'])){
                 $response[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
                 $response[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
                 //是否被指派
                 $response[$key]['is_assign'] = 'Y';
+            }else{
+                $response[$key]['is_assign'] = 'N';
             }
-            $response[$key]['is_assign'] = 'N';
-            $response[$key]['is_selected'] = 'N';
+
+            $response[$key]['is_selected'] = $supplier_id==$value['supplier_id'] ? 'Y' : 'N';
+
         }
 
         $this->jsonReturn([
