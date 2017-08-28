@@ -30,8 +30,9 @@ class InquiryController extends PublicController {
                     ->where('market_area_team.biz_tech_org_id='.$val)
                     ->group('om.employee_id')
                     ->select();
-
-                $users = array_merge($users,$grs);
+                if(!empty($grs)){
+                    $users = array_merge($users,$grs);
+                }
             }
             array_unique($users);
 
