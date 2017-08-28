@@ -360,12 +360,12 @@ class QuotebizlineController extends PublicController {
 
             $user = new EmployeeModel();
             $supplier = new SupplierModel();
-
+            $quoteItemForm = new QuoteItemFormModel();
             foreach ($skuList as $key=>$bizlineQuoteSku) {
                 $skuList[$key]['supplier_name'] = $supplier->where(['id'=>$bizlineQuoteSku['supplier_id']])->getField('name');
                 $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['created_by']])->getField('name');
-                // TODO 对应原型上的已报价供应商数量字段
-                $skuList[$key]['supplier_count'] = 0;
+                //已经报价供应商数量(也就是说quote_item_form对应的记录)
+                $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id']])->count('id');
             }
 
             $this->jsonReturn([
@@ -773,7 +773,8 @@ class QuotebizlineController extends PublicController {
         //保存数据及更改状态
         $quoteBizline = new QuoteBizLineModel();
 
-        $this->jsonReturn($quoteBizline->submitToBizlineManager($request));
+        $response = $quoteBizline->submitToBizlineManager($request);
+        $this->jsonReturn($response);
 
     }
 
