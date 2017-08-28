@@ -263,12 +263,15 @@ class ShowcatController extends PublicController {
                     ->where(['show_cat_no' => $data['cat_no']])
                     ->field('material_cat_no')
                     ->select();
+
             $mcashow_material_catnos = [];
             foreach ($show_material_catnos as $mcashow_material_catno) {
-                $mcashow_material_catnos = $mcashow_material_catno['material_cat_no'];
+                $mcashow_material_catnos[] = $mcashow_material_catno['material_cat_no'];
             }
             $material_cat_model = new MaterialCatModel();
+
             $material_cats = $material_cat_model->getmaterial_cats($mcashow_material_catnos, 'zh');
+
             $this->setvalue('count', 0);
             rsort($material_cats);
             $this->setvalue('material_cats', $material_cats);

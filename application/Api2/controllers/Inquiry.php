@@ -55,7 +55,7 @@ class InquiryController extends PublicController {
             $data['inquirer_email'] = $this->user['email'];
             $buyerInfo = $this->user['buyer_id'];
 
-            $results = $inquiry->addInquiry($data,$buyerInfo);
+            $results = $inquiry->addInquiry($data, $buyerInfo);
         } else {
             $results = $inquiryNo;
         }
@@ -67,7 +67,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $item = new InquiryItemModel();
         $where = $this->getPut();
-
+        $where['buyer_id'] = $this->user['buyer_id'];
         $results = $inquiry->getlist($where);
 
         foreach ($results['data'] as $key => $val) {

@@ -30,8 +30,9 @@ class InquiryController extends PublicController {
                     ->where('market_area_team.biz_tech_org_id='.$val)
                     ->group('om.employee_id')
                     ->select();
-
-                $users = array_merge($users,$grs);
+                if(!empty($grs)){
+                    $users = array_merge($users,$grs);
+                }
             }
             array_unique($users);
 
@@ -238,6 +239,19 @@ class InquiryController extends PublicController {
     public function deleteAction() {
         $inquiry = new InquiryModel();
         $where =  $this->put_data;
+
+        //验证删除的数据是否全部是草稿状态
+        if(empty($where['id'])){
+            $results['code'] = '-103';
+            $results['message'] = '没有ID!';
+            $this->jsonReturn($results);
+        }
+        $data = $inquiry->field('id,serial_no,status')->where('status!="DRAFT" and id in('.$where['id'].')')->select();
+        if(count($data)>0){
+            $results['code'] = '-104';
+            $results['message'] = '存在不允许删除的询单!';
+            $this->jsonReturn($results);
+        }
 
         $results = $inquiry->deleteData($where);
         $this->jsonReturn($results);

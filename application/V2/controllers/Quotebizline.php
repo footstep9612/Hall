@@ -381,6 +381,38 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * 报价人sku列表
+     */
+    public function bizlineQuoterSkuListAction(){
+
+        $request = $this->validateRequests('quote_item_id');
+
+        $quoteItemForm = new QuoteItemFormModel();
+
+        $quoterSkuList = $quoteItemForm->getSkuList($request);
+
+        if (!$quoterSkuList){
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+
+        $user = new EmployeeModel();
+        $supplier = new SupplierModel();
+
+        foreach ($quoterSkuList as $key=>$value){
+            $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
+            $quoterSkuList[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
+        }
+        //p($quoterSkuList);
+
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '成功!',
+            'count' => $quoteItemForm->getSkuListCount($request),
+            'data' => $quoterSkuList
+        ]);
+    }
+
+    /**
      * @desc 上传附件(项目经理)
      * @author 买买提
      */
@@ -734,12 +766,13 @@ class QuotebizlineController extends PublicController {
         foreach ($response as $key=>$value){
             if (!empty($value['created_by'])){
                 $response[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
-                $response[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
                 //是否被指派
                 $response[$key]['is_assign'] = 'Y';
             }else{
                 $response[$key]['is_assign'] = 'N';
             }
+
+            $response[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
 
             $response[$key]['is_selected'] = $supplier_id==$value['supplier_id'] ? 'Y' : 'N';
 
@@ -906,6 +939,47 @@ class QuotebizlineController extends PublicController {
         $response = $quoteBizline->storageQuote($request,$this->user['id']);
 
         $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 暂存(产品线负责人)
+     */
+    public function pmStorageQuoteAction(){
+
+        $where = $this->validateRequests();
+        $request = $where['data'];
+
+
+        $quoteItem = new QuoteItemModel();
+
+        try{
+            $result = $quoteItem->where(['id'=>$request['id']])->save($quoteItem->create([
+                'supplier_id' => $request['supplier_id'],
+                'brand' => $request['brand'],
+                'purchase_unit_price' => $request['purchase_unit_price'],
+                'goods_desc' => $request['goods_desc'],
+                'net_weight_kg' => $request['net_weight_kg'],
+                'gross_weight_kg' => $request['gross_weight_kg'],
+                'package_size' => $request['package_size'],
+                'package_mode' => $request['package_mode'],
+                'goods_source' => $request['goods_source'],
+                'stock_loc' => $request['stock_loc'],
+                'delivery_days' => $request['delivery_days'],
+                'period_of_validity' => $request['period_of_validity']
+            ]));
+            if ($result){
+                $this->jsonReturn(['code'=>'1','messsage'=>'成功!']);
+            }else{
+                //p($quoteItem->getLastSql());
+                $this->jsonReturn(['code'=>'-104','messsage'=>'失败!']);
+            }
+        }catch(Exception $exception){
+            $this->jsonReturn([
+                'code' =>$exception->getCode(),
+                'message' => $exception->getMessage()
+            ]);
+        }
 
     }
 
