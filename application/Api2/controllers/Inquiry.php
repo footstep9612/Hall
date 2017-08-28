@@ -53,8 +53,9 @@ class InquiryController extends PublicController {
             $data['buyer_id'] = $this->user['buyer_id'];
             $data['inquirer'] = $this->user['user_name'];
             $data['inquirer_email'] = $this->user['email'];
+            $buyerInfo = $this->user['buyer_id'];
 
-            $results = $inquiry->addInquiry($data);
+            $results = $inquiry->addInquiry($data,$buyerInfo);
         } else {
             $results = $inquiryNo;
         }

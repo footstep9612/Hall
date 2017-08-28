@@ -49,7 +49,7 @@ class InquiryModel extends PublicModel {
      * 验证询单号是否存在
      * @author zhangyuliang
      */
-    public function addInquiry($data) {
+    public function addInquiry($data,$buyerInfo) {
 
         $this->startTrans();
         try {
@@ -75,6 +75,7 @@ class InquiryModel extends PublicModel {
             if($res['code'] == 1 && isset($data['files_attach']) && !empty($data['files_attach'])){
                 foreach($data['files_attach'] as $item){
                     $item['inquiry_id'] = $res['data']['id'];
+                    $item['created_by'] = $buyerInfo;
                     $result = $inquiryAttachModel->addData($item);
                     if(!$result || $result['code'] != 1){
                         $inquiryAttachModel->rollback();

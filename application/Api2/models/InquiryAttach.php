@@ -108,6 +108,9 @@ class InquiryAttachModel extends PublicModel {
             $results['message'] = '没有文件URL!';
             return $results;
         }
+        if(isset($condition['created_by'])){
+            $data['created_by'] = $condition['created_by'];
+        }
         $data['created_at'] = $this->getTime();
 
         $data = $this->create($data);
