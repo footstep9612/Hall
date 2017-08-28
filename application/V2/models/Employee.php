@@ -69,7 +69,7 @@ class EmployeeModel extends PublicModel {
         try {
             $where = [];
             if ($UserName) {
-                $where['name'] = ['like', '%' . $UserName . '%'];
+                $where['name'] = ['like', '%' . trim($UserName) . '%'];
             } else {
                 return false;
             }
