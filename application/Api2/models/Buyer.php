@@ -282,7 +282,6 @@ class BuyerModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-
             $this->commit();
             return true;
         } catch (Exception $e) {
@@ -357,13 +356,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
-        if (isset($create['checked_by'])) {
-            $data['checked_by'] = $create['checked_by'];
-        }
-        if (isset($create['checked_at'])) {
-            $data['checked_at'] = $create['checked_at'];
-        }
-        if (isset($create['status'])) {
+        /*if (isset($create['status'])) {
             switch ($create['status']) {
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
@@ -374,6 +367,19 @@ class BuyerModel extends PublicModel {
                 case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];
                     break;
+            }
+        }*/
+        $resCheck = $this->field('first_name,last_name')->where(['id' => $where['buyer_id']])->find();
+        if($resCheck){
+            if (isset($data['first_name'])) {
+                if($data['first_name'] == $resCheck['first_name']){
+                    unset($data['first_name']);
+                }
+            }
+            if (isset($data['last_name'])) {
+                if($data['last_name'] == $resCheck['last_name']){
+                    unset($data['last_name']);
+                }
             }
         }
         if (empty($data)) {

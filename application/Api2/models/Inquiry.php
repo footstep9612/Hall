@@ -58,6 +58,7 @@ class InquiryModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
+            //添加sku询单项明细
             $InquiryItemModel = new InquiryItemModel();
             if($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])){
                 foreach($data['arr_sku'] as $item){
@@ -65,6 +66,18 @@ class InquiryModel extends PublicModel {
                     $result = $InquiryItemModel->addData($item);
                     if(!$result || $result['code'] != 1){
                         $InquiryItemModel->rollback();
+                        return false;
+                    }
+                }
+            }
+            //添加附件询单
+            $inquiryAttachModel = new InquiryAttachModel();
+            if($res['code'] == 1 && isset($data['files_attach']) && !empty($data['files_attach'])){
+                foreach($data['files_attach'] as $item){
+                    $item['inquiry_id'] = $res['data']['id'];
+                    $result = $inquiryAttachModel->addData($item);
+                    if(!$result || $result['code'] != 1){
+                        $inquiryAttachModel->rollback();
                         return false;
                     }
                 }

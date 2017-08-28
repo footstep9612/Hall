@@ -168,7 +168,19 @@ class BuyerAddressModel extends PublicModel {
         if (!empty($condition['official_email'])) {
             $data['official_email'] = $condition['official_email'];
         }
-
+        $resCheck = $this->field('address,zipcode')->where(['buyer_id' => $where['buyer_id']])->find();
+        if($resCheck){
+            if (isset($data['address'])) {
+                if($data['address'] == $resCheck['address']){
+                    unset($data['address']);
+                }
+            }
+            if (isset($data['zipcode'])) {
+                if($data['zipcode'] == $resCheck['zipcode']){
+                    unset($data['zipcode']);
+                }
+            }
+        }
         if(empty($data)){
             return true;
         }
