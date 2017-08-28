@@ -27,6 +27,8 @@ class ProductModel extends PublicModel {
         'name' => array('required'),
         'brand' => array('required'),
     );
+//    protected $dbName = 'erui2_goods'; //数据库名称
+//    protected $tableName = 'product'; //数据表表名
 
     /**
      * 构造方法
@@ -476,7 +478,7 @@ class ProductModel extends PublicModel {
 
         $condition = array(
             'spu' => $spu,
-                //'deleted_flag' => self::DELETE_N,
+                'deleted_flag' => self::DELETE_N
         );
         if (!empty($lang)) {
             $condition['lang'] = $lang;

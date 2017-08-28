@@ -113,7 +113,6 @@ class InquiryAttachModel extends PublicModel {
         }
         $data['created_at'] = $this->getTime();
 
-        $data = $this->create($data);
         try {
             $id = $this->add($data);
             if($id){

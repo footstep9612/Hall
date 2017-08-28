@@ -63,9 +63,10 @@ class InquiryModel extends PublicModel {
             if($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])){
                 foreach($data['arr_sku'] as $item){
                     $item['inquiry_id'] = $res['data']['id'];
-                    $result = $InquiryItemModel->addData($item);
-                    if(!$result || $result['code'] != 1){
-                        $InquiryItemModel->rollback();
+                    $item['created_by'] = $buyerInfo;
+                    $resItem = $InquiryItemModel->addData($item);
+                    if(!$resItem || $resItem['code'] != 1){
+                        $this->rollback();
                         return false;
                     }
                 }
@@ -76,9 +77,9 @@ class InquiryModel extends PublicModel {
                 foreach($data['files_attach'] as $item){
                     $item['inquiry_id'] = $res['data']['id'];
                     $item['created_by'] = $buyerInfo;
-                    $result = $inquiryAttachModel->addData($item);
-                    if(!$result || $result['code'] != 1){
-                        $inquiryAttachModel->rollback();
+                    $resAttach = $inquiryAttachModel->addData($item);
+                    if(!$resAttach || $resAttach['code'] != 1){
+                        $this->rollback();
                         return false;
                     }
                 }
