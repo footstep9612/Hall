@@ -266,7 +266,7 @@ class QuotebizlineController extends PublicController {
                 'quote_id' => $v['quote_id'],
                 'quote_item_id' => $v['id'],
                 'inquiry_item_id' => $v['inquiry_item_id'],
-                'quote_bizline_id' => $v['bizline_id'],
+                'quote_bizline_id' => $quoteBizlineResult,
                 'sku' => $v['sku'],
                 'created_at' => date('Y-m-d H:i:s'),
             ]));
@@ -277,13 +277,13 @@ class QuotebizlineController extends PublicController {
             $quoteBizlineModel->commit();
             $quoteItemModel->commit();
             $quoteItemFormModel->commit();
-            $this->jsonReturn(['code'=>'1','message'=>'成功!']);
+            $this->jsonReturn(['code'=>'1','message'=>'划分产品线成功!']);
         }else{
             $quoteModel->rollback();
             $quoteBizlineModel->rollback();
             $quoteItemModel->rollback();
             $quoteItemFormModel->rollback();
-            $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+            $this->jsonReturn(['code'=>'-104','message'=>'划分产品线失败!']);
         }
 
     }
