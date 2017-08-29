@@ -193,7 +193,7 @@ class ProductModel extends PublicModel {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
                     $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
                     $data['lang'] = $key;
-                    if (empty($data)) {
+                    if (empty($data) || empty($data['name'])) {
                         continue;
                     }
 
