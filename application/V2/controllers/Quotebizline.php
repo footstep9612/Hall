@@ -278,8 +278,6 @@ class QuotebizlineController extends PublicController {
             }
         }
 
-        p('goooooooooooooooooo');
-
         $quote_item_form_ids = [];
         foreach ($quote_item_form_list as $v){
             $quote_item_form_ids[] = $quoteItemFormModel->add($quoteItemFormModel->create([
