@@ -29,7 +29,8 @@ class InquiryController extends PublicController {
     //获取询单总数
     public function getInquiryCountAction() {
         $inquiry = new InquiryModel();
-        $where['buy_id'] = $this->user['id'];
+        $where['buyer_id'] = $this->user['buyer_id'];
+
         $data['count'] = $inquiry->getcount($where);
 
         if ($data['count'] > 0) {

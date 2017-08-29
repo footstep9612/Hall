@@ -229,10 +229,8 @@ class LoginController extends PublicController {
             jsonReturn('', -104, 'key不存在');
         }
         $buyer_account_model = new BuyerAccountModel();
-        $buyer_model = new BuyerModel();
         $list = $buyer_account_model->Exist($arr);
         $buyer_data['status'] = 'VALID';
-        $buyer_where['buyer_no'] = $list[0]['buyer_no'];
         $res = $buyer_account_model->update_data($buyer_data, $arr);
         if ($res) {
             redisHashDel('login_reg_key', $data['key']);

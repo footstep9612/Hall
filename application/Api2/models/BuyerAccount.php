@@ -182,29 +182,12 @@ class BuyerAccountModel extends PublicModel {
                     break;
             }
         }
-        $resCheck = $this->field('first_name,last_name,mobile')->where(['buyer_id' => $where['buyer_id']])->find();
-        if($resCheck){
-            if (isset($arr['first_name'])) {
-                if($arr['first_name'] == $resCheck['first_name']){
-                    unset($arr['first_name']);
-                }
-            }
-            if (isset($arr['last_name'])) {
-                if($arr['last_name'] == $resCheck['last_name']){
-                    unset($arr['last_name']);
-                }
-            }
-            if (isset($arr['mobile'])) {
-                if($arr['mobile'] == $resCheck['mobile']){
-                    unset($arr['mobile']);
-                }
-            }
+        if (!empty($where)) {
+            $res =  $this->where($where)->save($arr);
+        } else {
+            return false;
         }
-        if(empty($arr)){
-            return true;
-        }
-        $res =  $this->where(['buyer_id'=>$where['buyer_id']])->save($arr);
-        if($res){
+        if($res!==false){
             return true;
         }
         return false;
