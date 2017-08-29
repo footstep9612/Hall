@@ -12,9 +12,9 @@ class QuoteLogiFeeModel extends PublicModel {
     protected $joinTable1 = 'erui2_rfq.quote b ON a.quote_id = b.id';
     protected $joinTable2 = 'erui2_sys.employee c ON a.updated_by = c.id';
     protected $joinTable3 = 'erui2_rfq.inquiry d ON a.inquiry_id = d.id';
-    protected $joinTable4 = 'erui2_dict.country e ON d.country_bn = e.bn AND e.lang = \'zh\'';
-    protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.package_mode, b.box_type_bn, b.destination, b.dispatch_place, b.quote_remarks, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name, d.serial_no, e.region_bn';
-    protected $joinField_ = 'a.*, b.period_of_validity, d.serial_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, e.region_bn';
+    protected $joinTable4 = 'erui2_dict.market_area_country e ON d.country_bn = e.country_bn';
+    protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.package_mode, b.box_type_bn, b.destination, b.dispatch_place, b.quote_remarks, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name, d.serial_no, e.market_area_bn';
+    protected $joinField_ = 'a.*, b.period_of_validity, d.serial_no, d.country_bn, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time';
 			    
     public function __construct() {
         parent::__construct();
@@ -93,8 +93,12 @@ class QuoteLogiFeeModel extends PublicModel {
             ];
         }
         
-        if (!empty($condition['region_bn'])) {
-            $where['e.region_bn'] = ['in', $condition['region_bn']];
+        if (!empty($condition['market_agent_id'])) {
+            if (empty($condition['agent_id'])) {
+                $where['d.agent_id'] = ['in', $condition['market_agent_id']];
+            } else {
+                $where['d.agent_id'] = [['eq', $condition['agent_id']], ['in', $condition['market_agent_id']], 'and'];
+            }
          }
          
          /*if (!empty($condition['logi_agent_id'])) {
@@ -122,7 +126,6 @@ class QuoteLogiFeeModel extends PublicModel {
         $count = $this->alias('a')
                                  ->join($this->joinTable1, 'LEFT')
                                  ->join($this->joinTable3, 'LEFT')
-                                 ->join($this->joinTable4, 'LEFT')
                                  ->where($where)
                                  ->count('a.id');
          
@@ -147,7 +150,6 @@ class QuoteLogiFeeModel extends PublicModel {
         return $this->alias('a')
                             ->join($this->joinTable1, 'LEFT')
                             ->join($this->joinTable3, 'LEFT')
-                            ->join($this->joinTable4, 'LEFT')
                             ->field($this->joinField_)
                             ->where($where)
                             ->page($currentPage, $pageSize)

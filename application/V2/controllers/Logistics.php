@@ -20,6 +20,7 @@ class LogisticsController extends PublicController {
 		$this->inquiryCheckLogModel = new InquiryCheckLogModel();
 		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
 		$this->marketAreaTeamModel = new MarketAreaTeamModel();
+		$this->orgMemberModel = new OrgMemberModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -138,17 +139,25 @@ class LogisticsController extends PublicController {
 	    
 	    $marketAreaTeamList = $this->marketAreaTeamModel->where($where)->select();
 	    
-	    $regionArr = [];
+	    $marketOrgArr = [];
 	    
 	    foreach ($marketAreaTeamList as $marketAreaTeam) {
-	        $regionArr[] = $marketAreaTeam['market_area_bn'];
+	        $marketOrgArr[] = $marketAreaTeam['market_org_id'];
 	    }
 	    
-	    $condition['region_bn'] = array_unique($regionArr);
+	    $orgMemberList = $this->orgMemberModel->getList(['org_id' => array_unique($marketOrgArr)]);
+	    
+	    $employeeArr = [];
+	    
+	    foreach ($orgMemberList as $orgMember) {
+	        $employeeArr[] = $orgMember['employee_id'];
+	    }
+	    
+	    $condition['market_agent_id'] = array_unique($employeeArr);
 	    
 	    //$condition['logi_agent_id'] = $this->user['id'];
 	
-	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);
+	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);   
 	    
 	    foreach ($quoteLogiFeeList as &$quoteLogiFee) {
             $userAgent = $this->userModel->info($quoteLogiFee['agent_id']);
