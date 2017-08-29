@@ -85,7 +85,40 @@ class InquiryController extends PublicController {
 
         $results = $inquiry->getinfo($where);
 
+        if (isset($results['data'])) {
+            $data = $results['data'];
+            $this->_setAgent($data);
+            $results['data'] = $data;
+        }
+
         $this->jsonReturn($results);
+    }
+
+    /* id转换为姓名
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   汇率列表
+     */
+
+    private function _setAgent(&$arr) {
+
+        if ($arr && $arr['agent_id']) {
+            $buyer_model = new EmployeeModel();
+            $agent_ids = $arr['agent_id'];
+
+            $usernames = $buyer_model->getUserNamesByUserids($agent_ids, false);
+            if ($arr['agent_id'] && isset($usernames[$arr['agent_id']])) {
+                $arr['agent'] = $usernames[$arr['agent_id']]['name'];
+                $arr['agent_email'] = strval($usernames[$arr['agent_id']]['email']);
+            } else {
+                $arr['agent'] = '';
+                $arr['agent_email'] = '';
+            }
+        } else {
+            $arr['agent'] = '';
+            $arr['agent_email'] = '';
+        }
     }
 
     //修改询价单

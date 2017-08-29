@@ -687,14 +687,14 @@ class GoodsModel extends PublicModel {
                 return false;
             }
 
-            $gattr = new GoodsAttrModel();
+          /*  $gattr = new GoodsAttrModel();
             $resAttr = $gattr->modifyAttr($input['sku'], $status);        //属性状态
 
             if (!$resAttr || $resAttr['code'] != 1) {
                 $this->rollback();
 
                 return false;
-            }
+            }*/
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
@@ -1044,6 +1044,9 @@ class GoodsModel extends PublicModel {
             }
             if (!empty($value)) {
                 foreach ($value as $attr) {
+                    if(empty(trim($attr['attr_name']))){
+                        continue;
+                    }
                     if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
                         $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
                     } else {

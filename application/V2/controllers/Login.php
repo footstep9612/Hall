@@ -30,16 +30,7 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         }
         if(!empty($data['user_name'])){
-            if(isEmail($data['user_name'])){
-                $arr['email'] = $data['user_name'];
-            }else{
-                if(strlen($data['user_name'])==6||strlen($data['user_name'])==9){
-                    $arr['user_no'] = $data['user_name'];
-                }else{
-                    $arr['mobile'] = $data['user_name'];
-                }
-
-            }
+            $arr['user_no'] = $data['user_name'];
         }else{
             echo json_encode(array("code" => "-101", "message" => "帐号不可以都为空"));
             exit();

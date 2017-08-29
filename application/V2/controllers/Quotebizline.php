@@ -59,33 +59,36 @@ class QuotebizlineController extends PublicController {
         if (!isset($this->user['group_id']) && empty($this->user['group_id'])){
             $this->jsonReturn(['code'=>'-104','message'=>'没有权限']);
         }
-
         $groupid = $this->user['group_id'];
         $bizlinegroup = new BizlineGroupModel();
 
-        $data = $bizlinegroup->where('group_id IN('.implode(",",$groupid).')')->select();
+        $data = $bizlinegroup->where('group_id IN('.implode(",",$groupid).') and group_role in("SKU_QUOTER","BIZLINE_MANAGER") ')->select();
+        //p($data);
+
         if (!$data){
             $this->jsonReturn(['code'=>'-104','message'=>'没有权限']);
         }
-        //p($data);
-
         $bizlineids = [];
         $grouprole = [];
         foreach ($data as $key=>$val){
             $bizlineids[] = $val['bizline_id'];
-            if($val['group_role']=='SKU_QUOTE'){
-                $grouprole[] = $val['group_role'];
-            }else{
-                $grouprole[] = $val['group_role'];
+
+            if($val['group_role']=='SKU_QUOTER'){
+                $grouprole['SKU_QUOTER'] = 'SKU_QUOTER';
             }
+
+            if($val['group_role']=='BIZLINE_MANAGER'){
+                $grouprole['BIZLINE_MANAGER'] = 'BIZLINE_MANAGER';
+            }
+
         }
-        array_unique($bizlineids);
+
+        $bizlineids = array_unique($bizlineids);
+        //p($bizlineids);
 
         $results['bizlineid'] = $bizlineids;
         $results['grouprole'] = $grouprole;
-
         //p($results);
-
         return $results;
 
     }
@@ -99,18 +102,15 @@ class QuotebizlineController extends PublicController {
         $condition = $this->validateRequests();
 
         $user = new EmployeeModel();
-
         if (!empty($condition['agent_name'])) {
             $agent = $user->where(['name' => $condition['agent_name']])->find();
             $condition['agent_id'] = $agent['id'];
         }
 
-
         //项目经理 列表
         $condition['pm_id'] = $this->user['id'];
 
         $quoteBizlineList = QuoteHelper::getPmQuoteBizlineList($condition);
-        //$quoteBizlineList = $this->_quoteBizLine->getJoinList($condition);
 
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
@@ -139,6 +139,23 @@ class QuotebizlineController extends PublicController {
         $quoteSkuList = QuoteHelper::getQuoteList($request);
 
         if ($quoteSkuList){
+
+            $quoteitemform = new QuoteItemFormModel();
+            //关联产品线，查询已经关联的产品线名称
+            foreach($quoteSkuList  as $key=>$val){
+                $bizline = $quoteitemform->alias('a')
+                    ->field('c.id,c.name')
+                    ->join('erui2_rfq.quote_bizline b ON a.quote_bizline_id = b.id')
+                    ->join('erui2_operation.bizline c ON b.bizline_id = c.id')
+                    ->where('a.inquiry_item_id = '.$val['id'])
+                    ->find();
+
+                if(isset($bizline)){
+                    $quoteSkuList[$key]['bizline_id'] = $bizline['id'];
+                    $quoteSkuList[$key]['bizline_name'] = $bizline['name'];
+                }
+            }
+
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
@@ -206,8 +223,6 @@ class QuotebizlineController extends PublicController {
         ]));
 
 
-        //判断是否已经划分了产品线
-
         //2.创建一条产品线报价记录(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
@@ -222,6 +237,8 @@ class QuotebizlineController extends PublicController {
         //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
         $inquiryItem = new InquiryItemModel();
         $inquiryItemList = $inquiryItem->where('id IN('.$request['inquiry_item_id'].')')->select();
+
+
 
         $quoteItemModel = new QuoteItemModel();
         $quoteItemModel->startTrans();
@@ -243,13 +260,31 @@ class QuotebizlineController extends PublicController {
         $quote_item_form_list = $quoteItemModel->where('id IN('.implode(",",$quote_item_ids).')')->field('quote_id,id,inquiry_item_id,bizline_id,sku')->select();
 
         $quoteItemFormModel = new QuoteItemFormModel();
+
+        //判断是否重复
+        $inquiry_item_ids = explode(',',$request['inquiry_item_id']);
+        foreach ($inquiry_item_ids as $inquiry_item_id){
+            $isHave = $quoteItemFormModel->where(['inquiry_item_id'=>$inquiry_item_id])->find();
+            if ($isHave){
+                //回归事务
+                $quoteModel->rollback();
+                $quoteBizlineModel->rollback();
+                $quoteItemModel->rollback();
+
+                $this->jsonReturn([
+                    'code' => '-104',
+                    'message' => '已经划分了产品线!'
+                ]);
+            }
+        }
+
         $quote_item_form_ids = [];
         foreach ($quote_item_form_list as $v){
             $quote_item_form_ids[] = $quoteItemFormModel->add($quoteItemFormModel->create([
                 'quote_id' => $v['quote_id'],
                 'quote_item_id' => $v['id'],
                 'inquiry_item_id' => $v['inquiry_item_id'],
-                'quote_bizline_id' => $v['bizline_id'],
+                'quote_bizline_id' => $quoteBizlineResult,
                 'sku' => $v['sku'],
                 'created_at' => date('Y-m-d H:i:s'),
             ]));
@@ -260,13 +295,13 @@ class QuotebizlineController extends PublicController {
             $quoteBizlineModel->commit();
             $quoteItemModel->commit();
             $quoteItemFormModel->commit();
-            $this->jsonReturn(['code'=>'1','message'=>'成功!']);
+            $this->jsonReturn(['code'=>'1','message'=>'划分产品线成功!']);
         }else{
             $quoteModel->rollback();
             $quoteBizlineModel->rollback();
             $quoteItemModel->rollback();
             $quoteItemFormModel->rollback();
-            $this->jsonReturn(['code'=>'-104','message'=>'失败!']);
+            $this->jsonReturn(['code'=>'-104','message'=>'划分产品线失败!']);
         }
 
     }
@@ -287,7 +322,6 @@ class QuotebizlineController extends PublicController {
 
     /**
      * @desc 提交产品线报价(项目经理)
-     * @author 买买提
      * 操作说明:当前询单的状态改为产品线报价中
      */
     public function submitToBizlineAction(){
@@ -302,8 +336,8 @@ class QuotebizlineController extends PublicController {
      * @desc 产品线报价列表(产品线负责人)
      * @author 买买提
      */
-    public function bizlineManagerQuoteListAction()
-    {
+    public function bizlineManagerQuoteListAction(){
+
         $condition = $this->validateRequests();
 
         $auth = $this->validateAuth();
@@ -311,7 +345,6 @@ class QuotebizlineController extends PublicController {
         foreach ($auth['bizlineid'] as $val){
             $condition['bizline_id'][] = $val;
         }
-
 
         $user = new EmployeeModel();
 
@@ -333,12 +366,69 @@ class QuotebizlineController extends PublicController {
         }
 
         if ($quoteBizlineList) {
-            //p($quoteBizlineList);
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
                 'count' => QuoteHelper::bizlineManagerQuoteListCount($condition),
-                'role' => implode(',',$auth['grouprole']),
+                'role' => $auth['grouprole'],
+                'data' => $quoteBizlineList
+            ]);
+        } else {
+            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }
+
+    }
+
+    public function listAction(){
+
+        $auth = $this->validateAuth();
+        foreach ($auth['grouprole'] as $group=>$rol){
+            switch ($rol){
+                case 'BIZLINE_MANAGER' :
+                    $this->jsonReturn($this->mList('BIZLINE_MANAGER'));
+                    break;
+                case 'SKU_QUOTER' :
+                    p('产品线负责人');
+                    break;
+            }
+        }
+    }
+
+    public function mList($role_type){
+
+        $condition = $this->validateRequests();
+
+        $auth = $this->validateAuth();
+
+        foreach ($auth['bizlineid'] as $val){
+            $condition['bizline_id'][] = $val;
+        }
+
+        $user = new EmployeeModel();
+
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+
+        if (!empty($condition['pm_name'])) {
+            $pm = $user->where(['name' => $condition['pm_name']])->find();
+            $condition['pm_id'] = $pm['id'];
+        }
+
+        $quoteBizlineList = QuoteHelper::bizlineManagerQuoteList($condition);
+
+        foreach ($quoteBizlineList as &$quoteBizline) {
+            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
+            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+        }
+
+        if ($quoteBizlineList) {
+            $this->jsonReturn([
+                'code' => '1',
+                'message' => '成功!',
+                'count' => QuoteHelper::bizlineManagerQuoteListCount($condition),
+                'role' => $role_type,
                 'data' => $quoteBizlineList
             ]);
         } else {
@@ -348,7 +438,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 报价sku列表(产品线负责人)
+     * 报价sku列表(产品线负责人)
      */
     public function bizlineManagerQuoteSkuListAction(){
 
@@ -402,7 +492,6 @@ class QuotebizlineController extends PublicController {
             $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
             $quoterSkuList[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
         }
-        //p($quoterSkuList);
 
         $this->jsonReturn([
             'code' => '1',
@@ -670,15 +759,10 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 指派报价人(产品线负责人)
+     * 指派报价人(产品线负责人)
      */
     public function assignQuoterAction() {
-        /*
-        | 操作说明
-        | 前端需要提交的字段 quote_id报价id bizline_agent_id产品线报价人
-        | 把当前报价单的产品线报价人字段改为新选择的id
-        |
-        */
+
         $request = $this->validateRequests('quote_item_form_id,biz_agent_id');
 
         $quoteBizline = new QuoteItemFormModel();
@@ -713,7 +797,6 @@ class QuotebizlineController extends PublicController {
                     ]);
                 }
 
-                //p($quote);
                 //新增记录
                 $quoteBizline->add($quoteBizline->create([
                     'quote_id' => $quote['quote_id'],
@@ -747,7 +830,6 @@ class QuotebizlineController extends PublicController {
         //$quoteBizline = new QuoteBizLineModel();
         //$response = $quoteBizline->selectQuote($request);
         $quoteItemForm = new QuoteItemFormModel();
-
         $response = $quoteItemForm->getList($request);
 
         if (!$response){
@@ -761,7 +843,6 @@ class QuotebizlineController extends PublicController {
         //可以选的供应商id
         $supplier_id = $quoteItem->where(['id'=>$request['quote_item_id']])->getField('supplier_id');
         $supplier_ids = $quoteItemForm->where($request)->getField('supplier_id',true);
-        //p(implode(',',$supplier_ids));
 
         foreach ($response as $key=>$value){
             if (!empty($value['created_by'])){
@@ -968,11 +1049,12 @@ class QuotebizlineController extends PublicController {
                 'delivery_days' => $request['delivery_days'],
                 'period_of_validity' => $request['period_of_validity']
             ]));
+
             if ($result){
                 $this->jsonReturn(['code'=>'1','messsage'=>'成功!']);
             }else{
                 //p($quoteItem->getLastSql());
-                $this->jsonReturn(['code'=>'-104','messsage'=>'失败!']);
+                $this->jsonReturn(['code'=>'-104','messsage'=>'已经选择过了!']);
             }
         }catch(Exception $exception){
             $this->jsonReturn([
