@@ -86,7 +86,7 @@ class InquiryModel extends PublicModel {
                     $item['created_by'] = $buyerInfo;
                     $resAttach = $inquiryAttachModel->addData($item);
                     if (!$resAttach || $resAttach['code'] != 1) {
-                        var_dump($resAttach);
+
                         $this->rollback();
                         return false;
                     }
