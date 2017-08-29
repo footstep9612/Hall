@@ -56,9 +56,14 @@ class InquiryModel extends PublicModel {
         try {
             $res = $this->addData($data);
             if (!$res || $res['code'] != 1) {
+
                 $this->rollback();
                 return false;
+            } else {
+                $data['inquiry_id'] = $res['data']['id'];
             }
+
+
             //添加sku询单项明细
             $InquiryItemModel = new InquiryItemModel();
             if ($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])) {
@@ -67,6 +72,7 @@ class InquiryModel extends PublicModel {
                     $item['created_by'] = $buyerInfo;
                     $resItem = $InquiryItemModel->addData($item);
                     if (!$resItem || $resItem['code'] != 1) {
+
                         $this->rollback();
                         return false;
                     }
@@ -80,6 +86,7 @@ class InquiryModel extends PublicModel {
                     $item['created_by'] = $buyerInfo;
                     $resAttach = $inquiryAttachModel->addData($item);
                     if (!$resAttach || $resAttach['code'] != 1) {
+                        var_dump($resAttach);
                         $this->rollback();
                         return false;
                     }
@@ -266,7 +273,7 @@ class InquiryModel extends PublicModel {
 
         try {
             $id = $this->add($data);
-
+            $data['id'] = $id;
             if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';

@@ -58,7 +58,7 @@ class InquiryController extends PublicController {
 
             $results = $inquiry->addInquiry($data, $buyerInfo);
             if (!$results) {
-                $this->setCode(MSG::ERROR_EMPTY);
+                $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
             } else {
                 $this->setCode(MSG::MSG_SUCCESS);
