@@ -147,7 +147,7 @@ trait QuoteHelper{
         //p($where);
         //项目状态
         if(!empty($condition['status'])) {
-            $where['inq.status'] = $condition['status'];
+            $where['qb.status'] = $condition['status'];
         }
         //国家
         if(!empty($condition['country_bn'])) {

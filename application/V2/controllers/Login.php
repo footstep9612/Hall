@@ -61,6 +61,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $jwt['iat'] = time();
             $jwt['name'] = $info['name'];
             $datajson['mobile'] = $info['mobile'];
+            $datajson['id'] = $info['id'];
             $datajson['email'] = $info['email'];
             $datajson['name'] = $info['name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密

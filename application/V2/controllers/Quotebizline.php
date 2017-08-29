@@ -946,7 +946,8 @@ class QuotebizlineController extends PublicController {
     public function saveQuoteGeneralInfoAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        //p($request);
+        unset($request['id']);
+
         $quoteModel = new QuoteModel();
         try{
             if ($quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request))){
