@@ -1044,6 +1044,9 @@ class GoodsModel extends PublicModel {
             }
             if (!empty($value)) {
                 foreach ($value as $attr) {
+                    if(empty(trim($attr['attr_name']))){
+                        continue;
+                    }
                     if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
                         $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
                     } else {
