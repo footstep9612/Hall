@@ -153,7 +153,7 @@ class LogisticsController extends PublicController {
 	        $employeeArr[] = $orgMember['employee_id'];
 	    }
 	    
-	    $condition['market_agent_id'] = array_unique($employeeArr);
+	    $condition['market_agent_id'] = array_unique($employeeArr) ? : ['-1'];
 	    
 	    //$condition['logi_agent_id'] = $this->user['id'];
 	
