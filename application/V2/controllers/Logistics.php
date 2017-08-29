@@ -148,7 +148,7 @@ class LogisticsController extends PublicController {
 	    
 	    //$condition['logi_agent_id'] = $this->user['id'];
 	
-	    $quoteLogiFeeList= $this->quoteLogiFeeModel->getJoinList($condition);
+	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);
 	    
 	    foreach ($quoteLogiFeeList as &$quoteLogiFee) {
             $userAgent = $this->userModel->info($quoteLogiFee['agent_id']);
@@ -173,9 +173,16 @@ class LogisticsController extends PublicController {
 	        
     	    $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
     	    
+    	    $quoteLogiFee['land_freight_usd'] = $quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']);
+    	    $quoteLogiFee['port_surcharge_usd'] = $quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']);
+    	    $quoteLogiFee['inspection_fee_usd'] = $quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']);
+    	    $quoteLogiFee['inter_shipping_usd'] = $quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']);
+    	    $quoteLogiFee['dest_delivery_fee_usd'] = $quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']);
+    	    $quoteLogiFee['dest_clearance_fee_usd'] = $quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']);
+    	    
 	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
 	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
-	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']) + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']) + $quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']) + $quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']);
+	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
 	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
 	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
 	        $user = $this->getUserInfo();
