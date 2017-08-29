@@ -151,6 +151,7 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data, $where) {
+        $arr=[];
         if (isset($data['email'])) {
             $arr['email'] = $data['email'];
         }
@@ -170,7 +171,7 @@ class BuyerAccountModel extends PublicModel {
             $arr['last_name'] = $data['last_name'];
         }
         if ($data['status']) {
-            switch ($data['status']) {
+            switch (strtoupper($data['status'])) {
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
                     break;

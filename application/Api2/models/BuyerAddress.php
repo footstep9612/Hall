@@ -150,6 +150,7 @@ class BuyerAddressModel extends PublicModel {
      * @author klp
      */
     public function update_data($condition, $where) {
+        $data=[];
         if (isset($condition['address'])) {
             $data['address'] = $condition['address'];
         }
@@ -168,24 +169,18 @@ class BuyerAddressModel extends PublicModel {
         if (isset($condition['official_email'])) {
             $data['official_email'] = $condition['official_email'];
         }
-        $resCheck = $this->field('address,zipcode')->where(['buyer_id' => $where['buyer_id']])->find();
-        if($resCheck){
-            if (isset($data['address'])) {
-                if($data['address'] == $resCheck['address']){
-                    unset($data['address']);
-                }
+        if (!empty($where)) {
+            $result = $this->field('buyer_id')->where($where)->find();
+            if($result){
+                $res =  $this->where($where)->save($data);
+            } else{
+                $data['buyer_id']=$where['buyer_id'];
+                $res = $this->create_data($data);
             }
-            if (isset($data['zipcode'])) {
-                if($data['zipcode'] == $resCheck['zipcode']){
-                    unset($data['zipcode']);
-                }
-            }
+        } else {
+            return false;
         }
-        if(empty($data)){
-            return true;
-        }
-        $res =  $this->where(['buyer_id'=>$where['buyer_id']])->save($data);
-        if($res){
+        if($res!==false){
             return true;
         }
         return false;

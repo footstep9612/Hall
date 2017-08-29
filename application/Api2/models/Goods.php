@@ -112,12 +112,12 @@ class GoodsModel extends PublicModel {
             return array();
         $keyRedis = md5(json_encode($spu.$lang.self::STATUS_VALID));
         if (redisHashExist('specGoods',$keyRedis)) {
-        //    return json_decode(redisHashGet('specGoods', $keyRedis), true);
+            return json_decode(redisHashGet('specGoods', $keyRedis), true);
         }
         try {
             $field = "lang,spu,sku,qrcode,name,show_name_loc,show_name,model,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail";
             $condition = array(
-                "spu" => $spu,
+                "spu" => '1303070000010000',
                 "lang" => $lang,
                 "status" => self::STATUS_VALID,
                 "deleted_flag" => self::DELETED_N
@@ -136,17 +136,14 @@ class GoodsModel extends PublicModel {
     public function getSpecBySku(&$result, $lang, $spec_type, $spu) {
 
         if ($result) {
-
             $skus = [];
             foreach ($result as $k => $item) {
                 $skus[] = $item['sku'];
             }
-
             if ($skus) {
                 $gattr = new GoodsAttrModel();
                 $specs = $gattr->getgoods_attrbyskus($skus, $lang);
             }
-
             foreach ($result as $k => $item) {
                 $condition = array(
                     "spu" => $spu,
@@ -177,21 +174,10 @@ class GoodsModel extends PublicModel {
                 if (isset($specs[$sku])) {
                     $spec = json_decode($specs[$sku][0]['spec_attrs'], true);
                 }
-
-
-                if ($spec_type) {
+                if ($spec) {
                     $result[$k]['spec'] = $spec;
-                } elseif ($spec) {
-                    $spec_str = '';
-
-                    foreach ($spec as $key => $val) {
-                        $spec_str .= $key . ' : ' . $val . '\n'. ' ;';
-//                        $spec_str .= $val['attr_name'].':'.$val['attr_value'].';';
-                    }
-
-                    $result[$k]['spec'] = $spec_str;
                 } else {
-                    $result[$k]['spec'] = '';
+                    $result[$k]['spec'] = [];
                 }
             }
         }

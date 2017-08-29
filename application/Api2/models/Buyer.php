@@ -295,7 +295,7 @@ class BuyerModel extends PublicModel {
      * @author klp
      */
     public function update_data($create, $where) {
-
+        $data=[];
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
@@ -356,8 +356,8 @@ class BuyerModel extends PublicModel {
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
-        /*if (isset($create['status'])) {
-            switch ($create['status']) {
+        if (isset($create['status'])) {
+            switch (strtoupper($create['status'])) {
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
@@ -368,25 +368,13 @@ class BuyerModel extends PublicModel {
                     $data['status'] = $create['status'];
                     break;
             }
-        }*/
-        $resCheck = $this->field('first_name,last_name')->where(['id' => $where['buyer_id']])->find();
-        if($resCheck){
-            if (isset($data['first_name'])) {
-                if($data['first_name'] == $resCheck['first_name']){
-                    unset($data['first_name']);
-                }
-            }
-            if (isset($data['last_name'])) {
-                if($data['last_name'] == $resCheck['last_name']){
-                    unset($data['last_name']);
-                }
-            }
         }
-        if (empty($data)) {
-            return true;
+        if (!empty($where)) {
+            $res = $this->where(['id' => $where['buyer_id']])->save($data);
+        } else {
+            return false;
         }
-        $res = $this->where(['id' => $where['buyer_id']])->save($data);
-        if ($res) {
+        if($res!==false){
             return true;
         }
         return false;
