@@ -36,7 +36,7 @@ class InquiryController extends PublicController {
             }
             array_unique($users);
 
-            if(isset($users)){
+            if(!empty($users)){
                 $results['code'] = '1';
                 $results['message'] = '方案中心！';
                 $results['data'] = $users;
