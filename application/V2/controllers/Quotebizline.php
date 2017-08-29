@@ -1031,11 +1031,12 @@ class QuotebizlineController extends PublicController {
                 'delivery_days' => $request['delivery_days'],
                 'period_of_validity' => $request['period_of_validity']
             ]));
+
             if ($result){
                 $this->jsonReturn(['code'=>'1','messsage'=>'成功!']);
             }else{
                 //p($quoteItem->getLastSql());
-                $this->jsonReturn(['code'=>'-104','messsage'=>'失败!']);
+                $this->jsonReturn(['code'=>'-104','messsage'=>'已经选择过了!']);
             }
         }catch(Exception $exception){
             $this->jsonReturn([
