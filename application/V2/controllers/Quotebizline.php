@@ -223,8 +223,6 @@ class QuotebizlineController extends PublicController {
         ]));
 
 
-        //判断是否已经划分了产品线
-
         //2.创建一条产品线报价记录(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
@@ -239,6 +237,8 @@ class QuotebizlineController extends PublicController {
         //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
         $inquiryItem = new InquiryItemModel();
         $inquiryItemList = $inquiryItem->where('id IN('.$request['inquiry_item_id'].')')->select();
+
+
 
         $quoteItemModel = new QuoteItemModel();
         $quoteItemModel->startTrans();
@@ -260,6 +260,26 @@ class QuotebizlineController extends PublicController {
         $quote_item_form_list = $quoteItemModel->where('id IN('.implode(",",$quote_item_ids).')')->field('quote_id,id,inquiry_item_id,bizline_id,sku')->select();
 
         $quoteItemFormModel = new QuoteItemFormModel();
+
+        //判断是否重复
+        $inquiry_item_ids = explode(',',$request['inquiry_item_id']);
+        foreach ($inquiry_item_ids as $inquiry_item_id){
+            $isHave = $quoteItemFormModel->where(['inquiry_item_id'=>$inquiry_item_id])->find();
+            if ($isHave){
+                //回归事务
+                $quoteModel->rollback();
+                $quoteBizlineModel->rollback();
+                $quoteItemModel->rollback();
+
+                $this->jsonReturn([
+                    'code' => '-104',
+                    'message' => '已经划分了产品线!'
+                ]);
+            }
+        }
+
+        p('goooooooooooooooooo');
+
         $quote_item_form_ids = [];
         foreach ($quote_item_form_list as $v){
             $quote_item_form_ids[] = $quoteItemFormModel->add($quoteItemFormModel->create([
