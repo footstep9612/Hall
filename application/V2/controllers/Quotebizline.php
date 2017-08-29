@@ -139,6 +139,23 @@ class QuotebizlineController extends PublicController {
         $quoteSkuList = QuoteHelper::getQuoteList($request);
 
         if ($quoteSkuList){
+
+            $quoteitemform = new QuoteItemFormModel();
+            //关联产品线，查询已经关联的产品线名称
+            foreach($quoteSkuList  as $key=>$val){
+                $bizline = $quoteitemform->alias('a')
+                    ->field('c.id,c.name')
+                    ->join('erui2_rfq.quote_bizline b ON a.quote_bizline_id = b.id')
+                    ->join('erui2_operation.bizline c ON b.bizline_id = c.id')
+                    ->where('a.inquiry_item_id = '.$val['id'])
+                    ->find();
+
+                if(isset($bizline)){
+                    $quoteSkuList[$key]['bizline_id'] = $bizline['id'];
+                    $quoteSkuList[$key]['bizline_name'] = $bizline['name'];
+                }
+            }
+
             $this->jsonReturn([
                 'code' => '1',
                 'message' => '成功!',
