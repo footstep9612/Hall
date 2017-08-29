@@ -171,32 +171,13 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function Exist($data) {
+        $map =[];
         $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`';
         $sql .= ' FROM '.$this->g_table;
-        $where = '';
-        if ( !empty($data['email']) ){
-            $where .= " where email = '" .$data['email']."'";
-        }
-        if ( !empty($data['mobile']) ){
-            if($where){
-                $where .= " or mobile = '" .$data['mobile']."'";
-            }else{
-                $where .= " where mobile = '" .$data['mobile']."'";
-            }
-
-        }
         if ( !empty($data['user_no']) ){
-            if($where){
-                $where .= " or user_no = '" .$data['user_no']."'";
-            }else{
-                $where .= " where user_no = '" .$data['user_no']."'";
-            }
+            $map['user_no']=$data['user_no'];
         }
-
-        if ( $where){
-            $sql .= $where;
-        }
-        $row = $this->query( $sql );
+        $row = $this->where($map)->find();
         return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
     }
 

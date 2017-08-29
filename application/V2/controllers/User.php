@@ -257,10 +257,10 @@ class UserController extends PublicController {
             }
         }
         $arr['created_by'] = $this->user['id'];
-        $login_arr['user_no'] = $data['user_no'];
-        $check = $model->Exist($login_arr);
+        $arr['user_no'] = $data['user_no'];
+        $check = $model->Exist($arr);
         if($check){
-            $this->jsonReturn(array("code" => "-101", "message" => "用户编号已存在"));
+            $this->jsonReturn(array("code" => "-101", "message" => "用户已存在"));
         }
         $res=$model->create_data($arr);
         if(!empty($res)){
