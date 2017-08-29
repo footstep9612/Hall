@@ -306,6 +306,7 @@ class EsProductModel extends Model {
 
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');
+                $es->setaggs('material_cat_no', 'material_cat_no');
             } else {
                 $es->setaggs('material_cat_no', 'material_cat_no');
             }
