@@ -66,7 +66,7 @@ class InquiryModel extends PublicModel {
                     $item['inquiry_id'] = $res['data']['id'];
                     $item['created_by'] = $buyerInfo;
                     $resItem = $InquiryItemModel->addData($item);
-                    if(!$resItem || $resItem['code'] != 1){
+                    if (!$resItem || $resItem['code'] != 1) {
                         $this->rollback();
                         return false;
                     }
@@ -79,7 +79,7 @@ class InquiryModel extends PublicModel {
                     $item['inquiry_id'] = $res['data']['id'];
                     $item['created_by'] = $buyerInfo;
                     $resAttach = $inquiryAttachModel->addData($item);
-                    if(!$resAttach || $resAttach['code'] != 1){
+                    if (!$resAttach || $resAttach['code'] != 1) {
                         $this->rollback();
                         return false;
                     }
@@ -127,6 +127,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
+        if (!empty($condition['buyer_id'])) {
+            $where['buyer_id'] = $condition['buyer_id'];  //客户名称
+        }
+
         if (!empty($condition['agent_id'])) {
             $where['agent_id'] = $condition['agent_id']; //市场经办人
         }
