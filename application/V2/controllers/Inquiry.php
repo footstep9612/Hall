@@ -25,11 +25,11 @@ class InquiryController extends PublicController {
 
             //查询方案中心下面有多少市场部门
             foreach($groupid as $val){
-                $grs = $maketareateam->field('om.employee_id')
-                    ->join('`erui2_sys`.`org_member` om on om.org_id=market_area_team.market_org_id', 'left')
-                    ->where('market_area_team.biz_tech_org_id='.$val)
-                    ->group('om.employee_id')
-                    ->select();
+                $grs = $maketareateam->alias('a')
+                                    ->field('b.employee_id')
+                                    ->join('`erui2_sys`.`org_member` b on a.market_org_id = b.org_id')
+                                    ->where('a.biz_tech_org_id='.$val)
+                                    ->select();
                 if(!empty($grs)){
                     $users = array_merge($users,$grs);
                 }
@@ -119,15 +119,21 @@ class InquiryController extends PublicController {
         if($auth['code'] == 1){
             foreach($auth['data'] as $epl){
                 $where['agent_id'][] = $epl['employee_id'];
-             }
+            }
+            $where['status'] = array('NEQ','DRAFT');
         }
 
         //如果搜索条件有经办人，转换成id
         if(!empty($where['agent_name'])){
             $agent = $employee->field('id')->where('name="'.$where['agent_name'].'"')->find();
+
             if(in_array($agent['id'],$where['agent_id'])){
                 $where['agent_id'] = [];
                 $where['agent_id'][] = $agent['id'];
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息！';
+                $this->jsonReturn($results);
             }
         }
         //如果搜索条件有项目经理，转换成id
@@ -197,9 +203,14 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
     public function addAction(){
+        $auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $data =  $this->put_data;
         $data['created_by'] = $this->user['id'];
+
+        if($auth['code'] == 1){
+            $where['status'] = 'APPROVING_BY_SC';
+        }
 
         $results = $inquiry->addData($data);
 

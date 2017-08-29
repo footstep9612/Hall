@@ -41,6 +41,9 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['pm_id'])) {
             $where['pm_id'] = $condition['pm_id'];  //项目经理
         }
+        if (!empty($condition['status'])) {
+            $where['status'] = $condition['status'];  //项目经理
+        }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
                 array('gt',date('Y-m-d H:i:s',$condition['start_time'])),
