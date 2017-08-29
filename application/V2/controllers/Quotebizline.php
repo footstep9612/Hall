@@ -570,11 +570,14 @@ class QuotebizlineController extends PublicController {
         $quoteitemform->startTrans();
         $upitemform = $quoteitemform->where($itemformwhere)->save(['status' => 'REJECTED']);
 
+        $inquiry = new InquiryModel();
+
         if($upitemform){
             $upquotetatus = $quote->where('id='.$request['quote_id'])->save(['status' => 'BZ_QUOTE_REJECTED']);//修改报价单状态
             $upbizlinestatus = $quotebizline->where('quote_id='.$request['quote_id'])->save(['status' => 'REJECTED']);//修改产品线报价状态
+            $inquiryStatus = $inquiry->where(['id'=>$request['inquiry_id']])->save(['status'=>'BZ_QUOTE_REJECTED']);
 
-            if($upquotetatus && $upbizlinestatus){
+            if($upquotetatus && $upbizlinestatus && $inquiryStatus){
                 $quoteitemform->commit();
                 $result['code'] = '1';
                 $result['message'] = '成功!';
