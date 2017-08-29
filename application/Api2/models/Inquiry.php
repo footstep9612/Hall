@@ -17,7 +17,7 @@ class InquiryModel extends PublicModel {
     }
 
     /**
-     * @param  int $inquiry_no 询单号
+     * @param  int $inquiryNo 询单号
      * 验证询单号是否存在
      * @author zhangyuliang
      */
@@ -237,7 +237,9 @@ class InquiryModel extends PublicModel {
      */
     public function addData($condition = []) {
         $data = $this->create($condition);
-
+        if (empty($data['est_delivery_date']) || !strtotime($data['est_delivery_date'])) {
+            unset($data['est_delivery_date']);
+        }
         if (!empty($condition['serial_no'])) {
             $data['serial_no'] = $condition['serial_no'];
         } else {
@@ -264,7 +266,7 @@ class InquiryModel extends PublicModel {
 
         try {
             $id = $this->add($data);
-            $data['id'] = $id;
+
             if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
@@ -275,6 +277,8 @@ class InquiryModel extends PublicModel {
             }
             return $results;
         } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL);
+            Log::write($e->getMessage() . PHP_EOL);
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
