@@ -528,9 +528,7 @@ class EsProductModel extends Model {
 
     private function _findnulltoempty(&$item) {
         foreach ($item as $key => $val) {
-            if (is_null($val)) {
-                $item[$key] = '';
-            }
+            $item[$key] = strval($val);
         }
     }
 
@@ -607,8 +605,11 @@ class EsProductModel extends Model {
     private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs) {
 
         $spu = $id = $item['spu'];
-        $this->_findnulltoempty($item);
+
         $body = $item;
+        if (json_decode($item['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
+        }
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {
@@ -652,10 +653,10 @@ class EsProductModel extends Model {
         }
         if (isset($minimumorderouantitys[$id])) {
 
-            $body['minimumorderouantity'] = $minimumorderouantitys[$id]['value'];
-            $body['max_exw_day'] = $minimumorderouantitys[$id]['max_exw_day'];
-            $body['min_exw_day'] = $minimumorderouantitys[$id]['min_exw_day'];
-            $body['tx_unit'] = $minimumorderouantitys[$id]['tx_unit'];
+            $body['minimumorderouantity'] = strval($minimumorderouantitys[$id]['value']);
+            $body['max_exw_day'] = strval($minimumorderouantitys[$id]['max_exw_day']);
+            $body['min_exw_day'] = strval($minimumorderouantitys[$id]['min_exw_day']);
+            $body['tx_unit'] = strval($minimumorderouantitys[$id]['tx_unit']);
         } else {
             $body['minimumorderouantity'] = 0;
             $body['max_exw_day'] = '';
@@ -683,6 +684,7 @@ class EsProductModel extends Model {
             $body['onshelf_by'] = '';
             $body['onshelf_at'] = '';
         }
+        $this->_findnulltoempty($body);
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
         if ($flag['_shards']['successful'] !== 1) {

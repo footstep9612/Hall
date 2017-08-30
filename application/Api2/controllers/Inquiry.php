@@ -57,6 +57,13 @@ class InquiryController extends PublicController {
             $buyerInfo = $this->user['buyer_id'];
 
             $results = $inquiry->addInquiry($data, $buyerInfo);
+            if (!$results) {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            } else {
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn();
+            }
         } else {
             $results = $inquiryNo;
         }
@@ -72,7 +79,7 @@ class InquiryController extends PublicController {
         $results = $inquiry->getlist($where);
 
         foreach ($results['data'] as $key => $val) {
-            $test['serial_no'] = $val['serial_no'];
+            $test['inquiry_id'] = $val['id'];
             $results['data'][$key]['quantity'] = $item->getcount($test);
         }
 

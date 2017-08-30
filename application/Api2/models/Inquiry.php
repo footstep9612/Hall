@@ -17,7 +17,7 @@ class InquiryModel extends PublicModel {
     }
 
     /**
-     * @param  int $inquiry_no 询单号
+     * @param  int $inquiryNo 询单号
      * 验证询单号是否存在
      * @author zhangyuliang
      */
@@ -56,9 +56,14 @@ class InquiryModel extends PublicModel {
         try {
             $res = $this->addData($data);
             if (!$res || $res['code'] != 1) {
+
                 $this->rollback();
                 return false;
+            } else {
+                $data['inquiry_id'] = $res['data']['id'];
             }
+
+
             //添加sku询单项明细
             $InquiryItemModel = new InquiryItemModel();
             if ($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])) {
@@ -67,6 +72,7 @@ class InquiryModel extends PublicModel {
                     $item['created_by'] = $buyerInfo;
                     $resItem = $InquiryItemModel->addData($item);
                     if (!$resItem || $resItem['code'] != 1) {
+
                         $this->rollback();
                         return false;
                     }
@@ -80,6 +86,7 @@ class InquiryModel extends PublicModel {
                     $item['created_by'] = $buyerInfo;
                     $resAttach = $inquiryAttachModel->addData($item);
                     if (!$resAttach || $resAttach['code'] != 1) {
+
                         $this->rollback();
                         return false;
                     }
@@ -237,7 +244,9 @@ class InquiryModel extends PublicModel {
      */
     public function addData($condition = []) {
         $data = $this->create($condition);
-
+        if (empty($data['est_delivery_date']) || !strtotime($data['est_delivery_date'])) {
+            unset($data['est_delivery_date']);
+        }
         if (!empty($condition['serial_no'])) {
             $data['serial_no'] = $condition['serial_no'];
         } else {
@@ -275,6 +284,8 @@ class InquiryModel extends PublicModel {
             }
             return $results;
         } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL);
+            Log::write($e->getMessage() . PHP_EOL);
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;

@@ -425,9 +425,8 @@ class EsGoodsModel extends Model {
 
     private function _findnulltoempty(&$item) {
         foreach ($item as $key => $val) {
-            if (is_null($val)) {
-                $item[$key] = '';
-            }
+
+            $item[$key] = strval($val);
         }
     }
 
@@ -506,7 +505,7 @@ class EsGoodsModel extends Model {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
-        $this->_findnulltoempty($item);
+
         $body = $item;
         $product_attr = $productattrs[$spu];
 
@@ -522,6 +521,9 @@ class EsGoodsModel extends Model {
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
         if (!$body['brand']) {
             $body['brand'] = '{}';
+        }
+        if (json_decode($body['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
         }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
             $body['name_loc'] = $name_locs[$sku];
@@ -579,6 +581,7 @@ class EsGoodsModel extends Model {
         }
         $body['show_cats'] = $this->_getValue($scats, $sku, [], 'json');
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
+        $this->_findnulltoempty($body);
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         if (!isset($flag['create'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);

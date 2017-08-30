@@ -123,37 +123,51 @@ class GroupController extends PublicController {
     }
 
     public function homelistAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
-        $limit = [];
-        $where = [];
-        if(!empty($data['name'])){
-            $where['org.name'] = array('like',"%".$data['name']."%");
-        }
-        if(!empty($data['parent_id'])){
-            $where['org.parent_id'] = $data['parent_id'];
-            $where_user['group_id'] = $data['parent_id'];
-        }else{
-            if(empty($data['name'])){
-                $where['org.parent_id'] = 0;
+        if(redisExist('homelist')){
+            $arr  =  json_decode(redisGet('homelist'),true);
+            if(!empty($arr)){
+                $datajson['code'] = 0;
+                $datajson['data'] = $arr;
+            }else{
+                $datajson['code'] = -104;
+                $datajson['data'] = $arr;
+                $datajson['message'] = '数据为空!';
             }
-        }
-        $user_modle =new UserModel();
-        $model_group = new GroupModel();
-        $data = $model_group->getlist($where,$limit); //($this->put_data);
-        if(!isset( $where_user['group_id'])){
-            $where_user['group_id']=$data[0]['id'];
-        }
-        $arr  = $this->get_group_children($data,'',1);
-        if(!empty($arr)){
-            $datajson['code'] = 0;
-            $datajson['data'] = $arr;
+            $this->jsonReturn($datajson);
         }else{
-            $datajson['code'] = -104;
-            $datajson['data'] = $arr;
-            $datajson['message'] = '数据为空!';
+            $data = json_decode(file_get_contents("php://input"), true);
+            $limit = [];
+            $where = [];
+            if(!empty($data['name'])){
+                $where['org.name'] = array('like',"%".$data['name']."%");
+            }
+            if(!empty($data['parent_id'])){
+                $where['org.parent_id'] = $data['parent_id'];
+                $where_user['group_id'] = $data['parent_id'];
+            }else{
+                if(empty($data['name'])){
+                    $where['org.parent_id'] = 0;
+                }
+            }
+            $user_modle =new UserModel();
+            $model_group = new GroupModel();
+            $data = $model_group->getlist($where,$limit); //($this->put_data);
+            if(!isset( $where_user['group_id'])){
+                $where_user['group_id']=$data[0]['id'];
+            }
+            $arr  = $this->get_group_children($data,'',1);
+            if(!empty($arr)){
+                redisSet('homelist',json_encode($arr),3000);
+                $datajson['code'] = 0;
+                $datajson['data'] = $arr;
+            }else{
+                $datajson['code'] = -104;
+                $datajson['data'] = $arr;
+                $datajson['message'] = '数据为空!';
+            }
+            $this->jsonReturn($datajson);
         }
 
-        $this->jsonReturn($datajson);
     }
     public function listallAction(){
         $data = json_decode(file_get_contents("php://input"), true);

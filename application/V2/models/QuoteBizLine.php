@@ -549,7 +549,7 @@ class QuoteBizLineModel extends PublicModel{
                         ->join('erui2_rfq.inquiry_item b ON b.inquiry_id = a.id')
                         ->join('erui2_rfq.quote_item c ON c.inquiry_item_id = b.id')
                         //->join('erui2_sys.employee d ON d.id = c.biz_agent_id')
-                        ->field('c.id,c.bizline_id,c.bizline_agent_id,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
+                        ->field('c.id,c.bizline_id,c.bizline_agent_id,b.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
                         ->where($where)
                         ->page($currentPage, $pageSize)
                         ->order('c.id DESC')
