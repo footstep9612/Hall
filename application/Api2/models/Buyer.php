@@ -218,7 +218,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_by'])) {
             $data['checked_by'] = $create['checked_by'];
         }
-        $data['status'] = 'DRAFT';
+        $data['status'] = 'APPROVING';
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['checked_at'] = date('Y-m-d H:i:s');
         try {

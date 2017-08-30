@@ -268,7 +268,7 @@ trait QuoteHelper{
 
         $quoteItem = new InquiryItemModel();
 
-        $fields = ['a.id','a.sku','inq.inquiry_no','inq.serial_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
+        $fields = ['a.id','a.sku','inq.inquiry_no','a.buyer_goods_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
 
         return  $quoteItem->alias('a')
                         ->join('erui2_rfq.inquiry inq ON a.inquiry_id = inq.id','LEFT')
