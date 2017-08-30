@@ -29,6 +29,10 @@ class OrgMemberModel extends PublicModel {
      	if(!empty($condition['org_id'])) {
      	    $where['org_id'] = ['in', $condition['org_id']];
      	}
+     	
+     	if(!empty($condition['employee_id'])) {
+     	    $where['employee_id'] = $condition['employee_id'];
+     	}
     	
     	return $where;
     	
@@ -64,10 +68,14 @@ class OrgMemberModel extends PublicModel {
         
     	$where = $this->getWhere($condition);
     	
-    	$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-    	$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+    	//$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+    	//$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
     	
-    	return $this->field($field)->where($where)->page($currentPage, $pageSize)->order('id DESC')->select();
+    	return $this->field($field)
+    	                    ->where($where)
+    	                    //->page($currentPage, $pageSize)
+    	                    ->order('id DESC')
+    	                    ->select();
     }   
     
 	/**

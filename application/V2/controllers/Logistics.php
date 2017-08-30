@@ -213,6 +213,26 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
     	        $user = $this->getUserInfo();
     	        $quoteLogiFee['current_name'] = $user['name'];
+    	        
+    	        if ($quoteLogiFee['logi_agent_id']) {
+    	            $orgMemberList = $this->orgMemberModel->getList(['employee_id' => $quoteLogiFee['logi_agent_id']]);
+    	            
+    	            $orgArr = [];
+    	            
+    	            foreach ($orgMemberList as $orgMember) {
+    	                $orgArr[] = $orgMember['org_id'];
+    	            }
+    	            
+    	            $marketAreaTeamList = $this->marketAreaTeamModel->where(['logi_check_org_id' => $orgArr ? ['in', $orgArr] : '-1'])->select();
+    	            
+    	            $checkOrgArr = [];
+    	            
+    	            foreach ($marketAreaTeamList as $marketAreaTeam) {
+    	               $checkOrgArr[] = $marketAreaTeam['logi_check_org_id'];
+    	            }
+    	            
+    	            $quoteLogiFee['logi_check_org_id'] = implode(',', $checkOrgArr);
+    	        }
     	    }
     	
     	    $this->jsonReturn($quoteLogiFee);
