@@ -108,10 +108,11 @@ class ProductAttachModel extends PublicModel {
     public function getproduct_attachsbyspus($spus, $lang = 'en') {
 
         try {
-            $product_attachs = $this->field('id,attach_type,attach_url,attach_name,attach_url,spu')
+            $product_attachs = $this->field('id,attach_type,attach_url,attach_name,attach_url,spu,default_flag')
                     ->where(['spu' => ['in', $spus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
                         'status' => 'VALID'])
+                    ->order('default_flag desc')
                     ->select();
             $ret = [];
             if ($product_attachs) {

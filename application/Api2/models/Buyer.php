@@ -218,7 +218,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_by'])) {
             $data['checked_by'] = $create['checked_by'];
         }
-        $data['status'] = 'DRAFT';
+        $data['status'] = 'APPROVING';
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['checked_at'] = date('Y-m-d H:i:s');
         try {
@@ -376,6 +376,23 @@ class BuyerModel extends PublicModel {
         }
         if($res!==false){
             return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断采购商是否通过审核
+     * @author klp
+     */
+    public function isBuyerApproved($where){
+        $result = $this->field('status,id')->where($where)->find();
+        if($result){
+            if($result['status'] == self::STATUS_APPROVED){
+                $BuyerAgentModel = new BuyerAgentModel();
+                $res = $BuyerAgentModel->field('agent_id')->where(['buyer_id'=>$where['id']])->find();
+                return $res['agent_id'] ? $res['agent_id'] : false;
+            }
+            return false;
         }
         return false;
     }

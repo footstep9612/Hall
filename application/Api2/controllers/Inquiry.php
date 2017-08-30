@@ -12,6 +12,22 @@ class InquiryController extends PublicController {
         parent::init();
     }
 
+    //判断采购商是否经过审核,通过返回市场经办人agent_id
+    public function isBuyerApprovedAction(){
+        $where['id'] = $this->user['buyer_id'];
+        $buyerModel = new BuyerModel();
+        $res = $buyerModel->isBuyerApproved($where);
+        if($res){
+            $this->setCode('1');
+            $this->setMessage('通过!');
+            $this->jsonReturn($res);
+        }else {
+            $this->setCode('-101');
+            $this->setMessage('未通过!');
+            $this->jsonReturn();
+        }
+    }
+
     //返回询价单流水号
     public function getInquiryNoAction() {
         $data['serial_no'] = $this->getInquirySerialNo();

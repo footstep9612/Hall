@@ -108,6 +108,7 @@ class BuyerAccountModel extends PublicModel {
                     ->join($buyeraddress_table . ' as bad on b.buyer_id=bad.buyer_id', 'left')
                     ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
                     ->find();
+
             return $row;
         } else {
             return false;

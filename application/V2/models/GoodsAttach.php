@@ -489,10 +489,11 @@ class GoodsAttachModel extends PublicModel {
 
         try {
             $goods_attachs = $this->table('erui2_goods.goods_attach')
-                    ->field('id,attach_type,attach_url,attach_name,attach_url,sku')
+                    ->field('id,attach_type,attach_url,attach_name,attach_url,sku,default_flag')
                     ->where(['sku' => ['in', $skus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
                         'status' => 'VALID'])
+                    ->order('default_flag desc')
                     ->select();
             $ret = [];
             if ($goods_attachs) {

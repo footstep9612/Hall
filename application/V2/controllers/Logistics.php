@@ -131,11 +131,17 @@ class LogisticsController extends PublicController {
 	        $condition['pm_id'] = $pm['id'];
 	    }
 	    
+	    $isGroup = ['in', $this->user['group_id']];
+	    
 	    $where['_complex'] = [
-	        'logi_check_org_id' => ['in', $this->user['group_id']],
-	        'logi_quote_org_id' => ['in', $this->user['group_id']],
+	        'logi_check_org_id' => $isGroup,
+	        'logi_quote_org_id' => $isGroup,
 	        '_logic' => 'or',
 	    ];
+	    
+	    $res1 = $this->marketAreaTeamModel->where(['logi_check_org_id' => $isGroup])->find();
+	    
+	    $res2 = $this->marketAreaTeamModel->where(['logi_quote_org_id' => $isGroup])->find();
 	    
 	    $marketAreaTeamList = $this->marketAreaTeamModel->where($where)->select();
 	    
@@ -157,7 +163,7 @@ class LogisticsController extends PublicController {
 	    
 	    //$condition['logi_agent_id'] = $this->user['id'];
 	
-	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);   
+	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);
 	    
 	    foreach ($quoteLogiFeeList as &$quoteLogiFee) {
             $userAgent = $this->userModel->info($quoteLogiFee['agent_id']);
@@ -165,8 +171,18 @@ class LogisticsController extends PublicController {
 	        $quoteLogiFee['agent_name'] = $userAgent['name'];
 	        $quoteLogiFee['pm_name'] = $userPm['name'];
 	    }
-	    	    
-	    $this->_handleList($this->quoteLogiFeeModel, $quoteLogiFeeList, $condition, true);
+	    
+	    if ($quoteLogiFeeList) {
+	        $res['code'] = 1;
+	        $res['message'] = '成功!';
+	        $res['data'] = $quoteLogiFeeList;
+	        $res['is_checker'] = $res1 ? 'Y' : 'N';
+	        $res['is_quoter'] = $res2 ? 'Y' : 'N';
+	        $res['count'] = $this->quoteLogiFeeModel->getJoinCount($condition);
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
 	}
 	
 	/**
