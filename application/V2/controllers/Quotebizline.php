@@ -553,7 +553,7 @@ class QuotebizlineController extends PublicController {
      */
     public function rejectBizlineAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request = $this->validateRequests('inquiry_id,op_note');
 
         $quote = new QuoteModel();
         $request['quote_id'] = $quote->where(['inquiry_id'=>$request['inquiry_id']])->getField('id');
@@ -573,11 +573,25 @@ class QuotebizlineController extends PublicController {
         $inquiry = new InquiryModel();
 
         if($upitemform){
+
             $upquotetatus = $quote->where('id='.$request['quote_id'])->save(['status' => 'BZ_QUOTE_REJECTED']);//修改报价单状态
             $upbizlinestatus = $quotebizline->where('quote_id='.$request['quote_id'])->save(['status' => 'REJECTED']);//修改产品线报价状态
             $inquiryStatus = $inquiry->where(['id'=>$request['inquiry_id']])->save(['status'=>'BZ_QUOTE_REJECTED']);
+            //写入审核日志
+            $inquiryCheckLog = new InquiryCheckLogModel();
+            $inquiryCheckLogResult = $inquiryCheckLog->add($inquiryCheckLog->create([
+                'op_id' => $this->user['id'],
+                'inquiry_id' => $request['inquiry_id'],
+                'quote_id' => $request['quote_id'],
+                'category' => 'PM',
+                'action' => 'APPROVING',
+                'op_note' => $request['op_note'],
+                'op_result' => 'REJECTED',
+                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
 
-            if($upquotetatus && $upbizlinestatus && $inquiryStatus){
+            if($upquotetatus && $upbizlinestatus && $inquiryStatus && $inquiryCheckLogResult){
                 $quoteitemform->commit();
                 $result['code'] = '1';
                 $result['message'] = '成功!';
