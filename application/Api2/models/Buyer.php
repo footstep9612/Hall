@@ -381,6 +381,23 @@ class BuyerModel extends PublicModel {
     }
 
     /**
+     * 判断采购商是否通过审核
+     * @author klp
+     */
+    public function isBuyerApproved($where){
+        $result = $this->field('status,id')->where($where)->find();
+        if($result){
+            if($result['status'] == self::STATUS_APPROVED){
+                $BuyerAgentModel = new BuyerAgentModel();
+                $res = $BuyerAgentModel->field('agent_id')->where(['buyer_id'=>$where['id']])->find();
+                return $res['agent_id'] ? $res['agent_id'] : false;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    /**
      * 通过顾客id获取会员等级
      * @author klp
      */
