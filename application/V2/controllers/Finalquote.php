@@ -21,6 +21,7 @@ class FinalquoteController extends PublicController {
         $inquiry = new InquiryModel();
         $finalquote = new FinalQuoteModel();
         $employee = new EmployeeModel();
+        $quoteModel = new QuoteModel();
         $where = $this->put_data;
 
         //获取市场报价单详细信息
@@ -46,10 +47,12 @@ class FinalquoteController extends PublicController {
             }
 
             //获取综合报价信息
-            $quotebizline = new QuotebizlineController();
-            $quotedata = $quotebizline->quoteGeneralInfoAction();
 
-            if($quotedata['code']==1){
+            $fields = 'total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price';
+
+            $quotedata = $quoteModel->field($fields)->where('inquiry_id='.$quotewhere['inquiry_id'])->find();
+
+            if(!empty($quotedata)){
                 //追加结果
                 $quoteinfo['total_weight'] = $quotedata['data']['total_weight'];    //总重
                 $quoteinfo['package_volumn'] = $quotedata['data']['package_volumn'];    //包装总体积
@@ -76,12 +79,24 @@ class FinalquoteController extends PublicController {
             }
 
             //获取物流报价信息
-            $logistics = new LogisticsController();
-            $logidata = $logistics->getQuoteLogiFeeDetailAction();
+            $logistics = new QuoteLogiFeeModel();
+            $quoteLogiFee = $logistics->getJoinDetail($quotewhere);
 
-            if($logidata['code']==1){
-                //追加结果
-                $results['logidata'] = $logidata['data'];
+            if (!empty($quoteLogiFee)) {
+                $quoteLogiFee['land_freight_usd'] = $quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']);
+                $quoteLogiFee['port_surcharge_usd'] = $quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']);
+                $quoteLogiFee['inspection_fee_usd'] = $quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']);
+                $quoteLogiFee['inter_shipping_usd'] = $quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']);
+                $quoteLogiFee['dest_delivery_fee_usd'] = $quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']);
+                $quoteLogiFee['dest_clearance_fee_usd'] = $quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']);
+
+                $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
+                $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
+                $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
+                $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
+                $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
+
+                $results['logidata'] = $quoteLogiFee;
             }
         }
 
