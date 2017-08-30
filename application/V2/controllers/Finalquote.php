@@ -79,8 +79,8 @@ class FinalquoteController extends PublicController {
             }
 
             //获取物流报价信息
-            $logistics = new QuoteLogiFeeModel();
-            $quoteLogiFee = $logistics->getJoinDetail($quotewhere);
+            $quotetlogifee = new QuoteLogiFeeModel();
+            $quoteLogiFee = $quotetlogifee->getJoinDetail($quotewhere);
 
             if (!empty($quoteLogiFee)) {
                 $quoteLogiFee['land_freight_usd'] = $quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']);
@@ -253,4 +253,29 @@ class FinalquoteController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    /**
+     * 获取币种兑换美元汇率
+     * Author:张玉良
+     */
+    private function _getRateUSD($cur) {
+
+        return $this->_getRate($cur, 'USD');
+    }
+
+    /**
+     * 获取币种兑换汇率
+     * Author:张玉良
+     */
+    private function _getRate($cur, $exchangeCur = 'CNY') {
+        $exchangeRateModel = new ExchangeRateModel();
+
+        if (!empty($cur)) {
+            $exchangeRate = $exchangeRateModel->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->field('rate')->find();
+
+            return $exchangeRate['rate'];
+        } else {
+            return false;
+        }
+
+    }
 }
