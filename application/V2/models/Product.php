@@ -84,13 +84,13 @@ class ProductModel extends PublicModel {
                             unset($r['lang']);
                             unset($r['manufacturer']);
                             $r['id'] = $brandInfo['id'];
-                            $data['brand'] = json_encode($r);
+                            $data['brand'] = json_encode($r, JSON_UNESCAPED_UNICODE);
                             break;
                         }
                     }
                 }
             } else {
-                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand']) : $input['brand'];
+                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : $input['brand'];
             }
         } elseif ($type == 'INSERT') {
             $data['brand'] = '';

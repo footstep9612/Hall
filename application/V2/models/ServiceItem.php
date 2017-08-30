@@ -58,7 +58,7 @@ class ServiceItemModel extends PublicModel{
             return false;
         }
         if(!empty($condition['item'])){
-            $data['item'] = json_encode($condition['item']);
+            $data['item'] = json_encode($condition['item'],JSON_UNESCAPED_UNICODE);
         }
         $data['service_cat_id'] = $service_cat_id;
         $data['service_term_id'] = $service_term_id;
@@ -87,7 +87,7 @@ class ServiceItemModel extends PublicModel{
         }
         $where = ['service_cat_id'=>$condition['id']];
         if(!empty($condition['item'])){
-            $data['item'] = json_encode($condition['item']);
+            $data['item'] = json_encode($condition['item'],JSON_UNESCAPED_UNICODE);
         }
         $data['updated_by'] = $userInfo['id'];
         $data['updated_at'] = date('Y-m-d H:i:s', time());

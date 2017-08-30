@@ -603,10 +603,10 @@ class GoodsModel extends PublicModel {
                     $attr_obj = array(
                         'lang' => $key,
                         'spu' => isset($checkout['spu']) ? $checkout['spu'] : null,
-                        'spec_attrs' => !empty($attr['spec_attrs']) ? json_encode($attr['spec_attrs']) : null,
-                        'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs']) : null,
-                        'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs']) : null,
-                        'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs']) : null,
+                        'spec_attrs' => !empty($attr['spec_attrs']) ? json_encode($attr['spec_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs'], JSON_UNESCAPED_UNICODE) : null,
                         'status' => $gattr::STATUS_VALID
                     );
                     if (isset($input['sku'])) {
