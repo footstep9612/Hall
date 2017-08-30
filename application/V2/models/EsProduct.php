@@ -609,6 +609,9 @@ class EsProductModel extends Model {
         $spu = $id = $item['spu'];
         $this->_findnulltoempty($item);
         $body = $item;
+        if (json_decode($item['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
+        }
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {

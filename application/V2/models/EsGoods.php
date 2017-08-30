@@ -523,6 +523,9 @@ class EsGoodsModel extends Model {
         if (!$body['brand']) {
             $body['brand'] = '{}';
         }
+        if (json_decode($body['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
+        }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
             $body['name_loc'] = $name_locs[$sku];
         } else {
