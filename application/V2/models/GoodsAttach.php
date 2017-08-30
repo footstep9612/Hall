@@ -444,28 +444,29 @@ class GoodsAttachModel extends PublicModel {
             jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         $data = $results = [];
-        if (!empty($param['supplier_id'])) {
+        if (isset($param['supplier_id']) && !empty($param['supplier_id'])) {
             $data['supplier_id'] = $param['supplier_id'];
         }
-        if (!empty($param['attach_type'])) {
+        if (isset($param['attach_type']) && !empty($param['attach_type'])) {
             $data['attach_type'] = $param['attach_type'];
         }
-        if (!empty($param['attach_name'])) {
+        if (isset($param['attach_name']) && !empty($param['attach_name'])) {
             $data['attach_name'] = $param['attach_name'];
+        }else{
+            if (isset($param['attach_url']) && !empty($param['attach_url'])) {
+                $data['attach_name'] = $param['attach_url'];
+            }
         }
-        if (empty($param['attach_name'])) {
-            $data['attach_name'] = $param['attach_url'];
-        }
-        if (!empty($param['attach_url'])) {
+        if (isset($param['attach_url']) && !empty($param['attach_url'])) {
             $data['attach_url'] = $param['attach_url'];
         } else {
             $results['code'] = -101;
             $results['message'] = '[attach_url]参数缺少!';
         }
-        if (!empty($param['default_flag'])) {
+        if (isset($param['default_flag']) && !empty($param['default_flag'])) {
             $data['default_flag'] = $param['default_flag'];
         }
-        if (!empty($param['sort_order'])) {
+        if (isset($param['supplier_id']) && !empty($param['sort_order'])) {
             $data['sort_order'] = $param['sort_order'];
         }
         if ($results) {
