@@ -656,11 +656,12 @@ class QuotebizlineController extends PublicController {
         $inquiryCheckLog = new InquiryCheckLogModel();
         $inquiryCheckLog->startTrans();
         $checkInfo = [
+            'op_id' => $this->user['id'],
             'created_by' => $this->user['id'],
             'created_at' => date('Y-m-d H:i:s'),
             'inquiry_id' => $request['inquiry_id'],
             'quote_id' => $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->getField('id'),
-            'category' => 'LOGI',
+            'category' => 'PM',
             'action' => 'APPROVING',
             'op_note' => $request['op_note'],
             'op_result' => 'REJECTED'
