@@ -228,10 +228,18 @@ class BizlineController extends PublicController {
     //产品线报价人列表
     public function getQuoterAction() {
         $bizlinegroup = new BizlineGroupModel();
+        $org = new OrgModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'SKU_QUOTER';
 
         $results = $bizlinegroup->getList($createcondition);
+
+        foreach($results['data'] as $key=>$val){
+            $rs = $org->field('name')->where('id='.$val['group_id'])->find();
+            if(!empty($rs)){
+                $results['data'][$key]['group_name'] = $rs['name'];
+            }
+        }
 
         $this->jsonReturn($results);
     }
