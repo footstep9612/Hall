@@ -15,7 +15,7 @@ class UploadController extends Yaf_Controller_Abstract {
 
         if (!empty($ret['url'])) {
             $result = array(
-                "code" => '1',
+                "code" => '0',
                 "url" => $ret['url'],
             );
         } else {
