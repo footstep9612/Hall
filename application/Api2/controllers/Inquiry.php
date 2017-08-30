@@ -79,8 +79,7 @@ class InquiryController extends PublicController {
         $results = $inquiry->getlist($where);
 
         foreach ($results['data'] as $key => $val) {
-            $test['serial_id'] = $val['id'];
-
+            $test['inquiry_id'] = $val['id'];
             $results['data'][$key]['quantity'] = $item->getcount($test);
         }
 
