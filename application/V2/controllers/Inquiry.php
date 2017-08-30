@@ -231,9 +231,14 @@ class InquiryController extends PublicController {
      */
 
     public function updateAction() {
+        $auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
+
+        if ($auth['code'] == 1) {
+            $where['status'] = 'APPROVING_BY_SC';
+        }
 
         $results = $inquiry->updateData($data);
         $this->jsonReturn($results);
