@@ -26,4 +26,65 @@ class NewAttrModel extends PublicModel {
 
     protected $tablePrefix = '';
 
+    /* 通过SKU获取数据商品属性列表
+     * @param mix $skus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix
+     */
+
+    public function getgoods_attrbyskus($skus, $lang = 'en') {
+
+        try {
+            $product_attrs = $this->table('erui_goods.t_goods_attr_new_ex')
+                    ->field('*')
+                    ->where(['sku' => ['in', $skus], 'hs_flag' => 'Y', 'lang' => $lang, 'status' => 'VALID'])
+                    ->select();
+
+            $ret = [];
+            foreach ($product_attrs as $item) {
+                $sku = $item['sku'];
+                unset($item['sku']);
+
+                $ret[$sku][$item['attr_name']] = $item['attr_value'];
+            }
+
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /* 通过SKU获取数据商品规格列表
+     * @param mix $skus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix
+     */
+
+    public function getgoods_specsbyskus($skus, $lang = 'en') {
+        try {
+            $product_attrs = $this->table('erui_goods.t_goods_attr_new_ex')
+                    ->field('sku,attr_name,attr_value,attr_no')
+                    ->where(['sku' => ['in', $skus],
+                        'lang' => $lang,
+                        'spec_flag' => 'Y',
+                        'status' => 'VALID'
+                    ])
+                    ->select();
+
+            $ret = [];
+            foreach ($product_attrs as $item) {
+                $sku = $item['sku'];
+                unset($item['sku']);
+                $ret[$sku][$item['attr_name']] = $item['attr_value'];
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }
