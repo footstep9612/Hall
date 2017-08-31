@@ -188,7 +188,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function getCondition($condition) {
+    private function getCondition($condition, $lang = 'en') {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
@@ -197,17 +197,19 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
 
-
-
-        if ($lang !== 'zh') {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
-        } else {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        $mcat_no1 = $this->_getValue($condition, 'mcat_no1');
+        $mcat_no2 = $this->_getValue($condition, 'mcat_no2');
+        $mcat_no3 = $this->_getValue($condition, 'mcat_no3');
+        if ($mcat_no1) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
         }
+        if ($mcat_no2) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+        if ($mcat_no3) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -301,7 +303,7 @@ class EsProductModel extends Model {
 
         try {
             $body = $this->getCondition($condition);
-
+            echo json_encode($body, 256);
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
