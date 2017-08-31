@@ -108,6 +108,19 @@ class BuyerAccountModel extends PublicModel {
                     ->join($buyeraddress_table . ' as bad on b.buyer_id=bad.buyer_id', 'left')
                     ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
                     ->find();
+            if(!empty($row['buyer_level'])){
+                $BuyerLevelModel = new BuyerLevelModel();
+                $res = $BuyerLevelModel->field('buyer_level')->where(['id'=>$row['buyer_level']])->find();
+                if($res){
+                    if (!is_null(json_decode($res['buyer_level'], true))) {
+                        $level = json_decode($res['buyer_level'], true);
+                        foreach($level as $item){
+                            $dat[$item['lang']] = $item;
+                        }
+                        $row['buyer_level'] = $dat['en']['name'];
+                    }
+                }
+            }
 
             return $row;
         } else {

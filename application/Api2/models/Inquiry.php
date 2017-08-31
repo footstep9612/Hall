@@ -56,13 +56,11 @@ class InquiryModel extends PublicModel {
         try {
             $res = $this->addData($data);
             if (!$res || $res['code'] != 1) {
-
                 $this->rollback();
                 return false;
             } else {
                 $data['inquiry_id'] = $res['data']['id'];
             }
-
 
             //添加sku询单项明细
             $InquiryItemModel = new InquiryItemModel();

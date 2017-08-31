@@ -166,10 +166,10 @@ class GoodsModel extends PublicModel {
                 //增加最小
                 $sku = $item['sku'];
                 $result[$k]['exw_day'] = $item['exw_days'];
-                $result[$k]['purchase_unit'] = $item['tx_unit'];
+                $result[$k]['purchase_unit'] = $item['min_pack_unit'];
 
 
-                $result[$k]['goods'] = $item['min_pack_naked_qty'] . $item['nude_cargo_unit'] . '/' . $item['tx_unit'];
+                $result[$k]['goods'] = $item['min_pack_naked_qty'] . $item['nude_cargo_unit'] . '/' . $item['min_pack_unit'];
                 $spec = [];
                 if (isset($specs[$sku])) {
                     $spec = json_decode($specs[$sku][0]['spec_attrs'], true);
