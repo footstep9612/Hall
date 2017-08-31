@@ -217,7 +217,7 @@ class InquiryController extends PublicController {
         $data['created_by'] = $this->user['id'];
 
         if ($auth['code'] == 1) {
-            $where['status'] = 'APPROVING_BY_SC';
+            $data['status'] = 'APPROVING_BY_SC';
         }
 
         $results = $inquiry->addData($data);
@@ -237,7 +237,7 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         if ($auth['code'] == 1) {
-            $where['status'] = 'APPROVING_BY_SC';
+            $data['status'] = 'APPROVING_BY_SC';
         }
 
         $results = $inquiry->updateData($data);
