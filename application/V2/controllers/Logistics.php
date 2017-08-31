@@ -216,7 +216,9 @@ class LogisticsController extends PublicController {
     	        
     	        if ($quoteLogiFee['logi_agent_id']) $quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id']);
     	        
-    	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], 'logi_quote_org_id');
+    	        $outField = 'logi_quote_org_id';
+    	        $findFields = ['logi_check_org_id', $outField];
+    	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);
     	    }
     	
     	    $this->jsonReturn($quoteLogiFee);
@@ -852,27 +854,37 @@ class LogisticsController extends PublicController {
 	 * @desc 获取用户所在指定组织的id集合串
 	 *
 	 * @param string $employeeId 员工id
-	 * @param string $orgField 组织字段
+	 * @param array $findFields 查找的组织字段
+	 * @param string $outField 输出的组织字段
 	 * @return string 组织id集合串
 	 * @author liujf
 	 * @time 2017-08-31
 	 */
-	private function _getOrgIds($employeeId = '-1', $orgField = 'logi_check_org_id') {
+	private function _getOrgIds($employeeId = '-1', $findFields = ['logi_quote_org_id'], $outField = 'logi_check_org_id') {
 	     
 	    $orgMemberList = $this->orgMemberModel->getList(['employee_id' => $employeeId]);
-    	            
+	    
         $orgArr = [];
         
         foreach ($orgMemberList as $orgMember) {
             $orgArr[] = $orgMember['org_id'];
         }
         
-        $marketAreaTeamList = $this->marketAreaTeamModel->where([$orgField => $orgArr ? ['in', $orgArr] : '-1'])->select();
+        $where = [];
+        $condition = $orgArr ? ['in', $orgArr] : '-1';
+        
+        foreach ($findFields as $findField) {
+            $where['_complex'][$findField] = $condition;
+        }
+        
+        if ($where) $where['_complex']['_logic'] = 'or';
+        
+        $marketAreaTeamList = $this->marketAreaTeamModel->where($where)->select();
         
         $appointOrgArr = [];
         
         foreach ($marketAreaTeamList as $marketAreaTeam) {
-           $appointOrgArr[] = $marketAreaTeam[$orgField];
+           $appointOrgArr[] = $marketAreaTeam[$outField];
         }
         
         return implode(',', $appointOrgArr);
