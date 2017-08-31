@@ -119,7 +119,7 @@ class InquiryController extends PublicController {
         $country = new CountryModel();
         $where = $this->put_data;
 
-        $where['agent_id'][] = $this->user['id'];   //经办人为自己
+        $where['agent_id'] = [];   //经办人为自己
         //如果有方案中心权限
         if ($auth['code'] == 1) {
             foreach ($auth['data'] as $epl) {
@@ -140,6 +140,8 @@ class InquiryController extends PublicController {
                 $results['message'] = '没有找到相关信息！';
                 $this->jsonReturn($results);
             }
+        }else{
+            $where['user_id'] = $this->user['id'];
         }
         //如果搜索条件有项目经理，转换成id
         if (!empty($where['pm_name'])) {
@@ -236,9 +238,12 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
-        if ($auth['code'] == 1) {
-            $data['status'] = 'APPROVING_BY_SC';
+        if(empty($data['status'])){
+            if ($auth['code'] == 1) {
+                $data['status'] = 'APPROVING_BY_SC';
+            }
         }
+
 
         $results = $inquiry->updateData($data);
         $this->jsonReturn($results);
