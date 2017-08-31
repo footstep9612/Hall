@@ -79,9 +79,14 @@ class InquiryModel extends PublicModel {
         $where = $this->getCondition($condition);
 
         if(!empty($condition['user_id'])){
-            $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") or (agent_id='.$condition['user_id'].') ';
-            unset($where['agent_id']);
-            unset($where['status']);
+            if(!empty($condition['agent_id'])){
+                $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") or (agent_id='.$condition['user_id'].') ';
+                unset($where['agent_id']);
+                unset($where['status']);
+            }else{
+                $where['agent_id'] = $condition['user_id'];
+            }
+
         }
 
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
