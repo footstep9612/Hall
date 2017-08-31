@@ -2,7 +2,6 @@
 
 /**
  * 产品线报价
- * Class QuotebizlineController
  * @author 买买提
  */
 class QuotebizlineController extends PublicController {
@@ -51,11 +50,11 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * 权限
+     * 用户权限验证
      * @return array
      */
     public function validateAuth(){
-        //p($this->user);
+
         if (!isset($this->user['group_id']) && empty($this->user['group_id'])){
             $this->jsonReturn(['code'=>'-104','message'=>'没有权限']);
         }
@@ -63,11 +62,10 @@ class QuotebizlineController extends PublicController {
         $bizlinegroup = new BizlineGroupModel();
 
         $data = $bizlinegroup->where('group_id IN('.implode(",",$groupid).') and group_role in("SKU_QUOTER","BIZLINE_MANAGER") ')->select();
-        //p($data);
-
         if (!$data){
             $this->jsonReturn(['code'=>'-104','message'=>'没有权限']);
         }
+
         $bizlineids = [];
         $grouprole = [];
         foreach ($data as $key=>$val){
@@ -84,18 +82,16 @@ class QuotebizlineController extends PublicController {
         }
 
         $bizlineids = array_unique($bizlineids);
-        //p($bizlineids);
 
         $results['bizlineid'] = $bizlineids;
         $results['grouprole'] = $grouprole;
-        //p($results);
+
         return $results;
 
     }
 
     /**
-     * @desc 产品线报价列表(项目经理)
-     * @author 买买提
+     * 产品线报价列表(项目经理)
      */
     public function bizlineListAction(){
 
@@ -112,9 +108,16 @@ class QuotebizlineController extends PublicController {
 
         $quoteBizlineList = QuoteHelper::getPmQuoteBizlineList($condition);
 
+        $country = new CountryModel();
+
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
             $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+            //国家
+            if (!empty($quoteBizline['country_bn'])) {
+                $countryInfo = $country->field('name')->where("lang='zh' and bn='" . $quoteBizline['country_bn'] . "'")->find();
+                $quoteBizline['country_bn'] = $countryInfo['name'];
+            }
         }
 
         if ($quoteBizlineList) {
@@ -130,7 +133,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 报价单sku列表(项目经理)
+     * 报价单sku列表(项目经理)
      */
     public function quoteSkuListAction(){
 
@@ -139,7 +142,6 @@ class QuotebizlineController extends PublicController {
         $quoteSkuList = QuoteHelper::getQuoteList($request);
 
         if ($quoteSkuList){
-
             $quoteitemform = new QuoteItemFormModel();
             //关联产品线，查询已经关联的产品线名称
             foreach($quoteSkuList  as $key=>$val){
@@ -173,7 +175,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 项目经理报价sku列表(新增)
+     * 项目经理报价sku列表(新增)
      */
     public function pmQuoteListAction(){
 
@@ -205,8 +207,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 划分产品线(项目经理)
-     * @author 买买提
+     * 划分产品线(项目经理)
      */
     public function partitionBizlineAction(){
 
@@ -309,34 +310,30 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 转交其他人办理(项目经理)
+     * 转交其他人办理(项目经理)
      * 操作说明:转交后，当前人员就不是项目经理了，如果也不是方案中心的人，就不能再查看这个项目了
      */
     public function transmitAction(){
 
         $request = $this->validateRequests('id,pm_id');
-
         $response = QuoteBizlineHelper::transmitHandler($request,$this->user['id']);
-
         $this->jsonReturn($response);
 
     }
 
     /**
-     * @desc 提交产品线报价(项目经理)
+     * 提交产品线报价(项目经理)
      * 操作说明:当前询单的状态改为产品线报价中
      */
     public function submitToBizlineAction(){
 
         $request = $this->validateRequests('id');
-
         $this->jsonReturn(QuoteBizlineHelper::submitToBizline($request));
 
     }
 
     /**
-     * @desc 产品线报价列表(产品线负责人)
-     * @author 买买提
+     * 产品线报价列表(产品线负责人)
      */
     public function bizlineManagerQuoteListAction(){
 
@@ -362,9 +359,15 @@ class QuotebizlineController extends PublicController {
 
         $quoteBizlineList = QuoteHelper::bizlineManagerQuoteList($condition);
 
+        $country = new CountryModel();
         foreach ($quoteBizlineList as &$quoteBizline) {
             $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
             $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
+            //国家
+            if (!empty($quoteBizline['country_bn'])) {
+                $countryInfo = $country->field('name')->where("lang='zh' and bn='" . $quoteBizline['country_bn'] . "'")->find();
+                $quoteBizline['country_bn'] = $countryInfo['name'];
+            }
         }
 
         if ($quoteBizlineList) {
@@ -381,75 +384,15 @@ class QuotebizlineController extends PublicController {
 
     }
 
-    public function listAction(){
-
-        $auth = $this->validateAuth();
-        foreach ($auth['grouprole'] as $group=>$rol){
-            switch ($rol){
-                case 'BIZLINE_MANAGER' :
-                    $this->jsonReturn($this->mList('BIZLINE_MANAGER'));
-                    break;
-                case 'SKU_QUOTER' :
-                    p('产品线负责人');
-                    break;
-            }
-        }
-    }
-
-    public function mList($role_type){
-
-        $condition = $this->validateRequests();
-
-        $auth = $this->validateAuth();
-
-        foreach ($auth['bizlineid'] as $val){
-            $condition['bizline_id'][] = $val;
-        }
-
-        $user = new EmployeeModel();
-
-        if (!empty($condition['agent_name'])) {
-            $agent = $user->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
-        }
-
-        if (!empty($condition['pm_name'])) {
-            $pm = $user->where(['name' => $condition['pm_name']])->find();
-            $condition['pm_id'] = $pm['id'];
-        }
-
-        $quoteBizlineList = QuoteHelper::bizlineManagerQuoteList($condition);
-
-        foreach ($quoteBizlineList as &$quoteBizline) {
-            $quoteBizline['agent_name'] = $user->where(['id'=>$quoteBizline['agent_id']])->getField('name');
-            $quoteBizline['pm_name'] = $user->where(['id'=>$quoteBizline['pm_id']])->getField('name');
-        }
-
-        if ($quoteBizlineList) {
-            $this->jsonReturn([
-                'code' => '1',
-                'message' => '成功!',
-                'count' => QuoteHelper::bizlineManagerQuoteListCount($condition),
-                'role' => $role_type,
-                'data' => $quoteBizlineList
-            ]);
-        } else {
-            $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
-        }
-
-    }
-
     /**
      * 报价sku列表(产品线负责人)
      */
     public function bizlineManagerQuoteSkuListAction(){
 
         $request = $this->validateRequests('quote_id');
-
         $skuList = QuoteHelper::bizlineManagerQuoteSkuList($request);
 
         if ($skuList){
-
             $user = new EmployeeModel();
             $supplier = new SupplierModel();
             $quoteItemForm = new QuoteItemFormModel();
@@ -480,7 +423,6 @@ class QuotebizlineController extends PublicController {
         $request = $this->validateRequests('quote_item_id');
 
         $quoteItemForm = new QuoteItemFormModel();
-
         $quoterSkuList = $quoteItemForm->getSkuList($request);
 
         if (!$quoterSkuList){
@@ -504,36 +446,25 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 上传附件(项目经理)
-     * @author 买买提
+     * 上传附件(项目经理)
      */
     public function addAttachAction() {
 
-        $request = $this->_requestParams;
-        if (empty($request['quote_id']) || empty($request['attach_url'])){
-            $this->jsonReturn([
-                'code' => '-104',
-                'message' => '缺少参数'
-            ]);
-        }
-
+        $request = $this->validateRequests('quote_id,attach_url');
         $request['created_by'] = $this->user['id'];
         $this->jsonReturn(QuoteBizlineHelper::addAttach($request));
+
     }
 
     /**
-     * @desc 附件列表
-     * @author 买买提
+     * 附件列表
      */
     public function attachListAction() {
 
-        $request = $this->_requestParams;
-        if ( empty($request['quote_id']) ){
-            $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
-        }
+        $request = $this->validateRequests('quote_id');
 
         $quoteAttach = new QuoteAttachModel();
-        $attachList = $quoteAttach->where(['quote_id' => $this->_requestParams['quote_id']])->order('created_at desc')->select();
+        $attachList = $quoteAttach->where(['quote_id' => $request['quote_id']])->order('created_at desc')->select();
 
         if (!$attachList) {
             $this->jsonReturn([
@@ -551,7 +482,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 退回产品线重新报价(项目经理)
+     * 退回产品线重新报价(项目经理)
      */
     public function rejectBizlineAction(){
 
@@ -610,9 +541,9 @@ class QuotebizlineController extends PublicController {
 
         $this->jsonReturn($result);
     }
+
     /**
-     * @desc 提交物流报价(项目经理)
-     * @author 买买提
+     * 提交物流报价(项目经理)
      */
     public function sentLogisticsAction(){
 
@@ -686,8 +617,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 提交市场确认报价
-     * @author 买买提
+     * 提交市场确认报价
      */
     public function sentMarketAction(){
 
@@ -741,6 +671,7 @@ class QuotebizlineController extends PublicController {
                     'created_at' => date('Y-m-d H:i:s'),
                 ]));
             }
+
             if ($finalQuoteResult && $finalQuoteIds){
                 $inquiry->commit();
                 $finalQuote->commit();
@@ -752,14 +683,14 @@ class QuotebizlineController extends PublicController {
                 $finalQuoteItem->rollback();
                 $this->jsonReturn(['code'=>'-104','message'=>'回归失败!']);
             }
+
         }else{
             $this->jsonReturn(['code'=>'-104','message'=>'提交失败!']);
         }
     }
 
     /**
-     * @desc 产品线负责人上传附件(产品线负责人)
-     * @return array
+     * 产品线负责人上传附件(产品线负责人)
      */
     public function addBizlineAttachAction(){
         $request = $this->_requestParams;
@@ -841,8 +772,6 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('quote_item_id');
 
-        //$quoteBizline = new QuoteBizLineModel();
-        //$response = $quoteBizline->selectQuote($request);
         $quoteItemForm = new QuoteItemFormModel();
         $response = $quoteItemForm->getList($request);
 
@@ -856,7 +785,6 @@ class QuotebizlineController extends PublicController {
 
         //可以选的供应商id
         $supplier_id = $quoteItem->where(['id'=>$request['quote_item_id']])->getField('supplier_id');
-        $supplier_ids = $quoteItemForm->where($request)->getField('supplier_id',true);
 
         foreach ($response as $key=>$value){
             if (!empty($value['created_by'])){
@@ -881,7 +809,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 退回报价(产品线负责人)
+     * 退回报价(产品线负责人)
      */
     public function bizlineManagerRejectQuoteAction() {
 
@@ -890,38 +818,36 @@ class QuotebizlineController extends PublicController {
 
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->bizlineManagerRejectQuote($request);
-
         $this->jsonReturn($response);
 
     }
 
     /**
-     * @desc 提交项目经理审核(产品线负责人)
+     * 提交项目经理审核(产品线负责人)
      */
     public function sentToManagerAction() {
 
         $request = $this->validateRequests('quote_id,serial_no');
         $response = QuoteBizlineHelper::submitToManager($request);
         $this->jsonReturn($response);
+
     }
 
     /**
-     * @desc 提交产品线负责人审核(产品线报价人)
+     * 提交产品线负责人审核(产品线报价人)
      */
     public function sentToBizlineManagerAction() {
 
         $request = $this->validateRequests('quote_id');
 
-        //保存数据及更改状态
         $quoteBizline = new QuoteBizLineModel();
-
         $response = $quoteBizline->submitToBizlineManager($request);
         $this->jsonReturn($response);
 
     }
 
     /**
-     * @desc 获取综合报价信息(项目经理)
+     * 获取综合报价信息(项目经理)
      */
     public function quoteGeneralInfoAction(){
 
@@ -952,19 +878,18 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 保存报价综合信息(项目经理)
+     * 保存报价综合信息(项目经理)
      */
     public function saveQuoteGeneralInfoAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        unset($request['id']);
+        unset($request['id']);//过滤前端发送的多余id字段
 
         $quoteModel = new QuoteModel();
         try{
             if ($quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request))){
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }else{
-                //p($quoteModel->getLastSql());
                 $this->jsonReturn(['code'=>'-104','message'=>'你没有进行更改!']);
             }
         }catch (Exception $exception){
@@ -977,13 +902,12 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 询单信息
-     * @fields 询单流程编码 询单报价状态 询单项目经理
+     * 询单信息
+     * 询单流程编码 询单报价状态 询单项目经理
      */
     public function inquiryInfoAction(){
 
         $request = $this->validateRequests('serial_no');
-
         //获取询单本身信息
         $inquiryModel = new InquiryModel();
         $inquiryInfo = $inquiryModel->where(['serial_no'=>$request['serial_no']])->field([
@@ -1003,11 +927,12 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 详情页报价信息接口
+     * 详情页报价信息接口
      */
     public function quoteInfoAction() {
 
-        $data = $this->_quoteBizLine->getQuoteInfo($this->_requestParams['quote_id']);
+        $request = $this->validateRequests('quote_id');
+        $data = $this->_quoteBizLine->getQuoteInfo($request['quote_id']);
 
         if (!$data) {
             $this->jsonReturn([
@@ -1025,7 +950,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 暂存(产品线报价人)
+     * 暂存(产品线报价人)
      */
     public function storageQuoteAction() {
 
@@ -1033,7 +958,6 @@ class QuotebizlineController extends PublicController {
 
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->storageQuote($request,$this->user['id']);
-
         $this->jsonReturn($response);
 
     }
@@ -1046,9 +970,7 @@ class QuotebizlineController extends PublicController {
         $where = $this->validateRequests();
         $request = $where['data'];
 
-
         $quoteItem = new QuoteItemModel();
-
         try{
             $result = $quoteItem->where(['id'=>$request['id']])->save($quoteItem->create([
                 'supplier_id' => $request['supplier_id'],
@@ -1069,7 +991,6 @@ class QuotebizlineController extends PublicController {
             if ($result){
                 $this->jsonReturn(['code'=>'1','messsage'=>'成功!']);
             }else{
-                //p($quoteItem->getLastSql());
                 $this->jsonReturn(['code'=>'-104','messsage'=>'已经选择过了!']);
             }
         }catch(Exception $exception){
@@ -1079,39 +1000,6 @@ class QuotebizlineController extends PublicController {
             ]);
         }
 
-    }
-
-    /**
-     * @desc 暂存(产品线负责人)
-     */
-    public function managerStoreQuoteAction(){
-
-        $request = $this->_requestParams['data'];
-    }
-
-    /**
-     * @desc 查看审核信息
-     * @author 买买提
-     */
-    public function verifyInfoAction() {
-
-        $quoteItem = new QuoteItemBizLineModel();
-
-        $data = $quoteItem->getVerifyInfo($this->_requestParams['quote_id']);
-
-        if (!$data) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => '失败',
-                'data' => ''
-            ]);
-        }
-
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'data' => $data
-        ]);
     }
 
     /**
