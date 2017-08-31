@@ -295,7 +295,7 @@ class ServicecatController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         if(empty($data['buyer_level_id'])){
             $datajson['code'] = -101;
-            $datajson['message'] = '用户等级[buyer_level]不可为空!';
+            $datajson['message'] = '用户等级[buyer_level_id]不可为空!';
             $this->jsonReturn($datajson);
         }
         $MemberServiceModel = new MemberServiceModel();

@@ -131,12 +131,12 @@ class MemberServiceModel extends PublicModel {
         }
         $this->startTrans();
         try {
-            $where = ['buyer_level_id' => $buyer_level_id];
-            $res = $this->where($where)->save(['deleted_flag'=>'Y']);
-            if (!$res) {
-                $this->rollback();
-                return false;
-            }
+//            $where = ['buyer_level_id' => $buyer_level_id];
+//            $res = $this->where($where)->save(['deleted_flag'=>'Y']);
+//            if (!$res) {
+//                $this->rollback();
+//                return false;
+//            }
             $buyerLevelModel = new BuyerLevelModel();
             $where1 = ['id' => $buyer_level_id];
             $res1 = $buyerLevelModel->where($where1)->save(['deleted_flag'=>'Y']);

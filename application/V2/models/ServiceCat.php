@@ -386,7 +386,7 @@ class ServiceCatModel extends PublicModel {
             return false;
         }
 
-        $category = json_encode($data['category']);
+        $category = json_encode($data['category'],JSON_UNESCAPED_UNICODE);
         $userInfo = getLoinInfo();
 
         try{

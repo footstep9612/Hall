@@ -174,7 +174,7 @@ class ServiceItemModel extends PublicModel{
                         $data_edit = array(
                             'service_cat_id' => $service_cat_id,
                             'service_term_id' => $service_term_id,
-                            'item' => json_encode($data_item),
+                            'item' => json_encode($data_item,JSON_UNESCAPED_UNICODE),
                             'updated_by' => isset($userInfo['id']) ? $userInfo['id'] : null,
                             'updated_at' => date('Y-m-d H:i:s')
                         );
@@ -188,7 +188,7 @@ class ServiceItemModel extends PublicModel{
                         $data_edit = array(
                             'service_cat_id' => $service_cat_id,
                             'service_term_id' => $service_term_id,
-                            'item' => json_encode($data_item),
+                            'item' => json_encode($data_item,JSON_UNESCAPED_UNICODE),
                             'created_by' => isset($userInfo['id']) ? $userInfo['id'] : null,
                             'created_at' => date('Y-m-d H:i:s')
                         );

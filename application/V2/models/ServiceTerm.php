@@ -185,7 +185,7 @@ class ServiceTermModel extends PublicModel{
             $serviceItemModel = new ServiceItemModel();
             foreach($data['term'] as $r){
                 $data_edit = array(
-                    'term' => json_encode($r['term']),
+                    'term' => json_encode($r['term'],JSON_UNESCAPED_UNICODE),
                     'service_cat_id' => $service_cat_id,
                     'choice_flag' => $r['choice_flag'],
                     'add_flag' => $r['add_flag']
