@@ -9,7 +9,8 @@ class UploadfileController extends Yaf_Controller_Abstract {
      */
 
     public function UploadAction() {
-        $file = json_decode(file_get_contents("php://input"), true);
+
+        $file = $this->getRequest()->getFiles();
         if (empty($file)) {
             return false;
         }
