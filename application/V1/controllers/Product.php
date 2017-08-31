@@ -35,23 +35,28 @@ class ProductController extends PublicController {
         if (isset($this->input['spu']) && !empty($this->input['spu'])) {
             $spu = $this->input['spu'];
         } else {
-            $this->jsonReturn('', '1000', '参数[spu]有误');
+            jsonReturn('', '1000', '参数[spu]有误');
         }
         $lang = !empty($this->input['lang']) ? $this->input['lang'] : '';
         if ($lang != '' && !in_array($lang, array('zh', 'en', 'es', 'ru'))) {
-            $this->jsonReturn('', '1000', '参数[语言]有误');
+            jsonReturn('', '1000', '参数[语言]有误');
         }
         $status = isset($this->input['status']) ? strtoupper($this->input['status']) : '';
         if ($status != '' && !in_array($status, array('NORMAL', 'CLOSED', 'VALID', 'TEST', 'CHECKING', 'INVALID', 'DELETED'))) {
-            $this->jsonReturn('', '1000', '参数[状态]有误');
+            jsonReturn('', '1000', '参数[状态]有误');
         }
 
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu, $lang, $status);
         if (!empty($result)) {
             $goodsattr = new GoodsAttrModel();
-            $attrdata = $goodsattr->field('id,attr_name,attr_value')->where('lang="'.$lang.'" and spu='.$spu)->group('attr_name')->select();
+            $attrdata = $goodsattr->field('id,attr_name,attr_value')->where('lang="' . $lang . '" and spu=' . $spu . ' and attr_name="Minimum order quantity"')->group('attr_name')->find();
+
+            $minimum_packing_unit = $goodsattr->field('id,attr_name,attr_value')->where('lang="' . $lang . '" and spu=' . $spu . ' and attr_name="Minimum packing unit"')->group('attr_name')->find();
+
+
             $result['goodsattr'] = $attrdata;
+            $result['minimum_packing_unit'] = $minimum_packing_unit ? $minimum_packing_unit['attr_value'] : '';
             $data = array(
                 'data' => $result
             );
@@ -93,6 +98,10 @@ class ProductController extends PublicController {
     }
 
     /**
+     * SPU编辑p
+     */
+
+    /**
      * 产品添加/编辑
      */
     public function editAction() {
@@ -112,35 +121,11 @@ class ProductController extends PublicController {
      * SPU删除
      */
     public function deleteAction() {
-        if (!isset($this->input['id']))
+        if (!isset($this->input['spu']))
             jsonReturn('', ErrorMsg::ERROR_PARAM);
 
         $productModel = new ProductModel();
         $result = $productModel->del($this->input);
-        if ($result) {
-            jsonReturn($result);
-        } else {
-            jsonReturn('', ErrorMsg::FAILED);
-        }
-    }
-
-    /**
-     * 修改
-     */
-    public function updateAction() {
-        if (!isset($this->input['update_type']))
-            jsonReturn('', ErrorMsg::ERROR_PARAM);
-
-        if (!isset($this->input['id']))
-            jsonReturn('', ErrorMsg::ERROR_PARAM);
-
-        $result = '';
-        switch ($this->input['update_type']) {
-            case 'declare':    //SPU报审
-                $productModel = new ProductModel();
-                $result = $productModel->upStatus($this->input['id'], $productModel::STATUS_CHECKING);
-                break;
-        }
         if ($result) {
             jsonReturn($result);
         } else {
@@ -235,7 +220,7 @@ class ProductController extends PublicController {
         if (isset($this->input['lang']) && !in_array($this->input['lang'], array('zh', 'en', 'es', 'ru'))) {
             jsonReturn('', '1000');
         } elseif (!isset($this->input['lang'])) {
-            $this->input['lang'] = 'en';
+            $this->input['lang'] = browser_lang() ? browser_lang() : 'en';
         }
         $this->input['spec_type'] = isset($this->input['spec_type']) ? $this->input['spec_type'] : 0;
         $gmodel = new GoodsModel();
@@ -245,6 +230,26 @@ class ProductController extends PublicController {
         } else {
             jsonReturn('', '-1002', '获取失败');
         }
+    }
+
+    /**
+     * spu新增  -- 门户
+     * @author  klp  2017/7-5
+     */
+    public function addSpuAction() {
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->createSpu($this->input);
+        if ($result) {
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1002', '数据获取失败');
+        }
+        exit;
     }
 
 }
