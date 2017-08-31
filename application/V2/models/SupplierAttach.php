@@ -31,8 +31,8 @@ class SupplierAttachModel extends PublicModel
     public function update_data($data, $where)
     {
 
-        if (isset($create['license_attach_url'])) {
-            $arr['license_attach_url'] = $create['license_attach_url'];
+        if (isset($create['attach_url'])) {
+            $arr['attach_url'] = $create['attach_url'];
         }
         if (isset($create['attach_name'])) {
             $arr['attach_name'] = $create['attach_name'];
@@ -62,8 +62,8 @@ class SupplierAttachModel extends PublicModel
         if (isset($create['supplier_id'])) {
             $arr['supplier_id'] = $create['supplier_id'];
         }
-        if (isset($create['license_attach_url'])) {
-            $arr['license_attach_url'] = $create['license_attach_url'];
+        if (isset($create['attach_url'])) {
+            $arr['attach_url'] = $create['attach_url'];
         }
         if (isset($create['attach_name'])) {
             $arr['attach_name'] = $create['attach_name'];
