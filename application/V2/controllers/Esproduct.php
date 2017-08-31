@@ -43,7 +43,8 @@ class EsproductController extends PublicController {
         $model = new EsProductModel();
         $lang = $this->getPut('lang', 'zh');
 
-        $ret = $model->getProducts($this->getPut(), null, $lang);
+        $data = $this->getPut();
+        $ret = $model->getProducts($data, null, $lang);
         if ($ret) {
             $data = $ret[0];
 
@@ -61,6 +62,13 @@ class EsproductController extends PublicController {
             } else {
                 $send['sku_count'] = 0;
             }
+            if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
+                $data['onshelf_flag'] = 'N';
+                $send['onshelf_count_N'] = $model->getCount($data, $lang);
+                $data['onshelf_flag'] = 'Y';
+                $send['onshelf_count_Y'] = $model->getCount($data, $lang);
+            }
+
             $send['data'] = $list;
             $this->_update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
