@@ -57,7 +57,7 @@ class EsproductController extends PublicController {
                 $send['allcount'] = $send['count'];
             }
             if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
-                $send['sku_count'] = $data['aggregations']['sku_num']['value'];
+                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
             }
             $send['data'] = $list;
             $this->_update_keywords();
