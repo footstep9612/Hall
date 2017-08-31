@@ -182,7 +182,7 @@ class InquiryModel extends PublicModel {
         try {
             $count = $this->where($where)->getCount();
 
-            $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
+            $list = $this->where($where)->page($page, $pagesize)->order('id desc')->select();
 
             if ($list) {
                 $results['code'] = '1';

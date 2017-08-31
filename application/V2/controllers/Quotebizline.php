@@ -188,10 +188,12 @@ class QuotebizlineController extends PublicController {
 
         $bizline = new BizlineModel();
         $user = new EmployeeModel();
+       $supplier = new SupplierModel();
 
         foreach ($response as $k=>$v){
             $response[$k]['bizline_name'] = $bizline->where(['id'=>$v['bizline_id']])->getField('name');
             $response[$k]['bizline_agent_name'] = $user->where(['id'=>$v['bizline_agent_id']])->getField('name');
+            $response[$k]['supplier_name'] = $supplier->where(['id'=>$v['supplier_id']])->getField('name');
         }
 
         $this->jsonReturn([
@@ -622,8 +624,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * @desc 退回物流重新报价
-     * @author 买买提
+     * 退回物流重新报价
      */
     public function rejectLogisticAction(){
 
@@ -631,16 +632,11 @@ class QuotebizlineController extends PublicController {
 
         //修改项目状态
         $inquiry =  new InquiryModel();
-        $inquiryID = $inquiry->where(['id'=>$request['inquiry_id']])->getField('id');
-        if (!$inquiryID){
-            $this->jsonReturn(['code'=>'-104','message'=>'没有对应的询单!']);
-        }
         $inquiry->startTrans();
         $inquiryResult = $inquiry->where(['id'=>$request['inquiry_id']])->save([
             'status' => 'LOGI_QUOTE_REJECTED',
             'logi_quote_status' => 'REJECTED'
         ]);
-
 
         //修改报价的状态
         $quoteModel = new QuoteModel();
@@ -653,24 +649,25 @@ class QuotebizlineController extends PublicController {
         $quoteLogiFee = new QuoteLogiFeeModel();
         $quoteLogiFee->startTrans();
         $quoteLogiFeeResult = $quoteLogiFee->where(['inquiry_id'=>$request['inquiry_id']])->save([
-            'status' => 'REJECTED' //被驳回
+            'status' => 'REJECTED'
         ]);
 
         //写审核日志
         $inquiryCheckLog = new InquiryCheckLogModel();
         $inquiryCheckLog->startTrans();
         $checkInfo = [
-            'created_by' => !empty($this->user['id']) ? $this->user['id'] : 1,
+            'op_id' => $this->user['id'],
+            'created_by' => $this->user['id'],
             'created_at' => date('Y-m-d H:i:s'),
-            'inquiry_id' => $inquiryID,
-            'quote_id' => $request['quote_id'],
-            'category' => 'BIZLINE',
+            'inquiry_id' => $request['inquiry_id'],
+            'quote_id' => $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->getField('id'),
+            'category' => 'PM',
             'action' => 'APPROVING',
             'op_note' => $request['op_note'],
             'op_result' => 'REJECTED'
         ];
 
-        $checklogResult = $inquiryCheckLog->add($checkInfo);
+        $checklogResult = $inquiryCheckLog->add($inquiryCheckLog->create($checkInfo));
 
         if ($inquiryResult && $quoteResult && $checklogResult && $quoteLogiFeeResult){
             $inquiry->commit();
@@ -1057,7 +1054,8 @@ class QuotebizlineController extends PublicController {
                 'supplier_id' => $request['supplier_id'],
                 'brand' => $request['brand'],
                 'purchase_unit_price' => $request['purchase_unit_price'],
-                'goods_desc' => $request['goods_desc'],
+                'purchase_price_cur_bn' => $request['purchase_price_cur_bn'],
+                'remarks' => $request['goods_desc'],
                 'net_weight_kg' => $request['net_weight_kg'],
                 'gross_weight_kg' => $request['gross_weight_kg'],
                 'package_size' => $request['package_size'],

@@ -57,7 +57,9 @@ class EsproductController extends PublicController {
                 $send['allcount'] = $send['count'];
             }
             if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
-                $send['sku_count'] = $data['aggregations']['sku_num']['value'];
+                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
+            } else {
+                $send['sku_count'] = 0;
             }
             $send['data'] = $list;
             $this->_update_keywords();
@@ -534,6 +536,7 @@ class EsproductController extends PublicController {
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
+            'min_pack_unit' => $ik_analyzed, //成交单位
         ];
         return $body;
     }

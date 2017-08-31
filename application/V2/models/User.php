@@ -34,7 +34,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND `employee`.`status`= "'.$condition['status'].'"';
         }
         if ( !empty($condition['group_id']) ){
-            $sql .= ' AND org_member.org_id ='.$condition['group_id'];
+            $sql .= ' AND org_member.org_id in ('.$condition['group_id'].')';
         }
         if ( !empty($condition['mobile']) ){
             $sql .= ' AND employee.mobile ="'.$condition['mobile'].'"';
