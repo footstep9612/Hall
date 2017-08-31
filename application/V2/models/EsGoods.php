@@ -525,6 +525,10 @@ class EsGoodsModel extends Model {
             $body['material_cat_zh'] = '{}';
         }
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
+
+        $body['brand'] = str_replace("\r", '', $body['brand']);
+        $body['brand'] = str_replace("\n", '', $body['brand']);
+        $body['brand'] = str_replace("\t", '', $body['brand']);
         if (json_decode($body['brand'], true)) {
             $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
         } elseif ($body['brand']) {
