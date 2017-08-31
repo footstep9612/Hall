@@ -609,6 +609,9 @@ class EsProductModel extends Model {
         $spu = $id = $item['spu'];
 
         $body = $item;
+        $item['brand'] = str_replace("\r", '', $item['brand']);
+        $item['brand'] = str_replace("\n", '', $item['brand']);
+        $item['brand'] = str_replace("\t", '', $item['brand']);
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
         } elseif ($body['brand']) {
