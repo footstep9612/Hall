@@ -306,7 +306,7 @@ class EsGoodsModel extends Model {
     public function getgoods($condition, $_source = null, $lang = 'en') {
         try {
             $body = $this->getCondition($condition, $lang);
-            echo json_encode($body, 256);
+
             if ($body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
