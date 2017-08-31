@@ -210,10 +210,15 @@ class InquiryController extends PublicController {
 
         $results = $inquiry->getInfo($where);
 
+        foreach($auth['data'] as $val) {
+            $agent[] = $val['employee_id'];
+        }
         if ( $auth['code'] == 1 ) {
-            $results['agent_list'] = implode(',',$auth['data']); //如果是方案中心角色，返回区域下全部市场人员
+            $results['data']['agent_list'] = implode(',',$agent); //如果是方案中心角色，返回区域下全部市场人员
         } else if( $auth['code'] == 2 ) {
-            $results['agent_list'] = $this->user['id']; //如果是市场人员，返回自己
+            $results['data']['agent_list'] = $this->user['id']; //如果是市场人员，返回自己
+        } else {
+            $results['data']['agent_list'] = '';
         }
         //经办人
         if (!empty($results['data']['agent_id'])) {
