@@ -95,19 +95,19 @@ class InquiryModel extends PublicModel {
         try {
             if(!empty($where2)){
                 $count = $this->where($where)->where($where2)->count('id');
-                $count = $count > 0 ? $count : 0;
                 $list = $this->where($where)
                         ->where($where2)
                         ->page($page, $pagesize)
                         ->order('updated_at desc')
                         ->select();
             }else{
-                $count = $this->getCount($condition);
+                $count = $this->where($where)->count('id');
                 $list = $this->where($where)
                         ->page($page, $pagesize)
                         ->order('updated_at desc')
                         ->select();
             }
+            $count = $count > 0 ? $count : 0;
 
             if($list){
                 $results['code'] = '1';
