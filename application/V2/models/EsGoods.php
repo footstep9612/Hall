@@ -525,8 +525,12 @@ class EsGoodsModel extends Model {
             $body['material_cat_zh'] = '{}';
         }
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
-        if (!$body['brand']) {
-            $body['brand'] = '{}';
+        if (json_decode($body['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
+        } elseif ($body['brand']) {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+        } else {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
         }
         if (json_decode($body['brand'], true)) {
             $body['brand'] = json_encode(json_decode($body['brand'], true), 256);

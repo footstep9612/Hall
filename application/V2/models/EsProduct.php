@@ -611,6 +611,10 @@ class EsProductModel extends Model {
         $body = $item;
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
+        } elseif ($body['brand']) {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+        } else {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
         }
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
