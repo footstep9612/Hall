@@ -78,12 +78,32 @@ class InquiryModel extends PublicModel {
     public function getList($condition = []) {
         $where = $this->getCondition($condition);
 
+        if(!empty($condition['user_id'])){
+            $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") or (agent_id='.$condition['user_id'].') ';
+            unset($where['agent_id']);
+            unset($where['status']);
+        }
+
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
         $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            $count = $this->getCount($condition);
-            $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
+            if(!empty($where2)){
+                $count = $this->where($where)->where($where2)->count('id');
+                $count = $count > 0 ? $count : 0;
+                $list = $this->where($where)
+                        ->where($where2)
+                        ->page($page, $pagesize)
+                        ->order('updated_at desc')
+                        ->select();
+            }else{
+                $count = $this->getCount($condition);
+                $list = $this->where($where)
+                        ->page($page, $pagesize)
+                        ->order('updated_at desc')
+                        ->select();
+            }
+
             if($list){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
