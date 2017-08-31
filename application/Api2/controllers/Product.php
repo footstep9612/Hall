@@ -39,9 +39,7 @@ class ProductController extends PublicController {
 
         if (!empty($result)) {
             $goods_model = new GoodsModel();
-            $attrdata = $goods_model->field('id,min_order_qty as attr_value, \'Minimum order quantity\' as attr_name', 'min_pack_unit')
-                    ->where('lang="' . $lang . '" and spu="' . $spu . '"and deleted_flag = "N" ')
-                    ->find();
+            $attrdata = $goods_model->where('lang="' . $lang . '" and spu="' . $spu . '"and deleted_flag = "N" ')->find();
             if($attrdata){
                 $result['goodsattr'] = $attrdata;
                 $result['minimum_packing_unit'] = $attrdata['min_pack_unit'];

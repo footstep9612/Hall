@@ -478,7 +478,7 @@ class ProductModel extends PublicModel {
 
         $condition = array(
             'spu' => $spu,
-                'deleted_flag' => self::DELETE_N
+            'deleted_flag' => self::DELETE_N
         );
         if (!empty($lang)) {
             $condition['lang'] = $lang;
