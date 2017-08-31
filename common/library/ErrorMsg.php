@@ -11,7 +11,7 @@ class ErrorMsg {
      * 系统级错误
      */
     const FAILED = 0;
-    const SUCCESS = 200;
+    const SUCCESS = 1;
     const EXIST =100;
     const ERROR_REQUEST_MATHOD = 302;
 
