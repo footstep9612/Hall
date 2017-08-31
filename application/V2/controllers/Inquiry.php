@@ -33,7 +33,7 @@ class InquiryController extends PublicController {
                         ->select();
 
                 //查询是否是市场人员
-                $agent = $maketareateam->where('market_org_id in ')->count('id');
+                $agent = $maketareateam->where('market_org_id in('.implode(',',$groupid).')')->count('id');
             }else{
                 //查询是否方案中心，下面有多少市场人员
                 $users = $maketareateam->alias('a')
