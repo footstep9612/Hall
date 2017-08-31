@@ -245,6 +245,20 @@ class InquiryModel extends PublicModel {
         if (empty($data['est_delivery_date']) || !strtotime($data['est_delivery_date'])) {
             unset($data['est_delivery_date']);
         }
+        if (!empty($condition['buyer_no'])) {
+            $data['buyer_no'] = $condition['buyer_no'];
+        } else {
+            $results['code'] = '-103';
+            $results['message'] = '没有采购商编号!';
+            return $results;
+        }
+        if (!empty($condition['buyer_account_id'])) {
+            $data['buyer_account_id'] = $condition['buyer_account_id'];
+        } else {
+            $results['code'] = '-103';
+            $results['message'] = '没有采购商工作人!';
+            return $results;
+        }
         if (!empty($condition['serial_no'])) {
             $data['serial_no'] = $condition['serial_no'];
         } else {

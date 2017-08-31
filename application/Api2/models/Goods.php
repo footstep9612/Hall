@@ -112,7 +112,7 @@ class GoodsModel extends PublicModel {
             return array();
         $keyRedis = md5(json_encode($spu.$lang.self::STATUS_VALID));
         if (redisHashExist('specGoods',$keyRedis)) {
-//            return json_decode(redisHashGet('specGoods', $keyRedis), true);
+            return json_decode(redisHashGet('specGoods', $keyRedis), true);
         }
         try {
             $field = "lang,spu,sku,qrcode,name,show_name_loc,show_name,model,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail";
