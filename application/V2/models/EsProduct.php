@@ -461,7 +461,7 @@ class EsProductModel extends Model {
     public function getMinimumOrderQuantity($spus, $lang = 'en') {
         try {
             $minimumorderquantutys = $this->table('erui2_goods.goods')
-                            ->field('spu,min(min_order_qty) as value ,min(exw_days) as min_exw_day,tx_unit,'
+                            ->field('spu,min(min_order_qty) as value ,min(exw_days) as min_exw_day,min_pack_unit,'
                                     . 'max(exw_days) as max_exw_day')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang])
                             ->group('spu')->select();
@@ -656,12 +656,12 @@ class EsProductModel extends Model {
             $body['minimumorderouantity'] = strval($minimumorderouantitys[$id]['value']);
             $body['max_exw_day'] = strval($minimumorderouantitys[$id]['max_exw_day']);
             $body['min_exw_day'] = strval($minimumorderouantitys[$id]['min_exw_day']);
-            $body['tx_unit'] = strval($minimumorderouantitys[$id]['tx_unit']);
+            $body['min_pack_unit'] = strval($minimumorderouantitys[$id]['min_pack_unit']);
         } else {
             $body['minimumorderouantity'] = 0;
             $body['max_exw_day'] = '';
             $body['min_exw_day'] = '';
-            $body['tx_unit'] = '';
+            $body['min_pack_unit'] = '';
         }
         if (isset($onshelf_flags[$id])) {
 
