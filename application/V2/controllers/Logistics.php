@@ -214,25 +214,9 @@ class LogisticsController extends PublicController {
     	        $user = $this->getUserInfo();
     	        $quoteLogiFee['current_name'] = $user['name'];
     	        
-    	        if ($quoteLogiFee['logi_agent_id']) {
-    	            $orgMemberList = $this->orgMemberModel->getList(['employee_id' => $quoteLogiFee['logi_agent_id']]);
-    	            
-    	            $orgArr = [];
-    	            
-    	            foreach ($orgMemberList as $orgMember) {
-    	                $orgArr[] = $orgMember['org_id'];
-    	            }
-    	            
-    	            $marketAreaTeamList = $this->marketAreaTeamModel->where(['logi_check_org_id' => $orgArr ? ['in', $orgArr] : '-1'])->select();
-    	            
-    	            $checkOrgArr = [];
-    	            
-    	            foreach ($marketAreaTeamList as $marketAreaTeam) {
-    	               $checkOrgArr[] = $marketAreaTeam['logi_check_org_id'];
-    	            }
-    	            
-    	            $quoteLogiFee['logi_check_org_id'] = implode(',', $checkOrgArr);
-    	        }
+    	        if ($quoteLogiFee['logi_agent_id']) $quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id']);
+    	        
+    	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], 'logi_quote_org_id');
     	    }
     	
     	    $this->jsonReturn($quoteLogiFee);
@@ -862,6 +846,36 @@ class LogisticsController extends PublicController {
 	        return false;
 	    }
 	    
+	}
+	
+	/**
+	 * @desc 获取用户所在指定组织的id集合串
+	 *
+	 * @param string $employeeId 员工id
+	 * @param string $orgField 组织字段
+	 * @return string 组织id集合串
+	 * @author liujf
+	 * @time 2017-08-31
+	 */
+	private function _getOrgIds($employeeId = '-1', $orgField = 'logi_check_org_id') {
+	     
+	    $orgMemberList = $this->orgMemberModel->getList(['employee_id' => $employeeId]);
+    	            
+        $orgArr = [];
+        
+        foreach ($orgMemberList as $orgMember) {
+            $orgArr[] = $orgMember['org_id'];
+        }
+        
+        $marketAreaTeamList = $this->marketAreaTeamModel->where([$orgField => $orgArr ? ['in', $orgArr] : '-1'])->select();
+        
+        $appointOrgArr = [];
+        
+        foreach ($marketAreaTeamList as $marketAreaTeam) {
+           $appointOrgArr[] = $marketAreaTeam[$orgField];
+        }
+        
+        return implode(',', $appointOrgArr);
 	}
     
 	/**
