@@ -155,6 +155,7 @@ class InquiryController extends PublicController {
 
         //把经办人和项目经理转换成名称显示
         if ($results['code'] == '1') {
+            $buyer = new BuyerModel();
             foreach ($results['data'] as $key => $val) {
                 //经办人
                 if (!empty($val['agent_id'])) {
@@ -170,6 +171,11 @@ class InquiryController extends PublicController {
                 if (!empty($val['country_bn'])) {
                     $rs3 = $country->field('name')->where("lang='zh' and bn='" . $val['country_bn'] . "'")->find();
                     $results['data'][$key]['country_name'] = $rs3['name'];
+                }
+                //区域
+                if(!empty($val['buyer_id'])){
+                    $rs4 = $buyer->field('area_bn')->where("id=" . $val['buyer_id'])->find();
+                    $results['data'][$key]['area_bn'] = $rs3['area_bn'];
                 }
             }
         }

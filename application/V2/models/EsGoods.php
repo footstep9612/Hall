@@ -197,15 +197,21 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
 
-        if ($lang !== 'zh') {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
-        } else {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
+
+        $mcat_no1 = $this->_getValue($condition, 'mcat_no1');
+        $mcat_no2 = $this->_getValue($condition, 'mcat_no2');
+        $mcat_no3 = $this->_getValue($condition, 'mcat_no3');
+
+        if ($mcat_no1) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
         }
+        if ($mcat_no2) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+        if ($mcat_no3) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -519,8 +525,16 @@ class EsGoodsModel extends Model {
             $body['material_cat_zh'] = '{}';
         }
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
-        if (!$body['brand']) {
-            $body['brand'] = '{}';
+
+        $body['brand'] = str_replace("\r", '', $body['brand']);
+        $body['brand'] = str_replace("\n", '', $body['brand']);
+        $body['brand'] = str_replace("\t", '', $body['brand']);
+        if (json_decode($body['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
+        } elseif ($body['brand']) {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+        } else {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
         }
         if (json_decode($body['brand'], true)) {
             $body['brand'] = json_encode(json_decode($body['brand'], true), 256);

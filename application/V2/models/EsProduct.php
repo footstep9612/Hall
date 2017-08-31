@@ -188,7 +188,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function getCondition($condition) {
+    private function getCondition($condition, $lang = 'en') {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
@@ -197,17 +197,19 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
 
-
-
-        if ($lang !== 'zh') {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
-        } else {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        $mcat_no1 = $this->_getValue($condition, 'mcat_no1');
+        $mcat_no2 = $this->_getValue($condition, 'mcat_no2');
+        $mcat_no3 = $this->_getValue($condition, 'mcat_no3');
+        if ($mcat_no1) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
         }
+        if ($mcat_no2) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+        if ($mcat_no3) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -607,8 +609,15 @@ class EsProductModel extends Model {
         $spu = $id = $item['spu'];
 
         $body = $item;
+        $item['brand'] = str_replace("\r", '', $item['brand']);
+        $item['brand'] = str_replace("\n", '', $item['brand']);
+        $item['brand'] = str_replace("\t", '', $item['brand']);
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
+        } elseif ($body['brand']) {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+        } else {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
         }
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
