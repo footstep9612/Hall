@@ -103,11 +103,14 @@ class LoginController extends PublicController {
         }
         if (!empty($data['first_name'])) {
             $buyer_account_data['first_name'] = $data['first_name'];
+            $arr['first_name'] = $data['first_name'];
         } else {
             jsonReturn('', -101, '名字不能为空!');
         }
         if (!empty($data['last_name'])) {
             $buyer_account_data['last_name'] = $data['last_name'];
+            $arr['last_name'] = $data['last_name'];
+
         }
         if (!empty($data['mobile'])) {
             $buyer_account_data['mobile'] = $data['mobile'];
@@ -123,7 +126,6 @@ class LoginController extends PublicController {
         if (!empty($data['address'])) {
             $buyer_address_data['address'] = $data['address'];
         }
-
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
