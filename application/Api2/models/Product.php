@@ -495,7 +495,7 @@ class ProductModel extends PublicModel {
         try {
             $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,'
                     . 'keywords,exe_standard,tech_paras,advantages,description,'
-                    . 'profile,principle,app_scope,properties,warranty,supply_ability,'
+                    . 'profile,principle,app_scope,properties,warranty,availability,supply_ability,delivery_cycle,customizability,customization_flag,availability_ratings,resp_time,resp_rate,target_market,supply_ability,'
                     . 'source,source_detail,sku_count,recommend_flag,status,created_by,'
                     . 'created_at,updated_by,updated_at,checked_by,checked_at,target_market';
             $result = $this->field($field)->where($condition)->select();
