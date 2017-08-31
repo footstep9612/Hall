@@ -66,26 +66,34 @@ class MemberServiceModel extends PublicModel {
                 return false;
             }
             //处理服务
-            foreach ($data['levels'] as $items) {
-                //处理条款id
-                foreach ($items['term'] as $term) {
-                    //处理条款内容id
-                    foreach ($term['item'] as $im) {
-                        $save = [
-                            'service_cat_id' => $items['service_cat_id'],
-                            'service_term_id' => $term['service_term_id'],
-                            'service_item_id' => $im['service_item_id'],
-                            'buyer_level_id' => $re['buyer_level_id']
-                        ];
-                        if (isset($im['id']) && !empty($im['id'])) {
-                            $res = $this->field('id')->where(['id' => $im['id']])->find();
+            if(!empty($data['levels'])){
+                foreach ($data['levels'] as $items) {
+                    //处理条款id
+                    foreach ($items['term'] as $term) {
+                        //处理条款内容id
+                        foreach ($term['item'] as $im) {
+                            $save = [
+                                'service_cat_id' => $items['service_cat_id'],
+                                'service_term_id' => $term['service_term_id'],
+                                'service_item_id' => $im['service_item_id'],
+                                'buyer_level_id' => $re['buyer_level_id']
+                            ];
+                            if (isset($im['id']) && !empty($im['id'])) {
+                                $res = $this->field('id')->where(['id' => $im['id']])->find();
 
-                            if ($res) {
-                                $save['id'] = $im['id'];
-                                $result = $this->update_data($save, $userInfo);
-                                if (1 != $result['code']) {
-                                    $this->rollback();
-                                    return false;
+                                if ($res) {
+                                    $save['id'] = $im['id'];
+                                    $result = $this->update_data($save, $userInfo);
+                                    if (1 != $result['code']) {
+                                        $this->rollback();
+                                        return false;
+                                    }
+                                } else {
+                                    $result = $this->create_data($save, $userInfo);
+                                    if (1 != $result['code']) {
+                                        $this->rollback();
+                                        return false;
+                                    }
                                 }
                             } else {
                                 $result = $this->create_data($save, $userInfo);
@@ -94,16 +102,11 @@ class MemberServiceModel extends PublicModel {
                                     return false;
                                 }
                             }
-                        } else {
-                            $result = $this->create_data($save, $userInfo);
-                            if (1 != $result['code']) {
-                                $this->rollback();
-                                return false;
-                            }
                         }
                     }
                 }
             }
+
             $results['code'] = '1';
             $results['message'] = '成功!';
             $this->commit();

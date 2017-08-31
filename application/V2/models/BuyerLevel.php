@@ -103,13 +103,13 @@ class BuyerLevelModel extends PublicModel{
      * @author klp
      */
     public function checkParam($create) {
-        if (!empty($create['buyer_level'])) {
+        if (isset($create['buyer_level'])) {
             $data['buyer_level'] = json_encode($create['buyer_level'],JSON_UNESCAPED_UNICODE);
         }
-        if (!empty($data['buyer_level_id'])) {
+        if (isset($data['buyer_level_id'])) {
             $data['id'] = $create['buyer_level_id'];
         }
-        if (!empty($create['status'])) {
+        if (isset($create['status'])) {
             $data['status'] = strtoupper($create['status']);
         }
         return $data;
