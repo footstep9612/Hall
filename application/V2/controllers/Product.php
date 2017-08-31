@@ -315,78 +315,82 @@ class ProductController extends PublicController {
      * 产品导入
      */
     public function importAction() {
-        //$remoteFile = $this->put_data['url'];
-        //下载到本地临时文件
-        // $localFile = ExcelHelperTrait::download2local($remoteFile);
+        $this->put_data['xls'] = array(
+            array(
+                'lang'=>'zh',
+                'url' =>'11'
+            ),
+            array(
+                'lang'=>'en',
+                'url' =>'12'
+            )
+        );
 
-        $localFile = MYPATH . '/public/tmp/1501903034.xls';
-        $data = ExcelHelperTrait::ready2import($localFile);
-        var_dump($data);
-        die;
-        $this->jsonReturn($this->importSkuHandler($data));
+
+        if(empty($this->put_data['xls'])){
+            jsonReturn('',ErrorMsg::ERROR_PARAM);
+        }
+
+        $productModel = new ProductModel();
+        $result = $productModel->import($this->put_data['xls']);
+        if($result){
+            jsonReturn($result);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 压缩包导入
+     */
+    public function zipImportAction()
+    {
+        $this->put_data['xls'] = 1;
+        if(empty($this->put_data['xls'])){
+            jsonReturn('',ErrorMsg::ERROR_PARAM);
+        }
+
+        $productModel = new ProductModel();
+        $result = $productModel ->zipImport($this->put_data['xls']);
+        if($result !== false){
+            $error = '';
+            if(!empty($result['failds'])){
+                foreach($result['failds'] as $e){
+                    $error.= '['.$e['item'].']失败：'.$e['hint'].';';
+                }
+            }
+            $result['failds'] = $error;
+            //$str = '成功导入'.$result['succes_lang'].'条，spu'.$result['sucess'].'个；'.$error;
+            jsonReturn($result);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 导出模板
+     */
+    public function exportTempAction(){
+        $productModel = new ProductModel();
+        $localDir =$productModel ->exportTemp();
+        if($localDir){
+            jsonReturn($localDir);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
     }
 
     /**
      * 产品导出
      */
     public function exportAction() {
-        $objPHPExcel = new PHPExcel();
-        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
-        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
-        $objSheet->getStyle("A1:K1")
-                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:K1")->getFont()->setSize(14)->setBold(true);    //粗体
-        $objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
-        $objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-        $column_width_20 = ["B", "D", "E", "F"];
-        foreach ($column_width_20 as $column) {
-            $objSheet->getColumnDimension($column)->setWidth(20);
+        $productModel = new ProductModel();
+        $localDir =$productModel ->export();
+        if($localDir){
+            jsonReturn($localDir);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
         }
-        $column_width_30 = ["G", "H", "I", "J", "K"];
-        foreach ($column_width_30 as $column) {
-            $objSheet->getColumnDimension($column)->setWidth(30);
-        }
-        $objSheet->setTitle('产品SPU'); //设置报价单标题
-        $objSheet->setCellValue("A1", "序号");
-        $objSheet->setCellValue("B1", "SPU编码");
-        $objSheet->setCellValue("C1", "语言");
-        $objSheet->setCellValue("D1", "物料分类编码");
-        $objSheet->setCellValue("E1", "产品名称");
-        $objSheet->setCellValue("F1", "品牌");
-        $objSheet->setCellValue("G1", "产品优势");
-        $objSheet->setCellValue("H1", "技术参数");
-        $objSheet->setCellValue("I1", "执行标准");
-        $objSheet->setCellValue("J1", "关键字");
-        $objSheet->setCellValue("K1", "产品描述");
-
-        $i = 0;
-        $length = 20;
-        do {
-            $pModel = new ProductModel();
-            $condition = [];
-            $result = $pModel->getList($condition, '', $i * $length, $length);
-            if ($result) {
-                foreach ($result as $r) {
-                    $objSheet->setCellValue("A" . ($i + 2), $i + 1);
-                    $objSheet->setCellValue("B" . ($i + 2), $r['spu']);
-                    $objSheet->setCellValue("C" . ($i + 2), $r['lang']);
-                    $objSheet->setCellValue("D" . ($i + 2), $r['material_cat_no']);
-                    $objSheet->setCellValue("E" . ($i + 2), $r['name']);
-                    $objSheet->setCellValue("F" . ($i + 2), $r['brand']);
-                    $objSheet->setCellValue("G" . ($i + 2), $r['advantages']);
-                    $objSheet->setCellValue("H" . ($i + 2), $r['tech_paras']);
-                    $objSheet->setCellValue("I" . ($i + 2), $r['exe_standard']);
-                    $objSheet->setCellValue("J" . ($i + 2), $r['keywords']);
-                    $objSheet->setCellValue("K" . ($i + 2), $r['description']);
-                }
-            }
-            $i++;
-        } while (count($result) >= $length);
-        //保存文件
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-
-        ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
     }
 
 }

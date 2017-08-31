@@ -671,7 +671,6 @@ class ProductModel extends PublicModel {
     /*
      * 根据spus 获取SPU名称
      */
-
     public function getNamesBySpus($spus, $lang = 'zh') {
         $where = [];
         if (is_array($spus) && $spus) {
@@ -693,6 +692,353 @@ class ProductModel extends PublicModel {
             return $data;
         } else {
             return [];
+        }
+    }
+
+    /**
+     * 导出模板
+     */
+    public function exportTemp(){
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
+        $objSheet->getStyle("A1:K1")
+            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
+        //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
+        //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
+        $column_width_25 = ["B", "C", "D", "E", "F","G", "H", "I", "J", "K"];
+        foreach ($column_width_25 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(25);
+        }
+        $objSheet->setTitle('产品模板'); //设置报价单标题
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "产品编码");
+        $objSheet->setCellValue("C1", "产品名称");
+        $objSheet->setCellValue("D1", "展示名称");
+        $objSheet->setCellValue("E1", "产品组");
+        $objSheet->setCellValue("F1", "产品品牌");
+        $objSheet->setCellValue("G1", "产品介绍");    //对应产品优势（李志确认）
+        $objSheet->setCellValue("H1", "技术参数");
+        $objSheet->setCellValue("I1", "执行标准");
+        $objSheet->setCellValue("J1", "质保期");
+        $objSheet->setCellValue("K1", "关键字");
+
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'spu template_'.'.xls');
+        return $localDir ? $localDir : '';
+    }
+
+    /**
+     * 产品导出
+     * @return string
+     */
+    public function export(){
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
+        $objSheet->getStyle("A1:K1")
+            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
+        //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
+        //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
+        $column_width_25 = ["B", "C", "D", "E", "F","G", "H", "I", "J", "K"];
+        foreach ($column_width_25 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(25);
+        }
+
+        $objSheet->setTitle('产品'); //设置报价单标题
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "产品编码");
+        $objSheet->setCellValue("C1", "产品名称");
+        $objSheet->setCellValue("D1", "展示名称");
+        $objSheet->setCellValue("E1", "产品组");
+        $objSheet->setCellValue("F1", "产品品牌");
+        $objSheet->setCellValue("G1", "产品介绍");    //对应产品优势（李志确认）
+        $objSheet->setCellValue("H1", "技术参数");
+        $objSheet->setCellValue("I1", "执行标准");
+        $objSheet->setCellValue("J1", "质保期");
+        $objSheet->setCellValue("K1", "关键字");
+
+        $i = 0;    //用来控制分页查询
+        $j = 2;    //excel控制输出
+        $length = 20;
+        do {
+            $pModel = new ProductModel();
+            $condition = [];
+            $result = $pModel->getList($condition, '', $i * $length, $length);
+            if ($result) {
+                foreach ($result as $r) {
+                    $objSheet->setCellValue("A" . $j, $j - 1 , PHPExcel_Cell_DataType::TYPE_STRING);
+                    $objSheet->setCellValue("B" . $j, $r['spu'] , PHPExcel_Cell_DataType::TYPE_STRING);
+                    $objSheet->setCellValue("C" . $j, $r['name']);
+                    $objSheet->setCellValue("D" . $j, $r['show_name']);
+                    $objSheet->setCellValue("E" . $j, $r['material_cat_no']);
+                    $brand_ary = json_decode($r['brand'],true);
+                    $objSheet->setCellValue("F" . $j, (is_array($brand_ary) && isset($brand_ary['name'])) ? $brand_ary['name'] : $r['brand']);
+                    $objSheet->setCellValue("G" . $j, $r['advantages']);
+                    $objSheet->setCellValue("H" . $j, $r['tech_paras']);
+                    $objSheet->setCellValue("I" . $j, $r['exe_standard']);
+                    $objSheet->setCellValue("J" . $j, $r['warranty']);
+                    $objSheet->setCellValue("K" . $j, $r['keywords']);
+                    $j++;
+                }
+            }
+            $i++;
+        } while (count($result) >= $length);
+        //保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter,time() . '.xls');
+
+        return $localDir ? $localDir : '';
+    }
+
+    /**
+     * 导入
+     * @param $data   注意这是excel模板数据
+     * @param $lang
+     */
+    public function import($data = []){
+        if(empty($data)) {
+            return false;
+        }
+
+        $userInfo = getLoinInfo();
+        $brandModel = new BrandModel();
+
+        $this->startTrans();
+        try{
+            $spu = $this->createSpu();    //生成spu
+            foreach($data as $xls) {
+                if(empty($xls['url']) || empty($xls['lang'])) {
+                    continue;
+                }
+
+                //下载到本地临时文件
+                //$localFile = ExcelHelperTrait::download2local($xls['url']);
+                $localFile = MYPATH . '/public/tmp/1504073110.xls';
+                $data = ExcelHelperTrait::ready2import($localFile);
+                array_shift($data);
+
+                if(empty($data) || empty($r = $data[0])){
+                    jsonReturn('',ErrorMsg::FAILED,'语言：'.$xls['lang'].' 无可导入数据');
+                }
+
+                $data_tmp = [];
+                $data_tmp['spu'] = $spu;    //生成spu
+                $data_tmp['lang'] = $xls['lang'];
+                $data_tmp['name'] = $r[2];    //名称
+                $data_tmp['show_name'] = $r[3];    //展示名称
+
+                //$catNo = $mcatModel->getCatNoByName($r[5] , 'eq');
+                //$data_tmp['material_cat_no'] = ($catNo && $catNo[0]['level_no']==3) ? $catNo[0]['cat_no'] : null;    //物料分类
+                $data_tmp['material_cat_no'] = $r[4];    //物料分类
+
+                //品牌
+                $condition_brand = array(
+                    'brand' => array('like','%'.$r[5].'%')
+                );
+                $brand_id = $brandModel->Exist($condition_brand);
+                $data_tmp['brand'] = $brand_id ? json_encode(array('id'=>$brand_id,'name'=>$r[5]), JSON_UNESCAPED_UNICODE) : null;    //品牌
+
+                /**
+                 * 根据lang 品牌查询name是否存在
+                 */
+                $condition = array(
+                    'name' => $data_tmp['name'],
+                    'lang' => $xls['lang'],
+                    'brand' => array('like','%'.$r[5].'%'),
+                );
+                $exist = $this->field('id')->where($condition)->find();
+                if($exist) {
+                    $this->rollback();
+                    jsonReturn('语言：'.$xls['lang'].' 品牌：'.$r[5].'下已存在['.$data_tmp['name'].']' , ErrorMsg::FAILED,'语言：'.$xls['lang'].' 品牌：'.$r[5].'下已存在['.$data_tmp['name'].']');
+                }
+
+                $data_tmp['advantages'] = $r[6];
+                $data_tmp['tech_paras'] = $r[7];
+                $data_tmp['exe_standard'] = $r[8];
+                $data_tmp['warranty'] = $r[9];
+                $data_tmp['keywords'] = $r[10];
+                $data_tmp['source'] = 'IMPORT';
+                $data_tmp['source_detail'] = 'Excel批量导入';
+                $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                $data_tmp['created_at'] = date('Y-m-d H:i:s');
+                $data_tmp['status'] = $this::STATUS_VALID;
+                $insert = $this->add($this->create($data_tmp));
+                if(!$insert){
+                    $this->rollback();
+                    jsonReturn($xls['lang'].'导入有误，请稍后重试' , ErrorMsg::FAILED ,$xls['lang'].'导入有误，请稍后重试');
+                }
+            }
+            $this->commit();
+            return true;
+        }catch (Exception $e){
+            $this->rollback();
+            return false;
+        }
+    }
+
+    /**
+     * 压缩导入
+     * @param string $url
+     * @return array|bool
+     */
+    public function zipImport($url = ''){
+        if(empty($url)){
+            return false;
+        }
+
+        //下载到本地临时文件
+        //$localFile = ExcelHelperTrait::download2local($url);
+        $localFile = MYPATH . '/public/tmp/tmp.zip';
+
+        $pathInfo = ( pathinfo( $localFile ) );
+        if ( strtolower( $pathInfo[ 'extension' ] ) != 'zip' ) {
+            jsonReturn( '只支持zip格式' , ErrorMsg::FAILED );
+        };
+
+        $sucess = $sucess_lang = 0;    //记录成功数
+        $failds = [];   //记录失败项与错误
+        try{
+            $zip = new ZipArchive();
+            $res = $zip->open( $localFile );
+            if ( $res === true ) {
+                $tmpDir = MYPATH . '/public/tmp/' . $pathInfo[ 'filename' ];
+                if ( $zip->extractTo( $tmpDir ) ) {    //解压缩到目录
+                    $userInfo = getLoinInfo();
+                    $productModel = new ProductModel();
+                    $brandModel = new BrandModel();
+
+                    $handle = opendir( $tmpDir );
+                    while ( $f = readdir( $handle ) ) {    //遍历spu目录层
+                        if ( $f != "." && $f != ".." ) {
+                            $dir_spu = $tmpDir . '/' . $f;
+                            if ( is_dir( $dir_spu ) ) {
+                                $spu = $productModel->createSpu();    //生成spu
+                                $handle2 = opendir( $dir_spu );
+
+                                $bool_spu = false;
+                                $this->startTrans();
+                                $sucess_lang_tmp = 0;
+                                while ( $xls = readdir( $handle2 ) ) {    //遍历excel
+                                    if ( $xls == '.' || $xls == '..' ) {
+                                        continue;
+                                    }
+                                    if ( is_file( $dir_spu . '/' . $xls ) ) {
+                                        $xlsFile = $dir_spu . '/' . $xls;
+                                        $lang = strtolower( pathinfo( $xls , PATHINFO_FILENAME ) );
+                                        if ( !in_array( $lang , array( 'zh' , 'en' , 'es' , 'ru' ) ) ) {
+                                            $failds[]= array('item'=>$f,'hint'=>'excel文件请以语言（zh,en,es,ru）加.xls命名');
+                                            $this->rollback();
+                                            $bool_spu = false;
+                                            $sucess_lang_tmp = 0;
+                                            Log::write($f . '下的excel文件请以语言（zh,en,es,ru）加.xls命名' ,Log::INFO);
+                                            break;
+                                        }
+
+                                        $data = ExcelHelperTrait::ready2import($xlsFile);    //读取excel信息
+                                        array_shift($data);
+                                        if(empty($data) || empty($r = $data[0])){
+                                            continue;
+                                        }
+
+                                        $data_tmp = [];
+                                        $data_tmp['spu'] = $spu;    //生成spu
+                                        $data_tmp['lang'] = $lang;
+                                        $data_tmp['name'] = $r[2];    //名称
+                                        $data_tmp['show_name'] = $r[3];    //展示名称
+
+                                        //$catNo = $mcatModel->getCatNoByName($r[5] , 'eq');
+                                        //$data_tmp['material_cat_no'] = ($catNo && $catNo[0]['level_no']==3) ? $catNo[0]['cat_no'] : null;    //物料分类
+                                        $data_tmp['material_cat_no'] = $r[4];    //物料分类
+
+                                        //品牌
+                                        $condition_brand = array(
+                                            'brand' => array('like','%'.$r[5].'%')
+                                        );
+                                        $brand_id = $brandModel->Exist($condition_brand);
+                                        $data_tmp['brand'] = $brand_id ? json_encode(array('id'=>$brand_id,'name'=>$r[5]), JSON_UNESCAPED_UNICODE) : null;    //品牌
+
+                                        /**
+                                         * 根据lang 品牌查询name是否存在
+                                         */
+                                        $condition = array(
+                                            'name' => $data_tmp['name'],
+                                            'lang' => $lang,
+                                            'brand' => array('like','%'.$r[5].'%'),
+                                        );
+                                        $exist = $this->field('id')->where($condition)->find();
+                                        if($exist) {
+                                            $failds[] = array('item'=>$f,'hint'=>'语言：'.$lang.' 品牌：'.$r[5].'下已存在'.$data_tmp['name']);
+                                            $this->rollback();
+                                            $bool_spu = false;
+                                            $sucess_lang_tmp = 0;
+                                            Log::write($f .'下，语言：'.$lang.' 品牌：'.$r[5].'下已存在'.$data_tmp['name'] ,Log::INFO);
+                                            break;
+                                        }
+
+                                        $data_tmp['advantages'] = $r[6];
+                                        $data_tmp['tech_paras'] = $r[7];
+                                        $data_tmp['exe_standard'] = $r[8];
+                                        $data_tmp['warranty'] = $r[9];
+                                        $data_tmp['keywords'] = $r[10];
+                                        $data_tmp['source'] = 'ERUI';
+                                        $data_tmp['source_detail'] = 'Excel批量导入';
+                                        $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                                        $data_tmp['created_at'] = date('Y-m-d H:i:s');
+                                        $data_tmp['status'] = $this::STATUS_VALID;
+                                        $insert = $this->add($this->create($data_tmp));
+                                        if(!$insert){
+                                            $failds[] = array('item'=>$f,'hint'=>$lang.'导入失败，请检查信息后重试');
+                                            $this->rollback();
+                                            $bool_spu = false;
+                                            $sucess_lang_tmp = 0;
+                                            Log::write($f .'下，'.$lang.'导入失败，请检查信息后重试' , Log::INFO);
+                                            break;
+                                        }else{
+                                            $bool_spu = true;
+                                            $sucess_lang_tmp++;
+                                        }
+                                    } else {
+                                        continue;
+                                    }
+                                }
+                                if($bool_spu){
+                                    $sucess++;
+                                    $sucess_lang = $sucess_lang + $sucess_lang_tmp;
+                                    $this->commit();
+                                }
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
+                    return array(
+                        'sucess' => $sucess,
+                        'succes_lang' => $sucess_lang,
+                        'failds' => $failds
+                    );
+                }else{
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'failed, code:解压失败' , Log::ERR);
+                }
+                $zip->close();
+            } else {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'failed, code:' . $res, Log::ERR);
+                return false;
+            }
+        }catch (Exception $e){
+            $this->rollback();
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
+            return array(
+                'sucess' => $sucess,
+                'succes_lang' => $sucess_lang,
+                'failds' => $failds
+            );
         }
     }
 
