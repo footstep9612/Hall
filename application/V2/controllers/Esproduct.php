@@ -536,6 +536,7 @@ class EsproductController extends PublicController {
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
+            'min_pack_unit' => $ik_analyzed, //成交单位
         ];
         return $body;
     }
