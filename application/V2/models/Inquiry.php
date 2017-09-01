@@ -80,11 +80,11 @@ class InquiryModel extends PublicModel {
 
         if(!empty($condition['user_id'])){
             if(!empty($condition['agent_id'])){
-                $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") or (agent_id='.$condition['user_id'].') ';
+                $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") or (agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].' and status="DRAFT") ';
                 unset($where['agent_id']);
                 unset($where['status']);
             }else{
-                $where['agent_id'] = $condition['user_id'];
+                $where2 = '(agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].' and status="DRAFT")';
             }
 
         }
