@@ -209,6 +209,8 @@ class InquiryController extends PublicController {
         $auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
+        $area = new MarketAreaCountryModel();
+        
         $where = $this->put_data;
 
         $results = $inquiry->getInfo($where);
@@ -237,6 +239,11 @@ class InquiryController extends PublicController {
         if (!empty($results['data']['created_by'])) {
             $rs3 = $employee->field('name')->where('id=' . $results['data']['created_by'])->find();
             $results['data']['created_name'] = $rs3['name'];
+        }
+        //询单所在区域
+        if (!empty($results['data']['country_bn'])) {
+            $rs4 = $area->field('market_area_bn')->where('country_bn=' . $results['data']['country_bn'])->find();
+            $results['data']['market_area_bn'] = $rs4['market_area_bn'];
         }
 
         $this->jsonReturn($results);
