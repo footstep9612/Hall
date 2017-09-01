@@ -1,39 +1,40 @@
 <?php
 
-trait QuoteBizlineHelper{
-
+trait QuoteBizlineHelper {
 
     /**
      * 产品线报价列表通用筛选条件
      * @param $request
      * @return array
      */
-    public static function filterListParams($request,$type='PM'){
+    public static function filterListParams($request, $type = 'PM') {
 
         $where = [];
 
         //市场经办人
-        if (!empty($request['agent_name'])){
+        if (!empty($request['agent_name'])) {
             //Z函数实例化一个不存在模型文件的模型
             $employee = new EmployeeModel();
-            $agenter = $employee->field('id')->where(['name'=>$request['agent_name']])->find();
-            if ($agenter){
+            $agenter = $employee->field('id')->where(['name' => $request['agent_name']])->find();
+            if ($agenter) {
                 $where['agent_id'] = intval($agenter['id']);
             }
         }
         //项目经理
-        if (!empty($request['pm_name'])){
+        if (!empty($request['pm_name'])) {
             //Z函数实例化一个不存在模型文件的模型
             $employee = new EmployeeModel();
-            $projectManager = $employee->field('id')->where(['name'=>$request['pm_name']])->find();
-            if ($projectManager){
+            $projectManager = $employee->field('id')->where(['name' => $request['pm_name']])->find();
+            if ($projectManager) {
                 $where['pm_id'] = $projectManager['id'];
             }
         }
 
-        switch ($type){
-            case 'PM' : $where['pm_id'] = !empty($request['pm_id']) ? $request['pm_id'] : 5 ; break ;
-            case 'BIZLINE' : $where['agent_id'] = $request['agent_id'] ; break ;
+        switch ($type) {
+            case 'PM' : $where['pm_id'] = !empty($request['pm_id']) ? $request['pm_id'] : 5;
+                break;
+            case 'BIZLINE' : $where['agent_id'] = $request['agent_id'];
+                break;
         }
 
         //项目状态
@@ -55,12 +56,11 @@ trait QuoteBizlineHelper{
         //询价时间
         if (!empty($request['start_time']) && !empty($request['end_time'])) {
             $where['created_at'] = array(
-                array('gt',date('Y-m-d H:i:s',$request['start_time'])),
-                array('lt',date('Y-m-d H:i:s',$request['end_time']))
+                array('gt', date('Y-m-d H:i:s', $request['start_time'])),
+                array('lt', date('Y-m-d H:i:s', $request['end_time']))
             );
         }
         return $where;
-
     }
 
     /**
@@ -68,11 +68,11 @@ trait QuoteBizlineHelper{
      * @param $filterParams 筛选字段
      * @return mixed 返回结果
      */
-    public static function getQuotelineInquiryList($filterParams){
+    public static function getQuotelineInquiryList($filterParams) {
 
         $inquiry = new InquiryModel();
-        if (!$total = $inquiry->getCount($filterParams)){
-            return ['code'=>'-104','message'=>'没有数据!','data'=>''];
+        if (!$total = $inquiry->getCount($filterParams)) {
+            return ['code' => '-104', 'message' => '没有数据!', 'data' => ''];
         }
 
         //设置分页
@@ -80,9 +80,9 @@ trait QuoteBizlineHelper{
         $pageSize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
 
         //最终列出的字段
-        $field = ['id','serial_no','country_bn','buyer_name','created_at','status','quote_deadline','agent_id','pm_id'];
+        $field = ['id', 'serial_no', 'country_bn', 'buyer_name', 'created_at', 'status', 'quote_deadline', 'agent_id', 'pm_id'];
 
-       $list = $inquiry->where($filterParams)->page($page,$pageSize)->field($field)->order('updated_at desc')->select();
+        $list = $inquiry->where($filterParams)->page($page, $pageSize)->field($field)->order('updated_at desc')->select();
 
         /**
          * 重组数据
@@ -96,93 +96,85 @@ trait QuoteBizlineHelper{
             'total' => $total,
             'data' => $responseData
         ];
-
     }
 
-    public static function restoreQuotelineInquiryList($list){
-        foreach ($list as $item=>$value) {
+    public static function restoreQuotelineInquiryList($list) {
+        foreach ($list as $item => $value) {
             //经办人
-            if(!empty($value['agent_id'])){
+            if (!empty($value['agent_id'])) {
                 $employeeModel = new EmployeeModel();
-                $employee = $employeeModel->where(['id'=>$value['agent_id']])->field('name')->find();
+                $employee = $employeeModel->where(['id' => $value['agent_id']])->field('name')->find();
                 $list[$item]['agent_name'] = $employee['name'];
-                unset( $list[$item]['agent_id']);
+                unset($list[$item]['agent_id']);
             }
             //项目经理
-            if(!empty($value['pm_id'])){
+            if (!empty($value['pm_id'])) {
                 $employeeModel = new EmployeeModel();
-                $productManager = $employeeModel->where(['id'=>$value['pm_id']])->field('name')->find();
+                $productManager = $employeeModel->where(['id' => $value['pm_id']])->field('name')->find();
                 $list[$item]['pm_name'] = $productManager['name'];
-                unset( $list[$item]['pm_id']);
+                unset($list[$item]['pm_id']);
             }
         }
         return $list;
     }
 
-
-
-
-
-
-    static public function getInquiryInfoFields()
-    {
+    static public function getInquiryInfoFields() {
         return [
-            'id',//询单id
-            'serial_no',//流程编码
-            'status',//项目状态
-            'agent_id',//当前经办人,这个字段跟employee表关联获取名字
-            'buyer_id',//客户编码 跟采购商表关联获取相关字段信息
-            'buyer_name',//客户名称
+            'id', //询单id
+            'serial_no', //流程编码
+            'status', //项目状态
+            'agent_id', //当前经办人,这个字段跟employee表关联获取名字
+            'buyer_id', //客户编码 跟采购商表关联获取相关字段信息
+            'buyer_name', //客户名称
             //所属地区
-            'country_bn',//国家
-            'pm_id',//项目经理 这个字段跟employee表关联获取名字
-            'created_by',//询单创建人
-            'inquiry_no',//项目代码
-            'project_name',//项目名称
-            'quote_deadline',//预计报价时间
-            'bid_flag',//是否投标
-            'kerui_flag',//科瑞设备所用配件
-            'payment_mode',//付款方式
-            'trade_terms_bn',//贸易术语
-            'trans_mode_bn',//运输方式
-            'cur_bn',//报价币种
-            'from_country',//起运国
-            'from_port',//起运港
-            'dispatch_place',//发运起始地
-            'to_country',//目的国
-            'to_port',//目的港
-            'project_basic_info',//项目背景描述
-            'quote_notes',//报价备注
+            'country_bn', //国家
+            'pm_id', //项目经理 这个字段跟employee表关联获取名字
+            'created_by', //询单创建人
+            'inquiry_no', //项目代码
+            'project_name', //项目名称
+            'quote_deadline', //预计报价时间
+            'bid_flag', //是否投标
+            'kerui_flag', //科瑞设备所用配件
+            'payment_mode', //付款方式
+            'trade_terms_bn', //贸易术语
+            'trans_mode_bn', //运输方式
+            'cur_bn', //报价币种
+            'from_country', //起运国
+            'from_port', //起运港
+            'dispatch_place', //发运起始地
+            'to_country', //目的国
+            'to_port', //目的港
+            'project_basic_info', //项目背景描述
+            'quote_notes', //报价备注
             'adhoc_request'//客户检验要求
         ];
     }
 
-    static public function restoreInqiryInfo(array $inquiry){
+    static public function restoreInqiryInfo(array $inquiry) {
         //市场经办人
         $employeeModel = new EmployeeModel();
-        $agent = $employeeModel->where(['id'=>$inquiry['agent_id']])->getField('name');
-        if ($agent){
+        $agent = $employeeModel->where(['id' => $inquiry['agent_id']])->getField('name');
+        if ($agent) {
             $inquiry['agent_name'] = $agent;
             unset($inquiry['agent_id']);
         }
         //项目经理
-        $productManager = $employeeModel->where(['id'=>$inquiry['pm_id']])->getField('name');
-        if ($productManager){
+        $productManager = $employeeModel->where(['id' => $inquiry['pm_id']])->getField('name');
+        if ($productManager) {
             $inquiry['pm_name'] = $productManager;
             unset($inquiry['pm_id']);
         }
 
         //获取询单明细
         $inquiryItem = new InquiryItemModel();
-        $inquiryList = $inquiryItem->where(['inquiry_id'=>$inquiry['id']])->select();
+        $inquiryList = $inquiryItem->where(['inquiry_id' => $inquiry['id']])->select();
 
-        $inquiry['list'] = !is_null($inquiryList) ? $inquiryList : [] ;
+        $inquiry['list'] = !is_null($inquiryList) ? $inquiryList : [];
         return [
             'code' => '1',
-            'message' =>'成功!',
+            'message' => '成功!',
             'data' => $inquiry
         ];
-
     }
 
     /**
@@ -190,16 +182,16 @@ trait QuoteBizlineHelper{
      * @param $param    条件
      * @return array    重组后的结构
      */
-    static public function setPartitionBizlineFields($param){
+    static public function setPartitionBizlineFields($param) {
 
         //先查找询单相关的字段 inquiry_id biz_agent_id
         $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['serial_no'=>$param['serial_no']])
-                                    ->field(['id','agent_id'])
-                                    ->find();
+        $inquiryInfo = $inquiryModel->where(['serial_no' => $param['serial_no']])
+                ->field(['id', 'agent_id'])
+                ->find();
 
         //判断一个quote_id是一个或者是多个
-        $quote = explode(',',$param['quote_id']);
+        $quote = explode(',', $param['quote_id']);
 
         //给产品线关联表插入数据 quote_bizline
         $quoteBizline = new QuoteBizLineModel();
@@ -211,7 +203,7 @@ trait QuoteBizlineHelper{
         $data['created_at'] = date('Y-m-d H:i:s');
         //$data['biz_agent_id'] 需要去inquiry表读取agent_id字段
         $inquiryModel = new InquiryModel();
-        $data['biz_agent_id'] = $inquiryModel->where(['id'=>$param['inquiry_id']])->getField('agent_id');
+        $data['biz_agent_id'] = $inquiryModel->where(['id' => $param['inquiry_id']])->getField('agent_id');
 
         return $data;
     }
@@ -222,20 +214,20 @@ trait QuoteBizlineHelper{
      * @param $param
      * @return mixed
      */
-    static public function transmitHandler(array $param,$ori_pm_id){
+    static public function transmitHandler(array $param, $ori_pm_id) {
 
         $inquiry = new InquiryModel();
 
-        $result = $inquiry->where(['id'=>$param['id']])->save([
-            'pm_id'=>$param['pm_id'],//现项目经理
-            'ori_pm_id'=>$ori_pm_id//原项目经理
+        $result = $inquiry->where(['id' => $param['id']])->save([
+            'pm_id' => $param['pm_id'], //现项目经理
+            'ori_pm_id' => $ori_pm_id//原项目经理
         ]);
 
-        if (!$result){
-            return ['code' => '-104','message' => '转交失败!'];
+        if (!$result) {
+            return ['code' => '-104', 'message' => '转交失败!'];
         }
 
-        return ['code' => '1','message' => '转交成功!'];
+        return ['code' => '1', 'message' => '转交成功!'];
     }
 
     /**
@@ -243,23 +235,88 @@ trait QuoteBizlineHelper{
      * @param $param 请求数据
      * @return array 返回数据
      */
-    static public function submitToBizline($param){
+    static public function submitToBizline($param) {
 
         $inquiryModel = new InquiryModel();
+        $quoteitem_model = new QuoteItemModel();
+        $inquiryitem_model = new InquiryItemModel();
+        $goods_model = new GoodsModel();
+        try {
+            $status = $inquiryModel->where(['id' => $param['id']])->find('status');
+            if ($status == 'QUOTING_BY_BIZLINE') {
+                return ['code' => '-104', 'message' => '不能重复提交!'];
+            }
+            $inquiryitems = $inquiryitem_model
+                    ->where(['inquiry_id' => $param['id']])
+                    ->field('sku,name,name_zh,remarks,remarks_zh,brand,qty,unit')
+                    ->select();
+            $skus = [];
+            foreach ($inquiryitems as $item) {
+                $skus[] = $item['sku'];
+            }
+            $goodsarr = [];
+            if ($skus) {
+                $goods_list = $goods_model->where(['sku' => ['in' => $skus]])->select();
 
-        try{
-            $status = $inquiryModel->where(['id'=>$param['id']])->getField('status');
-            if ($status =='QUOTING_BY_BIZLINE'){
-                return ['code'=>'-104','message'=>'不能重复提交!'];
+                foreach ($goods_list as $goods) {
+                    $goodsarr[$goods['sku']] = $goods;
+                }
+            }
+            $quoteitem_model->startTrans();
+            $flag = $inquiryModel->where(['id' => $param['id']])
+                    ->save(['status' => 'QUOTING_BY_BIZLINE']);
+            if ($flag) {
+                foreach ($inquiryitems as $item) {
+                    $sku = $item['sku'];
+                    $condition['quote_id'] = ''; //报价单id
+                    $condition['inquiry_id'] = $item['inquiry_id']; //询单ID
+                    $condition['inquiry_item_id'] = $item['inquiry_id']; //询单项ID
+                    $condition['biz_agent_id'] = ''; //商务技术ID
+                    $condition['bizline_id'] = ''; //产品线ID
+                    $condition['bizline_agent_id'] = ''; //产品线报价人
+                    $condition['sku'] = $sku; //报价单SKU
+                    $condition['brand'] = $item['brand']; //报价单SKU
+                    $condition['supplier_id'] = ''; //供应商ID
+                    $condition['remarks'] = $item['remarks']; //产品描述
+                    $condition['quote_unit'] = $item['unit']; //单位
+                    $condition['quote_qty'] = $item['qty']; //数量
+                    if (isset($goodsarr[$sku])) {
+                        $goods = $goodsarr[$sku];
+                        $condition['purchase_unit_price'] = $goods['purchase_price']; //采购单价
+                        $condition['purchase_price_cur_bn'] = $goods['purchase_price_cur_bn']; //采购价格币种
+                        $condition['net_weight_kg'] = $goods['net_weight_kg']; //净重(kg)
+                        $condition['gross_weight_kg'] = $goods['gross_weight_kg']; //毛重(kg)
+                        // $condition['package_size'] = $goods['gross_weight_kg']; //包装体积(m^3)
+                        $condition['package_mode'] = $goods['pack_type']; //包装方式
+                        $condition['goods_source'] = $goods['source']; //产品来源
+                        $condition['stock_loc'] = $goods['commodity_ori_place']; //存放地
+                        $condition['exw_days'] = $goods['exw_days'];  //出货周期（天）
+                        $condition['delivery_days'] = $goods['exw_days']; //交货周期（天）
+                    }
+                    $quote_flag = $quoteitem_model->addItem($condition);
+                    if (!$quote_flag) {
+                        $quoteitem_model->rollback();
+                        return ['code' => '-1', 'message' => '失败!'];
+                    }
+                }
+            } else {
+                $quoteitem_model->rollback();
+                return ['code' => '-1', 'message' => '失败!'];
             }
 
-            if ($inquiryModel->where(['id'=>$param['id']])->save(['status'=>'QUOTING_BY_BIZLINE'])){
-                return ['code'=>'1','message'=>'成功!'];
-            }else{
-                return ['code'=>'-104','message'=>'失败!'];
-            }
+            $quoteitem_model->commit();
+//            if ($inquiryModel
+//                            ->where(['id' => $param['id']])
+//                            ->save(['status' => 'QUOTING_BY_BIZLINE'])) {
+//
 
-        }catch (Exception $exception){
+
+
+            return ['code' => '1', 'message' => '成功!'];
+//            } else {
+//                return ['code' => '-104', 'message' => '失败!'];
+//            }
+        } catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()
@@ -272,19 +329,19 @@ trait QuoteBizlineHelper{
      * @param $param 请求参数
      * @return array 结果
      */
-    public static function sendbackToBizline($param){
+    public static function sendbackToBizline($param) {
 
         $inquiryModel = new InquiryModel();
-        try{
-            $result = $inquiryModel->where(['serial_no'=>$param['serial_no']])->save([
-                'status' => 'BZ_QUOTE_REJECTED',//询单的状态
+        try {
+            $result = $inquiryModel->where(['serial_no' => $param['serial_no']])->save([
+                'status' => 'BZ_QUOTE_REJECTED', //询单的状态
                 'goods_quote_status' => 'REJECTED'//询单的产品线报价状态
             ]);
-            if (!$result){
-                return ['code'=>'-101','message'=>'操作失败!'];
+            if (!$result) {
+                return ['code' => '-101', 'message' => '操作失败!'];
             }
-            return ['code'=>'1','message'=>'操作成功!'];
-        }catch (Exception $exception){
+            return ['code' => '1', 'message' => '操作成功!'];
+        } catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()
@@ -292,28 +349,26 @@ trait QuoteBizlineHelper{
         }
     }
 
-
     /**
      * 产品线负责人->指派报价人
      * @param $request 请求的数据
      * @return array 结果
      */
-    static public function assignQuoter($request){
+    static public function assignQuoter($request) {
 
         $quote_item = new QuoteItemModel();
-        try{
-            if ($quote_item->where(['quote_id'=>$request['quote_id']])->save(['bizline_agent_id'=>$request['bizline_agent_id']])){
-                return ['code'=>'1','message'=>'指派成功!'];
-            }else{
-                return ['code'=>'-104','message'=>'指派失败!'];
+        try {
+            if ($quote_item->where(['quote_id' => $request['quote_id']])->save(['bizline_agent_id' => $request['bizline_agent_id']])) {
+                return ['code' => '1', 'message' => '指派成功!'];
+            } else {
+                return ['code' => '-104', 'message' => '指派失败!'];
             }
-        }catch (Exception $exception){
-             return [
-                 'code' => $exception->getCode(),
-                 'message' => $exception->getMessage()
-             ];
+        } catch (Exception $exception) {
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
         }
-
     }
 
     /**
@@ -321,25 +376,25 @@ trait QuoteBizlineHelper{
      * @param $request
      * @return array
      */
-    public static function submitToManager($request){
+    public static function submitToManager($request) {
 
         $inquiry = new InquiryModel();
-        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
+        $status = $inquiry->where(['serial_no' => $request['serial_no']])->getField('status');
         //p($status);
-        if ($status=="QUOTED_BY_BIZLINE"){
-            return ['code'=>'-104','message'=>'不能重复提交!'];
+        if ($status == "QUOTED_BY_BIZLINE") {
+            return ['code' => '-104', 'message' => '不能重复提交!'];
         }
 
         $inquiry->startTrans();
-        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
-            'goods_quote_status'=>'QUOTED'//当前报价的状态
+        $inquiryResult = $inquiry->where(['serial_no' => $request['serial_no']])->save([
+            'status' => 'QUOTED_BY_BIZLINE', //询单(项目)的状态
+            'goods_quote_status' => 'QUOTED'//当前报价的状态
         ]);
 
         //更改报价的状态(quote表)
         $quoteModel = new QuoteModel();
         $quoteModel->startTrans();
-        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+        $quoteResult = $quoteModel->where(['id' => $request['quote_id']])->save([
             'status' => 'QUOTED_BY_BIZLINE'
         ]);
 
@@ -360,26 +415,24 @@ trait QuoteBizlineHelper{
 //                break;
 //            }
 //        }
-
-
         //更改产品线报价的状态
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
-        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
+        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id' => $request['quote_id']])->save(['status' => 'APPROVED']);
 
 
-        if ($inquiryResult && $quoteResult && $quoteBizlineResult){
+        if ($inquiryResult && $quoteResult && $quoteBizlineResult) {
             $inquiry->commit();
             $quoteModel->commit();
             $quoteBizlineModel->commit();
             //$quoteItemModel->commit();
-            return ['code'=>'1','message'=>'提交成功!'];
-        }else{
+            return ['code' => '1', 'message' => '提交成功!'];
+        } else {
             $inquiry->rollback();
             $quoteModel->rollback();
             $quoteBizlineModel->rollback();
             //$quoteItemModel->rollback();
-            return ['code'=>'-104','message'=>'提交失败!'];
+            return ['code' => '-104', 'message' => '提交失败!'];
         }
     }
 
@@ -388,18 +441,17 @@ trait QuoteBizlineHelper{
      * @param $param
      * @return array
      */
-    public static function submitToLogi($request)
-    {
+    public static function submitToLogi($request) {
         //更改项目(询单)状态status为QUOTING_BY_LOGI(物流报价中)
         $inquiry = new InquiryModel();
-        try{
-            $result = $inquiry->where(['serial_no'=>$request['serial_no']])->save(['status'=>'QUOTED_BY_BIZLINE']);
-            if ($result){
-                return ['code'=>'1','message'=>'提交成功!'];
-            }else{
-                return ['code'=>'-104','message'=>'失败!'];
+        try {
+            $result = $inquiry->where(['serial_no' => $request['serial_no']])->save(['status' => 'QUOTED_BY_BIZLINE']);
+            if ($result) {
+                return ['code' => '1', 'message' => '提交成功!'];
+            } else {
+                return ['code' => '-104', 'message' => '失败!'];
             }
-        }catch (Exception $exception){
+        } catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()
@@ -413,19 +465,19 @@ trait QuoteBizlineHelper{
      *
      * @return array
      */
-    public static function addAttach($request){
+    public static function addAttach($request) {
 
         $quoteAttach = new QuoteAttachModel();
         //声明附件分组
         $request['attach_group'] = '产品线附件';
         $request['created_at'] = date('Y-m-d H:i:s');
-        try{
-            if ($quoteAttach->add($quoteAttach->create($request))){
-                return ['code'=>'1','message'=>'上传成功!'];
-            }else{
-                return ['code'=>'-104','message'=>'上传失败!'];
+        try {
+            if ($quoteAttach->add($quoteAttach->create($request))) {
+                return ['code' => '1', 'message' => '上传成功!'];
+            } else {
+                return ['code' => '-104', 'message' => '上传失败!'];
             }
-        }catch (Exception $exception){
+        } catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()
