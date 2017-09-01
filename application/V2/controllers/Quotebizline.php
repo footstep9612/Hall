@@ -640,7 +640,7 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * 提交市场确认报价
+     * 提交市场确认报价(项目经理)
      */
     public function sentMarketAction(){
 
@@ -916,6 +916,35 @@ class QuotebizlineController extends PublicController {
         */
         $request = $this->validateRequests('inquiry_id');
         unset($request['id']);//过滤前端发送的多余id字段
+
+        //总重
+        if (!empty($request['total_weight']) && !is_numeric($request['total_weight'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'总重必须是数字']);
+        }
+        //包装总体积
+        if (!empty($request['package_volumn']) && !is_numeric($request['package_volumn'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'包装总体积必须是数字']);
+        }
+        //回款周期
+        if (!empty($request['payment_period']) && !is_numeric($request['payment_period'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'回款周期必须是数字']);
+        }
+        //交货周期
+        if (!empty($request['delivery_period']) && !is_numeric($request['delivery_period'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'交货周期必须是数字']);
+        }
+        //资金占用比例
+        if (!empty($request['fund_occupation_rate']) && !is_numeric($request['fund_occupation_rate'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'资金占用比例必须是数字']);
+        }
+        //银行利息
+        if (!empty($request['bank_interest']) && !is_numeric($request['bank_interest'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'银行利息必须是数字']);
+        }
+        //毛利率
+        if (!empty($request['gross_profit_rate']) && !is_numeric($request['gross_profit_rate'])){
+            $this->jsonReturn(['code'=>'-104','message'=>'毛利率必须是数字']);
+        }
 
         $quoteModel = new QuoteModel();
         try{
