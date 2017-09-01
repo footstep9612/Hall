@@ -36,8 +36,11 @@ class BuyerAgentModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" id desc") {
         return $this->where($condition)
-            ->field('buyer_agent.id,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at')
+            ->field('buyer_agent.id,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at')
             ->join('erui2_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+            ->join('erui2_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
+            ->join('erui2_sys.org on org.id=org_member.org_id', 'left')
+            ->group('em.id')
             ->order('buyer_agent.id desc')
             ->select();
     }
