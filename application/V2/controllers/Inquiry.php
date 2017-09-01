@@ -145,7 +145,7 @@ class InquiryController extends PublicController {
         if (!empty($where['agent_name'])) {
             $agent = $employee->field('id')->where('name="' . $where['agent_name'] . '"')->find();
 
-            if (in_array($agent['id'], $where['agent_id'])) {
+            if (in_array($agent['id'], $where['agent_id']) || $agent['id'] == $this->user['id']) {
                 $where['agent_id'] = [];
                 $where['agent_id'][] = $agent['id'];
             } else {
@@ -158,9 +158,13 @@ class InquiryController extends PublicController {
         }
         //如果搜索条件有项目经理，转换成id
         if (!empty($where['pm_name'])) {
-            $pm = $employee->field('id')->where('name="' . $where['agent_name'] . '"')->find();
-            if ($agent) {
+            $pm = $employee->field('id')->where('name="' . $where['pm_name'] . '"')->find();
+            if ($pm) {
                 $where['pm_id'] = $pm['id'];
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息！';
+                $this->jsonReturn($results);
             }
         }
 
