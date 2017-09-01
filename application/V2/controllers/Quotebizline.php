@@ -881,7 +881,16 @@ class QuotebizlineController extends PublicController {
      * 保存报价综合信息(项目经理)
      */
     public function saveQuoteGeneralInfoAction(){
-
+        /*
+        |--------------------------------------------------------------------------
+        | Password Reset Controller
+        |--------------------------------------------------------------------------
+        |
+        | This controller is responsible for handling password reset requests
+        | and uses a simple trait to include this behavior. You're free to
+        | explore this trait and override any methods you wish to tweak.
+        |
+        */
         $request = $this->validateRequests('inquiry_id');
         unset($request['id']);//过滤前端发送的多余id字段
 
