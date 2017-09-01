@@ -61,14 +61,25 @@ class BuyerLevelModel extends PublicModel{
     public function editLevel($data = [], $userInfo){
         $checkout = $this->checkParam($data);
         try {
-            $result = $this->field('id')->where(['id'=>$checkout['id']])->find();
-            if($result){
-                $checkout['updated_by'] = $userInfo['id'];
-                $checkout['updated_at'] = $this->getTime();
-                $res = $this->where(['id'=>$checkout['id']])->save($checkout);
-                if (!$res) {
-                    $results['code'] = '-1';
-                    $results['message'] = '失败!';
+
+            if(isset($checkout['id']) && !empty($checkout['id'])){
+                $result = $this->field('id')->where(['id'=>$checkout['id']])->find();
+                if($result){
+                    $checkout['updated_by'] = $userInfo['id'];
+                    $checkout['updated_at'] = $this->getTime();
+                    $res = $this->where(['id'=>$checkout['id']])->save($checkout);
+                    if (!$res) {
+                        $results['code'] = '-1';
+                        $results['message'] = '失败!';
+                    }
+                }else{
+                    $checkout['created_by'] = $userInfo['id'];
+                    $checkout['created_at'] = $this->getTime();
+                    $res = $this->add($checkout);
+                    if (!$res) {
+                        $results['code'] = '-1';
+                        $results['message'] = '失败!';
+                    }
                 }
             } else{
                 $checkout['created_by'] = $userInfo['id'];
@@ -103,10 +114,11 @@ class BuyerLevelModel extends PublicModel{
      * @author klp
      */
     public function checkParam($create) {
+        $data=[];
         if (isset($create['buyer_level'])) {
             $data['buyer_level'] = json_encode($create['buyer_level'],JSON_UNESCAPED_UNICODE);
         }
-        if (isset($data['buyer_level_id'])) {
+        if (isset($create['buyer_level_id'])) {
             $data['id'] = $create['buyer_level_id'];
         }
         if (isset($create['status'])) {
