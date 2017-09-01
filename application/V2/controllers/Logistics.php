@@ -658,7 +658,11 @@ class LogisticsController extends PublicController {
 	 */
 	public function calcuTotalLogiFee($condition = []) {
 	    
-	    if (empty($condition['trade_terms_bn'])) return false;
+	    if (empty($condition['trade_terms_bn'])) {
+	        return false;
+	    } else {
+	        $trade = $condition['trade_terms_bn'];
+	    }
 	   
 	    $data = $condition;
 	     
@@ -675,33 +679,32 @@ class LogisticsController extends PublicController {
 	     
 	    $data['inspection_fee'] = $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
 	     
-	    switch ($data['trade_terms_bn']) {
-	        case 'EXW' :
-	             
+	    switch (true) {
+	        case $trade == 'EXW' :
 	            break;
-	        case 'FCA' || 'FAS' :
+	        case $trade == 'FCA' || $trade == 'FAS' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            break;
-	        case 'FOB' :
+	        case $trade == 'FOB' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
 	            break;
-	        case 'CPT' || 'CFR' :
+	        case $trade == 'CPT' || $trade == 'CFR' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
 	            $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
 	            break;
-	        case 'CIF' || 'CIP' :
+	        case $trade == 'CIF' || $trade == 'CIP' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
 	            $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
 	            $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
 	            break;
-	        case 'DAP' || 'DAT' :
+	        case $trade == 'DAP' || $trade == 'DAT' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
@@ -709,7 +712,7 @@ class LogisticsController extends PublicController {
 	            $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
 	            $data['dest_delivery_fee'] = $condition['dest_delivery_fee'] > 0 ? $condition['dest_delivery_fee'] : 0;
 	            break;
-	        case 'DDP' || '快递' :
+	        case $trade == 'DDP' || $trade == '快递' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
@@ -735,28 +738,28 @@ class LogisticsController extends PublicController {
 	    $tmpRate1 = 1 - $data['premium_rate'] - round($data['payment_period'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
 	    $tmpRate2 = $tmpRate1 - 1.1 * $data['shipping_insu_rate'];
 	     
-	    switch ($data['trade_terms_bn']) {
-	        case 'EXW' :
+	    switch (true) {
+	        case $trade == 'EXW' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8);
 	            break;
-	        case 'FCA' || 'FAS' :
+	        case $trade == 'FCA' || $trade == 'FAS' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8);
 	            break;
-	        case 'FOB' :
+	        case $trade == 'FOB' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8);
 	            break;
-	        case 'CPT' || 'CFR' :
+	        case $trade == 'CPT' || $trade == 'CFR' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8);
 	            break;
-	        case 'CIF' || 'CIP' :
+	        case $trade == 'CIF' || $trade == 'CIP' :
 	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	            break;
-	        case 'DAP' || 'DAT' :
+	        case $trade == 'DAP' || $trade == 'DAT' :
 	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	            break;
-	        case 'DDP' || '快递' :
+	        case $trade == 'DDP' || $trade == '快递' :
 	            $tmpCaFee = ($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate']) * (1 + $data['dest_va_tax_rate']) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	    }
