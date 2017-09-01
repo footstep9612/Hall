@@ -310,8 +310,6 @@ class DictController extends PublicController {
      * 落地配
      */
     public function destdeliveryListAction() {
-        // $this->input['country'] = '巴西';
-        // $this->input['lang'] = 'zh';
         if (!isset($this->input['country'])) {
             jsonReturn('', '1000');
         }

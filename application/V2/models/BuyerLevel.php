@@ -15,6 +15,36 @@ class BuyerLevelModel extends PublicModel{
     }
 
     /**
+     *
+     */
+    public function getLevelService(){
+       $sql =  "select c.id, c.category, t.id, t.term, i.id, i.item, m.buyer_level_id
+from erui2_config.service_cat c, erui2_config.service_term t, erui2_config.service_item i
+left join erui2_config.member_service m on i.id = m.service_item_id and m.deleted_flag = 'N' and m.status = 'VALID'
+left join erui2_config.buyer_level b on b.id = m.buyer_level_id and b.deleted_flag = 'N' and b.status = 'VALID'
+where c.id = t.service_cat_id and t.id = i.service_term_id and c.status = 'VALID' and t.status = 'VALID' and i.status = 'VALID'
+order by c.id, t.id, i.id";
+$row = $this->query( $sql );
+        jsonReturn($row);
+        $where['status'] = 'VALID';
+        $where['deleted_flag'] = 'N';
+        $fields = 'id, buyer_level, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
+        try {
+            $result = $this->field($fields)->where($where)->order('id')->group('buyer_level')->select();
+            if($result){
+                foreach($result as $key=>$item){
+
+                }
+            }
+
+        }catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return array();
+        }
+    }
+
+    /**
      * 会员等级查看
      * @author klp
      */

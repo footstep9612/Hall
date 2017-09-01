@@ -217,7 +217,7 @@ class LogiPeriodModel extends PublicModel {
             'warehouse' => $warehouse
         );
         if (redisHashExist('LogiPeriod', md5(json_encode($condition)))) {
-            return json_decode(redisHashGet('LogiPeriod', md5(json_encode($condition))), true);
+//            return json_decode(redisHashGet('LogiPeriod', md5(json_encode($condition))), true);
         }
         try {
             $field = 'id,lang,logi_no,trade_terms_bn,trans_mode_bn,warehouse,from_country,'
@@ -230,7 +230,7 @@ class LogiPeriodModel extends PublicModel {
             $data = array();
             if ($result) {
                 foreach ($result as $item) {
-                    $data[$item['trade_terms']][] = $item;
+                    $data[$item['trade_terms_bn']][] = $item;
                 }
                 redisHashSet('LogiPeriod', md5(json_encode($condition)), json_encode($data));
             }
