@@ -242,7 +242,7 @@ class InquiryController extends PublicController {
         }
         //询单所在区域
         if (!empty($results['data']['country_bn'])) {
-            $rs4 = $area->field('market_area_bn')->where('country_bn=' . $results['data']['country_bn'])->find();
+            $rs4 = $area->field('market_area_bn')->where(['country_bn' => $results['data']['country_bn']])->find();
             $results['data']['market_area_bn'] = $rs4['market_area_bn'];
         }
 
