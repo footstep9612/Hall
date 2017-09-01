@@ -325,4 +325,18 @@ class ServicecatController extends PublicController {
         }
     }
 
+    /**
+     * 会员服务  --门户
+     * @author klp
+     */
+    public function LevelInfoAction(){
+        $BuyerLevelModel = new BuyerLevelModel();
+        $result = $BuyerLevelModel->getLevelService();
+        if(!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
 }
