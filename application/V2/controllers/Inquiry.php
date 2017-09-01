@@ -139,7 +139,6 @@ class InquiryController extends PublicController {
             foreach ($auth['data'] as $epl) {
                 $where['agent_id'][] = $epl['employee_id'];
             }
-            $where['status'] = array('NEQ', 'DRAFT');
         }
 
         //如果搜索条件有经办人，转换成id
