@@ -61,7 +61,6 @@ class BuyerLevelModel extends PublicModel{
     public function editLevel($data = [], $userInfo){
         $checkout = $this->checkParam($data);
         try {
-
             if(isset($checkout['id']) && !empty($checkout['id'])){
                 $result = $this->field('id')->where(['id'=>$checkout['id']])->find();
                 if($result){
