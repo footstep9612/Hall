@@ -80,9 +80,21 @@ class InquiryModel extends PublicModel {
 
         if(!empty($condition['user_id'])){
             if(!empty($condition['agent_id'])){
-                $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") or (agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].' and status="DRAFT") ';
+                if(!empty($condition['status'])){
+                    switch($condition['status']) {
+                        case 'DRAFT':
+                            $where2 ='(agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].') ';
+                            break;
+                        default:
+                            $where2 ='(agent_id='.$condition['user_id'].') or (agent_id in('.implode(',',$condition['agent_id']).') ';
+                            break;
+                    }
+                }else{
+                    $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") ';
+                    $where2 .='or (agent_id='.$condition['user_id'].') ';
+                    $where2 .='or (created_by='.$condition['user_id'].' and status="DRAFT") ';
+                }
                 unset($where['agent_id']);
-                unset($where['status']);
             }else{
                 $where2 = '(agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].' and status="DRAFT")';
             }
