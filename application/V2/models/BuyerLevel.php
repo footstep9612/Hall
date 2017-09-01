@@ -15,6 +15,36 @@ class BuyerLevelModel extends PublicModel{
     }
 
     /**
+     *
+     */
+    public function getLevelService(){
+       $sql =  "select c.id, c.category, t.id, t.term, i.id, i.item, m.buyer_level_id
+from erui2_config.service_cat c, erui2_config.service_term t, erui2_config.service_item i
+left join erui2_config.member_service m on i.id = m.service_item_id and m.deleted_flag = 'N' and m.status = 'VALID'
+left join erui2_config.buyer_level b on b.id = m.buyer_level_id and b.deleted_flag = 'N' and b.status = 'VALID'
+where c.id = t.service_cat_id and t.id = i.service_term_id and c.status = 'VALID' and t.status = 'VALID' and i.status = 'VALID'
+order by c.id, t.id, i.id";
+$row = $this->query( $sql );
+        jsonReturn($row);
+        $where['status'] = 'VALID';
+        $where['deleted_flag'] = 'N';
+        $fields = 'id, buyer_level, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
+        try {
+            $result = $this->field($fields)->where($where)->order('id')->group('buyer_level')->select();
+            if($result){
+                foreach($result as $key=>$item){
+
+                }
+            }
+
+        }catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return array();
+        }
+    }
+
+    /**
      * 会员等级查看
      * @author klp
      */
@@ -61,14 +91,24 @@ class BuyerLevelModel extends PublicModel{
     public function editLevel($data = [], $userInfo){
         $checkout = $this->checkParam($data);
         try {
-            $result = $this->field('id')->where(['id'=>$checkout['id']])->find();
-            if($result){
-                $checkout['updated_by'] = $userInfo['id'];
-                $checkout['updated_at'] = $this->getTime();
-                $res = $this->where(['id'=>$checkout['id']])->save($checkout);
-                if (!$res) {
-                    $results['code'] = '-1';
-                    $results['message'] = '失败!';
+            if(isset($checkout['id']) && !empty($checkout['id'])){
+                $result = $this->field('id')->where(['id'=>$checkout['id']])->find();
+                if($result){
+                    $checkout['updated_by'] = $userInfo['id'];
+                    $checkout['updated_at'] = $this->getTime();
+                    $res = $this->where(['id'=>$checkout['id']])->save($checkout);
+                    if (!$res) {
+                        $results['code'] = '-1';
+                        $results['message'] = '失败!';
+                    }
+                }else{
+                    $checkout['created_by'] = $userInfo['id'];
+                    $checkout['created_at'] = $this->getTime();
+                    $res = $this->add($checkout);
+                    if (!$res) {
+                        $results['code'] = '-1';
+                        $results['message'] = '失败!';
+                    }
                 }
             } else{
                 $checkout['created_by'] = $userInfo['id'];
@@ -103,10 +143,11 @@ class BuyerLevelModel extends PublicModel{
      * @author klp
      */
     public function checkParam($create) {
+        $data=[];
         if (isset($create['buyer_level'])) {
             $data['buyer_level'] = json_encode($create['buyer_level'],JSON_UNESCAPED_UNICODE);
         }
-        if (isset($data['buyer_level_id'])) {
+        if (isset($create['buyer_level_id'])) {
             $data['id'] = $create['buyer_level_id'];
         }
         if (isset($create['status'])) {

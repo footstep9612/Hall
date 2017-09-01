@@ -80,13 +80,27 @@ class InquiryModel extends PublicModel {
 
         if(!empty($condition['user_id'])){
             if(!empty($condition['agent_id'])){
-                $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") or (agent_id='.$condition['user_id'].') ';
+                if(!empty($condition['status'])){
+                    if(!in_array($condition['user_id'],$condition['agent_id'])){
+                        $condition['agent_id'][] = $condition['user_id'];
+                    }
+                    switch($condition['status']) {
+                        case 'DRAFT':
+                            $where2 ='(agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].') ';
+                            break;
+                        default:
+                            $where2 ='agent_id in('.implode(',',$condition['agent_id']).') ';
+                            break;
+                    }
+                }else{
+                    $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") ';
+                    $where2 .='or (agent_id='.$condition['user_id'].') ';
+                    $where2 .='or (created_by='.$condition['user_id'].' and status="DRAFT") ';
+                }
                 unset($where['agent_id']);
-                unset($where['status']);
             }else{
-                $where['agent_id'] = $condition['user_id'];
+                $where2 = '(agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].' and status="DRAFT")';
             }
-
         }
 
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;

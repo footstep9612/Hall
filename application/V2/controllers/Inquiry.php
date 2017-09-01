@@ -24,26 +24,40 @@ class InquiryController extends PublicController {
             $maketareateam = new MarketAreaTeamModel();
             $users = [];
 
-            //查询方案中心下面有多少市场部门
-            foreach ($groupid as $val) {
-                $grs = $maketareateam->alias('a')
+            if(is_array($groupid)){
+                //查询是否方案中心，下面有多少市场人员
+                $users = $maketareateam->alias('a')
                         ->field('b.employee_id')
                         ->join('`erui2_sys`.`org_member` b on a.market_org_id = b.org_id')
-                        ->where('a.biz_tech_org_id=' . $val)
+                        ->where('a.biz_tech_org_id in('.implode(',',$groupid).')')
                         ->select();
-                if (!empty($grs)) {
-                    $users = array_merge($users, $grs);
-                }
+
+                //查询是否是市场人员
+                $agent = $maketareateam->where('market_org_id in('.implode(',',$groupid).')')->count('id');
+            }else{
+                //查询是否方案中心，下面有多少市场人员
+                $users = $maketareateam->alias('a')
+                    ->field('b.employee_id')
+                    ->join('`erui2_sys`.`org_member` b on a.market_org_id = b.org_id')
+                    ->where('a.biz_tech_org_id='.$groupid)
+                    ->select();
+
+                //查询是否是市场人员
+                $agent = $maketareateam->where('market_org_id='.$groupid)->count('id');
             }
+
             array_unique($users);
 
             if (!empty($users)) {
                 $results['code'] = '1';
                 $results['message'] = '方案中心！';
                 $results['data'] = $users;
-            } else {
+            } else if ($agent>0) {
                 $results['code'] = '2';
                 $results['message'] = '市场人员！';
+            } else {
+                $results['code'] = '3';
+                $results['message'] = '其他人员！';
             }
         } else {
             $results['code'] = '-101';
@@ -125,14 +139,13 @@ class InquiryController extends PublicController {
             foreach ($auth['data'] as $epl) {
                 $where['agent_id'][] = $epl['employee_id'];
             }
-            $where['status'] = array('NEQ', 'DRAFT');
         }
 
         //如果搜索条件有经办人，转换成id
         if (!empty($where['agent_name'])) {
             $agent = $employee->field('id')->where('name="' . $where['agent_name'] . '"')->find();
 
-            if (in_array($agent['id'], $where['agent_id'])) {
+            if (in_array($agent['id'], $where['agent_id']) || $agent['id'] == $this->user['id']) {
                 $where['agent_id'] = [];
                 $where['agent_id'][] = $agent['id'];
             } else {
@@ -145,9 +158,13 @@ class InquiryController extends PublicController {
         }
         //如果搜索条件有项目经理，转换成id
         if (!empty($where['pm_name'])) {
-            $pm = $employee->field('id')->where('name="' . $where['agent_name'] . '"')->find();
-            if ($agent) {
+            $pm = $employee->field('id')->where('name="' . $where['pm_name'] . '"')->find();
+            if ($pm) {
                 $where['pm_id'] = $pm['id'];
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息！';
+                $this->jsonReturn($results);
             }
         }
 
@@ -189,11 +206,23 @@ class InquiryController extends PublicController {
      */
 
     public function getInfoAction() {
+        $auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
         $where = $this->put_data;
 
         $results = $inquiry->getInfo($where);
+
+        if ( $auth['code'] == 1 ) {
+			foreach($auth['data'] as $val) {
+				$agent[] = $val['employee_id'];
+			}
+            $results['data']['agent_list'] = implode(',',$agent); //如果是方案中心角色，返回区域下全部市场人员
+        } else if( $auth['code'] == 2 ) {
+            $results['data']['agent_list'] = $this->user['id']; //如果是市场人员，返回自己
+        } else {
+            $results['data']['agent_list'] = '';
+        }
         //经办人
         if (!empty($results['data']['agent_id'])) {
             $rs1 = $employee->field('name')->where('id=' . $results['data']['agent_id'])->find();

@@ -161,6 +161,7 @@ class EsgoodsController extends PublicController {
             ini_set('memory_limi', '1G');
             $time = redisGet('ES_PRODUCT_TIME');
             redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
+            //  $this->langs = ['en'];
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsgoodsModel();
                 $espoductmodel->importgoodsattr($lang);

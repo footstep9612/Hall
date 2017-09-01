@@ -16,7 +16,7 @@
 class NewAttrModel extends PublicModel {
 
     protected $dbName = 'erui_goods'; //数据库名称
-    protected $tableName = 'goods_attr'; //数据表表名
+    protected $tableName = 't_goods_attr_new_ex'; //数据表表名
 
     //状态
 
@@ -37,9 +37,14 @@ class NewAttrModel extends PublicModel {
         try {
             $product_attrs = $this->table('erui_goods.t_goods_attr_new_ex')
                     ->field('*')
-                    ->where(['sku' => ['in', $skus], 'hs_flag' => 'Y', 'lang' => $lang, 'status' => 'VALID'])
+                    ->where(['sku' => ['in', $skus],
+                        'hs_flag' => 'Y',
+                        'lang' => $lang,
+                        'status' => 'VALID',
+                            //  'created_at' => '2017-08-15 00:00:00'
+                    ])
                     ->select();
-
+            Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
             $ret = [];
             foreach ($product_attrs as $item) {
                 $sku = $item['sku'];
@@ -66,13 +71,15 @@ class NewAttrModel extends PublicModel {
         try {
             $product_attrs = $this->table('erui_goods.t_goods_attr_new_ex')
                     ->field('sku,attr_name,attr_value,attr_no')
-                    ->where(['sku' => ['in', $skus],
+                    ->where([
+                        'sku' => ['in', $skus],
                         'lang' => $lang,
                         'spec_flag' => 'Y',
-                        'status' => 'VALID'
+                        'status' => 'VALID',
+                            // 'created_at' => '2017-08-15 00:00:00'
                     ])
                     ->select();
-
+            Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
             $ret = [];
             foreach ($product_attrs as $item) {
                 $sku = $item['sku'];

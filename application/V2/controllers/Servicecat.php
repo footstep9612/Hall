@@ -218,10 +218,10 @@ class ServicecatController extends PublicController {
      */
     public function levelServiceAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!isset($data['id']) || empty($data['id'])){
+        if(!isset($data['buyer_level_id']) || empty($data['buyer_level_id'])){
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        $buyer_level_id = $data['id'];
+        $buyer_level_id = $data['buyer_level_id'];
         $MemberServiceModel = new MemberServiceModel();
         $result = $MemberServiceModel->levelService($buyer_level_id);
         if(!empty($result)) {
@@ -318,6 +318,20 @@ class ServicecatController extends PublicController {
     public function serviceInfoAction(){
         $ServiceCatModel = new ServiceCatModel();
         $result = $ServiceCatModel->getAllService();
+        if(!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
+    /**
+     * 会员服务  --门户
+     * @author klp
+     */
+    public function LevelInfoAction(){
+        $BuyerLevelModel = new BuyerLevelModel();
+        $result = $BuyerLevelModel->getLevelService();
         if(!empty($result)) {
             jsonReturn($result);
         } else {

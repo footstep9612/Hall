@@ -29,7 +29,8 @@ class MemberServiceModel extends PublicModel {
         $where['buyer_level_id'] = $buyer_level_id;
         $where['status'] = 'VALID';
         $where['deleted_flag'] = 'N';
-        $result = $this->field('service_cat_id')->where($where)->group('service_cat_id')->select();
+        $result = $this->where($where)->select();
+        /*$result = $this->field('service_cat_id')->where($where)->group('service_cat_id')->select();
         foreach($result as $key=>$val){
             $where1 = ['service_cat_id' =>$val['service_cat_id'],'status'=>'VALID','deleted_flag'=>'N'];
             $rs =  $this->field('service_term_id')->where($where1)->group('service_term_id')->select();
@@ -39,7 +40,7 @@ class MemberServiceModel extends PublicModel {
                 $rs[$key1]['item'] = $rs1;
             }
             $result[$key]['term'] = $rs;
-        }
+        }*/
         return $result? $result:array();
     }
 
@@ -49,9 +50,13 @@ class MemberServiceModel extends PublicModel {
      * @return bool
      * @author klp
      */
-    public function editInfo($data = [], $userInfo) {
-        if (!$data || !is_array($data)) {
+    public function editInfo($arr = [], $userInfo) {
+        if (!$arr || !is_array($arr)) {
             return false;
+        }
+        $data = $this->uninitParams($arr);
+        if(!$data){
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         if (empty($data['buyer_level'])) {
             jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
@@ -117,6 +122,32 @@ class MemberServiceModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
+    }
+
+    /**
+     * 反格式化数据
+     */
+    protected function unInitParams($data){
+        if(empty($data)) {
+            return false;
+        }
+        $buyer_level = $level = [];
+        foreach($data['buyer_level'] as $lang => $items) {
+            if (!in_array($lang, array('zh', 'en', 'es', 'ru'))) {
+                return false;
+            }
+            $condition = [
+                'lang'=>$lang,
+                'name'=>$items['buyer_level'],
+                'isEdit'=>$items['isEdit']
+            ];
+            $buyer_level[] = $condition;
+        }
+        if(isset($data['buyer_level_id'])) {
+            $level['buyer_level_id'] = $data['buyer_level_id'];
+        }
+        $level['buyer_level'] = $buyer_level;
+        return $level;
     }
 
     /**
