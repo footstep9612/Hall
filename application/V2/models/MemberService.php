@@ -138,7 +138,8 @@ class MemberServiceModel extends PublicModel {
             }
             $condition = [
                 'lang'=>$lang,
-                'name'=>$items['buyer_level']
+                'name'=>$items['buyer_level'],
+                'isEdit'=>$items['isEdit']
             ];
             $buyer_level[] = $condition;
         }
