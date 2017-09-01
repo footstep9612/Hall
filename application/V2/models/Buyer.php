@@ -42,7 +42,7 @@ class BuyerModel extends PublicModel {
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
         $sql_count = 'SELECT count(`erui2_buyer`.`buyer`.`id`) as num ';
         $str = ' FROM ' . $this->g_table;
-        if (!empty($condition['employee_name'])) {
+        if (!empty($condition['employee_name'])||!empty($condition['agent_id'])) {
             $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
             $str .= " left Join `erui2_sys`.`employee` on `erui2_buyer`.`buyer_agent`.`agent_id` = `erui2_sys`.`employee`.`id` ";
         }
@@ -54,13 +54,16 @@ class BuyerModel extends PublicModel {
             $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
         }
         if (!empty($condition['name'])) {
-            $where .= " And name like '%" . $condition['name'] . "%'";
+            $where .= " And `erui2_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }
         if (!empty($condition['buyer_no'])) {
             $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
         }
         if (!empty($condition['employee_name'])) {
             $where .= " And `erui2_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
+        }
+        if (!empty($condition['agent_id'])) {
+            $where .= " And `erui2_buyer`.`buyer_agent`.`agent_id`  in (" . $condition['agent_id'] . ")";
         }
         if (!empty($condition['official_phone'])) {
             $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
