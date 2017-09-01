@@ -225,17 +225,26 @@ class QuotebizlineController extends PublicController {
             'created_at' => date('Y-m-d H:i:s')
         ]));
 
-
-        //2.创建一条产品线报价记录(quote_bizline)
+        
+        // 判断产品线报价记录是否存在
         $quoteBizlineModel = new QuoteBizLineModel();
-        $quoteBizlineModel->startTrans();
-        $quoteBizlineResult = $quoteBizlineModel->add($quoteBizlineModel->create([
-            'quote_id' => $quoteResult,
-            'inquiry_id' => $request['inquiry_id'],
-            'bizline_id' => $request['bizline_id'],
-            'created_at' => date('Y-m-d H:i:s'),
-            'created_by' => $this->user['id'],
-        ]));
+        $quoteBizlineInfo = $quoteBizlineModel->where(['inquiry_id' => $request['inquiry_id'], 'bizline_id' => $request['bizline_id']])->find();
+        
+        if ($quoteBizlineInfo) {
+            $quoteBizlineId = $quoteBizlineInfo['id'];
+        } else {
+            //2.创建一条产品线报价记录(quote_bizline)
+            $quoteBizlineModel->startTrans();
+            $quoteBizlineResult = $quoteBizlineModel->add($quoteBizlineModel->create([
+                'quote_id' => $quoteResult,
+                'inquiry_id' => $request['inquiry_id'],
+                'bizline_id' => $request['bizline_id'],
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $this->user['id'],
+            ]));
+            
+            $quoteBizlineId = $quoteBizlineResult;
+        }
 
         //3.选择的询单项(inquiry_item)写入到报价单项(quote_item)
         $inquiryItem = new InquiryItemModel();
@@ -287,24 +296,38 @@ class QuotebizlineController extends PublicController {
                 'quote_id' => $v['quote_id'],
                 'quote_item_id' => $v['id'],
                 'inquiry_item_id' => $v['inquiry_item_id'],
-                'quote_bizline_id' => $quoteBizlineResult,
+                'quote_bizline_id' => $quoteBizlineId,
                 'sku' => $v['sku'],
                 'created_at' => date('Y-m-d H:i:s'),
             ]));
         }
 
-        if ($quoteResult && $quoteBizlineResult && $quote_item_ids && $quote_item_form_ids){
-            $quoteModel->commit();
-            $quoteBizlineModel->commit();
-            $quoteItemModel->commit();
-            $quoteItemFormModel->commit();
-            $this->jsonReturn(['code'=>'1','message'=>'划分产品线成功!']);
-        }else{
-            $quoteModel->rollback();
-            $quoteBizlineModel->rollback();
-            $quoteItemModel->rollback();
-            $quoteItemFormModel->rollback();
-            $this->jsonReturn(['code'=>'-104','message'=>'划分产品线失败!']);
+        if (isset($quoteBizlineResult)) {
+            if ($quoteResult && $quoteBizlineResult && $quote_item_ids && $quote_item_form_ids){
+                $quoteModel->commit();
+                $quoteBizlineModel->commit();
+                $quoteItemModel->commit();
+                $quoteItemFormModel->commit();
+                $this->jsonReturn(['code'=>'1','message'=>'划分产品线成功!']);
+            }else{
+                $quoteModel->rollback();
+                $quoteBizlineModel->rollback();
+                $quoteItemModel->rollback();
+                $quoteItemFormModel->rollback();
+                $this->jsonReturn(['code'=>'-104','message'=>'划分产品线失败!']);
+            }
+        } else {
+            if ($quoteResult && $quote_item_ids && $quote_item_form_ids){
+                $quoteModel->commit();
+                $quoteItemModel->commit();
+                $quoteItemFormModel->commit();
+                $this->jsonReturn(['code'=>'1','message'=>'划分产品线成功!']);
+            }else{
+                $quoteModel->rollback();
+                $quoteItemModel->rollback();
+                $quoteItemFormModel->rollback();
+                $this->jsonReturn(['code'=>'-104','message'=>'划分产品线失败!']);
+            }
         }
 
     }
