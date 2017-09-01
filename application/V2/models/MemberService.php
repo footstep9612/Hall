@@ -132,13 +132,13 @@ class MemberServiceModel extends PublicModel {
             return false;
         }
         $buyer_level = $level = [];
-        foreach($data as $lang => $items) {
+        foreach($data['buyer_level'] as $lang => $items) {
             if (!in_array($lang, array('zh', 'en', 'es', 'ru'))) {
                 return false;
             }
             $condition = [
                 'lang'=>$lang,
-                'name'=>$items[$lang]['buyer_level']
+                'name'=>$items['buyer_level']
             ];
             $buyer_level[] = $condition;
         }
