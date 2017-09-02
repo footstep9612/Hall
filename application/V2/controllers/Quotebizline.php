@@ -520,7 +520,7 @@ class QuotebizlineController extends PublicController {
 
         //查找报价单全部SKU id
         $ids = $quoteitem->where('quote_id='.$request['quote_id'])->getField('id',true);
-
+        //p($ids);
         $itemformwhere['quote_item_id'] = array('in',$ids);
         //事物开始
         $quoteitemform->startTrans();
@@ -554,7 +554,7 @@ class QuotebizlineController extends PublicController {
             }else{
                 $quoteitemform->rollback();
                 $result['code'] = '-101';
-                $result['message'] = '返回产品线失败!';
+                $result['message'] = '退回产品线失败!';
             }
         }else{
             $quoteitemform->rollback();

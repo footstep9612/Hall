@@ -242,16 +242,16 @@ class QuoteBizLineModel extends PublicModel {
         foreach ($data as $key => $value) {
 
             //判断价格
-            if (!is_null($value['purchase_unit_price']) && !is_numeric($value['purchase_unit_price'])){
+            if (!empty($value['purchase_unit_price']) && !is_numeric($value['purchase_unit_price'])){
                 return ['code'=>'-104','message'=>'采购单价必须是数字'];
             }
-            if (!is_null($value['net_weight_kg']) && !is_numeric($value['net_weight_kg'])){
+            if (!empty($value['net_weight_kg']) && !is_numeric($value['net_weight_kg'])){
                 return ['code'=>'-104','message'=>'净重必须是数字'];
             }
-            if (!is_null($value['gross_weight_kg']) && !is_numeric($value['gross_weight_kg'])){
+            if (!empty($value['gross_weight_kg']) && !is_numeric($value['gross_weight_kg'])){
                 return ['code'=>'-104','message'=>'毛重必须是数字'];
             }
-            if (!is_null($value['package_size']) && !is_numeric($value['package_size'])){
+            if (!empty($value['package_size']) && !is_numeric($value['package_size'])){
                 return ['code'=>'-104','message'=>'包装体积必须是数字'];
             }
 
