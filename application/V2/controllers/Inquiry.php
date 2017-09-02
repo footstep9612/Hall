@@ -109,7 +109,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data['serial_no'] = $this->getSerialNoAction();
         $data['created_by'] = $this->user['id'];
-        $data['agent_id'] = $this->user['id'];
+        //$data['agent_id'] = $this->user['id'];
 
         $results = $inquiry->addData($data);
 
