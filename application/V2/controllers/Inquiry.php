@@ -611,7 +611,9 @@ class InquiryController extends PublicController {
                     $list = $marketareateam->field('market_org_id')->group('market_org_id')->select();
                     if($list){
                         foreach($list as $lt){
-                            $test1[] = $lt['market_org_id'];
+                            if(!empty($lt['market_org_id'])){
+                                $test1[] = $lt['market_org_id'];
+                            }
                         }
                         $data['market_org'] = implode(',',$test1);
                     }
@@ -620,7 +622,9 @@ class InquiryController extends PublicController {
                     $list = $marketareateam->field('biz_tech_org_id')->group('biz_tech_org_id')->select();
                     if($list){
                         foreach($list as $lt){
-                            $test2[] = $lt['market_org_id'];
+                            if(!empty($lt['biz_tech_org_id'])){
+                                $test2[] = $lt['biz_tech_org_id'];
+                            }
                         }
                         $data['biz_tech_org'] = implode(',',$test2);
                     }
@@ -629,7 +633,9 @@ class InquiryController extends PublicController {
                     $list = $bizlinegroup->field('group_id')->group('group_id')->select();
                     if($list){
                         foreach($list as $lt){
-                            $test3[] = $lt['market_org_id'];
+                            if(!empty($lt['group_id'])){
+                                $test3[] = $lt['group_id'];
+                            }
                         }
                         $data['biz_group_org'] = implode(',',$test3);
                     }
@@ -638,7 +644,9 @@ class InquiryController extends PublicController {
                     $list = $marketareateam->field('logi_quote_org_id')->group('logi_quote_org_id')->select();
                     if($list){
                         foreach($list as $lt){
-                            $test4[] = $lt['market_org_id'];
+                            if(!empty($lt['logi_quote_org_id'])){
+                                $test4[] = $lt['logi_quote_org_id'];
+                            }
                         }
                         $data['logi_quote_org'] = implode(',',$test4);
                     }
@@ -646,11 +654,11 @@ class InquiryController extends PublicController {
             }
 
             $results['code'] = '1';
-            $results['message'] = '方案中心！';
+            $results['message'] = '成功！';
             $results['data'] = $data;
         }else{
-            $results['code'] = '1';
-            $results['message'] = '方案中心！';
+            $results['code'] = '-101';
+            $results['message'] = '找不到相关细信息！';
         }
         $this->jsonReturn($results);
     }
