@@ -244,12 +244,12 @@ class FinalquoteController extends PublicController {
      * 修改市场报价单SKU
      * Author:张玉良
      */
-    public function updateItemAction() {
+    public function updateItemAction($condition = []) {
         $finalitem = new FinalQuoteItemModel();
-        $data =  $this->put_data;
-        $data['updated_by'] = $this->user['id'];
 
-        $results = $finalitem->updateItem($data);
+        $condition['updated_by'] = $this->user['id'];
+
+        $results = $finalitem->updateItem($condition);
         $this->jsonReturn($results);
     }
 
