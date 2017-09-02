@@ -916,16 +916,7 @@ class QuotebizlineController extends PublicController {
      * 保存报价综合信息(项目经理)
      */
     public function saveQuoteGeneralInfoAction(){
-        /*
-        |--------------------------------------------------------------------------
-        | Password Reset Controller
-        |--------------------------------------------------------------------------
-        |
-        | This controller is responsible for handling password reset requests
-        | and uses a simple trait to include this behavior. You're free to
-        | explore this trait and override any methods you wish to tweak.
-        |
-        */
+
         $request = $this->validateRequests('inquiry_id');
         unset($request['id']);//过滤前端发送的多余id字段
 
@@ -958,9 +949,15 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn(['code'=>'-104','message'=>'毛利率必须是数字']);
         }
 
+        //计算商务报出EXW单价
+        $this->calculateExwUnitPrice($request['inquiry_id']);
+
         $quoteModel = new QuoteModel();
         try{
             if ($quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request))){
+                //计算商务报出EXW总报价
+                $this->calculateTotaleExwPrice($request['inquiry_id']);
+
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }else{
                 $this->jsonReturn(['code'=>'-104','message'=>'你没有进行更改!']);
@@ -971,6 +968,57 @@ class QuotebizlineController extends PublicController {
                 'message' => $exception->getMessage()
             ]);
         }
+
+    }
+
+    /**
+     * 计算商务报出EXW合计
+     * @param $inquiry_id 询单id
+     * @return bool
+     */
+    private function calculateTotaleExwPrice($inquiry_id){
+
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemExwUnitPrices = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('exw_unit_price',true);
+        $quoteItemExwUnitPrices = array_sum($quoteItemExwUnitPrices);
+
+        $quoteModel = new QuoteModel();
+        return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save(['total_exw_price'=>$quoteItemExwUnitPrices]);
+
+    }
+
+    /**
+     * 计算商务报出EXW单价
+     * @param $inquiry_id 当前询单
+     */
+    private function calculateExwUnitPrice($inquiry_id){
+
+        $quoteModel = new QuoteModel();
+        $quoteInfo = $quoteModel->where(['inquiry_id'=>$inquiry_id])->field('id,gross_profit_rate,exchange_rate')->find();
+        //毛利率
+        $gross_profit_rate = $quoteInfo['gross_profit_rate'];
+
+        $quoteItemModel = new QuoteItemModel();
+        $exchangeRateModel = new ExchangeRateModel();
+
+        $quoteItemIds = $quoteItemModel->where(['quote_id'=>$quoteInfo['id']])->field('id,purchase_unit_price,purchase_price_cur_bn')->select();
+        if (!empty($quoteItemIds)){
+            foreach ($quoteItemIds as $key=>$value){
+
+                    /**
+                     * EXW单价=采购单价*毛利率/汇率
+                     */
+
+                    //汇率
+                    $exchange_rate = $exchangeRateModel->where(['cur_bn1'=>$value['purchase_price_cur_bn'],'cur_bn2'=>'USD'])->getField('rate');
+                    $exw_unit_price = $value['purchase_unit_price'] * ( $gross_profit_rate / $exchange_rate );
+                    $exw_unit_price = sprintf("%.4f", $exw_unit_price);
+                    $quoteItemModel->where(['id'=>$value['id']])->save([
+                        'exw_unit_price' => $exw_unit_price
+                    ]);
+            }
+        }
+
 
     }
 
