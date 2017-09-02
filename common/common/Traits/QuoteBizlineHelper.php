@@ -323,13 +323,27 @@ trait QuoteBizlineHelper{
      */
     public static function submitToManager($request){
 
-        $inquiry = new InquiryModel();
-        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
+        //更改产品线报价的状态(quote_bizline)
+        $quoteBizlineModel = new QuoteBizLineModel();
+        $quoteBizlineModel->startTrans();
+        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
 
-        if ($status=="QUOTED_BY_BIZLINE"){
-            return ['code'=>'-104','message'=>'不能重复提交!'];
+        //更改产品线报价单项的状态(quote_item_form)
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $quoteItemFormModel->startTrans();
+        $quoteItemFormResult = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->save([
+            'status'=>'APPROVED'
+        ]);
+
+        $quoteBizlineItemsCount = $quoteBizlineModel->where(['quote_id'=>$request['quote_id'],'status'=>'NOT_QUOTED'])->count('id');
+        //判断多个产品线报价
+        if ($quoteBizlineItemsCount){
+            $quoteBizlineModel->rollback();
+            $quoteItemFormModel->rollback();
+            return ['code'=>'-104','message'=>'所有产品线报完价才可以提交'];
         }
 
+        $inquiry = new InquiryModel();
         //更改询单的状态(inquiry)
         $inquiry->startTrans();
         $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
@@ -342,18 +356,6 @@ trait QuoteBizlineHelper{
         $quoteModel->startTrans();
         $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
             'status' => 'QUOTED_BY_BIZLINE'
-        ]);
-
-        //更改产品线报价的状态(quote_bizline)
-        $quoteBizlineModel = new QuoteBizLineModel();
-        $quoteBizlineModel->startTrans();
-        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
-
-        //更改产品线报价单项的状态(quote_item_form)
-        $quoteItemFormModel = new QuoteItemFormModel();
-        $quoteItemFormModel->startTrans();
-        $quoteItemFormResult = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->save([
-            'status'=>'APPROVED'
         ]);
 
         if ($inquiryResult && $quoteResult && $quoteBizlineResult && $quoteItemFormResult){
