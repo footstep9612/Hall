@@ -75,15 +75,6 @@ class InquiryController extends PublicController {
     public function getSerialNoAction() {
         $serial_no = $this->getInquirySerialNo();
         return $serial_no;
-        /* if(!empty($data)){
-          $this->setCode('1');
-          $this->setMessage('成功!');
-          $this->jsonReturn($data);
-          }else{
-          $this->setCode('-101');
-          $this->setMessage('生成流水号错误!');
-          $this->jsonReturn();
-          } */
     }
 
     /*
@@ -601,4 +592,66 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    /*
+    * 根据条件返回所有组ID
+    * Condition 1.市场组; 2.方案中心组; 3.产品线报价组; 4.物流报价组
+    * Author:张玉良
+    */
+    public function getGroupListAction(){
+        $bizlinegroup = new BizlineGroupModel();
+        $marketareateam = new MarketAreaTeamModel();
+
+        $where = $this->put_data;
+
+        if(!empty($where['type'])){
+            $type = explode(',',$where['type']);
+            $data = [];
+            foreach($type as $val){
+                if($val == 1){//所有市场群组
+                    $list = $marketareateam->field('market_org_id')->group('market_org_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            $test1[] = $lt['market_org_id'];
+                        }
+                        $data['market_org'] = implode(',',$test1);
+                    }
+                }
+                if($val == 2){//所有方案中心群组
+                    $list = $marketareateam->field('biz_tech_org_id')->group('biz_tech_org_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            $test2[] = $lt['market_org_id'];
+                        }
+                        $data['biz_tech_org'] = implode(',',$test2);
+                    }
+                }
+                if($val == 3){//所有产品线群组
+                    $list = $bizlinegroup->field('group_id')->group('group_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            $test3[] = $lt['market_org_id'];
+                        }
+                        $data['biz_group_org'] = implode(',',$test3);
+                    }
+                }
+                if($val == 4){//所有物流报价群组
+                    $list = $marketareateam->field('logi_quote_org_id')->group('logi_quote_org_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            $test4[] = $lt['market_org_id'];
+                        }
+                        $data['logi_quote_org'] = implode(',',$test4);
+                    }
+                }
+            }
+
+            $results['code'] = '1';
+            $results['message'] = '方案中心！';
+            $results['data'] = $data;
+        }else{
+            $results['code'] = '1';
+            $results['message'] = '方案中心！';
+        }
+        $this->jsonReturn($results);
+    }
 }
