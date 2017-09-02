@@ -979,11 +979,19 @@ class QuotebizlineController extends PublicController {
     private function calculateTotaleExwPrice($inquiry_id){
 
         $quoteItemModel = new QuoteItemModel();
+
+        //商务报出EXW合计total_exw_price
         $quoteItemExwUnitPrices = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('exw_unit_price',true);
         $quoteItemExwUnitPrices = array_sum($quoteItemExwUnitPrices);
+        //采购总价total_purchase
+        $quoteItemTotalPurchase = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('purchase_unit_price',true);
+        $quoteItemTotalPurchase = array_sum($quoteItemTotalPurchase);
 
         $quoteModel = new QuoteModel();
-        return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save(['total_exw_price'=>$quoteItemExwUnitPrices]);
+        return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save([
+            'total_exw_price' =>$quoteItemExwUnitPrices,
+            'total_purchase' =>$quoteItemTotalPurchase
+        ]);
 
     }
 
