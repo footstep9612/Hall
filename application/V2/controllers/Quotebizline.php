@@ -901,8 +901,11 @@ class QuotebizlineController extends PublicController {
 
         $employee = new EmployeeModel();
         $inquiry = new InquiryModel();
+        $exchange_rate_model = new ExchangeRateModel();
+
         $pm_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('pm_id');
         $result['pm_name'] =  $employee->where(['id'=>$pm_id])->getField('name');
+        $result['exchange_rate'] = $exchange_rate_model->where(['cur_bn1'=>'CNY','cur_bn2'=>'USD'])->getField('rate');
 
         $this->jsonReturn([
             'code' => '1',
