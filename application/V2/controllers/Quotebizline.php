@@ -651,16 +651,15 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-//        $inquiry = new InquiryModel();
-//        $inquiry->startTrans();
-//        $inquiryResult = $inquiry->where([
-//            'id' => $request['inquiry_id']
-//        ])->save([
-//            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
-//            //'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
-//        ]);
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
+        $inquiryResult = $inquiry->where([
+            'id' => $request['inquiry_id']
+        ])->save([
+            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
+            //'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
+        ]);
 
-        $inquiryResult = 1;
         if ($inquiryResult){
 
             //1.创建final_quote记录
@@ -668,7 +667,7 @@ class QuotebizlineController extends PublicController {
             $quoteData = $quote->where(['inquiry_id'=>$request['inquiry_id']])->find();
 
             $finalQuote = new FinalQuoteModel();
-            //$finalQuote->startTrans();
+            $finalQuote->startTrans();
             $finalQuoteResult = $finalQuote->add($finalQuote->create([
                 'buyer_id' => $quoteData['buyer_id'],
                 'inquiry_id' => $quoteData['inquiry_id'],
