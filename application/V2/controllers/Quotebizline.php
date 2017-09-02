@@ -957,6 +957,8 @@ class QuotebizlineController extends PublicController {
             if ($quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request))){
                 //计算商务报出EXW总报价
                 $this->calculateTotaleExwPrice($request['inquiry_id']);
+                //计算银行费用
+                $this->calculateBankFee($request['inquiry_id']);
 
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }else{
@@ -968,6 +970,25 @@ class QuotebizlineController extends PublicController {
                 'message' => $exception->getMessage()
             ]);
         }
+
+    }
+
+    /**
+     * 计算银行费用
+     * @param $inquiry_id
+     *
+     * @return bool
+     */
+    private function calculateBankFee($inquiry_id){
+
+        //银行费用=报价合计*银行利息*占用资金比例*回款周期/365
+        $quoteModel = new QuoteModel();
+        $quoteInfo = $quoteModel->where(['inquiry_id'=>$inquiry_id])->field('id,total_exw_price,bank_interest,fund_occupation_rate,payment_period')->find();
+
+        $total_bank_fee = $quoteInfo['total_exw_price'] * $quoteInfo['bank_interest'] * ( $quoteInfo['bank_interest'] / 365 );
+        $total_bank_fee = sprintf("%.4f", $total_bank_fee);
+
+        return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save(['total_bank_fee'=>$total_bank_fee]);
 
     }
 
