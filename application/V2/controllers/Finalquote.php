@@ -125,7 +125,7 @@ class FinalquoteController extends PublicController {
                 $logistics = new LogisticsController();
                 $logidata['trade_terms_bn'] = $data['trade_terms_bn'];  //贸易术语
                 $logidata['total_exw_price'] = $total_exw_price;  //报出EXW合计
-                $logidata['premium_rate'] = $data['premium_rate'];  //保险税率
+                $logidata['premium_rate'] = !empty($data['premium_rate']) ? $data['premium_rate'] : 0;  //保险税率
                 $logidata['payment_period'] = $data['payment_period'];  //回款周期
                 $logidata['bank_interest'] = $data['bank_interest'];  //银行利息
                 $logidata['fund_occupation_rate'] = $data['fund_occupation_rate'];  //资金占用比例
@@ -159,8 +159,8 @@ class FinalquoteController extends PublicController {
                 $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
                 $itemdata['id'] = $val['id'];
-                $itemdata['exw_unit_price'] = $val['exw_unit_price'];
-                $itemdata['quote_unit_price'] = $quote_unit_price;
+                $itemdata['exw_unit_price'] = round($val['exw_unit_price'],4);
+                $itemdata['quote_unit_price'] = round($quote_unit_price,4);
 
                 $itemrs = $this->updateItemAction($itemdata);
 
@@ -250,7 +250,8 @@ class FinalquoteController extends PublicController {
         $condition['updated_by'] = $this->user['id'];
 
         $results = $finalitem->updateItem($condition);
-        $this->jsonReturn($results);
+
+        return $results;
     }
 
     /**
