@@ -179,11 +179,11 @@ class FinalquoteController extends PublicController {
                     }
                 }
                 $finalitem->commit();
+                $this->jsonReturn($results);die;
             }else{
                 $finalitem->rollback();
                 $this->jsonReturn('','-101','修改报价单失败！');die;
             }
-            $this->jsonReturn($results);die;
         }
 
 
