@@ -646,15 +646,16 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-        $inquiry = new InquiryModel();
-        $inquiry->startTrans();
-        $inquiryResult = $inquiry->where([
-            'id' => $request['inquiry_id']
-        ])->save([
-            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
-            'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
-        ]);
+//        $inquiry = new InquiryModel();
+//        $inquiry->startTrans();
+//        $inquiryResult = $inquiry->where([
+//            'id' => $request['inquiry_id']
+//        ])->save([
+//            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
+//            //'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
+//        ]);
 
+        $inquiryResult = 1;
         if ($inquiryResult){
 
             //1.创建final_quote记录
@@ -662,12 +663,23 @@ class QuotebizlineController extends PublicController {
             $quoteData = $quote->where(['inquiry_id'=>$request['inquiry_id']])->find();
 
             $finalQuote = new FinalQuoteModel();
-            $finalQuote->startTrans();
+            //$finalQuote->startTrans();
             $finalQuoteResult = $finalQuote->add($finalQuote->create([
                 'buyer_id' => $quoteData['buyer_id'],
                 'inquiry_id' => $quoteData['inquiry_id'],
                 'quote_id' => $quoteData['id'],
-                'created_at' => date('Y-m-d H:i:s')
+                'created_at' => date('Y-m-d H:i:s'),
+                'payment_period' => $quoteData['payment_period'],
+                'delivery_period' => $quoteData['delivery_period'],
+                'fund_occupation_rate' => $quoteData['fund_occupation_rate'],
+                'total_purchase' => $quoteData['total_purchase'],
+                'purchase_cur_bn' => $quoteData['purchase_cur_bn'],
+                'total_logi_fee' => $quoteData['total_logi_fee'],
+                'total_exw_price' => $quoteData['total_exw_price'],
+                'total_quote_price' => $quoteData['total_quote_price'],
+                'total_bank_fee' => $quoteData['total_bank_fee'],
+                'total_insu_fee' => $quoteData['total_insu_fee'],
+                'status' => 'APPROVED_BY_PM'
             ]));
 
             //2.创建final_quote_item记录
