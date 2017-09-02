@@ -216,16 +216,21 @@ class QuotebizlineController extends PublicController {
         //1.创建一条报价记录(quote)
         $quoteModel = new QuoteModel();
         $quoteModel->startTrans();
-        $quoteResult = $quoteModel->add($quoteModel->create([
-            'buyer_id' => $request['buyer_id'],
-            'inquiry_id' => $request['inquiry_id'],
-            'serial_no' => $request['serial_no'],
-            'quote_no' => $this->getQuoteNo(),
-            'quote_lang' => 'zh',
-            'created_at' => date('Y-m-d H:i:s')
-        ]));
 
-        
+        $isEx = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->getField('id');
+
+        if (!$isEx){
+            $quoteResult = $quoteModel->add($quoteModel->create([
+                'buyer_id' => $request['buyer_id'],
+                'inquiry_id' => $request['inquiry_id'],
+                'serial_no' => $request['serial_no'],
+                'quote_no' => $this->getQuoteNo(),
+                'quote_lang' => 'zh',
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+        }else{
+            $quoteResult = $isEx;
+        }
         // 判断产品线报价记录是否存在
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineInfo = $quoteBizlineModel->where(['inquiry_id' => $request['inquiry_id'], 'bizline_id' => $request['bizline_id']])->find();
