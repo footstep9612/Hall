@@ -1106,7 +1106,8 @@ class QuotebizlineController extends PublicController {
                 'goods_source' => $request['goods_source'],
                 'stock_loc' => $request['stock_loc'],
                 'delivery_days' => $request['delivery_days'],
-                'period_of_validity' => $request['period_of_validity']
+                'period_of_validity' => $request['period_of_validity'],
+                'status' => 'QUOTED'
             ]));
 
             if ($result){
