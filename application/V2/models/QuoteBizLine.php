@@ -542,35 +542,33 @@ class QuoteBizLineModel extends PublicModel {
 
     public function getPmQuoteList($request) {
 
-        $where = ['a.id' => $request['inquiry_id']];
+        $where = ['a.inquiry_id' => $request['inquiry_id']];
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        $inquiry = new InquiryModel();
-        return $inquiry->alias('a')
-                        ->join('erui2_rfq.inquiry_item b ON b.inquiry_id = a.id')
-                        ->join('erui2_rfq.quote_item c ON c.inquiry_item_id = b.id')
-                        //->join('erui2_sys.employee d ON d.id = c.biz_agent_id')
-                        ->field('c.id,c.bizline_id,c.bizline_agent_id,b.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
+        $quoteItemModel = new QuoteItemModel();
+
+        return  $quoteItemModel->alias('a')
+                        ->join('erui2_rfq.inquiry_item b ON b.id = a.inquiry_item_id')
+                        ->field('a.id,a.bizline_id,a.bizline_agent_id,a.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.exw_unit_price,a.quote_unit_price,a.supplier_id,a.remarks quote_remarks,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote')
                         ->where($where)
                         ->page($currentPage, $pageSize)
-                        ->order('c.id DESC')
+                        ->order('a.id DESC')
                         ->select();
         //p($data);
     }
 
     public function getPmQuoteListCount($request) {
 
-        $where = ['a.id' => $request['inquiry_id']];
+        $where = ['a.inquiry_id' => $request['inquiry_id']];
+        $quoteItemModel = new QuoteItemModel();
 
-        $inquiry = new InquiryModel();
-        $count = $inquiry->alias('a')
-                ->join('erui2_rfq.inquiry_item b ON b.inquiry_id = a.id')
-                ->join('erui2_rfq.quote_item c ON c.inquiry_item_id = b.id')
-                ->field('c.id,c.bizline_id,b.sku,a.inquiry_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,c.purchase_unit_price,c.purchase_price_cur_bn,c.exw_unit_price,c.quote_unit_price,c.supplier_id,c.remarks quote_remarks,c.net_weight_kg,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote')
-                ->where($where)
-                ->count('c.id');
+        $count = $quoteItemModel->alias('a')
+            ->join('erui2_rfq.inquiry_item b ON b.id = a.inquiry_item_id')
+            ->field('a.id,a.bizline_id,a.bizline_agent_id,a.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.exw_unit_price,a.quote_unit_price,a.supplier_id,a.remarks quote_remarks,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote')
+            ->where($where)
+            ->count('a.id');
         return $count > 0 ? $count : 0;
     }
 
