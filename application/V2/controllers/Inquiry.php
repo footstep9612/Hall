@@ -186,6 +186,9 @@ class InquiryController extends PublicController {
                     $results['data'][$key]['area_bn'] = $rs3['area_bn'];
                 }
             }
+
+            //权限
+            $results['data']['auth'] = $auth['code'];
         }
 
         $this->jsonReturn($results);
