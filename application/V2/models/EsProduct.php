@@ -280,8 +280,9 @@ class EsProductModel extends Model {
                         [ESClient::MULTI_MATCH => [
                                 'query' => $show_name,
                                 'type' => 'most_fields',
-                                'fields' => ['name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
+                                'fields' => ['show_name.ik', 'name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
                             ]],
+                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
         }

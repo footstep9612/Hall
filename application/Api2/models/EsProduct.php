@@ -262,6 +262,7 @@ class EsProductModel extends Model {
                                 'fields' => ['show_name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
                             ]],
                         [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
+						[ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
         }
         return $body;
