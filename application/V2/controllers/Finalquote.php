@@ -153,23 +153,37 @@ class FinalquoteController extends PublicController {
 
             //计算报出冒出贸易单价    quote_unit_price
             $finalitem = new FinalQuoteItemModel();
+            $finalquote = new FinalQuoteModel();
             $finalitem->startTrans();
-            foreach($data['sku'] as $val){
-                $exw_price = $val['quote_qty']*$val['exw_unit_price'];  //市场报出EXW价格
-                $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
-                $itemdata['id'] = $val['id'];
-                $itemdata['exw_unit_price'] = round($val['exw_unit_price'],4);
-                $itemdata['quote_unit_price'] = round($quote_unit_price,4);
+            $finaldata['inquiry_id'] = $data['id'];
+            $finaldata['payment_period'] = $data['payment_period'];
+            $finaldata['delivery_period'] = $data['delivery_period'];
+            $finaldata['fund_occupation_rate'] = $data['fund_occupation_rate'];
 
-                $itemrs = $this->updateItemAction($itemdata);
+            $results = $finalquote->updateFinal($finaldata);
+            if($results['code'] == 1){
+                foreach($data['sku'] as $val){
+                    $exw_price = $val['quote_qty']*$val['exw_unit_price'];  //市场报出EXW价格
+                    $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
-                if($itemrs['code'] != 1){
-                    $finalitem->rollback();
-                    $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                    $itemdata['id'] = $val['id'];
+                    $itemdata['exw_unit_price'] = round($val['exw_unit_price'],4);
+                    $itemdata['quote_unit_price'] = round($quote_unit_price,4);
+
+                    $itemrs = $this->updateItemAction($itemdata);
+
+                    if($itemrs['code'] != 1){
+                        $finalitem->rollback();
+                        $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                    }
                 }
+                $finalitem->commit();
+            }else{
+                $finalitem->rollback();
+                $this->jsonReturn('','-101','修改报价单失败！');die;
             }
-            $finalitem->commit();
+            $this->jsonReturn($results);die;
         }
 
 
