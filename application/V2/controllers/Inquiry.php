@@ -188,7 +188,7 @@ class InquiryController extends PublicController {
             }
 
             //权限
-            $results['data']['auth'] = $auth['code'];
+            $results['auth'] = $auth['code'];
         }
 
         $this->jsonReturn($results);
