@@ -254,10 +254,12 @@ class MaterialcatController extends PublicController {
             $usernames = $employee_model->getUserNamesByUserids($userids);
 
             foreach ($arr as $key => $val) {
-                if ($val[$filed] && isset($usernames[$val[$filed]])) {
-                    $val[$filed . '_name'] = $usernames[$val[$filed]];
-                } else {
-                    $val[$filed . '_name'] = '';
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
                 }
                 $arr[$key] = $val;
             }
