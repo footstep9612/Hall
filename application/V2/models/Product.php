@@ -489,7 +489,10 @@ class ProductModel extends PublicModel {
 
         //数据读取
         try {
-            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
+            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,'
+                    . 'tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,'
+                    . 'supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,'
+                    . 'created_at,updated_by,updated_at,checked_by,checked_at';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
@@ -497,20 +500,20 @@ class ProductModel extends PublicModel {
                 $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0]['name'];
-                    }
-
-                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
-                    if ($updateder && isset($updateder[0])) {
-                        $item['updated_by'] = $updateder[0]['name'];
-                    }
-
-                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-                    if ($checkeder && isset($checkeder[0])) {
-                        $item['checked_by'] = $checkeder[0]['name'];
-                    }
+                    // $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+//                    if ($createder && isset($createder[0])) {
+//                        $item['created_by'] = $createder[0]['name'];
+//                    }
+//
+//                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+//                    if ($updateder && isset($updateder[0])) {
+//                        $item['updated_by'] = $updateder[0]['name'];
+//                    }
+//
+//                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+//                    if ($checkeder && isset($checkeder[0])) {
+//                        $item['checked_by'] = $checkeder[0]['name'];
+//                    }
                     if (!is_null(json_decode($item['brand'], true))) {
                         $brand = json_decode($item['brand'], true);
                         $item['brand'] = $brand['name'];
@@ -539,10 +542,20 @@ class ProductModel extends PublicModel {
         if ($arr) {
             $employee_model = new EmployeeModel();
             $userids = [];
+            $update_time = '';
+            $update_by = '';
+            $update_by_name = '';
             foreach ($arr as $key => $val) {
                 foreach ($fileds as $filed) {
                     if (isset($val[$filed]) && $val[$filed]) {
                         $userids[] = $val[$filed];
+                        if ($filed == 'updated_by' && empty($update_time)) {
+                            $update_time = $val['updated_at'];
+                            $update_by = $val['updated_by'];
+                        } elseif ($filed == 'updated_by' && !empty($val['updated_at']) && $update_time < $val['updated_at']) {
+                            $update_time = $val['updated_at'];
+                            $update_by = $val['updated_by'];
+                        }
                     }
                 }
             }
@@ -553,6 +566,11 @@ class ProductModel extends PublicModel {
                         $val[$filed . '_name'] = $usernames[$val[$filed]];
                     } else {
                         $val[$filed . '_name'] = '';
+                    }
+                    if ($filed == 'updated_by') {
+                        $val['updated_at'] = $update_time;
+                        $val['updated_by'] = $update_by;
+                        $val['updated_by_name'] = isset($usernames[$update_by]) ? $usernames[$update_by] : '';
                     }
                 }
                 $arr[$key] = $val;

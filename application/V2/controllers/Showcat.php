@@ -220,6 +220,7 @@ class ShowcatController extends PublicController {
             $result = $this->_model->info($cat_no, $lang);
             $arr = [$result];
             $this->_setUserName($arr);
+            $result = $arr[0];
             if ($result) {
                 if (!$data['cat_no']) {
 
