@@ -164,7 +164,7 @@ class FinalquoteController extends PublicController {
             $results = $finalquote->updateFinal($finaldata);
             if($results['code'] == 1){
                 foreach($data['sku'] as $val){
-                    $exw_price = $val['quote_qty']*$val['exw_unit_price'];  //市场报出EXW价格
+                    $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
                     $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
                     $itemdata['id'] = $val['id'];
