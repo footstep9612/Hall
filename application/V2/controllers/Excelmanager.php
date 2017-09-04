@@ -136,11 +136,7 @@ class ExcelmanagerController extends PublicController
         $request = $this->validateRequests('inquiry_id');
 
         $data = $this->getFinalQuoteData($request['inquiry_id']);
-
-        p($data);
-        //获取数据并重组格式
-        //$data = $this->getResortData($this->_requestParams['serial_no']);
-        //$data = $this->simulateData();
+        //p($data);
 
         //创建excel表格并填充数据
         $excelFile = $this->createExcelAndInsertData($data);
@@ -169,185 +165,44 @@ class ExcelmanagerController extends PublicController
 
         //报价综合信息 (报价人，电话，邮箱，报价时间)
         $finalQuoteModel = new FinalQuoteModel();
-        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id'=>$inquiry_id])->field('created_by,checked_at')->find();
+        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id'=>$inquiry_id])->field('created_by,checked_at,checked_by')->find();
 
         $employee = new EmployeeModel();
-        $employeeInfo = $employee->where(['id'=>$finalQuoteInfo['created_by']])->field('email,mobile,name')->find();
+        $employeeInfo = $employee->where(['id'=>$finalQuoteInfo['checked_by']])->field('email,mobile,name')->find();
 
-        $info['email'] = $employeeInfo['email'];
-        $info['mobile'] = $employeeInfo['mobile'];
-        $info['name'] = $employeeInfo['name'];
+        //报价人信息
+        $info['quoter_email'] = $employeeInfo['email'];
+        $info['quoter_mobile'] = $employeeInfo['mobile'];
+        $info['quoter_name'] = $employeeInfo['name'];
+        $info['quote_time'] = $finalQuoteInfo['checked_at'];
 
-        //p($info);
-        return $info;
-    }
+        //市场经办人
+        $info['agenter'] = $employee->where(['id'=>$finalQuoteInfo['created_by']])->getField('name');
 
-    /**
-     * 模拟报价数据
-     * @return array
-     */
-    private function simulateData(){
-        $quote = [
-            'id'=>23456787654,//编号
-            'inquiry_id'=>'INQ23456543',
-            'biz_quote_by'=>'买买提', //商务报价人
-            'quoter_email'=>'742163033@qq.com', //商务报价人邮箱
-            'biz_quote_at'=>date('Y-m-d H:i:s'), //商务报价时间
-            'serial_no'=>'SO123543',//项目代码(流水号)
-            'notes'=>'notes',//备注
-            'quote_remarks'=>'',//商务报价备注
-            'logi_notes'=>'',//物流备注
-            'total_weight'=>242,//总重
-            'package_volumn'=>'',//包装总体积
-            'trade_terms_bn'=>'',//贸易术语
-            'total_logi_fee'=>'',//物流合计
-            'total_logi_fee_cur'=>'',//物流合计币种
-            'total_exw_price'=>'',//EXW合计
-            'total_exw_cur'=>'',//EXW合计币种
-            'total_quote_price'=>'',//报价合计
-            'quote_cur_bn'=>'',//报价合计币种
-            'payment_mode'=>'alipay',//付款方式
-            'origin_place'=>'Beijing',//存放地
-            'destination'=>'NewYork',//目的地
-            'total_bank_fee'=>'353',//银行费用
-            'total_bank_fee_cur'=>'1313',//银行费用币种
-            'total_insu_fee'=>'43',//出口信用保险费用
-            'total_insu_fee_cur'=>'USD',//出口信用保险费用币种
-            'delivery_period'=>'15',//EXW交货周期
-            'est_transport_cycle'=>'30',//预计运输周期
-            'package_mode'=>'AIR'//包装方式
+        //报价单项(final_quote)
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks_zh,b.remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.net_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.remarks quote_remarks';
+        $finalQuoteItems = $finalQuoteItemModel->alias('a')
+                            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+                            ->join('erui2_rfq.quote_item c ON a.quote_item_id = c.id')
+                            ->field($fields)
+                            ->where(['a.inquiry_id'=>$inquiry_id])
+                            ->order('a.id DESC')
+                            ->select();
+        //p($finalQuoteItems);
+
+        $quoteModel = new QuoteModel();
+        $quoteLogiFeeModel = new QuoteLogiFeeModel();
+        $quoteInfo = $quoteModel->where(['inquiry_id'=>$inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,origin_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks')->find();
+        $quoteInfo['logi_remarks'] = $quoteLogiFeeModel->where(['inquiry_id'=>$inquiry_id])->getField('logi_remarks');
+
+        //综合报价信息
+        return $finalQuoteData = [
+            'quoter_info' => $info,
+            'quote_items' => $finalQuoteItems,
+            'quote_info' => $quoteInfo
         ];
 
-        $quote_item = [
-            [
-                'id'=>1,//编号
-                'name_cn'=>'小米手机',//中文名称
-                'name_en'=>'XIAOMI',//外文名称
-                'quote_spec'=>'30*80',//规格
-                'inquiry_desc'=>'全新',//客户需求描述
-                'quote_desc'=>'缺货',//报价产品描述
-                'quote_quantity'=>12,//数量
-                'quote_unit'=>242,//单位
-                'quote_brand'=>'小米MUI',//品牌
-                'exw_unit_price'=>878,//EXW单价
-                'quote_unit_price'=>876,//贸易单价
-                'unit_weight'=>546,//单重
-                'package_size'=>1,//包装尺寸
-                'delivery_period'=>3,//交货期
-                'rebate_rate'=>'',//退税率
-                'quote_notes'=>'',//备注(商务技术备注)
-            ],
-            [
-                'id'=>2,//编号
-                'name_cn'=>'苹果',//中文名称
-                'name_en'=>'APPLE',//外文名称
-                'quote_spec'=>'30*80',//规格
-                'inquiry_desc'=>'全新',//客户需求描述
-                'quote_desc'=>'缺货',//报价产品描述
-                'quote_quantity'=>12,//数量
-                'quote_unit'=>242,//单位
-                'quote_brand'=>'APPLE iPhone7',//品牌
-                'exw_unit_price'=>4500,//EXW单价
-                'quote_unit_price'=>4499,//贸易单价
-                'unit_weight'=>546,//单重
-                'package_size'=>1,//包装尺寸
-                'delivery_period'=>3,//交货期
-                'rebate_rate'=>'',//退税率
-                'quote_notes'=>'',//备注(商务技术备注)
-            ],
-            [
-                'id'=>3,//编号
-                'name_cn'=>'三星',//中文名称
-                'name_en'=>'APPLE',//外文名称
-                'quote_spec'=>'30*80',//规格
-                'inquiry_desc'=>'全新',//客户需求描述
-                'quote_desc'=>'缺货',//报价产品描述
-                'quote_quantity'=>12,//数量
-                'quote_unit'=>242,//单位
-                'quote_brand'=>'APPLE iPhone7',//品牌
-                'exw_unit_price'=>4500,//EXW单价
-                'quote_unit_price'=>4499,//贸易单价
-                'unit_weight'=>546,//单重
-                'package_size'=>1,//包装尺寸
-                'delivery_period'=>3,//交货期
-                'rebate_rate'=>'',//退税率
-                'quote_notes'=>'',//备注(商务技术备注)
-            ]
-        ];
-
-        $quote['quote_items'] = $quote_item;
-        return $quote;
-    }
-
-    /**
-     * 重组报价信息
-     * @param $param
-     */
-    private function getResortData($param){
-
-        $quote = new QuoteModel();
-
-        $where = ['serial_no'=>$param];
-        $fields = [
-            'id',//编号
-            'inquiry_id',
-            'biz_quote_by', //商务报价人
-            //'quoter_email', //商务报价人邮箱
-            'biz_quote_at', //商务报价时间
-            'serial_no',//项目代码(流水号)
-            //'notes',//备注
-            'quote_remarks',//商务报价备注
-            //'logi_notes',//物流备注
-            'total_weight',//总重
-            'package_volumn',//包装总体积
-            'trade_terms_bn',//贸易术语
-            'total_logi_fee',//物流合计
-            //'total_logi_fee_cur',//物流合计币种
-            'total_exw_price',//EXW合计
-            //'total_exw_cur',//EXW合计币种
-            //'total_quote_price',//报价合计
-            'quote_cur_bn',//报价合计币种
-            'payment_mode',//付款方式
-            'origin_place',//存放地
-            'destination',//目的地
-            'total_bank_fee',//银行费用
-            //'total_bank_fee_cur',//银行费用币种
-            'total_insu_fee',//出口信用保险费用
-            //'total_insu_fee_cur',//出口信用保险费用币种
-            'delivery_period',//EXW交货周期
-            //'est_transport_cycle',//预计运输周期
-            'package_mode'//包装方式
-        ];
-
-        //获取报价信息(quote表)
-        $quoteInfo = $quote->where($where)->field($fields)->find();
-        p($quoteInfo);
-//        //获取报价明细
-//        $quoteItem = new QuoteItemModel();
-//        $condition = ['quote_id'=>$quoteInfo['quote_id']];
-//        $quoteItemFields = [
-//            'id',//编号
-//            'name_cn',//中文名称
-//            'name_en',//外文名称
-//            'quote_spec',//规格
-//            'inquiry_desc',//客户需求描述
-//            'quote_desc',//报价产品描述
-//            'quote_quantity',//数量
-//            'quote_unit',//单位
-//            'quote_brand',//品牌
-//            'exw_unit_price',//EXW单价
-//            'quote_unit_price',//贸易单价
-//            'unit_weight',//单重
-//            'package_size',//包装尺寸
-//            'delivery_period',//交货期
-//            'rebate_rate',//退税率
-//            'quote_notes',//备注(商务技术备注)
-//        ];
-//
-//        $quoteInfo['quote_items']  = $quoteItem->where($condition)->field($quoteItemFields)->select();
-//
-//        return $quoteInfo;
-//
     }
 
     /**
@@ -418,13 +273,13 @@ class ExcelmanagerController extends PublicController
             $objSheet->getColumnDimension($big_col)->setWidth('18');
         endforeach;
 
-        $objSheet->setCellValue("A3", "报价人 : " .$quote['biz_quote_by'])->mergeCells("A3:E3");
-        $objSheet->setCellValue("A4", "电话 : ")->mergeCells("A4:E4");
-        $objSheet->setCellValue("A5", "邮箱 : " .$quote['quoter_email'])->mergeCells("A5:E5");
+        $objSheet->setCellValue("A3", "报价人 : " .$quote['quoter_info']['quoter_name'])->mergeCells("A3:E3");
+        $objSheet->setCellValue("A4", "电话 : " .$quote['quoter_info']['quoter_mobile'])->mergeCells("A4:E4");
+        $objSheet->setCellValue("A5", "邮箱 : " .$quote['quoter_info']['quoter_email'])->mergeCells("A5:E5");
 
-        $objSheet->setCellValue("F3", "询价单位 : ")->mergeCells("F3:R3");
-        $objSheet->setCellValue("F4", "业务对接人 : ")->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "报价时间 : " .$quote['biz_quote_at'])->mergeCells("F5:R5");
+        $objSheet->setCellValue("F3", "询价单位 : " .$quote['quoter_info']['buyer_name'])->mergeCells("F3:R3");
+        $objSheet->setCellValue("F4", "业务对接人 : " .$quote['quoter_info']['agenter'])->mergeCells("F4:R4");
+        $objSheet->setCellValue("F5", "报价时间 : " .$quote['quoter_info']['quote_time'])->mergeCells("F5:R5");
 
 
         $objSheet->setCellValue("A6", '易瑞国际电子商务有限公司商务技术部')
@@ -454,8 +309,8 @@ class ExcelmanagerController extends PublicController
         $objSheet->setCellValue("L7", "单重\nUnit\nWeight(kg)")->mergeCells("L7:L8");
         $objSheet->setCellValue("M7", "包装体积\nPacking\nSizeL*W*H(mm)")->mergeCells("M7:M8");
         $objSheet->setCellValue("N7", "包装方式\nPacking")->mergeCells("N7:N8");
-        $objSheet->setCellValue("O7", "交货期\nValidity\n(Working Day)")->mergeCells("O7:O8");
-        $objSheet->setCellValue("P7", "退税率\nTax RefundRate")->mergeCells("P7:P8");
+        $objSheet->setCellValue("O7", "交货期\nDelivery\n(Working Day)")->mergeCells("O7:O8");
+        $objSheet->setCellValue("P7", "有效期\nValidity\n(Working Day)")->mergeCells("P7:P8");
         $objSheet->setCellValue("Q7", "备注\nRemark")->mergeCells("Q7:Q8");
 
         $cols = ["A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7", "I7", "J7", "K7", "L7", "M7", "N7", "O7", "P7", "Q7"];
@@ -474,22 +329,22 @@ class ExcelmanagerController extends PublicController
             foreach ($quote['quote_items'] as $item)
             {
                 $objSheet->setCellValue("A".$row_num, $item['id']);
-                $objSheet->setCellValue("B".$row_num, $item['name_cn']);
-                $objSheet->setCellValue("C".$row_num, $item['name_en']);
-                $objSheet->setCellValue("D".$row_num, $item['quote_spec']);
-                $objSheet->setCellValue("E".$row_num, $item['inquiry_desc']);
-                $objSheet->setCellValue("F".$row_num, $item['quote_desc']);
-                $objSheet->setCellValue("G".$row_num, $item['quote_quantity']);
-                $objSheet->setCellValue("H".$row_num, $item['quote_unit']);
-                $objSheet->setCellValue("I".$row_num, $item['quote_brand']);
+                $objSheet->setCellValue("B".$row_num, $item['name_zh']);
+                $objSheet->setCellValue("C".$row_num, $item['name']);
+                $objSheet->setCellValue("D".$row_num, $item['model']);
+                $objSheet->setCellValue("E".$row_num, $item['remarks_zh']);
+                $objSheet->setCellValue("F".$row_num, $item['remarks']);
+                $objSheet->setCellValue("G".$row_num, $item['qty']);
+                $objSheet->setCellValue("H".$row_num, $item['unit']);
+                $objSheet->setCellValue("I".$row_num, $item['brand']);
                 $objSheet->setCellValue("J".$row_num, $item['exw_unit_price']);
                 $objSheet->setCellValue("K".$row_num, $item['quote_unit_price']);
-                $objSheet->setCellValue("L".$row_num, $item['unit_weight']);
+                $objSheet->setCellValue("L".$row_num, $item['net_weight_kg']);
                 $objSheet->setCellValue("M".$row_num, $item['package_size']);
-                $objSheet->setCellValue("N".$row_num, $quote['package_mode']);
-                $objSheet->setCellValue("O".$row_num, $item['delivery_period']);
-                $objSheet->setCellValue("P".$row_num, $item['rebate_rate']);
-                $objSheet->setCellValue("Q".$row_num, $item['quote_notes']);
+                $objSheet->setCellValue("N".$row_num, $item['package_mode']);
+                $objSheet->setCellValue("O".$row_num, $item['delivery_days']);
+                $objSheet->setCellValue("P".$row_num, $item['period_of_validity']);
+                $objSheet->setCellValue("Q".$row_num, $item['quote_remarks']);
 
                 //设置居中
                 $cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q"];
@@ -510,55 +365,55 @@ class ExcelmanagerController extends PublicController
 
             $num11 = $row_num + 2;
             $objSheet->setCellValue("B".$num11, "总重(kg)");
-            $objSheet->setCellValue("C".$num11, $quote['total_weight']);
+            $objSheet->setCellValue("C".$num11, $quote['quote_info']['total_weight']);
             $objSheet->setCellValue("D".$num11, "包装总体积(m³)");
-            $objSheet->setCellValue("E".$num11, $quote['package_volumn']);
+            $objSheet->setCellValue("E".$num11, $quote['quote_info']['package_volumn']);
             $objSheet->setCellValue("F".$num11, "付款方式");
-            $objSheet->setCellValue("G".$num11, $quote['payment_mode']);
+            $objSheet->setCellValue("G".$num11, $quote['quote_info']['payment_mode']);
             $objSheet->setCellValue("H".$num11, "");
             $objSheet->setCellValue("I".$num11, "");
             $objSheet->setCellValue("J".$num11, "EXW交货周期(天)");
-            $objSheet->setCellValue("K".$num11, $quote['delivery_period']);
+            $objSheet->setCellValue("K".$num11, "");
 
             $num12 = $row_num + 3;
             $objSheet->setCellValue("B".$num12, "贸易术语");
-            $objSheet->setCellValue("C".$num12, $quote['trade_terms_bn']);
+            $objSheet->setCellValue("C".$num12, $quote['quote_info']['trade_terms_bn']);
             $objSheet->setCellValue("D".$num12, "运输方式");
-            $objSheet->setCellValue("E".$num12, "Ocean");
+            $objSheet->setCellValue("E".$num12, $quote['quote_info']['trans_mode_bn']);
             $objSheet->setCellValue("F".$num12, "存放地");
-            $objSheet->setCellValue("G".$num12, $quote['origin_place']);
+            $objSheet->setCellValue("G".$num12, $quote['quote_info']['origin_place']);
             $objSheet->setCellValue("H".$num12, "目的地");
-            $objSheet->setCellValue("I".$num12, $quote['destination']);
+            $objSheet->setCellValue("I".$num12, $quote['quote_info']['delivery_addr']);
             $objSheet->setCellValue("J".$num12, "运输周期(天)");
-            $objSheet->setCellValue("K".$num12, $quote['est_transport_cycle']);
+            $objSheet->setCellValue("K".$num12, $quote['quote_info']['delivery_period']);
 
             $num13 = $row_num + 4;
             $objSheet->setCellValue("B".$num13, "物流合计");
-            $objSheet->setCellValue("C".$num13, $quote['total_logi_fee']);
+            $objSheet->setCellValue("C".$num13, $quote['quote_info']['total_logi_fee']);
             $objSheet->setCellValue("D".$num13, "物流合计币种");
-            $objSheet->setCellValue("E".$num13, $quote['total_logi_fee_cur']);
+            $objSheet->setCellValue("E".$num13, "USD");
             $objSheet->setCellValue("F".$num13, "银行费用");
-            $objSheet->setCellValue("G".$num13, $quote['total_bank_fee']);
+            $objSheet->setCellValue("G".$num13, $quote['quote_info']['total_bank_fee']);
             $objSheet->setCellValue("H".$num13, "银行费用币种");
-            $objSheet->setCellValue("I".$num13, $quote['total_bank_fee_cur']);
+            $objSheet->setCellValue("I".$num13, "USD");
             $objSheet->setCellValue("J".$num13, "");
             $objSheet->setCellValue("K".$num13, "");
 
             $num14 = $row_num + 5;
             $objSheet->setCellValue("B".$num14, "EXW合计");
-            $objSheet->setCellValue("C".$num14, $quote['total_exw_price']);
+            $objSheet->setCellValue("C".$num14, $quote['quote_info']['total_exw_price']);
             $objSheet->setCellValue("D".$num14, "EXW合计币种");
-            $objSheet->setCellValue("E".$num14, $quote['total_exw_cur']);
+            $objSheet->setCellValue("E".$num14, "USD");
             $objSheet->setCellValue("F".$num14, "出信用保险");
-            $objSheet->setCellValue("G".$num14, $quote['total_insu_fee']);
+            $objSheet->setCellValue("G".$num14, $quote['quote_info']['total_insu_fee']);
             $objSheet->setCellValue("H".$num14, "出信用保险币种");
-            $objSheet->setCellValue("I".$num14, $quote['total_insu_fee_cur']);
+            $objSheet->setCellValue("I".$num14, "USD");
             $objSheet->setCellValue("J".$num14, "");
             $objSheet->setCellValue("K".$num14, "");
 
             $num15 = $row_num + 6;
             $objSheet->setCellValue("B".$num15, "报价合计");
-            $objSheet->setCellValue("C".$num15, $quote['total_quote_price']);
+            $objSheet->setCellValue("C".$num15, $quote['quote_info']['total_quote_price']);
             $objSheet->setCellValue("D".$num15, "报价合计币种");
             $objSheet->setCellValue("E".$num15, '');
             $objSheet->setCellValue("F".$num15, "");
@@ -587,7 +442,7 @@ class ExcelmanagerController extends PublicController
             }
 
             $num16 = $row_num + 7; $num17 = $row_num + 8;
-            $objSheet->setCellValue("A".$num16, '报价备注 : ' )->mergeCells("A".$num16.":K".$num17);
+            $objSheet->setCellValue("A".$num16, '报价备注 : ' .$quote['quote_info']['quote_remarks'] )->mergeCells("A".$num16.":K".$num17);
             $objSheet->getStyle("A".$num16.":K".$num17)->applyFromArray($styleArray);
             $objSheet->getCell("A".$num16)
                 ->getStyle()
@@ -596,7 +451,7 @@ class ExcelmanagerController extends PublicController
                 ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
             $num18 = $row_num + 9; $num19 = $row_num + 10;
-            $objSheet->setCellValue("A".$num18, '物流备注 : ' .$quote['logi_notes'])->mergeCells("A".$num18.":K".$num19);
+            $objSheet->setCellValue("A".$num18, '物流备注 : ' .$quote['quote_info']['logi_remarks'])->mergeCells("A".$num18.":K".$num19);
             $objSheet->getStyle("A".$num18.":K".$num19)->applyFromArray($styleArray);
             $objSheet->getCell("A".$num18)
                 ->getStyle()
@@ -615,7 +470,7 @@ class ExcelmanagerController extends PublicController
         //4.保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
 
-        return ExcelHelperTrait::createExcelToLocalDir($objWriter,time().'.xls');
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter,"FQ_".date('Ymd-His').'.xls');
 
     }
 }
