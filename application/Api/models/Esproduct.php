@@ -180,6 +180,7 @@ class EsproductModel extends PublicModel {
                                 'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
                             ]],
                         [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
         }
         return $body;
@@ -209,6 +210,9 @@ class EsproductModel extends PublicModel {
             }
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+            }
+            if (!$body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
             }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();

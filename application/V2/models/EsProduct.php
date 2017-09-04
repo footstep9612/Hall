@@ -316,7 +316,7 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
             unset($condition['source']);
-            if ($body) {
+            if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
             $es->setbody($body)->setsort('created_at', 'desc')->setsort('sku_count', 'desc')

@@ -175,7 +175,15 @@ class EsproductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']);
+        $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                    [ESClient::MULTI_MATCH => [
+                            'query' => $show_name,
+                            'type' => 'most_fields',
+                            'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
+                        ]],
+                    [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
+                    [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+        ]]];
         return $body;
     }
 
@@ -196,6 +204,9 @@ class EsproductModel extends Model {
 //                    'brand', 'supplier_name', 'sku_num'];
 //            }
             $body = $this->getCondition($condition);
+            if (!$body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
+            }
             $redis_key = 'es_product_' . md5(json_encode($body));
             $data = json_decode(redisGet($redis_key), true);
             if (!$data) {
