@@ -476,11 +476,6 @@ class GoodsModel extends PublicModel {
                         $value['show_name'] = $value['name'];
                     }
 
-                    if ($key == 'zh' && isset($input['en']['name'])) {
-                        $value['show_name_loc'] = $input['en']['name'];
-                    } elseif (isset($input['zh']['name']) && $key != 'zh') {
-                        $value['show_name_loc'] = $input['zh']['name'];
-                    }
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
@@ -599,7 +594,8 @@ class GoodsModel extends PublicModel {
                         $pModel = new ProductModel();                                 //sku_count加一
                         $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
                                 ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
-                        if (!$presult) {
+                        if ($presult === false) {
+
                             $this->rollback();
                             return false;
                         }
