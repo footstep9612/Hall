@@ -267,6 +267,7 @@ class QuoteBizLineModel extends PublicModel {
             }
 
             $data[$key]['updated_by'] = $user;
+            $data[$key]['created_by'] = $user;
             $data[$key]['updated_at'] = date('Y-m-d H:i:s');
             $data[$key]['status'] = 'QUOTED'; //报价状态
         }
