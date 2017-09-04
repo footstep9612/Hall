@@ -79,9 +79,9 @@ class ShowcatController extends PublicController {
         $count2 = $this->_model->getCount($countData); //二级分类数据
         $countData['level_no'] = 3;
         $count3 = $this->_model->getCount($countData); //三级分类数据
-        $this->setvalue('count1', $count1);
-        $this->setvalue('count2', $count2);
-        $this->setvalue('count3', $count3);
+        $this->setvalue('count1', intval($count1));
+        $this->setvalue('count2', intval($count2));
+        $this->setvalue('count3', intval($count3));
     }
 
     public function listAction() {

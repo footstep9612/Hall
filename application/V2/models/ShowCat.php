@@ -233,7 +233,7 @@ class ShowCatModel extends PublicModel {
             return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
-            return false;
+            return 0;
         }
     }
 
