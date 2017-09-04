@@ -969,7 +969,7 @@ class QuotebizlineController extends PublicController {
 
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }else{
-                $this->jsonReturn(['code'=>'-104','message'=>'你没有进行更改!']);
+                $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }
         }catch (Exception $exception){
             $this->jsonReturn([
