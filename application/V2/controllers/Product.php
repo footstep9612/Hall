@@ -38,10 +38,18 @@ class ProductController extends PublicController {
 
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu, $lang, $status);
+
+        $checklogModel = new ProductCheckLogModel();
+
+
+        $this->setvalue('checklog', $checklogModel->getlastRecord($this->put_data['spu']));
+
+
         if ($result !== false) {
-            jsonReturn($result);
+            $this->jsonReturn($result);
         } else {
-            jsonReturn('', ErrorMsg::FAILED);
+            $this->setCode(ErrorMsg::FAILED);
+            $this->jsonReturn(false);
         }
         exit;
     }
