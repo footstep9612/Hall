@@ -168,7 +168,7 @@ class FinalquoteController extends PublicController {
                     $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
                     $itemdata['id'] = $val['id'];
-                    $itemdata['exw_unit_price'] = round($val['exw_unit_price'],4);
+                    $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
                     $itemdata['quote_unit_price'] = round($quote_unit_price,4);
 
                     $itemrs = $this->updateItemAction($itemdata);
