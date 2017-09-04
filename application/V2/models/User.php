@@ -157,7 +157,7 @@ class UserModel extends PublicModel {
         }
         $where['status'] = 'NORMAL';
         $row = $this->where($where)
-            ->field('id,user_no,name,email,mobile,status')
+            ->field('id,user_no,name,email,mobile,status,password_status')
             ->find();
         return $row;
     }
@@ -215,6 +215,7 @@ class UserModel extends PublicModel {
         }
         if(isset($create['password_hash'])){
             $data['password_hash']=$create['password_hash'];
+            $data['password_status'] = 'N';
         }
         if(isset($create['name_en'])){
             $data['name_en']=$create['name_en'];
@@ -234,9 +235,6 @@ class UserModel extends PublicModel {
         if(isset($create['remarks'])){
             $data['remarks']=$create['remarks'];
         }
-        if(isset($data)){
-            $data['created_at']=date("Y-m-d H:i:s");
-        }
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
@@ -251,7 +249,6 @@ class UserModel extends PublicModel {
         if(!$where){
             return false;
         }else{
-
             return $this->where($where)->save($data);
         }
 

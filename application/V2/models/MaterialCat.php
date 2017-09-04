@@ -186,7 +186,7 @@ class MaterialCatModel extends PublicModel {
         }
         try {
             return $this->where($where)
-                            ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
+                            ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by,updated_at,updated_by')
                             ->find();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -386,7 +386,7 @@ class MaterialCatModel extends PublicModel {
      */
     public function update_data($upcondition = []) {
         $data = $this->getUpdateCondition($upcondition, defined('UID') ? UID : 0);
-        $data['created_by'] = defined('UID') ? UID : 0;
+        //   $data['created_by'] = defined('UID') ? UID : 0;
         try {
             $info = $this->info($upcondition['cat_no'], null);
             if (!$data) {
@@ -424,6 +424,7 @@ class MaterialCatModel extends PublicModel {
                     $data = $this->create($data);
                     $add = $this->create($add);
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
+
                     if (!$flag) {
                         $this->rollback();
                         return false;

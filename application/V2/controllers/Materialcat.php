@@ -213,6 +213,9 @@ class MaterialcatController extends PublicController {
                 $data[$lang]['name'] = '';
             }
         }
+        $arr = [$data];
+        $this->_setUserName($arr, ['created_by', 'updated_by']);
+        $data = $arr[0];
 
         if ($data) {
             list($parent1, $parent2) = $this->_getparentcats($data);
@@ -226,6 +229,39 @@ class MaterialcatController extends PublicController {
             $this->jsonReturn(null);
         }
         exit;
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+
+                foreach ($fileds as $filed) {
+                    $userids[] = $val[$filed];
+                }
+            }
+
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+
+            foreach ($arr as $key => $val) {
+                if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                    $val[$filed . '_name'] = $usernames[$val[$filed]];
+                } else {
+                    $val[$filed . '_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
     /**
@@ -293,7 +329,7 @@ class MaterialcatController extends PublicController {
 
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($result);
-        } elseif ($result === []) {
+        } elseif ($result !== false) {
             $this->setCode(MSG::ERROR_EMPTY);
 
             $this->jsonReturn(null);

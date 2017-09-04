@@ -472,9 +472,10 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
 
-                    if (empty($data['show_name'])) {
-                        $data['show_name'] = $data['name'];
+                    if (empty($value['show_name'])) {
+                        $value['show_name'] = $value['name'];
                     }
+
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
@@ -593,7 +594,8 @@ class GoodsModel extends PublicModel {
                         $pModel = new ProductModel();                                 //sku_count加一
                         $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
                                 ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
-                        if (!$presult) {
+                        if ($presult === false) {
+
                             $this->rollback();
                             return false;
                         }
