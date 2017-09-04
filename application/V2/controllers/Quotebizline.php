@@ -1127,6 +1127,7 @@ class QuotebizlineController extends PublicController {
         $where = $this->validateRequests();
         $request = $where['data'];
 
+        $user = new EmployeeModel();
         $quoteItem = new QuoteItemModel();
         try{
             $result = $quoteItem->where(['id'=>$request['id']])->save($quoteItem->create([
@@ -1143,7 +1144,7 @@ class QuotebizlineController extends PublicController {
                 'stock_loc' => $request['stock_loc'],
                 'delivery_days' => $request['delivery_days'],
                 'period_of_validity' => $request['period_of_validity'],
-                'created_by' => $request['created_by'],
+                'created_by' => $user->where(['name'=>$request['created_by']])->getField('id'),
                 'status' => 'QUOTED'
             ]));
 
