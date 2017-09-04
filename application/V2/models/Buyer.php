@@ -95,6 +95,7 @@ class BuyerModel extends PublicModel {
             $sql_count .= $where;
         }
         $sql .= ' Group By `erui2_buyer`.`buyer`.`id`';
+        $sql_count .= ' Group By `erui2_buyer`.`buyer`.`id`';
         $sql .= ' Order By ' . $order;
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
