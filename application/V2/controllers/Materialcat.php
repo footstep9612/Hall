@@ -329,7 +329,7 @@ class MaterialcatController extends PublicController {
 
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($result);
-        } elseif ($result === []) {
+        } elseif ($result !== false) {
             $this->setCode(MSG::ERROR_EMPTY);
 
             $this->jsonReturn(null);
