@@ -472,6 +472,9 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
 
+                    if (empty($data['show_name'])) {
+                        $data['show_name'] = $data['name'];
+                    }
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
@@ -687,14 +690,14 @@ class GoodsModel extends PublicModel {
                 return false;
             }
 
-          /*  $gattr = new GoodsAttrModel();
-            $resAttr = $gattr->modifyAttr($input['sku'], $status);        //属性状态
+            /*  $gattr = new GoodsAttrModel();
+              $resAttr = $gattr->modifyAttr($input['sku'], $status);        //属性状态
 
-            if (!$resAttr || $resAttr['code'] != 1) {
-                $this->rollback();
+              if (!$resAttr || $resAttr['code'] != 1) {
+              $this->rollback();
 
-                return false;
-            }*/
+              return false;
+              } */
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
@@ -783,12 +786,12 @@ class GoodsModel extends PublicModel {
                                         //同步product es
                                         $es_product_model = new EsProductModel();
                                         $langs = ['en', 'zh', 'es', 'ru'];
-                                        if(empty($lang)){
+                                        if (empty($lang)) {
                                             foreach ($langs as $l) {
-                                                $es_product_model->create_data( $spuCode['spu'], $l);
+                                                $es_product_model->create_data($spuCode['spu'], $l);
                                             }
-                                        }else{
-                                            $es_product_model->create_data( $spuCode['spu'], $lang);
+                                        } else {
+                                            $es_product_model->create_data($spuCode['spu'], $lang);
                                         }
                                     }
                                 }
@@ -1044,7 +1047,7 @@ class GoodsModel extends PublicModel {
             }
             if (!empty($value)) {
                 foreach ($value as $attr) {
-                    if(empty(trim($attr['attr_name']))){
+                    if (empty(trim($attr['attr_name']))) {
                         continue;
                     }
                     if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
