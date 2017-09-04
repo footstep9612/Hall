@@ -46,9 +46,8 @@ class InquiryController extends PublicController {
                 $agent = $maketareateam->where('market_org_id='.$groupid)->count('id');
             }
 
-            array_unique($users);
-
             if (!empty($users)) {
+                array_unique($users);
                 $results['code'] = '1';
                 $results['message'] = '方案中心！';
                 $results['data'] = $users;
@@ -239,6 +238,9 @@ class InquiryController extends PublicController {
             $rs4 = $area->field('market_area_bn')->where(['country_bn' => $results['data']['country_bn']])->find();
             $results['data']['market_area_bn'] = $rs4['market_area_bn'];
         }
+
+        //权限
+        $results['auth'] = $auth['code'];
 
         $this->jsonReturn($results);
     }
