@@ -183,7 +183,7 @@ class QuotebizlineController extends PublicController {
 
         $quoteBizline =  new QuoteBizLineModel();
         $response = $quoteBizline->getPmQuoteList($request);
-
+        //p($response);
         if (!$response){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
@@ -196,8 +196,9 @@ class QuotebizlineController extends PublicController {
             $response[$k]['bizline_name'] = $bizline->where(['id'=>$v['bizline_id']])->getField('name');
             $response[$k]['bizline_agent_name'] = $user->where(['id'=>$v['bizline_agent_id']])->getField('name');
             $response[$k]['supplier_name'] = $supplier->where(['id'=>$v['supplier_id']])->getField('name');
+            $response[$k]['quoter_name'] = $user->where(['id'=>$v['created_by']])->getField('name');
         }
-
+        //p($response);
         $this->jsonReturn([
             'code' => '1',
             'message' => '成功!',
@@ -1142,6 +1143,7 @@ class QuotebizlineController extends PublicController {
                 'stock_loc' => $request['stock_loc'],
                 'delivery_days' => $request['delivery_days'],
                 'period_of_validity' => $request['period_of_validity'],
+                'created_by' => $request['created_by'],
                 'status' => 'QUOTED'
             ]));
 
