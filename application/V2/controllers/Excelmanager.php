@@ -8,32 +8,15 @@ class ExcelmanagerController extends PublicController
 {
 
     public function init(){
-        //parent::init();
+        parent::init();
     }
 
 
     public function uploadAction(){
-        $this->getView()->assign("content", "Hello World");
-        $this->display('upload');
+        //$this->getView()->assign("content", "Hello World");
+        //$this->display('upload');
     }
 
-    public function uploaderAction(){
-
-        $file = '/data/www/erui_php/public/tmp/FQ_20170904-152249.xls';
-        $fileName = strstr($file,'.',true);
-        $fileSuffix = strstr($file,'.');
-
-        if(extension_loaded('fastdfs_client')){
-            $fdfs = new FastDFS();
-            $tracker = $fdfs->tracker_get_connection();
-            $fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($fileName, $fileSuffix);
-            $fdfs->tracker_close_all_connections();
-            return $fileId;
-        }else{
-            return array();
-        }
-        p($fileName);
-    }
     /**
      * @desc 获取请求
      * @return mixed
