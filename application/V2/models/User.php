@@ -215,6 +215,7 @@ class UserModel extends PublicModel {
         }
         if(isset($create['password_hash'])){
             $data['password_hash']=$create['password_hash'];
+            $data['password_status']='N';
         }
         if(isset($create['name_en'])){
             $data['name_en']=$create['name_en'];
