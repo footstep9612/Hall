@@ -472,8 +472,14 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
 
-                    if (empty($data['show_name'])) {
-                        $data['show_name'] = $data['name'];
+                    if (empty($value['show_name'])) {
+                        $value['show_name'] = $value['name'];
+                    }
+
+                    if ($key == 'zh' && isset($input['en']['name'])) {
+                        $value['show_name_loc'] = $input['en']['name'];
+                    } elseif (isset($input['zh']['name']) && $key != 'zh') {
+                        $value['show_name_loc'] = $input['zh']['name'];
                     }
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
