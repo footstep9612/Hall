@@ -268,8 +268,7 @@ class QuotebizlineController extends PublicController {
                 'inquiry_item_id' => $item['id'],
                 'bizline_id' => $request['bizline_id'],
                 'sku' => $item['sku'],
-                'created_at' => date('Y-m-d H:i:s'),
-                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s')
             ]));
         }
 
