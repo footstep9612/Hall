@@ -307,7 +307,7 @@ class EsGoodsModel extends Model {
         try {
             $body = $this->getCondition($condition, $lang);
 
-            if ($body) {
+            if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
             $pagesize = 10;
@@ -318,6 +318,8 @@ class EsGoodsModel extends Model {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
+
+
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 

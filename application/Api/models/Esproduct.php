@@ -20,6 +20,117 @@ class EsproductModel extends PublicModel {
         parent::__construct($str = '');
     }
 
+    /*
+     * 判断搜索条件是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
+        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
+            if (isset($condition[$name]) && $condition[$name]) {
+                $value = $condition[$name];
+                if (!$field) {
+                    $field = $name;
+                }
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
+            }
+        } elseif ($qurey_type == ESClient::WILDCARD) {
+
+            if (isset($condition[$name]) && $condition[$name]) {
+
+                $value = $condition[$name];
+                if (!$field) {
+                    $field = $name;
+                }
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => '*' . $value . '*']];
+            }
+        } elseif ($qurey_type == ESClient::MULTI_MATCH) {
+            if (isset($condition[$name]) && $condition[$name]) {
+                $value = $condition[$name];
+                if (!$field) {
+                    $field = [$name];
+                }
+                $body['query']['bool']['must'][] = [$qurey_type => [
+                        'query' => $value,
+                        'type' => 'most_fields',
+                        'operator' => 'and',
+                        'fields' => $field
+                ]];
+            }
+        } elseif ($qurey_type == ESClient::RANGE) {
+            if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
+                $created_at_start = $condition[$name . '_start'];
+                $created_at_end = $condition[$name . '_end'];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
+            } elseif (isset($condition[$name . '_start']) && $condition[$field . '_start']) {
+                $created_at_start = $condition[$name . '_start'];
+
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
+            } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
+                $created_at_end = $condition[$name . '_end'];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gle' => $created_at_end,]]];
+            }
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getStatus(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = '', $array = [], $default = 'VALID') {
+        if (!$field) {
+            $field = [$name];
+        }
+        if (isset($condition[$name]) && $condition[$name]) {
+            $status = $condition[$name];
+            if ($status == 'ALL') {
+
+            } elseif (in_array($status, $array)) {
+
+                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
+            } else {
+                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+            }
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getQureyByArr(&$condition, &$body, $qurey_type = ESClient::MATCH_PHRASE, $names = '', $field = '') {
+        if (!$field) {
+            $field = [$names];
+        }
+        if (isset($condition[$names]) && $condition[$names]) {
+            $name_arr = $condition[$names];
+            $bool = [];
+            foreach ($name_arr as $name) {
+                $bool[] = [$qurey_type => [$field => $name]];
+            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     */
+
+    private function _getQureyByBool(&$condition, &$body, $qurey_type = ESClient::MATCH_PHRASE, $name = '', $field = '', $default = 'N') {
+        if (!$field) {
+            $field = $name;
+        }
+        if (isset($condition[$name]) && $condition[$name]) {
+            $recommend_flag = $condition[$name] == 'Y' ? 'Y' : $default;
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $recommend_flag]];
+        }
+    }
+
     /* 条件组合
      * @param mix $condition // 搜索条件
      */
@@ -27,187 +138,50 @@ class EsproductModel extends PublicModel {
     private function getCondition($condition) {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
-        if (isset($condition['sku'])) {
-            $sku = $condition['sku'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['skus' => $sku]];
-        }
-        if (isset($condition['spu'])) {
-            $spu = $condition['spu'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
-        }
-        if (isset($condition['spus'])) {
-            $spus = $condition['spus'];
-            $spus_arr = [];
-            foreach ($spus as $spu) {
-                $spus_arr[] = [ESClient::MATCH_PHRASE => ['spu' => $spu]];
-            }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $spus_arr]];
-        }
-        if (isset($condition['show_cat_no'])) {
-            $show_cat_no = $condition['show_cat_no'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH =>
-                ['show_cats' => $show_cat_no,]];
-        }
-        if (isset($condition['mcat_no1'])) {
-            $mcat_no1 = $condition['mcat_no1'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH =>
-                ['meterial_cat' => $mcat_no1]];
-        }
-        if (isset($condition['mcat_no2'])) {
-            $mcat_no2 = $condition['mcat_no2'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH =>
-                ['meterial_cat' => $mcat_no2]];
-        }
-        if (isset($condition['mcat_no3'])) {
-            $mcat_no3 = $condition['mcat_no3'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH =>
-                ['meterial_cat' => $mcat_no3]];
-        }
-        if (isset($condition['created_at_start']) && isset($condition['created_at_end'])) {
-            $created_at_start = $condition['created_at_start'];
-            $created_at_end = $condition['created_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start, 'gle' => $created_at_end,]]];
-        } elseif (isset($condition['created_at_start'])) {
-            $created_at_start = $condition['created_at_start'];
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'sku', 'skus');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
+        $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'meterial_cat');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'meterial_cat');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'meterial_cat');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
+        $this->_getQureyByBool($condition, $body, ESClient::MATCH_PHRASE, 'recommend_flag', 'recommend_flag', 'N');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard');
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gte' => $created_at_start,]]];
-        } elseif (isset($condition['created_at_end'])) {
-            $created_at_end = $condition['created_at_end'];
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail');
 
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['gle' => $created_at_end,]]];
-        }
-        if (isset($condition['checked_at_start']) && isset($condition['checked_at_end'])) {
-            $checked_at_start = $condition['checked_at_start'];
-            $checked_at_end = $condition['checked_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start, 'gle' => $checked_at_end,]]];
-        } elseif (isset($condition['checked_at_start'])) {
-            $checked_at_start = $condition['checked_at_start'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gte' => $checked_at_start,]]];
-        } elseif (isset($condition['created_at_end'])) {
-            $checked_at_end = $condition['checked_at_end'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['checked_at' => ['gle' => $checked_at_end,]]];
-        }
-
-        if (isset($condition['updated_at_start']) && isset($condition['updated_at_end'])) {
-            $updated_at_start = $condition['updated_at_start'];
-            $updated_at_end = $condition['updated_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,
-                        'gle' => $updated_at_end,]]];
-        } elseif (isset($condition['updated_at_start'])) {
-            $updated_at_start = $condition['updated_at_start'];
-
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gte' => $updated_at_start,]]];
-        } elseif (isset($condition['updated_at_end'])) {
-            $updated_at_end = $condition['updated_at_end'];
-            $body['query']['bool']['must'][] = [ESClient::RANGE => ['updated_at' => ['gle' => $updated_at_end,]]];
-        }
-        if (isset($condition['status'])) {
-            $status = $condition['status'];
-            if (!in_array($status, ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
-                $status = 'VALID';
-            }
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $status]];
-        } else {
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => 'VALID']];
-        }
-
-        if (isset($condition['recommend_flag'])) {
-            $recommend_flag = $condition['recommend_flag'] == 'Y' ? 'Y' : 'N';
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['status' => $recommend_flag]];
-        }
-        if (isset($condition['brand'])) {
-            $brand = $condition['brand'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['brand' => $brand]];
-        }
-        if (isset($condition['source'])) {
-            $source = $condition['source'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['source' => $source]];
-        }
-        if (isset($condition['exe_standard'])) {
-            $exe_standard = $condition['exe_standard'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['exe_standard' => $exe_standard]];
-        }
-        if (isset($condition['app_scope'])) {
-            $app_scope = $condition['app_scope'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['app_scope' => $app_scope]];
-        }
-        if (isset($condition['advantages'])) {
-            $advantages = $condition['advantages'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['advantages' => $advantages]];
-        }
-        if (isset($condition['tech_paras'])) {
-            $tech_paras = $condition['tech_paras'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['tech_paras' => $tech_paras]];
-        }
-        if (isset($condition['source_detail'])) {
-            $source_detail = $condition['source_detail'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['source_detail' => $source_detail]];
-        }
-
-        if (isset($condition['keywords'])) {
-            $keywords = $condition['keywords'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['keywords' => $keywords]];
-        }
-        if (isset($condition['supplier_id'])) {
-            $supplier_id = $condition['supplier_id'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['supplier_id' => $supplier_id]];
-        }
-
-        if (isset($condition['supplier_name'])) {
-            $supplier_id = $condition['supplier_name'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['supplier_name' => $supplier_name]];
-        }
-
-        if (isset($condition['created_by'])) {
-            $created_by = $condition['created_by'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
-        }
-
-        if (isset($condition['updated_by'])) {
-            $updated_by = $condition['updated_by'];
-
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
-        }
-        if (isset($condition['checked_by'])) {
-            $checked_by = $condition['checked_by'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
-        }
-
-        if (isset($condition['show_name'])) {
-            $show_name = $condition['show_name'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name' => $show_name]];
-        }
-        if (isset($condition['name'])) {
-            $name = $condition['name'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['name' => ['query' => $name,
-                        'minimum_should_match' => '75%']]];
-        }
-        if (isset($condition['attrs'])) {
-            $attrs = $condition['attrs'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs' => $attrs]];
-        } if (isset($condition['specs'])) {
-            $specs = $condition['specs'];
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['specs' => $specs]];
-        }
-        if (isset($condition['keyword'])) {
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'supplier_id');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'supplier_name');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', $array = [
+            'VALID', 'INVALID', 'DRAFT', 'TEST', 'CHECKING', 'NORMAL', 'CLOSED', 'DELETED'], 'VALID');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name');
+        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'name', 'name');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'specs');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty');
+        if (isset($condition['keyword']) && $condition['keyword']) {
             $show_name = $condition['keyword'];
-            $body['query']['bool']['must'][] = [ESClient::MULTI_MATCH => [
-                    'query' => $show_name,
-                    'type' => 'most_fields',
-                    'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
-            ]];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MULTI_MATCH => [
+                                'query' => $show_name,
+                                'type' => 'most_fields',
+                                'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
+                            ]],
+                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+            ]]];
         }
         return $body;
     }
@@ -237,6 +211,9 @@ class EsproductModel extends PublicModel {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
+            if (!$body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
+            }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
             unset($condition['source']);
@@ -244,7 +221,7 @@ class EsproductModel extends PublicModel {
             $allcount = $es->setbody($newbody)
                     ->count($this->dbName, $this->tableName . '_' . $lang);
             return [$es->setbody($body)
-                        ->setfields($_source)
+                        ->sethighlight(['show_name' => new stdClass()])
                         ->setsort('sort_order', 'desc')
                         ->setsort('_score', 'desc')
                         ->setaggs('meterial_cat_no', 'meterial_cat_no')
@@ -582,9 +559,100 @@ class EsproductModel extends PublicModel {
      * @return mix  sku数组信息列表
      */
 
+    public function getMinimumOrderQuantity($spus, $lang = 'en') {
+        try {
+            $minimumorderquantutys = $this->table('erui_goods.t_goods_attr')->field('spu,min(attr_value) as value ')
+                    ->where(['spu' => ['in', $spus], 'lang' => $lang, 'attr_name' => 'Minimum Order Quantity'])
+                    ->group('spu')
+                    ->select();
+            $ret = [];
+            if ($minimumorderquantutys) {
+                foreach ($minimumorderquantutys as $minimumorderquantuty) {
+                    $spu = $minimumorderquantuty['spu'];
+
+                    $ret[$spu] = $minimumorderquantuty['value'];
+                } return $ret;
+            }
+            return [];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据SPUS 获取产品属性信息
+     * @param mix $spus // 产品SPU数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  sku数组信息列表
+     */
+
+    public function getMinimumPackingUnit($spus, $lang = 'en') {
+        try {
+            $minimumorderquantutys = $this->table('erui_goods.t_goods_attr')->field('spu,attr_value ')
+                    ->where(['spu' => ['in', $spus], 'lang' => $lang, 'attr_name' => 'Minimum packing unit'])
+                    ->group('spu')
+                    ->select();
+            $ret = [];
+            if ($minimumorderquantutys) {
+                foreach ($minimumorderquantutys as $minimumorderquantuty) {
+                    $spu = $minimumorderquantuty['spu'];
+
+                    $ret[$spu] = $minimumorderquantuty['attr_value'];
+                } return $ret;
+            }
+            return [];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据SPUS 获取产品属性信息
+     * @param mix $spus // 产品SPU数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  sku数组信息列表
+     */
+
+    public function getexwbyspus($spus, $lang = 'en') {
+        try {
+            $specs = $this->table('erui_goods.t_goods')
+                    ->field('spu,min(exw_day) as min_exw_day,max(exw_day) as max_exw_day')
+                    ->where(['spu' => ['in', $spus], 'lang' => $lang, 'status' => 'VALID'])
+                    ->group('spu')
+                    ->select();
+            $ret = [];
+            if ($specs) {
+                foreach ($specs as $spec) {
+                    $spu = $spec['spu'];
+                    unset($spec['spu']);
+
+                    $ret[$spu] = $spec;
+                }
+                return $ret;
+            }
+            return [];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据SPUS 获取产品属性信息
+     * @param mix $spus // 产品SPU数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  sku数组信息列表
+     */
+
     public function getskusbyspus($spus, $lang = 'en') {
         try {
-            $specs = $this->table('erui_goods.t_goods')->field('sku,spu,`name`,`model`,`show_name`')
+            $specs = $this->table('erui_goods.t_goods')
+                    ->field('sku,spu,`name`,`model`,`show_name`,exw_day')
                     ->where(['spu' => ['in', $spus], 'lang' => $lang, 'status' => 'VALID'])
                     ->select();
             $ret = [];
@@ -595,7 +663,8 @@ class EsproductModel extends PublicModel {
                     unset($spec['spu']);
                     // unset($spec['sku']);
                     $ret[$spu][$sku] = $spec;
-                } return $ret;
+                }
+                return $ret;
             }
             return [];
         } catch (Exception $ex) {
@@ -616,8 +685,8 @@ class EsproductModel extends PublicModel {
         try {
 
             $show_cat_products = $this->table('erui_goods.t_show_cat_product scp')
-                    ->join('erui_goods.t_show_cat sc on scp.cat_no=sc.cat_no')
-                    ->field('scp.cat_no,scp.spu', 'left')
+                    ->join('erui_goods.t_show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                    ->field('scp.cat_no,scp.spu')
                     ->where(['scp.spu' => ['in', $spus],
                         'scp.status' => 'VALID',
                         'sc.status' => 'VALID',
@@ -963,6 +1032,12 @@ class EsproductModel extends PublicModel {
                     $scats_no_mcatsno = $this->getshow_material_cats($mcat_nos, $lang);
                     $product_attrs = $this->getproduct_attrbyspus($spus, $lang);
                     $attachs = $this->getproduct_attachsbyspus($spus, $lang);
+
+                    $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
+                    $minimumpackingunits = $this->getMinimumPackingUnit($spus, $lang);
+
+                    $exws = $this->getexwbyspus($spus, $lang);
+
                     $show_cat_nos = [];
                     foreach ($scats_no_spu as $show_cat_no) {
                         $show_cat_nos[] = $show_cat_no;
@@ -987,12 +1062,12 @@ class EsproductModel extends PublicModel {
                         $id = $item['spu'];
                         $this->_findnulltoempty($item);
                         $body = $item;
-
-                        if ($body['source'] == 'ERUI') {
-                            $body['sort_order'] = 100;
-                        } else {
-                            $body['sort_order'] = 1;
-                        }
+                        $body['sort_order'] = 100;
+//                        if ($body['source'] == 'ERUI') {
+//                            $body['sort_order'] = 100;
+//                        } else {
+//                            $body['sort_order'] = 1;
+//                        }
                         if (in_array($body['brand'], ['KERUI', '科瑞'])) {
                             $body['sort_order'] += 20;
                         }
@@ -1033,6 +1108,26 @@ class EsproductModel extends PublicModel {
                         } else {
                             $body['show_cats'] = json_encode([], JSON_UNESCAPED_UNICODE);
                         }
+                        if (isset($minimumorderouantitys[$id]) && isset($minimumpackingunits[$id])) {
+                            $body['minimumorderouantity'] = $minimumorderouantitys[$id] . ' ' . $minimumpackingunits[$id] . '(s)';
+                            $body['min_pack_unit'] = $minimumpackingunits[$id];
+                        } else {
+                            $body['minimumorderouantity'] = '';
+                            $body['min_pack_unit'] = '';
+                        }
+
+
+                        if (isset($exws[$id])) {
+
+                            $body['max_exw_day'] = $exws[$id]['max_exw_day'];
+                            $body['min_exw_day'] = $exws[$id]['min_exw_day'];
+                        } else {
+                            $body['max_exw_day'] = '';
+                            $body['min_exw_day'] = '';
+                        }
+
+
+
                         if (isset($product_attrs[$item['spu']])) {
                             $body['attrs'] = json_encode($product_attrs[$item['spu']], JSON_UNESCAPED_UNICODE);
                         } else {
@@ -1048,7 +1143,6 @@ class EsproductModel extends PublicModel {
 
                         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
-
                         if ($flag['_shards']['successful'] !== 1) {
                             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
                         }
@@ -1063,7 +1157,7 @@ class EsproductModel extends PublicModel {
                 }
             }
         } catch (Exception $ex) {
-
+            print_r($flag);
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;

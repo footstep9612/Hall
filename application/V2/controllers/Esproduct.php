@@ -254,6 +254,7 @@ class EsproductController extends PublicController {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
+            $this->es->refresh($rhis->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

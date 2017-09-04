@@ -155,7 +155,7 @@ class EsproductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'shelves_by');
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
         $this->_getQureyByBool($condition, $body, ESClient::MATCH_PHRASE, 'recommend_flag', 'recommend_flag', 'N');
-        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
+        // $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'brand');
         $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'real_name', 'name');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
@@ -175,7 +175,18 @@ class EsproductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty');
-        $this->_getQurey($condition, $body, ESClient::MULTI_MATCH, 'keyword', ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']);
+        if (isset($condition['keyword']) && $condition['keyword']) {
+            $show_name = $condition['keyword'];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MULTI_MATCH => [
+                                'query' => $show_name,
+                                'type' => 'most_fields',
+                                'fields' => ['show_name', 'attrs', 'specs', 'spu', 'source', 'brand', 'skus']
+                            ]],
+                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+            ]]];
+        }
         return $body;
     }
 
@@ -196,36 +207,35 @@ class EsproductModel extends Model {
 //                    'brand', 'supplier_name', 'sku_num'];
 //            }
             $body = $this->getCondition($condition);
-            $redis_key = 'es_product_' . md5(json_encode($body));
-            $data = json_decode(redisGet($redis_key), true);
-            if (!$data) {
-                $pagesize = 10;
-                $current_no = 1;
-                if (isset($condition['current_no'])) {
-                    $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
-                }
-                if (isset($condition['pagesize'])) {
-                    $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-                }
-                $from = ($current_no - 1) * $pagesize;
-                $es = new ESClient();
-                unset($condition['source']);
-                $newbody = $this->getCondition($condition);
-                $allcount = $es->setbody($newbody)
-                        ->count($this->dbName, $this->tableName . '_' . $lang);
-                $es->setbody($body)
-                        //   ->setfields($_source)
-                        ->setsort('sort_order', 'desc')->setsort('_id', 'desc');
-
-                if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
-                    $es->setaggs('sku_num', 'sku_num', 'sum');
-                } else {
-                    $es->setaggs('meterial_cat_no', 'meterial_cat_no');
-                }
-                $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize, $allcount['count']];
-                redisSet($redis_key, json_encode($data), 3600);
-                return $data;
+            if (!$body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
             }
+
+            $pagesize = 10;
+            $current_no = 1;
+            if (isset($condition['current_no'])) {
+                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+            }
+            if (isset($condition['pagesize'])) {
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+            }
+            $from = ($current_no - 1) * $pagesize;
+            $es = new ESClient();
+            unset($condition['source']);
+            $newbody = $this->getCondition($condition);
+            $allcount = $es->setbody($newbody)
+                    ->count($this->dbName, $this->tableName . '_' . $lang);
+            $es->setbody($body)
+                    //   ->setfields($_source)
+                    ->setsort('sort_order', 'desc')->setsort('_id', 'desc');
+
+            if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
+                $es->setaggs('sku_num', 'sku_num', 'sum');
+            } else {
+                $es->setaggs('meterial_cat_no', 'meterial_cat_no');
+            }
+            $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize, $allcount['count']];
+
             return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

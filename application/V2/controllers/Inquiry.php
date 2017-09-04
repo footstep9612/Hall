@@ -46,9 +46,8 @@ class InquiryController extends PublicController {
                 $agent = $maketareateam->where('market_org_id='.$groupid)->count('id');
             }
 
-            array_unique($users);
-
             if (!empty($users)) {
+                array_unique($users);
                 $results['code'] = '1';
                 $results['message'] = '方案中心！';
                 $results['data'] = $users;
@@ -75,15 +74,6 @@ class InquiryController extends PublicController {
     public function getSerialNoAction() {
         $serial_no = $this->getInquirySerialNo();
         return $serial_no;
-        /* if(!empty($data)){
-          $this->setCode('1');
-          $this->setMessage('成功!');
-          $this->jsonReturn($data);
-          }else{
-          $this->setCode('-101');
-          $this->setMessage('生成流水号错误!');
-          $this->jsonReturn();
-          } */
     }
 
     /*
@@ -109,7 +99,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data['serial_no'] = $this->getSerialNoAction();
         $data['created_by'] = $this->user['id'];
-        $data['agent_id'] = $this->user['id'];
+        //$data['agent_id'] = $this->user['id'];
 
         $results = $inquiry->addData($data);
 
@@ -139,14 +129,13 @@ class InquiryController extends PublicController {
             foreach ($auth['data'] as $epl) {
                 $where['agent_id'][] = $epl['employee_id'];
             }
-            $where['status'] = array('NEQ', 'DRAFT');
         }
 
         //如果搜索条件有经办人，转换成id
         if (!empty($where['agent_name'])) {
             $agent = $employee->field('id')->where('name="' . $where['agent_name'] . '"')->find();
 
-            if (in_array($agent['id'], $where['agent_id'])) {
+            if (in_array($agent['id'], $where['agent_id']) || $agent['id'] == $this->user['id']) {
                 $where['agent_id'] = [];
                 $where['agent_id'][] = $agent['id'];
             } else {
@@ -159,9 +148,13 @@ class InquiryController extends PublicController {
         }
         //如果搜索条件有项目经理，转换成id
         if (!empty($where['pm_name'])) {
-            $pm = $employee->field('id')->where('name="' . $where['agent_name'] . '"')->find();
-            if ($agent) {
+            $pm = $employee->field('id')->where('name="' . $where['pm_name'] . '"')->find();
+            if ($pm) {
                 $where['pm_id'] = $pm['id'];
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息！';
+                $this->jsonReturn($results);
             }
         }
 
@@ -192,6 +185,9 @@ class InquiryController extends PublicController {
                     $results['data'][$key]['area_bn'] = $rs3['area_bn'];
                 }
             }
+
+            //权限
+            $results['auth'] = $auth['code'];
         }
 
         $this->jsonReturn($results);
@@ -206,6 +202,8 @@ class InquiryController extends PublicController {
         $auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
+        $area = new MarketAreaCountryModel();
+        
         $where = $this->put_data;
 
         $results = $inquiry->getInfo($where);
@@ -235,6 +233,14 @@ class InquiryController extends PublicController {
             $rs3 = $employee->field('name')->where('id=' . $results['data']['created_by'])->find();
             $results['data']['created_name'] = $rs3['name'];
         }
+        //询单所在区域
+        if (!empty($results['data']['country_bn'])) {
+            $rs4 = $area->field('market_area_bn')->where(['country_bn' => $results['data']['country_bn']])->find();
+            $results['data']['market_area_bn'] = $rs4['market_area_bn'];
+        }
+
+        //权限
+        $results['auth'] = $auth['code'];
 
         $this->jsonReturn($results);
     }
@@ -591,4 +597,74 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    /*
+    * 根据条件返回所有组ID
+    * Condition 1.市场组; 2.方案中心组; 3.产品线报价组; 4.物流报价组
+    * Author:张玉良
+    */
+    public function getGroupListAction(){
+        $bizlinegroup = new BizlineGroupModel();
+        $marketareateam = new MarketAreaTeamModel();
+
+        $where = $this->put_data;
+
+        if(!empty($where['type'])){
+            $type = explode(',',$where['type']);
+            $data = [];
+            foreach($type as $val){
+                if($val == 1){//所有市场群组
+                    $list = $marketareateam->field('market_org_id')->group('market_org_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            if(!empty($lt['market_org_id'])){
+                                $test1[] = $lt['market_org_id'];
+                            }
+                        }
+                        $data['market_org'] = implode(',',$test1);
+                    }
+                }
+                if($val == 2){//所有方案中心群组
+                    $list = $marketareateam->field('biz_tech_org_id')->group('biz_tech_org_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            if(!empty($lt['biz_tech_org_id'])){
+                                $test2[] = $lt['biz_tech_org_id'];
+                            }
+                        }
+                        $data['biz_tech_org'] = implode(',',$test2);
+                    }
+                }
+                if($val == 3){//所有产品线群组
+                    $list = $bizlinegroup->field('group_id')->group('group_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            if(!empty($lt['group_id'])){
+                                $test3[] = $lt['group_id'];
+                            }
+                        }
+                        $data['biz_group_org'] = implode(',',$test3);
+                    }
+                }
+                if($val == 4){//所有物流报价群组
+                    $list = $marketareateam->field('logi_quote_org_id')->group('logi_quote_org_id')->select();
+                    if($list){
+                        foreach($list as $lt){
+                            if(!empty($lt['logi_quote_org_id'])){
+                                $test4[] = $lt['logi_quote_org_id'];
+                            }
+                        }
+                        $data['logi_quote_org'] = implode(',',$test4);
+                    }
+                }
+            }
+
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            $results['data'] = $data;
+        }else{
+            $results['code'] = '-101';
+            $results['message'] = '找不到相关细信息！';
+        }
+        $this->jsonReturn($results);
+    }
 }

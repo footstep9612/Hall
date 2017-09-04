@@ -135,11 +135,12 @@ class ExcelmanagerController extends PublicController
 
         $request = $this->validateRequests('inquiry_id');
 
-        $exportData = $this->getFinalQuoteData($request['inquiry_id']);
+        $data = $this->getFinalQuoteData($request['inquiry_id']);
 
+        p($data);
         //获取数据并重组格式
         //$data = $this->getResortData($this->_requestParams['serial_no']);
-        $data = $this->simulateData();
+        //$data = $this->simulateData();
 
         //创建excel表格并填充数据
         $excelFile = $this->createExcelAndInsertData($data);
@@ -162,12 +163,23 @@ class ExcelmanagerController extends PublicController
 
     private function getFinalQuoteData($inquiry_id){
 
-        /**
-         |
-         | 询单综合信息 (询价单位 流程编码 项目代码)
-         | 报价综合信息 (报价人，电话，邮箱，报价时间)
-         |
-         */
+        //询单综合信息 (询价单位 流程编码 项目代码)
+        $inquiryModel  = new InquiryModel();
+        $info = $inquiryModel->where(['id'=>$inquiry_id])->field('buyer_name,serial_no')->find();
+
+        //报价综合信息 (报价人，电话，邮箱，报价时间)
+        $finalQuoteModel = new FinalQuoteModel();
+        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id'=>$inquiry_id])->field('created_by,checked_at')->find();
+
+        $employee = new EmployeeModel();
+        $employeeInfo = $employee->where(['id'=>$finalQuoteInfo['created_by']])->field('email,mobile,name')->find();
+
+        $info['email'] = $employeeInfo['email'];
+        $info['mobile'] = $employeeInfo['mobile'];
+        $info['name'] = $employeeInfo['name'];
+
+        //p($info);
+        return $info;
     }
 
     /**
