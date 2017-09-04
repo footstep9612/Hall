@@ -892,9 +892,10 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-        $fields = 'q.id,q.total_weight,q.package_volumn,q.dispatch_place,q.delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.trans_mode_bn,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
+        $fields = 'q.id,q.total_weight,a.trans_mode_bn,q.package_volumn,q.dispatch_place,q.delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
         $quoteModel = new QuoteModel();
         $result = $quoteModel->alias('q')
+                             ->join('erui2_rfq.inquiry a ON q.inquiry_id = a.id','LEFT')
                              ->join('erui2_rfq.final_quote fq ON q.id = fq.quote_id','LEFT')
                              ->field($fields)
                              ->where(['q.inquiry_id'=>$request['inquiry_id']])
@@ -910,6 +911,9 @@ class QuotebizlineController extends PublicController {
         $pm_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('pm_id');
         $result['pm_name'] =  $employee->where(['id'=>$pm_id])->getField('name');
         $result['exchange_rate'] = $exchange_rate_model->where(['cur_bn1'=>'CNY','cur_bn2'=>'USD'])->getField('rate');
+        //运输方式
+        $transMode = new TransModeModel();
+        $result['trans_mode_bn'] = $transMode->where(['id'=>$result['trans_mode_bn']])->getField('trans_mode');
 
         $this->jsonReturn([
             'code' => '1',
