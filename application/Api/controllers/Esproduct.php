@@ -26,7 +26,7 @@ class EsproductController extends PublicController {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
         } else {
-            //   parent::init();
+            parent::init();
         }
     }
 
@@ -46,7 +46,7 @@ class EsproductController extends PublicController {
                 $espoductmodel->importproducts($lang, $time);
             }
 
-
+            $this->es->refresh($rhis->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

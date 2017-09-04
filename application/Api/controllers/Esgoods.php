@@ -138,6 +138,8 @@ class EsgoodsController extends PublicController {
                 $espoductmodel = new EsgoodsModel();
                 $espoductmodel->importgoodss($lang, $time);
             }
+            $this->es->refresh($rhis->index);
+
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
