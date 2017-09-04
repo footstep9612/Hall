@@ -150,6 +150,7 @@ class UserController extends PublicController {
         $user_modle =new UserModel();
         $data =$user_modle->infoList($arr);
         if($data){
+            $new_passwoer['password_hash'] = 'N';
             $res =$user_modle->update_data($new_passwoer,$arr);
             if($res!==false){
                 $datajson['code'] = 1;
