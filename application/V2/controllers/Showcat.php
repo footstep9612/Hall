@@ -71,8 +71,10 @@ class ShowcatController extends PublicController {
             'marke_area_bn' => $marke_area_bn,
             'country_bn' => $country_bn,
         ];
+
         $countData['level_no'] = 1;
         $count1 = $this->_model->getCount($countData); //一级分类数据
+
         $countData['level_no'] = 2;
         $count2 = $this->_model->getCount($countData); //二级分类数据
         $countData['level_no'] = 3;
