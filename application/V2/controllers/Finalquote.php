@@ -54,24 +54,24 @@ class FinalquoteController extends PublicController {
 
             if(!empty($quotedata)){
                 //追加结果
-                $quoteinfo['total_weight'] = $quotedata['data']['total_weight'];    //总重
-                $quoteinfo['package_volumn'] = $quotedata['data']['package_volumn'];    //包装总体积
-                $quoteinfo['package_mode'] = $quotedata['data']['package_mode'];    //包装方式
-                $quoteinfo['payment_mode'] = $quotedata['data']['payment_mode'];    //付款方式
-                $quoteinfo['trade_terms_bn'] = $quotedata['data']['trade_terms_bn'];    //贸易术语
+                $quoteinfo['total_weight'] = $quotedata['total_weight'];    //总重
+                $quoteinfo['package_volumn'] = $quotedata['package_volumn'];    //包装总体积
+                $quoteinfo['package_mode'] = $quotedata['package_mode'];    //包装方式
+                $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
+                $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
                 $quoteinfo['payment_period'] = $results['data']['payment_period'];    //回款周期
-                $quoteinfo['from_country'] = $quotedata['data']['from_country'];    //起始发运地
-                $quoteinfo['to_country'] = $quotedata['data']['to_country'];    //目的地
-                $quoteinfo['trans_mode_bn'] = $quotedata['data']['trans_mode_bn'];    //运输方式
+                $quoteinfo['from_country'] = $quotedata['from_country'];    //起始发运地
+                $quoteinfo['to_country'] = $quotedata['to_country'];    //目的地
+                $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
                 $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
-                $quoteinfo['bank_interest'] = $quotedata['data']['bank_interest'];    //银行利息
+                $quoteinfo['bank_interest'] = $quotedata['bank_interest'];    //银行利息
                 $quoteinfo['total_bank_fee'] = $results['data']['total_bank_fee'];    //银行费用
-                $quoteinfo['period_of_validity'] = $quotedata['data']['period_of_validity'];    //报价有效期
-                $quoteinfo['exchange_rate'] = $quotedata['data']['exchange_rate'];    //汇率
+                $quoteinfo['period_of_validity'] = $quotedata['period_of_validity'];    //报价有效期
+                $quoteinfo['exchange_rate'] = $quotedata['exchange_rate'];    //汇率
                 $quoteinfo['total_logi_fee'] = $results['data']['total_logi_fee'];    //物流合计
-                $quoteinfo['total_quote_price'] = $quotedata['data']['total_quote_price'];    //商务报出贸易价格合计
-                $quoteinfo['total_exw_price'] = $quotedata['data']['total_exw_price'];    //商务报出EXW价格
+                $quoteinfo['total_quote_price'] = $quotedata['total_quote_price'];    //商务报出贸易价格合计
+                $quoteinfo['total_exw_price'] = $quotedata['total_exw_price'];    //商务报出EXW价格
                 $quoteinfo['final_total_quote_price'] = $results['data']['total_quote_price'];    //市场报出贸易价格合计
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
 
@@ -116,7 +116,7 @@ class FinalquoteController extends PublicController {
         $total_exw_price = $total_quote_price = 0;
         if(!empty($data['sku'])){
             foreach($data['sku'] as $val){
-                $exw_price = $val['quote_qty']*$val['exw_unit_price'];  //市场报出EXW价格
+                $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
                 $total_exw_price += $exw_price;     //市场报出EXW价格合计
             }
 
