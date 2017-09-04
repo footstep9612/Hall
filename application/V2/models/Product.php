@@ -222,6 +222,10 @@ class ProductModel extends PublicModel {
                     $data['status'] = $input['status'];
 
                     $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
+                    if (isset($input['spu'])) {
+                        $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+                        $data['updated_at'] = date('Y-m-d H:i:s', time());
+                    }
                     if ($exist_check) {    //修改
                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
