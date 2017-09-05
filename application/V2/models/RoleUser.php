@@ -87,10 +87,14 @@ class RoleUserModel extends PublicModel {
                 $user_arr = explode(',',$data['role_user_ids']);
                 $count = count($user_arr);
                 for($i=0;$i<$count;$i++){
-                    $this -> create_data(['role_id'=>$data['role_id'],'employee_id' =>$user_arr[$i] ]);
+                   $info = $this -> where(['role_id'=>$data['role_id'],'employee_id' =>$user_arr[$i] ])->select();
+                   if(!$info){
+                       $this -> create_data(['role_id'=>$data['role_id'],'employee_id' =>$user_arr[$i] ]);
+                   }
                 }
             }
         }
+        return true ;
     }
     /**
      * 新增数据
