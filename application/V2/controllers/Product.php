@@ -265,7 +265,9 @@ class ProductController extends PublicController {
     }
 
     public function checkimg() {
-
+        if ($this->put_data['update_type'] === 'verifyno') {
+            return true;
+        }
         if (is_array($this->put_data['spu'])) {
             $productattachModel = new ProductAttachModel();
             if (is_array($this->put_data['spu'])) {
