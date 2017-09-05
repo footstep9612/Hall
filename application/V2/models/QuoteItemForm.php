@@ -30,7 +30,7 @@ class QuoteItemFormModel extends PublicModel{
      */
     public function getList($where){
 
-        $field = 'id,created_by,brand,goods_desc,net_weight_kg,gross_weight_kg,package_size,package_mode,delivery_days,goods_source,stock_loc,status,supplier_id,contact_first_name,contact_last_name,contact_phone,purchase_unit_price,purchase_price_cur_bn,period_of_validity';
+        $field = 'id,created_by,brand,goods_desc,net_weight_kg,gross_weight_kg,package_size,package_mode,delivery_days,goods_source,stock_loc,status,supplier_id,contact_first_name,contact_last_name,contact_phone,purchase_unit_price,purchase_price_cur_bn,period_of_validity,reason_for_no_quote';
         //按价格由低到高显示
         return $this->where($where)->field($field)->order('purchase_unit_price ASC')->select();
     }
