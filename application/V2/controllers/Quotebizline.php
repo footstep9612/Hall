@@ -269,6 +269,8 @@ class QuotebizlineController extends PublicController {
                 'inquiry_item_id' => $item['id'],
                 'bizline_id' => $request['bizline_id'],
                 'sku' => $item['sku'],
+                'quote_unit' => $item['unit'],
+                'quote_qty' => $item['qty'],
                 'created_at' => date('Y-m-d H:i:s')
             ]));
         }
