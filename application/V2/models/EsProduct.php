@@ -196,7 +196,9 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
-
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no1', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no2', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no3', 'show_cats.all');
         $mcat_no1 = $this->_getValue($condition, 'mcat_no1');
         $mcat_no2 = $this->_getValue($condition, 'mcat_no2');
         $mcat_no3 = $this->_getValue($condition, 'mcat_no3');
