@@ -428,7 +428,7 @@ class QuotebizlineController extends PublicController {
             $quoteItemForm = new QuoteItemFormModel();
             foreach ($skuList as $key=>$bizlineQuoteSku) {
                 $skuList[$key]['supplier_name'] = $supplier->where(['id'=>$bizlineQuoteSku['supplier_id']])->getField('name');
-                $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['created_by']])->getField('name');
+                $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['bizline_agent_id']])->getField('name');
                 //已经报价供应商数量(也就是说quote_item_form对应的记录)
                 $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id']])->count('id');
             }
