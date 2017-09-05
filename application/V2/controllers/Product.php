@@ -211,9 +211,9 @@ class ProductController extends PublicController {
 
     public function checkproduct() {
         $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
-        if ($this->put_data['update_type'] == 'declare' || $this->put_data['update_type'] = 'verifyok') {
+        if (is_array($this->put_data['spu'])) {
             $productModel = new ProductModel();
-            $checkinfo = ['spu' => $this->put_data['spu']];
+            $checkinfo = ['spu' => ['in', $this->put_data['spu']]];
 
             if (!empty($lang)) {
                 $checkinfo['lang'] = $lang;
