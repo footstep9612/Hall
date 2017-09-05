@@ -450,7 +450,7 @@ class QuotebizlineController extends PublicController {
      */
     public function bizlineQuoterSkuListAction(){
 
-        $request = $this->validateRequests('quote_item_id');
+        $request = $this->validateRequests('quote_bizline_id');
 
         $quoteItemForm = new QuoteItemFormModel();
         $quoterSkuList = $quoteItemForm->getSkuList($request);
@@ -1184,7 +1184,7 @@ class QuotebizlineController extends PublicController {
                 'stock_loc' => $request['stock_loc'],
                 'delivery_days' => $request['delivery_days'],
                 'period_of_validity' => $request['period_of_validity'],
-                'created_by' => $user->where(['name'=>$request['created_by']])->getField('id'),
+                'bizline_agent_id' => $user->where(['name'=>$request['created_by']])->getField('id'),
                 'status' => 'QUOTED'
             ]));
 
