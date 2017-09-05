@@ -206,10 +206,10 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
         }
         if ($mcat_no2) {
-            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no2 . '*']];
         }
         if ($mcat_no3) {
-            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no3 . '*']];
         }
 
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
