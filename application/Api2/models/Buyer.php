@@ -317,6 +317,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['country_code'])) {
             $data['country_code'] = $create['country_code'];
         }
+        if (isset($create['area_bn'])) {
+            $data['area_bn'] = $create['area_bn'];
+        }
         if (isset($create['country_bn'])) {
             $data['country_bn'] = $create['country_bn'];
         }
