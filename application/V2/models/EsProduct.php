@@ -1154,14 +1154,14 @@ class EsProductModel extends Model {
         $index = $this->dbName;
         $type = 'product_' . $lang;
         $count = $this->setbody(['query' => [
-                        ESClient::MATCH_PHRASE => [
-                            "show_cats" => $old_cat_no
+                        ESClient::MATCH => [
+                            "show_cats.all" => $old_cat_no
                         ]
             ]])->count($index, $type);
         for ($i = 0; $i < $count['count']; $i += 100) {
             $ret = $this->setbody(['query' => [
-                            ESClient::MATCH_PHRASE => [
-                                "show_cats" => $old_cat_no
+                            ESClient::MATCH => [
+                                "show_cats.ik" => $old_cat_no
                             ]
                 ]])->search($index, $type, $i, 100);
             $updateParams = array();
