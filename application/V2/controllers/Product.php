@@ -210,6 +210,10 @@ class ProductController extends PublicController {
     }
 
     public function checkproduct() {
+
+        if ($this->put_data['update_type'] === 'verifyno') {
+            return true;
+        }
         $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
         if (is_array($this->put_data['spu'])) {
             $productModel = new ProductModel();
@@ -220,15 +224,19 @@ class ProductController extends PublicController {
             }
             $checkinfo[] = 'isnull(material_cat_no) or material_cat_no=\'\''
                     . ' or isnull(name) or `name`=\'\' or isnull(brand) or brand=\'\'';
-            $pinfo = $productModel->field('id')->where($checkinfo)->find();
-
+            $pinfo = $productModel->field('spu')->where($checkinfo)->select();
+            $spus = [];
+            foreach ($pinfo as $item) {
+                $spus[] = $item['spu'];
+            }
+            $spus = implode(',', $spus);
             if ($pinfo && $this->put_data['update_type'] == 'declare') {
                 $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('批量审核产品中存在必填参数不全的产品');
+                $this->setMessage('批量审核产品中SPU为[' . $spus . ']必填参数不全');
                 $this->jsonReturn(false);
             } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
                 $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('批量报审产品中存在必填参数不全的产品');
+                $this->setMessage('批量报审产品中SPU为[' . $spus . ']必填参数不全');
                 $this->jsonReturn(false);
             }
         } else {
