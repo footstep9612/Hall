@@ -64,9 +64,14 @@ class EsproductController extends PublicController {
             }
             if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
                 $data['onshelf_flag'] = 'N';
-                $send['onshelf_count_N'] = $model->getCount($data, $lang);
+                $data['sku_count'] = 'Y';
+                $ret_N = $model->getProducts($data, $lang);
+                $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
+                $send['onshelf_sku_count_N'] = $ret_N[0]['aggregations']['sku_count']['value'];
                 $data['onshelf_flag'] = 'Y';
-                $send['onshelf_count_Y'] = $model->getCount($data, $lang);
+                $ret_y = $model->getProducts($data, $lang);
+                $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
+                $send['onshelf_sku_count_Y'] = $ret_y[0]['aggregations']['sku_count']['value'];
             }
 
             $send['data'] = $list;
@@ -254,6 +259,7 @@ class EsproductController extends PublicController {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
+            $this->es->refresh($rhis->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

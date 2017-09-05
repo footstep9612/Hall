@@ -15,7 +15,6 @@ class LogisticsController extends PublicController {
 		$this->quoteItemModel = new QuoteItemModel();
 		$this->quoteLogiFeeModel = new QuoteLogiFeeModel();
 		$this->quoteItemLogiModel = new QuoteItemLogiModel();
-		$this->exchangeRateModel = new ExchangeRateModel();
 		$this->userModel = new UserModel();
 		$this->inquiryCheckLogModel = new InquiryCheckLogModel();
 		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
@@ -844,7 +843,8 @@ class LogisticsController extends PublicController {
 	private function _getRate($cur, $exchangeCur = 'CNY') {
 	    
 	    if (!empty($cur)) {
-	        $exchangeRate = $this->exchangeRateModel->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->field('rate')->find();
+	        $exchangeRateModel = new ExchangeRateModel();
+	        $exchangeRate = $exchangeRateModel->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->field('rate')->find();
 	        
 	        return $exchangeRate['rate'];
 	    } else {

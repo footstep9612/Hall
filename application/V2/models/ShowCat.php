@@ -183,6 +183,7 @@ class ShowCatModel extends PublicModel {
         getValue($where, $condition, 'parent_cat_no');
         getValue($where, $condition, 'mobile', 'like');
         getValue($where, $condition, 'lang', 'string');
+
         getValue($where, $condition, 'name', 'like');
         getValue($where, $condition, 'sort_order', 'string');
         getValue($where, $condition, 'created_at', 'string');
@@ -217,9 +218,9 @@ class ShowCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getcount($condition = [], $lang = 'en') {
+    public function getcount($condition = []) {
         $where = $this->_getcondition($condition);
-        $where['lang'] = $lang;
+
         $redis_key = md5(json_encode($where)) . '_COUNT';
         if (redisHashExist($this->tableName, $redis_key)) {
             return redisHashGet($this->tableName, $redis_key);
@@ -232,7 +233,7 @@ class ShowCatModel extends PublicModel {
             return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
-            return false;
+            return 0;
         }
     }
 

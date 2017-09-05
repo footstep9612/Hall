@@ -71,15 +71,17 @@ class ShowcatController extends PublicController {
             'marke_area_bn' => $marke_area_bn,
             'country_bn' => $country_bn,
         ];
+
         $countData['level_no'] = 1;
         $count1 = $this->_model->getCount($countData); //一级分类数据
+
         $countData['level_no'] = 2;
         $count2 = $this->_model->getCount($countData); //二级分类数据
         $countData['level_no'] = 3;
         $count3 = $this->_model->getCount($countData); //三级分类数据
-        $this->setvalue('count1', $count1);
-        $this->setvalue('count2', $count2);
-        $this->setvalue('count3', $count3);
+        $this->setvalue('count1', intval($count1));
+        $this->setvalue('count2', intval($count2));
+        $this->setvalue('count3', intval($count3));
     }
 
     public function listAction() {
@@ -220,6 +222,7 @@ class ShowcatController extends PublicController {
             $result = $this->_model->info($cat_no, $lang);
             $arr = [$result];
             $this->_setUserName($arr);
+            $result = $arr[0];
             if ($result) {
                 if (!$data['cat_no']) {
 
@@ -316,6 +319,21 @@ class ShowcatController extends PublicController {
 
     public function createAction() {
         $data = $this->getPut();
+
+        if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
+
+
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('营销区域不能为空');
+            $this->jsonReturn(false);
+        }
+        if (!isset($data['country_bn']) || empty($data['country_bn'])) {
+
+
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('国家不能为空');
+            $this->jsonReturn();
+        }
         $result = $this->_model->create_data($data);
         if ($result) {
             $this->delcache();
@@ -329,6 +347,16 @@ class ShowcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
+        if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('营销区域不能为空');
+            $this->jsonReturn(false);
+        }
+        if (!isset($data['country_bn']) || empty($data['country_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('国家不能为空');
+            $this->jsonReturn();
+        }
         $result = $this->_model->update_data($data);
         if ($result) {
             $this->delcache();

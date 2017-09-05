@@ -54,24 +54,24 @@ class FinalquoteController extends PublicController {
 
             if(!empty($quotedata)){
                 //追加结果
-                $quoteinfo['total_weight'] = $quotedata['data']['total_weight'];    //总重
-                $quoteinfo['package_volumn'] = $quotedata['data']['package_volumn'];    //包装总体积
-                $quoteinfo['package_mode'] = $quotedata['data']['package_mode'];    //包装方式
-                $quoteinfo['payment_mode'] = $quotedata['data']['payment_mode'];    //付款方式
-                $quoteinfo['trade_terms_bn'] = $quotedata['data']['trade_terms_bn'];    //贸易术语
+                $quoteinfo['total_weight'] = $quotedata['total_weight'];    //总重
+                $quoteinfo['package_volumn'] = $quotedata['package_volumn'];    //包装总体积
+                $quoteinfo['package_mode'] = $quotedata['package_mode'];    //包装方式
+                $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
+                $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
                 $quoteinfo['payment_period'] = $results['data']['payment_period'];    //回款周期
-                $quoteinfo['from_country'] = $quotedata['data']['from_country'];    //起始发运地
-                $quoteinfo['to_country'] = $quotedata['data']['to_country'];    //目的地
-                $quoteinfo['trans_mode_bn'] = $quotedata['data']['trans_mode_bn'];    //运输方式
+                $quoteinfo['from_country'] = $quotedata['from_country'];    //起始发运地
+                $quoteinfo['to_country'] = $quotedata['to_country'];    //目的地
+                $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
                 $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
-                $quoteinfo['bank_interest'] = $quotedata['data']['bank_interest'];    //银行利息
+                $quoteinfo['bank_interest'] = $quotedata['bank_interest'];    //银行利息
                 $quoteinfo['total_bank_fee'] = $results['data']['total_bank_fee'];    //银行费用
-                $quoteinfo['period_of_validity'] = $quotedata['data']['period_of_validity'];    //报价有效期
-                $quoteinfo['exchange_rate'] = $quotedata['data']['exchange_rate'];    //汇率
+                $quoteinfo['period_of_validity'] = $quotedata['period_of_validity'];    //报价有效期
+                $quoteinfo['exchange_rate'] = $quotedata['exchange_rate'];    //汇率
                 $quoteinfo['total_logi_fee'] = $results['data']['total_logi_fee'];    //物流合计
-                $quoteinfo['total_quote_price'] = $quotedata['data']['total_quote_price'];    //商务报出贸易价格合计
-                $quoteinfo['total_exw_price'] = $quotedata['data']['total_exw_price'];    //商务报出EXW价格
+                $quoteinfo['total_quote_price'] = $quotedata['total_quote_price'];    //商务报出贸易价格合计
+                $quoteinfo['total_exw_price'] = $quotedata['total_exw_price'];    //商务报出EXW价格
                 $quoteinfo['final_total_quote_price'] = $results['data']['total_quote_price'];    //市场报出贸易价格合计
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
 
@@ -116,7 +116,7 @@ class FinalquoteController extends PublicController {
         $total_exw_price = $total_quote_price = 0;
         if(!empty($data['sku'])){
             foreach($data['sku'] as $val){
-                $exw_price = $val['quote_qty']*$val['exw_unit_price'];  //市场报出EXW价格
+                $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
                 $total_exw_price += $exw_price;     //市场报出EXW价格合计
             }
 
@@ -125,7 +125,7 @@ class FinalquoteController extends PublicController {
                 $logistics = new LogisticsController();
                 $logidata['trade_terms_bn'] = $data['trade_terms_bn'];  //贸易术语
                 $logidata['total_exw_price'] = $total_exw_price;  //报出EXW合计
-                $logidata['premium_rate'] = $data['premium_rate'];  //保险税率
+                $logidata['premium_rate'] = !empty($data['premium_rate']) ? $data['premium_rate'] : 0;  //保险税率
                 $logidata['payment_period'] = $data['payment_period'];  //回款周期
                 $logidata['bank_interest'] = $data['bank_interest'];  //银行利息
                 $logidata['fund_occupation_rate'] = $data['fund_occupation_rate'];  //资金占用比例
@@ -153,23 +153,37 @@ class FinalquoteController extends PublicController {
 
             //计算报出冒出贸易单价    quote_unit_price
             $finalitem = new FinalQuoteItemModel();
+            $finalquote = new FinalQuoteModel();
             $finalitem->startTrans();
-            foreach($data['sku'] as $val){
-                $exw_price = $val['quote_qty']*$val['exw_unit_price'];  //市场报出EXW价格
-                $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
-                $itemdata['id'] = $val['id'];
-                $itemdata['exw_unit_price'] = $val['exw_unit_price'];
-                $itemdata['quote_unit_price'] = $quote_unit_price;
+            $finaldata['inquiry_id'] = $data['id'];
+            $finaldata['payment_period'] = $data['payment_period'];
+            $finaldata['delivery_period'] = $data['delivery_period'];
+            $finaldata['fund_occupation_rate'] = $data['fund_occupation_rate'];
 
-                $itemrs = $this->updateItemAction($itemdata);
+            $results = $finalquote->updateFinal($finaldata);
+            if($results['code'] == 1){
+                foreach($data['sku'] as $val){
+                    $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
+                    $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
-                if($itemrs['code'] != 1){
-                    $finalitem->rollback();
-                    $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                    $itemdata['id'] = $val['id'];
+                    $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
+                    $itemdata['quote_unit_price'] = round($quote_unit_price,4);
+
+                    $itemrs = $this->updateItemAction($itemdata);
+
+                    if($itemrs['code'] != 1){
+                        $finalitem->rollback();
+                        $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                    }
                 }
+                $finalitem->commit();
+                $this->jsonReturn($results);die;
+            }else{
+                $finalitem->rollback();
+                $this->jsonReturn('','-101','修改报价单失败！');die;
             }
-            $finalitem->commit();
         }
 
 
@@ -244,13 +258,14 @@ class FinalquoteController extends PublicController {
      * 修改市场报价单SKU
      * Author:张玉良
      */
-    public function updateItemAction() {
+    public function updateItemAction($condition = []) {
         $finalitem = new FinalQuoteItemModel();
-        $data =  $this->put_data;
-        $data['updated_by'] = $this->user['id'];
 
-        $results = $finalitem->updateItem($data);
-        $this->jsonReturn($results);
+        $condition['updated_by'] = $this->user['id'];
+
+        $results = $finalitem->updateItem($condition);
+
+        return $results;
     }
 
     /**
