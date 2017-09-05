@@ -1092,4 +1092,158 @@ class GoodsModel extends PublicModel {
         }
     }
 
+    /**
+     * 导出模板
+     * @return string
+     */
+    public function exportTemp(){
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
+        $objSheet->getStyle("A1:AE2")
+            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:AE2")->getFont()->setSize(11)->setBold(true);    //粗体
+        //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
+        //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
+
+        $column_width_20 = [ "C", "D","G","I","P","Q","R","S","T","U","AA","AE"  ,"J","K","L","M","N","O"];
+        foreach ($column_width_20 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(20);
+        }
+        $column_width_25 = ["E","F","H","X"];
+        foreach ($column_width_25 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(25);
+        }
+        $objSheet->setTitle('商品模板'); //设置报价单标题
+        $objSheet->setCellValue("A1", "商品信息");
+        $objSheet->setCellValue("A2", "商品信息");
+        $objSheet->setCellValue("B1", "序号");
+        $objSheet->setCellValue("B2", "No.");
+        $objSheet->setCellValue("C1", "SPU编码");
+        $objSheet->setCellValue("C2", "SPU");
+        $objSheet->setCellValue("D1", "SKU编码");
+        $objSheet->setCellValue("D2", "SKU");
+        $objSheet->setCellValue("E1", "名称");
+        $objSheet->setCellValue("E2", "name");
+        $objSheet->setCellValue("F1", "展示名称");
+        $objSheet->setCellValue("F2", "show name");
+        $objSheet->setCellValue("G1", "型号");
+        $objSheet->setCellValue("G2", "Model");
+        $objSheet->setCellValue("H1", "描述");
+        $objSheet->setCellValue("H2", "description");
+        $objSheet->setCellValue("I1", "出货周期（天）");
+        $objSheet->setCellValue("I2", "EXW(day)");
+        $objSheet->setCellValue("J1", "最小包装内裸货商品数量");
+        $objSheet->setCellValue("J2", "Minimum packing Naked quantity");
+        $objSheet->setCellValue("K1", "商品裸货单位");
+        $objSheet->setCellValue("K2", "Goods nude cargo units");
+        $objSheet->setCellValue("L1", "最小包装单位");
+        $objSheet->setCellValue("L2", "Minimum packing unit");
+        //$objSheet->setCellValue("M1", "包装数量");
+        //$objSheet->setCellValue("M2", "Package Quantity");
+        $objSheet->setCellValue("M1", "最小订货数量");
+        $objSheet->setCellValue("M2", "Minimum order quantity");
+        $objSheet->setCellValue("N1", "进货价格");
+        $objSheet->setCellValue("N2", "进货价格");
+        $objSheet->setCellValue("O1", "进货价格币种");
+        $objSheet->setCellValue("O2", "进货价格币种");
+
+        $objSheet->setCellValue("P1", "物流信息");
+        $objSheet->setCellValue("P1", "物流信息");
+        $objSheet->setCellValue("Q1", "裸货尺寸长(mm)");
+        $objSheet->setCellValue("Q2", "裸货尺寸长(mm)");
+        $objSheet->setCellValue("R1", "裸货尺寸宽(mm)");
+        $objSheet->setCellValue("R2", "裸货尺寸宽(mm)");
+        $objSheet->setCellValue("S1", "裸货尺寸高(mm)");
+        $objSheet->setCellValue("S2", "裸货尺寸高(mm)");
+        $objSheet->setCellValue("T1", "最小包装后尺寸长(mm)");
+        $objSheet->setCellValue("T2", "最小包装后尺寸长(mm)");
+        $objSheet->setCellValue("U1", "最小包装后尺寸宽(mm)");
+        $objSheet->setCellValue("U2", "最小包装后尺寸宽(mm)");
+        $objSheet->setCellValue("V1", "最小包装后尺寸高(mm)");
+        $objSheet->setCellValue("V2", "最小包装后尺寸高(mm)");
+        $objSheet->setCellValue("W1", "净重(kg)");
+        $objSheet->setCellValue("W2", "净重(kg)");
+        $objSheet->setCellValue("X1", "毛重(kg)");
+        $objSheet->setCellValue("X2", "毛重(kg)");
+        $objSheet->setCellValue("Y1", "仓储运输包装及其他要求");
+        $objSheet->setCellValue("Y2", "仓储运输包装及其他要求");
+        $objSheet->setCellValue("Z1", "包装类型");
+        $objSheet->setCellValue("Z2", "包装类型");
+        $objSheet->setCellValue("AA1", "申报要素");
+        $objSheet->setCellValue("AA2", "申报要素");
+        $objSheet->setCellValue("AB1", "中文品名(报关用)");
+        $objSheet->setCellValue("AB2", "中文品名(报关用)");
+        $objSheet->setCellValue("AC1", "海关编码");
+        $objSheet->setCellValue("AC2", "海关编码");
+        $objSheet->setCellValue("AD1", "成交单位");
+        $objSheet->setCellValue("AD2", "成交单位");
+        $objSheet->setCellValue("AE1", "退税率(%)");
+        $objSheet->setCellValue("AE2", "退税率(%)");
+        $objSheet->setCellValue("AF1", "监管条件");
+        $objSheet->setCellValue("AF2", "监管条件");
+        $objSheet->setCellValue("AG1", "境内货源地");
+        $objSheet->setCellValue("AG2", "境内货源地");
+
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, time().'.xls');
+        return $localDir ? $localDir : '';
+    }
+
+    /**
+     * 导入
+     */
+    public function import($data_input = []){
+        $data_input =array(
+            array('url','lang'=>'en'),
+            array('url','lang'=>'zh')
+        );
+
+        foreach($data_input as $xls) {
+            //下载到本地临时文件
+            //$localFile = ExcelHelperTrait::download2local($xls['url']);
+            $localFile = MYPATH . '/public/tmp/1504073110.xls';
+            $data = ExcelHelperTrait::ready2import( $localFile );
+            if ( empty( $data ) || empty( $r = $data[ 2 ] ) ) {
+                continue;
+            }
+
+            $data_tmp = [];
+            $data_tmp[ 'sku' ] = '';    //生成spu
+            $data_tmp[ 'lang' ] = $xls[ 'lang' ];
+            $data_tmp[ 'name' ] = $r[4];    //名称
+            $data_tmp[ 'show_name' ] = $r[5];    //展示名称
+            $data_tmp['model'] = $r[6];
+            $data_tmp['description'] = $r[7];
+
+            $data_tmp['exw_days'] = $r[8];
+            $data_tmp['min_pack_naked_qty'] = $r[9];
+            $data_tmp['nude_cargo_unit'] = $r[10];    //商品裸货单位
+            $data_tmp['min_pack_unit'] = $r[11];    //最小包装单位
+            $data_tmp['min_order_qty'] = $r[12];    //最小订货数量
+            $data_tmp['purchase_price'] = $r[13];    //进货价格
+            $data_tmp['purchase_price_cur_bn'] = $r[14];    //进货价格币种
+
+            $data_tmp['nude_cargo_l_mm'] = $r[16];    //裸货尺寸长(mm)
+            $data_tmp['nude_cargo_w_mm'] = $r[17];    //裸货尺寸宽(mm)
+            $data_tmp['nude_cargo_h_mm'] = $r[18];    //裸货尺寸高(mm)
+            $data_tmp['min_pack_l_mm'] = $r[19];    //最小包装后尺寸长(mm)
+            $data_tmp['min_pack_w_mm'] = $r[20];    //最小包装后尺寸宽(mm)
+            $data_tmp['min_pack_h_mm'] = $r[21];    //最小包装后尺寸高(mm)
+            $data_tmp['net_weight_kg'] = $r[22];    //净重(kg)
+            $data_tmp['gross_weight_kg'] = $r[23];    //毛重(kg)
+            $data_tmp['compose_require_pack'] = $r[24];    //仓储运输包装及其他要求
+            $data_tmp['pack_type'] = $r[25];    //包装类型
+
+            $data_tmp['name_customs'] = $r[27];    //报关名称
+            $data_tmp['hs_code'] = $r[28];    //海关编码
+            $data_tmp['tx_unit'] = $r[29];    //成交单位
+            $data_tmp['tax_rebates_pct'] = $r[30];    //退税率(%)
+            $data_tmp['regulatory_conds'] = $r[31];    //监管条件
+            $data_tmp['commodity_ori_place'] = $r[32];    //境内货源地
+        }
+    }
+
 }
