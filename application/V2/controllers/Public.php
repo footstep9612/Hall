@@ -58,11 +58,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             }
             if (!empty($token)) {
                 try {
-                    $tks = explode('.', $token);
+                    //$tks = explode('.', $token);
                     $tokeninfo = JwtInfo($token); //解析token
-                    if(!isset($tokeninfo['id'])){
-                        $tokeninfo['id'] = $tokeninfo['sub'];
-                    }
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
