@@ -999,17 +999,17 @@ class QuotebizlineController extends PublicController {
         $exchangeRateModel = new ExchangeRateModel();
 
         $totalPurchase = [];
-        $quoteItemsData = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('purchase_unit_price,purchase_price_cur_bn')->select();
+        $quoteItemsData = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
 
         foreach ($quoteItemsData as $quote=>$item){
             switch ($item['purchase_price_cur_bn']){
                 case 'EUR' :
                     $rate = $exchangeRateModel->where(['cur_bn1'=>'EUR','cur_bn2'=>'CNY'])->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $rate;
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
                     break;
                 case 'USD' :
                     $rate = $exchangeRateModel->where(['cur_bn1'=>'USD','cur_bn2'=>'CNY'])->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $rate;
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
                     break;
                 case 'CNY' :
                     $totalPurchase[] = $item['purchase_unit_price'];
