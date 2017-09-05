@@ -428,9 +428,9 @@ class ShowCatModel extends PublicModel {
             ]);
         } else {
             if ($info['level_no'] == 2) {
-                $where['cat_no'] = $pwhere['cat_no'] = ['like', substr($cat_no, 0, 4)] . '%';
+                $where['cat_no'] = $pwhere['cat_no'] = ['like', substr($cat_no, 0, 4) . '%'];
             } elseif ($info['level_no'] == 1) {
-                $where['cat_no'] = $pwhere['cat_no'] = ['like', substr($cat_no, 0, 2)] . '%';
+                $where['cat_no'] = $pwhere['cat_no'] = ['like', substr($cat_no, 0, 2) . '%'];
             }
 
             $flag = $this->where($where)
