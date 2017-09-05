@@ -254,11 +254,11 @@ class ProductController extends PublicController {
 
             if ($pinfo && $this->put_data['update_type'] == 'declare') {
                 $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('批量审核产品必填参数不全');
+                $this->setMessage('审核产品必填参数不全');
                 $this->jsonReturn(false);
             } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
                 $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('批量报审产品必填参数不全');
+                $this->setMessage('报审产品必填参数不全');
                 $this->jsonReturn(false);
             }
         }
@@ -266,32 +266,36 @@ class ProductController extends PublicController {
 
     public function checkimg() {
 
-        if ($this->put_data['update_type'] == 'declare' || $this->put_data['update_type'] = 'verifyok') {
+        if (is_array($this->put_data['spu'])) {
             $productattachModel = new ProductAttachModel();
             if (is_array($this->put_data['spu'])) {
-                foreach ($this->put_data['spu'] as $spu) {
-                    $checkinfo = ['spu' => $spu, 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
-                    $pinfo = $productattachModel->field('id')->where($checkinfo)->find();
-                    if (!$pinfo && $this->put_data['update_type'] == 'declare') {
-                        $this->setCode(MSG::ERROR_PARAM);
-                        $this->setMessage('批量审核产品中存在没有图片的产品');
-                        $this->jsonReturn(false);
-                    } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
-                        $this->setCode(MSG::ERROR_PARAM);
-                        $this->setMessage('批量报审产品中存在没有图片的产品');
-                        $this->jsonReturn(false);
-                    }
+
+                $checkinfo = ['spu' => ['in', $this->put_data['spu']], 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
+                $pinfo = $productattachModel->field('spu')->where($checkinfo)->group('spu')->select();
+                $spus = [];
+                foreach ($pinfo as $item) {
+                    $spus[] = $item['spu'];
+                }
+                $spus = implode(',', $spus);
+                if (!$pinfo && $this->put_data['update_type'] == 'declare') {
+                    $this->setCode(MSG::ERROR_PARAM);
+                    $this->setMessage('批量审核产品SPU为[' . $spus . ']没有图片');
+                    $this->jsonReturn(false);
+                } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
+                    $this->setCode(MSG::ERROR_PARAM);
+                    $this->setMessage('批量报审产品SPU为[' . $spus . ']没有图片');
+                    $this->jsonReturn(false);
                 }
             } else {
                 $checkinfo = ['spu' => $this->put_data['spu'], 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
                 $pinfo = $productattachModel->where($checkinfo)->find();
                 if (!$pinfo && $this->put_data['update_type'] == 'declare') {
                     $this->setCode(MSG::ERROR_PARAM);
-                    $this->setMessage('批量审核产品没有图片');
+                    $this->setMessage('审核产品没有图片');
                     $this->jsonReturn(false);
                 } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
                     $this->setCode(MSG::ERROR_PARAM);
-                    $this->setMessage('批量报审产品没有图片');
+                    $this->setMessage('报审产品没有图片');
                     $this->jsonReturn(false);
                 }
             }
