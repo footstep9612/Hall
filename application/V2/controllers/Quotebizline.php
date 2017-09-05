@@ -419,7 +419,7 @@ class QuotebizlineController extends PublicController {
      */
     public function bizlineManagerQuoteSkuListAction(){
 
-        $request = $this->validateRequests('quote_id');
+        $request = $this->validateRequests('quote_id,bizline_id');
         $skuList = QuoteHelper::bizlineManagerQuoteSkuList($request);
 
         if ($skuList){

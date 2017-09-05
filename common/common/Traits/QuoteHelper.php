@@ -208,6 +208,7 @@ trait QuoteHelper{
     public static function bizlineManagerQuoteSkuList($condition){
 
         $where['a.quote_id'] = $condition['quote_id'];
+        $where['qb.bizline_id'] = $condition['bizline_id'];
 
         //原理的错误逻辑
 //        $quoteItemFormModel = new QuoteItemFormModel();
@@ -240,7 +241,7 @@ trait QuoteHelper{
     public static function bizlineManagerQuoteSkuListCount($request){
 
         $where['a.quote_id'] = $request['quote_id'];
-
+        $where['qb.bizline_id'] = $request['bizline_id'];
         //以前的错误代码
 //        $quoteItemFormModel = new QuoteItemFormModel();
 //
