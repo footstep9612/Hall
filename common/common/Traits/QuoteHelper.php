@@ -125,7 +125,7 @@ trait QuoteHelper{
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $quoteBizlineModel = new QuoteBizLineModel();
-        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id,qb.status quote_status';
+        $field = 'qb.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id,qb.status quote_status';
         return  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -194,7 +194,7 @@ trait QuoteHelper{
 
         $where = self::bizlineManagerQuoteListCondition($where);
 
-        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.status quote_status';
+        $field = 'qb.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.status quote_status';
         $count =  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -208,7 +208,7 @@ trait QuoteHelper{
     public static function bizlineManagerQuoteSkuList($condition){
 
         $where['a.quote_id'] = $condition['quote_id'];
-        $where['qb.bizline_id'] = $condition['bizline_id'];
+        $where['qb.id'] = $condition['quote_bizline_id'];
 
         //原理的错误逻辑
 //        $quoteItemFormModel = new QuoteItemFormModel();
