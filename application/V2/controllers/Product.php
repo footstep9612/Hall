@@ -220,7 +220,8 @@ class ProductController extends PublicController {
             }
             $checkinfo[] = 'isnull(material_cat_no) or material_cat_no=\'\''
                     . ' or isnull(name) or `name`=\'\' or isnull(brand) or brand=\'\'';
-            $pinfo = $productModel->where($checkinfo)->find();
+            $pinfo = $productModel->field('id')->where($checkinfo)->find();
+
             if ($pinfo && $this->put_data['update_type'] == 'declare') {
                 $this->setCode(MSG::ERROR_PARAM);
                 $this->setMessage('批量审核产品中存在必填参数不全的产品');
@@ -239,7 +240,10 @@ class ProductController extends PublicController {
             }
             $checkinfo[] = 'isnull(material_cat_no) or material_cat_no=\'\''
                     . ' or isnull(name) or `name`=\'\' or isnull(brand) or brand=\'\'';
+
+
             $pinfo = $productModel->where($checkinfo)->find();
+
             if ($pinfo && $this->put_data['update_type'] == 'declare') {
                 $this->setCode(MSG::ERROR_PARAM);
                 $this->setMessage('批量审核产品必填参数不全');
@@ -259,12 +263,12 @@ class ProductController extends PublicController {
             if (is_array($this->put_data['spu'])) {
                 foreach ($this->put_data['spu'] as $spu) {
                     $checkinfo = ['spu' => $spu, 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
-                    $pinfo = $productattachModel->where($checkinfo)->find();
+                    $pinfo = $productattachModel->field('id')->where($checkinfo)->find();
                     if (!$pinfo && $this->put_data['update_type'] == 'declare') {
                         $this->setCode(MSG::ERROR_PARAM);
                         $this->setMessage('批量审核产品中存在没有图片的产品');
                         $this->jsonReturn(false);
-                    } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
+                    } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
                         $this->setCode(MSG::ERROR_PARAM);
                         $this->setMessage('批量报审产品中存在没有图片的产品');
                         $this->jsonReturn(false);
@@ -277,7 +281,7 @@ class ProductController extends PublicController {
                     $this->setCode(MSG::ERROR_PARAM);
                     $this->setMessage('批量审核产品没有图片');
                     $this->jsonReturn(false);
-                } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
+                } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
                     $this->setCode(MSG::ERROR_PARAM);
                     $this->setMessage('批量报审产品没有图片');
                     $this->jsonReturn(false);
