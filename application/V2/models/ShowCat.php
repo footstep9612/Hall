@@ -402,24 +402,67 @@ class ShowCatModel extends PublicModel {
         if ($lang) {
             $where['lang'] = $lang;
         }
-        $flag = $this->where($where)
-                ->save(['status' => self::STATUS_DELETED,
-            'deleted_flag' => 'Y',
-            'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => defined('UID') ? UID : 0]);
+        $info = $this->where($where)->find();
+        if ($info['level_no'] == 3) {
+            $flag = $this->where($where)
+                    ->save(['status' => self::STATUS_DELETED,
+                'deleted_flag' => 'Y',
+                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_by' => defined('UID') ? UID : 0]);
 
-        $this->Table('erui2_goods.show_material_cat')->where([
-                    'show_cat_no' => $cat_no])
-                ->save(['status' => self::STATUS_DELETED,
-                    'updated_at' => date('Y-m-d H:i:s'),
-                    'updated_by' => defined('UID') ? UID : 0
-        ]);
+            $this->Table('erui2_goods.show_material_cat')->where([
+                        'show_cat_no' => $cat_no])
+                    ->save(['status' => self::STATUS_DELETED,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => defined('UID') ? UID : 0
+            ]);
+            $this->Table('erui2_goods.show_cat_goods')->where($where)
+                    ->save(['status' => self::STATUS_DELETED,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => defined('UID') ? UID : 0
+            ]);
+            $this->Table('erui2_goods.show_cat_product')->where($where)
+                    ->save(['status' => self::STATUS_DELETED,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => defined('UID') ? UID : 0
+            ]);
+        } else {
+            if ($info['level_no'] == 2) {
+                $where['cat_no'] = ['like', substr($cat_no, 0, 4) . '%'];
+                $pwhere['show_cat_no'] = ['like', substr($cat_no, 0, 4) . '%'];
+            } elseif ($info['level_no'] == 1) {
+                $where['cat_no'] = ['like', substr($cat_no, 0, 2) . '%'];
+                $pwhere['show_cat_no'] = ['like', substr($cat_no, 0, 2) . '%'];
+            }
+
+            $flag = $this->where($where)
+                    ->save(['status' => self::STATUS_DELETED,
+                'deleted_flag' => 'Y',
+                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_by' => defined('UID') ? UID : 0]);
+
+            $this->Table('erui2_goods.show_material_cat')->where($pwhere)
+                    ->save(['status' => self::STATUS_DELETED,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => defined('UID') ? UID : 0
+            ]);
+            $this->Table('erui2_goods.show_cat_goods')->where($where)
+                    ->save(['status' => self::STATUS_DELETED,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => defined('UID') ? UID : 0
+            ]);
+            $this->Table('erui2_goods.show_cat_product')->where($where)
+                    ->save(['status' => self::STATUS_DELETED,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => defined('UID') ? UID : 0
+            ]);
+        }
         $es_product_model = new EsProductModel();
         if ($lang) {
-            $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
+            $es_product_model->update_showcats($cat_no, null, $lang);
         } else {
             foreach ($this->langs as $lan) {
-                $es_product_model->Updatemeterialcatno($cat_no, null, $lan);
+                $es_product_model->update_showcats($cat_no, null, $lan);
             }
         }
         return $flag;
