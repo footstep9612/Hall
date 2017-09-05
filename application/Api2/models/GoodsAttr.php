@@ -572,11 +572,11 @@ class GoodsAttrModel extends PublicModel {
     public function getgoods_attrbyskus($skus, $lang = 'en') {
 
         try {
-            $product_attrs = $this->field('*')
-                    ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
+            $sku_attrs = $this->field('*')
+                    ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID','deleted_flag'=>'N'])
                     ->select();
             $ret = [];
-            foreach ($product_attrs as $item) {
+            foreach ($sku_attrs as $item) {
                 $ret[$item['sku']][] = $item;
             }
             return $ret;

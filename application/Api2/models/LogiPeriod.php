@@ -43,7 +43,7 @@ class LogiPeriodModel extends PublicModel {
         $field = "$t_country.bn,$t_country.name";
         try {
             $result = $this->field($field)->group("$t_country.bn")
-                            ->join($t_country . " On $thistable.from_country = $t_country.bn "
+                            ->join($t_country . " On $thistable.from_country = $t_country.name "
                                     . "AND $thistable.lang =$t_country.lang", 'LEFT')
                             ->where($where)->select();
             $data = array();
@@ -86,7 +86,7 @@ class LogiPeriodModel extends PublicModel {
 
         $field = "$t_port.bn,$t_port.name";
         try {
-            $result = $this->field($field)->group("$t_port.bn")->join($t_port . " On $thistable.from_port = $t_port.bn AND $thistable.lang =$t_port.lang", 'LEFT')->where($where)->select();
+            $result = $this->field($field)->group("$t_port.bn")->join($t_port . " On $thistable.from_port = $t_port.name AND $thistable.lang =$t_port.lang", 'LEFT')->where($where)->select();
             $data = array();
             if ($result) {
                 $data = $result;
@@ -130,7 +130,7 @@ class LogiPeriodModel extends PublicModel {
 
         $field = "$t_country.bn,$t_country.name";
         try {
-            $result = $this->field($field)->group("$t_country.bn")->join($t_country . " On $thistable.to_country = $t_country.bn AND $thistable.lang =$t_country.lang", 'LEFT')->where($where)->select();
+            $result = $this->field($field)->group("$t_country.bn")->join($t_country . " On $thistable.to_country = $t_country.name AND $thistable.lang =$t_country.lang", 'LEFT')->where($where)->select();
             $data = array();
             if ($result) {
                 $data = $result;
@@ -168,12 +168,12 @@ class LogiPeriodModel extends PublicModel {
         );
 
         if (redisHashExist('Port', md5(json_encode($where)))) {
-            //return json_decode(redisHashGet('Port',md5(json_encode($where))),true);
+            return json_decode(redisHashGet('Port',md5(json_encode($where))),true);
         }
 
         $field = "$thistable.clearance_loc,$t_port.bn,$t_port.name";
         try {
-            $result = $this->field($field)->group("$t_port.bn")->join($t_port . " On $thistable.to_port = $t_port.bn AND $thistable.lang =$t_port.lang", 'LEFT')->where($where)->select();
+            $result = $this->field($field)->group("$t_port.bn")->join($t_port . " On $thistable.to_port = $t_port.name AND $thistable.lang =$t_port.lang", 'LEFT')->where($where)->select();
             $data = array();
             if ($result) {
                 $data = $result;
@@ -217,7 +217,7 @@ class LogiPeriodModel extends PublicModel {
             'warehouse' => $warehouse
         );
         if (redisHashExist('LogiPeriod', md5(json_encode($condition)))) {
-            return json_decode(redisHashGet('LogiPeriod', md5(json_encode($condition))), true);
+//            return json_decode(redisHashGet('LogiPeriod', md5(json_encode($condition))), true);
         }
         try {
             $field = 'id,lang,logi_no,trade_terms_bn,trans_mode_bn,warehouse,from_country,'
@@ -230,7 +230,7 @@ class LogiPeriodModel extends PublicModel {
             $data = array();
             if ($result) {
                 foreach ($result as $item) {
-                    $data[$item['trade_terms']][] = $item;
+                    $data[$item['trade_terms_bn']][] = $item;
                 }
                 redisHashSet('LogiPeriod', md5(json_encode($condition)), json_encode($data));
             }

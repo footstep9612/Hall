@@ -197,6 +197,9 @@ class ProductModel extends PublicModel {
                         continue;
                     }
 
+                    if (empty($data['show_name'])) {
+                        $data['show_name'] = $data['name'];
+                    }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST','VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
@@ -219,6 +222,10 @@ class ProductModel extends PublicModel {
                     $data['status'] = $input['status'];
 
                     $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
+                    if (isset($input['spu'])) {
+                        $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+                        $data['updated_at'] = date('Y-m-d H:i:s', time());
+                    }
                     if ($exist_check) {    //修改
                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
@@ -482,32 +489,39 @@ class ProductModel extends PublicModel {
 
         //数据读取
         try {
-            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,created_at,updated_by,updated_at,checked_by,checked_at';
+            $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,'
+                    . 'tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,'
+                    . 'supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,'
+                    . 'created_at,updated_by,updated_at,checked_by,checked_at';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
                 $employee = new EmployeeModel();
+                $checklogModel = new ProductCheckLogModel();
                 $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0]['name'];
-                    }
-
-                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
-                    if ($updateder && isset($updateder[0])) {
-                        $item['updated_by'] = $updateder[0]['name'];
-                    }
-
-                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-                    if ($checkeder && isset($checkeder[0])) {
-                        $item['checked_by'] = $checkeder[0]['name'];
-                    }
+                    // $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+//                    if ($createder && isset($createder[0])) {
+//                        $item['created_by'] = $createder[0]['name'];
+//                    }
+//
+//                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+//                    if ($updateder && isset($updateder[0])) {
+//                        $item['updated_by'] = $updateder[0]['name'];
+//                    }
+//
+//                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+//                    if ($checkeder && isset($checkeder[0])) {
+//                        $item['checked_by'] = $checkeder[0]['name'];
+//                    }
                     if (!is_null(json_decode($item['brand'], true))) {
                         $brand = json_decode($item['brand'], true);
                         $item['brand'] = $brand['name'];
                     }
+
+
+                    $item['remark'] = $checklogModel->getlastRecord($item['spu'], $item['lang']);
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
@@ -532,10 +546,20 @@ class ProductModel extends PublicModel {
         if ($arr) {
             $employee_model = new EmployeeModel();
             $userids = [];
+            $update_time = '';
+            $update_by = '';
+            $update_by_name = '';
             foreach ($arr as $key => $val) {
                 foreach ($fileds as $filed) {
                     if (isset($val[$filed]) && $val[$filed]) {
                         $userids[] = $val[$filed];
+                        if ($filed == 'updated_by' && empty($update_time)) {
+                            $update_time = $val['updated_at'];
+                            $update_by = $val['updated_by'];
+                        } elseif ($filed == 'updated_by' && !empty($val['updated_at']) && $update_time < $val['updated_at']) {
+                            $update_time = $val['updated_at'];
+                            $update_by = $val['updated_by'];
+                        }
                     }
                 }
             }
@@ -546,6 +570,11 @@ class ProductModel extends PublicModel {
                         $val[$filed . '_name'] = $usernames[$val[$filed]];
                     } else {
                         $val[$filed . '_name'] = '';
+                    }
+                    if ($filed == 'updated_by') {
+                        $val['updated_at'] = $update_time;
+                        $val['updated_by'] = $update_by;
+                        $val['updated_by_name'] = isset($usernames[$update_by]) ? $usernames[$update_by] : '';
                     }
                 }
                 $arr[$key] = $val;
@@ -671,6 +700,7 @@ class ProductModel extends PublicModel {
     /*
      * 根据spus 获取SPU名称
      */
+
     public function getNamesBySpus($spus, $lang = 'zh') {
         $where = [];
         if (is_array($spus) && $spus) {
@@ -698,18 +728,18 @@ class ProductModel extends PublicModel {
     /**
      * 导出模板
      */
-    public function exportTemp(){
+    public function exportTemp() {
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
         //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
         $objSheet->getStyle("A1:K1")
-            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
         //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
         //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-        $column_width_25 = ["B", "C", "D", "E", "F","G", "H", "I", "J", "K"];
+        $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
         foreach ($column_width_25 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(25);
         }
@@ -727,7 +757,7 @@ class ProductModel extends PublicModel {
         $objSheet->setCellValue("K1", "关键字");
 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'spu template_'.'.xls');
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'spu template_' . '.xls');
         return $localDir ? $localDir : '';
     }
 
@@ -735,18 +765,18 @@ class ProductModel extends PublicModel {
      * 产品导出
      * @return string
      */
-    public function export(){
+    public function export() {
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
         //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
         $objSheet->getStyle("A1:K1")
-            ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
         //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
         //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-        $column_width_25 = ["B", "C", "D", "E", "F","G", "H", "I", "J", "K"];
+        $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
         foreach ($column_width_25 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(25);
         }
@@ -773,12 +803,12 @@ class ProductModel extends PublicModel {
             $result = $pModel->getList($condition, '', $i * $length, $length);
             if ($result) {
                 foreach ($result as $r) {
-                    $objSheet->setCellValue("A" . $j, $j - 1 , PHPExcel_Cell_DataType::TYPE_STRING);
-                    $objSheet->setCellValue("B" . $j, $r['spu'] , PHPExcel_Cell_DataType::TYPE_STRING);
+                    $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
+                    $objSheet->setCellValue("B" . $j, $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
                     $objSheet->setCellValue("C" . $j, $r['name']);
                     $objSheet->setCellValue("D" . $j, $r['show_name']);
                     $objSheet->setCellValue("E" . $j, $r['material_cat_no']);
-                    $brand_ary = json_decode($r['brand'],true);
+                    $brand_ary = json_decode($r['brand'], true);
                     $objSheet->setCellValue("F" . $j, (is_array($brand_ary) && isset($brand_ary['name'])) ? $brand_ary['name'] : $r['brand']);
                     $objSheet->setCellValue("G" . $j, $r['advantages']);
                     $objSheet->setCellValue("H" . $j, $r['tech_paras']);
@@ -792,7 +822,7 @@ class ProductModel extends PublicModel {
         } while (count($result) >= $length);
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter,time() . '.xls');
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
 
         return $localDir ? $localDir : '';
     }
@@ -802,8 +832,8 @@ class ProductModel extends PublicModel {
      * @param $data   注意这是excel模板数据
      * @param $lang
      */
-    public function import($data = []){
-        if(empty($data)) {
+    public function import($data = []) {
+        if (empty($data)) {
             return false;
         }
 
@@ -811,10 +841,10 @@ class ProductModel extends PublicModel {
         $brandModel = new BrandModel();
 
         $this->startTrans();
-        try{
+        try {
             $spu = $this->createSpu();    //生成spu
-            foreach($data as $xls) {
-                if(empty($xls['url']) || empty($xls['lang'])) {
+            foreach ($data as $xls) {
+                if (empty($xls['url']) || empty($xls['lang'])) {
                     continue;
                 }
 
@@ -824,8 +854,8 @@ class ProductModel extends PublicModel {
                 $data = ExcelHelperTrait::ready2import($localFile);
                 array_shift($data);
 
-                if(empty($data) || empty($r = $data[0])){
-                    jsonReturn('',ErrorMsg::FAILED,'语言：'.$xls['lang'].' 无可导入数据');
+                if (empty($data) || empty($r = $data[0])) {
+                    jsonReturn('', ErrorMsg::FAILED, '语言：' . $xls['lang'] . ' 无可导入数据');
                 }
 
                 $data_tmp = [];
@@ -833,17 +863,15 @@ class ProductModel extends PublicModel {
                 $data_tmp['lang'] = $xls['lang'];
                 $data_tmp['name'] = $r[2];    //名称
                 $data_tmp['show_name'] = $r[3];    //展示名称
-
                 //$catNo = $mcatModel->getCatNoByName($r[5] , 'eq');
                 //$data_tmp['material_cat_no'] = ($catNo && $catNo[0]['level_no']==3) ? $catNo[0]['cat_no'] : null;    //物料分类
                 $data_tmp['material_cat_no'] = $r[4];    //物料分类
-
                 //品牌
                 $condition_brand = array(
-                    'brand' => array('like','%'.$r[5].'%')
+                    'brand' => array('like', '%' . $r[5] . '%')
                 );
                 $brand_id = $brandModel->Exist($condition_brand);
-                $data_tmp['brand'] = $brand_id ? json_encode(array('id'=>$brand_id,'name'=>$r[5]), JSON_UNESCAPED_UNICODE) : null;    //品牌
+                $data_tmp['brand'] = $brand_id ? json_encode(array('id' => $brand_id, 'name' => $r[5]), JSON_UNESCAPED_UNICODE) : null;    //品牌
 
                 /**
                  * 根据lang 品牌查询name是否存在
@@ -851,12 +879,12 @@ class ProductModel extends PublicModel {
                 $condition = array(
                     'name' => $data_tmp['name'],
                     'lang' => $xls['lang'],
-                    'brand' => array('like','%'.$r[5].'%'),
+                    'brand' => array('like', '%' . $r[5] . '%'),
                 );
                 $exist = $this->field('id')->where($condition)->find();
-                if($exist) {
+                if ($exist) {
                     $this->rollback();
-                    jsonReturn('语言：'.$xls['lang'].' 品牌：'.$r[5].'下已存在['.$data_tmp['name'].']' , ErrorMsg::FAILED,'语言：'.$xls['lang'].' 品牌：'.$r[5].'下已存在['.$data_tmp['name'].']');
+                    jsonReturn('语言：' . $xls['lang'] . ' 品牌：' . $r[5] . '下已存在[' . $data_tmp['name'] . ']', ErrorMsg::FAILED, '语言：' . $xls['lang'] . ' 品牌：' . $r[5] . '下已存在[' . $data_tmp['name'] . ']');
                 }
 
                 $data_tmp['advantages'] = $r[6];
@@ -870,14 +898,14 @@ class ProductModel extends PublicModel {
                 $data_tmp['created_at'] = date('Y-m-d H:i:s');
                 $data_tmp['status'] = $this::STATUS_VALID;
                 $insert = $this->add($this->create($data_tmp));
-                if(!$insert){
+                if (!$insert) {
                     $this->rollback();
-                    jsonReturn($xls['lang'].'导入有误，请稍后重试' , ErrorMsg::FAILED ,$xls['lang'].'导入有误，请稍后重试');
+                    jsonReturn($xls['lang'] . '导入有误，请稍后重试', ErrorMsg::FAILED, $xls['lang'] . '导入有误，请稍后重试');
                 }
             }
             $this->commit();
             return true;
-        }catch (Exception $e){
+        } catch (Exception $e) {
             $this->rollback();
             return false;
         }
@@ -888,8 +916,8 @@ class ProductModel extends PublicModel {
      * @param string $url
      * @return array|bool
      */
-    public function zipImport($url = ''){
-        if(empty($url)){
+    public function zipImport($url = '') {
+        if (empty($url)) {
             return false;
         }
 
@@ -897,53 +925,53 @@ class ProductModel extends PublicModel {
         //$localFile = ExcelHelperTrait::download2local($url);
         $localFile = MYPATH . '/public/tmp/tmp.zip';
 
-        $pathInfo = ( pathinfo( $localFile ) );
-        if ( strtolower( $pathInfo[ 'extension' ] ) != 'zip' ) {
-            jsonReturn( '只支持zip格式' , ErrorMsg::FAILED );
+        $pathInfo = ( pathinfo($localFile) );
+        if (strtolower($pathInfo['extension']) != 'zip') {
+            jsonReturn('只支持zip格式', ErrorMsg::FAILED);
         };
 
         $sucess = $sucess_lang = 0;    //记录成功数
         $failds = [];   //记录失败项与错误
-        try{
+        try {
             $zip = new ZipArchive();
-            $res = $zip->open( $localFile );
-            if ( $res === true ) {
-                $tmpDir = MYPATH . '/public/tmp/' . $pathInfo[ 'filename' ];
-                if ( $zip->extractTo( $tmpDir ) ) {    //解压缩到目录
+            $res = $zip->open($localFile);
+            if ($res === true) {
+                $tmpDir = MYPATH . '/public/tmp/' . $pathInfo['filename'];
+                if ($zip->extractTo($tmpDir)) {    //解压缩到目录
                     $userInfo = getLoinInfo();
                     $productModel = new ProductModel();
                     $brandModel = new BrandModel();
 
-                    $handle = opendir( $tmpDir );
-                    while ( $f = readdir( $handle ) ) {    //遍历spu目录层
-                        if ( $f != "." && $f != ".." ) {
+                    $handle = opendir($tmpDir);
+                    while ($f = readdir($handle)) {    //遍历spu目录层
+                        if ($f != "." && $f != "..") {
                             $dir_spu = $tmpDir . '/' . $f;
-                            if ( is_dir( $dir_spu ) ) {
+                            if (is_dir($dir_spu)) {
                                 $spu = $productModel->createSpu();    //生成spu
-                                $handle2 = opendir( $dir_spu );
+                                $handle2 = opendir($dir_spu);
 
                                 $bool_spu = false;
                                 $this->startTrans();
                                 $sucess_lang_tmp = 0;
-                                while ( $xls = readdir( $handle2 ) ) {    //遍历excel
-                                    if ( $xls == '.' || $xls == '..' ) {
+                                while ($xls = readdir($handle2)) {    //遍历excel
+                                    if ($xls == '.' || $xls == '..') {
                                         continue;
                                     }
-                                    if ( is_file( $dir_spu . '/' . $xls ) ) {
+                                    if (is_file($dir_spu . '/' . $xls)) {
                                         $xlsFile = $dir_spu . '/' . $xls;
-                                        $lang = strtolower( pathinfo( $xls , PATHINFO_FILENAME ) );
-                                        if ( !in_array( $lang , array( 'zh' , 'en' , 'es' , 'ru' ) ) ) {
-                                            $failds[]= array('item'=>$f,'hint'=>'excel文件请以语言（zh,en,es,ru）加.xls命名');
+                                        $lang = strtolower(pathinfo($xls, PATHINFO_FILENAME));
+                                        if (!in_array($lang, array('zh', 'en', 'es', 'ru'))) {
+                                            $failds[] = array('item' => $f, 'hint' => 'excel文件请以语言（zh,en,es,ru）加.xls命名');
                                             $this->rollback();
                                             $bool_spu = false;
                                             $sucess_lang_tmp = 0;
-                                            Log::write($f . '下的excel文件请以语言（zh,en,es,ru）加.xls命名' ,Log::INFO);
+                                            Log::write($f . '下的excel文件请以语言（zh,en,es,ru）加.xls命名', Log::INFO);
                                             break;
                                         }
 
                                         $data = ExcelHelperTrait::ready2import($xlsFile);    //读取excel信息
                                         array_shift($data);
-                                        if(empty($data) || empty($r = $data[0])){
+                                        if (empty($data) || empty($r = $data[0])) {
                                             continue;
                                         }
 
@@ -952,17 +980,15 @@ class ProductModel extends PublicModel {
                                         $data_tmp['lang'] = $lang;
                                         $data_tmp['name'] = $r[2];    //名称
                                         $data_tmp['show_name'] = $r[3];    //展示名称
-
                                         //$catNo = $mcatModel->getCatNoByName($r[5] , 'eq');
                                         //$data_tmp['material_cat_no'] = ($catNo && $catNo[0]['level_no']==3) ? $catNo[0]['cat_no'] : null;    //物料分类
                                         $data_tmp['material_cat_no'] = $r[4];    //物料分类
-
                                         //品牌
                                         $condition_brand = array(
-                                            'brand' => array('like','%'.$r[5].'%')
+                                            'brand' => array('like', '%' . $r[5] . '%')
                                         );
                                         $brand_id = $brandModel->Exist($condition_brand);
-                                        $data_tmp['brand'] = $brand_id ? json_encode(array('id'=>$brand_id,'name'=>$r[5]), JSON_UNESCAPED_UNICODE) : null;    //品牌
+                                        $data_tmp['brand'] = $brand_id ? json_encode(array('id' => $brand_id, 'name' => $r[5]), JSON_UNESCAPED_UNICODE) : null;    //品牌
 
                                         /**
                                          * 根据lang 品牌查询name是否存在
@@ -970,15 +996,15 @@ class ProductModel extends PublicModel {
                                         $condition = array(
                                             'name' => $data_tmp['name'],
                                             'lang' => $lang,
-                                            'brand' => array('like','%'.$r[5].'%'),
+                                            'brand' => array('like', '%' . $r[5] . '%'),
                                         );
                                         $exist = $this->field('id')->where($condition)->find();
-                                        if($exist) {
-                                            $failds[] = array('item'=>$f,'hint'=>'语言：'.$lang.' 品牌：'.$r[5].'下已存在'.$data_tmp['name']);
+                                        if ($exist) {
+                                            $failds[] = array('item' => $f, 'hint' => '语言：' . $lang . ' 品牌：' . $r[5] . '下已存在' . $data_tmp['name']);
                                             $this->rollback();
                                             $bool_spu = false;
                                             $sucess_lang_tmp = 0;
-                                            Log::write($f .'下，语言：'.$lang.' 品牌：'.$r[5].'下已存在'.$data_tmp['name'] ,Log::INFO);
+                                            Log::write($f . '下，语言：' . $lang . ' 品牌：' . $r[5] . '下已存在' . $data_tmp['name'], Log::INFO);
                                             break;
                                         }
 
@@ -993,14 +1019,14 @@ class ProductModel extends PublicModel {
                                         $data_tmp['created_at'] = date('Y-m-d H:i:s');
                                         $data_tmp['status'] = $this::STATUS_VALID;
                                         $insert = $this->add($this->create($data_tmp));
-                                        if(!$insert){
-                                            $failds[] = array('item'=>$f,'hint'=>$lang.'导入失败，请检查信息后重试');
+                                        if (!$insert) {
+                                            $failds[] = array('item' => $f, 'hint' => $lang . '导入失败，请检查信息后重试');
                                             $this->rollback();
                                             $bool_spu = false;
                                             $sucess_lang_tmp = 0;
-                                            Log::write($f .'下，'.$lang.'导入失败，请检查信息后重试' , Log::INFO);
+                                            Log::write($f . '下，' . $lang . '导入失败，请检查信息后重试', Log::INFO);
                                             break;
-                                        }else{
+                                        } else {
                                             $bool_spu = true;
                                             $sucess_lang_tmp++;
                                         }
@@ -1008,7 +1034,7 @@ class ProductModel extends PublicModel {
                                         continue;
                                     }
                                 }
-                                if($bool_spu){
+                                if ($bool_spu) {
                                     $sucess++;
                                     $sucess_lang = $sucess_lang + $sucess_lang_tmp;
                                     $this->commit();
@@ -1023,15 +1049,15 @@ class ProductModel extends PublicModel {
                         'succes_lang' => $sucess_lang,
                         'failds' => $failds
                     );
-                }else{
-                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'failed, code:解压失败' , Log::ERR);
+                } else {
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'failed, code:解压失败', Log::ERR);
                 }
                 $zip->close();
             } else {
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'failed, code:' . $res, Log::ERR);
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'failed, code:' . $res, Log::ERR);
                 return false;
             }
-        }catch (Exception $e){
+        } catch (Exception $e) {
             $this->rollback();
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
             return array(

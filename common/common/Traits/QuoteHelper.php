@@ -119,12 +119,13 @@ trait QuoteHelper{
     public static function bizlineManagerQuoteList($condition){
 
         $where = self::bizlineManagerQuoteListCondition($condition);
+        //p($where);
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $quoteBizlineModel = new QuoteBizLineModel();
-        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
+        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id,qb.status quote_status';
         return  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -132,16 +133,21 @@ trait QuoteHelper{
             ->page($currentPage, $pageSize)
             ->order('id DESC')
             ->select();
-        //p($data);
         //p($quoteBizlineModel->getLastSql());
+        //p($data);
     }
 
     public static function bizlineManagerQuoteListCondition(array $condition){
 
         $where = [];
+
+        if(!empty($condition['bizline_id'])) {
+            $where['qb.bizline_id'] = array('in',implode(",",$condition['bizline_id']));
+        }
+        //p($where);
         //项目状态
         if(!empty($condition['status'])) {
-            $where['inq.status'] = $condition['status'];
+            $where['qb.status'] = $condition['status'];
         }
         //国家
         if(!empty($condition['country_bn'])) {
@@ -188,7 +194,7 @@ trait QuoteHelper{
 
         $where = self::bizlineManagerQuoteListCondition($where);
 
-        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id';
+        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.status quote_status';
         $count =  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -203,16 +209,31 @@ trait QuoteHelper{
 
         $where['a.quote_id'] = $condition['quote_id'];
 
-        $quoteItemFormModel = new QuoteItemFormModel();
+        //原理的错误逻辑
+//        $quoteItemFormModel = new QuoteItemFormModel();
+//
+//        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
+//        $data = $quoteItemFormModel->alias('a')
+//            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+//            ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')
+//            ->field($fields)
+//            ->where($where)
+//            ->order('a.id DESC')
+//            ->select();
+//        p($data);
 
-        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
-        return $quoteItemFormModel->alias('a')
+        //改正
+        $quoteItemModel = new QuoteItemModel();
+
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.remarks goods_remarks,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,qb.status,a.created_by,qb.bizline_id';
+        $data = $quoteItemModel->alias('a')
             ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
             ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')
             ->field($fields)
             ->where($where)
             ->order('a.id DESC')
             ->select();
+        return $data;
         //p($data);
     }
 
@@ -220,11 +241,21 @@ trait QuoteHelper{
 
         $where['a.quote_id'] = $request['quote_id'];
 
-        $quoteItemFormModel = new QuoteItemFormModel();
+        //以前的错误代码
+//        $quoteItemFormModel = new QuoteItemFormModel();
+//
+//        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status';
+//        $count = $quoteItemFormModel->alias('a')
+//            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+//            ->field($fields)
+//            ->where($where)
+//            ->count('a.id');
+        $quoteItemModel = new QuoteItemModel();
 
-        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status';
-        $count = $quoteItemFormModel->alias('a')
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.remarks goods_remarks,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
+        $count = $quoteItemModel->alias('a')
             ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')
             ->field($fields)
             ->where($where)
             ->count('a.id');
@@ -237,7 +268,7 @@ trait QuoteHelper{
 
         $quoteItem = new InquiryItemModel();
 
-        $fields = ['a.id','a.sku','inq.inquiry_no','inq.serial_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
+        $fields = ['a.id','a.sku','inq.inquiry_no','a.buyer_goods_no','a.name','a.name_zh','a.model','a.remarks','a.remarks_zh','a.qty','a.unit','a.brand'];
 
         return  $quoteItem->alias('a')
                         ->join('erui2_rfq.inquiry inq ON a.inquiry_id = inq.id','LEFT')

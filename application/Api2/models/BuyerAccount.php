@@ -108,6 +108,20 @@ class BuyerAccountModel extends PublicModel {
                     ->join($buyeraddress_table . ' as bad on b.buyer_id=bad.buyer_id', 'left')
                     ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
                     ->find();
+            if(!empty($row['buyer_level'])){
+                $BuyerLevelModel = new BuyerLevelModel();
+                $res = $BuyerLevelModel->field('buyer_level')->where(['id'=>$row['buyer_level']])->find();
+                if($res){
+                    if (!is_null(json_decode($res['buyer_level'], true))) {
+                        $level = json_decode($res['buyer_level'], true);
+                        foreach($level as $item){
+                            $dat[$item['lang']] = $item;
+                        }
+                        $row['buyer_level'] = $dat['en']['name'];
+                    }
+                }
+            }
+
             return $row;
         } else {
             return false;
@@ -151,6 +165,7 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data, $where) {
+        $arr=[];
         if (isset($data['email'])) {
             $arr['email'] = $data['email'];
         }
@@ -170,7 +185,7 @@ class BuyerAccountModel extends PublicModel {
             $arr['last_name'] = $data['last_name'];
         }
         if ($data['status']) {
-            switch ($data['status']) {
+            switch (strtoupper($data['status'])) {
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
                     break;
@@ -182,11 +197,12 @@ class BuyerAccountModel extends PublicModel {
                     break;
             }
         }
-        if(empty($arr)){
-            return true;
+        if (!empty($where)) {
+            $res =  $this->where($where)->save($arr);
+        } else {
+            return false;
         }
-        $res =  $this->where(['buyer_id'=>$where['buyer_id']])->save($arr);
-        if($res){
+        if($res!==false){
             return true;
         }
         return false;

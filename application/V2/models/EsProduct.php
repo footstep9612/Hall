@@ -188,7 +188,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function getCondition($condition) {
+    private function getCondition($condition, $lang = 'en') {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
@@ -196,18 +196,22 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
-
-
-
-        if ($lang !== 'zh') {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
-        } else {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no1', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no2', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no3', 'show_cats.all');
+        $mcat_no1 = $this->_getValue($condition, 'mcat_no1');
+        $mcat_no2 = $this->_getValue($condition, 'mcat_no2');
+        $mcat_no3 = $this->_getValue($condition, 'mcat_no3');
+        if ($mcat_no1) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
         }
+        if ($mcat_no2) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no2 . '*']];
+        }
+        if ($mcat_no3) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no3 . '*']];
+        }
+
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -233,6 +237,7 @@ class EsProductModel extends Model {
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+
             foreach ($userids as $created_by) {
                 $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
             }
@@ -277,8 +282,9 @@ class EsProductModel extends Model {
                         [ESClient::MULTI_MATCH => [
                                 'query' => $show_name,
                                 'type' => 'most_fields',
-                                'fields' => ['name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
+                                'fields' => ['show_name.ik', 'name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
                             ]],
+                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
         }
@@ -312,7 +318,7 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
             unset($condition['source']);
-            if ($body) {
+            if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
             $es->setbody($body)->setsort('created_at', 'desc')->setsort('sku_count', 'desc')
@@ -460,7 +466,7 @@ class EsProductModel extends Model {
     public function getMinimumOrderQuantity($spus, $lang = 'en') {
         try {
             $minimumorderquantutys = $this->table('erui2_goods.goods')
-                            ->field('spu,min(min_order_qty) as value ,min(exw_days) as min_exw_day,tx_unit,'
+                            ->field('spu,min(min_order_qty) as value ,min(exw_days) as min_exw_day,min_pack_unit,'
                                     . 'max(exw_days) as max_exw_day')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang])
                             ->group('spu')->select();
@@ -527,9 +533,7 @@ class EsProductModel extends Model {
 
     private function _findnulltoempty(&$item) {
         foreach ($item as $key => $val) {
-            if (is_null($val)) {
-                $item[$key] = '';
-            }
+            $item[$key] = strval($val);
         }
     }
 
@@ -606,8 +610,18 @@ class EsProductModel extends Model {
     private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs) {
 
         $spu = $id = $item['spu'];
-        $this->_findnulltoempty($item);
+
         $body = $item;
+        $item['brand'] = str_replace("\r", '', $item['brand']);
+        $item['brand'] = str_replace("\n", '', $item['brand']);
+        $item['brand'] = str_replace("\t", '', $item['brand']);
+        if (json_decode($item['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
+        } elseif ($body['brand']) {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+        } else {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
+        }
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {
@@ -651,15 +665,15 @@ class EsProductModel extends Model {
         }
         if (isset($minimumorderouantitys[$id])) {
 
-            $body['minimumorderouantity'] = $minimumorderouantitys[$id]['value'];
-            $body['max_exw_day'] = $minimumorderouantitys[$id]['max_exw_day'];
-            $body['min_exw_day'] = $minimumorderouantitys[$id]['min_exw_day'];
-            $body['tx_unit'] = $minimumorderouantitys[$id]['tx_unit'];
+            $body['minimumorderouantity'] = strval($minimumorderouantitys[$id]['value']);
+            $body['max_exw_day'] = strval($minimumorderouantitys[$id]['max_exw_day']);
+            $body['min_exw_day'] = strval($minimumorderouantitys[$id]['min_exw_day']);
+            $body['min_pack_unit'] = strval($minimumorderouantitys[$id]['min_pack_unit']);
         } else {
             $body['minimumorderouantity'] = 0;
             $body['max_exw_day'] = '';
             $body['min_exw_day'] = '';
-            $body['tx_unit'] = '';
+            $body['min_pack_unit'] = '';
         }
         if (isset($onshelf_flags[$id])) {
 
@@ -682,6 +696,7 @@ class EsProductModel extends Model {
             $body['onshelf_by'] = '';
             $body['onshelf_at'] = '';
         }
+        $this->_findnulltoempty($body);
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
         if ($flag['_shards']['successful'] !== 1) {

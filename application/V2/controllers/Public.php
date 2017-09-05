@@ -60,6 +60,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 try {
                     $tks = explode('.', $token);
                     $tokeninfo = JwtInfo($token); //解析token
+                    if(!isset($tokeninfo['id'])){
+                        $tokeninfo['id'] = $tokeninfo['sub'];
+                    }
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
@@ -226,7 +229,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
         if ($name) {
-            $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            $data = isset($this->put_data [$name]) && !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
             return $data;
         } else {
             $data = $this->put_data;

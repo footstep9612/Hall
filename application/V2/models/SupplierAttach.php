@@ -31,17 +31,23 @@ class SupplierAttachModel extends PublicModel
     public function update_data($data, $where)
     {
 
-        if (isset($create['license_attach_url'])) {
-            $arr['license_attach_url'] = $create['license_attach_url'];
+        if (isset($create['attach_url'])) {
+            $arr['attach_url'] = $create['attach_url'];
         }
         if (isset($create['attach_name'])) {
             $arr['attach_name'] = $create['attach_name'];
         }
-
+        if (isset($create['attach_group'])) {
+            $arr['attach_group'] = $create['attach_group'];
+        }
         if (!empty($where)) {
             $info = $this->where($where)->find();
-            if($info){
+            if(!$info){
                 $arr['supplier_id']=$where['supplier_id'];
+                if (isset($create['created_by'])) {
+                    $arr['created_by'] = $create['created_by'];
+                }
+                $arr['created_at']= date("Y-m-d H:i:s");
                 $this->create_data($arr);
             }else{
                 return $this->where($where)->save($arr);
@@ -62,8 +68,11 @@ class SupplierAttachModel extends PublicModel
         if (isset($create['supplier_id'])) {
             $arr['supplier_id'] = $create['supplier_id'];
         }
-        if (isset($create['license_attach_url'])) {
-            $arr['license_attach_url'] = $create['license_attach_url'];
+        if (isset($create['attach_url'])) {
+            $arr['attach_url'] = $create['attach_url'];
+        }
+        if (isset($create['attach_group'])) {
+            $arr['attach_group'] = $create['attach_group'];
         }
         if (isset($create['attach_name'])) {
             $arr['attach_name'] = $create['attach_name'];

@@ -1,6 +1,6 @@
 <?php
 
-error_reporting(E_ALL);
+error_reporting(E_ERROR);
 header('Access-Control-Allow-Origin:*');
 header('Access-Control-Allow-Headers:x-requested-with,content-type');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS');
@@ -12,15 +12,20 @@ define('DS', DIRECTORY_SEPARATOR);
 define('MYPATH', dirname(__FILE__));
 $uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_SPECIAL_CHARS);
 preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $out);
+
 $module = ucfirst($out[1]);
-if (file_exists(MYPATH . DS . 'application' . DS . $module)) {
+
+if (!in_array(strtolower($module), ['v1', 'v2', 'api', 'api2'])) {
+    die('{"code":"-1","message":"模块不存在!"}');
+}
+
+if (file_exists(MYPATH . DS . 'application' . DS . $module) && $module) {
     define('APPLICATION_PATH', MYPATH . DS . 'application' . DS . $module);
     define('CONF_PATH', MYPATH . DS . 'application' . DS . $module . DS . 'conf');
 } else {
     die('{"code":"-1","message":"系统错误!"}');
 }
 define('COMMON_PATH', MYPATH . DS . 'common');
-
 
 /**
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节

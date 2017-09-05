@@ -198,6 +198,10 @@ class SinosureRateController extends PublicController {
             $this->setCode('1');
             $this->setMessage('成功!');
             parent::jsonReturn($data, $type);
+        } elseif ($data === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage(MSG::ERROR_EMPTY);
+            parent::jsonReturn($data);
         } else {
             $this->setCode('-101');
             $this->setMessage('失败!');

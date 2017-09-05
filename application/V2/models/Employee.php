@@ -69,14 +69,14 @@ class EmployeeModel extends PublicModel {
         try {
             $where = [];
             if ($UserName) {
-                $where['name'] = ['like', '%' . $UserName . '%'];
+                $where['name'] = ['like', '%' . trim($UserName) . '%'];
             } else {
                 return false;
             }
             $users = $this->where($where)->field('id')->select();
             $userids = [];
             foreach ($users as $user) {
-                $userids = $user['id'];
+                $userids[] = $user['id'];
             }
             return $userids;
         } catch (Exception $ex) {

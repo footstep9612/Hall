@@ -34,7 +34,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND `employee`.`status`= "'.$condition['status'].'"';
         }
         if ( !empty($condition['group_id']) ){
-            $sql .= ' AND org_member.org_id ='.$condition['group_id'];
+            $sql .= ' AND org_member.org_id in ('.$condition['group_id'].')';
         }
         if ( !empty($condition['mobile']) ){
             $sql .= ' AND employee.mobile ="'.$condition['mobile'].'"';
@@ -157,7 +157,7 @@ class UserModel extends PublicModel {
         }
         $where['status'] = 'NORMAL';
         $row = $this->where($where)
-            ->field('id,user_no,name,email,mobile,status')
+            ->field('id,user_no,name,email,mobile,status,password_status')
             ->find();
         return $row;
     }
@@ -171,32 +171,13 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function Exist($data) {
+        $map =[];
         $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`';
         $sql .= ' FROM '.$this->g_table;
-        $where = '';
-        if ( !empty($data['email']) ){
-            $where .= " where email = '" .$data['email']."'";
-        }
-        if ( !empty($data['mobile']) ){
-            if($where){
-                $where .= " or mobile = '" .$data['mobile']."'";
-            }else{
-                $where .= " where mobile = '" .$data['mobile']."'";
-            }
-
-        }
         if ( !empty($data['user_no']) ){
-            if($where){
-                $where .= " or user_no = '" .$data['user_no']."'";
-            }else{
-                $where .= " where user_no = '" .$data['user_no']."'";
-            }
+            $map['user_no']=$data['user_no'];
         }
-
-        if ( $where){
-            $sql .= $where;
-        }
-        $row = $this->query( $sql );
+        $row = $this->where($map)->find();
         return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
     }
 
@@ -234,6 +215,7 @@ class UserModel extends PublicModel {
         }
         if(isset($create['password_hash'])){
             $data['password_hash']=$create['password_hash'];
+            $data['password_status'] = 'N';
         }
         if(isset($create['name_en'])){
             $data['name_en']=$create['name_en'];
@@ -253,9 +235,6 @@ class UserModel extends PublicModel {
         if(isset($create['remarks'])){
             $data['remarks']=$create['remarks'];
         }
-        if(isset($data)){
-            $data['created_at']=date("Y-m-d H:i:s");
-        }
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
@@ -270,7 +249,6 @@ class UserModel extends PublicModel {
         if(!$where){
             return false;
         }else{
-
             return $this->where($where)->save($data);
         }
 

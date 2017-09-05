@@ -150,6 +150,7 @@ class UserController extends PublicController {
         $user_modle =new UserModel();
         $data =$user_modle->infoList($arr);
         if($data){
+            $new_passwoer['password_hash'] = 'N';
             $res =$user_modle->update_data($new_passwoer,$arr);
             if($res!==false){
                 $datajson['code'] = 1;
@@ -171,6 +172,7 @@ class UserController extends PublicController {
         $model = new UserModel();
         $res = $model->info($data['id']);
         if(!empty($res)){
+            unset($res['password_hash']);
             $datajson['code'] = 1;
             $datajson['data'] = $res;
         }else{
@@ -256,10 +258,10 @@ class UserController extends PublicController {
             }
         }
         $arr['created_by'] = $this->user['id'];
-        $login_arr['user_no'] = $data['user_no'];
-        $check = $model->Exist($login_arr);
+        $arr['user_no'] = $data['user_no'];
+        $check = $model->Exist($arr);
         if($check){
-            $this->jsonReturn(array("code" => "-101", "message" => "用户编号已存在"));
+            $this->jsonReturn(array("code" => "-101", "message" => "用户已存在"));
         }
         $res=$model->create_data($arr);
         if(!empty($res)){

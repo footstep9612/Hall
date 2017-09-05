@@ -29,7 +29,8 @@ class MemberServiceModel extends PublicModel {
         $where['buyer_level_id'] = $buyer_level_id;
         $where['status'] = 'VALID';
         $where['deleted_flag'] = 'N';
-        $result = $this->field('service_cat_id')->where($where)->group('service_cat_id')->select();
+        $result = $this->where($where)->select();
+        /*$result = $this->field('service_cat_id')->where($where)->group('service_cat_id')->select();
         foreach($result as $key=>$val){
             $where1 = ['service_cat_id' =>$val['service_cat_id'],'status'=>'VALID','deleted_flag'=>'N'];
             $rs =  $this->field('service_term_id')->where($where1)->group('service_term_id')->select();
@@ -39,7 +40,7 @@ class MemberServiceModel extends PublicModel {
                 $rs[$key1]['item'] = $rs1;
             }
             $result[$key]['term'] = $rs;
-        }
+        }*/
         return $result? $result:array();
     }
 
@@ -49,9 +50,13 @@ class MemberServiceModel extends PublicModel {
      * @return bool
      * @author klp
      */
-    public function editInfo($data = [], $userInfo) {
-        if (!$data || !is_array($data)) {
+    public function editInfo($arr = [], $userInfo) {
+        if (!$arr || !is_array($arr)) {
             return false;
+        }
+        $data = $this->uninitParams($arr);
+        if(!$data){
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         if (empty($data['buyer_level'])) {
             jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
@@ -66,26 +71,34 @@ class MemberServiceModel extends PublicModel {
                 return false;
             }
             //处理服务
-            foreach ($data['levels'] as $items) {
-                //处理条款id
-                foreach ($items['term'] as $term) {
-                    //处理条款内容id
-                    foreach ($term['item'] as $im) {
-                        $save = [
-                            'service_cat_id' => $items['service_cat_id'],
-                            'service_term_id' => $term['service_term_id'],
-                            'service_item_id' => $im['service_item_id'],
-                            'buyer_level_id' => $re['buyer_level_id']
-                        ];
-                        if (isset($im['id']) && !empty($im['id'])) {
-                            $res = $this->field('id')->where(['id' => $im['id']])->find();
+            if(!empty($data['levels'])){
+                foreach ($data['levels'] as $items) {
+                    //处理条款id
+                    foreach ($items['term'] as $term) {
+                        //处理条款内容id
+                        foreach ($term['item'] as $im) {
+                            $save = [
+                                'service_cat_id' => $items['service_cat_id'],
+                                'service_term_id' => $term['service_term_id'],
+                                'service_item_id' => $im['service_item_id'],
+                                'buyer_level_id' => $re['buyer_level_id']
+                            ];
+                            if (isset($im['id']) && !empty($im['id'])) {
+                                $res = $this->field('id')->where(['id' => $im['id']])->find();
 
-                            if ($res) {
-                                $save['id'] = $im['id'];
-                                $result = $this->update_data($save, $userInfo);
-                                if (1 != $result['code']) {
-                                    $this->rollback();
-                                    return false;
+                                if ($res) {
+                                    $save['id'] = $im['id'];
+                                    $result = $this->update_data($save, $userInfo);
+                                    if (1 != $result['code']) {
+                                        $this->rollback();
+                                        return false;
+                                    }
+                                } else {
+                                    $result = $this->create_data($save, $userInfo);
+                                    if (1 != $result['code']) {
+                                        $this->rollback();
+                                        return false;
+                                    }
                                 }
                             } else {
                                 $result = $this->create_data($save, $userInfo);
@@ -94,16 +107,11 @@ class MemberServiceModel extends PublicModel {
                                     return false;
                                 }
                             }
-                        } else {
-                            $result = $this->create_data($save, $userInfo);
-                            if (1 != $result['code']) {
-                                $this->rollback();
-                                return false;
-                            }
                         }
                     }
                 }
             }
+
             $results['code'] = '1';
             $results['message'] = '成功!';
             $this->commit();
@@ -114,6 +122,32 @@ class MemberServiceModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
+    }
+
+    /**
+     * 反格式化数据
+     */
+    protected function unInitParams($data){
+        if(empty($data)) {
+            return false;
+        }
+        $buyer_level = $level = [];
+        foreach($data['buyer_level'] as $lang => $items) {
+            if (!in_array($lang, array('zh', 'en', 'es', 'ru'))) {
+                return false;
+            }
+            $condition = [
+                'lang'=>$lang,
+                'name'=>$items['buyer_level'],
+                'isEdit'=>$items['isEdit']
+            ];
+            $buyer_level[] = $condition;
+        }
+        if(isset($data['buyer_level_id'])) {
+            $level['buyer_level_id'] = $data['buyer_level_id'];
+        }
+        $level['buyer_level'] = $buyer_level;
+        return $level;
     }
 
     /**
@@ -128,12 +162,12 @@ class MemberServiceModel extends PublicModel {
         }
         $this->startTrans();
         try {
-            $where = ['buyer_level_id' => $buyer_level_id];
-            $res = $this->where($where)->save(['deleted_flag'=>'Y']);
-            if (!$res) {
-                $this->rollback();
-                return false;
-            }
+//            $where = ['buyer_level_id' => $buyer_level_id];
+//            $res = $this->where($where)->save(['deleted_flag'=>'Y']);
+//            if (!$res) {
+//                $this->rollback();
+//                return false;
+//            }
             $buyerLevelModel = new BuyerLevelModel();
             $where1 = ['id' => $buyer_level_id];
             $res1 = $buyerLevelModel->where($where1)->save(['deleted_flag'=>'Y']);

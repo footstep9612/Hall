@@ -43,7 +43,8 @@ class EsproductController extends PublicController {
         $model = new EsProductModel();
         $lang = $this->getPut('lang', 'zh');
 
-        $ret = $model->getProducts($this->getPut(), null, $lang);
+        $condition = $this->getPut();
+        $ret = $model->getProducts($condition, null, $lang);
         if ($ret) {
             $data = $ret[0];
 
@@ -57,8 +58,23 @@ class EsproductController extends PublicController {
                 $send['allcount'] = $send['count'];
             }
             if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
-                $send['sku_count'] = $data['aggregations']['sku_num']['value'];
+                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
+            } else {
+                $send['sku_count'] = 0;
             }
+            if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
+                $condition['onshelf_flag'] = 'N';
+                $condition['sku_count'] = 'Y';
+                $ret_N = $model->getProducts($condition, $lang);
+                $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
+                $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
+                $condition['onshelf_flag'] = 'Y';
+
+                $ret_y = $model->getProducts($condition, $lang);
+                $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
+                $send['onshelf_sku_count_Y'] = intval($ret_y[0]['aggregations']['sku_count']['value']);
+            }
+
             $send['data'] = $list;
             $this->_update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -244,6 +260,7 @@ class EsproductController extends PublicController {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
+            $this->es->refresh($rhis->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -534,6 +551,7 @@ class EsproductController extends PublicController {
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
+            'min_pack_unit' => $ik_analyzed, //成交单位
         ];
         return $body;
     }

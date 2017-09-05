@@ -180,8 +180,8 @@ class FinalQuoteModel extends PublicModel {
 	 * @return array
 	 */
 	public function updateFinal($condition = []) {
-		if(!empty($condition['id'])){
-			$where['id'] = $condition['id'];
+		if(!empty($condition['inquiry_id'])){
+			$where['inquiry_id'] = $condition['inquiry_id'];
 		}else{
 			$results['code'] = '-103';
 			$results['message'] = '没有ID!';
@@ -272,6 +272,6 @@ class FinalQuoteModel extends PublicModel {
 	 * @author zhangyuliang
 	 */
 	public function getTime() {
-		return date('Y-m-d h:i:s',time());
+		return date('Y-m-d H:i:s',time());
 	}
 }

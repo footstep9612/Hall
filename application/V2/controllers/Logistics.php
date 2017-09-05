@@ -15,10 +15,11 @@ class LogisticsController extends PublicController {
 		$this->quoteItemModel = new QuoteItemModel();
 		$this->quoteLogiFeeModel = new QuoteLogiFeeModel();
 		$this->quoteItemLogiModel = new QuoteItemLogiModel();
-		$this->exchangeRateModel = new ExchangeRateModel();
 		$this->userModel = new UserModel();
 		$this->inquiryCheckLogModel = new InquiryCheckLogModel();
 		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
+		$this->marketAreaTeamModel = new MarketAreaTeamModel();
+		$this->orgMemberModel = new OrgMemberModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -129,9 +130,39 @@ class LogisticsController extends PublicController {
 	        $condition['pm_id'] = $pm['id'];
 	    }
 	    
-	    $condition['logi_agent_id'] = $this->user['id'];
+	    $isGroup = ['in', $this->user['group_id']];
+	    
+	    $where['_complex'] = [
+	        'logi_check_org_id' => $isGroup,
+	        'logi_quote_org_id' => $isGroup,
+	        '_logic' => 'or',
+	    ];
+	    
+	    $res1 = $this->marketAreaTeamModel->where(['logi_check_org_id' => $isGroup])->find();
+	    
+	    $res2 = $this->marketAreaTeamModel->where(['logi_quote_org_id' => $isGroup])->find();
+	    
+	    $marketAreaTeamList = $this->marketAreaTeamModel->where($where)->select();
+	    
+	    $marketOrgArr = [];
+	    
+	    foreach ($marketAreaTeamList as $marketAreaTeam) {
+	        $marketOrgArr[] = $marketAreaTeam['market_org_id'];
+	    }
+	    
+	    $orgMemberList = $this->orgMemberModel->getList(['org_id' => array_unique($marketOrgArr)]);
+	    
+	    $employeeArr = [];
+	    
+	    foreach ($orgMemberList as $orgMember) {
+	        $employeeArr[] = $orgMember['employee_id'];
+	    }
+	    
+	    $condition['market_agent_id'] = array_unique($employeeArr) ? : ['-1'];
+	    
+	    //$condition['logi_agent_id'] = $this->user['id'];
 	
-	    $quoteLogiFeeList= $this->quoteLogiFeeModel->getJoinList($condition);
+	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);
 	    
 	    foreach ($quoteLogiFeeList as &$quoteLogiFee) {
             $userAgent = $this->userModel->info($quoteLogiFee['agent_id']);
@@ -139,8 +170,18 @@ class LogisticsController extends PublicController {
 	        $quoteLogiFee['agent_name'] = $userAgent['name'];
 	        $quoteLogiFee['pm_name'] = $userPm['name'];
 	    }
-	    	    
-	    $this->_handleList($this->quoteLogiFeeModel, $quoteLogiFeeList, $condition, true);
+	    
+	    if ($quoteLogiFeeList) {
+	        $res['code'] = 1;
+	        $res['message'] = '成功!';
+	        $res['data'] = $quoteLogiFeeList;
+	        $res['is_checker'] = $res1 ? 'Y' : 'N';
+	        $res['is_quoter'] = $res2 ? 'Y' : 'N';
+	        $res['count'] = $this->quoteLogiFeeModel->getJoinCount($condition);
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
 	}
 	
 	/**
@@ -156,13 +197,28 @@ class LogisticsController extends PublicController {
 	        
     	    $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
     	    
-	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
-	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
-	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']) + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']) + $quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']) + $quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']);
-	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
-	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
-	        $user = $this->getUserInfo();
-	        $quoteLogiFee['current_name'] = $user['name'];
+    	    if ($quoteLogiFee) {
+    	        $quoteLogiFee['land_freight_usd'] = $quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']);
+    	        $quoteLogiFee['port_surcharge_usd'] = $quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']);
+    	        $quoteLogiFee['inspection_fee_usd'] = $quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']);
+    	        $quoteLogiFee['inter_shipping_usd'] = $quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']);
+    	        $quoteLogiFee['dest_delivery_fee_usd'] = $quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']);
+    	        $quoteLogiFee['dest_clearance_fee_usd'] = $quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']);
+    	        	
+    	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
+    	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
+    	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
+    	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
+    	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
+    	        $user = $this->getUserInfo();
+    	        $quoteLogiFee['current_name'] = $user['name'];
+    	        
+    	        if ($quoteLogiFee['logi_agent_id']) $quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id']);
+    	        
+    	        $outField = 'logi_quote_org_id';
+    	        $findFields = ['logi_check_org_id', $outField];
+    	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);
+    	    }
     	
     	    $this->jsonReturn($quoteLogiFee);
 	    } else {
@@ -222,6 +278,7 @@ class LogisticsController extends PublicController {
 	       
 	        if ($quote['quote_remarks'] != $condition['quote_remarks']) $quoteData['quote_remarks'] = $condition['quote_remarks'];
 	        
+	        if ($data['total_logi_fee'] != $quote['total_logi_fee']) $quoteData['total_logi_fee'] = $data['total_logi_fee'];
 	        if ($data['total_quote_price'] != $quote['total_quote_price']) $quoteData['total_quote_price'] = $data['total_quote_price'];
 	        if ($data['total_bank_fee'] != $quote['total_bank_fee']) $quoteData['total_bank_fee'] = $data['total_bank_fee'];
 	        if ($data['total_insu_fee'] != $quote['total_insu_fee']) $quoteData['total_insu_fee'] = $data['total_insu_fee'];
@@ -601,7 +658,11 @@ class LogisticsController extends PublicController {
 	 */
 	public function calcuTotalLogiFee($condition = []) {
 	    
-	    if (empty($condition['trade_terms_bn'])) return false;
+	    if (empty($condition['trade_terms_bn'])) {
+	        return false;
+	    } else {
+	        $trade = $condition['trade_terms_bn'];
+	    }
 	   
 	    $data = $condition;
 	     
@@ -618,33 +679,32 @@ class LogisticsController extends PublicController {
 	     
 	    $data['inspection_fee'] = $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
 	     
-	    switch ($data['trade_terms_bn']) {
-	        case 'EXW' :
-	             
+	    switch (true) {
+	        case $trade == 'EXW' :
 	            break;
-	        case 'FCA' || 'FAS' :
+	        case $trade == 'FCA' || $trade == 'FAS' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            break;
-	        case 'FOB' :
+	        case $trade == 'FOB' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
 	            break;
-	        case 'CPT' || 'CFR' :
+	        case $trade == 'CPT' || $trade == 'CFR' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
 	            $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
 	            break;
-	        case 'CIF' || 'CIP' :
+	        case $trade == 'CIF' || $trade == 'CIP' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
 	            $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
 	            $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
 	            break;
-	        case 'DAP' || 'DAT' :
+	        case $trade == 'DAP' || $trade == 'DAT' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
@@ -652,7 +712,7 @@ class LogisticsController extends PublicController {
 	            $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
 	            $data['dest_delivery_fee'] = $condition['dest_delivery_fee'] > 0 ? $condition['dest_delivery_fee'] : 0;
 	            break;
-	        case 'DDP' || '快递' :
+	        case $trade == 'DDP' || $trade == '快递' :
 	            $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
 	            $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
 	            $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
@@ -678,28 +738,28 @@ class LogisticsController extends PublicController {
 	    $tmpRate1 = 1 - $data['premium_rate'] - round($data['payment_period'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
 	    $tmpRate2 = $tmpRate1 - 1.1 * $data['shipping_insu_rate'];
 	     
-	    switch ($data['trade_terms_bn']) {
-	        case 'EXW' :
+	    switch (true) {
+	        case $trade == 'EXW' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8);
 	            break;
-	        case 'FCA' || 'FAS' :
+	        case $trade == 'FCA' || $trade == 'FAS' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8);
 	            break;
-	        case 'FOB' :
+	        case $trade == 'FOB' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8);
 	            break;
-	        case 'CPT' || 'CFR' :
+	        case $trade == 'CPT' || $trade == 'CFR' :
 	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8);
 	            break;
-	        case 'CIF' || 'CIP' :
+	        case $trade == 'CIF' || $trade == 'CIP' :
 	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	            break;
-	        case 'DAP' || 'DAT' :
+	        case $trade == 'DAP' || $trade == 'DAT' :
 	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	            break;
-	        case 'DDP' || '快递' :
+	        case $trade == 'DDP' || $trade == '快递' :
 	            $tmpCaFee = ($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate']) * (1 + $data['dest_va_tax_rate']) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	    }
@@ -714,9 +774,12 @@ class LogisticsController extends PublicController {
 	    $data['dest_va_tax_fee'] = $destVaTaxUSD;
 	     
 	    // 物流费用合计
-	    $totalFeeUSD = $inspectionFeeUSD +  $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD;
-	    $data['shipping_charge_cny'] = round($totalFeeUSD * $this->_getRateCNY('USD'), 4);
-	    $data['shipping_charge_ncny'] = round($totalFeeUSD, 4);
+	    $data['total_logi_fee'] = round($inspectionFeeUSD +  $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD, 4);
+	    
+	    $data['shipping_charge_cny'] = round(($data['inspection_fee_cur'] == 'CNY' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'CNY' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'CNY' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'CNY' ? $data['inter_shipping'] : 0)
+	                                                            + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'CNY' ? $data['dest_clearance_fee'] : 0), 4);
+	    $data['shipping_charge_ncny'] = round(($data['inspection_fee_cur'] == 'USD' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'USD' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'USD' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'USD' ? $data['inter_shipping'] : 0)
+	                                                            + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'USD' ? $data['dest_clearance_fee'] : 0), 4);
 	    
 	    $data['total_quote_price'] = round($totalQuotePrice, 4);
 	    $data['total_bank_fee'] = round($totalBankFeeUSD, 4);
@@ -784,13 +847,54 @@ class LogisticsController extends PublicController {
 	private function _getRate($cur, $exchangeCur = 'CNY') {
 	    
 	    if (!empty($cur)) {
-	        $exchangeRate = $this->exchangeRateModel->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->field('rate')->find();
+	        $exchangeRateModel = new ExchangeRateModel();
+	        $exchangeRate = $exchangeRateModel->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->field('rate')->find();
 	        
 	        return $exchangeRate['rate'];
 	    } else {
 	        return false;
 	    }
 	    
+	}
+	
+	/**
+	 * @desc 获取用户所在指定组织的id集合串
+	 *
+	 * @param string $employeeId 员工id
+	 * @param array $findFields 查找的组织字段
+	 * @param string $outField 输出的组织字段
+	 * @return string 组织id集合串
+	 * @author liujf
+	 * @time 2017-08-31
+	 */
+	private function _getOrgIds($employeeId = '-1', $findFields = ['logi_quote_org_id'], $outField = 'logi_check_org_id') {
+	     
+	    $orgMemberList = $this->orgMemberModel->getList(['employee_id' => $employeeId]);
+	    
+        $orgArr = [];
+        
+        foreach ($orgMemberList as $orgMember) {
+            $orgArr[] = $orgMember['org_id'];
+        }
+        
+        $where = [];
+        $condition = $orgArr ? ['in', $orgArr] : '-1';
+        
+        foreach ($findFields as $findField) {
+            $where['_complex'][$findField] = $condition;
+        }
+        
+        if ($where) $where['_complex']['_logic'] = 'or';
+        
+        $marketAreaTeamList = $this->marketAreaTeamModel->where($where)->select();
+        
+        $appointOrgArr = [];
+        
+        foreach ($marketAreaTeamList as $marketAreaTeam) {
+           $appointOrgArr[] = $marketAreaTeam[$outField];
+        }
+        
+        return implode(',', $appointOrgArr);
 	}
     
 	/**

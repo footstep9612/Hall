@@ -77,7 +77,7 @@ class ServiceCatModel extends PublicModel {
                 foreach ($condition['services'] as $item) {
                     $data = $this->create($item);
                     if(!empty($data['category'])){
-                        $save['category'] = json_encode($data['category']);
+                        $save['category'] = json_encode($data['category'],JSON_UNESCAPED_UNICODE);
                     }
                     $save['created_by'] = $userInfo['id'];
                     $save['created_at'] = date('Y-m-d H:i:s', time());
@@ -148,7 +148,7 @@ class ServiceCatModel extends PublicModel {
                 foreach ($condition['services'] as $item) {
                     $where = ['id'=>$item['id']];
                     if(!empty($item['category'])){
-                        $data['category'] = json_encode($item['category']);
+                        $data['category'] = json_encode($item['category'],JSON_UNESCAPED_UNICODE);
                     }
                     $data['updated_by'] = $userInfo['id'];
                     $data['updated_at'] = date('Y-m-d H:i:s', time());
@@ -386,7 +386,7 @@ class ServiceCatModel extends PublicModel {
             return false;
         }
 
-        $category = json_encode($data['category']);
+        $category = json_encode($data['category'],JSON_UNESCAPED_UNICODE);
         $userInfo = getLoinInfo();
 
         try{

@@ -197,15 +197,21 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
 
-        if ($lang !== 'zh') {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat_zh.all');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat_zh.all');
-        } else {
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
-            $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat');
+
+        $mcat_no1 = $this->_getValue($condition, 'mcat_no1');
+        $mcat_no2 = $this->_getValue($condition, 'mcat_no2');
+        $mcat_no3 = $this->_getValue($condition, 'mcat_no3');
+
+        if ($mcat_no1) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
         }
+        if ($mcat_no2) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+        if ($mcat_no3) {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+        }
+
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -245,24 +251,32 @@ class EsGoodsModel extends Model {
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+
             foreach ($userids as $created_by) {
                 $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $created_by_bool]];
+            if ($userids) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $created_by_bool]];
+            }
         }
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
             foreach ($userids as $updated_by) {
                 $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
+            if ($userids) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
+            }
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
             foreach ($userids as $checked_by) {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
+
+            if ($userids) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
+            }
         }
         if (isset($condition['keyword']) && $condition['keyword']) {
             $show_name = $condition['keyword'];
@@ -292,7 +306,8 @@ class EsGoodsModel extends Model {
     public function getgoods($condition, $_source = null, $lang = 'en') {
         try {
             $body = $this->getCondition($condition, $lang);
-            if ($body) {
+
+            if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
             $pagesize = 10;
@@ -303,6 +318,8 @@ class EsGoodsModel extends Model {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
+
+
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
@@ -416,9 +433,8 @@ class EsGoodsModel extends Model {
 
     private function _findnulltoempty(&$item) {
         foreach ($item as $key => $val) {
-            if (is_null($val)) {
-                $item[$key] = '';
-            }
+
+            $item[$key] = strval($val);
         }
     }
 
@@ -497,7 +513,7 @@ class EsGoodsModel extends Model {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
-        $this->_findnulltoempty($item);
+
         $body = $item;
         $product_attr = $productattrs[$spu];
 
@@ -511,8 +527,19 @@ class EsGoodsModel extends Model {
             $body['material_cat_zh'] = '{}';
         }
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
-        if (!$body['brand']) {
-            $body['brand'] = '{}';
+
+        $body['brand'] = str_replace("\r", '', $body['brand']);
+        $body['brand'] = str_replace("\n", '', $body['brand']);
+        $body['brand'] = str_replace("\t", '', $body['brand']);
+        if (json_decode($body['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
+        } elseif ($body['brand']) {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+        } else {
+            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
+        }
+        if (json_decode($body['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
         }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
             $body['name_loc'] = $name_locs[$sku];
@@ -570,6 +597,7 @@ class EsGoodsModel extends Model {
         }
         $body['show_cats'] = $this->_getValue($scats, $sku, [], 'json');
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
+        $this->_findnulltoempty($body);
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         if (!isset($flag['create'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);

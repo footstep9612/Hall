@@ -218,7 +218,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_by'])) {
             $data['checked_by'] = $create['checked_by'];
         }
-        $data['status'] = 'DRAFT';
+        $data['status'] = 'APPROVING';
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['checked_at'] = date('Y-m-d H:i:s');
         try {
@@ -282,7 +282,6 @@ class BuyerModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-
             $this->commit();
             return true;
         } catch (Exception $e) {
@@ -296,7 +295,7 @@ class BuyerModel extends PublicModel {
      * @author klp
      */
     public function update_data($create, $where) {
-
+        $data=[];
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
@@ -317,6 +316,9 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['country_code'])) {
             $data['country_code'] = $create['country_code'];
+        }
+        if (isset($create['area_bn'])) {
+            $data['area_bn'] = $create['area_bn'];
         }
         if (isset($create['country_bn'])) {
             $data['country_bn'] = $create['country_bn'];
@@ -357,14 +359,8 @@ class BuyerModel extends PublicModel {
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
-        if (isset($create['checked_by'])) {
-            $data['checked_by'] = $create['checked_by'];
-        }
-        if (isset($create['checked_at'])) {
-            $data['checked_at'] = $create['checked_at'];
-        }
         if (isset($create['status'])) {
-            switch ($create['status']) {
+            switch (strtoupper($create['status'])) {
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
@@ -376,12 +372,30 @@ class BuyerModel extends PublicModel {
                     break;
             }
         }
-        if (empty($data)) {
+        if (!empty($where)) {
+            $res = $this->where(['id' => $where['buyer_id']])->save($data);
+        } else {
+            return false;
+        }
+        if($res!==false){
             return true;
         }
-        $res = $this->where(['id' => $where['buyer_id']])->save($data);
-        if ($res) {
-            return true;
+        return false;
+    }
+
+    /**
+     * 判断采购商是否通过审核
+     * @author klp
+     */
+    public function isBuyerApproved($where){
+        $result = $this->field('status,id')->where($where)->find();
+        if($result){
+            if($result['status'] == self::STATUS_APPROVED){
+                $BuyerAgentModel = new BuyerAgentModel();
+                $res = $BuyerAgentModel->field('agent_id')->where(['buyer_id'=>$where['id']])->find();
+                return $res['agent_id'] ? $res['agent_id'] : false;
+            }
+            return false;
         }
         return false;
     }
