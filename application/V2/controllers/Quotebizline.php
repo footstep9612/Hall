@@ -985,6 +985,40 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * 计算报价合计
+     * @param $inquiry_id
+     *
+     * @return float|int
+     */
+    private function calculateTotalPurchase($inquiry_id){
+
+        //$inquiry_id = '1146';
+        $quoteItemModel = new QuoteItemModel();
+        $exchangeRateModel = new ExchangeRateModel();
+
+        $totalPurchase = [];
+        $quoteItemsData = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('purchase_unit_price,purchase_price_cur_bn')->select();
+
+        foreach ($quoteItemsData as $quote=>$item){
+            switch ($item['purchase_price_cur_bn']){
+                case 'EUR' :
+                    $rate = $exchangeRateModel->where(['cur_bn1'=>'EUR','cur_bn2'=>'CNY'])->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $rate;
+                    break;
+                case 'USD' :
+                    $rate = $exchangeRateModel->where(['cur_bn1'=>'USD','cur_bn2'=>'CNY'])->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $rate;
+                    break;
+                case 'CNY' :
+                    $totalPurchase[] = $item['purchase_unit_price'];
+                    break;
+            }
+        }
+
+        return array_sum($totalPurchase);
+    }
+
+    /**
      * 计算银行费用
      * @param $inquiry_id
      *
@@ -1016,13 +1050,13 @@ class QuotebizlineController extends PublicController {
         $quoteItemExwUnitPrices = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('exw_unit_price',true);
         $quoteItemExwUnitPrices = array_sum($quoteItemExwUnitPrices);
         //采购总价total_purchase
-        $quoteItemTotalPurchase = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('purchase_unit_price',true);
-        $quoteItemTotalPurchase = array_sum($quoteItemTotalPurchase);
+        //$quoteItemTotalPurchase = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('purchase_unit_price',true);
+        //$quoteItemTotalPurchase = array_sum($quoteItemTotalPurchase);
 
         $quoteModel = new QuoteModel();
         return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save([
             'total_exw_price' =>$quoteItemExwUnitPrices,
-            'total_purchase' =>$quoteItemTotalPurchase
+            'total_purchase' =>$this->calculateTotalPurchase($inquiry_id)
         ]);
 
     }
