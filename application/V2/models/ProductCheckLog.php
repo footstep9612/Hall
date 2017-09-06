@@ -136,12 +136,13 @@ class ProductCheckLogModel extends PublicModel {
      * @updater link  2017-08-05
      * @updateDetail  由原来单一对sku查询改为按条件查询，兼容原功能。
      */
-    public function getlastRecord($spu) {
+    public function getlastRecord($spu, $lang) {
         if (empty($spu)) {
             return [];
         }
         $where = [];
         $where['spu'] = $spu;
+        $where['lang'] = $lang;
         $fields = 'remarks';
 
 

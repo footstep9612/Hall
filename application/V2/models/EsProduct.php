@@ -196,7 +196,9 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
-
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no1', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no2', 'show_cats.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'scat_no3', 'show_cats.all');
         $mcat_no1 = $this->_getValue($condition, 'mcat_no1');
         $mcat_no2 = $this->_getValue($condition, 'mcat_no2');
         $mcat_no3 = $this->_getValue($condition, 'mcat_no3');
@@ -204,10 +206,10 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
         }
         if ($mcat_no2) {
-            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no2 . '*']];
         }
         if ($mcat_no3) {
-            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no1 . '*']];
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no3 . '*']];
         }
 
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
@@ -359,6 +361,45 @@ class EsProductModel extends Model {
             } else {
                 return 0;
             }
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
+        }
+    }
+
+    /*
+     * 获取产品总数
+     * @param array $condition //搜索条件
+     * @param string $lang // 语言
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getCounts($conditions, $lang = 'en') {
+
+        try {
+            $updateParams = [];
+            foreach ($conditions as $condition) {
+                $body = $this->getCondition($condition);
+                $updateParams['body'][] = ['count' => [$this->dbName, $this->tableName . '_' . $lang]];
+                $updateParams['body'][] = [$body];
+            }
+
+            $es = new ESClient();
+            $ret = $es->bulk($updateParams);
+            echo json_encode($updateParams);
+            var_dump($ret);
+            die();
+//            $ret = $es->setbody($body)
+//                    ->count($this->dbName, $this->tableName . '_' . $lang, '');
+//            if (isset($ret['count'])) {
+//                return $ret['count'];
+//            } else {
+//                return 0;
+//            }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -1152,14 +1193,14 @@ class EsProductModel extends Model {
         $index = $this->dbName;
         $type = 'product_' . $lang;
         $count = $this->setbody(['query' => [
-                        ESClient::MATCH_PHRASE => [
-                            "show_cats" => $old_cat_no
+                        ESClient::MATCH => [
+                            "show_cats.all" => $old_cat_no
                         ]
             ]])->count($index, $type);
         for ($i = 0; $i < $count['count']; $i += 100) {
             $ret = $this->setbody(['query' => [
-                            ESClient::MATCH_PHRASE => [
-                                "show_cats" => $old_cat_no
+                            ESClient::MATCH => [
+                                "show_cats.ik" => $old_cat_no
                             ]
                 ]])->search($index, $type, $i, 100);
             $updateParams = array();

@@ -43,8 +43,8 @@ class EsproductController extends PublicController {
         $model = new EsProductModel();
         $lang = $this->getPut('lang', 'zh');
 
-        $data = $this->getPut();
-        $ret = $model->getProducts($data, null, $lang);
+        $condition = $this->getPut();
+        $ret = $model->getProducts($condition, null, $lang);
         if ($ret) {
             $data = $ret[0];
 
@@ -63,15 +63,16 @@ class EsproductController extends PublicController {
                 $send['sku_count'] = 0;
             }
             if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
-                $data['onshelf_flag'] = 'N';
-                $data['sku_count'] = 'Y';
-                $ret_N = $model->getProducts($data, $lang);
+                $condition['onshelf_flag'] = 'N';
+                $condition['sku_count'] = 'Y';
+                $ret_N = $model->getProducts($condition, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
-                $send['onshelf_sku_count_N'] = $ret_N[0]['aggregations']['sku_count']['value'];
-                $data['onshelf_flag'] = 'Y';
-                $ret_y = $model->getProducts($data, $lang);
+                $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
+                $condition['onshelf_flag'] = 'Y';
+
+                $ret_y = $model->getProducts($condition, $lang);
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
-                $send['onshelf_sku_count_Y'] = $ret_y[0]['aggregations']['sku_count']['value'];
+                $send['onshelf_sku_count_Y'] = intval($ret_y[0]['aggregations']['sku_count']['value']);
             }
 
             $send['data'] = $list;
@@ -259,7 +260,8 @@ class EsproductController extends PublicController {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
-            $this->es->refresh($rhis->index);
+            $es = new ESClient();
+            $es->refresh($this->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

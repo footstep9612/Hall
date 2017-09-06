@@ -125,7 +125,7 @@ trait QuoteHelper{
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $quoteBizlineModel = new QuoteBizLineModel();
-        $field = 'inq.id inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id,qb.status quote_status';
+        $field = 'qb.id, qb.inquiry_id,inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.bizline_id,qb.status quote_status';
         return  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -194,7 +194,7 @@ trait QuoteHelper{
 
         $where = self::bizlineManagerQuoteListCondition($where);
 
-        $field = 'inq.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.status quote_status';
+        $field = 'qb.serial_no,inq.country_bn,inq.buyer_name,inq.agent_id,inq.pm_id,inq.inquiry_time,inq.status,inq.quote_deadline,qb.id,qb.quote_id,qb.status quote_status';
         $count =  $quoteBizlineModel->alias('qb')
             ->join('erui2_rfq.inquiry inq ON qb.inquiry_id = inq.id')
             ->field($field)
@@ -208,6 +208,7 @@ trait QuoteHelper{
     public static function bizlineManagerQuoteSkuList($condition){
 
         $where['a.quote_id'] = $condition['quote_id'];
+        $where['a.bizline_id'] = $condition['bizline_id'];
 
         //原理的错误逻辑
 //        $quoteItemFormModel = new QuoteItemFormModel();
@@ -225,10 +226,10 @@ trait QuoteHelper{
         //改正
         $quoteItemModel = new QuoteItemModel();
 
-        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.remarks goods_remarks,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,qb.status,a.created_by,qb.bizline_id';
+        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.remarks goods_remarks,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,qb.status,a.bizline_agent_id,qb.bizline_id';
         $data = $quoteItemModel->alias('a')
             ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-            ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')
+            ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id and a.bizline_id=qb.bizline_id')
             ->field($fields)
             ->where($where)
             ->order('a.id DESC')
@@ -240,7 +241,7 @@ trait QuoteHelper{
     public static function bizlineManagerQuoteSkuListCount($request){
 
         $where['a.quote_id'] = $request['quote_id'];
-
+        $where['qb.bizline_id'] = $request['bizline_id'];
         //以前的错误代码
 //        $quoteItemFormModel = new QuoteItemFormModel();
 //

@@ -39,12 +39,6 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu, $lang, $status);
 
-        $checklogModel = new ProductCheckLogModel();
-
-
-        $this->setvalue('checklog', $checklogModel->getlastRecord($this->put_data['spu']));
-
-
         if ($result !== false) {
             $this->jsonReturn($result);
         } else {

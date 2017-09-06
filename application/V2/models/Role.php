@@ -36,15 +36,21 @@ class RoleModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            $res= $this->field('id,name,name_en,remarks,created_by,created_at,status')
+            $res= $this->field('role.id,role.name,role.name_en,role.remarks,role.created_by,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
+                            ->join('`erui2_sys`.`role_member` rm on rm.role_id=role.id', 'left')
+                            ->join('`erui2_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
                             ->where($data)
                             ->limit( $limit['page']. ','. $limit['num'] )
+                            ->group('role.id')
                             ->order($order)
                             ->select();
             return $res;
         }else{
-            return $this->field('id,name,name_en,remarks,created_by,created_at,status')
+            return $this->field('role.id,role.name,role.name_en,role.remarks,role.created_by,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
+                ->join('`erui2_sys`.`role_member` rm on rm.role_id=role.id', 'left')
+                ->join('`erui2_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
                 ->where($data)
+                ->group('role.id')
                 ->order($order)
                 ->select();
         }

@@ -14,7 +14,7 @@ class QuoteLogiFeeModel extends PublicModel {
     protected $joinTable3 = 'erui2_rfq.inquiry d ON a.inquiry_id = d.id';
     protected $joinTable4 = 'erui2_operation.market_area_country e ON d.country_bn = e.country_bn';
     protected $joinTable5 = 'erui2_dict.country f ON d.country_bn = f.bn AND f.lang = \'zh\'';
-    protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.package_mode, b.box_type_bn, b.delivery_addr, b.dispatch_place, b.quote_remarks, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name, d.serial_no, e.market_area_bn';
+    protected $joinField = 'a.*, b.trade_terms_bn, b.from_country, b.from_port, b.trans_mode_bn, b.to_country, b.to_port, b.package_mode, b.box_type_bn, b.delivery_addr, b.dispatch_place, b.quote_remarks, b.total_logi_fee, b.total_insu_fee, b.total_exw_price, b.total_quote_price, c.name, d.serial_no, e.market_area_bn';
     protected $joinField_ = 'a.*, b.period_of_validity, d.serial_no, d.buyer_name, d.agent_id, d.pm_id, d.inquiry_time, f.name AS country_name';
 			    
     public function __construct() {

@@ -76,7 +76,7 @@ class UserModel extends PublicModel {
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id ';
         $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
-        $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .= ' left join  role on role_member.role_id = role.id and role.deleted_flag ="N" ';
         $sql .=$where;
         $sql .= ' group by `employee`.`id`';
         if ( $condition['num'] ){

@@ -516,4 +516,30 @@ class GoodsController extends PublicController {
         ];
     }
 
+    /**
+     * 导出模板
+     */
+    public function exportTempAction(){
+        $goodsModel = new GoodsModel();
+        $localDir =$goodsModel ->exportTemp();
+        if($localDir){
+            jsonReturn($localDir);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 导入
+     */
+    public function importAction(){
+        $goodsModel = new GoodsModel();
+        $localDir =$goodsModel ->import();
+        if($localDir){
+            jsonReturn($localDir);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
 }

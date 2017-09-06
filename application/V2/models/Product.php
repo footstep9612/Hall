@@ -201,7 +201,7 @@ class ProductModel extends PublicModel {
                         $data['show_name'] = $data['name'];
                     }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST','VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
@@ -497,6 +497,7 @@ class ProductModel extends PublicModel {
             $data = array();
             if ($result) {
                 $employee = new EmployeeModel();
+                $checklogModel = new ProductCheckLogModel();
                 $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
@@ -518,6 +519,9 @@ class ProductModel extends PublicModel {
                         $brand = json_decode($item['brand'], true);
                         $item['brand'] = $brand['name'];
                     }
+
+
+                    $item['remark'] = $checklogModel->getlastRecord($item['spu'], $item['lang']);
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
