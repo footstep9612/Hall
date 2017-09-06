@@ -459,10 +459,24 @@ class QuotebizlineController extends PublicController {
         $request = $this->validateRequests('quote_bizline_id');
 
         $quoteItemForm = new QuoteItemFormModel();
-        $quoterSkuList = $quoteItemForm->getSkuList($request);
+        $quoterSkuList = $quoteItemForm->getSkuList($request,$this->user['id']);
 
         if (!$quoterSkuList){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }else{
+            $list = [];
+            $sku = [];
+            foreach ($quoterSkuList as $k=>$v){
+                if ($v['status'] =='NOT_QUOTED'){
+                    if(!in_array($v['sku'],$sku)){
+                        $list[] = $v;
+                    }
+                }else{
+                    $sku[] = $v['sku'];
+                    $list[] = $v;
+                }
+            }
+            $quoterSkuList = $list;
         }
 
         $user = new EmployeeModel();
@@ -476,7 +490,7 @@ class QuotebizlineController extends PublicController {
         $this->jsonReturn([
             'code' => '1',
             'message' => '成功!',
-            'count' => $quoteItemForm->getSkuListCount($request),
+            'count' => $quoteItemForm->getSkuListCount($request,$this->user['id']),
             'data' => $quoterSkuList
         ]);
     }

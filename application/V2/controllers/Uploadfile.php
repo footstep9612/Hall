@@ -99,8 +99,8 @@ class UploadfileController extends PublicController {
         if (!empty($ret['fileId'])) {
             $fastDFSUrl = Yaf_Application::app()->getConfig()->fastDFSUrl;
 
-            header('Content-type: text/html; charset=UTF-8');
-
+            header('Content-Type:application/json; charset=utf-8');
+            header('P3P:CP=CAO PSA OUR');
             echo json_encode(array('error' => 0, 'url' => $fastDFSUrl . $ret['fileId']));
             exit;
         } else {
@@ -111,8 +111,8 @@ class UploadfileController extends PublicController {
     }
 
     function alert($msg) {
-        header('Content-type: text/html; charset=UTF-8');
-
+        header('Content-Type:application/json; charset=utf-8');
+        header('P3P:CP=CAO PSA OUR');
         echo json_encode(array('error' => 1, 'message' => $msg));
         exit;
     }

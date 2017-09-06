@@ -159,4 +159,44 @@ class ProductCheckLogModel extends PublicModel {
         }
     }
 
+    /**
+     * sku审核记录查询
+     * @param  $sku
+     * @return array
+     * @updater link  2017-08-05
+     * @updateDetail  由原来单一对sku查询改为按条件查询，兼容原功能。
+     */
+    public function getSkuRecord($condition = [], $fields = '') {
+        if (empty($condition)) {
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
+        }
+        $where = [];
+        if (is_array($condition)) {
+            if (isset($condition['sku'])) {
+                $where['sku'] = $condition['sku'];
+            }
+            if (isset($condition['spu'])) {
+                $where['spu'] = $condition['spu'];
+            }
+            if (isset($condition['lang']) && in_array(strtolower($condition['lang']), array('zh', 'en', 'es', 'ru'))) {
+                $where['lang'] = strtolower($condition['lang']);
+            }
+        } else {
+            $where['sku'] = $condition;
+        }
+        if (empty($fields)) {
+            $fields = 'spu,sku,lang,status,remarks,approved_by,approved_at';
+        } elseif (is_array($fields)) {
+            $fields = implode(',', $fields);
+        }
+        try {
+            $result = $this->field($fields)->where($where)->order('approved_at DESC')->find();
+            if ($result) {
+                return $result;
+            }
+            return array();
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 }
