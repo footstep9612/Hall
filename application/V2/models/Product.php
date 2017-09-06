@@ -892,7 +892,7 @@ class ProductModel extends PublicModel {
                 $data_tmp['exe_standard'] = $r[8];
                 $data_tmp['warranty'] = $r[9];
                 $data_tmp['keywords'] = $r[10];
-                $data_tmp['source'] = 'IMPORT';
+                $data_tmp['source'] = 'ERUI';
                 $data_tmp['source_detail'] = 'Excel批量导入';
                 $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                 $data_tmp['created_at'] = date('Y-m-d H:i:s');
