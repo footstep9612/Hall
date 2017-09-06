@@ -463,6 +463,20 @@ class QuotebizlineController extends PublicController {
 
         if (!$quoterSkuList){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
+        }else{
+            $list = [];
+            $sku = [];
+            foreach ($quoterSkuList as $k=>$v){
+                if ($v['status'] =='NOT_QUOTED'){
+                    if(!in_array($v['sku'],$sku)){
+                        $list[] = $v;
+                    }
+                }else{
+                    $sku[] = $v['sku'];
+                    $list[] = $v;
+                }
+            }
+            $quoterSkuList = $list;
         }
 
         $user = new EmployeeModel();
