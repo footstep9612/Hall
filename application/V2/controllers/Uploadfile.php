@@ -100,7 +100,7 @@ class UploadfileController extends PublicController {
             $fastDFSUrl = Yaf_Application::app()->getConfig()->fastDFSUrl;
 
             header('Content-type: text/html; charset=UTF-8');
-            $json = new Services_JSON();
+
             echo json_encode(array('error' => 0, 'url' => $fastDFSUrl . $ret['fileId']));
             exit;
         } else {
@@ -112,8 +112,8 @@ class UploadfileController extends PublicController {
 
     function alert($msg) {
         header('Content-type: text/html; charset=UTF-8');
-        $json = new Services_JSON();
-        echo $json->encode(array('error' => 1, 'message' => $msg));
+
+        echo json_encode(array('error' => 1, 'message' => $msg));
         exit;
     }
 
