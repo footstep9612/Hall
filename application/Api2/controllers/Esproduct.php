@@ -145,7 +145,7 @@ class EsproductController extends PublicController {
                 $item['count'] = $model->getcount($condition, $this->getLang());
                 $new_showcats3[$key] = $item;
             }
-            redisSet($catno_key, json_encode($new_showcats3), 86400);
+            redisSet($catno_key, json_encode($new_showcats3), 3600);
             return $new_showcats3;
         }
         return $catlist;

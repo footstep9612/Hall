@@ -216,6 +216,8 @@ class QuotebizlineController extends PublicController {
 
         //1.创建一条报价记录(quote)
         $quoteModel = new QuoteModel();
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['id'=>$request['inquiry_id']])->find();
         $quoteModel->startTrans();
 
         $isEx = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->getField('id');
@@ -227,7 +229,11 @@ class QuotebizlineController extends PublicController {
                 'serial_no' => $request['serial_no'],
                 'quote_no' => $this->getQuoteNo(),
                 'quote_lang' => 'zh',
-                'created_at' => date('Y-m-d H:i:s')
+                'trans_mode_bn' => $inquiryInfo['trans_mode_bn'],
+                'dispatch_place' => $inquiryInfo['dispatch_place'],
+                'delivery_addr' => $inquiryInfo['delivery_addr'],
+                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s'),
             ]));
         }else{
             $quoteResult = $isEx;
@@ -269,6 +275,8 @@ class QuotebizlineController extends PublicController {
                 'inquiry_item_id' => $item['id'],
                 'bizline_id' => $request['bizline_id'],
                 'sku' => $item['sku'],
+                'quote_unit' => $item['unit'],
+                'quote_qty' => $item['qty'],
                 'created_at' => date('Y-m-d H:i:s')
             ]));
         }
@@ -417,7 +425,7 @@ class QuotebizlineController extends PublicController {
      */
     public function bizlineManagerQuoteSkuListAction(){
 
-        $request = $this->validateRequests('quote_id');
+        $request = $this->validateRequests('quote_id,quote_bizline_id,bizline_id');
         $skuList = QuoteHelper::bizlineManagerQuoteSkuList($request);
 
         if ($skuList){
@@ -426,7 +434,7 @@ class QuotebizlineController extends PublicController {
             $quoteItemForm = new QuoteItemFormModel();
             foreach ($skuList as $key=>$bizlineQuoteSku) {
                 $skuList[$key]['supplier_name'] = $supplier->where(['id'=>$bizlineQuoteSku['supplier_id']])->getField('name');
-                $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['created_by']])->getField('name');
+                $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['bizline_agent_id']])->getField('name');
                 //已经报价供应商数量(也就是说quote_item_form对应的记录)
                 $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id']])->count('id');
             }
@@ -448,7 +456,7 @@ class QuotebizlineController extends PublicController {
      */
     public function bizlineQuoterSkuListAction(){
 
-        $request = $this->validateRequests('quote_item_id');
+        $request = $this->validateRequests('quote_bizline_id');
 
         $quoteItemForm = new QuoteItemFormModel();
         $quoterSkuList = $quoteItemForm->getSkuList($request);
@@ -461,7 +469,7 @@ class QuotebizlineController extends PublicController {
         $supplier = new SupplierModel();
 
         foreach ($quoterSkuList as $key=>$value){
-            $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
+            $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['updated_by']])->getField('name');
             $quoterSkuList[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
         }
 
@@ -747,54 +755,50 @@ class QuotebizlineController extends PublicController {
      */
     public function assignQuoterAction() {
 
-        $request = $this->validateRequests('quote_item_form_id,biz_agent_id');
+        //TODO 更改参数quote_item_form_id为quote_item_id
+        $request = $this->validateRequests('quote_id,quote_item_id,biz_agent_id,bizline_id');
 
-        $quoteBizline = new QuoteItemFormModel();
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $quoteBizline = new QuoteBizLineModel();
+
+        $quoteItemInfo = $quoteItemModel->where(['quote_id'=>$request['quote_id'],'bizline_id'=>$request['bizline_id']])->find();
+        $quoteBizlineInfo = $quoteBizline->where(['quote_id'=>$request['quote_id'],'bizline_id'=>$request['bizline_id']])->find();
 
         //当前报价单项没有报价人则把当前报价单项指派给新选择的人
-        $quote_item_form_ids = explode(',',$request['quote_item_form_id']);
+        $quote_item_form_ids = explode(',',$request['quote_item_id']);
 
         try{
             foreach ($quote_item_form_ids as $quoteFormItem){
-                //TODO 添加型号字段
-                $quote= $quoteBizline->where(['id'=>$quoteFormItem])->field('quote_id,quote_item_id,inquiry_item_id,quote_bizline_id,sku,brand,created_by')->find();
 
-                //如果当前记录没有报价人，则更新
-                if (!$quote['created_by']){
-                    $quoteBizline->where(['id'=>$quoteFormItem])->save($quoteBizline->create([
-                        'quote_id' => $quote['quote_id'],
-                        'quote_item_id' => $quote['quote_item_id'],
-                        'inquiry_item_id' => $quote['inquiry_item_id'],
-                        'quote_bizline_id' => $quote['quote_bizline_id'],
-                        'sku' => $quote['sku'],
-                        'brand' => $quote['brand'],
-                        'created_by' => $request['biz_agent_id'],
-                        'created_at' => date('Y-m-d H:i:s')
-                    ]));
+                $isAssigned = $quoteItemFormModel->where([
+                    'quote_id' => $request['quote_id'],
+                    'quote_item_id' => $quoteFormItem,
+                    'sku' => $quoteItemInfo['sku'],
+                    'updated_by' => $request['biz_agent_id'],
+                ])->count();
+
+                //是否已被指派
+                if ($isAssigned){
+                    $this->jsonReturn(['code' => '-104','message' => '不能重复指派!']);
                 }
 
-                //不能重复指派
-                if ($quote['created_by'] == $request['biz_agent_id']){
-                    $this->jsonReturn([
-                        'code' => '-104',
-                        'message' => '不能重复指派!'
-                    ]);
-                }
 
-                //新增记录
-                $quoteBizline->add($quoteBizline->create([
-                    'quote_id' => $quote['quote_id'],
-                    'quote_item_id' => $quote['quote_item_id'],
-                    'inquiry_item_id' => $quote['inquiry_item_id'],
-                    'quote_bizline_id' => $quote['quote_bizline_id'],
-                    'sku' => $quote['sku'],
-                    'brand' => $quote['brand'],
+                $quoteItemFormModel->add($quoteItemFormModel->create([
+                    'quote_id' => $request['quote_id'],
+                    'quote_item_id' => $quoteFormItem,
+                    'inquiry_item_id' => $quoteItemInfo['inquiry_item_id'],
+                    'quote_bizline_id' => $quoteBizlineInfo['id'],
+                    'sku' => $quoteItemInfo['sku'],
                     'created_by' => $request['biz_agent_id'],
+                    'updated_by' => $request['biz_agent_id'],
                     'created_at' => date('Y-m-d H:i:s')
                 ]));
 
             }
+
             $this->jsonReturn(['code'=>'1','message'=>'指派成功!']);
+
         }catch (Exception $exception){
             $this->jsonReturn([
                 'code' => $exception->getCode(),
@@ -985,32 +989,31 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * 计算报价合计
+     * 计算报价合计(美元)
      * @param $inquiry_id
      *
      * @return float|int
      */
     private function calculateTotalPurchase($inquiry_id){
 
-        //$inquiry_id = '1146';
         $quoteItemModel = new QuoteItemModel();
         $exchangeRateModel = new ExchangeRateModel();
 
         $totalPurchase = [];
-        $quoteItemsData = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('purchase_unit_price,purchase_price_cur_bn')->select();
+        $quoteItemsData = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
 
         foreach ($quoteItemsData as $quote=>$item){
             switch ($item['purchase_price_cur_bn']){
                 case 'EUR' :
-                    $rate = $exchangeRateModel->where(['cur_bn1'=>'EUR','cur_bn2'=>'CNY'])->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $rate;
+                    $rate = $exchangeRateModel->where(['cur_bn1'=>'EUR','cur_bn2'=>'USD'])->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
                     break;
                 case 'USD' :
-                    $rate = $exchangeRateModel->where(['cur_bn1'=>'USD','cur_bn2'=>'CNY'])->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $rate;
+                    $totalPurchase[] = $item['purchase_unit_price'];
                     break;
                 case 'CNY' :
-                    $totalPurchase[] = $item['purchase_unit_price'];
+                    $rate = $exchangeRateModel->where(['cur_bn1'=>'CNY','cur_bn2'=>'USD'])->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
                     break;
             }
         }
@@ -1030,7 +1033,7 @@ class QuotebizlineController extends PublicController {
         $quoteModel = new QuoteModel();
         $quoteInfo = $quoteModel->where(['inquiry_id'=>$inquiry_id])->field('id,total_exw_price,bank_interest,fund_occupation_rate,payment_period')->find();
 
-        $total_bank_fee = $quoteInfo['total_exw_price'] * $quoteInfo['bank_interest'] * ( $quoteInfo['bank_interest'] / 365 );
+        $total_bank_fee = $quoteInfo['total_exw_price'] * $quoteInfo['bank_interest'] *  $quoteInfo['payment_period'] / 365 ;
         $total_bank_fee = sprintf("%.4f", $total_bank_fee);
 
         return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save(['total_bank_fee'=>$total_bank_fee]);
@@ -1085,7 +1088,7 @@ class QuotebizlineController extends PublicController {
 
                     //汇率
                     $exchange_rate = $exchangeRateModel->where(['cur_bn1'=>$value['purchase_price_cur_bn'],'cur_bn2'=>'USD'])->getField('rate');
-                    $exw_unit_price = $value['purchase_unit_price'] * ( $gross_profit_rate / $exchange_rate );
+                    $exw_unit_price = $value['purchase_unit_price'] *  $gross_profit_rate / $exchange_rate ;
                     $exw_unit_price = sprintf("%.4f", $exw_unit_price);
                     $quoteItemModel->where(['id'=>$value['id']])->save([
                         'exw_unit_price' => $exw_unit_price
@@ -1182,7 +1185,8 @@ class QuotebizlineController extends PublicController {
                 'stock_loc' => $request['stock_loc'],
                 'delivery_days' => $request['delivery_days'],
                 'period_of_validity' => $request['period_of_validity'],
-                'created_by' => $user->where(['name'=>$request['created_by']])->getField('id'),
+                'reason_for_no_quote' => $request['reason_for_no_quote'],
+                'bizline_agent_id' => $user->where(['name'=>$request['created_by']])->getField('id'),
                 'status' => 'QUOTED'
             ]));
 

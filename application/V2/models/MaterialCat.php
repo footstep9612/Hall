@@ -277,6 +277,7 @@ class MaterialCatModel extends PublicModel {
                     ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y',]);
 
             $es_product_model = new EsProductModel();
+
             if ($lang) {
                 $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
             } else {
