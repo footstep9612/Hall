@@ -459,7 +459,7 @@ class QuotebizlineController extends PublicController {
         $request = $this->validateRequests('quote_bizline_id');
 
         $quoteItemForm = new QuoteItemFormModel();
-        $quoterSkuList = $quoteItemForm->getSkuList($request);
+        $quoterSkuList = $quoteItemForm->getSkuList($request,$this->user['id']);
 
         if (!$quoterSkuList){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
@@ -476,7 +476,7 @@ class QuotebizlineController extends PublicController {
         $this->jsonReturn([
             'code' => '1',
             'message' => '成功!',
-            'count' => $quoteItemForm->getSkuListCount($request),
+            'count' => $quoteItemForm->getSkuListCount($request,$this->user['id']),
             'data' => $quoterSkuList
         ]);
     }
