@@ -216,6 +216,8 @@ class QuotebizlineController extends PublicController {
 
         //1.创建一条报价记录(quote)
         $quoteModel = new QuoteModel();
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['id'=>$request['inquiry_id']])->find();
         $quoteModel->startTrans();
 
         $isEx = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->getField('id');
@@ -227,7 +229,11 @@ class QuotebizlineController extends PublicController {
                 'serial_no' => $request['serial_no'],
                 'quote_no' => $this->getQuoteNo(),
                 'quote_lang' => 'zh',
-                'created_at' => date('Y-m-d H:i:s')
+                'trans_mode_bn' => $inquiryInfo['trans_mode_bn'],
+                'dispatch_place' => $inquiryInfo['dispatch_place'],
+                'delivery_addr' => $inquiryInfo['delivery_addr'],
+                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s'),
             ]));
         }else{
             $quoteResult = $isEx;
