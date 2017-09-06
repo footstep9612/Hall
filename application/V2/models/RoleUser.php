@@ -26,6 +26,7 @@ class RoleUserModel extends PublicModel {
             $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`sort`,`func_perm`.`fn`,`func_perm`.`parent_id` ';
             $sql .= ' FROM employee';
             $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
+            $sql .= ' LEFT JOIN  `role` ON `role`.`id` =`role_member`.`role_id` and  `role`.`deleted_flag` = "N"';
             $sql .= ' LEFT JOIN  `role_access_perm` ON `role_access_perm`.`role_id` =`role_member`.`role_id`';
             $sql .= ' LEFT JOIN  `func_perm` ON `func_perm`.`id` =`role_access_perm`.`func_perm_id`';
             $sql .= "WHERE `func_perm`.`id` is not null ";
