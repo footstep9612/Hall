@@ -190,7 +190,7 @@ class EsgoodsController extends PublicController {
                 $espoductmodel->importgoodss($lang);
             }
 
-            $this->es->refresh($rhis->index);
+            $this->es->refresh($this->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
