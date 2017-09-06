@@ -987,14 +987,13 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
-     * 计算报价合计
+     * 计算报价合计(美元)
      * @param $inquiry_id
      *
      * @return float|int
      */
     private function calculateTotalPurchase($inquiry_id){
 
-        //$inquiry_id = '1146';
         $quoteItemModel = new QuoteItemModel();
         $exchangeRateModel = new ExchangeRateModel();
 
@@ -1004,15 +1003,15 @@ class QuotebizlineController extends PublicController {
         foreach ($quoteItemsData as $quote=>$item){
             switch ($item['purchase_price_cur_bn']){
                 case 'EUR' :
-                    $rate = $exchangeRateModel->where(['cur_bn1'=>'EUR','cur_bn2'=>'CNY'])->getField('rate');
+                    $rate = $exchangeRateModel->where(['cur_bn1'=>'EUR','cur_bn2'=>'USD'])->getField('rate');
                     $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
                     break;
                 case 'USD' :
-                    $rate = $exchangeRateModel->where(['cur_bn1'=>'USD','cur_bn2'=>'CNY'])->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
+                    $totalPurchase[] = $item['purchase_unit_price'];
                     break;
                 case 'CNY' :
-                    $totalPurchase[] = $item['purchase_unit_price'];
+                    $rate = $exchangeRateModel->where(['cur_bn1'=>'CNY','cur_bn2'=>'USD'])->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
                     break;
             }
         }
