@@ -98,9 +98,9 @@ class EmployeeModel extends PublicModel {
             return false;
         }
 
-        if (!isset($condition['deleted_flag'])) {
+        /*if (!isset($condition['deleted_flag'])) {
             $condition['deleted_flag'] = self::DELETE_N;
-        }
+        }*/
 
         if (empty($field)) {
             $field = 'id,user_no,email,mobile,password_hash,name,name_en,avatar,gender,mobile2,phone,ext,remarks,status';
