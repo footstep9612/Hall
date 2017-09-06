@@ -205,11 +205,11 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['dest_delivery_fee_usd'] = $quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']);
     	        $quoteLogiFee['dest_clearance_fee_usd'] = $quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']);
     	        	
-    	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'];
-    	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'];
+    	        $quoteLogiFee['overland_insu'] = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'] / 100;
+    	        $quoteLogiFee['shipping_insu'] = $quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'] / 100;
     	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
-    	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'];
-    	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate']) * $quoteLogiFee['dest_va_tax_rate'];
+    	        $quoteLogiFee['dest_tariff_fee'] = $tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100;
+    	        $quoteLogiFee['dest_va_tax_fee'] = $tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100;
     	        $user = $this->getUserInfo();
     	        $quoteLogiFee['current_name'] = $user['name'];
     	        
@@ -726,17 +726,17 @@ class LogisticsController extends PublicController {
 	     
 	    $inspectionFeeUSD = $data['inspection_fee'] * $this->_getRateUSD($data['inspection_fee_cur']);
 	    $landFreightUSD = $data['land_freight'] * $this->_getRateUSD($data['land_freight_cur']);
-	    $overlandInsuUSD = $data['total_exw_price'] * 1.1 * $data['overland_insu_rate'];
+	    $overlandInsuUSD = $data['total_exw_price'] * 1.1 * $data['overland_insu_rate'] / 100;
 	    $portSurchargeUSD = $data['port_surcharge'] * $this->_getRateUSD($data['port_surcharge_cur']);
 	    $interShippingUSD = $data['inter_shipping'] * $this->_getRateUSD($data['inter_shipping_cur']);
 	    $destDeliveryFeeUSD = $data['dest_delivery_fee'] * $this->_getRateUSD($data['dest_delivery_fee_cur']);
 	    $destClearanceFeeUSD = $data['dest_clearance_fee'] * $this->_getRateUSD($data['dest_clearance_fee_cur']);
 	    $sumUSD = $data['total_exw_price'] + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $inspectionFeeUSD + $interShippingUSD;
-	    $destTariffUSD = $sumUSD * $data['dest_tariff_rate'];
-	    $destVaTaxUSD = $sumUSD * (1 + $data['dest_tariff_rate']) * $data['dest_va_tax_rate'];
+	    $destTariffUSD = $sumUSD * $data['dest_tariff_rate'] / 100;
+	    $destVaTaxUSD = $sumUSD * (1 + $data['dest_tariff_rate'] / 100) * $data['dest_va_tax_rate'] / 100;
 	     
 	    $tmpRate1 = 1 - $data['premium_rate'] - round($data['payment_period'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
-	    $tmpRate2 = $tmpRate1 - 1.1 * $data['shipping_insu_rate'];
+	    $tmpRate2 = $tmpRate1 - 1.1 * $data['shipping_insu_rate'] / 100;
 	     
 	    switch (true) {
 	        case $trade == 'EXW' :
@@ -760,11 +760,11 @@ class LogisticsController extends PublicController {
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	            break;
 	        case $trade == 'DDP' || $trade == '快递' :
-	            $tmpCaFee = ($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate']) * (1 + $data['dest_va_tax_rate']) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
+	            $tmpCaFee = ($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	    }
 	     
-	    $shippingInsuUSD = $totalQuotePrice * 1.1 * $data['shipping_insu_rate'];
+	    $shippingInsuUSD = $totalQuotePrice * 1.1 * $data['shipping_insu_rate'] / 100;
 	    $totalBankFeeUSD = round($totalQuotePrice * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_period']  / 365, 8);
 	    $totalInsuFeeUSD =$totalQuotePrice * $data['premium_rate'];
 	    
@@ -798,7 +798,7 @@ class LogisticsController extends PublicController {
 	 */
 	private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate) {
 	
-	    $tmpIfFee = round($calcuFee * 1.1 * $shippingInsuRate / $calcuRate, 8);
+	    $tmpIfFee = round($calcuFee * 1.1 * $shippingInsuRate / 100 / $calcuRate, 8);
 	    
 	    if ($tmpIfFee >= 8 || $tmpIfFee == 0) {
 	        $totalQuotePrice = round($calcuFee / $calcuRate, 8);
