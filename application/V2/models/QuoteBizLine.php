@@ -336,6 +336,7 @@ class QuoteBizLineModel extends PublicModel {
                         //更新
                         $value['updated_by'] = $user;
                         $value['updated_at'] = date('Y-m-d H:i:s');
+                        $value['created_at'] = date('Y-m-d H:i:s');
                         $value['status'] = 'QUOTED';
                         $quoteItemFormModel->save($quoteItemFormModel->create($value));
 
@@ -343,6 +344,7 @@ class QuoteBizLineModel extends PublicModel {
                         //新增
                         $value['updated_by'] = $user;
                         $value['updated_at'] = date('Y-m-d H:i:s');
+                        $value['created_at'] = date('Y-m-d H:i:s');
                         $value['status'] = 'QUOTED';
                         $newData = array_merge($quoteItemFormFields,$value);
                         unset($newData['id']);
