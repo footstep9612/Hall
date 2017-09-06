@@ -88,9 +88,11 @@ class ProductModel extends PublicModel {
                             break;
                         }
                     }
+                }else{
+                    $data['brand'] = json_encode(array('name'=> $input['brand'] ,'lang'=>$lang),JSON_UNESCAPED_UNICODE);
                 }
             } else {
-                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : $input['brand'];
+                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : json_encode(array('name'=> $input['brand'] ,'lang'=>$lang),JSON_UNESCAPED_UNICODE);
             }
         } elseif ($type == 'INSERT') {
             $data['brand'] = '';
