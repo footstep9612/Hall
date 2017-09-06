@@ -16,7 +16,7 @@
 class NewAttrModel extends PublicModel {
 
     protected $dbName = 'erui_goods'; //数据库名称
-    protected $tableName = 't_goods_attr_new_ex'; //数据表表名
+    protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
 
@@ -41,7 +41,7 @@ class NewAttrModel extends PublicModel {
                         'hs_flag' => 'Y',
                         'lang' => $lang,
                         'status' => 'VALID',
-                            //  'created_at' => '2017-08-15 00:00:00'
+                        'created_at' => '2017-08-16 00:00:00'
                     ])
                     ->select();
             Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
@@ -76,7 +76,7 @@ class NewAttrModel extends PublicModel {
                         'lang' => $lang,
                         'spec_flag' => 'Y',
                         'status' => 'VALID',
-                            // 'created_at' => '2017-08-15 00:00:00'
+                        'created_at' => '2017-08-16 00:00:00'
                     ])
                     ->select();
             Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
