@@ -519,7 +519,7 @@ class GoodsModel extends PublicModel {
                     $checkout = $this->checkParam($value, $this->field);
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
