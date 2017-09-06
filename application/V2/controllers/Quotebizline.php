@@ -895,7 +895,7 @@ class QuotebizlineController extends PublicController {
      */
     public function sentToBizlineManagerAction() {
 
-        $request = $this->validateRequests('quote_id');
+        $request = $this->validateRequests('quote_bizline_id');
 
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->submitToBizlineManager($request);
