@@ -43,6 +43,13 @@ class UploadfileController extends PublicController {
     }
 
     public function UploadKindeditorAction() {
+        header('Content-Type:application/json; charset=utf-8');
+        header('P3P:CP=\'IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT\'');
+        header('X-Frame-Options:*');
+
+        echo json_encode(array('error' => 0, 'url' => '/images/130201/1302010000050000/IMAGES/1.jpg'));
+
+        exit;
         $file = $this->getRequest()->getFiles();
 
         $max_size = 1000000;
@@ -101,6 +108,7 @@ class UploadfileController extends PublicController {
 
             header('Content-Type:application/json; charset=utf-8');
             header('P3P:CP=CAO PSA OUR');
+
             echo json_encode(array('error' => 0, 'url' => $fastDFSUrl . $ret['fileId']));
             exit;
         } else {
