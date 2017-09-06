@@ -1201,7 +1201,6 @@ class QuotebizlineController extends PublicController {
                 'period_of_validity' => $request['period_of_validity'],
                 'reason_for_no_quote' => $request['reason_for_no_quote'],
                 'bizline_agent_id' => $user->where(['name'=>$request['created_by']])->getField('id'),
-                'status' => 'QUOTED'
             ]));
 
             if ($result){
