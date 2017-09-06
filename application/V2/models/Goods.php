@@ -378,6 +378,7 @@ class GoodsModel extends PublicModel {
 
                 //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
 //                $employee = new EmployeeModel();
+                $checklogModel = new ProductCheckLogModel();
                 $this->_getUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                    /* $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
@@ -439,7 +440,11 @@ class GoodsModel extends PublicModel {
                             $item['other_attrs'][] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
-
+                    $item['remark'] = '';
+                    $remark_checked = $checklogModel->getSkuRecord(['sku'=>$item['sku'] , 'lang'=>$item['lang']]);
+                    if($remark_checked){
+                        $item['remark'] = $remark_checked['remarks'];
+                    }
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
