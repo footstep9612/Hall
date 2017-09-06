@@ -463,7 +463,7 @@ class QuotebizlineController extends PublicController {
         $supplier = new SupplierModel();
 
         foreach ($quoterSkuList as $key=>$value){
-            $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
+            $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['updated_by']])->getField('name');
             $quoterSkuList[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
         }
 
