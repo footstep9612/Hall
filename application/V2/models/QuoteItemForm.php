@@ -56,8 +56,7 @@ class QuoteItemFormModel extends PublicModel{
                     ->field($field)
                     ->where($where)
                     ->where($where2)
-                    ->group('a.sku')
-                    ->order('a.id DESC')
+                    ->order('a.updated_by DESC')
                     ->select();
         //p($data);
         return $data;
