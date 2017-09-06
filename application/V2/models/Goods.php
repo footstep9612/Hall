@@ -378,6 +378,7 @@ class GoodsModel extends PublicModel {
 
                 //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
 //                $employee = new EmployeeModel();
+                $checklogModel = new ProductCheckLogModel();
                 $this->_getUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
                    /* $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
@@ -439,7 +440,11 @@ class GoodsModel extends PublicModel {
                             $item['other_attrs'][] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
-
+                    $item['remark'] = '';
+                    $remark_checked = $checklogModel->getSkuRecord(['sku'=>$item['sku'] , 'lang'=>$item['lang']]);
+                    if($remark_checked){
+                        $item['remark'] = $remark_checked['remarks'];
+                    }
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
@@ -513,8 +518,11 @@ class GoodsModel extends PublicModel {
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
+                    //状态校验 增加中文验证
+                    $status = $this->checkSkuStatus($input['status']);
+                    $input['status'] = $status;
+
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
@@ -694,6 +702,30 @@ class GoodsModel extends PublicModel {
             return false;
         }
     }
+
+    /**
+     * sku-status状态校验
+     * @author klp
+     */
+    private function checkSkuStatus($status){
+        if(empty($status)){
+            return self::STATUS_DRAFT;
+        }
+        switch ($status) {
+            case '通过':
+                $statusOut =  self::STATUS_VALID;
+                break;
+            case '待审核':
+                $statusOut =  self::STATUS_CHECKING;
+                break;
+        }
+        if($statusOut){
+            return $statusOut;
+        } else{
+            return  $statusOut = (isset($status) && in_array(strtoupper($status), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($status) : self::STATUS_DRAFT;
+        }
+    }
+
 
     /**
      * sku状态变更 -- 公共

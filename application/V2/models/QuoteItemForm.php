@@ -29,7 +29,7 @@ class QuoteItemFormModel extends PublicModel{
      * @return mixed
      */
     public function getList($where){
-
+        $where['status'] = 'QUOTED';
         $field = 'id,created_by,brand,goods_desc,net_weight_kg,gross_weight_kg,package_size,package_mode,delivery_days,goods_source,stock_loc,status,supplier_id,contact_first_name,contact_last_name,contact_phone,purchase_unit_price,purchase_price_cur_bn,period_of_validity,reason_for_no_quote';
         //按价格由低到高显示
         return $this->where($where)->field($field)->order('purchase_unit_price ASC')->select();
@@ -48,7 +48,7 @@ class QuoteItemFormModel extends PublicModel{
 
         $where2 = "(a.updated_by=".$uid.") OR (a.status = 'NOT_QUOTED')";
 
-        $field = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.updated_by,c.bizline_id';
+        $field = 'a.id,a.quote_bizline_id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.updated_by,c.bizline_id';
 
         $data = $this->alias('a')
                     ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
@@ -56,8 +56,7 @@ class QuoteItemFormModel extends PublicModel{
                     ->field($field)
                     ->where($where)
                     ->where($where2)
-                    ->group('a.sku')
-                    ->order('a.id DESC')
+                    ->order('a.updated_by DESC')
                     ->select();
         //p($data);
         return $data;
