@@ -326,85 +326,58 @@ trait QuoteBizlineHelper{
         //更改产品线报价的状态(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
-        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
+        $quoteBizlineResult = $quoteBizlineModel->where(['id'=>$request['quote_bizline_id']])->save(['status'=>'APPROVED']);
 
         //更改产品线报价单项的状态(quote_item_form)
         $quoteItemFormModel = new QuoteItemFormModel();
         $quoteItemFormModel->startTrans();
-        $quoteItemFormResult = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->save([
+        $quoteItemFormResult = $quoteItemFormModel->where(['quote_bizline_id'=>$request['quote_bizline_id']])->save([
             'status'=>'APPROVED'
         ]);
 
         $quoteBizlineItemsCount = $quoteBizlineModel->where(['quote_id'=>$request['quote_id'],'status'=>'NOT_QUOTED'])->count('id');
         //判断多个产品线报价
-        if ($quoteBizlineItemsCount){
-            $quoteBizlineModel->rollback();
-            $quoteItemFormModel->rollback();
-            return ['code'=>'-104','message'=>'所有产品线报完价才可以提交'];
-        }
-
-        $inquiry = new InquiryModel();
-        //更改询单的状态(inquiry)
-        $inquiry->startTrans();
-        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
-            'goods_quote_status'=>'QUOTED'//当前报价的状态
-        ]);
-
-        //更改报价的状态(quote)
-        $quoteModel = new QuoteModel();
-        $quoteModel->startTrans();
-        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
-            'status' => 'QUOTED_BY_BIZLINE'
-        ]);
-
-        if ($inquiryResult && $quoteResult && $quoteBizlineResult && $quoteItemFormResult){
-            $inquiry->commit();
-            $quoteModel->commit();
+        if ($quoteBizlineItemsCount>0){
             $quoteBizlineModel->commit();
             $quoteItemFormModel->commit();
             return ['code'=>'1','message'=>'提交成功!'];
+
         }else{
-            $inquiry->rollback();
-            $quoteModel->rollback();
-            $quoteBizlineModel->rollback();
-            $quoteItemFormModel->rollback();
-            return ['code'=>'-104','message'=>'提交失败!'];
+
+            $inquiry = new InquiryModel();
+            //更改询单的状态(inquiry)
+            $inquiry->startTrans();
+            $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+                'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
+                'goods_quote_status'=>'QUOTED'//当前报价的状态
+            ]);
+
+            //更改报价的状态(quote)
+            $quoteModel = new QuoteModel();
+            $quoteModel->startTrans();
+            $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+                'status' => 'QUOTED_BY_BIZLINE'
+            ]);
+
+
+            if ($inquiryResult && $quoteResult && $quoteBizlineResult && $quoteItemFormResult){
+                $inquiry->commit();
+                $quoteModel->commit();
+                $quoteBizlineModel->commit();
+                $quoteItemFormModel->commit();
+                return ['code'=>'1','message'=>'提交成功!'];
+            }else{
+                $inquiry->rollback();
+                $quoteModel->rollback();
+                $quoteBizlineModel->rollback();
+                $quoteItemFormModel->rollback();
+                return ['code'=>'-104','message'=>'提交失败!'];
+            }
+
         }
-    }
-
-    public static function calculateQuotationInformation($quote_id){
-
-        /*
-         * 采购合计
-        |--------------------------------------------------------
-        | 采购合计= 采购单价*数量+……）（省略号是按行累加;）
-        |--------------------------------------------------------
-        */
-        $total_purchase = 1;
-
-        /*
-         * EXW单价
-        |--------------------------------------------------------
-        | EXW单价=采购单价*毛利率/汇率
-        |--------------------------------------------------------
-        */
-
-        /*
-         * EXW合计
-        |--------------------------------------------------------
-        | EXW合计= EXW单价*数量+……（省略号是按行累加；）
-        |--------------------------------------------------------
-        */
-
-        /*
-         * 银行费用
-        |--------------------------------------------------------
-        | 银行费用=报价合计*银行利息*占用资金比例*回款周期/365
-        |--------------------------------------------------------
-        */
 
     }
+
 
     /**
      * 产品线报价->项目经理->提交物流报价
