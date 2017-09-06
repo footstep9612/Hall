@@ -255,6 +255,7 @@ class QuoteBizLineModel extends PublicModel {
                         $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
                         $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
                         $quoteItemFormFields['status'] = 'QUOTED';
                         $quoteItemFormModel->where(['id'=>$value['id']])->save($quoteItemFormModel->create($quoteItemFormFields));
                     }else{
@@ -263,6 +264,7 @@ class QuoteBizLineModel extends PublicModel {
                         $quoteItemFormFields['created_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
                         $quoteItemFormFields['status'] = 'QUOTED';
 
                         $quoteItemFormModel->add($quoteItemFormModel->create($quoteItemFormFields));
