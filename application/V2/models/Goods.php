@@ -19,6 +19,8 @@ class GoodsModel extends PublicModel {
     const STATUS_DELETED = 'DELETED';      //删除
     const STATUS_CHECKING = 'CHECKING';    //审核中
     const STATUS_DRAFT = 'DRAFT';          //草稿
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     //定义校验规则
 
@@ -336,6 +338,7 @@ class GoodsModel extends PublicModel {
         } else {
             $where['status'] = array('neq', self::STATUS_DELETED);
         }
+        $where['deleted_flag'] = self::DELETE_N;
         //redis
         if (redisHashExist('Sku', md5(json_encode($where)))) {
 //            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
@@ -374,9 +377,10 @@ class GoodsModel extends PublicModel {
                 $ex_attrs = $goodsAttrModel->getSkuAttrsInfo($condition_attr);
 
                 //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-                $employee = new EmployeeModel();
+//                $employee = new EmployeeModel();
+                $this->_getUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
-                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                   /* $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
                     if ($createder && isset($createder[0])) {
                         $item['created_by'] = $createder[0];
                     }
@@ -387,7 +391,7 @@ class GoodsModel extends PublicModel {
                     $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
                     if ($checkeder && isset($checkeder[0])) {
                         $item['checked_by'] = $checkeder[0];
-                    }
+                    }*/
                     //固定商品属性
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
@@ -447,6 +451,36 @@ class GoodsModel extends PublicModel {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
+        }
+    }
+
+    /**
+     * 用户IDS获取names
+     * @author klp
+     * @return names
+     */
+    private function _getUserName(&$result, $fileds){
+        if ($result) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($result as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($result as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
+                }
+                $result[$key] = $val;
+            }
         }
     }
 

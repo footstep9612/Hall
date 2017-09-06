@@ -248,22 +248,25 @@ class QuoteBizLineModel extends PublicModel {
 
                 //如果输填写了未报价分析原因
                 if (!empty($value['reason_for_no_quote'])){
-                    $hasQuoted = $quoteItemFormModel->where(['sku'=>$value['sku'],'updated_by'=>$user])->count();
+
+                    $hasQuoted = $quoteItemFormModel->where(['quote_bizline_id'=>$value['quote_bizline_id'],'sku'=>$value['sku'],'updated_by'=>$user])->count();
+
                     if ($hasQuoted){
                         $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
                         $quoteItemFormFields['created_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_by'] = $user;
-                        $quoteItemFormFields['status'] = 'NOT_QUOTED';
+                        $quoteItemFormFields['status'] = 'QUOTED';
                         $quoteItemFormModel->save($quoteItemFormModel->create($quoteItemFormFields));
                     }else{
+
                         $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
                         $quoteItemFormFields['created_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_by'] = $user;
-                        $quoteItemFormFields['status'] = 'NOT_QUOTED';
-                        $quoteItemFormModel->add($quoteItemFormModel->create($quoteItemFormFields));
+                        $quoteItemFormFields['status'] = 'QUOTED';
 
+                        $quoteItemFormModel->add($quoteItemFormModel->create($quoteItemFormFields));
                     }
                 }
 
