@@ -9,6 +9,7 @@
 class ProductModel extends PublicModel {
 
     const STATUS_NORMAL = 'NORMAL'; //发布
+    const STATUS_DRAFT = 'DRAFT';          //草稿
     const STATUS_CLOSED = 'CLOSED'; //关闭
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试  暂存；
@@ -202,8 +203,11 @@ class ProductModel extends PublicModel {
                     if (empty($data['show_name'])) {
                         $data['show_name'] = $data['name'];
                     }
+                    //状态校验 增加中文验证
+                    $status = $this->checkSpuStatus($input['status']);
+                    $input['status'] = $status;
+
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
@@ -284,6 +288,29 @@ class ProductModel extends PublicModel {
             return $spu;
         } catch (Exception $e) {
             $this->rollback();
+        }
+    }
+
+    /**
+     * sku-status状态校验
+     * @author klp
+     */
+    private function checkSpuStatus($status){
+        if(empty($status)){
+            return self::STATUS_DRAFT;
+        }
+        switch ($status) {
+            case '通过':
+                $statusOut =  self::STATUS_VALID;
+                break;
+            case '待审核':
+                $statusOut =  self::STATUS_CHECKING;
+                break;
+        }
+        if($statusOut){
+            return $statusOut;
+        } else{
+            return  $statusOut = (isset($status) && in_array(strtoupper($status), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($status) : self::STATUS_DRAFT;
         }
     }
 
