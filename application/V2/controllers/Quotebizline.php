@@ -755,54 +755,50 @@ class QuotebizlineController extends PublicController {
      */
     public function assignQuoterAction() {
 
-        $request = $this->validateRequests('quote_item_form_id,biz_agent_id');
+        //TODO 更改参数quote_item_form_id为quote_item_id
+        $request = $this->validateRequests('quote_id,quote_item_id,biz_agent_id,bizline_id');
 
-        $quoteBizline = new QuoteItemFormModel();
+        $quoteItemModel = new QuoteItemModel();
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $quoteBizline = new QuoteBizLineModel();
+
+        $quoteItemInfo = $quoteItemModel->where(['quote_id'=>$request['quote_id'],'bizline_id'=>$request['bizline_id']])->find();
+        $quoteBizlineInfo = $quoteBizline->where(['quote_id'=>$request['quote_id'],'bizline_id'=>$request['bizline_id']])->find();
 
         //当前报价单项没有报价人则把当前报价单项指派给新选择的人
-        $quote_item_form_ids = explode(',',$request['quote_item_form_id']);
+        $quote_item_form_ids = explode(',',$request['quote_item_id']);
 
         try{
             foreach ($quote_item_form_ids as $quoteFormItem){
-                //TODO 添加型号字段
-                $quote= $quoteBizline->where(['id'=>$quoteFormItem])->field('quote_id,quote_item_id,inquiry_item_id,quote_bizline_id,sku,brand,created_by')->find();
 
-                //如果当前记录没有报价人，则更新
-                if (!$quote['created_by']){
-                    $quoteBizline->where(['id'=>$quoteFormItem])->save($quoteBizline->create([
-                        'quote_id' => $quote['quote_id'],
-                        'quote_item_id' => $quote['quote_item_id'],
-                        'inquiry_item_id' => $quote['inquiry_item_id'],
-                        'quote_bizline_id' => $quote['quote_bizline_id'],
-                        'sku' => $quote['sku'],
-                        'brand' => $quote['brand'],
-                        'created_by' => $request['biz_agent_id'],
-                        'created_at' => date('Y-m-d H:i:s')
-                    ]));
+                $isAssigned = $quoteItemFormModel->where([
+                    'quote_id' => $request['quote_id'],
+                    'quote_item_id' => $quoteFormItem,
+                    'sku' => $quoteItemInfo['sku'],
+                    'updated_by' => $request['biz_agent_id'],
+                ])->count();
+
+                //是否已被指派
+                if ($isAssigned){
+                    $this->jsonReturn(['code' => '-104','message' => '不能重复指派!']);
                 }
 
-                //不能重复指派
-                if ($quote['created_by'] == $request['biz_agent_id']){
-                    $this->jsonReturn([
-                        'code' => '-104',
-                        'message' => '不能重复指派!'
-                    ]);
-                }
 
-                //新增记录
-                $quoteBizline->add($quoteBizline->create([
-                    'quote_id' => $quote['quote_id'],
-                    'quote_item_id' => $quote['quote_item_id'],
-                    'inquiry_item_id' => $quote['inquiry_item_id'],
-                    'quote_bizline_id' => $quote['quote_bizline_id'],
-                    'sku' => $quote['sku'],
-                    'brand' => $quote['brand'],
+                $quoteItemFormModel->add($quoteItemFormModel->create([
+                    'quote_id' => $request['quote_id'],
+                    'quote_item_id' => $quoteFormItem,
+                    'inquiry_item_id' => $quoteItemInfo['inquiry_item_id'],
+                    'quote_bizline_id' => $quoteBizlineInfo['id'],
+                    'sku' => $quoteItemInfo['sku'],
                     'created_by' => $request['biz_agent_id'],
+                    'updated_by' => $request['biz_agent_id'],
                     'created_at' => date('Y-m-d H:i:s')
                 ]));
 
             }
+
             $this->jsonReturn(['code'=>'1','message'=>'指派成功!']);
+
         }catch (Exception $exception){
             $this->jsonReturn([
                 'code' => $exception->getCode(),
