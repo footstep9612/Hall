@@ -210,20 +210,6 @@ trait QuoteHelper{
         $where['a.quote_id'] = $condition['quote_id'];
         $where['a.bizline_id'] = $condition['bizline_id'];
 
-        //原理的错误逻辑
-//        $quoteItemFormModel = new QuoteItemFormModel();
-//
-//        $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,qb.bizline_id';
-//        $data = $quoteItemFormModel->alias('a')
-//            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-//            ->join('erui2_rfq.quote_bizline qb ON a.quote_id = qb.quote_id')
-//            ->field($fields)
-//            ->where($where)
-//            ->order('a.id DESC')
-//            ->select();
-//        p($data);
-
-        //改正
         $quoteItemModel = new QuoteItemModel();
 
         $fields = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.remarks goods_remarks,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,qb.status,a.bizline_agent_id,qb.bizline_id';
