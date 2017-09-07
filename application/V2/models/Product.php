@@ -251,13 +251,21 @@ class ProductModel extends PublicModel {
                     }
                 } elseif ($key == 'attachs') {
                     if ($item) {
-                        if (!isset($input['spu'])) {
+                        //if (!isset($input['spu'])) {
                             if (!$this->checkAttachImage($item)) {
                                 jsonReturn('', '1000', '产品图不能为空');
                             }
-                        }
-                        $ids = [];
+                        //}
+
                         $pattach = new ProductAttachModel();
+
+                        $update_condition = array(
+                            'spu' => $spu
+                        );
+                        $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+
+                        //$ids = [];
+
                         foreach ($item as $atta) {
                             $data = array(
                                 'spu' => $spu,
@@ -276,17 +284,17 @@ class ProductModel extends PublicModel {
                             if (!$attach) {
                                 $this->rollback();
                                 return false;
-                            }else{
+                            }/*else{
                                 $ids[] = $attach;
                             }
+                            //删除其他附件
+                            $update_condition = array(
+                                'spu' => $spu,
+                                'id' => array('notin',$ids)
+                            );
+                            $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+                            */
                         }
-
-                        //删除其他附件
-                        $update_condition = array(
-                            'spu' => $spu,
-                            'id' => array('notin',$ids)
-                        );
-                        $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
                     }
                 } else {
                     continue;
