@@ -72,7 +72,7 @@ class InquiryController extends PublicController {
      */
 
     public function getSerialNoAction() {
-        $serial_no = $this->getInquirySerialNo();
+        $serial_no = InquirySerialNo::getInquirySerialNo();
         return $serial_no;
     }
 

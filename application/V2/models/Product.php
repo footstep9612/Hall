@@ -173,6 +173,10 @@ class ProductModel extends PublicModel {
             $data['supply_ability'] = '';
         }
 
+        if( $type == 'INSERT' ){
+            $data['status'] = 'DRAFT';
+        }
+
         return $data;
     }
 
@@ -201,15 +205,15 @@ class ProductModel extends PublicModel {
                         $data['show_name'] = $data['name'];
                     }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
-                    if ($input['status'] != 'DRAFT') {
+                    //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    //if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
 
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $data['name'],
-                            'status' => array('neq', 'DRAFT')
+                            //'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {
                             $exist_condition['spu'] = array('neq', $spu);
@@ -218,8 +222,8 @@ class ProductModel extends PublicModel {
                         if ($exist) {
                             jsonReturn('', ErrorMsg::EXIST);
                         }
-                    }
-                    $data['status'] = $input['status'];
+                    //}
+                    //$data['status'] = $input['status'];
 
                     $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
                     if (isset($input['spu'])) {
@@ -247,11 +251,21 @@ class ProductModel extends PublicModel {
                     }
                 } elseif ($key == 'attachs') {
                     if ($item) {
-                        if (!isset($input['spu'])) {
+                        //if (!isset($input['spu'])) {
                             if (!$this->checkAttachImage($item)) {
                                 jsonReturn('', '1000', '产品图不能为空');
                             }
-                        }
+                        //}
+
+                        $pattach = new ProductAttachModel();
+
+                        $update_condition = array(
+                            'spu' => $spu
+                        );
+                        $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+
+                        //$ids = [];
+
                         foreach ($item as $atta) {
                             $data = array(
                                 'spu' => $spu,
@@ -266,12 +280,20 @@ class ProductModel extends PublicModel {
                             if (empty($data['attach_url'])) {
                                 continue;
                             }
-                            $pattach = new ProductAttachModel();
                             $attach = $pattach->addAttach($data);
                             if (!$attach) {
                                 $this->rollback();
                                 return false;
+                            }/*else{
+                                $ids[] = $attach;
                             }
+                            //删除其他附件
+                            $update_condition = array(
+                                'spu' => $spu,
+                                'id' => array('notin',$ids)
+                            );
+                            $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+                            */
                         }
                     }
                 } else {
@@ -892,7 +914,7 @@ class ProductModel extends PublicModel {
                 $data_tmp['exe_standard'] = $r[8];
                 $data_tmp['warranty'] = $r[9];
                 $data_tmp['keywords'] = $r[10];
-                $data_tmp['source'] = 'IMPORT';
+                $data_tmp['source'] = 'ERUI';
                 $data_tmp['source_detail'] = 'Excel批量导入';
                 $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                 $data_tmp['created_at'] = date('Y-m-d H:i:s');

@@ -542,4 +542,38 @@ class GoodsController extends PublicController {
         }
     }
 
+    /**
+     * zip导入
+     * @param xls zip文件fastdfs地址
+     * @目录格式为:
+     * .zip
+     * --- sku目录
+     * --- --- zh.xls
+     * --- --- en.xls
+     * --- --- ru.xls
+     * --- --- es.xls
+     */
+    public function zipImportAction(){
+        $this->put_data['xls'] =1;    //测试
+        if (empty($this->put_data['xls'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->zipImport($this->put_data['xls']);
+        if ($result !== false) {
+            $error = '';
+            if (!empty($result['failds'])) {
+                foreach ($result['failds'] as $e) {
+                    $error .= '[' . $e['item'] . ']失败：' . $e['hint'] . ';';
+                }
+            }
+            $result['failds'] = $error;
+            //$str = '成功导入'.$result['succes_lang'].'条，spu'.$result['sucess'].'个；'.$error;
+            jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
 }
