@@ -1046,10 +1046,11 @@ class QuotebizlineController extends PublicController {
     private function calculateBankFee($inquiry_id){
 
         //银行费用=报价合计*银行利息*占用资金比例*回款周期/365
+
         $quoteModel = new QuoteModel();
         $quoteInfo = $quoteModel->where(['inquiry_id'=>$inquiry_id])->field('id,total_exw_price,bank_interest,fund_occupation_rate,payment_period')->find();
 
-        $total_bank_fee = $quoteInfo['total_exw_price'] * $quoteInfo['bank_interest'] *  $quoteInfo['payment_period'] / 365 ;
+        $total_bank_fee = $quoteInfo['total_exw_price'] * $quoteInfo['bank_interest'] * $quoteInfo['fund_occupation_rate'] * $quoteInfo['payment_period'] / 365 ;
         $total_bank_fee = sprintf("%.4f", $total_bank_fee);
 
         return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save(['total_bank_fee'=>$total_bank_fee]);
