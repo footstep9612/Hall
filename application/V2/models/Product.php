@@ -91,7 +91,7 @@ class ProductModel extends PublicModel {
                     }
                 }
             } else {
-                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : $input['brand'];
+                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : json_encode(array('lang' => $lang, 'name' => $input['brand']),JSON_UNESCAPED_UNICODE);
             }
         } elseif ($type == 'INSERT') {
             $data['brand'] = '';
@@ -214,6 +214,7 @@ class ProductModel extends PublicModel {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $data['name'],
+                            'material_cat_no' => $data['material_cat_no']
                             //'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {

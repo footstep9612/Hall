@@ -103,6 +103,7 @@ class QuoteBizLineModel extends PublicModel {
         //修改报价的状态
         $quoteModel = new QuoteModel();
         $quoteID = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('id');
+        $premium_rate = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('premium_rate');
         $quoteResult = $quoteModel->where(['id' => $quoteID])->save([
             'status' => self::INQUIRY_QUOTING_BY_LOGI
         ]);
@@ -114,7 +115,8 @@ class QuoteBizLineModel extends PublicModel {
                     'quote_id' => $quoteID,
                     'inquiry_id' => $request['inquiry_id'],
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $user
+                    'created_by' => $user,
+                    'premium_rate' => $premium_rate
         ]));
 
         $quoteItemModel = new QuoteItemModel();
