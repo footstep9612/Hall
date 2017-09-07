@@ -184,16 +184,38 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function getCondition($condition) {
+    private function getCondition($condition, $lang = 'en') {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
 
+        if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
+            $market_area_bn = $condition['market_area_bn'];
+            $market_area_bn_bool[] = [ESClient::WILDCARD => ['show_cats.all' => '*Asia-Paific / Europe*']];
+            $market_area_bn_bool[] = [ESClient::WILDCARD => ['show_cats.all' => '*' . $market_area_bn . '*']];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $market_area_bn_bool]];
+        }
 
+        if (isset($condition['country_bn']) && $condition['country_bn']) {
+            $show_cat_model = new ShowCatModel();
+            $country_bn = $condition['country_bn'];
+            $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
+                        'country_bn' => $country_bn,
+                        'level_no' => 3,
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])->find();
+            if ($showcat) {
+                $country_bn_bool[] = [ESClient::WILDCARD => ['show_cats.all' => '*' . $country_bn . '*']];
+            } else {
+                $country_bn_bool[] = [ESClient::WILDCARD => ['show_cats.all' => '*China*']];
+            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $country_bn_bool]];
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*China*']];
+        }
 
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat');
@@ -201,7 +223,6 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
-
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
         // $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'brand.ik');
@@ -282,7 +303,7 @@ class EsProductModel extends Model {
     public function getProducts($condition, $_source = null, $lang = 'en') {
 
         try {
-            $body = $this->getCondition($condition);
+            $body = $this->getCondition($condition, $lang);
 
 
             $pagesize = 10;
