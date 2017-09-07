@@ -116,8 +116,10 @@ class FinalquoteController extends PublicController {
         $total_exw_price = $total_quote_price = 0;
         if(!empty($data['sku'])){
             foreach($data['sku'] as $val){
-                $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
-                $total_exw_price += $exw_price;     //市场报出EXW价格合计
+                if($val['final_exw_unit_price']>0) {
+                    $exw_price = $val['quote_qty'] * $val['final_exw_unit_price'];  //市场报出EXW价格
+                    $total_exw_price += $exw_price;     //市场报出EXW价格合计
+                }
             }
 
             //计算
@@ -164,18 +166,20 @@ class FinalquoteController extends PublicController {
             $results = $finalquote->updateFinal($finaldata);
             if($results['code'] == 1){
                 foreach($data['sku'] as $val){
-                    $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
-                    $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
+                    if($val['final_exw_unit_price']>0){
+                        $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
+                        $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
-                    $itemdata['id'] = $val['id'];
-                    $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
-                    $itemdata['quote_unit_price'] = round($quote_unit_price,4);
+                        $itemdata['id'] = $val['id'];
+                        $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
+                        $itemdata['quote_unit_price'] = round($quote_unit_price,4);
 
-                    $itemrs = $this->updateItemAction($itemdata);
+                        $itemrs = $this->updateItemAction($itemdata);
 
-                    if($itemrs['code'] != 1){
-                        $finalitem->rollback();
-                        $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                        if($itemrs['code'] != 1){
+                            $finalitem->rollback();
+                            $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                        }
                     }
                 }
                 $finalitem->commit();
