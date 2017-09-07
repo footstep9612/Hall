@@ -30,7 +30,7 @@ class InquiryController extends PublicController {
 
     //返回询价单流水号
     public function getInquiryNoAction() {
-        $data['serial_no'] = $this->getInquirySerialNo();
+        $data['serial_no'] = InquirySerialNo::getInquirySerialNo();
         if (!empty($data)) {
             $this->setCode('1');
             $this->setMessage('成功!');
