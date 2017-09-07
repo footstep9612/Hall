@@ -295,14 +295,6 @@ class ProductModel extends PublicModel {
                             $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
                             */
                         }
-
-                        //清空redis
-                        $condition_attach = array(
-                            'spu' => $spu,
-                            'deleted_flag' => $pattach::DELETED_N
-                        );
-                        $key_redis = md5(json_encode($condition_attach));
-                        redisHashDel('spu_attach', $key_redis);
                     }
                 } else {
                     continue;

@@ -49,24 +49,24 @@ class ProductAttachModel extends PublicModel {
         //根据缓存读取,没有则查找数据库并缓存
         $key_redis = md5(json_encode($condition));
         if (redisHashExist('spu_attach', $key_redis)) {
-            $result = redisHashGet('spu_attach', $key_redis);
-            return json_decode($result, true);
-        } else {
-            try {
-                $result = $this->field($field)->where($condition)->select();
-                if ($result) {
-                    $data = array();
-                    //按类型分组
-                    foreach ($result as $item) {
-                        $data[$item['attach_type']][] = $item;
-                    }
-                    redisHashSet('spu_attach', $key_redis, json_encode($data));
-                    return $data;
+            //$result = redisHashGet('spu_attach', $key_redis);
+            //return json_decode($result, true);
+        }
+
+        try {
+            $result = $this->field($field)->where($condition)->select();
+            if ($result) {
+                $data = array();
+                //按类型分组
+                foreach ($result as $item) {
+                    $data[$item['attach_type']][] = $item;
                 }
-                return array();
-            } catch (Exception $e) {
-                return false;
+                redisHashSet('spu_attach', $key_redis, json_encode($data));
+                return $data;
             }
+            return array();
+        } catch (Exception $e) {
+            return false;
         }
     }
 
