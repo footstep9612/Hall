@@ -841,8 +841,8 @@ class QuotebizlineController extends PublicController {
         $supplier_id = $quoteItem->where(['id'=>$request['quote_item_id']])->getField('supplier_id');
 
         foreach ($response as $key=>$value){
-            if (!empty($value['created_by'])){
-                $response[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
+            if (!empty($value['updated_by'])){
+                $response[$key]['created_by'] = $user->where(['id'=>$value['updated_by']])->getField('name');
                 //是否被指派
                 $response[$key]['is_assign'] = 'Y';
             }else{
