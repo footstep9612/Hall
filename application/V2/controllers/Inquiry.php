@@ -7,10 +7,10 @@
  * Date: 2017/8/2
  * Time: 10:45
  */
-class InquiryController extends Yaf_Controller_Abstract {
+class InquiryController extends PublicController {
 
     public function init() {
-        //parent::init();
+        parent::init();
     }
 
     /**

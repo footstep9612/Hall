@@ -88,7 +88,7 @@ trait InquirySerialNo{
         $step = redisGet($stepName) ?: 0;
         $step ++;
         redisSet($stepName, $step, $duration);
-        $code = $this->createSerialNo($step, $prefix);
+        $code = self::createSerialNo($step, $prefix);
 
         return $code;
     }
