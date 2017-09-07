@@ -12,6 +12,7 @@ class ProductAttachModel extends PublicModel {
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
     const STATUS_INVALID = 'INVALID';  //无效
+    const STATUS_DELETED = 'DELETED';  //无效
     const DELETED_Y = 'Y'; //删除
     const DELETED_N = 'N'; //未删除
 
