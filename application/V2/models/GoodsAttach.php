@@ -290,6 +290,15 @@ class GoodsAttachModel extends PublicModel {
         $results = array();
         if ($input && is_array($input)) {
             try {
+                //暂时新增/编辑时都为删除旧数据新增新数据,前端操作处理改为如此,个人感觉不太好
+                $where = array('sku' => $sku);
+                $resach = $this->field('sku')->where($where)->find();
+                if ($resach) {
+                    $resOut = $this->where($where)->save(['status'=> self::STATUS_DELETED,'deleted' => 'N']);
+                    if(!$resOut){
+                        return false;
+                    }
+                }
                 foreach ($input as $key => $value) {
                     $data = $this->checkParam($value);
                     //存在sku编辑,反之新增,后续扩展性
