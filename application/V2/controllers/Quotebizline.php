@@ -229,9 +229,6 @@ class QuotebizlineController extends PublicController {
                 'serial_no' => $request['serial_no'],
                 'quote_no' => $this->getQuoteNo(),
                 'quote_lang' => 'zh',
-                'trans_mode_bn' => $inquiryInfo['trans_mode_bn'],
-                'dispatch_place' => $inquiryInfo['dispatch_place'],
-                'delivery_addr' => $inquiryInfo['delivery_addr'],
                 'created_by' => $this->user['id'],
                 'created_at' => date('Y-m-d H:i:s'),
             ]));
@@ -436,7 +433,7 @@ class QuotebizlineController extends PublicController {
                 $skuList[$key]['supplier_name'] = $supplier->where(['id'=>$bizlineQuoteSku['supplier_id']])->getField('name');
                 $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['bizline_agent_id']])->getField('name');
                 //已经报价供应商数量(也就是说quote_item_form对应的记录)
-                $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id']])->count('id');
+                $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'QUOTED'])->count('id');
             }
 
             $this->jsonReturn([
@@ -844,8 +841,8 @@ class QuotebizlineController extends PublicController {
         $supplier_id = $quoteItem->where(['id'=>$request['quote_item_id']])->getField('supplier_id');
 
         foreach ($response as $key=>$value){
-            if (!empty($value['created_by'])){
-                $response[$key]['created_by'] = $user->where(['id'=>$value['created_by']])->getField('name');
+            if (!empty($value['updated_by'])){
+                $response[$key]['created_by'] = $user->where(['id'=>$value['updated_by']])->getField('name');
                 //是否被指派
                 $response[$key]['is_assign'] = 'Y';
             }else{
@@ -910,7 +907,7 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-        $fields = 'q.id,q.total_weight,a.trans_mode_bn,q.package_volumn,q.dispatch_place,q.delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
+        $fields = 'q.id,q.total_weight,a.trans_mode_bn,q.premium_rate,q.package_volumn,a.dispatch_place,a.delivery_addr,q.dispatch_place logi_dispatch_place,q.delivery_addr logi_delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
         $quoteModel = new QuoteModel();
         $result = $quoteModel->alias('q')
                              ->join('erui2_rfq.inquiry a ON q.inquiry_id = a.id','LEFT')
