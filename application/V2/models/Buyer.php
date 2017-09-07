@@ -40,13 +40,11 @@ class BuyerModel extends PublicModel {
         $sql = 'SELECT `erui2_sys`.`employee`.`id` as employee_id,`erui2_sys`.`employee`.`name` as employee_name,`erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`erui2_buyer`.`buyer`.`area_bn`,`province`,`city`,`official_email`,';
         $sql .= '`official_email`,`official_phone`,`official_fax`,`erui2_buyer`.`buyer`.`first_name`,`erui2_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`buyer_level`,`credit_level`,';
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
-        $sql_count = 'SELECT count(`erui2_buyer`.`buyer`.`id`) as num ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $str .= " left Join `erui2_sys`.`employee` on `erui2_buyer`.`buyer_agent`.`agent_id` = `erui2_sys`.`employee`.`id` ";
         $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $sql .= $str;
-        $sql_count .= $str;
         $where = " WHERE 1 = 1";
         if (!empty($condition['country_bn'])) {
             $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
@@ -92,17 +90,14 @@ class BuyerModel extends PublicModel {
         }
         if ($where) {
             $sql .= $where;
-            $sql_count .= $where;
         }
         $sql .= ' Group By `erui2_buyer`.`buyer`.`id`';
-        $sql_count .= ' Group By `erui2_buyer`.`buyer`.`id`';
         $sql .= ' Order By ' . $order;
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
-        $count = $this->query($sql_count);
-        $res['count'] = $count[0]['num'];
         $res['data'] = $this->query($sql);
+        $res['count'] = count($res['data']);
         return $res;
     }
 

@@ -44,7 +44,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
 
             if (!empty($userinfo)) {
-
                 $this->user = array(
                     "buyer_id" => $userinfo["buyer_id"],
                     "user_name" => $tokeninfo["user_name"],

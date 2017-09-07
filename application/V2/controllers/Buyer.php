@@ -163,7 +163,6 @@ class BuyerController extends PublicController {
             $buyer_account_data['mobile'] = $data['mobile'];
             $arr['official_phone'] = $data['mobile'];
         }
-
         $buyer_account_data['created_at'] = $this->user['id'];
         //附件
         if (!empty($data['attach_url'])) {
