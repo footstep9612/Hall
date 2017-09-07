@@ -229,9 +229,6 @@ class QuotebizlineController extends PublicController {
                 'serial_no' => $request['serial_no'],
                 'quote_no' => $this->getQuoteNo(),
                 'quote_lang' => 'zh',
-                'trans_mode_bn' => $inquiryInfo['trans_mode_bn'],
-                'dispatch_place' => $inquiryInfo['dispatch_place'],
-                'delivery_addr' => $inquiryInfo['delivery_addr'],
                 'created_by' => $this->user['id'],
                 'created_at' => date('Y-m-d H:i:s'),
             ]));
