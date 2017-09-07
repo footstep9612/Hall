@@ -173,6 +173,10 @@ class ProductModel extends PublicModel {
             $data['supply_ability'] = '';
         }
 
+        if( $type == 'INSERT' ){
+            $data['status'] = 'DRAFT';
+        }
+
         return $data;
     }
 
@@ -201,15 +205,15 @@ class ProductModel extends PublicModel {
                         $data['show_name'] = $data['name'];
                     }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
-                    if ($input['status'] != 'DRAFT') {
+                    //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    //if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);
 
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $data['name'],
-                            'status' => array('neq', 'DRAFT')
+                            //'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {
                             $exist_condition['spu'] = array('neq', $spu);
@@ -218,8 +222,8 @@ class ProductModel extends PublicModel {
                         if ($exist) {
                             jsonReturn('', ErrorMsg::EXIST);
                         }
-                    }
-                    $data['status'] = $input['status'];
+                    //}
+                    //$data['status'] = $input['status'];
 
                     $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
                     if (isset($input['spu'])) {
@@ -252,6 +256,7 @@ class ProductModel extends PublicModel {
                                 jsonReturn('', '1000', '产品图不能为空');
                             }
                         }
+                        $ids = [];
                         foreach ($item as $atta) {
                             $data = array(
                                 'spu' => $spu,
@@ -271,8 +276,17 @@ class ProductModel extends PublicModel {
                             if (!$attach) {
                                 $this->rollback();
                                 return false;
+                            }else{
+                                $ids[] = $attach;
                             }
                         }
+
+                        //删除其他附件
+                        $update_condition = array(
+                            'spu' => $spu,
+                            'id' => array('notin',$ids)
+                        );
+                        $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
                     }
                 } else {
                     continue;
