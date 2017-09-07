@@ -7,10 +7,10 @@
  * Date: 2017/8/2
  * Time: 10:45
  */
-class InquiryController extends PublicController {
+class InquiryController extends Yaf_Controller_Abstract {
 
     public function init() {
-        parent::init();
+        //parent::init();
     }
 
     /**
@@ -72,7 +72,7 @@ class InquiryController extends PublicController {
      */
 
     public function getSerialNoAction() {
-        $serial_no = $this->getInquirySerialNo();
+        $serial_no = InquirySerialNo::getInquirySerialNo();
         return $serial_no;
     }
 
