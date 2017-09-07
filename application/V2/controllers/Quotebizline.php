@@ -1100,7 +1100,7 @@ class QuotebizlineController extends PublicController {
         if (!empty($quoteItemIds)){
             foreach ($quoteItemIds as $key=>$value){
 
-                    if (!empty($value['purchase_unit_price'] || empty($value['reason_for_no_quote'])){
+                    if (empty($value['reason_for_no_quote']) || !empty($value['purchase_unit_price'])){
                         /**
                          * EXW单价=采购单价*毛利率/汇率
                          */
