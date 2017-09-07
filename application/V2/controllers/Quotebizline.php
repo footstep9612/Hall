@@ -895,7 +895,7 @@ class QuotebizlineController extends PublicController {
      */
     public function sentToBizlineManagerAction() {
 
-        $request = $this->validateRequests('quote_id');
+        $request = $this->validateRequests('quote_bizline_id');
 
         $quoteBizline = new QuoteBizLineModel();
         $response = $quoteBizline->submitToBizlineManager($request);
@@ -1201,7 +1201,6 @@ class QuotebizlineController extends PublicController {
                 'period_of_validity' => $request['period_of_validity'],
                 'reason_for_no_quote' => $request['reason_for_no_quote'],
                 'bizline_agent_id' => $user->where(['name'=>$request['created_by']])->getField('id'),
-                'status' => 'QUOTED'
             ]));
 
             if ($result){

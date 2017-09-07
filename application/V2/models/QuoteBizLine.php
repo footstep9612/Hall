@@ -255,6 +255,7 @@ class QuoteBizLineModel extends PublicModel {
                         $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
                         $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
                         $quoteItemFormFields['status'] = 'QUOTED';
                         $quoteItemFormModel->where(['id'=>$value['id']])->save($quoteItemFormModel->create($quoteItemFormFields));
                     }else{
@@ -263,6 +264,7 @@ class QuoteBizLineModel extends PublicModel {
                         $quoteItemFormFields['created_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
                         $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
                         $quoteItemFormFields['status'] = 'QUOTED';
 
                         $quoteItemFormModel->add($quoteItemFormModel->create($quoteItemFormFields));
@@ -332,7 +334,7 @@ class QuoteBizLineModel extends PublicModel {
                     }
 
                     //判断有没有报过价
-                    $hasQuoted = $quoteItemFormModel->where(['sku'=>$value['sku'],'updated_by'=>$user])->count();
+                    $hasQuoted = $quoteItemFormModel->where(['quote_bizline_id'=>$value['quote_bizline_id'],'sku'=>$value['sku'],'updated_by'=>$user])->count();
 
                     if ($hasQuoted){
                         //更新
@@ -458,7 +460,7 @@ class QuoteBizLineModel extends PublicModel {
 
         //更新当前的报价单状态为产品线报价
         try {
-            if ($this->where(['quote_id' => $params['quote_id']])->save(['status' => 'QUOTED'])) {
+            if ($this->where(['id' => $params['quote_bizline_id']])->save(['status' => 'QUOTED'])) {
                 return ['code' => '1', 'message' => '提交成功!'];
             } else {
                 return ['code' => '-104', 'message' => '提交失败!'];
