@@ -12,6 +12,7 @@ class ProductAttachModel extends PublicModel {
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
     const STATUS_INVALID = 'INVALID';  //无效
+    const STATUS_DELETED = 'DELETED';  //无效
     const DELETED_Y = 'Y'; //删除
     const DELETED_N = 'N'; //未删除
 
@@ -48,24 +49,24 @@ class ProductAttachModel extends PublicModel {
         //根据缓存读取,没有则查找数据库并缓存
         $key_redis = md5(json_encode($condition));
         if (redisHashExist('spu_attach', $key_redis)) {
-            $result = redisHashGet('spu_attach', $key_redis);
-            return json_decode($result, true);
-        } else {
-            try {
-                $result = $this->field($field)->where($condition)->select();
-                if ($result) {
-                    $data = array();
-                    //按类型分组
-                    foreach ($result as $item) {
-                        $data[$item['attach_type']][] = $item;
-                    }
-                    redisHashSet('spu_attach', $key_redis, json_encode($data));
-                    return $data;
+            //$result = redisHashGet('spu_attach', $key_redis);
+            //return json_decode($result, true);
+        }
+
+        try {
+            $result = $this->field($field)->where($condition)->select();
+            if ($result) {
+                $data = array();
+                //按类型分组
+                foreach ($result as $item) {
+                    $data[$item['attach_type']][] = $item;
                 }
-                return array();
-            } catch (Exception $e) {
-                return false;
+                redisHashSet('spu_attach', $key_redis, json_encode($data));
+                return $data;
             }
+            return array();
+        } catch (Exception $e) {
+            return false;
         }
     }
 
@@ -90,7 +91,11 @@ class ProductAttachModel extends PublicModel {
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
         if (isset($input['id']) && !empty($input['id'])) {    //修改
-            return $this->where(array('id' => $input['id']))->save($data);
+            if($this->where(array('id' => $input['id']))->save($data)){
+                return  $input['id'];
+            }else{
+                return false;
+            }
         }
         return $this->add($data);
     }

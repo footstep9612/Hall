@@ -218,7 +218,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
-
+        $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
             foreach ($userids as $updated_by) {

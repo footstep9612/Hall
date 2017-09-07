@@ -234,61 +234,140 @@ class QuoteBizLineModel extends PublicModel {
     }
 
     /**
-     * 产品线负责人暂存报价信息
+     * 暂存(产品线报价人)
      */
     public function storageQuote($data, $user) {
 
-        //追加供应商信息
-        foreach ($data as $key => $value) {
+        $quoteItemFormModel = new QuoteItemFormModel();
 
-            //判断价格
-            if (!empty($value['purchase_unit_price']) && !is_numeric($value['purchase_unit_price'])){
-                return ['code'=>'-104','message'=>'采购单价必须是数字'];
-            }
-            if (!empty($value['net_weight_kg']) && !is_numeric($value['net_weight_kg'])){
-                return ['code'=>'-104','message'=>'净重必须是数字'];
-            }
-            if (!empty($value['gross_weight_kg']) && !is_numeric($value['gross_weight_kg'])){
-                return ['code'=>'-104','message'=>'毛重必须是数字'];
-            }
-            if (!empty($value['package_size']) && !is_numeric($value['package_size'])){
-                return ['code'=>'-104','message'=>'包装体积必须是数字'];
-            }
+        try{
 
-            if (!empty($value['supplier_info'])) {
+            foreach ($data as $key => $value) {
 
-                $data[$key]['supplier_id'] = $value['supplier_info']['supplier_id'];
-                $data[$key]['contact_first_name'] = $value['supplier_info']['first_name'];
-                $data[$key]['contact_last_name'] = $value['supplier_info']['last_name'];
-                $data[$key]['contact_gender'] = $value['supplier_info']['gender'];
-                $data[$key]['contact_email'] = $value['supplier_info']['email'];
-                $data[$key]['contact_phone'] = $value['supplier_info']['phone'];
-                unset($data[$key]['supplier_info']);
-            }
+                $quoteItemFormFields = $quoteItemFormModel->where(['id'=>$value['id']])->field('quote_id,quote_item_id,inquiry_item_id,quote_bizline_id')->find();
 
-            $data[$key]['updated_by'] = $user;
-            $data[$key]['created_by'] = $user;
-            $data[$key]['updated_at'] = date('Y-m-d H:i:s');
-            $data[$key]['status'] = 'QUOTED'; //报价状态
-        }
+                //如果输填写了未报价分析原因
+                if (!empty($value['reason_for_no_quote'])){
 
-        //更新信息
-        try {
-            $quoteItemFormModel = new QuoteItemFormModel();
-            foreach ($data as $k => $v) {
-                $result = $quoteItemFormModel->save($quoteItemFormModel->create($v));
-                if (!$result) {
-                    return ['code' => '1', 'message' => '暂存失败!'];
+                    $hasQuoted = $quoteItemFormModel->where(['quote_bizline_id'=>$value['quote_bizline_id'],'sku'=>$value['sku'],'updated_by'=>$user])->count();
+
+                    if ($hasQuoted){
+                        $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
+                        $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
+                        $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
+                        $quoteItemFormFields['status'] = 'QUOTED';
+                        $quoteItemFormModel->where(['id'=>$value['id']])->save($quoteItemFormModel->create($quoteItemFormFields));
+                    }else{
+
+                        $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
+                        $quoteItemFormFields['created_at'] = date('Y-m-d H:i:s');
+                        $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
+                        $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
+                        $quoteItemFormFields['status'] = 'QUOTED';
+
+                        $quoteItemFormModel->add($quoteItemFormModel->create($quoteItemFormFields));
+                    }
                 }
+
+                if(!empty($value['supplier_id']) && empty($value['reason_for_no_quote'])){
+                    /**
+                     * 如果是选择了供应商，一下信息是必填字段
+                     * 报价产品描述，采购单价，采购币种，净重，毛重，包装体积，包装方式，产品来源，存放地，交货期(天)，报价有效期
+                     */
+
+                    //采购单价
+                    if (empty($value['purchase_unit_price'])){
+                        return ['code'=>'-104','message'=>'采购单价必填'];
+                    }
+                    if (!is_numeric($value['purchase_unit_price'])){
+                        return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                    }
+                    //采购币种
+                    if (empty($value['purchase_price_cur_bn'])){
+                        return ['code'=>'-104','message'=>'采购币种必选'];
+                    }
+                    //净重
+                    if (empty($value['net_weight_kg'])){
+                        return ['code'=>'-104','message'=>'净重必填'];
+                    }
+                    if (!is_numeric($value['net_weight_kg'])){
+                        return ['code'=>'-104','message'=>'净重必须是数字'];
+                    }
+                    //毛重
+                    if (empty($value['gross_weight_kg'])){
+                        return ['code'=>'-104','message'=>'毛重必填'];
+                    }
+                    if (!is_numeric($value['gross_weight_kg'])){
+                        return ['code'=>'-104','message'=>'毛重必须是数字'];
+                    }
+                    //包装体积
+                    if (empty($value['package_size'])){
+                        return ['code'=>'-104','message'=>'包装体积必填'];
+                    }
+                    if (!is_numeric($value['package_size'])){
+                        return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                    }
+                    //包装方式
+                    if (empty($value['package_mode'])){
+                        return ['code'=>'-104','message'=>'包装方式必填'];
+                    }
+                    //产品来源
+                    if (empty($value['goods_source'])){
+                        return ['code'=>'-104','message'=>'产品来源必填'];
+                    }
+                    //存放地
+                    if (empty($value['stock_loc'])){
+                        return ['code'=>'-104','message'=>'存放地必填'];
+                    }
+                    //交货期(天)，报价有效期
+                    if (empty($value['delivery_days'])){
+                        return ['code'=>'-104','message'=>'交货期必填'];
+                    }
+                    if (!is_numeric($value['delivery_days'])){
+                        return ['code'=>'-104','message'=>'交货期必须是数字'];
+                    }
+                    //报价有效期
+                    if (empty($value['period_of_validity'])){
+                        return ['code'=>'-104','message'=>'报价有效期必填'];
+                    }
+
+                    //判断有没有报过价
+                    $hasQuoted = $quoteItemFormModel->where(['quote_bizline_id'=>$value['quote_bizline_id'],'sku'=>$value['sku'],'updated_by'=>$user])->count();
+
+                    if ($hasQuoted){
+                        //更新
+                        $value['updated_by'] = $user;
+                        $value['updated_at'] = date('Y-m-d H:i:s');
+                        $value['created_at'] = date('Y-m-d H:i:s');
+                        $value['status'] = 'QUOTED';
+                        $quoteItemFormModel->save($quoteItemFormModel->create($value));
+
+                    }else{
+                        //新增
+                        $value['updated_by'] = $user;
+                        $value['updated_at'] = date('Y-m-d H:i:s');
+                        $value['created_at'] = date('Y-m-d H:i:s');
+                        $value['status'] = 'QUOTED';
+                        $newData = array_merge($quoteItemFormFields,$value);
+                        unset($newData['id']);
+                        $quoteItemFormModel->add($quoteItemFormModel->create($newData));
+                    }
+
+                }
+
             }
 
             return ['code' => '1', 'message' => '成功!'];
-        } catch (Exception $exception) {
+
+        }catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()
             ];
         }
+
     }
 
     /**
@@ -381,7 +460,7 @@ class QuoteBizLineModel extends PublicModel {
 
         //更新当前的报价单状态为产品线报价
         try {
-            if ($this->where(['quote_id' => $params['quote_id']])->save(['status' => 'QUOTED'])) {
+            if ($this->where(['id' => $params['quote_bizline_id']])->save(['status' => 'QUOTED'])) {
                 return ['code' => '1', 'message' => '提交成功!'];
             } else {
                 return ['code' => '-104', 'message' => '提交失败!'];

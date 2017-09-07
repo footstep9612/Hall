@@ -337,7 +337,7 @@ class GoodsAttrModel extends PublicModel {
         } else {
             $where['status'] = array('neq', self::STATUS_DELETED);
         }
-
+        $where['deleted_flag'] = 'N';
         //redis
         if (redisHashExist('SkuAttrs', md5(json_encode($where)))) {
            // return json_decode(redisHashGet('SkuAttrs', md5(json_encode($where))), true);
