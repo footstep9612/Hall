@@ -257,6 +257,7 @@ class ProductModel extends PublicModel {
                             }
                         }
                         $ids = [];
+                        $pattach = new ProductAttachModel();
                         foreach ($item as $atta) {
                             $data = array(
                                 'spu' => $spu,
@@ -271,7 +272,6 @@ class ProductModel extends PublicModel {
                             if (empty($data['attach_url'])) {
                                 continue;
                             }
-                            $pattach = new ProductAttachModel();
                             $attach = $pattach->addAttach($data);
                             if (!$attach) {
                                 $this->rollback();
