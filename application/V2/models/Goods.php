@@ -518,7 +518,7 @@ class GoodsModel extends PublicModel {
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
-                    //状态校验 增加中文验证
+                    //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
 
