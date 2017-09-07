@@ -336,6 +336,7 @@ trait QuoteBizlineHelper{
         ]);
 
         $where = "quote_id = ".$request['quote_id']." and (status='NOT_QUOTED' OR status='REJECTED')";
+
         $quoteBizlineItemsCount = $quoteBizlineModel->where($where)->count('id');
         //判断多个产品线报价
         if ($quoteBizlineItemsCount>0){

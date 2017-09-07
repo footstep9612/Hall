@@ -1100,7 +1100,7 @@ class QuotebizlineController extends PublicController {
         if (!empty($quoteItemIds)){
             foreach ($quoteItemIds as $key=>$value){
 
-                    if (empty($value['reason_for_no_quote'])){
+                    if (!empty($value['purchase_unit_price'] || empty($value['reason_for_no_quote'])){
                         /**
                          * EXW单价=采购单价*毛利率/汇率
                          */
@@ -1221,38 +1221,6 @@ class QuotebizlineController extends PublicController {
             ]);
         }
 
-    }
-
-    /**
-     * @desc 暂存(可能要废弃)
-     * @author 买买提
-     */
-    public function quoterStorageAction() {
-        /*
-          |--------------------------------------------------------------------------
-          | 产品线报价->暂存   角色:产品线报价人
-          |--------------------------------------------------------------------------
-          | 操作说明
-          | 点击暂存后，不做校验，市场的进度为待提交
-          | 当前报价单状态改为待提交  [quote_bizlie表]
-          |
-         */
-        $quote_id = 1;
-        $result = $this->_quoteBizLine->quoterStorage($quote_id);
-
-        //TODO 这里可能添加一些列逻辑
-
-        if ($result) {
-            $this->jsonReturn([
-                'code' => 1,
-                'message' => '成功!'
-            ]);
-        }
-
-        $this->jsonReturn([
-            'code' => -104,
-            'message' => '失败!'
-        ]);
     }
 
 }
