@@ -25,7 +25,7 @@ class ProductModel extends PublicModel {
         //'lang' => array('method','checkLang'),
         'material_cat_no' => array('required'),
         'name' => array('required'),
-        'brand' => array('required'),
+            //  'brand' => array('required'),//暂时先去掉品牌的必填验证
     );
 
     /**
@@ -88,11 +88,9 @@ class ProductModel extends PublicModel {
                             break;
                         }
                     }
-                }else{
-                    $data['brand'] = json_encode(array('name'=> $input['brand'] ,'lang'=>$lang),JSON_UNESCAPED_UNICODE);
                 }
             } else {
-                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : json_encode(array('name'=> $input['brand'] ,'lang'=>$lang),JSON_UNESCAPED_UNICODE);
+                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : $input['brand'];
             }
         } elseif ($type == 'INSERT') {
             $data['brand'] = '';
@@ -203,7 +201,7 @@ class ProductModel extends PublicModel {
                         $data['show_name'] = $data['name'];
                     }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST','VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     if ($input['status'] != 'DRAFT') {
                         //字段校验
                         $this->checkParam($data, $this->field);

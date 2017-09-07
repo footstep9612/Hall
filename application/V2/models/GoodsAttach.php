@@ -28,6 +28,8 @@ class GoodsAttachModel extends PublicModel {
     const STATUS_DELETED = 'DELETED'; //删除；
     const STATUS_CHECKING = 'CHECKING'; //审核；
     const STATUS_DRAFT = 'DRAFT';       //草稿
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     //定义校验规则
 
@@ -65,7 +67,7 @@ class GoodsAttachModel extends PublicModel {
 
         //读取redis缓存
         if (redisHashExist('Attach', $sku . '_' . $type . '_' . $status)) {
-            return (array) json_decode(redisHashGet('Attach', $sku . '_' . $type . '_' . $status));
+//            return (array) json_decode(redisHashGet('Attach', $sku . '_' . $type . '_' . $status));
         }
 
         try {
@@ -81,7 +83,7 @@ class GoodsAttachModel extends PublicModel {
                     $result = $data;
                 }
                 //添加到缓存
-                redisHashSet('Attach', $sku . '_' . $type . '_' . $status, json_encode($result));
+//                redisHashSet('Attach', $sku . '_' . $type . '_' . $status, json_encode($result));
                 return $result;
             }
         } catch (Exception $e) {
@@ -251,14 +253,14 @@ class GoodsAttachModel extends PublicModel {
         if (!empty($condition['attach_type']) && !in_array($condition['attach_type'], array('SMALL_IMAGE', 'MIDDLE_IMAGE', 'BIG_IMAGE', 'DOC'))) {
             $where['status'] = strtoupper($condition['attach_type']);
         }
-
+        $where['deleted_flag'] = self::DELETE_N;
         //redis
-        if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
+       /* if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
             $data = json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
             if ($data) {
                 return $data;
             }
-        }
+        }*/
         $field = 'id, sku, supplier_id, attach_type, attach_name, attach_url, default_flag, sort_order, status, created_by,  created_at, updated_by, updated_at, checked_by, checked_at';
         try {
             $result = $this->field($field)->where($where)->select();
@@ -268,7 +270,7 @@ class GoodsAttachModel extends PublicModel {
                 foreach ($result as $item) {
                     $data[$item['attach_type']][] = $item;
                 }
-                redisHashSet('SkuAttachs', md5(json_encode($where)), json_encode($data));
+//                redisHashSet('SkuAttachs', md5(json_encode($where)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
