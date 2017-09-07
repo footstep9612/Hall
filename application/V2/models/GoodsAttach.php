@@ -28,6 +28,8 @@ class GoodsAttachModel extends PublicModel {
     const STATUS_DELETED = 'DELETED'; //删除；
     const STATUS_CHECKING = 'CHECKING'; //审核；
     const STATUS_DRAFT = 'DRAFT';       //草稿
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     //定义校验规则
 
@@ -251,7 +253,7 @@ class GoodsAttachModel extends PublicModel {
         if (!empty($condition['attach_type']) && !in_array($condition['attach_type'], array('SMALL_IMAGE', 'MIDDLE_IMAGE', 'BIG_IMAGE', 'DOC'))) {
             $where['status'] = strtoupper($condition['attach_type']);
         }
-
+        $where['deleted_flag'] = self::DELETE_N;
         //redis
        /* if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
             $data = json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
