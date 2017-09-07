@@ -975,18 +975,23 @@ class QuotebizlineController extends PublicController {
             $this->jsonReturn(['code'=>'-104','message'=>'毛利率必须是数字']);
         }
 
-        //计算商务报出EXW单价
-        $this->calculateExwUnitPrice($request['inquiry_id']);
-
+        $request['created_at'] = date('Y-m-d H:i:s');
         $quoteModel = new QuoteModel();
         try{
-            if ($quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request))){
+            $result = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request));
+            if ($result){
+
+                //计算商务报出EXW单价
+                $this->calculateExwUnitPrice($request['inquiry_id']);
+
                 //计算商务报出EXW总报价
                 $this->calculateTotaleExwPrice($request['inquiry_id']);
+
                 //计算银行费用
                 $this->calculateBankFee($request['inquiry_id']);
 
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
+
             }else{
                 $this->jsonReturn(['code'=>'1','message'=>'保存成功!']);
             }
@@ -1059,17 +1064,19 @@ class QuotebizlineController extends PublicController {
     private function calculateTotaleExwPrice($inquiry_id){
 
         $quoteItemModel = new QuoteItemModel();
-
         //商务报出EXW合计total_exw_price
-        $quoteItemExwUnitPrices = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('exw_unit_price',true);
-        $quoteItemExwUnitPrices = array_sum($quoteItemExwUnitPrices);
-        //采购总价total_purchase
-        //$quoteItemTotalPurchase = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->getField('purchase_unit_price',true);
-        //$quoteItemTotalPurchase = array_sum($quoteItemTotalPurchase);
+        $quoteItemExwUnitPrices = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('exw_unit_price,quote_qty')->select();
+        $total_exw_price = [];
+        foreach ($quoteItemExwUnitPrices as $price){
+            $total_exw_price[] = $price['exw_unit_price'] * $price['quote_qty'];
+        }
+        $total_exw_price = array_sum($total_exw_price);
 
+        //采购总价total_purchase
         $quoteModel = new QuoteModel();
         return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save([
-            'total_exw_price' =>$quoteItemExwUnitPrices,
+            'total_exw_price' =>$total_exw_price,
+            //采购总价
             'total_purchase' =>$this->calculateTotalPurchase($inquiry_id)
         ]);
 
@@ -1089,21 +1096,23 @@ class QuotebizlineController extends PublicController {
         $quoteItemModel = new QuoteItemModel();
         $exchangeRateModel = new ExchangeRateModel();
 
-        $quoteItemIds = $quoteItemModel->where(['quote_id'=>$quoteInfo['id']])->field('id,purchase_unit_price,purchase_price_cur_bn')->select();
+        $quoteItemIds = $quoteItemModel->where(['quote_id'=>$quoteInfo['id']])->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')->select();
         if (!empty($quoteItemIds)){
             foreach ($quoteItemIds as $key=>$value){
 
-                    /**
-                     * EXW单价=采购单价*毛利率/汇率
-                     */
+                    if (empty($value['reason_for_no_quote'])){
+                        /**
+                         * EXW单价=采购单价*毛利率/汇率
+                         */
 
-                    //汇率
-                    $exchange_rate = $exchangeRateModel->where(['cur_bn1'=>$value['purchase_price_cur_bn'],'cur_bn2'=>'USD'])->getField('rate');
-                    $exw_unit_price = $value['purchase_unit_price'] *  $gross_profit_rate / $exchange_rate ;
-                    $exw_unit_price = sprintf("%.4f", $exw_unit_price);
-                    $quoteItemModel->where(['id'=>$value['id']])->save([
-                        'exw_unit_price' => $exw_unit_price
-                    ]);
+                        //汇率
+                        $exchange_rate = $exchangeRateModel->where(['cur_bn1'=>$value['purchase_price_cur_bn'],'cur_bn2'=>'USD'])->getField('rate');
+                        $exw_unit_price = $value['purchase_unit_price'] *  $gross_profit_rate / $exchange_rate ;
+                        $exw_unit_price = sprintf("%.4f", $exw_unit_price);
+                        $quoteItemModel->where(['id'=>$value['id']])->save([
+                            'exw_unit_price' => $exw_unit_price
+                        ]);
+                    }
             }
         }
 
