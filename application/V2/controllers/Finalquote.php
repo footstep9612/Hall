@@ -155,33 +155,39 @@ class FinalquoteController extends PublicController {
 
             //计算报出冒出贸易单价    quote_unit_price
             $finalitem = new FinalQuoteItemModel();
-            $finalquote = new FinalQuoteModel();
             $finalitem->startTrans();
+
+            foreach($data['sku'] as $val){
+                if($val['final_exw_unit_price']>0){
+                    $quote_unit_price = $total_quote_price*$val['final_exw_unit_price']/$total_exw_price;//报出贸易单价
+
+                    $itemdata['id'] = $val['id'];
+                    $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
+                    $itemdata['quote_unit_price'] = round($quote_unit_price,4);
+
+                    $itemrs = $this->updateItemAction($itemdata);
+
+                    if($itemrs['code'] != 1){
+                        $finalitem->rollback();
+                        $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                    }
+                }
+            }
 
             $finaldata['inquiry_id'] = $data['id'];
             $finaldata['payment_period'] = $data['payment_period'];
             $finaldata['delivery_period'] = $data['delivery_period'];
             $finaldata['fund_occupation_rate'] = $data['fund_occupation_rate'];
+            if($total_exw_price>0){
+                $finaldata['total_exw_price'] =$total_exw_price;   //市场报出EXW价格合计
+            }
+            if($total_quote_price>0) {
+                $finaldata['total_quote_price'] = $total_quote_price;   //市场报出贸易价格合计
+            }
+            $finaldata['updated_by'] = $this->user['id'];
 
-            $results = $finalquote->updateFinal($finaldata);
+            $results = $final->updateFinal($finaldata);
             if($results['code'] == 1){
-                foreach($data['sku'] as $val){
-                    if($val['final_exw_unit_price']>0){
-                        $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
-                        $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
-
-                        $itemdata['id'] = $val['id'];
-                        $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
-                        $itemdata['quote_unit_price'] = round($quote_unit_price,4);
-
-                        $itemrs = $this->updateItemAction($itemdata);
-
-                        if($itemrs['code'] != 1){
-                            $finalitem->rollback();
-                            $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
-                        }
-                    }
-                }
                 $finalitem->commit();
                 $this->jsonReturn($results);die;
             }else{
@@ -189,24 +195,6 @@ class FinalquoteController extends PublicController {
                 $this->jsonReturn('','-101','修改报价单失败！');die;
             }
         }
-
-
-
-        //把修改更新到市场报价单表
-        $finaldata['id'] = $data['id']; //市场报价单ID
-        $finaldata['payment_period'] =$data['payment_period'];    //回款周期
-        $finaldata['delivery_period'] =$data['delivery_period'];   //交货周期
-        $finaldata['fund_occupation_rate'] =$data['fund_occupation_rate'];  //占用资金比例
-        if($total_exw_price>0){
-            $finaldata['total_exw_price'] =$total_exw_price;   //市场报出EXW价格合计
-        }
-        if($total_quote_price>0) {
-            $finaldata['total_quote_price'] = $total_quote_price;   //市场报出贸易价格合计
-        }
-        $finaldata['updated_by'] =$this->user['id'];
-
-        $results = $final->updateFinal($finaldata);
-        $this->jsonReturn($results);
     }
 
     /*
@@ -278,7 +266,7 @@ class FinalquoteController extends PublicController {
      */
     private function _getRateUSD($cur) {
 
-        return $this->_getRate($cur, 'USD');
+        return $this->_getRate('USD',$cur);
     }
 
     /**
