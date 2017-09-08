@@ -30,6 +30,14 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * 文件上传测试
+     * @return bool
+     */
+    public function testAction(){
+        return $this->getView()->display('upload.html');
+    }
+
+    /**
      * 验证指定参数是否存在
      * @param string $params 初始的请求字段
      * @return array 验证后的请求字段
@@ -907,7 +915,7 @@ class QuotebizlineController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-        $fields = 'q.id,q.total_weight,a.trans_mode_bn,q.premium_rate,q.package_volumn,a.dispatch_place,a.delivery_addr,q.dispatch_place logi_dispatch_place,q.delivery_addr logi_delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price';
+        $fields = 'q.id,q.total_weight,a.trans_mode_bn,q.premium_rate,q.package_volumn,a.dispatch_place,a.delivery_addr,q.dispatch_place logi_dispatch_place,q.delivery_addr logi_delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price,q.quote_remarks';
         $quoteModel = new QuoteModel();
         $result = $quoteModel->alias('q')
                              ->join('erui2_rfq.inquiry a ON q.inquiry_id = a.id','LEFT')
@@ -918,7 +926,6 @@ class QuotebizlineController extends PublicController {
         if (!$result){
             $this->jsonReturn(['code'=>'-104','message'=>'没有数据!']);
         }
-
         $employee = new EmployeeModel();
         $inquiry = new InquiryModel();
         $exchange_rate_model = new ExchangeRateModel();
@@ -976,11 +983,11 @@ class QuotebizlineController extends PublicController {
         }
 
         $request['created_at'] = date('Y-m-d H:i:s');
+
         $quoteModel = new QuoteModel();
         try{
             $result = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save($quoteModel->create($request));
             if ($result){
-
                 //计算商务报出EXW单价
                 $this->calculateExwUnitPrice($request['inquiry_id']);
 
@@ -1018,14 +1025,14 @@ class QuotebizlineController extends PublicController {
         foreach ($quoteItemsData as $quote=>$item){
             switch ($item['purchase_price_cur_bn']){
                 case 'EUR' :
-                    $rate = $exchangeRateModel->where(['cur_bn2'=>'EUR','cur_bn1'=>'USD'])->getField('rate');
+                    $rate = $exchangeRateModel->where(['cur_bn2'=>'EUR','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
                     $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
                     break;
                 case 'USD' :
                     $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'];
                     break;
                 case 'CNY' :
-                    $rate = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->getField('rate');
+                    $rate = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
                     $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
                     break;
             }
@@ -1085,7 +1092,7 @@ class QuotebizlineController extends PublicController {
                          */
 
                         //汇率
-                        $exchange_rate = $exchangeRateModel->where(['cur_bn2'=>$value['purchase_price_cur_bn'],'cur_bn1'=>'USD'])->getField('rate');
+                        $exchange_rate = $exchangeRateModel->where(['cur_bn2'=>$value['purchase_price_cur_bn'],'cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
                         $exw_unit_price = $value['purchase_unit_price'] *  $gross_profit_rate / $exchange_rate ;
                         $exw_unit_price = sprintf("%.4f", $exw_unit_price);
                         $quoteItemModel->where(['id'=>$value['id']])->save([

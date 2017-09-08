@@ -22,11 +22,12 @@ class ShowmaterialcatController extends PublicController {
     public function listAction() {
         $model = new ShowMaterialCatModel();
         $material_cat_no = $this->getPut('material_cat_no');
+        $lang = $this->getPut('lang', 'en');
         if (!$material_cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $show_cat_nos = $model->getshowcatnosBymatcatno($material_cat_no, 'zh');
+        $show_cat_nos = $model->getshowcatnosBymatcatno($material_cat_no, $lang);
 
         $show_cat_nos_arr = [];
 
@@ -37,7 +38,7 @@ class ShowmaterialcatController extends PublicController {
         }
         if ($show_cat_nos_arr) {
             $show_cat_model = new ShowCatModel();
-            $data = $show_cat_model->getshow_cats($show_cat_nos_arr, 'zh');
+            $data = $show_cat_model->getshow_cats($show_cat_nos_arr, $lang);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
