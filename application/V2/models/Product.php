@@ -790,63 +790,88 @@ class ProductModel extends PublicModel {
      * @return string
      */
     public function export() {
+        $lang_ary = array('zh','en','es','ru');
+        $userInfo = getLoinInfo();
+        $pModel = new ProductModel();
+
         $objPHPExcel = new PHPExcel();
-        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
-        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
-        $objSheet->getStyle("A1:K1")
+        $objPHPExcel->getProperties()->setCreator($userInfo['name']);
+        $objPHPExcel->getProperties()->setTitle("Product List");
+        $objPHPExcel->getProperties()->setLastModifiedBy($userInfo['name']);
+        foreach($lang_ary as $key => $lang){
+            $objPHPExcel->createSheet();    //创建工作表
+            $objPHPExcel->setActiveSheetIndex($key);    //设置工作表
+            $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+            $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+            $objSheet->getStyle("A1:K1")
                 ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
-        //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
-        //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-        $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
-        foreach ($column_width_25 as $column) {
-            $objSheet->getColumnDimension($column)->setWidth(25);
+            $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
+            $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+            foreach ($column_width_25 as $column) {
+                $objSheet->getColumnDimension($column)->setWidth(25);
+            }
+
+            $objSheet->setTitle($lang);
+            $objSheet->setCellValue("A1", "序号");
+            $objSheet->setCellValue("B1", "产品编码");
+            $objSheet->setCellValue("C1", "产品名称");
+            $objSheet->setCellValue("D1", "展示名称");
+            $objSheet->setCellValue("E1", "产品组");
+            $objSheet->setCellValue("F1", "产品品牌");
+            $objSheet->setCellValue("G1", "产品介绍");    //对应产品优势（李志确认）
+            $objSheet->setCellValue("H1", "技术参数");
+            $objSheet->setCellValue("I1", "执行标准");
+            $objSheet->setCellValue("J1", "质保期");
+            $objSheet->setCellValue("K1", "关键字");
+            $objSheet->setCellValue("L1", "审核状态");
+
+            $i = 0;    //用来控制分页查询
+            $j = 2;    //excel控制输出
+            $length = 20;
+            $condition = array('lang' => $lang);
+            do {
+                $result = $pModel->getList($condition, '', $i * $length, $length);
+                if ($result) {
+                    foreach ($result as $r) {
+                        $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objSheet->setCellValue("B" . $j, $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objSheet->setCellValue("C" . $j, $r['name']);
+                        $objSheet->setCellValue("D" . $j, $r['show_name']);
+                        $objSheet->setCellValue("E" . $j, $r['material_cat_no']);
+                        $brand_ary = json_decode($r['brand'], true);
+                        $objSheet->setCellValue("F" . $j, (is_array($brand_ary) && isset($brand_ary['name'])) ? $brand_ary['name'] : $r['brand']);
+                        $objSheet->setCellValue("G" . $j, $r['advantages']);
+                        $objSheet->setCellValue("H" . $j, $r['tech_paras']);
+                        $objSheet->setCellValue("I" . $j, $r['exe_standard']);
+                        $objSheet->setCellValue("J" . $j, $r['warranty']);
+                        $objSheet->setCellValue("K" . $j, $r['keywords']);
+                        $status = '';
+                        switch($r['status']){
+                            case 'VALID':
+                                $status = '通过';
+                                break;
+                            case 'INVALID':
+                                $status = '驳回';
+                                break;
+                            case 'CHECKING':
+                                $status = '待审核';
+                                break;
+                            case 'DRAFT':
+                                $status = '草稿';
+                                break;
+                        }
+                        $objSheet->setCellValue("L" . $j, $status == '' ? $r['status'] : $status);
+                        $j++;
+                    }
+                }
+                $i++;
+            } while (count($result) >= $length);
         }
 
-        $objSheet->setTitle('产品'); //设置报价单标题
-        $objSheet->setCellValue("A1", "序号");
-        $objSheet->setCellValue("B1", "产品编码");
-        $objSheet->setCellValue("C1", "产品名称");
-        $objSheet->setCellValue("D1", "展示名称");
-        $objSheet->setCellValue("E1", "产品组");
-        $objSheet->setCellValue("F1", "产品品牌");
-        $objSheet->setCellValue("G1", "产品介绍");    //对应产品优势（李志确认）
-        $objSheet->setCellValue("H1", "技术参数");
-        $objSheet->setCellValue("I1", "执行标准");
-        $objSheet->setCellValue("J1", "质保期");
-        $objSheet->setCellValue("K1", "关键字");
-
-        $i = 0;    //用来控制分页查询
-        $j = 2;    //excel控制输出
-        $length = 20;
-        do {
-            $pModel = new ProductModel();
-            $condition = [];
-            $result = $pModel->getList($condition, '', $i * $length, $length);
-            if ($result) {
-                foreach ($result as $r) {
-                    $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
-                    $objSheet->setCellValue("B" . $j, $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
-                    $objSheet->setCellValue("C" . $j, $r['name']);
-                    $objSheet->setCellValue("D" . $j, $r['show_name']);
-                    $objSheet->setCellValue("E" . $j, $r['material_cat_no']);
-                    $brand_ary = json_decode($r['brand'], true);
-                    $objSheet->setCellValue("F" . $j, (is_array($brand_ary) && isset($brand_ary['name'])) ? $brand_ary['name'] : $r['brand']);
-                    $objSheet->setCellValue("G" . $j, $r['advantages']);
-                    $objSheet->setCellValue("H" . $j, $r['tech_paras']);
-                    $objSheet->setCellValue("I" . $j, $r['exe_standard']);
-                    $objSheet->setCellValue("J" . $j, $r['warranty']);
-                    $objSheet->setCellValue("K" . $j, $r['keywords']);
-                    $j++;
-                }
-            }
-            $i++;
-        } while (count($result) >= $length);
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Product_'.time() . '.xls');
 
         return $localDir ? $localDir : '';
     }

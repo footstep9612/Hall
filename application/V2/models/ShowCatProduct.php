@@ -113,6 +113,12 @@ class ShowCatProductModel extends PublicModel {
                         } else {
                             $data_tmp['cat_no'] = $r;
                         }
+
+                        //检查上架
+                        $exist = $this->field('id')->where(array('spu'=>$data_tmp['spu'],'cat_no'=>$data_tmp['cat_no'],'lang'=> $data_tmp['lang'],'onshelf_flag'=>self::STATUS_ONSHELF))->find();
+                        if($exist){
+                            continue;
+                        }
                         $data[] = $data_tmp;
                     }
                 }
@@ -152,6 +158,10 @@ class ShowCatProductModel extends PublicModel {
                         $data_tmp['cat_no'] = $r['show_cat_no'];
                     } else {
                         $data_tmp['cat_no'] = $r;
+                    }
+                    $exist = $this->field('id')->where(array('spu'=>$data_tmp['spu'],'cat_no'=>$data_tmp['cat_no'],'lang'=> $data_tmp['lang'],'onshelf_flag'=>self::STATUS_ONSHELF))->find();
+                    if($exist){
+                        continue;
                     }
                     $data[] = $data_tmp;
                 }
