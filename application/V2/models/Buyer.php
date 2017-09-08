@@ -397,7 +397,10 @@ class BuyerModel extends PublicModel {
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
-
+        if(isset($user['buyer_no'])) {
+            $where['buyer_no'] = $user['buyer_no'];
+        }
+        $where['deleted_flag'] = 'N';
         $field = 'id,lang,serial_no,buyer_type,buyer_no,name,bn,country_code,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,sec_ex_listed_on,line_of_credit,credit_available,credit_cur_bn,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';
         try {
             $buyerInfo = $this->field($field)->where($where)->find();
