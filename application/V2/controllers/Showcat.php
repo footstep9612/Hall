@@ -41,7 +41,7 @@ class ShowcatController extends PublicController {
                     }
                 }
             }
-            redisSet($redis_key, json_encode($arr), 86400);
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->_setCount($lang, $country_bn, $marke_area_bn);
             $this->jsonReturn($arr);
