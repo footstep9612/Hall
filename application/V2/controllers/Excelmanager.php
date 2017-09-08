@@ -160,7 +160,7 @@ class ExcelmanagerController extends PublicController {
         $remoteUrl = ExcelHelperTrait::uploadToFileServer($excelFile);
         $url_prefix = 'http://172.18.18.196/';
         if (!$remoteUrl) {
-            //$this->jsonReturn(['code' => '1', 'message' => '失败']);
+            $this->jsonReturn(['code' => '1', 'message' => '失败']);
         }
         //构建打包文件数组
         $fileName = date('Ymdhis');
