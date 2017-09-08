@@ -571,7 +571,7 @@ class ShowCatModel extends PublicModel {
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;
-                $add['status'] = self::STATUS_APPROVING;
+                $add['status'] = self::STATUS_VALID;
 
                 $add['created_by'] = defined('UID') ? UID : 0;
                 $add['created_at'] = date('Y-m-d H:i:s');
