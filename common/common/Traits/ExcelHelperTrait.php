@@ -91,14 +91,17 @@ trait ExcelHelperTrait
     static public function uploadToFileServer($localFile,$type='application/octet-stream')
     {
         //TODO 这里添加上传到文件服务器的逻辑
-        $client   = new FastDFSclient();
-        $file = [
-            'name'     => $localFile,
-            'type'     => self::getFileType($localFile),
-            'size'     => filesize($localFile),
-            'tmp_name' => $localFile
-        ];		
-        return $client->uploadAttach($file);
+		
+		$client   = new FastDFSclient();
+		$file = [
+			'name'     => $localFile,
+			'type'     => self::getFileType($localFile),
+			'size'     => filesize($localFile),
+			'tmp_name' => $localFile
+		];
+		$ret = $client->uploadAttach($file);
+		return $ret;
+		
     }
     
     /**

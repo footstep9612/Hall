@@ -181,7 +181,7 @@ class ExcelmanagerController extends PublicController {
 		//上传至FastDFS
         $zipFile = $fileName.'.zip';
         $fileId = ExcelHelperTrait::packAndUpload($zipFile,$files);
-        if(!empty($fileId)){
+        if(empty($fileId)){
             $this->jsonReturn([
                 'code' => '-1',
                 'message' => '导出失败!',
