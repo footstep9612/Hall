@@ -39,7 +39,8 @@ trait InquirySerialNo{
      */
     public static function getInquirySerialNo() {
 
-        $inquirySerialNo = self::getSerialNo('inquirySerialNo', 'INQ_');
+        //$inquirySerialNo = self::getSerialNo('inquirySerialNo', 'INQ_');
+        $inquirySerialNo = self::_getInquirySerialNo('INQ_');
 
         return $inquirySerialNo;
     }
@@ -67,6 +68,30 @@ trait InquirySerialNo{
 
         return $quoteNo;
     }
+    
+    /**
+     * @desc 获取生成的询单流水号
+     *
+     * @param string $prefix 流水号前缀
+     * @return string 流水号
+     * @author liujf
+     * @time 2017-09-08
+     */
+    private static function _getInquirySerialNo($prefix = '') {
+        $time = date('Ymd');
+        
+        $inquiryModel = new InquiryModel();
+        
+        $inquiry = $inquiryModel->field('serial_no')->order('id DESC')->find();
+        
+        $serialNoArr = explode('_', $inquiry['serial_no']);
+        
+        $step = $time > $serialNoArr[1] ? 0 : intval($serialNoArr[2]);
+        
+        $step ++;
+        
+        return self::createSerialNo($step, $prefix);
+    }
 
     /**
      * 根据流水号名称获取流水号
@@ -75,7 +100,7 @@ trait InquirySerialNo{
      * @author liujf 2017-06-20
      * @return string $code
      */
-    private function getSerialNo($name, $prefix = '') {
+    private static function getSerialNo($name, $prefix = '') {
         $time = date('Ymd');
         $duration = 3600 * 48;
         $createTimeName = $name . 'CreateTime';
@@ -100,7 +125,7 @@ trait InquirySerialNo{
      * @author liujf 2017-06-19
      * @return string $code
      */
-    private function createSerialNo($step = 1, $prefix = '') {
+    private static function createSerialNo($step = 1, $prefix = '') {
         $time = date('Ymd');
         $pad = str_pad($step, 5, '0', STR_PAD_LEFT);
         $code = $prefix . $time . '_' . $pad;

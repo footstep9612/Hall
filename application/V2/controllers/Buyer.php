@@ -363,6 +363,9 @@ class BuyerController extends PublicController {
         if (!empty($data['buyer_level'])) {
             $arr['buyer_level'] = $data['buyer_level'];
         }
+        if (!empty($data['remarks'])) {
+            $arr['remarks'] = $data['remarks'];
+        }
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
