@@ -158,6 +158,7 @@ class ExcelmanagerController extends PublicController {
 
         //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
+		$fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server. '/V2/Uploadfile/upload';
         $data['tmp_name']=$excelFile;
         $data['type']='application/excel';
@@ -181,7 +182,7 @@ class ExcelmanagerController extends PublicController {
         
         if($inquiryList['code'] == 1){
             foreach($inquiryList['data'] as $item){
-                $files[] = ['url'=>$server.$item['attach_url'],'name'=>$item['attach_name']];
+                $files[] = ['url'=>$fastDFSServer.$item['attach_url'],'name'=>$item['attach_name']];
             }
         }
 
@@ -257,13 +258,10 @@ class ExcelmanagerController extends PublicController {
         @mkdir($tmpdir,0777,true);        
         if(!is_dir($tmpdir)){       
             return false;
-        }        
+        }
+
         //复制文件到临时目录
-        foreach($files as $file){
-            if(!is_readable($file['url'])){
-                $error_files[] = $file;
-                continue;
-            }
+        foreach($files as $key=>$file){
             $name = $file['name'];
             //如果文件存在则重命名
             if(file_exists($tmpdir.$name)){
@@ -276,14 +274,17 @@ class ExcelmanagerController extends PublicController {
                 }
             }            
             //目标文件仍然存在，则写入错误文件
-            if(file_exists($tmpdir.$name)){
+            if(file_exists($tmpdir.$name)){				
                 $error_files[] = $file;
-            }
-            @copy($file['url'],$tmpdir.$name);           
+            }			
+			$name = iconv('utf-8','gbk',$name);
+			$content = @file_get_contents($file['url']);
+            @file_put_contents($tmpdir.$name,$content);  
+            
         }
         //如果有文件无法复制到本目录
         if(!empty($error_files)){
-            //return false;
+            return false;
         }
         //生成压缩文件
         $zip=new ZipArchive();
