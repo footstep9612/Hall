@@ -200,7 +200,7 @@ class ExcelmanagerController extends PublicController {
         //保存数据库
         $data = [
             'inquiry_id'   => intval($request['inquiry_id']),
-            'attach_group' => 'FIANL',
+            'attach_group' => 'FINAL',
             'attach_type'  => 'application/zip',
             'attach_name'  => $zipFile,
             'attach_url'   => $fileId['url'],

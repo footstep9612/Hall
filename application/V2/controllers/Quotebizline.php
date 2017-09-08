@@ -204,7 +204,6 @@ class QuotebizlineController extends PublicController {
             $response[$k]['bizline_name'] = $bizline->where(['id'=>$v['bizline_id']])->getField('name');
             $response[$k]['bizline_agent_name'] = $user->where(['id'=>$v['bizline_agent_id']])->getField('name');
             $response[$k]['supplier_name'] = $supplier->where(['id'=>$v['supplier_id']])->getField('name');
-            $response[$k]['quoter_name'] = $user->where(['id'=>$v['created_by']])->getField('name');
         }
         //p($response);
         $this->jsonReturn([
