@@ -285,8 +285,6 @@ class EsProductModel extends Model {
             ]]];
         }
 
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
@@ -320,7 +318,7 @@ class EsProductModel extends Model {
 
         try {
             $body = $this->getCondition($condition);
-
+            echo json_encode($body, 256);
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
