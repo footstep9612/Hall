@@ -157,7 +157,7 @@ class ExcelmanagerController extends PublicController {
         $excelFile = $this->createExcelAndInsertData($data);
 
         //把导出的文件上传到文件服务器上
-        $remoteUrl = ExcelHelperTrait::uploadToFileServer($excelFile);
+        $remoteUrl = $this->upload2FastDFS($excelFile,'xls');
         $url_prefix = 'http://172.18.18.196/';
         if (!$remoteUrl) {
             $this->jsonReturn(['code' => '1', 'message' => '失败']);
@@ -180,7 +180,7 @@ class ExcelmanagerController extends PublicController {
         }
 		//上传至FastDFS
         $zipFile = $fileName.'.zip';
-        $fileId = ExcelHelperTrait::packAndUpload($zipFile,$files);
+        $fileId = $this->packAndUpload($zipFile,$files);
         if(empty($fileId)){
             $this->jsonReturn([
                 'code' => '-1',
@@ -198,7 +198,7 @@ class ExcelmanagerController extends PublicController {
 			'created_at'   => date('Y-m-d H:i:s')
 		];
 		
-		$inquiryAttach->addData($data);
+		//$inquiryAttach->addData($data);
         $this->jsonReturn([
             'code' => '1',
             'message' => '导出成功!',
@@ -207,6 +207,94 @@ class ExcelmanagerController extends PublicController {
                 'fileId'=>$fileId
             ]
         ]);
+    }
+	/**
+	* 上传文件至FastDFS
+	* @param string $file 本地文件路径
+	* @param string $ext  文件扩展名
+	**/
+	private function upload2FastDFS($file,$ext){
+		if(extension_loaded('fastdfs_client')){
+			$fileSuffix = '';
+			$fdfs = new FastDFS();
+			$tracker = $fdfs->tracker_get_connection();
+			$fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($file), $ext); 
+			$fdfs->tracker_close_all_connections();     
+			return $fileId;
+		}else{
+			return array();
+		}
+	}
+	
+	/**
+    * 打包文件并且上传至FastDFS服务器
+    * @param string $filename 压缩包名称
+    * @param array $files  需要打包的文件列表
+    * @return mixed
+    **/
+    private function packAndUpload($filename,$files){
+        //创建临时目录
+        $tmpdir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/".uniqid().'/';
+        @mkdir($tmpdir,0777,true);        
+        if(!is_dir($tmpdir)){   	
+            return false;
+        }        
+        //复制文件到临时目录
+        foreach($files as $file){
+            if(!is_readable($file['url'])){
+                $error_files[] = $file;
+                continue;
+            }
+            $name = $file['name'];
+            //如果文件存在则重命名
+            if(file_exists($tmpdir.$name)){
+                //循环100次修改文件名
+                for($i=1;$i<100;$i++){
+                    $name = preg_replace("/(\.\w+)/i","($i)$1",$name);
+                    if(!file_exists($tmpdir.$name)){
+                        break;
+                    }
+                }
+            }
+            
+            //目标文件仍然存在，则写入错误文件
+            if(file_exists($tmpdir.$name)){
+                $error_files[] = $file;
+            }
+			@copy($file['url'],$tmpdir.$name);           
+        }
+        //如果有文件无法复制到本目录
+        if(!empty($error_files)){
+            //return false;
+        }
+        //生成压缩文件
+        $zip=new ZipArchive();
+        $filepath = dirname($tmpdir).'/'.$filename;
+        $res = $zip->open($filepath, ZIPARCHIVE::CREATE|ZIPARCHIVE::OVERWRITE);
+        if($res !== true){
+			echo __LINE__;die();
+            return false;
+        }
+		
+        $files = scandir($tmpdir);
+        foreach($files as $item){
+            if($item != '.' && $item != '..'){
+                $zip->addFile($tmpdir.$item,$item);                
+            }
+        }
+        $zip->close();
+        //清理临时目录
+        foreach($files as $item){
+            if($item != '.' && $item != '..'){
+                unlink($tmpdir.$item);            
+            }
+        }
+        @rmdir($tmpdir);
+        //上传至FastDFS
+        $ret = $this->upload2FastDFS($filepath,'zip');
+        //删除临时压缩文件
+        @unlink($filepath);
+        return $ret;
     }
 
     private function getFinalQuoteData($inquiry_id) {
