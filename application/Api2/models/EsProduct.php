@@ -198,7 +198,7 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $market_area_bn_bool]];
         }
 
-        if (isset($condition['country_bn']) && $condition['country_bn']) {
+        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'China') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
             $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
@@ -208,11 +208,10 @@ class EsProductModel extends Model {
                         'deleted_flag' => 'N'
                     ])->find();
             if ($showcat) {
-                $country_bn_bool[] = [ESClient::WILDCARD => ['show_cats.all' => '*' . $country_bn . '*']];
+                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*' . $country_bn . '*']];
             } else {
-                $country_bn_bool[] = [ESClient::WILDCARD => ['show_cats.all' => '*China*']];
+                $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*China*']];
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $country_bn_bool]];
         } else {
             $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['show_cats.all' => '*China*']];
         }

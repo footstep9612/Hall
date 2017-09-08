@@ -158,16 +158,53 @@ class ExcelmanagerController extends PublicController {
 
         //把导出的文件上传到文件服务器上
         $remoteUrl = ExcelHelperTrait::uploadToFileServer($excelFile);
-
+        $url_prefix = 'http://172.18.18.196/';
         if (!$remoteUrl) {
             $this->jsonReturn(['code' => '1', 'message' => '失败']);
         }
-
+        //构建打包文件数组
+        $fileName = date('Ymdhis');
+        $files = [
+            ['url'=>$excelFile,'name'=>$fileName.'.xls']
+        ];
+        $inquiryAttach = new InquiryAttachModel();
+        $condition = [
+            'inquiry_id'   => $request['inquiry_id'],
+            'attach_group' => ['in',['INQUIRY','TECHNICAL','DEMAND']]
+        ];
+        $inquiryList = $inquiryAttach->getList($condition);
+        if($inquiryList['code'] == 1){
+            foreach($inquiryList['data'] as $item){
+                $files[] = ['url'=>$url_prefix.$item['attach_url'],'name'=>$item['attach_name']];
+            }
+        }
+		//上传至FastDFS
+        $zipFile = $fileName.'.zip';
+        $fileId = ExcelHelperTrait::packAndUpload($zipFile,$files);
+        if(!empty($fileId)){
+            $this->jsonReturn([
+                'code' => '-1',
+                'message' => '导出失败!',
+            ]);
+            return;
+        }
+		$data = [
+		    'inquiry_id'   => intval($request['inquiry_id']),
+			'attach_group' => 'FIANL',
+			'attach_type'  => 'application/zip',
+			'attach_name'  => '',
+			'attach_url'   => $field,
+			'created_by'   => intval($this->user['id']),
+			'created_at'   => date('Y-m-d H:i:s')
+		];
+		
+		$inquiryAttach->addData($data);
         $this->jsonReturn([
             'code' => '1',
             'message' => '导出成功!',
             'data' => [
-                'url' => $remoteUrl
+                'url' => $remoteUrl,
+                'fileId'=>$fileId
             ]
         ]);
     }
