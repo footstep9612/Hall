@@ -36,6 +36,10 @@ class QuoteLogiFeeModel extends PublicModel {
         if(!empty($condition['quote_id'])) {
             $where['quote_id'] = $condition['quote_id'];
         }
+        
+        if(!empty($condition['inquiry_id'])) {
+            $where['inquiry_id'] = $condition['inquiry_id'];
+        }
     
         $where['deleted_flag'] = 'N';
          
