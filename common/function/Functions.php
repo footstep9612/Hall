@@ -874,7 +874,7 @@ function redisHashSet($name, $key, $value, $Expire = null) {
         return false;
     }
 
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     if ($reids->hashExists($name, $key)) {
         $reids->hashDel($name, $key);
     }
@@ -902,7 +902,7 @@ function redisHashSet($name, $key, $value, $Expire = null) {
 
 function redisDel($name) {
     $reids = new phpredis();
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     if (strpos('*', $name) !== false) {
         $keys = $reids->getKeys($name);
     } else {
@@ -927,7 +927,7 @@ function redisDel($name) {
 
 function redisHashDel($name, $key) {
     $reids = new phpredis();
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     if ($reids->hashDel($name, $key)) {
         return true;
     } else {
@@ -946,7 +946,7 @@ function redisHashDel($name, $key) {
 
 function redisHashGet($name, $key) {
     $reids = new phpredis();
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     $string = $reids->hashGet($name, $key);
     if ($string) {
         return $string;
@@ -966,7 +966,7 @@ function redisHashGet($name, $key) {
 
 function redisHashExist($name, $key) {
     $reids = new phpredis();
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     if ($reids->hashExists($name, $key)) {
         return true;
     } else {
@@ -992,7 +992,7 @@ function redisSet($name, $value, $second = 0) {
     if (empty($value) && !is_string($value)) {
         return false;
     }
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     if ($reids->exists($name)) {
         $reids->delete($name);
     }
@@ -1020,7 +1020,7 @@ function redisSet($name, $value, $second = 0) {
 
 function redisGet($name) {
     $reids = new phpredis();
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     $result = $reids->get($name);
     if ($result) {
         return $result;
@@ -1040,7 +1040,7 @@ function redisGet($name) {
 
 function redisExist($name) {
     $reids = new phpredis();
-    $name = $name . getModuleName();
+    $name = getModuleName() . '_' . $name;
     if ($reids->exists($name)) {
         return true;
     } else {
