@@ -870,6 +870,7 @@ function redisHashSet($name, $key, $value, $Expire = null) {
         return false;
     }
 
+
     if ($reids->hashExists($name, $key)) {
         $reids->hashDel($name, $key);
     }
@@ -897,6 +898,7 @@ function redisHashSet($name, $key, $value, $Expire = null) {
 
 function redisDel($name) {
     $reids = new phpredis();
+
     if (strpos('*', $name) !== false) {
         $keys = $reids->getKeys($name);
     } else {
@@ -921,6 +923,7 @@ function redisDel($name) {
 
 function redisHashDel($name, $key) {
     $reids = new phpredis();
+
     if ($reids->hashDel($name, $key)) {
         return true;
     } else {
@@ -939,6 +942,7 @@ function redisHashDel($name, $key) {
 
 function redisHashGet($name, $key) {
     $reids = new phpredis();
+
     $string = $reids->hashGet($name, $key);
     if ($string) {
         return $string;
@@ -958,6 +962,7 @@ function redisHashGet($name, $key) {
 
 function redisHashExist($name, $key) {
     $reids = new phpredis();
+
     if ($reids->hashExists($name, $key)) {
         return true;
     } else {
@@ -983,6 +988,7 @@ function redisSet($name, $value, $second = 0) {
     if (empty($value) && !is_string($value)) {
         return false;
     }
+
     if ($reids->exists($name)) {
         $reids->delete($name);
     }
@@ -1010,6 +1016,7 @@ function redisSet($name, $value, $second = 0) {
 
 function redisGet($name) {
     $reids = new phpredis();
+
     $result = $reids->get($name);
     if ($result) {
         return $result;
@@ -1029,6 +1036,7 @@ function redisGet($name) {
 
 function redisExist($name) {
     $reids = new phpredis();
+
     if ($reids->exists($name)) {
         return true;
     } else {

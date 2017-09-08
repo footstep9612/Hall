@@ -1018,15 +1018,15 @@ class QuotebizlineController extends PublicController {
         foreach ($quoteItemsData as $quote=>$item){
             switch ($item['purchase_price_cur_bn']){
                 case 'EUR' :
-                    $rate = $exchangeRateModel->where(['cur_bn1'=>'EUR','cur_bn2'=>'USD'])->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
+                    $rate = $exchangeRateModel->where(['cur_bn2'=>'EUR','cur_bn1'=>'USD'])->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
                     break;
                 case 'USD' :
                     $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'];
                     break;
                 case 'CNY' :
-                    $rate = $exchangeRateModel->where(['cur_bn1'=>'CNY','cur_bn2'=>'USD'])->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
+                    $rate = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
                     break;
             }
         }
@@ -1085,7 +1085,7 @@ class QuotebizlineController extends PublicController {
                          */
 
                         //汇率
-                        $exchange_rate = $exchangeRateModel->where(['cur_bn1'=>$value['purchase_price_cur_bn'],'cur_bn2'=>'USD'])->getField('rate');
+                        $exchange_rate = $exchangeRateModel->where(['cur_bn2'=>$value['purchase_price_cur_bn'],'cur_bn1'=>'USD'])->getField('rate');
                         $exw_unit_price = $value['purchase_unit_price'] *  $gross_profit_rate / $exchange_rate ;
                         $exw_unit_price = sprintf("%.4f", $exw_unit_price);
                         $quoteItemModel->where(['id'=>$value['id']])->save([

@@ -449,6 +449,7 @@ class EsGoodsModel extends Model {
 
     public function importgoodss($lang = 'en') {
         try {
+            ob_clean();
             $count = $this->where(['lang' => $lang])->count('id');
 
 
@@ -456,8 +457,8 @@ class EsGoodsModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                echo $i, PHP_EOL;
 
+                echo $i, PHP_EOL, '<BR>';
                 ob_flush();
                 flush();
                 $goods = $this->where(['lang' => $lang])
@@ -498,8 +499,13 @@ class EsGoodsModel extends Model {
                 $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
+                echo '<pre>';
                 foreach ($goods as $item) {
-                    $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+
+                    print_r($flag);
+                    ob_flush();
+                    flush();
                 }
             }
         } catch (Exception $ex) {
@@ -602,6 +608,7 @@ class EsGoodsModel extends Model {
         if (!isset($flag['create'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
+        return $flag;
     }
 
     /* 通过批量导入商品信息到ES
