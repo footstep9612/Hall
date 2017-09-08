@@ -16,7 +16,7 @@ class ShowcatController extends PublicController {
     public function treeAction() {
         ini_set('memory_limit', '800M');
         set_time_limit(360);
-        $lang = $this->getPut('lang', 'en');
+        $lang = $this->getPut('lang', 'zh');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
