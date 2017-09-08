@@ -386,11 +386,60 @@ class BuyerModel extends PublicModel {
     }
 
     /**
+     * 获取采购商信息 NEW
+     * @author klp
+     */
+    public function buyerCerdit($user) {
+        $where = array();
+        if (!empty($user['id'])) {
+            $where['b.id'] = $user['id'];
+        } else {
+            jsonReturn('', '-1001', '用户[id]不可以为空');
+        }
+        if(isset($user['buyer_no'])) {
+            $where['b.buyer_no'] = $user['buyer_no'];
+        }
+        $where['b.deleted_flag'] = 'N';
+
+//        $buyerAccountModel = new BuyerAccountModel();
+//        $tableAcco = $buyerAccountModel->getTableName();
+        $buyeraddress_model = new BuyerAddressModel();
+        $tableAddr = $buyeraddress_model->getTableName();
+        $BuyerreginfoModel = new BuyerreginfoModel();
+        $tableReg = $BuyerreginfoModel->getTableName();
+        $buyerBankInfoModel = new BuyerBankInfoModel();
+        $tableBank = $buyerBankInfoModel->getTableName();
+        try {
+            //必填项
+            $fields = 'b.id as buyer_id, b.lang, b.serial_no, b.buyer_no, b.country_code, b.area_bn, b.name, bd.address, bb.country_code as bank_country_code, bb.address as bank_address, bb.bank_name';
+            //基本信息-$this
+            $fields .= ',b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.sec_ex_listed_on,b.line_of_credit,b.credit_available,b.credit_cur_bn,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
+            //注册信息-BuyerreginfoModel
+            $fields .= ',br.legal_person_name,br.legal_person_gender,br.reg_date,br.expiry_date,br.registered_in,br.reg_capital,br.social_credit_code,br.biz_nature,br.biz_scope,br.biz_type,br.service_type,br.branch_count,br.employee_count,br.equitiy,br.turnover,br.profit,br.total_assets,br.reg_capital_cur_bn,br.equity_ratio,br.equity_capital';
+            //注册银行信息-BuyerBankInfoModel
+            $fields .= ',bb.swift_code,bb.bank_account,bb.country_bn as bank_country_bn,bb.zipcode as bank_zipcode,bb.phone,fax,bb.turnover,bb.profit,bb.total_assets,bb.reg_capital_cur_bn,bb.equity_ratio,bb.equity_capital,bb.branch_count,bb.employee_count,bb.remarks as bank_remarks';
+            $buyerInfo = $this->alias('b')
+                ->field($fields)
+                ->join($tableBank . ' as bb on bb.buyer_id=b.id ', 'left')
+                ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
+                ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
+                ->where($where)
+                ->find();
+            if ($buyerInfo) {
+                return $buyerInfo ? $buyerInfo : array();
+            }
+            return array();
+        } catch (Exception $e) {
+            var_dump($e);
+            return false;
+        }
+    }
+
+    /**
      * 获取采购商信息
      * @author klp
      */
     public function buyerInfo($user) {
-//        $userInfo = getLoinInfo();
         $where = array();
         if (!empty($user['id'])) {
             $where['id'] = $user['id'];
