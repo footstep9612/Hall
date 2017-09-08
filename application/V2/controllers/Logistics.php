@@ -847,6 +847,8 @@ class LogisticsController extends PublicController {
 	private function _getRate($cur, $exchangeCur = 'CNY') {
 	    
 	    if (!empty($cur)) {
+	        if ($cur == $exchangeCur) return 1;
+	        
 	        $exchangeRateModel = new ExchangeRateModel();
 	        $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
 	        
