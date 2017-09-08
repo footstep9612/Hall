@@ -9,6 +9,7 @@
 class ProductModel extends PublicModel {
 
     const STATUS_NORMAL = 'NORMAL'; //发布
+    const STATUS_DRAFT = 'DRAFT';          //草稿
     const STATUS_CLOSED = 'CLOSED'; //关闭
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_TEST = 'TEST'; //测试  暂存；
@@ -90,7 +91,7 @@ class ProductModel extends PublicModel {
                     }
                 }
             } else {
-                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : $input['brand'];
+                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : json_encode(array('lang' => $lang, 'name' => $input['brand']),JSON_UNESCAPED_UNICODE);
             }
         } elseif ($type == 'INSERT') {
             $data['brand'] = '';
@@ -213,6 +214,7 @@ class ProductModel extends PublicModel {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
                             'lang' => $key,
                             'name' => $data['name'],
+                            'material_cat_no' => $data['material_cat_no']
                             //'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {
@@ -506,7 +508,7 @@ class ProductModel extends PublicModel {
 
         //读取redis缓存
         if (redisHashExist('spu', md5(json_encode($condition)))) {
-            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
+//            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
         }
 
         //数据读取
@@ -539,7 +541,7 @@ class ProductModel extends PublicModel {
 //                    }
                     if (!is_null(json_decode($item['brand'], true))) {
                         $brand = json_decode($item['brand'], true);
-                        $item['brand'] = $brand['name'];
+                        $item['brand'] = $brand;
                     }
 
 

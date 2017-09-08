@@ -60,8 +60,8 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
                 $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
                 $quoteinfo['payment_period'] = $results['data']['payment_period'];    //回款周期
-                $quoteinfo['from_country'] = $quotedata['from_country'];    //起始发运地
-                $quoteinfo['to_country'] = $quotedata['to_country'];    //目的地
+                $quoteinfo['from_country'] = $quotedata['dispatch_place'];    //起始发运地
+                $quoteinfo['to_country'] = $quotedata['delivery_addr'];    //目的地
                 $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
                 $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
@@ -116,8 +116,10 @@ class FinalquoteController extends PublicController {
         $total_exw_price = $total_quote_price = 0;
         if(!empty($data['sku'])){
             foreach($data['sku'] as $val){
-                $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
-                $total_exw_price += $exw_price;     //市场报出EXW价格合计
+                if($val['final_exw_unit_price']>0) {
+                    $exw_price = $val['quote_qty'] * $val['final_exw_unit_price'];  //市场报出EXW价格
+                    $total_exw_price += $exw_price;     //市场报出EXW价格合计
+                }
             }
 
             //计算
@@ -164,18 +166,20 @@ class FinalquoteController extends PublicController {
             $results = $finalquote->updateFinal($finaldata);
             if($results['code'] == 1){
                 foreach($data['sku'] as $val){
-                    $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
-                    $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
+                    if($val['final_exw_unit_price']>0){
+                        $exw_price = $val['quote_qty']*$val['final_exw_unit_price'];  //市场报出EXW价格
+                        $quote_unit_price = $total_quote_price*$exw_price/$total_exw_price;//报出贸易单价
 
-                    $itemdata['id'] = $val['id'];
-                    $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
-                    $itemdata['quote_unit_price'] = round($quote_unit_price,4);
+                        $itemdata['id'] = $val['id'];
+                        $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
+                        $itemdata['quote_unit_price'] = round($quote_unit_price,4);
 
-                    $itemrs = $this->updateItemAction($itemdata);
+                        $itemrs = $this->updateItemAction($itemdata);
 
-                    if($itemrs['code'] != 1){
-                        $finalitem->rollback();
-                        $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                        if($itemrs['code'] != 1){
+                            $finalitem->rollback();
+                            $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                        }
                     }
                 }
                 $finalitem->commit();

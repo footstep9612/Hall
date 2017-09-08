@@ -294,7 +294,7 @@ class GoodsAttachModel extends PublicModel {
                 $where = array('sku' => $sku);
                 $resach = $this->field('sku')->where($where)->find();
                 if ($resach) {
-                    $resOut = $this->where($where)->save(['status'=> self::STATUS_DELETED,'deleted' => 'N']);
+                    $resOut = $this->where($where)->save(['status'=> self::STATUS_DELETED,'deleted_flag' => 'N']);
                     if(!$resOut){
                         return false;
                     }
@@ -314,7 +314,7 @@ class GoodsAttachModel extends PublicModel {
                             return false;
                         }
                     } else {
-                        $data['status'] = self::STATUS_DRAFT;
+                        $data['status'] = self::STATUS_VALID;
                         $data['sku'] = $sku;
                         $data['created_by'] = $admin;
                         $data['created_at'] = date('Y-m-d H:i:s', time());
