@@ -60,8 +60,8 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
                 $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
                 $quoteinfo['payment_period'] = $results['data']['payment_period'];    //回款周期
-                $quoteinfo['from_country'] = $quotedata['from_country'];    //起始发运地
-                $quoteinfo['to_country'] = $quotedata['to_country'];    //目的地
+                $quoteinfo['from_country'] = $quotedata['dispatch_place'];    //起始发运地
+                $quoteinfo['to_country'] = $quotedata['delivery_addr'];    //目的地
                 $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
                 $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
