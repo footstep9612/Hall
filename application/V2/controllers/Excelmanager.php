@@ -157,8 +157,13 @@ class ExcelmanagerController extends PublicController {
         $excelFile = $this->createExcelAndInsertData($data);
 
         //把导出的文件上传到文件服务器上
-        $remoteUrl = $this->upload2FastDFS($excelFile,'xls');
-        $url_prefix = 'http://172.18.18.196/';
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $url = $server. '/V2/Uploadfile/upload';
+        $data['tmp_name']=$excelFile;
+        $data['type']='application/excel';
+        $data['name']='excelFile';
+        $remoteUrl = $this->postfile($data,$url);    
+    
         if (!$remoteUrl) {
             $this->jsonReturn(['code' => '1', 'message' => '失败']);
         }
@@ -173,70 +178,84 @@ class ExcelmanagerController extends PublicController {
             'attach_group' => ['in',['INQUIRY','TECHNICAL','DEMAND']]
         ];
         $inquiryList = $inquiryAttach->getList($condition);
+        
         if($inquiryList['code'] == 1){
             foreach($inquiryList['data'] as $item){
-                $files[] = ['url'=>$url_prefix.$item['attach_url'],'name'=>$item['attach_name']];
+                $files[] = ['url'=>$server.$item['attach_url'],'name'=>$item['attach_name']];
             }
         }
-		//上传至FastDFS
+
+        //上传至FastDFS
         $zipFile = $fileName.'.zip';
-        $fileId = $this->packAndUpload($zipFile,$files);
-        if(empty($fileId)){
+        $fileId = $this->packAndUpload($url,$zipFile,$files);
+        //上传失败
+        if(empty($fileId) || empty($fileId['url'])){
             $this->jsonReturn([
                 'code' => '-1',
                 'message' => '导出失败!',
             ]);
             return;
         }
-		$data = [
-		    'inquiry_id'   => intval($request['inquiry_id']),
-			'attach_group' => 'FIANL',
-			'attach_type'  => 'application/zip',
-			'attach_name'  => '',
-			'attach_url'   => $field,
-			'created_by'   => intval($this->user['id']),
-			'created_at'   => date('Y-m-d H:i:s')
-		];
-		
-		//$inquiryAttach->addData($data);
+        //保存数据库
+        $data = [
+            'inquiry_id'   => intval($request['inquiry_id']),
+            'attach_group' => 'FIANL',
+            'attach_type'  => 'application/zip',
+            'attach_name'  => $zipFile,
+            'attach_url'   => $fileId['url'],
+            'created_by'   => intval($this->user['id']),
+            'created_at'   => date('Y-m-d H:i:s')
+        ];        
+        $inquiryAttach->addData($data);
         $this->jsonReturn([
             'code' => '1',
             'message' => '导出成功!',
             'data' => [
-                'url' => $remoteUrl,
-                'fileId'=>$fileId
+                'url' => $fileId['url']
             ]
         ]);
     }
-	/**
-	* 上传文件至FastDFS
-	* @param string $file 本地文件路径
-	* @param string $ext  文件扩展名
-	**/
-	private function upload2FastDFS($file,$ext){
-		if(extension_loaded('fastdfs_client')){
-			$fileSuffix = '';
-			$fdfs = new FastDFS();
-			$tracker = $fdfs->tracker_get_connection();
-			$fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($file), $ext); 
-			$fdfs->tracker_close_all_connections();     
-			return $fileId;
-		}else{
-			return array();
-		}
-	}
-	
-	/**
+    /**
+    * 上传文件至FastDFS
+    * @param string $file 本地文件信息
+    * @param string $url  上传接口地址
+    **/
+    function postfile($data, $url, $timeout = 30) {             
+        $cfile = new \CURLFile($data['tmp_name'], $data['type'], $data['name']);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, ['upFile' => $cfile]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            print_r(curl_error($ch));
+            \think\Log::write('Curl error: ' . curl_error($ch), LOG_ERR);
+            return [];
+        }
+        curl_close($ch);
+        $cfile = null;
+        unset($cfile);
+        return json_decode($response, true);
+    }
+
+    
+    /**
     * 打包文件并且上传至FastDFS服务器
+    * @param string $url 上传地址
     * @param string $filename 压缩包名称
     * @param array $files  需要打包的文件列表
     * @return mixed
     **/
-    private function packAndUpload($filename,$files){
+    private function packAndUpload($url,$filename,$files){
         //创建临时目录
         $tmpdir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/".uniqid().'/';
         @mkdir($tmpdir,0777,true);        
-        if(!is_dir($tmpdir)){   	
+        if(!is_dir($tmpdir)){       
             return false;
         }        
         //复制文件到临时目录
@@ -255,13 +274,12 @@ class ExcelmanagerController extends PublicController {
                         break;
                     }
                 }
-            }
-            
+            }            
             //目标文件仍然存在，则写入错误文件
             if(file_exists($tmpdir.$name)){
                 $error_files[] = $file;
             }
-			@copy($file['url'],$tmpdir.$name);           
+            @copy($file['url'],$tmpdir.$name);           
         }
         //如果有文件无法复制到本目录
         if(!empty($error_files)){
@@ -272,10 +290,9 @@ class ExcelmanagerController extends PublicController {
         $filepath = dirname($tmpdir).'/'.$filename;
         $res = $zip->open($filepath, ZIPARCHIVE::CREATE|ZIPARCHIVE::OVERWRITE);
         if($res !== true){
-			echo __LINE__;die();
             return false;
         }
-		
+        
         $files = scandir($tmpdir);
         foreach($files as $item){
             if($item != '.' && $item != '..'){
@@ -291,7 +308,10 @@ class ExcelmanagerController extends PublicController {
         }
         @rmdir($tmpdir);
         //上传至FastDFS
-        $ret = $this->upload2FastDFS($filepath,'zip');
+        $data['tmp_name']=$filepath;
+        $data['type']='application/zip';
+        $data['name']=$filename;
+        $ret = $this->postfile($data,$url);         
         //删除临时压缩文件
         @unlink($filepath);
         return $ret;
