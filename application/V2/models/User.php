@@ -55,7 +55,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
         }
         if ( !empty($condition['employee_flag']) ){
-            $sql .= ' AND employee.employee_flag ='.$condition['employee_flag'];
+            $sql .= ' AND employee.employee_flag ="'.$condition['employee_flag'].'"';
         }
         if ( !empty($condition['user_no']) ){
             $sql .= ' AND employee.user_no = "'.$condition['user_no'].'"';
