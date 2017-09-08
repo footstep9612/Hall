@@ -649,6 +649,9 @@ class EsProductModel extends Model {
                         if ($key === 99) {
                             $max_id = $item['id'];
                         }
+                        echo $item['sku'];
+                        ob_flush();
+                        flush();
                     }
                 } else {
                     return false;
