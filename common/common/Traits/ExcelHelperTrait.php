@@ -88,9 +88,106 @@ trait ExcelHelperTrait
      *
      * @return mixed
      */
-    static public function uploadToFileServer($localFile)
+    static public function uploadToFileServer($localFile,$type='application/octet-stream')
     {
         //TODO 这里添加上传到文件服务器的逻辑
-        return $localFile;
+        $client   = new FastDFSclient();
+        $file = [
+            'name'     => $localFile,
+            'type'     => self::getFileType($localFile),
+            'size'     => filesize($localFile),
+            'tmp_name' => $localFile
+        ];		
+        return $client->uploadAttach($file);
+    }
+    
+    /**
+    * 根据文件名获取Mime类型
+    * @param string $file 文件名称
+    * @return string 默认返回application/octet-stream
+    **/
+    static public function getFileType($file){
+        if(strpos($file,'.') <1 ) return 'application/octet-stream';
+        $ext = substr($file,strrpos($file,'.')+1);
+        $ext = strtolower($ext);
+        //后期改为配置文件
+        $mimes = [
+            'jpg'  => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'png'  => 'image/png',
+            'html' => 'text/html',
+			'zip'  => 'application/zip'
+        ];
+        return isset($mimes[$ext]) ? $mimes[$ext] : 'application/octet-stream';
+    }
+    /**
+    * 打包文件并且上传至FastDFS服务器
+    * @param string $filename 压缩包名称
+    * @param array $files  需要打包的文件列表
+    * @return mixed
+    **/
+    static public function packAndUpload($filename,$files){
+        //创建临时目录
+        $tmpdir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/".uniqid().'/';
+        @mkdir($tmpdir,0777,true);        
+        if(!is_dir($tmpdir)){   	
+            return false;
+        }        
+        //复制文件到临时目录
+        foreach($files as $file){
+            if(!is_readable($file['url'])){
+                $error_files[] = $file;
+                continue;
+            }
+            $name = $file['name'];
+            //如果文件存在则重命名
+            if(file_exists($tmpdir.$name)){
+                //循环100次修改文件名
+                for($i=1;$i<100;$i++){
+                    $name = preg_replace("/(\.\w+)/i","($i)$1",$name);
+                    if(!file_exists($tmpdir.$name)){
+                        break;
+                    }
+                }
+            }
+            
+            //目标文件仍然存在，则写入错误文件
+            if(file_exists($tmpdir.$name)){
+                $error_files[] = $file;
+            }
+			@copy($file['url'],$tmpdir.$name);           
+        }
+        //如果有文件无法复制到本目录
+        if(!empty($error_files)){
+            //return false;
+        }
+        //生成压缩文件
+        $zip=new ZipArchive();
+        $filepath = dirname($tmpdir).'/'.$filename;
+        $res = $zip->open($filepath, ZIPARCHIVE::CREATE|ZIPARCHIVE::OVERWRITE);
+        if($res !== true){
+			echo __LINE__;die();
+            return false;
+        }
+		
+        $files = scandir($tmpdir);
+        foreach($files as $item){
+            if($item != '.' && $item != '..'){
+                $zip->addFile($tmpdir.$item,$item);                
+            }
+        }
+        $zip->close();
+        //清理临时目录
+        foreach($files as $item){
+            if($item != '.' && $item != '..'){
+                unlink($tmpdir.$item);            
+            }
+        }
+        @rmdir($tmpdir);
+        //上传至FastDFS
+        $ret = self::uploadToFileServer($filepath);
+        //删除临时压缩文件
+        @unlink($filepath);
+        return $ret;
     }
 }
