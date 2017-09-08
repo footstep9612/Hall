@@ -607,6 +607,9 @@ class EsProductModel extends Model {
             $count = $this->where(['lang' => $lang])->count('id');
             $max_id = 0;
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
+            ob_flush();
+
+            flush();
             $k = 1;
             for ($i = 0; $i < $count; $i += 100) {
                 if ($i > $count) {
@@ -643,13 +646,16 @@ class EsProductModel extends Model {
                     $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
 
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
+                    echo '<pre>';
                     foreach ($products as $key => $item) {
 
-                        $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
+                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
                         if ($key === 99) {
                             $max_id = $item['id'];
                         }
-                        echo $item['sku'];
+
+
+                        print_r($flag);
                         ob_flush();
                         flush();
                     }
