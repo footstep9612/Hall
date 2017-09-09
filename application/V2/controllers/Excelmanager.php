@@ -150,7 +150,18 @@ class ExcelmanagerController extends PublicController {
     public function downQuotationAction() {
 
         $request = $this->validateRequests('inquiry_id');
-
+        $inquiryAttach = new InquiryAttachModel();
+		$condition = ['inquiry_id'=>intval($request['inquiry_id']),'attach_group'=>'FINAL'];
+		$ret = $inquiryAttach->getList($condition);
+		if($ret['code']  == 1 && !empty($ret['data']) && !empty($ret['data'][0]['attach_url'])){
+			$this->jsonReturn([
+				'code' => '1',
+				'message' => '导出成功!',
+				'data' => [
+					'url' => $ret['data'][0]['attach_url']
+				]
+			]);
+		}
         $data = $this->getFinalQuoteData($request['inquiry_id']);
         //p($data);
         //创建excel表格并填充数据
@@ -173,7 +184,7 @@ class ExcelmanagerController extends PublicController {
         $files = [
             ['url'=>$excelFile,'name'=>$fileName.'.xls']
         ];
-        $inquiryAttach = new InquiryAttachModel();
+        
         $condition = [
             'inquiry_id'   => $request['inquiry_id'],
             'attach_group' => ['in',['INQUIRY','TECHNICAL','DEMAND']]
@@ -200,7 +211,7 @@ class ExcelmanagerController extends PublicController {
         //保存数据库
         $data = [
             'inquiry_id'   => intval($request['inquiry_id']),
-            'attach_group' => 'FIANL',
+            'attach_group' => 'FINAL',
             'attach_type'  => 'application/zip',
             'attach_name'  => $zipFile,
             'attach_url'   => $fileId['url'],
