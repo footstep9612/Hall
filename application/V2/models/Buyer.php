@@ -430,7 +430,6 @@ class BuyerModel extends PublicModel {
             }
             return array();
         } catch (Exception $e) {
-            var_dump($e);
             return false;
         }
     }

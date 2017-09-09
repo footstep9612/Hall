@@ -48,7 +48,7 @@ class FinalquoteController extends PublicController {
 
             //获取综合报价信息
 
-            $fields = 'total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price';
+            $fields = 'total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr';
 
             $quotedata = $quoteModel->field($fields)->where('inquiry_id='.$quotewhere['inquiry_id'])->find();
 
@@ -146,18 +146,18 @@ class FinalquoteController extends PublicController {
                 $logidata['payment_period'] = $data['payment_period'];  //回款周期
                 $logidata['bank_interest'] = $data['bank_interest'];  //银行利息
                 $logidata['fund_occupation_rate'] = $data['fund_occupation_rate'];  //资金占用比例
-                $logidata['inspection_fee'] = $quoteLogiFee['inspection_fee_usd'];  //商检费
-                $logidata['inspection_fee_cur'] = $quoteLogiFee['inspection_fee_usd_cur'];  //商检费币种
-                $logidata['land_freight'] = $quoteLogiFee['land_freight_usd'];  //陆运费
-                $logidata['land_freight_cur'] = $quoteLogiFee['land_freight_usd_cur'];  //陆运费币种
-                $logidata['port_surcharge'] = $quoteLogiFee['port_surcharge_usd'];  //港杂费
-                $logidata['port_surcharge_cur'] =$quoteLogiFee['port_surcharge_usd_cur'];  //港杂费币种
-                $logidata['inter_shipping'] = $quoteLogiFee['inter_shipping_usd'];  //国际运费
-                $logidata['inter_shipping_cur'] = $quoteLogiFee['inter_shipping_usd_cur'];  //国际运费币种
-                $logidata['dest_delivery_fee'] = $quoteLogiFee['dest_delivery_fee_usd'];  //目的地配送费
-                $logidata['dest_delivery_fee_cur'] = $quoteLogiFee['dest_delivery_fee_usd_cur'];  //目的地配送费币种
-                $logidata['dest_clearance_fee'] = $quoteLogiFee['dest_clearance_fee_usd'];  //目的地清关费
-                $logidata['dest_clearance_fee_cur'] = $quoteLogiFee['dest_clearance_fee_usd_cur'];  //目的地清关费币种
+                $logidata['inspection_fee'] = $quoteLogiFee['inspection_fee'];  //商检费
+                $logidata['inspection_fee_cur'] = $quoteLogiFee['inspection_fee_cur'];  //商检费币种
+                $logidata['land_freight'] = $quoteLogiFee['land_freight'];  //陆运费
+                $logidata['land_freight_cur'] = $quoteLogiFee['land_freight_cur'];  //陆运费币种
+                $logidata['port_surcharge'] = $quoteLogiFee['port_surcharge'];  //港杂费
+                $logidata['port_surcharge_cur'] =$quoteLogiFee['port_surcharge_cur'];  //港杂费币种
+                $logidata['inter_shipping'] = $quoteLogiFee['inter_shipping'];  //国际运费
+                $logidata['inter_shipping_cur'] = $quoteLogiFee['inter_shipping_cur'];  //国际运费币种
+                $logidata['dest_delivery_fee'] = $quoteLogiFee['dest_delivery_fee'];  //目的地配送费
+                $logidata['dest_delivery_fee_cur'] = $quoteLogiFee['dest_delivery_fee_cur'];  //目的地配送费币种
+                $logidata['dest_clearance_fee'] = $quoteLogiFee['dest_clearance_fee'];  //目的地清关费
+                $logidata['dest_clearance_fee_cur'] = $quoteLogiFee['dest_clearance_fee_cur'];  //目的地清关费币种
                 $logidata['overland_insu_rate'] = $quoteLogiFee['overland_insu_rate'];  //陆运险率
                 $logidata['shipping_insu_rate'] = $quoteLogiFee['shipping_insu_rate'];  //国际运输险率
                 $logidata['dest_tariff_rate'] = $quoteLogiFee['dest_tariff_rate'];  //目的地关税税率
@@ -226,7 +226,6 @@ class FinalquoteController extends PublicController {
      * Author:张玉良
      */
     public function updateStatusAction(){
-        echo "-101";die;
         $finalquote = new FinalQuoteModel();
         $inquiry = new InquiryModel();
         $quote = new QuoteModel();
@@ -291,7 +290,7 @@ class FinalquoteController extends PublicController {
      */
     private function _getRateUSD($cur) {
 
-        return $this->_getRate('USD',$cur);
+        return $this->_getRate($cur,'USD');
     }
 
     /**
