@@ -445,7 +445,8 @@ class QuotebizlineController extends PublicController {
                 //已经报价供应商数量(也就是说quote_item_form对应的记录)
                 $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'QUOTED'])->count('id');
                 if (!$skuList[$key]['supplier_count']){
-                    $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'APPROVED'])->count('id') - 1;
+                    $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'APPROVED'])->count('id');
+                    $skuList[$key]['supplier_count'] = $skuList[$key]['supplier_count'] ? $skuList[$key]['supplier_count'] -1 : 0;
                 }
             }
 
