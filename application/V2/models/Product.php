@@ -474,7 +474,7 @@ class ProductModel extends PublicModel {
      * 列表查询
      */
     public function getList($condition = [], $field = '', $offset = 0, $length = 20) {
-        $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty' : $field;
+        $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,status' : $field;
         try {
             $result = $this->field($field)->where($condition)->limit($offset, $length)->select();
             return $result ? $result : array();
@@ -789,7 +789,7 @@ class ProductModel extends PublicModel {
      * 产品导出
      * @return string
      */
-    public function export() {
+    public function export($input=[]) {
         $lang_ary = array('zh','en','es','ru');
         $userInfo = getLoinInfo();
         $pModel = new ProductModel();
@@ -803,10 +803,10 @@ class ProductModel extends PublicModel {
             $objPHPExcel->setActiveSheetIndex($key);    //设置工作表
             $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
             $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-            $objSheet->getStyle("A1:K1")
+            $objSheet->getStyle("A1:L1")
                 ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-            $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
+            $objSheet->getStyle("A1:L1")->getFont()->setSize(11)->setBold(true);    //粗体
             $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
             foreach ($column_width_25 as $column) {
                 $objSheet->getColumnDimension($column)->setWidth(25);
@@ -829,7 +829,30 @@ class ProductModel extends PublicModel {
             $i = 0;    //用来控制分页查询
             $j = 2;    //excel控制输出
             $length = 20;
+
             $condition = array('lang' => $lang);
+            if(isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核spu下不去草稿状态。
+                $condition['status'] = array('neq','DRAFT');
+            }
+            if(isset($input['spu'])) {    //spu编码
+                $condition['spu'] = $input['spu'];
+            }
+            if(isset($input['name'])) {    //名称
+                $condition['name'] = array('like' , '%'.$input['spu'].'%');
+            }
+            if(isset($input['material_cat_no'])) {    //物料分类
+                $condition['material_cat_no'] = $input['material_cat_no'];
+            }
+            if(isset($input['status'])) {    //状态
+                $condition['status'] = $input['status'];
+            }
+            if(isset($input['created_by'])) {    //创建人
+                $condition['created_by'] = $input['created_by'];
+            }
+            if(isset($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                $time_ary = explode(' - ',$input['created_at']);
+                $condition['created_at'] = array('between' , $time_ary);
+            }
             do {
                 $result = $pModel->getList($condition, '', $i * $length, $length);
                 if ($result) {
@@ -860,8 +883,11 @@ class ProductModel extends PublicModel {
                             case 'DRAFT':
                                 $status = '草稿';
                                 break;
+                            default:
+                                $status = $r['status'];
+                                break;
                         }
-                        $objSheet->setCellValue("L" . $j, $status == '' ? $r['status'] : $status);
+                        $objSheet->setCellValue("L" . $j, $status);
                         $j++;
                     }
                 }

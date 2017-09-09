@@ -199,12 +199,14 @@ class QuotebizlineController extends PublicController {
         $bizline = new BizlineModel();
         $user = new EmployeeModel();
        $supplier = new SupplierModel();
+       $finalQuoteItemModel = new FinalQuoteItemModel();
 
         foreach ($response as $k=>$v){
             $response[$k]['bizline_name'] = $bizline->where(['id'=>$v['bizline_id']])->getField('name');
             $response[$k]['bizline_agent_name'] = $user->where(['id'=>$v['bizline_agent_id']])->getField('name');
             $response[$k]['supplier_name'] = $supplier->where(['id'=>$v['supplier_id']])->getField('name');
-            $response[$k]['quoter_name'] = $user->where(['id'=>$v['created_by']])->getField('name');
+            $response[$k]['final_exw_unit_price'] = $finalQuoteItemModel->where(['inquiry_id'=>$v['inquiry_id']])->getField('exw_unit_price');
+            $response[$k]['final_quote_unit_price'] = $finalQuoteItemModel->where(['inquiry_id'=>$v['inquiry_id']])->getField('quote_unit_price');
         }
         //p($response);
         $this->jsonReturn([
@@ -442,6 +444,10 @@ class QuotebizlineController extends PublicController {
                 $skuList[$key]['created_by'] = $user->where(['id'=>$bizlineQuoteSku['bizline_agent_id']])->getField('name');
                 //已经报价供应商数量(也就是说quote_item_form对应的记录)
                 $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'QUOTED'])->count('id');
+                if (!$skuList[$key]['supplier_count']){
+                    $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'APPROVED'])->count('id');
+                    $skuList[$key]['supplier_count'] = $skuList[$key]['supplier_count'] ? $skuList[$key]['supplier_count'] -1 : 0;
+                }
             }
 
             $this->jsonReturn([
@@ -683,8 +689,7 @@ class QuotebizlineController extends PublicController {
         $inquiryResult = $inquiry->where([
             'id' => $request['inquiry_id']
         ])->save([
-            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM,
-            //'logi_quote_status' => QuoteBizLineModel::QUOTE_APPROVED
+            'status' => QuoteBizLineModel::INQUIRY_APPROVED_BY_PM
         ]);
 
         if ($inquiryResult){
