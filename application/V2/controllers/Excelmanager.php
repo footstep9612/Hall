@@ -7,7 +7,7 @@
 class ExcelmanagerController extends PublicController {
 
     public function init() {
-        //parent::init();
+        parent::init();
     }
 
     public function uploadAction() {
