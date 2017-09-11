@@ -154,16 +154,16 @@ class GoodsModel extends PublicModel {
                     "deleted_flag" => self::DELETED_N
                 );
                 //获取spu的brand
-//                $result[$k]['brand'] = '';
-//                $productModel = new ProductModel();
-//                $brand = $productModel->field('brand')->where($condition)->find();
-//                if ($brand) {
-//                    if (!is_null(json_decode($brand['brand'], true))) {
-//                        $resBrand = json_decode($brand['brand'], true);
-//                        $result[$k]['brand'] = $resBrand['name'];
-//                    }
-//                    $result[$k]['brand'] = $brand['brand'];
-//                }
+                $result[$k]['brand'] = '';
+                $productModel = new ProductModel();
+                $brand = $productModel->field('brand')->where($condition)->find();
+                if ($brand) {
+                    if (!is_null(json_decode($brand['brand'], true))) {
+                        $resBrand = json_decode($brand['brand'], true);
+                        $result[$k]['brand'] = $resBrand['name'];
+                    }
+                    $result[$k]['brand'] = $brand['brand'];
+                }
                 //获取商品规格
                 //增加最小
                 $sku = $item['sku'];
