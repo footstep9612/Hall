@@ -101,19 +101,45 @@ class GoodsModel extends PublicModel {
         }
     }
 
+    public function getSpecCountBySpu($spu = '', $lang = '', $spec_type = 0) {
+        if (empty($spu))
+            return 0;
+        $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID . '_COUNT'));
+        if (redisHashExist('specGoods', $keyRedis)) {
+            return json_decode(redisHashGet('specGoods', $keyRedis), true);
+        }
+        try {
+
+            $condition = array(
+                "spu" => $spu,
+                "lang" => $lang,
+                "status" => self::STATUS_VALID,
+                "deleted_flag" => self::DELETED_N
+            );
+
+            $count = $this->where($condition)->count();
+            redisHashSet('specGoods', $keyRedis, $count);
+            return $count;
+        } catch (Exception $e) {
+
+            return 0;
+        }
+    }
+
     /**
      * 获取spu下的规格商品（用于门户产品详情页）
      * @param string $spu
      * @param string $lang
      * @return array
      */
-    public function getSpecGoodsBySpu($spu = '', $lang = '', $spec_type = 0) {
+    public function getSpecGoodsBySpu($spu = '', $lang = '', $spec_type = 0, $current_no = 1) {
         if (empty($spu))
             return array();
-        $keyRedis = md5(json_encode($spu . $lang . self::STATUS_VALID));
-        if (redisHashExist('specGoods', $keyRedis)) {
-            return json_decode(redisHashGet('specGoods', $keyRedis), true);
-        }
+//        $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID));
+//        if (redisHashExist('specGoods', $keyRedis)) {
+//            return json_decode(redisHashGet('specGoods', $keyRedis), true);
+//        }
+
         try {
             $field = "lang,spu,sku,qrcode,name,show_name_loc,"
                     . "show_name,model,exw_days,min_pack_naked_qty,"
@@ -124,10 +150,13 @@ class GoodsModel extends PublicModel {
                 "status" => self::STATUS_VALID,
                 "deleted_flag" => self::DELETED_N
             );
-            $result = $this->field($field)->where($condition)->limit(0, 100)->select();
+
+            $current_no = intval($current_no) > 0 ? intval($current_no) : 1;
+
+            $result = $this->field($field)->where($condition)->limit($current_no * 100 - 100, 100)->select();
 
             $this->getSpecBySku($result, $lang, $spec_type, $spu);
-            redisHashSet('specGoods', $keyRedis, json_encode($result));
+            //redisHashSet('specGoods', $keyRedis, json_encode($result));
             return $result;
         } catch (Exception $e) {
 
@@ -146,17 +175,19 @@ class GoodsModel extends PublicModel {
                 $gattr = new GoodsAttrModel();
                 $specs = $gattr->getgoods_attrbyskus($skus, $lang);
             }
+            $productModel = new ProductModel();
+            $condition = array(
+                "spu" => $spu,
+                "lang" => $lang,
+                "status" => self::STATUS_VALID,
+                "deleted_flag" => self::DELETED_N
+            );
+            $brand = $productModel->field('brand')->where($condition)->find();
             foreach ($result as $k => $item) {
-                $condition = array(
-                    "spu" => $spu,
-                    "lang" => $lang,
-                    "status" => self::STATUS_VALID,
-                    "deleted_flag" => self::DELETED_N
-                );
+
                 //获取spu的brand
                 $result[$k]['brand'] = '';
-                $productModel = new ProductModel();
-                $brand = $productModel->field('brand')->where($condition)->find();
+
                 if ($brand) {
                     if (!is_null(json_decode($brand['brand'], true))) {
                         $resBrand = json_decode($brand['brand'], true);
@@ -169,8 +200,6 @@ class GoodsModel extends PublicModel {
                 $sku = $item['sku'];
                 $result[$k]['exw_day'] = $item['exw_days'];
                 $result[$k]['purchase_unit'] = $item['min_pack_unit'];
-
-
                 $result[$k]['goods'] = $item['min_pack_naked_qty'] . $item['nude_cargo_unit'] . '/' . $item['min_pack_unit'];
                 $spec = [];
                 if (isset($specs[$sku])) {
