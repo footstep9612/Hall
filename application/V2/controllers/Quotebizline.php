@@ -954,6 +954,10 @@ class QuotebizlineController extends PublicController {
         $result['total_exw_price'] = sprintf("%.4F",$result['total_exw_price']);
         $result['total_weight'] = sprintf("%.4F",$result['total_weight']);
         $result['package_volumn'] = sprintf("%.4F",$result['package_volumn']);
+        $result['total_bank_fee'] = sprintf("%.4F",$result['total_bank_fee']);
+        $result['total_logi_fee'] = sprintf("%.4F",$result['total_logi_fee']);
+        $result['total_quote_price'] = sprintf("%.4F",$result['total_quote_price']);
+        $result['premium_rate'] = sprintf("%.4F",$result['premium_rate']);
 
         $this->jsonReturn([
             'code' => '1',
