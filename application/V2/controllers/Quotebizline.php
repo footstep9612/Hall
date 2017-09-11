@@ -448,6 +448,8 @@ class QuotebizlineController extends PublicController {
                     $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'APPROVED'])->count('id');
                     $skuList[$key]['supplier_count'] = $skuList[$key]['supplier_count'] ? $skuList[$key]['supplier_count'] -1 : 0;
                 }
+                //价格显示小数点后的4位
+                $skuList[$key]['purchase_unit_price'] = sprintf("%.4f",$skuList[$key]['purchase_unit_price']);
             }
 
             $this->jsonReturn([
