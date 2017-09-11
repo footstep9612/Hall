@@ -203,23 +203,23 @@ class LogisticsController extends PublicController {
     	        $inspectionFeeUSD = $quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']);
     	        $interShippingUSD = $quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']);
     	        
-    	        $quoteLogiFee['land_freight_usd'] = round($landFreightUSD, 4);
-    	        $quoteLogiFee['port_surcharge_usd'] = round($portSurchargeUSD, 4);
-    	        $quoteLogiFee['inspection_fee_usd'] = round($inspectionFeeUSD, 4);
-    	        $quoteLogiFee['inter_shipping_usd'] = round($interShippingUSD, 4);
+    	        $quoteLogiFee['land_freight_usd'] = round($landFreightUSD, 8);
+    	        $quoteLogiFee['port_surcharge_usd'] = round($portSurchargeUSD, 8);
+    	        $quoteLogiFee['inspection_fee_usd'] = round($inspectionFeeUSD, 8);
+    	        $quoteLogiFee['inter_shipping_usd'] = round($interShippingUSD, 8);
     	        
-    	        $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 4);
-    	        $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 4);
+    	        $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 8);
+    	        $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
     	        	
     	        $overlandInsu = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'] / 100;
     	        
-    	        $quoteLogiFee['overland_insu'] = round($overlandInsu, 4);
-    	        $quoteLogiFee['shipping_insu'] = round($quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'] / 100, 4);
+    	        $quoteLogiFee['overland_insu'] = round($overlandInsu, 8);
+    	        $quoteLogiFee['shipping_insu'] = round($quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'] / 100, 8);
     	        
     	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $landFreightUSD + $overlandInsu + $portSurchargeUSD + $inspectionFeeUSD + $interShippingUSD;
     	        
-    	        $quoteLogiFee['dest_tariff_fee'] = round($tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100, 4);
-    	        $quoteLogiFee['dest_va_tax_fee'] = round($tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100, 4);
+    	        $quoteLogiFee['dest_tariff_fee'] = round($tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100, 8);
+    	        $quoteLogiFee['dest_va_tax_fee'] = round($tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100, 8);
     	        
     	        $user = $this->getUserInfo();
     	        $quoteLogiFee['current_name'] = $user['name'];
@@ -304,7 +304,7 @@ class LogisticsController extends PublicController {
 	        $res3 = true;
 	        $this->quoteItemModel->startTrans();
 	        foreach ($quoteItemList as $quoteItem) {
-	            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 4) : 0;
+	            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 8) : 0;
 	            
 	            if ($quoteItem['quote_unit_price'] != $quoteUnitPrice) {
 	                $tmpRes = $this->quoteItemModel->updateItem(['id' => $quoteItem['id']], ['quote_unit_price' => $quoteUnitPrice]);
@@ -785,16 +785,16 @@ class LogisticsController extends PublicController {
 	    $data['dest_va_tax_fee'] = $destVaTaxUSD;
 	     
 	    // 物流费用合计
-	    $data['total_logi_fee'] = round($inspectionFeeUSD +  $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD, 4);
+	    $data['total_logi_fee'] = round($inspectionFeeUSD +  $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD, 8);
 	    
 	    $data['shipping_charge_cny'] = round(($data['inspection_fee_cur'] == 'CNY' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'CNY' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'CNY' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'CNY' ? $data['inter_shipping'] : 0)
-	                                                            + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'CNY' ? $data['dest_clearance_fee'] : 0), 4);
+	                                                            + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'CNY' ? $data['dest_clearance_fee'] : 0), 8);
 	    $data['shipping_charge_ncny'] = round(($data['inspection_fee_cur'] == 'USD' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'USD' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'USD' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'USD' ? $data['inter_shipping'] : 0)
-	                                                            + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'USD' ? $data['dest_clearance_fee'] : 0), 4);
+	                                                            + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'USD' ? $data['dest_clearance_fee'] : 0), 8);
 	    
-	    $data['total_quote_price'] = round($totalQuotePrice, 4);
-	    $data['total_bank_fee'] = round($totalBankFeeUSD, 4);
-	    $data['total_insu_fee'] = round($totalInsuFeeUSD, 4);
+	    $data['total_quote_price'] = round($totalQuotePrice, 8);
+	    $data['total_bank_fee'] = round($totalBankFeeUSD, 8);
+	    $data['total_insu_fee'] = round($totalInsuFeeUSD, 8);
 	     
 	    return $data;
 	}

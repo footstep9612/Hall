@@ -40,7 +40,7 @@ class ProductController extends PublicController {
         if (!empty($result)) {
             $goods_model = new GoodsModel();
             $attrdata = $goods_model->where('lang="' . $lang . '" and spu="' . $spu . '"and deleted_flag = "N" ')->find();
-            if($attrdata){
+            if ($attrdata) {
                 $result['goodsattr'] = $attrdata;
                 $result['minimum_packing_unit'] = $attrdata['min_pack_unit'];
             }
@@ -70,12 +70,18 @@ class ProductController extends PublicController {
         }
         $this->input['spec_type'] = isset($this->input['spec_type']) ? $this->input['spec_type'] : 0;
         $gmodel = new GoodsModel();
-        $result = $gmodel->getSpecGoodsBySpu($this->input['spu'], $this->input['lang'], $this->input['spec_type']);
+        $result = $gmodel->getSpecGoodsBySpu($this->input['spu'], $this->input['lang'], $this->input['spec_type'], $this->input['current_no']);
+        $count = $gmodel->getSpecCountBySpu($this->input['spu'], $this->input['lang'], $this->input['spec_type']);
 
         if ($result) {
-            jsonReturn(array('data' => $result));
+            $this->setvalue('count', $count);
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($result);
         } else {
-            jsonReturn('', '-1002', '获取失败');
+            $this->setvalue('count', 0);
+            $this->setCode('-1002');
+            $this->setMessage('获取失败');
+            $this->jsonReturn('');
         }
     }
 

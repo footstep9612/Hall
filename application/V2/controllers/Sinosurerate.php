@@ -113,6 +113,7 @@ class SinosureRateController extends PublicController {
 
             if ($row) {
                 $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('已存在该国家的信保税率记录!');
                 $this->jsonReturn();
             }
         }

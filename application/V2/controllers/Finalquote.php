@@ -135,7 +135,7 @@ class FinalquoteController extends PublicController {
 
             //计算
             if($total_exw_price>0){
-                $logiwhere['inquiry_id'] = $data['inquiry_id'];
+                $logiwhere['inquiry_id'] = $data['id'];
                 $quotetlogifee = new QuoteLogiFeeModel();
                 $quoteLogiFee = $quotetlogifee->getDetail($logiwhere);
 
