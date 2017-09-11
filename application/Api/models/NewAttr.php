@@ -41,7 +41,7 @@ class NewAttrModel extends PublicModel {
                         'hs_flag' => 'Y',
                         'lang' => $lang,
                         'status' => 'VALID',
-                        'created_at' => '2017-08-16 00:00:00'
+                        'created_at' => '2017-08-17 00:00:00'
                     ])
                     ->select();
             Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
@@ -76,7 +76,7 @@ class NewAttrModel extends PublicModel {
                         'lang' => $lang,
                         'spec_flag' => 'Y',
                         'status' => 'VALID',
-                        'created_at' => '2017-08-16 00:00:00'
+                        'created_at' => '2017-08-17 00:00:00'
                     ])
                     ->select();
             Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
