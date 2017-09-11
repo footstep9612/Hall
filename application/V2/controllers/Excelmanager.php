@@ -7,7 +7,7 @@
 class ExcelmanagerController extends PublicController {
 
     public function init() {
-        parent::init();
+        //parent::init();
     }
 
     public function uploadAction() {
@@ -180,7 +180,7 @@ class ExcelmanagerController extends PublicController {
             $this->jsonReturn(['code' => '1', 'message' => '失败']);
         }
         //构建打包文件数组
-        $fileName = date('Ymdhis');
+        $fileName = date('YmdHis');
         $files = [
             ['url'=>$excelFile,'name'=>$fileName.'.xls']
         ];
@@ -325,7 +325,7 @@ class ExcelmanagerController extends PublicController {
         $data['name']=$filename;
         $ret = $this->postfile($data,$url);         
         //删除临时压缩文件
-        @unlink($filepath);
+        //@unlink($filepath);
         return $ret;
     }
 
@@ -333,23 +333,26 @@ class ExcelmanagerController extends PublicController {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
         $inquiryModel = new InquiryModel();
-        $info = $inquiryModel->where(['id' => $inquiry_id])->field('buyer_name,serial_no')->find();
+        $info = $inquiryModel->where(['id' => $inquiry_id])->field('buyer_name,serial_no,pm_id,agent_id')->find();
 
         //报价综合信息 (报价人，电话，邮箱，报价时间)
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('created_by,checked_at,checked_by')->find();
 
         $employee = new EmployeeModel();
-        $employeeInfo = $employee->where(['id' => $finalQuoteInfo['checked_by']])->field('email,mobile,name')->find();
+        $employeeInfo = $employee->where(['id' => intval($info['pm_id'])])->field('email,mobile,name')->find();
 
         //报价人信息
         $info['quoter_email'] = $employeeInfo['email'];
         $info['quoter_mobile'] = $employeeInfo['mobile'];
         $info['quoter_name'] = $employeeInfo['name'];
-        $info['quote_time'] = $finalQuoteInfo['checked_at'];
+		//由于此文件仅生成一次，所以记录日期跟当前日期一致
+        $info['quote_time'] = date('Y-m-d');//$finalQuoteInfo['checked_at']; 
 
         //市场经办人
-        $info['agenter'] = $employee->where(['id' => $finalQuoteInfo['created_by']])->getField('name');
+        $info['agenter'] = $employee->where(['id' => $info['agent_id']])->getField('name');
+		$departsments = $this->getDepartmentByUid($info['agent_id']);
+		$info['buyer_name'] = implode('-',$departsments);
 
         //报价单项(final_quote)
         $finalQuoteItemModel = new FinalQuoteItemModel();
@@ -375,6 +378,44 @@ class ExcelmanagerController extends PublicController {
             'quote_info' => $quoteInfo
         ];
     }
+	/**
+	* 获取用户所在部门数组
+	* @param int $uid 用户ID
+	* @return array 返回部门数组，从顶级到最低一级
+	**/
+	private function getDepartmentByUid($uid){
+		if(!is_numeric($uid) || $uid <1){
+			return [];
+		}
+		$orgMember = new OrgMemberModel();
+		$orgId = $orgMember->where(['employee_id' => intval($uid)])->getField('org_id');
+		if($orgId < 1){
+			return [];
+		}
+		$org = new OrgModel();
+		$list = $org->field('id,parent_id,name')->select();
+		$orgs = [];
+		foreach($list as $key=>$item){
+			$orgs[$item['id']] = &$list[$key];
+		}
+		foreach($orgs as $key=>$item){
+			if(isset($orgs[$item['parent_id']])){
+				$orgs[$key]['parent'] = &$orgs[$item['parent_id']];
+			}else{
+				$orgs[$key]['parent'] = null;
+			}
+		}		
+		$depats = [];
+		//最大20级，防止死循环
+		for($i=0;$i<20;$i++){
+			if(isset($orgs[$orgId])){
+				array_unshift($depats,$orgs[$orgId]['name']);
+				$orgId = (int)$orgs[$orgId]['parent_id'];
+			}else{
+				return $depats;
+			}
+		}
+	}
 
     /**
      * 创建excel文件对象
