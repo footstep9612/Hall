@@ -1099,7 +1099,7 @@ class QuotebizlineController extends PublicController {
                         //汇率
                         $exchange_rate = $exchangeRateModel->where(['cur_bn2'=>$value['purchase_price_cur_bn'],'cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
                         $exw_unit_price = $value['purchase_unit_price'] *  $gross_profit_rate / $exchange_rate ;
-                        $exw_unit_price = sprintf("%.4f", $exw_unit_price);
+                        $exw_unit_price = sprintf("%.8f", $exw_unit_price);
                         $quoteItemModel->where(['id'=>$value['id']])->save([
                             'exw_unit_price' => $exw_unit_price
                         ]);
