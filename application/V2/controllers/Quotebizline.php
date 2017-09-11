@@ -947,6 +947,13 @@ class QuotebizlineController extends PublicController {
         //运输方式
         $transMode = new TransModeModel();
         $result['trans_mode_bn'] = $transMode->where(['id'=>$result['trans_mode_bn']])->getField('trans_mode');
+        $result['gross_profit_rate'] = sprintf("%.4F",$result['gross_profit_rate']);
+        $result['total_purchase'] = sprintf("%.4F",$result['total_purchase']);
+        $result['fund_occupation_rate'] = sprintf("%.4F",$result['fund_occupation_rate']);
+        $result['bank_interest'] = sprintf("%.4F",$result['bank_interest']);
+        $result['total_exw_price'] = sprintf("%.4F",$result['total_exw_price']);
+        $result['total_weight'] = sprintf("%.4F",$result['total_weight']);
+        $result['package_volumn'] = sprintf("%.4F",$result['package_volumn']);
 
         $this->jsonReturn([
             'code' => '1',
