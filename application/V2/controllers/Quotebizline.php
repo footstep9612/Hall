@@ -207,6 +207,9 @@ class QuotebizlineController extends PublicController {
             $response[$k]['supplier_name'] = $supplier->where(['id'=>$v['supplier_id']])->getField('name');
             $response[$k]['final_exw_unit_price'] = $finalQuoteItemModel->where(['inquiry_id'=>$v['inquiry_id']])->getField('exw_unit_price');
             $response[$k]['final_quote_unit_price'] = $finalQuoteItemModel->where(['inquiry_id'=>$v['inquiry_id']])->getField('quote_unit_price');
+            $response[$k]['purchase_unit_price'] = sprintf("%.4f",$response[$k]['purchase_unit_price']);
+            $response[$k]['exw_unit_price'] = sprintf("%.4f",$response[$k]['exw_unit_price']);
+
         }
         //p($response);
         $this->jsonReturn([
@@ -448,6 +451,8 @@ class QuotebizlineController extends PublicController {
                     $skuList[$key]['supplier_count'] = $quoteItemForm->where(['quote_item_id'=>$bizlineQuoteSku['id'],'status'=>'APPROVED'])->count('id');
                     $skuList[$key]['supplier_count'] = $skuList[$key]['supplier_count'] ? $skuList[$key]['supplier_count'] -1 : 0;
                 }
+                //价格显示小数点后的4位
+                $skuList[$key]['purchase_unit_price'] = sprintf("%.4f",$skuList[$key]['purchase_unit_price']);
             }
 
             $this->jsonReturn([
@@ -496,6 +501,7 @@ class QuotebizlineController extends PublicController {
         foreach ($quoterSkuList as $key=>$value){
             $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['updated_by']])->getField('name');
             $quoterSkuList[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
+            $quoterSkuList[$key]['purchase_unit_price'] = sprintf("%.4f",$quoterSkuList[$key]['purchase_unit_price']);
         }
 
         $this->jsonReturn([
@@ -941,6 +947,13 @@ class QuotebizlineController extends PublicController {
         //运输方式
         $transMode = new TransModeModel();
         $result['trans_mode_bn'] = $transMode->where(['id'=>$result['trans_mode_bn']])->getField('trans_mode');
+        $result['gross_profit_rate'] = sprintf("%.4F",$result['gross_profit_rate']);
+        $result['total_purchase'] = sprintf("%.4F",$result['total_purchase']);
+        $result['fund_occupation_rate'] = sprintf("%.4F",$result['fund_occupation_rate']);
+        $result['bank_interest'] = sprintf("%.4F",$result['bank_interest']);
+        $result['total_exw_price'] = sprintf("%.4F",$result['total_exw_price']);
+        $result['total_weight'] = sprintf("%.4F",$result['total_weight']);
+        $result['package_volumn'] = sprintf("%.4F",$result['package_volumn']);
 
         $this->jsonReturn([
             'code' => '1',
@@ -1099,7 +1112,7 @@ class QuotebizlineController extends PublicController {
                         //汇率
                         $exchange_rate = $exchangeRateModel->where(['cur_bn2'=>$value['purchase_price_cur_bn'],'cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
                         $exw_unit_price = $value['purchase_unit_price'] *  $gross_profit_rate / $exchange_rate ;
-                        $exw_unit_price = sprintf("%.4f", $exw_unit_price);
+                        $exw_unit_price = sprintf("%.8f", $exw_unit_price);
                         $quoteItemModel->where(['id'=>$value['id']])->save([
                             'exw_unit_price' => $exw_unit_price
                         ]);
