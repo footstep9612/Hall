@@ -27,10 +27,10 @@ class BuyerCreditLogModel extends PublicModel{
     public function getInfo($user) {
 //        $userInfo = getLoinInfo();
         $where=array();
-        if(!empty($user['id'])){
-            $where['buyer_id'] = $user['id'];
+        if(isset($user['buyer_id']) && !empty($user['buyer_id'])) {
+            $where['buyer_id'] = $user['buyer_id'];
         } else{
-            jsonReturn('','-1001','用户[id]不可以为空');
+            jsonReturn('','-1001','用户[buyer_id]不可以为空');
         }
         $field = 'buyer_id, credit_grantor, credit_apply, credit_granted, credit_cur_bn, credit_apply_date, in_status, in_remarks, agent_by, agent_at, checked_by, checked_at, out_status, out_remarks, approved_by, approved_at';
 

@@ -129,9 +129,9 @@ class Edi {
             $results['message'] = '[lang]不能为空!';
         }
         if($BuyerCodeApply['lang'] == 'zh') {
-            if(empty($BuyerCodeApply['province'])){
+            if(empty($BuyerCodeApply['area_bn'])){
                 $results['code'] = -101;
-                $results['message'] = '[province]不能为空!';
+                $results['message'] = '[area_bn]不能为空!';
             }
         }
         if(empty($BuyerCodeApply['buyer_no'])){
@@ -146,9 +146,9 @@ class Edi {
             $results['code'] = -101;
             $results['message'] = '[name]不能为空!';
         }
-        if(empty($BuyerCodeApply['registered_in'])){
+        if(empty($BuyerCodeApply['address'])){
             $results['code'] = -101;
-            $results['message'] = '[registered_in]不能为空!';
+            $results['message'] = '[address]不能为空!';
         }
         if($results){
             jsonReturn($results);
@@ -171,15 +171,15 @@ class Edi {
             //-----------国内买家必填项:
             $BuyerCodeApplyInfo['chnName'] = $BuyerCodeApply['name'];
             //买方中文名称(必填)  --国内买方中文名称必填
-            $BuyerCodeApplyInfo['areano'] = $BuyerCodeApply['province'];
+            $BuyerCodeApplyInfo['areano'] = $BuyerCodeApply['area_bn'];
             //区域代码--(必填)    --国内买家 必填
-            $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['registered_in'];
+            $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['address'];
             //买方中文地址--(必填)--国内买家 必填
         } else {
             //-----------国外买家必填项:
             $BuyerCodeApplyInfo['engName'] = $BuyerCodeApply['name'];
             //买方英文名称(必填) --国外买家英文名称必填
-            $BuyerCodeApplyInfo['engAddress'] = $BuyerCodeApply['registered_in'];
+            $BuyerCodeApplyInfo['engAddress'] = $BuyerCodeApply['address'];
             //买方英文地址(必填) --国外买家 英文地址必填
         }
 
@@ -244,19 +244,19 @@ class Edi {
         $data = $results = array();
         if(empty($BuyerBankApply['buyer_no'])){
             $results['code'] = -101;
-            $results['message'] = '[buyer_no]不能为空!';
+            $results['message'] = '[buyer_no]采购商编号不能为空!';
         }
-        if(empty($BuyerBankApply['country_code'])){
+        if(empty($BuyerBankApply['bank_country_code'])){
             $results['code'] = -101;
-            $results['message'] = '[country_code]不能为空!';
+            $results['message'] = '[bank_country_code]银行国家代码不能为空!';
         }
         if(empty($BuyerBankApply['bank_name'])){
             $results['code'] = -101;
-            $results['message'] = '[bank_name]不能为空!';
+            $results['message'] = '[bank_name]银行名称不能为空!';
         }
-        if(empty($BuyerBankApply['address'])){
+        if(empty($BuyerBankApply['bank_address'])){
             $results['code'] = -101;
-            $results['message'] = '[address]不能为空!';
+            $results['message'] = '[bank_address]银行地址不能为空!';
         }
         if($results){
             jsonReturn($results);
@@ -274,9 +274,9 @@ class Edi {
         //保险单号(非必填)
         $BankCodeApplyInfo['engName'] =  $BankCodeApply['bank_name'];
         //银行英文名称--(必填)
-        $BankCodeApplyInfo['countryCode'] = $BankCodeApply['country_code'];
+        $BankCodeApplyInfo['countryCode'] = $BankCodeApply['bank_country_code'];
         //银行国家代码--(必填)
-        $BankCodeApplyInfo['address'] = $BankCodeApply['address'];
+        $BankCodeApplyInfo['address'] = $BankCodeApply['bank_address'];
         //银行地址(英文)--(必填)
         $data = array('bankCodeApplyInfoList' => array('BankCodeApplyInfo' => array($BankCodeApplyInfo)));
 //        return $this->resultInfo("doEdiBankCodeApply", $xmlEdiBankCodeApply);
@@ -480,7 +480,7 @@ class Edi {
      */
     public function EdiBasicFeeRate(){
         try{
-            $BasicFeeRateInfo = $this->client->getEdiBasicFeeRate;
+            $BasicFeeRateInfo = $this->client->getEdiBasicFeeRate();
             if ($BasicFeeRateInfo) {
                 var_dump($BasicFeeRateInfo->BasicFeeRate);
             } else {

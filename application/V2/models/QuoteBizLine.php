@@ -103,6 +103,7 @@ class QuoteBizLineModel extends PublicModel {
         //修改报价的状态
         $quoteModel = new QuoteModel();
         $quoteID = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('id');
+        $premium_rate = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('premium_rate');
         $quoteResult = $quoteModel->where(['id' => $quoteID])->save([
             'status' => self::INQUIRY_QUOTING_BY_LOGI
         ]);
@@ -114,7 +115,8 @@ class QuoteBizLineModel extends PublicModel {
                     'quote_id' => $quoteID,
                     'inquiry_id' => $request['inquiry_id'],
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $user
+                    'created_by' => $user,
+                    'premium_rate' => $premium_rate
         ]));
 
         $quoteItemModel = new QuoteItemModel();
@@ -630,8 +632,9 @@ class QuoteBizLineModel extends PublicModel {
         $quoteItemModel = new QuoteItemModel();
 
         return  $quoteItemModel->alias('a')
-                        ->join('erui2_rfq.inquiry_item b ON b.id = a.inquiry_item_id')
-                        ->field('a.id,a.created_by,a.bizline_id,a.bizline_agent_id,a.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.exw_unit_price,a.quote_unit_price,a.supplier_id,a.remarks quote_remarks,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote')
+                        ->join('erui2_rfq.inquiry_item b ON b.id = a.inquiry_item_id','LEFT')
+                        ->join('erui2_rfq.final_quote_item c ON a.inquiry_id = c.inquiry_id','LEFT')
+                        ->field('a.id,a.created_by,a.bizline_id,a.bizline_agent_id,a.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.exw_unit_price,a.quote_unit_price,a.supplier_id,a.remarks quote_remarks,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote,c.exw_unit_price final_exw_unit_price,c.quote_unit_price final_quote_unit_price')
                         ->where($where)
                         ->page($currentPage, $pageSize)
                         ->order('a.id DESC')

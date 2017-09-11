@@ -23,40 +23,35 @@ class ShowcatController extends PublicController {
         $marke_area_bn = $this->getPut('marke_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['marke_area_bn'] = $marke_area_bn;
-        $redis_key = 'show_cat_tree_' . $lang . md5($country_bn . $marke_area_bn);
-        $data = json_decode(redisGet($redis_key), true);
-        if (!$data) {
-            $arr = $this->_model->tree($jsondata);
-            if ($arr) {
-                $this->setCode(MSG::MSG_SUCCESS);
-                foreach ($arr as $key => $val) {
-                    $children_data = $jsondata;
-                    $children_data['level_no'] = 2;
-                    $children_data['parent_cat_no'] = $val['value'];
-                    $arr[$key]['children'] = $this->_model->tree($children_data);
-                    if ($arr[$key]['children']) {
-                        foreach ($arr[$key]['children'] as $k => $item) {
-                            $children_data['level_no'] = 3;
-                            $children_data['parent_cat_no'] = $item['value'];
-                            $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
-                        }
+
+        $arr = $this->_model->tree($jsondata);
+
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            foreach ($arr as $key => $val) {
+                $children_data = $jsondata;
+                $children_data['level_no'] = 2;
+                $children_data['parent_cat_no'] = $val['value'];
+                $arr[$key]['children'] = $this->_model->tree($children_data);
+                if ($arr[$key]['children']) {
+                    foreach ($arr[$key]['children'] as $k => $item) {
+                        $children_data['level_no'] = 3;
+                        $children_data['parent_cat_no'] = $item['value'];
+                        $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
                     }
                 }
-                redisSet($redis_key, json_encode($arr), 86400);
-                $this->setCode(MSG::MSG_SUCCESS);
-                $this->_setCount($lang, $country_bn, $marke_area_bn);
-                $this->jsonReturn($arr);
-            } else {
-                $this->setvalue('count1', 0);
-                $this->setvalue('count2', 0);
-                $this->setvalue('count3', 0);
-                $this->setCode(MSG::ERROR_EMPTY);
-                $this->jsonReturn($arr);
             }
+
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->_setCount($lang, $country_bn, $marke_area_bn);
+            $this->jsonReturn($arr);
+        } else {
+            $this->setvalue('count1', 0);
+            $this->setvalue('count2', 0);
+            $this->setvalue('count3', 0);
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn($arr);
         }
-        $this->setCode(MSG::MSG_SUCCESS);
-        $this->_setCount($lang, $country_bn, $marke_area_bn);
-        $this->jsonReturn($data);
     }
 
     /**

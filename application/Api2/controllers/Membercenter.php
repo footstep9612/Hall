@@ -202,4 +202,24 @@ class MembercenterController extends PublicController {
         exit;
     }
 
+    /**
+     * 采购商授信信息详情
+     *   * @time 2017-9-8
+     * @author klp
+     */
+    public function buyerCerditInfoAction() {
+        $BuyerModel = new BuyerModel();
+        $result = $BuyerModel->buyerCerdit($this->user);
+        if ($result) {
+            $data = array(
+                'code' => 1,
+                'message' => '获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1002', '获取失败');
+        }
+        exit;
+    }
 }

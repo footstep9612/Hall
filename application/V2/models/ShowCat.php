@@ -571,7 +571,7 @@ class ShowCatModel extends PublicModel {
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;
-                $add['status'] = self::STATUS_APPROVING;
+                $add['status'] = self::STATUS_VALID;
 
                 $add['created_by'] = defined('UID') ? UID : 0;
                 $add['created_at'] = date('Y-m-d H:i:s');
@@ -742,8 +742,7 @@ class ShowCatModel extends PublicModel {
         } if ($condition['big_icon']) {
             $data['big_icon'] = $condition['big_icon'];
         }
-        $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = defined('UID') ? UID : 0;
+
         return [$data, $where, $cat_no];
     }
 

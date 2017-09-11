@@ -269,23 +269,35 @@ class EsProductModel extends Model {
         } else {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
         }
+        if (isset($condition['show_name']) && $condition['show_name']) {
+            $show_name = $condition['show_name'];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MATCH => ['show_name.ik' => $show_name]],
+                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
+            ]]];
+        }
 
+        if (isset($condition['name']) && $condition['name']) {
+            $name = $condition['name'];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MATCH => ['name.ik' => $name]],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $name . '*']],
+            ]]];
+        }
 
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
         if (isset($condition['keyword']) && $condition['keyword']) {
-            $show_name = $condition['keyword'];
+            $keyword = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::MULTI_MATCH => [
-                                'query' => $show_name,
+                                'query' => $keyword,
                                 'type' => 'most_fields',
                                 'fields' => ['show_name.ik', 'name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
                             ]],
-                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
-                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['show_name.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
             ]]];
         }
         return $body;
@@ -329,6 +341,7 @@ class EsProductModel extends Model {
             } else {
                 $es->setaggs('material_cat_no', 'material_cat_no');
             }
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;
         } catch (Exception $ex) {
@@ -592,6 +605,9 @@ class EsProductModel extends Model {
             $count = $this->where(['lang' => $lang])->count('id');
             $max_id = 0;
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
+            ob_flush();
+
+            flush();
             $k = 1;
             for ($i = 0; $i < $count; $i += 100) {
                 if ($i > $count) {
@@ -628,12 +644,18 @@ class EsProductModel extends Model {
                     $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
 
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
+                    echo '<pre>';
                     foreach ($products as $key => $item) {
 
-                        $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
+                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
                         if ($key === 99) {
                             $max_id = $item['id'];
                         }
+
+
+                        print_r($flag);
+                        ob_flush();
+                        flush();
                     }
                 } else {
                     return false;

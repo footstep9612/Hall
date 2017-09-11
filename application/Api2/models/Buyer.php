@@ -708,4 +708,49 @@ class BuyerModel extends PublicModel {
         }
     }
 
+    /**
+     * 门户授信 -- 获取采购商信息 NEW
+     * @author klp
+     * @time 2017-9-8
+     */
+    public function buyerCerdit($userInfo) {
+        $where = array();
+        if (!empty($userInfo['id'])) {
+            $where['b.id'] = $userInfo['id'];
+        } else {
+            jsonReturn('', '-1001', '用户[id]不可以为空');
+        }
+        if(isset($userInfo['buyer_no'])) {
+            $where['b.buyer_no'] = $userInfo['buyer_no'];
+        }
+        $where['b.deleted_flag'] = 'N';
+
+        $buyercontactModel = new BuyercontactModel();
+        $tableAcon = $buyercontactModel->getTableName();
+        $buyeraddress_model = new BuyerAddressModel();
+        $tableAddr = $buyeraddress_model->getTableName();
+//        $BuyerreginfoModel = new BuyerreginfoModel();
+//        $tableReg = $BuyerreginfoModel->getTableName();
+        try {
+            //基本信息-$this
+            $fields = 'b.id as buyer_id, b.lang, b.address, b.serial_no, b.buyer_no, b.country_code, b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.sec_ex_listed_on,b.line_of_credit,b.credit_available,b.credit_cur_bn,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
+            //联系信息-BuyercontactModel
+            $fields .= ',ba.first_name as con_first_name,ba.last_name as con_last_name,ba.gender,ba.title,ba.phone as con_phone,ba.email as con_email,ba.remarks as con_remarks';
+
+            $buyerInfo = $this->alias('b')
+                ->field($fields)
+                ->join($tableAcon . ' as ba on ba.buyer_id=b.id ', 'left')
+                ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
+//                ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
+                ->where($where)
+                ->find();
+            if ($buyerInfo) {
+                return $buyerInfo ? $buyerInfo : array();
+            }
+            return array();
+        } catch (Exception $e) {
+            return array();
+        }
+    }
+
 }
