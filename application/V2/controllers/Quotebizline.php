@@ -207,6 +207,9 @@ class QuotebizlineController extends PublicController {
             $response[$k]['supplier_name'] = $supplier->where(['id'=>$v['supplier_id']])->getField('name');
             $response[$k]['final_exw_unit_price'] = $finalQuoteItemModel->where(['inquiry_id'=>$v['inquiry_id']])->getField('exw_unit_price');
             $response[$k]['final_quote_unit_price'] = $finalQuoteItemModel->where(['inquiry_id'=>$v['inquiry_id']])->getField('quote_unit_price');
+            $response[$k]['purchase_unit_price'] = sprintf("%.4f",$response[$k]['purchase_unit_price']);
+            $response[$k]['exw_unit_price'] = sprintf("%.4f",$response[$k]['exw_unit_price']);
+
         }
         //p($response);
         $this->jsonReturn([
@@ -498,6 +501,7 @@ class QuotebizlineController extends PublicController {
         foreach ($quoterSkuList as $key=>$value){
             $quoterSkuList[$key]['created_by'] = $user->where(['id'=>$value['updated_by']])->getField('name');
             $quoterSkuList[$key]['supplier_name'] = $supplier->where(['id'=>$value['supplier_id']])->getField('name');
+            $quoterSkuList[$key]['purchase_unit_price'] = sprintf("%.4f",$quoterSkuList[$key]['purchase_unit_price']);
         }
 
         $this->jsonReturn([
