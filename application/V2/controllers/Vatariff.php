@@ -133,6 +133,7 @@ class VatariffController extends PublicController {
 
             if ($row) {
                 $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('已存在该国家的增值税、关税信息！');
                 $this->jsonReturn();
             }
         }

@@ -135,10 +135,10 @@ class GoodsModel extends PublicModel {
     public function getSpecGoodsBySpu($spu = '', $lang = '', $spec_type = 0, $current_no = 1) {
         if (empty($spu))
             return array();
-//        $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID));
-//        if (redisHashExist('specGoods', $keyRedis)) {
-//            return json_decode(redisHashGet('specGoods', $keyRedis), true);
-//        }
+        $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID));
+        if (redisHashExist('specGoods', $keyRedis)) {
+            return json_decode(redisHashGet('specGoods', $keyRedis), true);
+        }
 
         try {
             $field = "lang,spu,sku,qrcode,name,show_name_loc,"
@@ -156,7 +156,7 @@ class GoodsModel extends PublicModel {
             $result = $this->field($field)->where($condition)->limit($current_no * 100 - 100, 100)->select();
 
             $this->getSpecBySku($result, $lang, $spec_type, $spu);
-            //redisHashSet('specGoods', $keyRedis, json_encode($result));
+            redisHashSet('specGoods', $keyRedis, json_encode($result));
             return $result;
         } catch (Exception $e) {
 
