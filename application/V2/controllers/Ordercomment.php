@@ -16,7 +16,7 @@
 class OrdercommentController extends PublicController {
 
     public function init() {
-        //  parent::init();
+        parent::init();
     }
 
     /* 获取订单列表
@@ -31,37 +31,83 @@ class OrdercommentController extends PublicController {
     public function listAction() {
 
         $condition = $this->getPut(); //查询条件
+        $condition['order_id'] = 1;
+        if (!isset($condition['order_id']) || empty($condition['order_id'])) {
+            $this->setCode(MSG::MSG_PARAM_ERROR);
+            $this->setMessage('订单ID不能为空');
 
-        $oder_moder = new OrderCommentModel();
-        $data = $oder_moder->getList($condition);
+            $this->jsonReturn(null);
+        }
 
+        $oder_comment_moder = new OrderCommentModel();
+        $data = $oder_comment_moder->getList($condition);
+        $order_model = new OrderModel();
+        $order = $order_model->info($condition['order_id']);
         if ($data) {
             $buyerids = [];
-            foreach ($data as $order) {
-                $buyerids[] = $order['buyer_id'];
-            }
-            $buyer_model = new BuyerModel();
-            $buyernames = $buyer_model->getBuyerNamesByBuyerids($buyerids);
-            foreach ($data as $key => $val) {
-                if ($val['buyer_id'] && isset($buyernames[$val['buyer_id']])) {
-                    $val['buyer_id_name'] = $buyernames[$val['buyer_id']];
-                } else {
-                    $val['buyer_id_name'] = '';
+            foreach ($data as $key => $comment) {
+                if ($comment['comment_group'] === 'B') {
+                    $buyerids[] = $comment['created_by'];
+                } elseif ($comment['comment_group'] === 'E') {
+                    $comment['created_by_name'] = 'Erui';
                 }
-                $val['show_status_text'] = $oder_moder->getShowStatus($val['show_status']);
-                $val['pay_status_text'] = $oder_moder->getShowStatus($val['pay_status']);
+                $data[$key] = $comment;
+            }
+            if ($buyerids) {
+                $buyer_model = new BuyerAccountModel();
+                $buyernames = $buyer_model->getBuyerNamesByBuyerids($buyerids);
+            }
+            foreach ($data as $key => $val) {
+                if ($val['created_by'] && isset($buyernames[$val['created_by']]) && $val['comment_group'] === 'B') {
+                    $val['created_by_name'] = $buyernames[$val['created_by']];
+                } elseif ($val['comment_group'] === 'B') {
+                    $val['created_by_name'] = '';
+                }
                 $data[$key] = $val;
             }
-            $this->setvalue('count', intval($count));
+
+            if (isset($order['quality']) && $order['quality']) {
+
+                $this->setvalue('quality', $order['quality']);
+            }
+            if (isset($order['distributed']) && $order['distributed']) {
+
+                $this->setvalue('distributed', $order['distributed']);
+            }
             $this->jsonReturn($data);
         } elseif ($data === null) {
-            $this->setvalue('count', 0);
+
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
-            $this->setvalue('count', 0);
+
             $this->jsonReturn(null);
+        }
+    }
+
+    public function AddAction() {
+        $condition = $this->getPut(); //查询条件
+        $condition['order_id'] = 1;
+        if (!isset($condition['order_id']) || empty($condition['order_id'])) {
+            $this->setCode(MSG::MSG_PARAM_ERROR);
+            $this->setMessage('订单ID不能为空');
+
+            $this->jsonReturn(null);
+        }
+        if (!isset($condition['content']) || empty($condition['content'])) {
+            $this->setCode(MSG::MSG_PARAM_ERROR);
+            $this->setMessage('内容不能为空');
+            $this->jsonReturn(null);
+        }
+        $oder_comment_moder = new OrderCommentModel();
+        $result = $oder_comment_moder->add_data($condition);
+        if ($result) {
+            $this->jsonReturn();
+        } else {
+
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
         }
     }
 

@@ -51,4 +51,13 @@ class OrderCommentModel extends PublicModel {
                         ->select();
     }
 
+    public function add_data($condition) {
+        $data = $this->create($condition);
+        $data['created_by'] = defined('UID') ? UID : 0;
+        $data['created_at'] = date('Y-m-d H:i:s');
+        $data['comment_group'] = 'E';
+
+        return $this->add($data);
+    }
+
 }

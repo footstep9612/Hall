@@ -19,6 +19,19 @@ class OrderController extends PublicController {
         parent::init();
     }
 
+    /* 获取订单详情
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    public function info($order_id) {
+
+        return $this->where(['id' => $order_id])->find();
+    }
+
     /* 获取订单列表
      *
      * @author  zhongyg
