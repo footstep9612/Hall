@@ -399,7 +399,7 @@ class BuyerModel extends PublicModel {
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
-        if(isset($user['buyer_no'])) {
+        if (isset($user['buyer_no'])) {
             $where['b.buyer_no'] = $user['buyer_no'];
         }
         $where['b.deleted_flag'] = 'N';
@@ -422,12 +422,12 @@ class BuyerModel extends PublicModel {
             //注册银行信息-BuyerBankInfoModel
             $fields .= ',bb.swift_code,bb.bank_account,bb.country_bn as bank_country_bn,bb.zipcode as bank_zipcode,bb.phone,fax,bb.turnover,bb.profit,bb.total_assets,bb.reg_capital_cur_bn,bb.equity_ratio,bb.equity_capital,bb.branch_count,bb.employee_count,bb.remarks as bank_remarks';
             $buyerInfo = $this->alias('b')
-                ->field($fields)
-                ->join($tableBank . ' as bb on bb.buyer_id=b.id ', 'left')
-                ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
-                ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
-                ->where($where)
-                ->find();
+                    ->field($fields)
+                    ->join($tableBank . ' as bb on bb.buyer_id=b.id ', 'left')
+                    ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
+                    ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
+                    ->where($where)
+                    ->find();
             if ($buyerInfo) {
                 return $buyerInfo ? $buyerInfo : array();
             }
@@ -448,7 +448,7 @@ class BuyerModel extends PublicModel {
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
-        if(isset($user['buyer_no'])) {
+        if (isset($user['buyer_no'])) {
             $where['buyer_no'] = $user['buyer_no'];
         }
         $where['deleted_flag'] = 'N';
@@ -688,6 +688,73 @@ class BuyerModel extends PublicModel {
             if ($userids) {
                 $where[$filed] = ['in', $userids];
             }
+        }
+    }
+
+    /*
+     * 根据用户姓 获取用户ID
+     * @param string $BuyerName // 客户名称
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getBuyeridsByBuyerName($buyername) {
+
+        try {
+            $where = [];
+            if ($buyername) {
+                $where['name'] = ['like', '%' . trim($buyername) . '%'];
+            } else {
+                return false;
+            }
+            $buyers = $this->where($where)->field('id')->select();
+            $buyerids = [];
+            foreach ($buyers as $buyer) {
+                $buyerids[] = $buyer['id'];
+            }
+            return $buyerids;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据用户ID 获取用户姓名
+     * @param array $user_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getBuyerNamesByBuyerids($buyer_ids) {
+
+        try {
+            $where = [];
+
+            if (is_string($buyer_ids)) {
+                $where['id'] = $buyer_ids;
+            } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
+                $where['id'] = ['in', $buyer_ids];
+            } else {
+                return false;
+            }
+            $buyers = $this->where($where)->field('id,name')->select();
+            $buyer_names = [];
+            foreach ($buyers as $buyer) {
+                $buyer_names[$buyer['id']] = $buyer['name'];
+            }
+            return $buyer_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 
