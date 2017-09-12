@@ -51,6 +51,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['country_bn'])) {
             $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
         }
+        if (!empty($condition['area_bn'])) {
+            $where .= ' And area_bn ="' . $condition['area_bn'] . '"';
+        }
         if (!empty($condition['name'])) {
             $where .= " And `erui2_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }

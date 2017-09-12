@@ -54,8 +54,8 @@ class FinalquoteController extends PublicController {
 
             if(!empty($quotedata)){
                 //追加结果
-                $quoteinfo['total_weight'] = $quotedata['total_weight'];    //总重
-                $quoteinfo['package_volumn'] = $quotedata['package_volumn'];    //包装总体积
+                $quoteinfo['total_weight'] = round($quotedata['total_weight'],4);    //总重
+                $quoteinfo['package_volumn'] = round($quotedata['package_volumn'],4);    //包装总体积
                 $quoteinfo['package_mode'] = $quotedata['package_mode'];    //包装方式
                 $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
                 $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
@@ -64,14 +64,14 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['to_country'] = $quotedata['delivery_addr'];    //目的地
                 $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
-                $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
-                $quoteinfo['bank_interest'] = $quotedata['bank_interest'];    //银行利息
+                $quoteinfo['fund_occupation_rate'] = round($results['data']['fund_occupation_rate'],4);    //占用资金比例
+                $quoteinfo['bank_interest'] = round($quotedata['bank_interest'],4);    //银行利息
                 $quoteinfo['total_bank_fee'] = $results['data']['total_bank_fee'];    //银行费用
                 $quoteinfo['period_of_validity'] = $quotedata['period_of_validity'];    //报价有效期
-                $quoteinfo['exchange_rate'] = $quotedata['exchange_rate'];    //汇率
+                $quoteinfo['exchange_rate'] = round($quotedata['exchange_rate'],4);    //汇率
                 $quoteinfo['total_logi_fee'] = $results['data']['total_logi_fee'];    //物流合计
-                $quoteinfo['total_quote_price'] = $quotedata['total_quote_price'];    //商务报出贸易价格合计
-                $quoteinfo['total_exw_price'] = $quotedata['total_exw_price'];    //商务报出EXW价格
+                $quoteinfo['total_quote_price'] = round($quotedata['total_quote_price'],4);    //商务报出贸易价格合计
+                $quoteinfo['total_exw_price'] = round($quotedata['total_exw_price'],4);    //商务报出EXW价格
                 $quoteinfo['final_total_quote_price'] = $results['data']['total_quote_price'];    //市场报出贸易价格合计
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
 
@@ -106,6 +106,13 @@ class FinalquoteController extends PublicController {
 
                 $quoteLogiFee['dest_tariff_fee'] = round($tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100, 4);
                 $quoteLogiFee['dest_va_tax_fee'] = round($tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100, 4);
+
+                $quoteLogiFee['premium_rate'] = round($quoteLogiFee['premium_rate'],4); //保险税率
+                $quoteLogiFee['overland_insu_rate'] = round($quoteLogiFee['overland_insu_rate'],4); //陆运险率
+                $quoteLogiFee['shipping_insu_rate'] = round($quoteLogiFee['shipping_insu_rate'],4); //货物运输险率
+                $quoteLogiFee['dest_tariff_rate'] = round($quoteLogiFee['dest_tariff_rate'],4); //目的地关税税率
+                $quoteLogiFee['total_insu_fee'] = round($quoteLogiFee['total_insu_fee'],4); //出口信用保险
+                $quoteLogiFee['dest_va_tax_rate'] = round($quoteLogiFee[''],4); //目的地增值税率
 
                 $results['logidata'] = $quoteLogiFee;
             }
