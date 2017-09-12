@@ -16,7 +16,7 @@
 class OrderController extends PublicController {
 
     public function init() {
-        //  parent::init();
+        parent::init();
     }
 
     /* 获取订单列表
