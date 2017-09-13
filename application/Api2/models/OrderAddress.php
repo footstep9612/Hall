@@ -36,7 +36,8 @@ class OrderAddressModel extends PublicModel {
 
     public function info($order_id) {
 
-        return $this->where(['order_id' => $order_id])->order('created_at desc')->find();
+        return $this->where(['order_id' => $order_id, 'deleted_flag' => 'N'])
+                        ->order('created_at desc')->find();
     }
 
 }
