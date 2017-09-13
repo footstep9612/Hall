@@ -71,11 +71,32 @@ class BuyerController extends PublicController {
         if (!empty($data['created_at_start'])) {
             $where['created_at_start'] = $data['created_at_start'];
         }
+        if (!empty($data['credit_checked_at_start'])) {
+            $where['credit_checked_at_start'] = $data['credit_checked_at_start'];
+        }
+        if (!empty($data['credit_checked_at_end'])) {
+            $where['credit_checked_at_end'] = $data['credit_checked_at_end'];
+        }
+        if (!empty($data['approved_at_start'])) {
+            $where['approved_at_start'] = $data['approved_at_start'];
+        }
+        if (!empty($data['approved_at_end'])) {
+            $where['approved_at_end'] = $data['approved_at_end'];
+        }
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }
         if (!empty($data['currentPage'])) {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
+        }
+        if (!empty($data['credit_checked_name'])) {
+            $where['credit_checked_name'] = $data['credit_checked_name'];
+        }
+        if (!empty($data['line_of_credit_min'])) {
+            $where['line_of_credit_min'] = $data['line_of_credit_min'];
+        }
+        if (!empty($data['line_of_credit_max'])) {
+            $where['line_of_credit_max'] = $data['line_of_credit_max'];
         }
         $model = new BuyerModel();
         $data = $model->getlist($where);
