@@ -1,4 +1,5 @@
 <?php
+
 /**
  * name: OrderAddress.php
  * desc: 订单地址模型.
@@ -17,6 +18,7 @@ class OrderAttachModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
+
     protected function getCondition($condition = []) {
 
         $where = [];
@@ -29,7 +31,7 @@ class OrderAttachModel extends PublicModel {
         if (!empty($condition['workflow_id'])) {
             $where['workflow_id'] = $condition['workflow_id'];    //工作流ID
         }
-        $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
+        $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
 
         return $where;
     }
@@ -55,7 +57,7 @@ class OrderAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getList($condition = []) {
-        if(empty($condition['order_id'])){
+        if (empty($condition['order_id'])) {
             $results['code'] = '-103';
             $results['message'] = '没有询单id!';
             return $results;
@@ -65,14 +67,14 @@ class OrderAttachModel extends PublicModel {
 
         try {
             $list = $this->where($where)
-                ->order('created_at desc')
-                ->select();
+                    ->order('created_at desc')
+                    ->select();
 
-            if($list){
+            if ($list) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $list;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -91,9 +93,9 @@ class OrderAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getInfo($condition = []) {
-        if(!empty($condition['id'])){
+        if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '没有附件id!';
             return $results;
@@ -102,11 +104,11 @@ class OrderAttachModel extends PublicModel {
         try {
             $info = $this->where($where)->find();
 
-            if($info){
+            if ($info) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $info;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -125,7 +127,7 @@ class OrderAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function addData($condition = []) {
-        if(empty($condition['order_id'])) {
+        if (empty($condition['order_id'])) {
             $results['code'] = '-103';
             $results['message'] = '没有订单ID!';
             return $results;
@@ -136,11 +138,11 @@ class OrderAttachModel extends PublicModel {
 
         try {
             $id = $this->add($data);
-            if($id){
+            if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $id;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '添加失败!';
             }
@@ -165,10 +167,10 @@ class OrderAttachModel extends PublicModel {
 
         try {
             $id = $this->where($where)->save($data);
-            if($id){
+            if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '修改失败!';
             }
@@ -187,9 +189,9 @@ class OrderAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function deleteData($condition = []) {
-        if(!empty($condition['id'])){
-            $where['id'] = array('in',explode(',',$condition['id']));
-        }else{
+        if (!empty($condition['id'])) {
+            $where['id'] = array('in', explode(',', $condition['id']));
+        } else {
             $results['code'] = '-103';
             $results['message'] = '没有附件ID!';
             return $results;
@@ -197,10 +199,10 @@ class OrderAttachModel extends PublicModel {
 
         try {
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
-            if($id){
+            if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '删除失败!';
             }
@@ -217,6 +219,21 @@ class OrderAttachModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d H:i:s',time());
+        return date('Y-m-d H:i:s', time());
     }
+
+    /* 获取订单详情
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    public function info($order_id) {
+
+        return $this->where(['order_id' => $order_id, 'deleted_flag' => 'N'])
+                        ->order('created_at desc')->find();
+    }
+
 }

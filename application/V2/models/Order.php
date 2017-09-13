@@ -81,9 +81,15 @@ class OrderModel extends PublicModel {
      * @desc   订单
      */
 
-    public function info($order_id) {
-
-        return $this->where(['id' => $order_id])->find();
+    public function info($order_id, $lang = 'zh') {
+        $field = 'id,order_no,po_no,execute_no,contract_date,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
+        $field .= ',trans_mode_bn,(select trans_mode from erui2_dict.trans_mode as t where t.bn=trans_mode_bn and t.lang=\'' . $lang . '\') as trans_mode';
+        $field .= ',from_country_bn,(select name from erui2_dict.country as t where t.bn=from_country_bn and t.lang=\'' . $lang . '\') as from_country';
+        $field .= ',to_country_bn,(select name from erui2_dict.country as t where t.bn=to_country_bn and t.lang=\'' . $lang . '\') as to_country';
+        $field .= ',from_port_bn,(select name from erui2_dict.port as t where t.bn=from_port_bn and t.lang=\'' . $lang . '\') as from_port';
+        $field .= ',to_port_bn,(select name from erui2_dict.port as t where t.bn=to_port_bn and t.lang=\'' . $lang . '\') as to_port';
+        return $this->field($field)
+                        ->where(['id' => $order_id])->find();
     }
 
     /* 查询条件
