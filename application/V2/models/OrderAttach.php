@@ -26,8 +26,8 @@ class OrderAttachModel extends PublicModel {
         if (!empty($condition['attach_group'])) {
             $where['attach_group'] = $condition['attach_group'];    //附件分组
         }
-        if (!empty($condition['relation_id'])) {
-            $where['relation_id'] = $condition['relation_id'];  //关联ID
+        if (!empty($condition['log_id'])) {
+            $where['log_id'] = $condition['log_id'];  //关联ID
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
 
@@ -63,20 +63,14 @@ class OrderAttachModel extends PublicModel {
 
         $where = $this->getCondition($condition);
 
-        //$page = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        //$pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
-
         try {
-            //$count = $this->getCount($condition);
-            $list = $this->where($where)
-                        //->page($page, $pagesize)
-                        ->order('created_at desc')
-                        ->select();
+            $count = $this->getCount($condition);
+            $list = $this->where($where)->order('created_at desc')->select();
 
             if($list){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-                //$results['count'] = $count;
+                $results['count'] = $count;
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
@@ -142,6 +136,53 @@ class OrderAttachModel extends PublicModel {
 
         try {
             $id = $this->add($data);
+            if($id){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+                $results['data'] = $id;
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
+     * 添加数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function addAllData($condition = []) {
+        if(empty($condition['order_id'])) {
+            $results['code'] = '-103';
+            $results['message'] = '没有订单ID!';
+            return $results;
+        }
+        if(empty($condition['attach_array'])){
+            $results['code'] = '-103';
+            $results['message'] = '没有附件信息!';
+            return $results;
+        }
+        $data = [];
+
+        foreach($condition['attach_array'] as $key=>$val){
+            $data[$key]['order_id'] = $condition['order_id'];
+            $data[$key]['attach_group'] = $condition['workflow_group'];
+            $data[$key]['log_id'] = $condition['log_id'];
+            $data[$key]['attach_url'] = $val['attach_url'];
+            $data[$key]['attach_name'] = $val['attach_name'];
+            $data[$key]['created_by'] = $condition['created_by'];
+            $data[$key]['created_at'] = $this->getTime();
+        }
+
+        try {
+            $id = $this->addAll($data);
             if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';

@@ -59,6 +59,27 @@ class BuyercontactModel extends PublicModel
             $arr['created_by'] =$create['created_by'];
         }
         $arr['created_at'] =date("Y-m-d H:i:s");
+        if(isset($create['fax'])){
+            $arr['fax'] =$create['fax'];
+        }
+        if(isset($create['country_code'])){
+            $arr['country_code'] =$create['country_code'];
+        }
+        if(isset($create['country_bn'])){
+            $arr['country_bn'] =$create['country_bn'];
+        }
+        if(isset($create['province'])){
+            $arr['province'] =$create['province'];
+        }
+        if(isset($create['city'])){
+            $arr['city'] =$create['city'];
+        }
+        if(isset($create['address'])){
+            $arr['address'] =$create['address'];
+        }
+        if(isset($create['zipcode'])){
+            $arr['zipcode'] =$create['zipcode'];
+        }
         try{
             $data = $this->create($arr);
             return $this->add($data);
@@ -68,6 +89,25 @@ class BuyercontactModel extends PublicModel
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
+
+    }
+    public function info($data) {
+        if ($data['id']) {
+            $info = $this->where(array("id" => $data['id']))
+                ->find();
+            return $info;
+        } else {
+            return false;
+        }
+    }
+    public function getlist($data) {
+        if ($data['buyer_id']) {
+            $list = $this->where($data)
+                ->order('id desc')
+                ->select();
+            return $list;
+        }
+        return false;
 
     }
     /**
@@ -101,6 +141,27 @@ class BuyercontactModel extends PublicModel
         }
         if(isset($condition['created_by'])){
             $arr['created_by'] =$condition['created_by'];
+        }
+        if(isset($condition['fax'])){
+            $arr['fax'] =$condition['fax'];
+        }
+        if(isset($condition['country_code'])){
+            $arr['country_code'] =$condition['country_code'];
+        }
+        if(isset($condition['country_bn'])){
+            $arr['country_bn'] =$condition['country_bn'];
+        }
+        if(isset($condition['province'])){
+            $arr['province'] =$condition['province'];
+        }
+        if(isset($condition['city'])){
+            $arr['city'] =$condition['city'];
+        }
+        if(isset($condition['address'])){
+            $arr['address'] =$condition['address'];
+        }
+        if(isset($condition['zipcode'])){
+            $arr['zipcode'] =$condition['zipcode'];
         }
         return $this->where($where)->save($arr);
     }

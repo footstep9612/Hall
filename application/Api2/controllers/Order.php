@@ -129,4 +129,69 @@ class OrderController extends PublicController {
         }
     }
 
+    /* 获取订单列表
+     *
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    //put your code here
+    public function listAction() {
+
+        $condition = $this->getPut(); //查询条件
+
+        $oder_moder = new OrderModel();
+        $data = $oder_moder->getList($condition);
+        $count = $oder_moder->getCount($condition);
+        if ($data) {
+            $orderids = $buyerids = [];
+            foreach ($data as $order) {
+                $buyerids[] = $order['buyer_id'];
+                $orderids[] = $order['id'];
+            }
+            $delivery_model = new OrderDeliveryModel();
+            $delivery_ats = $delivery_model->getlistByOrderids($orderids);
+
+            $contact_model = new OrderContactModel();
+            $contacts = $contact_model->getlistByOrderids($orderids);
+            $buyer_model = new OrderBuyerContactModel();
+            $buyers = $buyer_model->getlistByOrderids($orderids);
+
+            foreach ($data as $key => $val) {
+                if (isset($delivery_ats[$val['id']]) && $delivery_ats[$val['id']]) {
+                    $val['delivery_at'] = $delivery_ats[$val['id']];
+                } else {
+                    $val['delivery_at'] = '';
+                }
+
+                if (isset($buyers[$val['id']]) && $buyers[$val['id']]) {
+                    $val['buyer'] = $buyers[$val['id']];
+                } else {
+                    $val['buyer'] = '';
+                }
+
+                if (isset($contacts[$val['id']]) && $contacts[$val['id']]) {
+                    $val['supplier'] = $contacts[$val['id']];
+                } else {
+                    $val['supplier'] = '';
+                }
+                $val['show_status_text'] = $oder_moder->getShowStatus($val['show_status']);
+                $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);
+                $data[$key] = $val;
+            }
+            $this->setvalue('count', intval($count));
+            $this->jsonReturn($data);
+        } elseif ($data === null) {
+            $this->setvalue('count', 0);
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
+        }
+    }
+
 }

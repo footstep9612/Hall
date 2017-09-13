@@ -13,33 +13,33 @@
  * @version V2.0
  * @desc
  */
-class WorkflowController extends PublicController {
+class OrderpaymentController extends PublicController {
 
     public function init() {
         parent::init();
     }
 
-    /* 获取订单工作流列表 订单执行日志调用
+    /* 订单结算方式列表
      * @param int $order_id // 订单ID
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   订单
+     * @desc   结算方式
      */
 
     public function ListAction() {
 
         $order_id = $this->getPut('order_id');
         if (!$order_id) {
-            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setCode(MSG::ERROR_PARAM);
             $this->jsonReturn(null);
         }
-        $workflow_model = new WorkflowModel();
-        $workflows = $workflow_model->getlist($order_id);
-        if ($workflows) {
+        $payment_model = new OrderPaymentModel();
+        $payments = $payment_model->getlist($order_id);
+        if ($payments) {
 
-            $this->jsonReturn($workflows);
-        } elseif ($workflows === null) {
+            $this->jsonReturn($payments);
+        } elseif ($payments === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {

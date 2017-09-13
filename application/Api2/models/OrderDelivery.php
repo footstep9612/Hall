@@ -13,10 +13,10 @@
  * @version V2.0
  * @desc
  */
-class OrderBuyerContactModel extends PublicModel {
+class OrderDeliveryModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'order_buyer_contact';
+    protected $tableName = 'order_delivery';
     protected $dbName = 'erui2_order'; //数据库名称
 
     //状态
@@ -34,9 +34,11 @@ class OrderBuyerContactModel extends PublicModel {
      * @desc   订单
      */
 
-    public function info($order_id) {
+    public function getlist($order_id) {
 
-        return $this->where(['order_id' => $order_id])->order('created_at desc')->find();
+        return $this->field('delivery_at,describe')
+                        ->where(['order_id' => $order_id])
+                        ->order('created_at ASC')->select();
     }
 
     /* 获取订单详情
@@ -49,15 +51,15 @@ class OrderBuyerContactModel extends PublicModel {
 
     public function getlistByOrderids($order_ids) {
 
-        $data = $this->field('max(created_at), company ,order_id')
-                ->where(['order_id' => ['in', $order_ids]])
-                ->order('created_at desc')
+        $data = $this->field('min(delivery_at) as delivery_at,order_id')
+                ->where(['order_id' => ['in', $order_ids], 'delivery_at' => ['gt', date('Y-m-d H:i:s')]])
+                ->order('created_at ASC')
                 ->group('order_id')
                 ->select();
         $deliverys = [];
         if ($data) {
             foreach ($data as $item) {
-                $deliverys[$item['order_id']] = $item['company'];
+                $deliverys[$item['order_id']] = $item['delivery_at'];
             }
         }
 

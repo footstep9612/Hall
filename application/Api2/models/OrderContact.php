@@ -39,4 +39,29 @@ class OrderContactModel extends PublicModel {
         return $this->where(['order_id' => $order_id])->order('created_at desc')->find();
     }
 
+    /* 获取订单详情
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    public function getlistByOrderids($order_ids) {
+
+        $data = $this->field('max(created_at), company ,order_id')
+                ->where(['order_id' => ['in', $order_ids]])
+                ->order('created_at desc')
+                ->group('order_id')
+                ->select();
+        $deliverys = [];
+        if ($data) {
+            foreach ($data as $item) {
+                $deliverys[$item['order_id']] = $item['company'];
+            }
+        }
+
+        return $deliverys;
+    }
+
 }
