@@ -99,7 +99,9 @@ class OrderController extends PublicController {
 			'from_port'=>'Qingdao',                         //起运港口
 			'to_country'=>'India',                        //目的国
 			'to_port'=>'Chennai',                           //目的港口
-			'address'=>'Ahmadi City ， Block 8， 349th Street'                           //地址    
+			'address'=>'Ahmadi City ， Block 8， 349th Street',  //地址
+			'show_status'=>'GOING',
+			'pay_status'=>'PARTPAY'
 		];
         $this->jsonReturn($send);
 	}
@@ -339,7 +341,7 @@ class OrderController extends PublicController {
 			$this->saveConsignee($data,$order['id']);
 			$this->saveSettlement($data,$order['id']);
 			//$orderModel->commit();
-			return ['code'=>1,'Success'];
+			return ['code'=>1,'message'=>'Success'];
 			
 		}catch(Exception $e){
 			//$orderModel->rollback();
