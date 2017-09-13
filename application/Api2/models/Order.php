@@ -124,7 +124,7 @@ class OrderModel extends PublicModel {
         $field .= ',to_port_bn,(select name from erui2_dict.port as t where t.bn=to_port_bn and t.lang=\'' . $lang . '\') as to_port';
         return $this
                         ->field($field)
-                        ->where($where)->limit($start_no, $pagesize)->order('created_at desc')->select();
+                        ->where($where)->limit($start_no, $pagesize)->order('id desc')->select();
     }
 
     /* 获取订单数量

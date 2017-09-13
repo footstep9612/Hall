@@ -154,11 +154,28 @@ class OrderController extends PublicController {
             $delivery_model = new OrderDeliveryModel();
             $delivery_ats = $delivery_model->getlistByOrderids($orderids);
 
+            $contact_model = new OrderContactModel();
+            $contacts = $contact_model->getlistByOrderids($orderids);
+            $buyer_model = new OrderBuyerContactModel();
+            $buyers = $buyer_model->getlistByOrderids($orderids);
+
             foreach ($data as $key => $val) {
                 if (isset($delivery_ats[$val['id']]) && $delivery_ats[$val['id']]) {
                     $val['delivery_at'] = $delivery_ats[$val['id']];
                 } else {
                     $val['delivery_at'] = '';
+                }
+
+                if (isset($buyers[$val['id']]) && $buyers[$val['id']]) {
+                    $val['buyer'] = $buyers[$val['id']];
+                } else {
+                    $val['buyer'] = '';
+                }
+
+                if (isset($contacts[$val['id']]) && $contacts[$val['id']]) {
+                    $val['supplier'] = $contacts[$val['id']];
+                } else {
+                    $val['supplier'] = '';
                 }
                 $val['show_status_text'] = $oder_moder->getShowStatus($val['show_status']);
                 $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);
