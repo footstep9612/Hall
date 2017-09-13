@@ -26,6 +26,23 @@ class WorkflowModel extends PublicModel {
         parent::__construct();
     }
 
+    public function getGroup($group) {
+
+        switch ($group) {
+            case 'OUTBOUND':
+                return '出库';
+            case 'LOGISTICS':
+                return '物流';
+            case 'DELIVERY':
+                return '交收';
+            case 'COLLECTION':
+                return '收款';
+            case 'CREDIT':
+                return '授信';
+            default : return null;
+        }
+    }
+
     /* 获取订单详情
      * @param int $order_id // 订单ID
      * @author  zhongyg
@@ -36,7 +53,10 @@ class WorkflowModel extends PublicModel {
 
     public function getlist($order_id) {
 
-        return $this->field('content,workflow_at')->where(['order_id' => $order_id])->order('workflow_at ASC')->select();
+        return $this->field('content,workflow_at,workflow_group,out_no,waybill_no,amount'
+                                . ',type,order_address_id,workflow_id,order_id')
+                        ->where(['order_id' => $order_id, 'deleted_flag' => 'N'])
+                        ->order('workflow_at ASC')->select();
     }
 
 }
