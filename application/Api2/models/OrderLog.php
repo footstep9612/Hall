@@ -13,10 +13,10 @@
  * @version V2.0
  * @desc
  */
-class WorkflowModel extends PublicModel {
+class OrderLogModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'workflow';
+    protected $tableName = 'order_log';
     protected $dbName = 'erui2_order'; //数据库名称
 
     //状态
@@ -53,10 +53,10 @@ class WorkflowModel extends PublicModel {
 
     public function getlist($order_id) {
 
-        return $this->field('content,workflow_at,workflow_group,out_no,waybill_no,amount'
-                                . ',type,order_address_id,workflow_id,order_id')
+        return $this->field('content,log_at,log_group,out_no,waybill_no,amount'
+                                . ',type,order_address_id,log_id,order_id')
                         ->where(['order_id' => $order_id, 'deleted_flag' => 'N'])
-                        ->order('workflow_at ASC')->select();
+                        ->order('log_at ASC')->select();
     }
 
 }

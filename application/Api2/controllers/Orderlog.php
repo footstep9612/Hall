@@ -13,18 +13,18 @@
  * @version V2.0
  * @desc
  */
-class DeliveryController extends PublicController {
+class OrderlogController extends PublicController {
 
     public function init() {
         parent::init();
     }
 
-    /* 订单交收信息列表
+    /* 获取订单工作流列表 订单执行日志调用
      * @param int $order_id // 订单ID
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   交收信息
+     * @desc   订单
      */
 
     public function ListAction() {
@@ -34,11 +34,12 @@ class DeliveryController extends PublicController {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         }
-        $delivery_model = new DeliveryModel();
-        $deliverys = $delivery_model->getlist($order_id);
-        if ($deliverys) {
-            $this->jsonReturn($deliverys);
-        } elseif ($deliverys === null) {
+        $workflow_model = new OrderLogModel();
+        $workflows = $workflow_model->getlist($order_id);
+        if ($workflows) {
+
+            $this->jsonReturn($workflows);
+        } elseif ($workflows === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {

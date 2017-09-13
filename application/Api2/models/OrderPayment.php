@@ -13,10 +13,10 @@
  * @version V2.0
  * @desc
  */
-class PaymentModel extends PublicModel {
+class OrderPaymentModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'payment';
+    protected $tableName = 'order_payment';
     protected $dbName = 'erui2_order'; //数据库名称
 
     //状态
