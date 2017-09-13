@@ -127,6 +127,7 @@ class OrderModel extends PublicModel {
                 $where['buyer_id'] = ['in', $buyerids];
             }
         }
+        return $where;
     }
 
     /* 获取订单列表
