@@ -1,15 +1,15 @@
 <?php
 /**
- * name: WorkFlow.php
+ * name: OrderLog.php
  * desc: 订单流程模型.
  * User: 张玉良
  * Date: 2017/9/12
  * Time: 17:14
  */
-class WorkFlowModel extends PublicModel {
+class OrderLogModel extends PublicModel {
 
     protected $dbName = 'erui2_order'; //数据库名称
-    protected $tableName = 'workflow'; //数据表表名
+    protected $tableName = 'order_log'; //数据表表名
 
     /**
      * 根据条件获取查询条件

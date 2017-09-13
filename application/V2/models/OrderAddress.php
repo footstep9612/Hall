@@ -6,7 +6,7 @@
  * Date: 2017/9/13
  * Time: 10:59
  */
-class OrderAttachModel extends PublicModel {
+class OrderAddressModel extends PublicModel {
 
     protected $dbName = 'erui2_order'; //数据库名称
     protected $tableName = 'order_address'; //数据表表名
