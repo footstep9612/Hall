@@ -40,8 +40,8 @@ class OrderlogController extends Yaf_Controller_Abstract{
         if($results['code'] == 1) {
             //查找有没有附件
             $attachwhere['order_id'] = $results['data']['order_id'];
-            $attachwhere['attach_group'] = $results['data']['OrderLog_group'];
-            $attachwhere['relation_id'] = $results['data']['id'];
+            $attachwhere['attach_group'] = $results['data']['Log_group'];
+            $attachwhere['log_id'] = $results['data']['id'];
 
             $attach = $orderattach->getlist($attachwhere);
             if($attach['code'] == 1) {
@@ -75,7 +75,7 @@ class OrderlogController extends Yaf_Controller_Abstract{
             //如果有附件，添加附件
             if(!empty($data['attach_array'])){
                 $orderattach = new OrderAttachModel();
-                $data['relation_id'] = $results['data'];
+                $data['log_id'] = $results['data'];
 
                 $rs = $orderattach->addAllData($data);
                 if($rs['code'] == 1){
@@ -119,7 +119,7 @@ class OrderlogController extends Yaf_Controller_Abstract{
             //如果有附件，添加附件
             if(!empty($data['attach_array'])){
                 $orderattach = new OrderAttachModel();
-                $data['relation_id'] = $data['id'];
+                $data['log_id'] = $data['id'];
                 $data['created_by'] = $this->user['id'];
 
                 $rs = $orderattach->addAllData($data);

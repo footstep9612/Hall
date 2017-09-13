@@ -26,8 +26,8 @@ class OrderAttachModel extends PublicModel {
         if (!empty($condition['attach_group'])) {
             $where['attach_group'] = $condition['attach_group'];    //附件分组
         }
-        if (!empty($condition['relation_id'])) {
-            $where['relation_id'] = $condition['relation_id'];  //关联ID
+        if (!empty($condition['log_id'])) {
+            $where['log_id'] = $condition['log_id'];  //关联ID
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
 
@@ -174,7 +174,7 @@ class OrderAttachModel extends PublicModel {
         foreach($condition['attach_array'] as $key=>$val){
             $data[$key]['order_id'] = $condition['order_id'];
             $data[$key]['attach_group'] = $condition['workflow_group'];
-            $data[$key]['relation_id'] = $condition['relation_id'];
+            $data[$key]['log_id'] = $condition['log_id'];
             $data[$key]['attach_url'] = $val['attach_url'];
             $data[$key]['attach_name'] = $val['attach_name'];
             $data[$key]['created_by'] = $condition['created_by'];
