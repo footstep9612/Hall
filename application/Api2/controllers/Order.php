@@ -19,9 +19,15 @@ class OrderController extends PublicController {
         parent::init();
     }
 
-    //put your code here
-    public function infoAction() {
+    /* 获取订单详情
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
 
+    public function infoAction() {
         $order_id = $this->getPut('order_id');
         if (!$order_id) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -29,56 +35,12 @@ class OrderController extends PublicController {
         }
         $oder_moder = new OrderModel();
         $info = $oder_moder->info($order_id);
-
-
-
-        $delivery_model = new DeliveryModel();
-        $deliverys = $delivery_model->getlist($order_id);
-
-        $order_attach_model = new OrderAttachModel();
-        $order_attachs = $order_attach_model->getlist($order_id);
-
-        if ($order_attachs) {
-            $info['order_attach'] = $order_attachs;
-        } else {
-            $info['order_attach'] = null;
-        }
-        $payment_model = new PaymentModel();
-        $payments = $payment_model->getlist($order_id);
-
-        $workflow_model = new WorkflowModel();
-        $workflows = $workflow_model->getlist($order_id);
-
-        $order_contact_model = new OrderContactModel();
-        $order_contact = $order_contact_model->info($order_id);
-
-        if ($order_contact) {
-            $info['order_contact'] = $order_contact;
-        } else {
-            $info['order_contact'] = null;
-        }
-        $order_buyer_contact_model = new OrderBuyerContactModel();
-        $order_buyer_contact = $order_buyer_contact_model->info($order_id);
-
-        if ($order_buyer_contact) {
-            $info['order_buyer_contact'] = $order_buyer_contact;
-        } else {
-            $info['order_buyer_contact'] = null;
-        }
-        $order_address_model = new OrderAddressModel();
-        $order_address = $order_address_model->info($order_id);
-
-        if ($order_address) {
-            $info['order_address'] = $order_address;
-        } else {
-            $info['order_address'] = null;
-        }
         if ($info) {
             $info['show_status_text'] = $oder_moder->getShowStatus($info['show_status']);
             $info['pay_status_text'] = $oder_moder->getPayStatus($info['pay_status']);
-            $this->setvalue('workflows', $workflows);
-            $this->setvalue('payments', $payments);
-            $this->setvalue('deliverys', $deliverys);
+            $this->_setOrderAttach($info, $order_id); //获取附件
+            $this->_setOrderBuyerContact($info, $order_id); //获取采购商信息
+            $this->_setOrderContact($info, $order_id); //获取供应商信息
             $this->jsonReturn($info);
         } elseif ($info === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -87,6 +49,62 @@ class OrderController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
 
             $this->jsonReturn(null);
+        }
+    }
+
+    /* 获取采购商信息
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    private function _setOrderBuyerContact(&$info, $order_id) {
+        $order_buyer_contact_model = new OrderBuyerContactModel();
+        $order_buyer_contact = $order_buyer_contact_model->info($order_id);
+
+        if ($order_buyer_contact) {
+            $info['order_buyer_contact'] = $order_buyer_contact;
+        } else {
+            $info['order_buyer_contact'] = null;
+        }
+    }
+
+    /* 获取供应商信息
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    private function _setOrderContact(&$info, $order_id) {
+        $order_contact_model = new OrderContactModel();
+        $order_contact = $order_contact_model->info($order_id);
+
+        if ($order_contact) {
+            $info['order_contact'] = $order_contact;
+        } else {
+            $info['order_contact'] = null;
+        }
+    }
+
+    /* 获取附件列表信息
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    private function _setOrderAttach(&$info, $order_id) {
+        $order_attach_model = new OrderAttachModel();
+        $order_attachs = $order_attach_model->getlist($order_id);
+        if ($order_attachs) {
+            $info['order_attach'] = $order_attachs;
+        } else {
+            $info['order_attach'] = null;
         }
     }
 
