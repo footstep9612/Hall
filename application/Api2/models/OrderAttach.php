@@ -34,10 +34,12 @@ class OrderAttachModel extends PublicModel {
      * @desc   订单
      */
 
-    public function getlist($order_id) {
+    public function getlist($order_id, $attach_group) {
 
         return $this->field('attach_name,attach_url')
-                        ->where(['order_id' => $order_id, 'deleted_flag' => 'N'])
+                        ->where(['order_id' => $order_id,
+                            'attach_group' => $attach_group,
+                            'deleted_flag' => 'N'])
                         ->order('created_at desc')
                         ->select();
     }

@@ -28,7 +28,7 @@ class OrdercommentController extends PublicController {
      */
 
     //put your code here
-    public function listAction() {
+    public function ListAction() {
 
         $condition = $this->getPut(); //查询条件
         $condition['order_id'] = 1;

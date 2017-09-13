@@ -38,7 +38,8 @@ class OrderController extends PublicController {
         if ($info) {
             $info['show_status_text'] = $oder_moder->getShowStatus($info['show_status']);
             $info['pay_status_text'] = $oder_moder->getPayStatus($info['pay_status']);
-            $this->_setOrderAttach($info, $order_id); //获取附件
+            $this->_setOrderAttachOther($info, $order_id); //获取附件
+            $this->_setOrderAttachPo($info, $order_id); //获取附件
             $this->_setOrderBuyerContact($info, $order_id); //获取采购商信息
             $this->_setOrderContact($info, $order_id); //获取供应商信息
             $this->jsonReturn($info);
@@ -98,13 +99,33 @@ class OrderController extends PublicController {
      * @desc   订单
      */
 
-    private function _setOrderAttach(&$info, $order_id) {
+    private function _setOrderAttachPo(&$info, $order_id) {
         $order_attach_model = new OrderAttachModel();
-        $order_attachs = $order_attach_model->getlist($order_id);
+        $order_attachs = $order_attach_model->getlist($order_id, 'PO');
+        echo $order_attach_model->_sql();
         if ($order_attachs) {
-            $info['order_attach'] = $order_attachs;
+            $info['po'] = $order_attachs[0];
         } else {
-            $info['order_attach'] = null;
+            $info['po'] = null;
+        }
+    }
+
+    /* 获取附件列表信息
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    private function _setOrderAttachOther(&$info, $order_id) {
+        $order_attach_model = new OrderAttachModel();
+        $order_attachs = $order_attach_model->getlist($order_id, 'OTHERS');
+        echo $order_attach_model->_sql();
+        if ($order_attachs) {
+            $info['others'] = $order_attachs;
+        } else {
+            $info['others'] = null;
         }
     }
 
