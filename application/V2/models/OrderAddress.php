@@ -28,8 +28,8 @@ class OrderAddressModel extends PublicModel {
         if (!empty($condition['order_id'])) {
             $where['order_id'] = $condition['order_id'];    //订单ID
         }
-        if (!empty($condition['workflow_id'])) {
-            $where['workflow_id'] = $condition['workflow_id'];    //工作流ID
+        if (!empty($condition['log_id'])) {
+            $where['log_id'] = $condition['log_id'];    //工作流ID
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
 
@@ -93,13 +93,7 @@ class OrderAddressModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getInfo($condition = []) {
-        if (!empty($condition['id'])) {
-            $where['id'] = $condition['id'];
-        } else {
-            $results['code'] = '-103';
-            $results['message'] = '没有附件id!';
-            return $results;
-        }
+        $where = $this->getCondition($condition);
 
         try {
             $info = $this->where($where)->find();

@@ -20,14 +20,17 @@ class OrderLogModel extends PublicModel {
     protected function getCondition($condition = []) {
 
         $where = [];
+        if (!empty($condition['id'])) {
+            $where['id'] = $condition['id'];    //ID
+        }
         if (!empty($condition['order_id'])) {
             $where['order_id'] = $condition['order_id'];    //订单ID
         }
-        if (!empty($condition['workflow_group'])) {
-            $where['workflow_group'] = $condition['workflow_group'];    //工作分组
+        if (!empty($condition['log_group'])) {
+            $where['log_group'] = $condition['log_group'];    //工作分组
         }
-        if (!empty($condition['workflow_id'])) {
-            $where['workflow_id'] = $condition['workflow_id'];  //上级工作流ID
+        if (!empty($condition['log_id'])) {
+            $where['log_id'] = $condition['log_id'];  //上级工作流ID
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
 
@@ -97,13 +100,7 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getInfo($condition = []) {
-        if(!empty($condition['id'])){
-            $where['id'] = $condition['id'];
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有流程id!';
-            return $results;
-        }
+        $where = $this->getCondition($condition);
 
         try {
             $info = $this->where($where)->find();
@@ -136,7 +133,7 @@ class OrderLogModel extends PublicModel {
             $results['message'] = '没有订单ID!';
             return $results;
         }
-        if(empty($condition['workflow_group'])) {
+        if(empty($condition['log_group'])) {
             $results['code'] = '-103';
             $results['message'] = '没有流程分组!';
             return $results;
