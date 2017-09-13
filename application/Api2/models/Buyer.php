@@ -715,6 +715,7 @@ class BuyerModel extends PublicModel {
      */
     public function buyerCerdit($userInfo) {
         $where = array();
+        $userInfo['id'] = 1;
         if (!empty($userInfo['id'])) {
             $where['b.id'] = $userInfo['id'];
         } else {
@@ -725,7 +726,7 @@ class BuyerModel extends PublicModel {
         }
         $where['b.deleted_flag'] = 'N';
 
-        $buyercontactModel = new BuyercontactModel();
+        $buyercontactModel = new BuyerContactModel();
         $tableAcon = $buyercontactModel->getTableName();
         $buyeraddress_model = new BuyerAddressModel();
         $tableAddr = $buyeraddress_model->getTableName();
@@ -733,7 +734,7 @@ class BuyerModel extends PublicModel {
 //        $tableReg = $BuyerreginfoModel->getTableName();
         try {
             //基本信息-$this
-            $fields = 'b.id as buyer_id, b.lang, b.address, b.serial_no, b.buyer_no, b.country_code, b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.sec_ex_listed_on,b.line_of_credit,b.credit_available,b.credit_cur_bn,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
+            $fields = 'b.id as buyer_id, b.lang, bd.address, b.serial_no, b.buyer_no, b.country_code, b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.sec_ex_listed_on,b.line_of_credit,b.credit_available,b.credit_cur_bn,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
             //联系信息-BuyercontactModel
             $fields .= ',ba.first_name as con_first_name,ba.last_name as con_last_name,ba.gender,ba.title,ba.phone as con_phone,ba.email as con_email,ba.remarks as con_remarks';
 
