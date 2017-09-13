@@ -204,7 +204,7 @@ class MembercenterController extends PublicController {
 
     /**
      * 采购商授信信息详情
-     *   * @time 2017-9-8
+     * @time 2017-9-8
      * @author klp
      */
     public function buyerCerditInfoAction() {
@@ -221,5 +221,38 @@ class MembercenterController extends PublicController {
             jsonReturn('', '-1002', '获取失败');
         }
         exit;
+    }
+
+    /**
+     * 采购商授信额度信息列表
+     * @time 2017-9-11
+     * @author klp
+     */
+    public function CerditListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $pagesize = 10;
+        $start_no = 0;
+        if(isset($data['pageSize'])){
+            $pagesize = $data['pageSize'];
+        }
+        if(isset($data['current_no'])) {
+            $start_no = ($data['current_no'] - 1) * $data['$pagesize'];
+        }
+        $BuyerModel = new BuyerModel();
+        list($result, $count) = $BuyerModel->buyerCerditList($this->user,$start_no,$pagesize);
+        if(!empty($result)){
+            $datajson['code'] = 1;
+            $datajson['count'] = $count;
+            $datajson['data'] = $data;
+        } elseif ($result === null){
+            $datajson['code'] = -1002;
+            $datajson['count'] = 0;
+            $datajson['message'] = '参数错误!';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['count'] = 0;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
     }
 }

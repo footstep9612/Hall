@@ -110,8 +110,8 @@ class Edi {
      *
      */
     public function EdiBuyerCodeApply($BuyerCodeApply){
-        $BuyerInfo = $this->checkParamBuyer($BuyerCodeApply);
-        $result = $this->_EdiBuyerCodeApply($BuyerInfo);
+        $this->checkParamBuyer($BuyerCodeApply);
+        $result = $this->_EdiBuyerCodeApply($BuyerCodeApply);
         if($result && $result['code']  == 1){
             $res['code'] = 1;
             $res['message'] = '申请成功!';
@@ -122,38 +122,41 @@ class Edi {
         return $res;
     }
 
-    public function checkParamBuyer($BuyerCodeApply){
-        $data = $results = array();
-        if(empty($BuyerCodeApply['lang'])){
+    public function checkParamBuyer(&$BuyerCodeApply){
+        $results = array();
+        if(!isset($BuyerCodeApply['lang'])){
             $results['code'] = -101;
             $results['message'] = '[lang]不能为空!';
         }
         if($BuyerCodeApply['lang'] == 'zh') {
-            if(empty($BuyerCodeApply['area_bn'])){
+            if(!isset($BuyerCodeApply['area_no']) || !is_numeric($BuyerCodeApply['area_no'])){
                 $results['code'] = -101;
-                $results['message'] = '[area_bn]不能为空!';
+                $results['message'] = '[area_no]不能为空或不为整型!';
             }
         }
-        if(empty($BuyerCodeApply['buyer_no'])){
+        if(!isset($BuyerCodeApply['buyer_no'])){
             $results['code'] = -101;
             $results['message'] = '[buyer_no]不能为空!';
         }
-        if(empty($BuyerCodeApply['country_code'])){
+        if(!isset($BuyerCodeApply['country_code'])){
             $results['code'] = -101;
             $results['message'] = '[country_code]不能为空!';
         }
-        if(empty($BuyerCodeApply['name'])){
+        if(strlen($BuyerCodeApply['country_code']) > 3){
+            $results['code'] = -101;
+            $results['message'] = '[country_code]不能超过三位!';
+        }
+        if(!isset($BuyerCodeApply['name'])){
             $results['code'] = -101;
             $results['message'] = '[name]不能为空!';
         }
-        if(empty($BuyerCodeApply['address'])){
+        if(!isset($BuyerCodeApply['address'])){
             $results['code'] = -101;
             $results['message'] = '[address]不能为空!';
         }
         if($results){
             jsonReturn($results);
         }
-        return $data;
     }
 
     private function _EdiBuyerCodeApply($BuyerCodeApply){
@@ -171,7 +174,7 @@ class Edi {
             //-----------国内买家必填项:
             $BuyerCodeApplyInfo['chnName'] = $BuyerCodeApply['name'];
             //买方中文名称(必填)  --国内买方中文名称必填
-            $BuyerCodeApplyInfo['areano'] = $BuyerCodeApply['area_bn'];
+            $BuyerCodeApplyInfo['areano'] = intval($BuyerCodeApply['area_no']);
             //区域代码--(必填)    --国内买家 必填
             $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['address'];
             //买方中文地址--(必填)--国内买家 必填
@@ -184,7 +187,6 @@ class Edi {
         }
 
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
-         //$this->resultInfo("doEdiBuyerCodeApply", $xmlBuyerCodeApplyInfo);
         try{
             $response = $this->client->doEdiBuyerCodeApply($data);
             if (is_object($response)) {
@@ -195,6 +197,11 @@ class Edi {
             return $results;
         } catch (Exception $e) {
             $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
         }
 
     }
@@ -205,22 +212,33 @@ class Edi {
     public function EdiBuyerCodeApprove()
     {
         $result = $this->_EdiBuyerCodeApprove();
-        if($result){
-            $data = self::xml_to_array($result);
+        if($result && !isset($result['code'])){
+            $data = self::object_array($result);
+            var_dump($data);die;
+            return $data;
+        } else {
+            return $result;
         }
     }
     private function _EdiBuyerCodeApprove(){
         try{
-            $buyerCodeApproveInfo = $this->client->doEdiBuyerCodeApprove(array('doEdiBuyerCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-            if (is_object($buyerCodeApproveInfo->out) && !empty($buyerCodeApproveInfo->out)) {
-                var_dump($buyerCodeApproveInfo->out);
-                return $buyerCodeApproveInfo->out;
+
+            $response = $this->client->doEdiBuyerCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+
+            $buyerCodeApproveInfo = $response->out->BuyerCodeApproveInfo;
+            if ($buyerCodeApproveInfo) {
+                return $buyerCodeApproveInfo;
 //                date('Y-m-d H:i:s', strtotime('2011-04-01T00:00:00+08:00'));
             } else{
                 return false;
             }
         }catch (Exception $e){
             $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
         }
     }
 
@@ -228,8 +246,8 @@ class Edi {
      * 银行代码申请
      */
     public function EdiBankCodeApply($BuyerBankApply){
-        $BankInfo = $this->checkParamBank($BuyerBankApply);
-        $result = $this->_EdiBankCodeApply($BankInfo);
+        $this->checkParamBank($BuyerBankApply);
+        $result = $this->_EdiBankCodeApply($BuyerBankApply);
         if($result && $result['code']  == 1){
             $res['code'] = 1;
             $res['message'] = '申请成功!';
@@ -240,34 +258,38 @@ class Edi {
         return $res;
     }
 
-    public function checkParamBank($BuyerBankApply){
-        $data = $results = array();
-        if(empty($BuyerBankApply['buyer_no'])){
+    public function checkParamBank(&$BuyerBankApply){
+        $results = array();
+        if(!isset($BuyerBankApply['buyer_no'])){
             $results['code'] = -101;
             $results['message'] = '[buyer_no]采购商编号不能为空!';
         }
-        if(empty($BuyerBankApply['bank_country_code'])){
+        if(!isset($BuyerBankApply['bank_country_code'])){
             $results['code'] = -101;
             $results['message'] = '[bank_country_code]银行国家代码不能为空!';
         }
-        if(empty($BuyerBankApply['bank_name'])){
+        if(strlen($BuyerBankApply['bank_country_code']) > 3){
+            $results['code'] = -101;
+            $results['message'] = '[bank_country_code]不能超过三位!';
+        }
+        if(!isset($BuyerBankApply['bank_name'])){
             $results['code'] = -101;
             $results['message'] = '[bank_name]银行名称不能为空!';
         }
-        if(empty($BuyerBankApply['bank_address'])){
+        if(!isset($BuyerBankApply['bank_address'])){
             $results['code'] = -101;
             $results['message'] = '[bank_address]银行地址不能为空!';
+        }
+        if(isset($BuyerBankApply['swift_code'])){
+            $BuyerBankApply['bank_swift'] = $BuyerBankApply['swift_code'];
         }
         if($results){
             jsonReturn($results);
         }
-        return $data;
     }
 
     private function _EdiBankCodeApply($BankCodeApply){
-        if(empty($BankCodeApply['buyer_no']) || empty($BankCodeApply['bank_name']) || empty($BankCodeApply['country_code']) || empty($BankCodeApply['address'])){
-            $result['code'] = -101;
-        }
+
         $BankCodeApplyInfo['corpSerialNo'] = $BankCodeApply['buyer_no'];
         //企业内部银行代码--(必填)
         $BankCodeApplyInfo['policyNo'] = '';
@@ -278,18 +300,26 @@ class Edi {
         //银行国家代码--(必填)
         $BankCodeApplyInfo['address'] = $BankCodeApply['bank_address'];
         //银行地址(英文)--(必填)
+        $BankCodeApplyInfo['bankswift'] = $BankCodeApply['bank_swift'];
+        //企业填写的开证行swift--(非必填)
+
         $data = array('bankCodeApplyInfoList' => array('BankCodeApplyInfo' => array($BankCodeApplyInfo)));
-//        return $this->resultInfo("doEdiBankCodeApply", $xmlEdiBankCodeApply);
         try{
             $response = $this->client->doEdiBankCodeApply($data);
+//           var_dump($response);die;
             if (is_object($response)) {
-                $result['code'] = 1;
+                $results['code'] = 1;
             } else {
-                $result['code'] = -101;
+                $results['code'] = -101;
             }
-            return $result;
+            return $results;
         } catch (Exception $e) {
             $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
         }
     }
 
@@ -299,22 +329,31 @@ class Edi {
      */
     public function EdiBankCodeApprove(){
         $result = $this->_EdiBankCodeApprove();
-        if($result){
-            $data = self::xml_to_array($result);
+        if($result && !isset($result['code'])){
+            $data = self::object_array($result);
+            var_dump($data);die;
+            return $data;
+        } else {
+            return $result;
         }
     }
     private  function _EdiBankCodeApprove(){
-//        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
         try{
-            $BankCodeApproveInfo = $this->client->doEdiBankCodeApprove(array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-            if (is_object($BankCodeApproveInfo->out) && !empty($BankCodeApproveInfo->out)) {
-                var_dump($BankCodeApproveInfo->out);
-                return $BankCodeApproveInfo->out;
+            $response = $this->client->doEdiBankCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+
+            $BankCodeApproveInfo = $response->out->BankCodeApproveInfo;
+            if ($BankCodeApproveInfo) {
+                return $BankCodeApproveInfo;
             } else{
                 return false;
             }
         } catch (Exception $e) {
             $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
         }
     }
 
@@ -338,23 +377,32 @@ class Edi {
      */
     public function EdiQuotaApproveInfo(){
         $result = $this->_EdiQuotaApproveInfo();
-        if($result){
-            $data = self::xml_to_array($result);
+        if($result && !isset($result['code'])){
+            $data = self::object_array($result);
+            var_dump($data);die;
+            return $data;
+        } else {
+            return $result;
         }
     }
 
     private function _EdiQuotaApproveInfo(){
-//        return $this->resultInfo("getEdiQuotaApproveInfo", $xmlGetEdiQuotaApproveInfo);
         try{
-            $QuotaApproveInfo = $this->client->getEdiQuotaApproveInfo(array('getEdiQuotaApproveInfo'=>array('policyNo'=>'','startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-            if (is_object($QuotaApproveInfo->out) && !empty($QuotaApproveInfo->out)) {
-                return $QuotaApproveInfo->out;
-//                var_dump($QuotaApproveInfo->BuyerQuotaInfo);
+            $response = $this->client->getEdiQuotaApproveInfo(array('getEdiQuotaApproveInfo'=>array('policyNo'=>'','startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
+            var_dump($response);die;
+            $QuotaApproveInfo = $response->out->QuotaApproveInfo;
+            if (is_object($QuotaApproveInfo)) {
+                return $QuotaApproveInfo;
             } else {
                 return false;
             }
         } catch (Exception $e) {
             $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
         }
     }
 
@@ -424,8 +472,12 @@ class Edi {
      */
     public function QuotaBalanceInfoByPolicyNo(){
         $result = $this->_QuotaBalanceInfoByPolicyNo();
-        if($result){
-            $data = self::xml_to_array($result);
+        if($result && !isset($result['code'])){
+            $data = self::object_array($result);
+            var_dump($data);die;
+            return $data;
+        } else {
+            return $result;
         }
     }
 
@@ -434,6 +486,7 @@ class Edi {
 //        policyNoList  保险单号集合(必填)
         try{
             $QuotaBalanceInfo = $this->client->getQuotaBalanceInfoByPolicyNo(array('policyNoList'=>array()));
+//            var_dump($QuotaBalanceInfo);die;
             if (is_object($QuotaBalanceInfo->out) && !empty($QuotaBalanceInfo->out)) {
                 return $QuotaBalanceInfo->out;
 //                var_dump($QuotaBalanceInfo);
@@ -442,6 +495,11 @@ class Edi {
             }
         } catch (Exception $e) {
             $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
         }
     }
 
@@ -463,11 +521,13 @@ class Edi {
      */
     public function EdiCountryClassify(){
         try{
+
             $CountryClassify = $this->client->getEdiCountryClassify(array('startDate'=>'2011-01-01T00:00:00','endDate'=>self::getEndDate()));
             if ($CountryClassify) {
-                var_dump($CountryClassify->out->CountryClassify);die;
+                $data = @self::object_array($CountryClassify->out->CountryClassify);
+                var_dump($data);die;
             } else {
-                echo 666;
+                echo '数据为空!';
             }
         } catch (Exception $e) {
             $this->exception($e);
@@ -504,7 +564,36 @@ class Edi {
         }
     }
 
-
+    //json传过来的数组并不是标准的array是stdClass类型,转为数组方式一:
+    static function object_array($array) {
+        if(is_object($array)) {
+            $array = (array)$array;
+        } if(is_array($array)) {
+            foreach($array as $key=>$value) {
+                $array[$key] = @self::object_array($value);
+            }
+        }
+        return $array;
+    }
+    //转为数组方式二:
+    static function object2array_pre(&$object) {
+        if (is_object($object)) {
+            $arr = (array)($object);
+        } else {
+            $arr = &$object;
+        }
+        if (is_array($arr)) {
+            foreach($arr as $varName => $varValue){
+                $arr[$varName] = @self::object2array($varValue);
+            }
+        }
+        return $arr;
+    }
+    static function object2array(&$object) {
+        $object =  json_decode( json_encode( $object),true);
+        return  $object;
+    }
+    //xml转为数组方式:
     static function xml_to_array($xml){
         $array = (array)(@simplexml_load_string($xml, null, LIBXML_NOCDATA));
         foreach ($array as $key=>$item){
