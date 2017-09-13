@@ -31,6 +31,9 @@ class BuyerController extends PublicController {
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = $data['country_bn'];
         }
+        if (!empty($data['area_bn'])) {
+            $where['area_bn'] = $data['area_bn'];
+        }
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
