@@ -57,15 +57,15 @@ class OrderModel extends PublicModel {
         switch ($show_status) {
 
             case 'UNCONFIRM':
-                return '待确认';
+                return 'To be confirmed';
 
             case 'GOING':
-                return '进行中';
+                return 'Proceeding';
 
             case 'COMPLETED':
-                return '已完成';
+                return 'Finished';
 
-            default :return'待确认';
+            default :return'To be confirmed';
         }
     }
 
@@ -80,15 +80,15 @@ class OrderModel extends PublicModel {
     public function getPayStatus($pay_status) {
         switch ($pay_status) {
             case 'UNPAY':
-                return '未付款';
+                return 'Unpaid';
 
             case 'PARTPAY':
-                return '部分付款';
+                return 'Part paid';
 
             case 'PAY':
-                return '已付款';
+                return 'Payment completed';
 
-            default :return'未付款';
+            default :return'Unpaid';
         }
     }
 
