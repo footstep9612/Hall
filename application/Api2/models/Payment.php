@@ -35,13 +35,17 @@ class PaymentModel extends PublicModel {
      */
 
     public function getlist($order_id) {
-
         return $this->alias('op')
-                        ->join('erui2_dict.payment_mode dp on op.payment_mode_bn=dp.bn and dp.lang=\'en\'', 'left')
-                        ->field('op.amount,op.payment_mode_bn,op.payment_at,dp.name as payment_mode')
+                        ->field('op.amount,op.payment_mode_bn ,op.payment_at,op.payment_mode_bn as payment_mode')
                         ->where(['op.order_id' => $order_id, 'op.deleted_flag' => 'N'])
                         ->order('op.created_at ASC')
                         ->select();
+//        return $this->alias('op')
+//                        ->join('erui2_dict.payment_mode dp on op.payment_mode_bn=dp.bn and dp.lang=\'en\'', 'left')
+//                        ->field('op.amount,op.payment_mode_bn,op.payment_at,dp.name as payment_mode')
+//                        ->where(['op.order_id' => $order_id, 'op.deleted_flag' => 'N'])
+//                        ->order('op.created_at ASC')
+//                        ->select();
     }
 
 }
