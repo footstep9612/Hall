@@ -151,9 +151,11 @@ class OrderController extends PublicController {
 
         $condition = $this->getPut(); //查询条件
 
-        $oder_moder = new OrderModel();
-        $data = $oder_moder->getList($condition);
-        $count = $oder_moder->getCount($condition);
+        $order_moder = new OrderModel();
+        $data = $order_moder->getList($condition);
+
+
+        $count = $order_moder->getCount($condition);
         if ($data) {
             $orderids = $buyerids = [];
             foreach ($data as $order) {
@@ -186,8 +188,8 @@ class OrderController extends PublicController {
                 } else {
                     $val['supplier'] = '';
                 }
-                $val['show_status_text'] = $oder_moder->getShowStatus($val['show_status']);
-                $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);
+                $val['show_status_text'] = $order_moder->getShowStatus($val['show_status']);
+                $val['pay_status_text'] = $order_moder->getPayStatus($val['pay_status']);
                 $data[$key] = $val;
             }
             $this->setvalue('count', intval($count));

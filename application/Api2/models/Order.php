@@ -64,15 +64,14 @@ class OrderModel extends PublicModel {
             switch ($condition['status']) {
                 case 'to_be_confirmed':
 
-                    $where['pay_status'] = 'UNCONFIRM';
+                    $where['show_status'] = 'UNCONFIRM';
                     break;
                 case 'proceeding':
 
-                    $where['pay_status'] = 'GOING';
+                    $where['show_status'] = 'GOING';
                     break;
                 case 'finished':
-
-                    $where['pay_status'] = 'COMPLETED';
+                    $where['show_status'] = 'COMPLETED';
                     break;
             }
         }
