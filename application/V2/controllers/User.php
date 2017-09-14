@@ -219,6 +219,9 @@ class UserController extends PublicController {
         if(!empty($data['mobile2'])) {
             $arr['mobile2'] = $data['mobile2'];
         }
+        if(!empty($data['show_name'])) {
+            $arr['show_name'] = $data['show_name'];
+        }
         if(!empty($data['phone'])) {
             $arr['phone'] = $data['phone'];
         }
@@ -297,7 +300,9 @@ class UserController extends PublicController {
                 $this->jsonReturn(array("code" => "-101", "message" => "手机格式不正确"));
             }
         }
-
+        if(!empty($data['show_name'])) {
+            $arr['show_name'] = $data['show_name'];
+        }
         if(!empty($data['name'])) {
             $arr['name'] = $data['name'];
         }
