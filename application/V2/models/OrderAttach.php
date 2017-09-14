@@ -20,6 +20,9 @@ class OrderAttachModel extends PublicModel {
     protected function getCondition($condition = []) {
 
         $where = [];
+        if (!empty($condition['id'])) {
+            $where['id'] = $condition['id'];    //ID
+        }
         if (!empty($condition['order_id'])) {
             $where['order_id'] = $condition['order_id'];    //订单ID
         }
