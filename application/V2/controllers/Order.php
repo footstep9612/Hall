@@ -131,23 +131,18 @@ class OrderController extends PublicController {
     public function deliveryAction(){
         $data = file_get_contents('php://input');
         $data = @json_decode($data,true);
-        if($data['id'] != 1){
-            $this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
-        }
+        if(isset($data['id']) && $data['id'] > 0){
+			$orderDelivery = new OrderDeliveryModel();
+			$condition = [
+			    'order_id'=>intval($data['id'])
+			];
+			$data = $orderDelivery->where($condition)->field('id,describe,delivery_at')->select();
+        }else{
+			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
+		}
         $send['code'] = 1;
         $send['message'] = 'success';
-        $send['data'] = [
-            [
-                'id'=>'123',
-                'describe'=>'第一批货',
-                'delivery_at'=>'2017-05-06 12:20:10'
-            ],
-            [
-                'id'=>'124',
-                'describe'=>'第二批',
-                'delivery_at'=>'2017-05-16 12:20:10'
-            ]
-        ];
+        $send['data'] = $data;
         $this->jsonReturn($send);
     }
     
@@ -160,25 +155,19 @@ class OrderController extends PublicController {
     public function consigneeAction(){
         $data = file_get_contents('php://input');
         $data = @json_decode($data,true);
-        if($data['id'] != 1){
-            $this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
-        }
+        if(isset($data['id']) && $data['id'] > 0){
+			$orderAddress = new OrderAddressModel();
+			$condition = [
+			    'order_id'=>intval($data['id']),
+				'deleted_flag'=>'N'
+			];
+			$data = $orderAddress->where($condition)->field('id,name,tel_number,country,zipcode,city,fax,address,email')->select();
+        }else{
+			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
+		}
         $send['code'] = 1;
         $send['message'] = 'success';
-        $send['data'] = [
-            [
-                'id'=>'123',
-                'name'=>'Kuwait Drilling Company K.S.C.C.',  //联系人姓名
-                'tel_number'=>'00965 23981598',  //电话
-                'country'=>'Kuwait',  //国家
-                'country'=>'Kuwait',  //国家
-                'zipcode'=>'60111',  //邮编
-                'city'=>'Ahmadi City',  //城市
-                'fax'=>'00965 23981598',  //传真
-                'address'=>'Ahmadi City ， Block 8， 349th Street',  //办公地址
-                'email'=>'Ahmadi@Ahmadi.com',  //email
-            ]
-        ];
+        $send['data'] = $data;
         $this->jsonReturn($send);
     }
     
@@ -191,42 +180,25 @@ class OrderController extends PublicController {
     public function settlementAction(){
         $data = file_get_contents('php://input');
         $data = @json_decode($data,true);
-        if($data['id'] != 1){
-            $this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
-        }
+         if(isset($data['id']) && $data['id'] > 0){
+			$orderPayment = new OrderPaymentModel();       
+			$condition = [
+			    'order_id'=>intval($data['id'])
+			];
+			$data = $orderPayment->where($condition)->field('id,name,amount,payment_mode,payment_at')->select();
+        }else{
+			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
+		}
         $send['code'] = 1;
         $send['message'] = 'success';
-        $send['data'] = [
-            [
-                'id'=>'123',
-                'name'=>'第1笔款',
-                'amount'=>'1000.00',
-                'payment_mode'=>'在线支付',
-                'payment_at'=>'2017-05-06'
-            ],
-            [
-                'id'=>'124',
-                'name'=>'第2笔款',
-                'amount'=>'1000.00',
-                'payment_mode'=>'在线支付',
-                'payment_at'=>'2017-05-16'
-            ],
-            [
-                'id'=>'125',
-                'name'=>'第3笔款',
-                'amount'=>'1000.00',
-                'payment_mode'=>'在线支付',
-                'payment_at'=>'2017-05-26'
-            ]
-            
-        ];
+        $send['data'] = $data;
         $this->jsonReturn($send);
     }
     
     /* 保存订单信息
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
-     * @param int $order_id // 订单ID
+     * @date    2017-9-13 17:50:09
+     * @param array $data // 提交的数据数组
      * @return array
      */
     private function saveOrder($data){        
@@ -319,7 +291,14 @@ class OrderController extends PublicController {
             return ['code'=>-106,'message'=>'更新订单失败'.$e->getMessage()];
         }        
     }
-    //保存采购商信息
+	/* 保存供应商信息
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+	 * @param array $data  提交的数据数组
+     * @param int $order_id  订单ID
+	 * @param ptr string $refId 记录ID引用
+     * @return array
+     */
     private function saveOrderContact($data,$order_id,&$refId){
         $contact['company'] = $this->safeString($data['order_contact_company']);
         $contact['name']    = $this->safeString($data['order_contact_name']);
@@ -332,7 +311,14 @@ class OrderController extends PublicController {
         $ret = $orderContact->saveData($contact,$refId);		
         return $ret;        
     }
-    //保存供应商信息
+	/* 保存采购商信息
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+	 * @param array $data  提交的数据数组
+     * @param int $order_id  订单ID
+	 * @param ptr string $refId 记录ID引用
+     * @return array
+     */
     private function saveBuyerContact($data,$order_id,&$refId){
         $contact['company'] = $this->safeString($data['buyer_contact_company']);
         $contact['name']    = $this->safeString($data['buyer_contact_name']);
@@ -344,7 +330,13 @@ class OrderController extends PublicController {
         $buyerContact = new OrderBuyerContactModel();
         return $buyerContact->saveData($contact,$refId);        
     }
-    //PO文件处理
+	/* PO文件处理
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+	 * @param array $data  提交的数据数组
+     * @param int $order_id  订单ID
+     * @return array
+     */
     private function savePOFile($data,$order_id){
         $attach = new OrderAttachModel();
         $attachCondition = [
@@ -367,8 +359,15 @@ class OrderController extends PublicController {
                 return $poRet['code'] == 1;
             }
         }
+		return false;
     }
-    //处理其他附件
+	/* 处理其他附件
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+	 * @param array $data  提交的数据数组
+     * @param int $order_id  订单ID
+     * @return int 返回处理成功文件数
+     */
     private function saveOtherFiles($data,$order_id){
         $attach = new OrderAttachModel();
         $num = 0;    
@@ -414,13 +413,19 @@ class OrderController extends PublicController {
         }
         return $num;
     }
-    //处理收货人信息
+	/* 处理收货人信息
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+	 * @param array $data  提交的数据数组
+     * @param int $order_id  订单ID
+     * @return void 
+     */
     private function saveConsignee($data,$order_id){
         $orderAddress = new OrderAddressModel();
         $orderAddress->where(['order_id'=>$order_id])->setField(['deleted_flag'=>'Y']);
         
         if(!isset($data['consignee_id']) ){
-            return false;
+            return;
         }
         $consignees = explode(',',$data['consignee_id']);
         $consignees = array_map('intval',$consignees);
@@ -454,9 +459,16 @@ class OrderController extends PublicController {
             ];
             $orderAddress->add($address);
         }
+		return true;
     }
     
-    
+    /* 处理交收信息
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+	 * @param array $data  提交的数据数组
+     * @param int $order_id  订单ID
+     * @return void 
+     */
     private function saveDelivery($data,$order_id){
         $orderDelivery = new OrderDeliveryModel();
         $orderDelivery->where(['order_id'=>$order_id])->delete();
@@ -475,7 +487,13 @@ class OrderController extends PublicController {
             }
         }
     }
-    
+    /* 处理结算方式
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+	 * @param array $data  提交的数据数组
+     * @param int $order_id  订单ID
+     * @return void 
+     */
     private function saveSettlement($data,$order_id){
         $orderPayment = new OrderPaymentModel();
         $orderPayment->where(['order_id'=>$order_id])->delete();
@@ -499,9 +517,17 @@ class OrderController extends PublicController {
     }
     
     private function safeString($str,$type='bn'){
+		$badstr = "`!@#\$%^&*{}\'\"?";
+		for($i=0;$i<strlen($badstr);$i++){
+			$str = str_replace($badstr[$i],'',$str);
+		}
         return $str;
     }
-    
+    /* 处理收货人信息
+     * @author  zhengkq
+     * @date    2017-09-14 13:00:09
+     * @return string 返回最新订单编号 
+     */
     private function generateOrderId(){
         $today = date('Ymd');
         $order = new OrderModel();
