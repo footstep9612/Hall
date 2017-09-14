@@ -32,23 +32,10 @@ class BuyerCreditLogModel extends PublicModel{
         } else{
             jsonReturn('','-1001','用户[buyer_id]不可以为空');
         }
-        $field = 'buyer_id, credit_grantor, credit_apply, credit_granted, credit_cur_bn, credit_apply_date, in_status, in_remarks, agent_by, agent_at, checked_by, checked_at, out_status, out_remarks, approved_by, approved_at';
-
+        $field = 'buyer_id, credit_grantor, credit_apply, credit_granted, credit_cur_bn, credit_apply_date, in_status, in_remarks, agent_by, agent_at, checked_by, checked_at,  out_remarks, approved_by, approved_at';
         try {
-            $result =  $this->field($field)->where($where)->select();
-            if ($result) {
-                $data = [];
-                $employee = new EmployeeModel();
-                foreach ($result as $item) {
-                    $createder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['checked_by'] = $createder[0];
-                    }
-                    $data[] = $item;
-                }
-                return $data;
-            }
-            return array();
+            $result =  $this->field($field)->where($where)->find();
+            return $result;
         } catch(Exception $e){
             return false;
         }
@@ -205,5 +192,63 @@ class BuyerCreditLogModel extends PublicModel{
         }
         return $data;
     }
-
+    /**
+     * 采购商个人信息更新
+     * @author klp
+     */
+    public function update_data($data, $where) {
+        if (!empty($data['credit_granted'])) {
+            $array_data['credit_granted'] = $data['credit_granted'];
+        }
+        if (!empty($data['in_remarks'])) {
+            $array_data['in_remarks'] = $data['in_remarks'];
+        }
+        if (!empty($data['in_status'])) {
+            $array_data['in_status'] = $data['in_status'];
+        }
+        if (!empty($data['checked_at'])) {
+            $array_data['checked_at'] = $data['checked_at'];
+        }
+        if (!empty($data['approved_at'])) {
+            $array_data['approved_at'] = $data['approved_at'];
+        }
+        if (!empty($data['checked_by'])) {
+            $array_data['checked_by'] = $data['checked_by'];
+        }
+        if (isset($data['status'])) {
+            $array_data['status'] = $data['status'];
+        }
+        return $this->where($where)->save($array_data);
+    }
+    /**
+     *
+     */
+    public function create_data($data) {
+        if (!empty($data['credit_granted'])) {
+            $array_data['credit_granted'] = $data['credit_granted'];
+        }
+         if (!empty($data['buyer_id'])) {
+             $array_data['buyer_id'] = $data['buyer_id'];
+         }
+        if (!empty($data['in_remarks'])) {
+            $array_data['in_remarks'] = $data['in_remarks'];
+        }
+        if (!empty($data['in_status'])) {
+            $array_data['in_status'] = $data['in_status'];
+        }
+        if (!empty($data['checked_at'])) {
+            $array_data['checked_at'] = $data['checked_at'];
+        }
+        if (!empty($data['approved_at'])) {
+            $array_data['approved_at'] = $data['approved_at'];
+        }
+        if (!empty($data['checked_by'])) {
+            $array_data['checked_by'] = $data['checked_by'];
+        }
+        if (isset($data['status'])) {
+            $array_data['status'] = $data['status'];
+        }
+        $array_data['credit_apply_date'] = date("Y-m-d H:i:s");
+        return $this->add($array_data);
+    }
 }

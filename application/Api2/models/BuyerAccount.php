@@ -184,6 +184,9 @@ class BuyerAccountModel extends PublicModel {
         if (isset($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
+        if (isset($data['password_hash'])) {
+            $arr['password_hash'] = md5($data['password_hash']);
+        }
         if ($data['status']) {
             switch (strtoupper($data['status'])) {
                 case self::STATUS_VALID:

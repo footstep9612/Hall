@@ -34,6 +34,7 @@ class LoginController extends PublicController {
             exit();
         }
         if (!empty($data['user_name'])) {
+            $data['user_name']=trim($data['user_name']);
             if (isEmail($data['user_name'])) {
                 $arr['email'] = $data['user_name'];
             } else {
@@ -312,7 +313,7 @@ class LoginController extends PublicController {
             jsonReturn('', -101, 'key不可以为空!');
         }
         if (redisHashExist('rest_password_key', $data['key'])) {
-            jsonReturn('', 1, '获取成功');
+            jsonReturn('', 1, redisHashGet('rest_password_key', $data['key']));
         } else {
             jsonReturn('', -101, '未获取到key!');
         }
