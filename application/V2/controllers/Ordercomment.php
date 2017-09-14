@@ -75,7 +75,6 @@ class OrdercommentController extends PublicController {
                 $this->setvalue('quality', 5);
             }
             if (isset($order['distributed']) && $order['distributed']) {
-
                 $this->setvalue('distributed', $order['distributed']);
             } else {
                 $this->setvalue('distributed', 5);
