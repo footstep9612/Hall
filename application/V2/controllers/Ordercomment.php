@@ -31,7 +31,7 @@ class OrdercommentController extends PublicController {
     public function ListAction() {
 
         $condition = $this->getPut(); //查询条件
-        $condition['order_id'] = 1;
+
         if (!isset($condition['order_id']) || empty($condition['order_id'])) {
             $this->setCode(MSG::MSG_PARAM_ERROR);
             $this->setMessage('订单ID不能为空');
