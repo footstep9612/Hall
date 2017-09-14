@@ -43,6 +43,7 @@ class OrdercommentController extends PublicController {
         $data = $oder_comment_moder->getList($condition);
         $order_model = new OrderModel();
         $order = $order_model->info($condition['order_id']);
+
         if ($data) {
             $buyerids = [];
             foreach ($data as $key => $comment) {
