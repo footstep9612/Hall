@@ -54,44 +54,46 @@ class OrderController extends PublicController {
     public function detailAction(){
         $data = file_get_contents('php://input');
         $data = @json_decode($data,true);
-        if($data['id'] != 1){
-            $this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
-        }
-        $send['code'] = 1;
-        $send['message'] = 'success';
-        $send['data'] = [
-            'id'=>1,                                 //订单ID 
-            'order_no'=>'201701010001',              //订单编号 
-            'po_no'=>'ST156452/123456',              //po编号
-            'execute_no'=>'DY170912-0101',           //执行编号
-            'contract_date'=>'2017-12-11',           //签约日期
-            'buyer_id'=>'11',                        //采购商ID
-            'buyer'=> 'Kuwait Drilling Company ',    //客户名称
-            'agent_id'=>'12',                        //市场经办人ID
-            'agent' =>'王XX',                        //市场经办人
-            'order_contact_id'=>  122,               //采购商ID
-            'order_contact_company'=>'采购商名称',   //采购商
-            'order_contact_name'=>'张女士',                  //采购商联系人
-            'order_contact_phone'=>'18888888888',               //采购商电话
-            'order_contact_email'=>'18888888888@126.com',               //采购商Email
-            'buyer_contact_id'=> 200,                  //供应商ID
-            'buyer_contact_company'=>'供应商名称',             //供应商
-            'buyer_contact_name'    =>'李先生',              //供应商联系人
-            'buyer_contact_phone'=>'16666666666',               //供应商电话
-            'buyer_contact_email'=>'16666666666@126.com',               //供应商Email
-            'amount'=>'150000000',                   //订单金额
-            'currency'=>'USD',                       //币种
-            'trade_terms'=>'EXW',                       //贸易条款简码
-            'trans_mode'=>'Ocean',                        //运输方式简码
-            'from_country'=>'China',                      //起运国
-            'from_port'=>'Qingdao',                         //起运港口
-            'to_country'=>'India',                        //目的国
-            'to_port'=>'Chennai',                           //目的港口
-            'address'=>'Ahmadi City ， Block 8， 349th Street',  //地址
-            'show_status'=>'GOING',
-            'pay_status'=>'PARTPAY'
-        ];
-        $this->jsonReturn($send);
+		if(isset($data['id']) && $data['id'] >0){
+			$id = intval($data['id']);
+			$lang = trim($data['lang']);
+			if(!preg_match("/^[a-z]{1,2}(-[a-z]{1,2}?)$/i",$lang)){
+				$lang = 'zh';
+			}
+			$orderModel = new OrderModel();
+			$field = '`id`,`order_no`,`po_no`,`execute_no`,`contract_date`,'.
+			         '`buyer_id`,`agent_id`,`order_contact_id`,`buyer_contact_id`,'.
+					 '`amount`,`currency_bn`,`trade_terms_bn`,`trans_mode_bn`,'.
+					 '`from_country_bn`,`from_port_bn`,`to_country_bn`,`to_port_bn`,'.
+					 '`address`,`status`,`show_status`,`pay_status`';
+			$info = $orderModel->where(['id'=>$id])->field($field)->find();
+			//获取客户名称
+			$buyerModel = new BuyerModel();
+			$buyerInfo = $buyerModel->where(['id'=>$info['buyer_id']])->getField('name');
+			$info['buyer'] = $buyerInfo;
+			//获取市场经办人姓名
+			$employeeModel = new EmployeeModel();
+			$employee = $employeeModel->where(['id'=>$info['agent_id']])->getField('name');
+			$info['agent'] = $employee;
+			//读取采购商信息
+			$buyerContact = new OrderBuyerContactModel();
+			$buyer = $buyerContact->where(['id'=>$info['buyer_contact_id']])->find();
+			$info['buyer_contact_company'] = $buyer['company'];
+			$info['buyer_contact_name'] = $buyer['name'];
+			$info['buyer_contact_phone'] = $buyer['phone'];
+			$info['buyer_contact_email'] = $buyer['email'];
+			//读取供货商信息
+			$orderContact = new OrderContactModel();
+			$contact = $orderContact->where(['id'=>$info['order_contact_id']])->find();
+			$info['order_contact_company'] = $contact['company'];
+			$info['order_contact_name'] = $contact['name'];
+			$info['order_contact_phone'] = $contact['phone'];
+			$info['order_contact_email'] = $contact['email'];			
+			
+			$this->jsonReturn(['code'=>1,'message'=>'success','data'=>$info]);
+		}else{
+			 $this->jsonReturn(['code'=>-101,'message'=>'参数传递错误']);
+		}		
     }
     
     /* 获取订单附件信息
@@ -103,31 +105,20 @@ class OrderController extends PublicController {
     public function attachmentsAction(){
         $data = file_get_contents('php://input');
         $data = @json_decode($data,true);
-        if($data['id'] != 1){
-            $this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
-        }
+        if(isset($data['id']) && $data['id'] > 0){
+            $orderAttach = new OrderAttachModel();
+			$condition = [
+			    'order_id'=>intval($data['id']),
+				'attach_group'=>['in',['PO','OTHERS']],
+				'deleted_flag'=>'N'
+			];
+			$data = $orderAttach->where($condition)->field('id,attach_name,attach_url')->select();
+        }else{
+			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
+		}
         $send['code'] = 1;
         $send['message'] = 'success';
-        $send['data'] = [
-            [
-                'id'=>'123',
-                'attach_group'=>'PO',
-                'attach_name'=>'PO单',
-                'attach_url'=>'group1/M00/AB/CD/EF/GH/zdAfAkajxaDegAKlsRs.doc'
-            ],
-            [
-                'id'=>'124',
-                'attach_group'=>'OTHERS',
-                'attach_name'=>'报价单',
-                'attach_url'=>'group1/M00/AB/CD/EF/GH/zdAfAkajxaDegAKlsRs2.doc'
-            ],
-            [
-                'id'=>'125',
-                'attach_group'=>'OTHERS',
-                'attach_name'=>'采购说明书',
-                'attach_url'=>'group1/M00/AB/CD/EF/GH/zdAfAkajxaDegAKlsRs3.doc'
-            ]
-        ];
+        $send['data'] = $data;
         $this->jsonReturn($send);
     }
     
@@ -303,18 +294,18 @@ class OrderController extends PublicController {
             if($orderContactRet['code'] != 1){
                 return $orderContactRet;
             }
-            if($refId != $order['order_contact_id']){
-                $orderModel->where(['id'=>$id])
-                           ->setField(['order_contact_id'=>$refId]);
+            if($refId >0){
+                $orderModel->where(['id'=>$order['id']])
+                           ->setField(['buyer_contact_id'=>$refId]);
             }
             //保存供应商信息
             $buyerContactRet = $this->saveOrderContact($data,$order['id'],$refId);
             if($buyerContactRet['code'] != 1){
                 return $buyerContactRet;
             }
-            if($refId != $order['buyer_contact_id']){
-                $orderModel->where(['id'=>$id])
-                           ->setField(['buyer_contact_id'=>$refId]);
+            if($refId > 0){
+                $orderModel->where(['id'=>$order['id']])
+                           ->setField(['order_contact_id'=>$refId]);
             }
             
             $this->savePOFile($data,$order['id']);
@@ -338,7 +329,7 @@ class OrderController extends PublicController {
         $contact['created_by'] =  intval($this->user['id']);
         $contact['order_id']   = $order_id;
         $orderContact = new OrderContactModel();
-        $ret = $orderContact->saveData($contact,$refId);
+        $ret = $orderContact->saveData($contact,$refId);		
         return $ret;        
     }
     //保存供应商信息
@@ -397,7 +388,7 @@ class OrderController extends PublicController {
                     $attach->save(
                         [
                             'attach_name' => $file['name'],
-                            'attach_url'  => $file['url'],
+                            'attach_url'  => $file['file'],
                             'deleted_flag'=> 'N'
                         ],
                         [
@@ -412,7 +403,7 @@ class OrderController extends PublicController {
                             'attach_group' => 'OTHERS',
                             'deleted_flag' => 'N',
                             'attach_name' => $file['name'],
-                            'attach_url'  => $file['url'],
+                            'attach_url'  => $file['file'],
                             'created_by'=>$userId,
                             'created_at'=>$now
                         ]
