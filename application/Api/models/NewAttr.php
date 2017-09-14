@@ -32,7 +32,7 @@ class NewAttrModel extends PublicModel {
      * @return mix
      */
 
-    public function getgoods_attrbyskus($skus, $lang = 'en') {
+    public function getgoods_attrbyskus($skus, $lang = 'en', $time = '2017-08-18 00:00:00') {
 
         try {
             $product_attrs = $this->table('erui_goods.t_goods_attr_new_ex')
@@ -41,7 +41,7 @@ class NewAttrModel extends PublicModel {
                         'hs_flag' => 'Y',
                         'lang' => $lang,
                         'status' => 'VALID',
-                        'created_at' => '2017-08-17 00:00:00'
+                        'created_at' => $time
                     ])
                     ->select();
             Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
@@ -67,7 +67,7 @@ class NewAttrModel extends PublicModel {
      * @return mix
      */
 
-    public function getgoods_specsbyskus($skus, $lang = 'en') {
+    public function getgoods_specsbyskus($skus, $lang = 'en', $time = '2017-08-18 00:00:00') {
         try {
             $product_attrs = $this->table('erui_goods.t_goods_attr_new_ex')
                     ->field('sku,attr_name,attr_value,attr_no')
@@ -76,7 +76,7 @@ class NewAttrModel extends PublicModel {
                         'lang' => $lang,
                         'spec_flag' => 'Y',
                         'status' => 'VALID',
-                        'created_at' => '2017-08-17 00:00:00'
+                        'created_at' => $time
                     ])
                     ->select();
             Log::append(MYPATH . '/logs/sql.sql', $this->_sql());
