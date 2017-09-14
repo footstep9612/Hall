@@ -38,9 +38,10 @@ class OrdercommentController extends PublicController {
 
             $this->jsonReturn(null);
         }
-
         $oder_comment_moder = new OrderCommentModel();
         $data = $oder_comment_moder->getList($condition);
+
+
         $order_model = new OrderModel();
         $order = $order_model->info($condition['order_id']);
 
