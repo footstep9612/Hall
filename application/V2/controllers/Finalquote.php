@@ -48,14 +48,14 @@ class FinalquoteController extends PublicController {
 
             //获取综合报价信息
 
-            $fields = 'total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price';
+            $fields = 'total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr';
 
             $quotedata = $quoteModel->field($fields)->where('inquiry_id='.$quotewhere['inquiry_id'])->find();
 
             if(!empty($quotedata)){
                 //追加结果
-                $quoteinfo['total_weight'] = $quotedata['total_weight'];    //总重
-                $quoteinfo['package_volumn'] = $quotedata['package_volumn'];    //包装总体积
+                $quoteinfo['total_weight'] = round($quotedata['total_weight'],4);    //总重
+                $quoteinfo['package_volumn'] = round($quotedata['package_volumn'],4);    //包装总体积
                 $quoteinfo['package_mode'] = $quotedata['package_mode'];    //包装方式
                 $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
                 $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
@@ -64,14 +64,14 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['to_country'] = $quotedata['delivery_addr'];    //目的地
                 $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
-                $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
-                $quoteinfo['bank_interest'] = $quotedata['bank_interest'];    //银行利息
+                $quoteinfo['fund_occupation_rate'] = round($results['data']['fund_occupation_rate'],4);    //占用资金比例
+                $quoteinfo['bank_interest'] = round($quotedata['bank_interest'],4);    //银行利息
                 $quoteinfo['total_bank_fee'] = $results['data']['total_bank_fee'];    //银行费用
                 $quoteinfo['period_of_validity'] = $quotedata['period_of_validity'];    //报价有效期
-                $quoteinfo['exchange_rate'] = $quotedata['exchange_rate'];    //汇率
+                $quoteinfo['exchange_rate'] = round($quotedata['exchange_rate'],4);    //汇率
                 $quoteinfo['total_logi_fee'] = $results['data']['total_logi_fee'];    //物流合计
-                $quoteinfo['total_quote_price'] = $quotedata['total_quote_price'];    //商务报出贸易价格合计
-                $quoteinfo['total_exw_price'] = $quotedata['total_exw_price'];    //商务报出EXW价格
+                $quoteinfo['total_quote_price'] = round($quotedata['total_quote_price'],4);    //商务报出贸易价格合计
+                $quoteinfo['total_exw_price'] = round($quotedata['total_exw_price'],4);    //商务报出EXW价格
                 $quoteinfo['final_total_quote_price'] = $results['data']['total_quote_price'];    //市场报出贸易价格合计
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
 
@@ -107,6 +107,13 @@ class FinalquoteController extends PublicController {
                 $quoteLogiFee['dest_tariff_fee'] = round($tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100, 4);
                 $quoteLogiFee['dest_va_tax_fee'] = round($tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100, 4);
 
+                $quoteLogiFee['premium_rate'] = round($quoteLogiFee['premium_rate'],4); //保险税率
+                $quoteLogiFee['overland_insu_rate'] = round($quoteLogiFee['overland_insu_rate'],4); //陆运险率
+                $quoteLogiFee['shipping_insu_rate'] = round($quoteLogiFee['shipping_insu_rate'],4); //货物运输险率
+                $quoteLogiFee['dest_tariff_rate'] = round($quoteLogiFee['dest_tariff_rate'],4); //目的地关税税率
+                $quoteLogiFee['total_insu_fee'] = round($quoteLogiFee['total_insu_fee'],4); //出口信用保险
+                $quoteLogiFee['dest_va_tax_rate'] = round($quoteLogiFee[''],4); //目的地增值税率
+
                 $results['logidata'] = $quoteLogiFee;
             }
         }
@@ -135,6 +142,10 @@ class FinalquoteController extends PublicController {
 
             //计算
             if($total_exw_price>0){
+                $logiwhere['inquiry_id'] = $data['id'];
+                $quotetlogifee = new QuoteLogiFeeModel();
+                $quoteLogiFee = $quotetlogifee->getDetail($logiwhere);
+
                 $logistics = new LogisticsController();
                 $logidata['trade_terms_bn'] = $data['trade_terms_bn'];  //贸易术语
                 $logidata['total_exw_price'] = $total_exw_price;  //报出EXW合计
@@ -142,22 +153,22 @@ class FinalquoteController extends PublicController {
                 $logidata['payment_period'] = $data['payment_period'];  //回款周期
                 $logidata['bank_interest'] = $data['bank_interest'];  //银行利息
                 $logidata['fund_occupation_rate'] = $data['fund_occupation_rate'];  //资金占用比例
-                $logidata['inspection_fee'] = $data['inspection_fee_usd'];  //商检费
-                $logidata['inspection_fee_cur'] = 'USD';  //商检费币种
-                $logidata['land_freight'] = $data['land_freight_usd'];  //陆运费
-                $logidata['land_freight_cur'] = 'USD';  //陆运费币种
-                $logidata['port_surcharge'] = $data['port_surcharge_usd'];  //港杂费
-                $logidata['port_surcharge_cur'] = 'USD';  //港杂费币种
-                $logidata['inter_shipping'] = $data['inter_shipping_usd'];  //国际运费
-                $logidata['inter_shipping_cur'] = 'USD';  //国际运费币种
-                $logidata['dest_delivery_fee'] = $data['dest_delivery_fee_usd'];  //目的地配送费
-                $logidata['dest_delivery_fee_cur'] = 'USD';  //目的地配送费币种
-                $logidata['dest_clearance_fee'] = $data['dest_clearance_fee_usd'];  //目的地清关费
-                $logidata['dest_clearance_fee_cur'] = 'USD';  //目的地清关费币种
-                $logidata['overland_insu_rate'] = $data['overland_insu_rate'];  //陆运险率
-                $logidata['shipping_insu_rate'] = $data['shipping_insu_rate'];  //国际运输险率
-                $logidata['dest_tariff_rate'] = $data['dest_tariff_rate'];  //目的地关税税率
-                $logidata['dest_va_tax_rate'] = $data['dest_va_tax_rate'];  //目的地增值税率
+                $logidata['inspection_fee'] = $quoteLogiFee['inspection_fee'];  //商检费
+                $logidata['inspection_fee_cur'] = $quoteLogiFee['inspection_fee_cur'];  //商检费币种
+                $logidata['land_freight'] = $quoteLogiFee['land_freight'];  //陆运费
+                $logidata['land_freight_cur'] = $quoteLogiFee['land_freight_cur'];  //陆运费币种
+                $logidata['port_surcharge'] = $quoteLogiFee['port_surcharge'];  //港杂费
+                $logidata['port_surcharge_cur'] =$quoteLogiFee['port_surcharge_cur'];  //港杂费币种
+                $logidata['inter_shipping'] = $quoteLogiFee['inter_shipping'];  //国际运费
+                $logidata['inter_shipping_cur'] = $quoteLogiFee['inter_shipping_cur'];  //国际运费币种
+                $logidata['dest_delivery_fee'] = $quoteLogiFee['dest_delivery_fee'];  //目的地配送费
+                $logidata['dest_delivery_fee_cur'] = $quoteLogiFee['dest_delivery_fee_cur'];  //目的地配送费币种
+                $logidata['dest_clearance_fee'] = $quoteLogiFee['dest_clearance_fee'];  //目的地清关费
+                $logidata['dest_clearance_fee_cur'] = $quoteLogiFee['dest_clearance_fee_cur'];  //目的地清关费币种
+                $logidata['overland_insu_rate'] = $quoteLogiFee['overland_insu_rate'];  //陆运险率
+                $logidata['shipping_insu_rate'] = $quoteLogiFee['shipping_insu_rate'];  //国际运输险率
+                $logidata['dest_tariff_rate'] = $quoteLogiFee['dest_tariff_rate'];  //目的地关税税率
+                $logidata['dest_va_tax_rate'] = $quoteLogiFee['dest_va_tax_rate'];  //目的地增值税率
 
                 $computedata = $logistics->calcuTotalLogiFee($logidata);
 
@@ -222,7 +233,6 @@ class FinalquoteController extends PublicController {
      * Author:张玉良
      */
     public function updateStatusAction(){
-        echo "-101";die;
         $finalquote = new FinalQuoteModel();
         $inquiry = new InquiryModel();
         $quote = new QuoteModel();
@@ -287,7 +297,7 @@ class FinalquoteController extends PublicController {
      */
     private function _getRateUSD($cur) {
 
-        return $this->_getRate('USD',$cur);
+        return $this->_getRate($cur,'USD');
     }
 
     /**

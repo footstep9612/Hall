@@ -37,19 +37,26 @@ class BuyerModel extends PublicModel {
      */
 
     public function getlist($condition = [], $order = " id desc") {
-        $sql = 'SELECT `erui2_sys`.`employee`.`id` as employee_id,`erui2_sys`.`employee`.`name` as employee_name,`erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`erui2_buyer`.`buyer`.`area_bn`,`province`,`city`,`official_email`,';
-        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui2_buyer`.`buyer`.`first_name`,`erui2_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`buyer_level`,`credit_level`,';
-        $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
+        $sql = 'SELECT `erui2_sys`.`employee`.`id` as employee_id,`erui2_sys`.`employee`.`name` as employee_name,`erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_code`,`buyer`.`country_bn`,`erui2_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
+        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui2_buyer`.`buyer`.`first_name`,`erui2_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`buyer`.`credit_cur_bn`,`buyer_level`,`credit_level`,';
+        $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
+        $sql .= '`erui2_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`';
         $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $str .= " left Join `erui2_sys`.`employee` on `erui2_buyer`.`buyer_agent`.`agent_id` = `erui2_sys`.`employee`.`id` ";
         $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
+        $str .= " left Join `erui2_buyer`.`buyer_credit_log` on `erui2_buyer`.`buyer_credit_log`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
+        $str .= " left Join `erui2_sys`.`employee` as em on `erui2_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` ";
+        $str .= " left Join `erui2_buyer`.`buyer_address` on `erui2_buyer`.`buyer_address`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $sql .= $str;
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
         if (!empty($condition['country_bn'])) {
             $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
+        }
+        if (!empty($condition['area_bn'])) {
+            $where .= ' And area_bn ="' . $condition['area_bn'] . '"';
         }
         if (!empty($condition['name'])) {
             $where .= " And `erui2_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
@@ -89,6 +96,27 @@ class BuyerModel extends PublicModel {
         }
         if (!empty($condition['created_at_end'])) {
             $where .= ' And `erui2_buyer`.`buyer`.created_at  <="' . $condition['created_at_end'] . '"';
+        }
+        if (!empty($condition['credit_checked_at_start'])) {
+            $where .= ' And `erui2_buyer`.`buyer_credit_log`.checked_at  >="' . $condition['credit_checked_at_start'] . '"';
+        }
+        if (!empty($condition['credit_checked_at_end'])) {
+            $where .= ' And `erui2_buyer`.`buyer_credit_log`.checked_at  <="' . $condition['credit_checked_at_end'] . '"';
+        }
+        if (!empty($condition['approved_at_start'])) {
+            $where .= ' And `erui2_buyer`.`buyer_credit_log`.approved_at  >="' . $condition['approved_at_start'] . '"';
+        }
+        if (!empty($condition['approved_at_end'])) {
+            $where .= ' And `erui2_buyer`.`buyer_credit_log`.approved_at  <="' . $condition['approved_at_end'] . '"';
+        }
+        if (!empty($condition['credit_checked_name'])) {
+            $where .= " And `em`.`name`  like '%" . $condition['credit_checked_name'] . "%'";
+        }
+        if (!empty($condition['line_of_credit_max'])) {
+            $where .= ' And `erui2_buyer`.`buyer`.line_of_credit  <="' . $condition['line_of_credit_max'] . '"';
+        }
+        if (!empty($condition['line_of_credit_min'])) {
+            $where .= ' And `erui2_buyer`.`buyer`.line_of_credit  >="' . $condition['line_of_credit_min'] . '"';
         }
         if ($where) {
             $sql .= $where;
@@ -321,7 +349,12 @@ class BuyerModel extends PublicModel {
         if (isset($create['city'])) {
             $data['city'] = $create['city'];
         }
-
+        if (isset($create['line_of_credit'])) {
+            $data['line_of_credit'] = $create['line_of_credit'];
+        }
+        if (isset($create['credit_available'])) {
+            $data['credit_available'] = $create['credit_available'];
+        }
         if (isset($create['brand'])) {
             $data['brand'] = $create['brand'];
         }
@@ -396,7 +429,7 @@ class BuyerModel extends PublicModel {
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
-        if(isset($user['buyer_no'])) {
+        if (isset($user['buyer_no'])) {
             $where['b.buyer_no'] = $user['buyer_no'];
         }
         $where['b.deleted_flag'] = 'N';
@@ -419,12 +452,12 @@ class BuyerModel extends PublicModel {
             //注册银行信息-BuyerBankInfoModel
             $fields .= ',bb.swift_code,bb.bank_account,bb.country_bn as bank_country_bn,bb.zipcode as bank_zipcode,bb.phone,fax,bb.turnover,bb.profit,bb.total_assets,bb.reg_capital_cur_bn,bb.equity_ratio,bb.equity_capital,bb.branch_count,bb.employee_count,bb.remarks as bank_remarks';
             $buyerInfo = $this->alias('b')
-                ->field($fields)
-                ->join($tableBank . ' as bb on bb.buyer_id=b.id ', 'left')
-                ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
-                ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
-                ->where($where)
-                ->find();
+                    ->field($fields)
+                    ->join($tableBank . ' as bb on bb.buyer_id=b.id ', 'left')
+                    ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
+                    ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
+                    ->where($where)
+                    ->find();
             if ($buyerInfo) {
                 return $buyerInfo ? $buyerInfo : array();
             }
@@ -445,7 +478,7 @@ class BuyerModel extends PublicModel {
         } else {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
-        if(isset($user['buyer_no'])) {
+        if (isset($user['buyer_no'])) {
             $where['buyer_no'] = $user['buyer_no'];
         }
         $where['deleted_flag'] = 'N';
@@ -685,6 +718,73 @@ class BuyerModel extends PublicModel {
             if ($userids) {
                 $where[$filed] = ['in', $userids];
             }
+        }
+    }
+
+    /*
+     * 根据用户姓 获取用户ID
+     * @param string $BuyerName // 客户名称
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getBuyeridsByBuyerName($buyername) {
+
+        try {
+            $where = [];
+            if ($buyername) {
+                $where['name'] = ['like', '%' . trim($buyername) . '%'];
+            } else {
+                return false;
+            }
+            $buyers = $this->where($where)->field('id')->select();
+            $buyerids = [];
+            foreach ($buyers as $buyer) {
+                $buyerids[] = $buyer['id'];
+            }
+            return $buyerids;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据用户ID 获取用户姓名
+     * @param array $user_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getBuyerNamesByBuyerids($buyer_ids) {
+
+        try {
+            $where = [];
+
+            if (is_string($buyer_ids)) {
+                $where['id'] = $buyer_ids;
+            } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
+                $where['id'] = ['in', $buyer_ids];
+            } else {
+                return false;
+            }
+            $buyers = $this->where($where)->field('id,name')->select();
+            $buyer_names = [];
+            foreach ($buyers as $buyer) {
+                $buyer_names[$buyer['id']] = $buyer['name'];
+            }
+            return $buyer_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
         }
     }
 

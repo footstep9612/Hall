@@ -101,28 +101,59 @@ class GoodsModel extends PublicModel {
         }
     }
 
-    /**
-     * 获取spu下的规格商品（用于门户产品详情页）
-     * @param string $spu
-     * @param string $lang
-     * @return array
-     */
-    public function getSpecGoodsBySpu($spu = '', $lang = '', $spec_type = 0) {
+    public function getSpecCountBySpu($spu = '', $lang = '', $spec_type = 0) {
         if (empty($spu))
-            return array();
-        $keyRedis = md5(json_encode($spu.$lang.self::STATUS_VALID));
-        if (redisHashExist('specGoods',$keyRedis)) {
+            return 0;
+        $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID . '_COUNT'));
+        if (redisHashExist('specGoods', $keyRedis)) {
             return json_decode(redisHashGet('specGoods', $keyRedis), true);
         }
         try {
-            $field = "lang,spu,sku,qrcode,name,show_name_loc,show_name,model,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail";
+
             $condition = array(
                 "spu" => $spu,
                 "lang" => $lang,
                 "status" => self::STATUS_VALID,
                 "deleted_flag" => self::DELETED_N
             );
-            $result = $this->field($field)->where($condition)->select();
+
+            $count = $this->where($condition)->count();
+            redisHashSet('specGoods', $keyRedis, $count);
+            return $count;
+        } catch (Exception $e) {
+
+            return 0;
+        }
+    }
+
+    /**
+     * 获取spu下的规格商品（用于门户产品详情页）
+     * @param string $spu
+     * @param string $lang
+     * @return array
+     */
+    public function getSpecGoodsBySpu($spu = '', $lang = '', $spec_type = 0, $current_no = 1) {
+        if (empty($spu))
+            return array();
+        $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID));
+        if (redisHashExist('specGoods', $keyRedis)) {
+            return json_decode(redisHashGet('specGoods', $keyRedis), true);
+        }
+
+        try {
+            $field = "lang,spu,sku,qrcode,name,show_name_loc,"
+                    . "show_name,model,exw_days,min_pack_naked_qty,"
+                    . "nude_cargo_unit,min_pack_unit,min_order_qty";
+            $condition = array(
+                "spu" => $spu,
+                "lang" => $lang,
+                "status" => self::STATUS_VALID,
+                "deleted_flag" => self::DELETED_N
+            );
+
+            $current_no = intval($current_no) > 0 ? intval($current_no) : 1;
+
+            $result = $this->field($field)->where($condition)->limit($current_no * 100 - 100, 100)->select();
 
             $this->getSpecBySku($result, $lang, $spec_type, $spu);
             redisHashSet('specGoods', $keyRedis, json_encode($result));
@@ -144,20 +175,22 @@ class GoodsModel extends PublicModel {
                 $gattr = new GoodsAttrModel();
                 $specs = $gattr->getgoods_attrbyskus($skus, $lang);
             }
+            $productModel = new ProductModel();
+            $condition = array(
+                "spu" => $spu,
+                "lang" => $lang,
+                "status" => self::STATUS_VALID,
+                "deleted_flag" => self::DELETED_N
+            );
+            $brand = $productModel->field('brand')->where($condition)->find();
             foreach ($result as $k => $item) {
-                $condition = array(
-                    "spu" => $spu,
-                    "lang" => $lang,
-                    "status" => self::STATUS_VALID,
-                    "deleted_flag" => self::DELETED_N
-                );
+
                 //获取spu的brand
-                $result[$k]['brand']='';
-                $productModel = new ProductModel();
-                $brand = $productModel->field('brand')->where($condition)->find();
-                if($brand){
-                    if(!is_null(json_decode($brand['brand'],true))){
-                        $resBrand = json_decode($brand['brand'],true);
+                $result[$k]['brand'] = '';
+
+                if ($brand) {
+                    if (!is_null(json_decode($brand['brand'], true))) {
+                        $resBrand = json_decode($brand['brand'], true);
                         $result[$k]['brand'] = $resBrand['name'];
                     }
                     $result[$k]['brand'] = $brand['brand'];
@@ -167,8 +200,6 @@ class GoodsModel extends PublicModel {
                 $sku = $item['sku'];
                 $result[$k]['exw_day'] = $item['exw_days'];
                 $result[$k]['purchase_unit'] = $item['min_pack_unit'];
-
-
                 $result[$k]['goods'] = $item['min_pack_naked_qty'] . $item['nude_cargo_unit'] . '/' . $item['min_pack_unit'];
                 $spec = [];
                 if (isset($specs[$sku])) {
@@ -220,20 +251,20 @@ class GoodsModel extends PublicModel {
             $result = $this->field($field)->where($where)->select();
             $data = array();
             if ($result) {
-                foreach ($result as $k=>$item) {
+                foreach ($result as $k => $item) {
                     $condition = array(
                         "spu" => $item['spu'],
-                        "lang" =>  $where['lang'],
+                        "lang" => $where['lang'],
                         "status" => self::STATUS_VALID,
                         "deleted_flag" => self::DELETED_N
                     );
                     //获取spu的brand
-                    $item['brand']='';
+                    $item['brand'] = '';
                     $productModel = new ProductModel();
                     $brand = $productModel->field('brand')->where($condition)->find();
-                    if($brand){
-                        if(!is_null(json_decode($brand['brand'],true))){
-                            $resBrand = json_decode($brand['brand'],true);
+                    if ($brand) {
+                        if (!is_null(json_decode($brand['brand'], true))) {
+                            $resBrand = json_decode($brand['brand'], true);
                             $item['brand'] = $resBrand['name'];
                         }
                         $item['brand'] = $brand['brand'];
@@ -250,6 +281,5 @@ class GoodsModel extends PublicModel {
             return $results;
         }
     }
-
 
 }

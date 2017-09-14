@@ -7,7 +7,7 @@
 class ExcelmanagerController extends PublicController {
 
     public function init() {
-        //parent::init();
+        parent::init();
     }
 
     public function uploadAction() {
@@ -150,101 +150,129 @@ class ExcelmanagerController extends PublicController {
     public function downQuotationAction() {
 
         $request = $this->validateRequests('inquiry_id');
-
+        $inquiryAttach = new InquiryAttachModel();
+		$condition = ['inquiry_id'=>intval($request['inquiry_id']),'attach_group'=>'FINAL'];
+		$ret = $inquiryAttach->getList($condition);
+		if($ret['code']  == 1 && !empty($ret['data']) && !empty($ret['data'][0]['attach_url'])){
+			$this->jsonReturn([
+				'code' => '1',
+				'message' => '导出成功!',
+				'data' => [
+					'url' => $ret['data'][0]['attach_url']
+				]
+			]);
+		}
         $data = $this->getFinalQuoteData($request['inquiry_id']);
         //p($data);
         //创建excel表格并填充数据
         $excelFile = $this->createExcelAndInsertData($data);
 
         //把导出的文件上传到文件服务器上
-        $remoteUrl = $this->upload2FastDFS($excelFile,'xls');
-        $url_prefix = 'http://172.18.18.196/';
+        $server = Yaf_Application::app()->getConfig()->myhost;
+		$fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server. '/V2/Uploadfile/upload';
+        $data['tmp_name']=$excelFile;
+        $data['type']='application/excel';
+        $data['name']='excelFile';
+        $remoteUrl = $this->postfile($data,$url);    
+    
         if (!$remoteUrl) {
             $this->jsonReturn(['code' => '1', 'message' => '失败']);
         }
         //构建打包文件数组
-        $fileName = date('Ymdhis');
+        $fileName = date('YmdHis');
         $files = [
             ['url'=>$excelFile,'name'=>$fileName.'.xls']
         ];
-        $inquiryAttach = new InquiryAttachModel();
+        
         $condition = [
             'inquiry_id'   => $request['inquiry_id'],
             'attach_group' => ['in',['INQUIRY','TECHNICAL','DEMAND']]
         ];
         $inquiryList = $inquiryAttach->getList($condition);
+        
         if($inquiryList['code'] == 1){
             foreach($inquiryList['data'] as $item){
-                $files[] = ['url'=>$url_prefix.$item['attach_url'],'name'=>$item['attach_name']];
+                $files[] = ['url'=>$fastDFSServer.$item['attach_url'],'name'=>$item['attach_name']];
             }
         }
-		//上传至FastDFS
+
+        //上传至FastDFS
         $zipFile = $fileName.'.zip';
-        $fileId = $this->packAndUpload($zipFile,$files);
-        if(empty($fileId)){
+        $fileId = $this->packAndUpload($url,$zipFile,$files);
+        //上传失败
+        if(empty($fileId) || empty($fileId['url'])){
             $this->jsonReturn([
                 'code' => '-1',
                 'message' => '导出失败!',
             ]);
             return;
         }
-		$data = [
-		    'inquiry_id'   => intval($request['inquiry_id']),
-			'attach_group' => 'FIANL',
-			'attach_type'  => 'application/zip',
-			'attach_name'  => '',
-			'attach_url'   => $field,
-			'created_by'   => intval($this->user['id']),
-			'created_at'   => date('Y-m-d H:i:s')
-		];
-		
-		//$inquiryAttach->addData($data);
+        //保存数据库
+        $data = [
+            'inquiry_id'   => intval($request['inquiry_id']),
+            'attach_group' => 'FINAL',
+            'attach_type'  => 'application/zip',
+            'attach_name'  => $zipFile,
+            'attach_url'   => $fileId['url'],
+            'created_by'   => intval($this->user['id']),
+            'created_at'   => date('Y-m-d H:i:s')
+        ];        
+        $inquiryAttach->addData($data);
         $this->jsonReturn([
             'code' => '1',
             'message' => '导出成功!',
             'data' => [
-                'url' => $remoteUrl,
-                'fileId'=>$fileId
+                'url' => $fileId['url']
             ]
         ]);
     }
-	/**
-	* 上传文件至FastDFS
-	* @param string $file 本地文件路径
-	* @param string $ext  文件扩展名
-	**/
-	private function upload2FastDFS($file,$ext){
-		if(extension_loaded('fastdfs_client')){
-			$fileSuffix = '';
-			$fdfs = new FastDFS();
-			$tracker = $fdfs->tracker_get_connection();
-			$fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($file), $ext); 
-			$fdfs->tracker_close_all_connections();     
-			return $fileId;
-		}else{
-			return array();
-		}
-	}
-	
-	/**
+    /**
+    * 上传文件至FastDFS
+    * @param string $file 本地文件信息
+    * @param string $url  上传接口地址
+    **/
+    function postfile($data, $url, $timeout = 30) {             
+        $cfile = new \CURLFile($data['tmp_name'], $data['type'], $data['name']);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, ['upFile' => $cfile]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            print_r(curl_error($ch));
+            \think\Log::write('Curl error: ' . curl_error($ch), LOG_ERR);
+            return [];
+        }
+        curl_close($ch);
+        $cfile = null;
+        unset($cfile);
+        return json_decode($response, true);
+    }
+
+    
+    /**
     * 打包文件并且上传至FastDFS服务器
+    * @param string $url 上传地址
     * @param string $filename 压缩包名称
     * @param array $files  需要打包的文件列表
     * @return mixed
     **/
-    private function packAndUpload($filename,$files){
+    private function packAndUpload($url,$filename,$files){
         //创建临时目录
         $tmpdir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/".uniqid().'/';
         @mkdir($tmpdir,0777,true);        
-        if(!is_dir($tmpdir)){   	
+        if(!is_dir($tmpdir)){       
             return false;
-        }        
+        }
+
         //复制文件到临时目录
-        foreach($files as $file){
-            if(!is_readable($file['url'])){
-                $error_files[] = $file;
-                continue;
-            }
+        foreach($files as $key=>$file){
             $name = $file['name'];
             //如果文件存在则重命名
             if(file_exists($tmpdir.$name)){
@@ -255,27 +283,28 @@ class ExcelmanagerController extends PublicController {
                         break;
                     }
                 }
-            }
-            
+            }            
             //目标文件仍然存在，则写入错误文件
-            if(file_exists($tmpdir.$name)){
+            if(file_exists($tmpdir.$name)){				
                 $error_files[] = $file;
-            }
-			@copy($file['url'],$tmpdir.$name);           
+            }			
+			$name = iconv('utf-8','gbk',$name);
+			$content = @file_get_contents($file['url']);
+            @file_put_contents($tmpdir.$name,$content);  
+            
         }
         //如果有文件无法复制到本目录
         if(!empty($error_files)){
-            //return false;
+            return false;
         }
         //生成压缩文件
         $zip=new ZipArchive();
         $filepath = dirname($tmpdir).'/'.$filename;
         $res = $zip->open($filepath, ZIPARCHIVE::CREATE|ZIPARCHIVE::OVERWRITE);
         if($res !== true){
-			echo __LINE__;die();
             return false;
         }
-		
+        
         $files = scandir($tmpdir);
         foreach($files as $item){
             if($item != '.' && $item != '..'){
@@ -291,9 +320,12 @@ class ExcelmanagerController extends PublicController {
         }
         @rmdir($tmpdir);
         //上传至FastDFS
-        $ret = $this->upload2FastDFS($filepath,'zip');
+        $data['tmp_name']=$filepath;
+        $data['type']='application/zip';
+        $data['name']=$filename;
+        $ret = $this->postfile($data,$url);         
         //删除临时压缩文件
-        @unlink($filepath);
+        //@unlink($filepath);
         return $ret;
     }
 
@@ -301,23 +333,26 @@ class ExcelmanagerController extends PublicController {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
         $inquiryModel = new InquiryModel();
-        $info = $inquiryModel->where(['id' => $inquiry_id])->field('buyer_name,serial_no')->find();
+        $info = $inquiryModel->where(['id' => $inquiry_id])->field('buyer_name,serial_no,pm_id,agent_id')->find();
 
         //报价综合信息 (报价人，电话，邮箱，报价时间)
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('created_by,checked_at,checked_by')->find();
 
         $employee = new EmployeeModel();
-        $employeeInfo = $employee->where(['id' => $finalQuoteInfo['checked_by']])->field('email,mobile,name')->find();
+        $employeeInfo = $employee->where(['id' => intval($info['pm_id'])])->field('email,mobile,name')->find();
 
         //报价人信息
         $info['quoter_email'] = $employeeInfo['email'];
         $info['quoter_mobile'] = $employeeInfo['mobile'];
         $info['quoter_name'] = $employeeInfo['name'];
-        $info['quote_time'] = $finalQuoteInfo['checked_at'];
+		//由于此文件仅生成一次，所以记录日期跟当前日期一致
+        $info['quote_time'] = date('Y-m-d');//$finalQuoteInfo['checked_at']; 
 
         //市场经办人
-        $info['agenter'] = $employee->where(['id' => $finalQuoteInfo['created_by']])->getField('name');
+        $info['agenter'] = $employee->where(['id' => $info['agent_id']])->getField('name');
+		$departsments = $this->getDepartmentByUid($info['agent_id']);
+		$info['buyer_name'] = implode('-',$departsments);
 
         //报价单项(final_quote)
         $finalQuoteItemModel = new FinalQuoteItemModel();
@@ -343,6 +378,44 @@ class ExcelmanagerController extends PublicController {
             'quote_info' => $quoteInfo
         ];
     }
+	/**
+	* 获取用户所在部门数组
+	* @param int $uid 用户ID
+	* @return array 返回部门数组，从顶级到最低一级
+	**/
+	private function getDepartmentByUid($uid){
+		if(!is_numeric($uid) || $uid <1){
+			return [];
+		}
+		$orgMember = new OrgMemberModel();
+		$orgId = $orgMember->where(['employee_id' => intval($uid)])->getField('org_id');
+		if($orgId < 1){
+			return [];
+		}
+		$org = new OrgModel();
+		$list = $org->field('id,parent_id,name')->select();
+		$orgs = [];
+		foreach($list as $key=>$item){
+			$orgs[$item['id']] = &$list[$key];
+		}
+		foreach($orgs as $key=>$item){
+			if(isset($orgs[$item['parent_id']])){
+				$orgs[$key]['parent'] = &$orgs[$item['parent_id']];
+			}else{
+				$orgs[$key]['parent'] = null;
+			}
+		}		
+		$depats = [];
+		//最大20级，防止死循环
+		for($i=0;$i<20;$i++){
+			if(isset($orgs[$orgId])){
+				array_unshift($depats,$orgs[$orgId]['name']);
+				$orgId = (int)$orgs[$orgId]['parent_id'];
+			}else{
+				return $depats;
+			}
+		}
+	}
 
     /**
      * 创建excel文件对象

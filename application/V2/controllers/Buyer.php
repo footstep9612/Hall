@@ -31,6 +31,9 @@ class BuyerController extends PublicController {
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = $data['country_bn'];
         }
+        if (!empty($data['area_bn'])) {
+            $where['area_bn'] = $data['area_bn'];
+        }
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
@@ -68,11 +71,32 @@ class BuyerController extends PublicController {
         if (!empty($data['created_at_start'])) {
             $where['created_at_start'] = $data['created_at_start'];
         }
+        if (!empty($data['credit_checked_at_start'])) {
+            $where['credit_checked_at_start'] = $data['credit_checked_at_start'];
+        }
+        if (!empty($data['credit_checked_at_end'])) {
+            $where['credit_checked_at_end'] = $data['credit_checked_at_end'];
+        }
+        if (!empty($data['approved_at_start'])) {
+            $where['approved_at_start'] = $data['approved_at_start'];
+        }
+        if (!empty($data['approved_at_end'])) {
+            $where['approved_at_end'] = $data['approved_at_end'];
+        }
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }
-        if (!empty($data['currentPage'])) {
+        if (!empty($data['currentPage'])){
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
+        }
+        if (!empty($data['credit_checked_name'])) {
+            $where['credit_checked_name'] = $data['credit_checked_name'];
+        }
+        if (!empty($data['line_of_credit_min'])) {
+            $where['line_of_credit_min'] = $data['line_of_credit_min'];
+        }
+        if (!empty($data['line_of_credit_max'])) {
+            $where['line_of_credit_max'] = $data['line_of_credit_max'];
         }
         $model = new BuyerModel();
         $data = $model->getlist($where);
@@ -325,7 +349,6 @@ class BuyerController extends PublicController {
 
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
@@ -419,5 +442,22 @@ class BuyerController extends PublicController {
             );
         }
     }
-
+//    public function creditAction() {
+//        $data = json_decode(file_get_contents("php://input"), true);
+//        $role_user = new RoleUserModel();
+//            $where['user_id'] = $this->user['id'];
+//            $data = $role_user->getRoleslist($where);
+//            $datajson = array(
+//                'code' => 1,
+//                'message' => '数据获取成功',
+//                'data' => $data
+//            );
+//            jsonReturn($datajson);
+//        } else {
+//            $datajson = array(
+//                'code' => -104,
+//                'message' => '用户验证失败',
+//            );
+//        }
+//    }
 }
