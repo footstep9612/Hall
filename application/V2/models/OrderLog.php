@@ -12,7 +12,7 @@ class OrderLogModel extends PublicModel {
     protected $tableName = 'order_log'; //数据表表名
 
     /**
-     * 根据条件获取查询条件
+     * 获取查询条件
      * @param Array $condition
      * @return Array
      * @author zhangyuliang
@@ -33,6 +33,35 @@ class OrderLogModel extends PublicModel {
             $where['log_id'] = $condition['log_id'];  //上级工作流ID
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
+
+        return $where;
+    }
+
+    /**
+     * 获取关联查询条件
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    protected function getJionCondition($condition = []) {
+
+        $where = [];
+        if (!empty($condition['log_group'])) {
+            $where['a.log_group'] = $condition['log_group'];    //工作分组
+        }
+        if (!empty($condition['execute_no'])) {
+            $where['b.execute_no'] = $condition['execute_no'];  //执行单号
+        }
+        if (!empty($condition['out_no'])) {
+            $where['a.out_no'] = $condition['out_no'];    //出库单号
+        }
+        if (!empty($condition['waybill_no'])) {
+            $where['a.waybill_no'] = $condition['waybill_no'];    //运单号
+        }
+        if (!empty($condition['show_status'])) {
+            $where['b.show_status'] = $condition['show_status'];    //订单状态
+        }
+        $where['a.deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
 
         return $where;
     }
@@ -75,6 +104,53 @@ class OrderLogModel extends PublicModel {
                         //->page($page, $pagesize)
                         ->order('created_at asc')
                         ->select();
+
+            if($list){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+                $results['count'] = $count;
+                $results['data'] = $list;
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
+     * 获取物流列表
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function getLogiList($condition = []) {
+        if(empty($condition['log_group'])){
+            $results['code'] = '-103';
+            $results['message'] = '没有日志分组!';
+            return $results;
+        }
+
+        $where = $this->getJionCondition($condition);
+
+        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
+        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+
+        $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no';
+
+        try {
+            $count = $this->getCount($condition);
+            $list = $this->alias('a')
+                ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                ->field($field)
+                ->where($where)
+                ->page($page, $pagesize)
+                ->order('a.order_id desc,a.created_at asc')
+                ->select();
 
             if($list){
                 $results['code'] = '1';
