@@ -88,7 +88,7 @@ class OrdercommentController extends PublicController {
 
     public function AddAction() {
         $condition = $this->getPut(); //查询条件
-        $condition['order_id'] = 1;
+
         if (!isset($condition['order_id']) || empty($condition['order_id'])) {
             $this->setCode(MSG::MSG_PARAM_ERROR);
             $this->setMessage('订单ID不能为空');
@@ -98,6 +98,13 @@ class OrdercommentController extends PublicController {
         if (!isset($condition['content']) || empty($condition['content'])) {
             $this->setCode(MSG::MSG_PARAM_ERROR);
             $this->setMessage('内容不能为空');
+            $this->jsonReturn(null);
+        }
+        $order_model = new OrderModel();
+        $info = $order_model->info($condition['order_id']);
+        if ($info['show_status'] !== OrderModel::SHOW_STATUS_COMPLETED) {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('订单完成,不能回复订单!');
             $this->jsonReturn(null);
         }
         $oder_comment_moder = new OrderCommentModel();
