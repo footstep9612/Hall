@@ -31,6 +31,7 @@ class OrderCommentModel extends PublicModel {
         $where = [];
 
         $this->_getValue($where, $condition, 'order_id'); //平台订单号
+        return $where;
     }
 
     /* 获取订单列表
