@@ -38,6 +38,16 @@ class OrderController extends PublicController {
         if ($info) {
             $info['show_status_text'] = $oder_moder->getShowStatus($info['show_status']);
             $info['pay_status_text'] = $oder_moder->getPayStatus($info['pay_status']);
+            $delivery_model = new OrderDeliveryModel();
+            $delivery_at = $delivery_model->getlastdelivery_at($order_id);
+
+            $info['delivery_at'] = $delivery_at;
+            if ($delivery_at) {
+                $info['delivery_left'] = ceil((strtotime($delivery_at) - time()) / 86400);
+            } else {
+                $info['delivery_left'] = null;
+            }
+
             $this->_setOrderAttachOther($info, $order_id); //获取附件
             $this->_setOrderAttachPo($info, $order_id); //获取附件
             $this->_setOrderBuyerContact($info, $order_id); //获取采购商信息
@@ -102,7 +112,6 @@ class OrderController extends PublicController {
     private function _setOrderAttachPo(&$info, $order_id) {
         $order_attach_model = new OrderAttachModel();
         $order_attachs = $order_attach_model->getlist($order_id, 'PO');
-        echo $order_attach_model->_sql();
         if ($order_attachs) {
             $info['po'] = $order_attachs[0];
         } else {
@@ -121,7 +130,7 @@ class OrderController extends PublicController {
     private function _setOrderAttachOther(&$info, $order_id) {
         $order_attach_model = new OrderAttachModel();
         $order_attachs = $order_attach_model->getlist($order_id, 'OTHERS');
-        echo $order_attach_model->_sql();
+
         if ($order_attachs) {
             $info['others'] = $order_attachs;
         } else {

@@ -36,7 +36,7 @@ class OrderPaymentModel extends PublicModel {
 
     public function getlist($order_id) {
         return $this->alias('op')
-                        ->field('op.amount,op.payment_mode,op.payment_at,op.payment_mode as  payment_mode_bn')
+                        ->field('op.name,op.amount,op.payment_mode,op.payment_at,op.payment_mode as  payment_mode_bn')
                         ->where(['op.order_id' => $order_id, 'op.deleted_flag' => 'N'])
                         ->order('op.created_at ASC')
                         ->select();

@@ -66,4 +66,27 @@ class OrderDeliveryModel extends PublicModel {
         return $deliverys;
     }
 
+    /* 获取订单详情
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    public function getlastdelivery_at($order_id) {
+
+        $data = $this->field(' delivery_at,order_id')
+                ->where(['order_id' => $order_id, 'delivery_at' => ['gt', date('Y-m-d H:i:s')]])
+                ->order('created_at ASC')
+                ->group('order_id')
+                ->find();
+
+        if ($data) {
+            return $data['delivery_at'];
+        } else {
+            return null;
+        }
+    }
+
 }
