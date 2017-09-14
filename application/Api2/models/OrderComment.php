@@ -65,8 +65,8 @@ class OrderCommentModel extends PublicModel {
                 ->find();
         $this->startTrans();
         if ($info['comment_flag'] == 'N') {
-            $orderdata['quality'] = $condition['quality'] >= 0 && $condition['quality'] <= 5 ? intval($condition['quality']) : 5;
-            $orderdata['distributed'] = $condition['distributed'] >= 0 && $condition['distributed'] <= 5 ? intval($condition['distributed']) : 5;
+            $orderdata['quality'] = $condition['quality'] >= 1 && $condition['quality'] <= 5 ? intval($condition['quality']) : 5;
+            $orderdata['distributed'] = $condition['distributed'] >= 1 && $condition['distributed'] <= 5 ? intval($condition['distributed']) : 5;
             $orderdata['comment_flag'] = 'Y';
             $orderdata['is_reply'] = 1;
             $flag = $order_model->where(['id' => $condition['order_id']])
