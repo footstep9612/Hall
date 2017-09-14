@@ -109,7 +109,7 @@ class OrdercommentController extends PublicController {
         $info = $order_model->info($condition['order_id']);
         if ($info['show_status'] !== OrderModel::SHOW_STATUS_COMPLETED) {
             $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('订单完成,不能回复订单!');
+            $this->setMessage('未完成的订单,不能回复评论!');
             $this->jsonReturn(null);
         }
         $oder_comment_moder = new OrderCommentModel();
