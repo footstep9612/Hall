@@ -160,17 +160,17 @@ class OrderlogController extends PublicController{
             if(!empty($buyerinfo['line_of_credit']) && $buyerinfo['line_of_credit']>0){
 
                 if($data['type'] == 'SPENDING'){
-                    $total = $buyerinfo['credit_available'] - $data['amount'];  //支出
+                    $creditavailable = $buyerinfo['credit_available'] - $data['amount'];  //支出
                 }else{
-                    $total = $buyerinfo['credit_available'] + $data['amount'];  //还款
+                    $creditavailable = $buyerinfo['credit_available'] + $data['amount'];  //还款
                 }
 
-                if($total>0 || $buyerinfo['line_of_credit']>$total) {
+                if($creditavailable>0 || $buyerinfo['line_of_credit']>$creditavailable) {
                     $OrderLog->startTrans();
                     $results = $OrderLog->addData($data);
 
                     if($results['code'] == 1){
-                        $re = $buyer->where('id='.$data['buyer_id'])->save(['credit_available' => $total]);
+                        $re = $buyer->where('id='.$data['buyer_id'])->save(['credit_available' => $creditavailable]);
                         if($re){
                             $OrderLog->commit();
                             $this->jsonReturn($results);
@@ -280,6 +280,56 @@ class OrderlogController extends PublicController{
         $results = $OrderLog->deleteData($where);
 
         $this->jsonReturn($results);
+    }
+
+    /*
+     * 删除授信流程日志
+     * Author:张玉良
+     */
+
+    public function deleteCreditAction() {
+        $OrderLog = new OrderLogModel();
+        $where = $this->put_data;
+
+        if(!empty($where['buyer_id'])){
+            $buyer = new BuyerModel();
+            //查找授信可用额度
+            $buyerinfo = $buyer->field('line_of_credit,credit_available,credit_cur_bn')->where('id='.$where['buyer_id'])->find();
+
+            //查询删除的授信记录信息
+            $creditinfo = $OrderLog->getInfo($where);
+            //判断是
+            if($creditinfo['type'] == 'SPENDING'){
+                $credit_available = $buyerinfo['credit_available']+$creditinfo['amount'];  //支出就加回去
+            }else{
+                $credit_available = $buyerinfo['credit_available']-$creditinfo['amount'];  //还款就减去
+            }
+
+            $OrderLog->startTrans();
+            $results = $OrderLog->deleteData($where);
+            if($results['code'] == 1){
+                $re = $buyer->where('id='.$where['buyer_id'])->save(['credit_available' => $credit_available]);
+                if($re){
+                    $OrderLog->commit();
+                    $this->jsonReturn($results);
+                }else{
+                    $OrderLog->rollback();
+                    $results['code'] = '-101';
+                    $results['message'] = '修改失败!';
+                    $this->jsonReturn($results);
+                }
+            }else{
+                $OrderLog->rollback();
+                $this->jsonReturn($results);
+            }
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有客户ID!';
+            $this->jsonReturn($results);
+        }
+
+
+
     }
 
     /*
