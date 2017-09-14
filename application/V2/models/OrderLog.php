@@ -49,6 +49,18 @@ class OrderLogModel extends PublicModel {
         if (!empty($condition['log_group'])) {
             $where['a.log_group'] = $condition['log_group'];    //工作分组
         }
+        if (!empty($condition['execute_no'])) {
+            $where['b.execute_no'] = $condition['execute_no'];  //执行单号
+        }
+        if (!empty($condition['out_no'])) {
+            $where['a.out_no'] = $condition['out_no'];    //出库单号
+        }
+        if (!empty($condition['waybill_no'])) {
+            $where['a.waybill_no'] = $condition['waybill_no'];    //运单号
+        }
+        if (!empty($condition['show_status'])) {
+            $where['b.show_status'] = $condition['show_status'];    //订单状态
+        }
         $where['a.deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
 
         return $where;
