@@ -1,29 +1,16 @@
 <?php
-<<<<<<< HEAD
-/**
- * name: OrderBuyerContact.php
- * desc: 订单收货人信息模型.
- * User: 郑开强
- * Date: 2017/9/13
- * Time: 11:22
-=======
-
 /**
  * name: OrderAddress.php
  * desc: 订单地址模型.
  * User: 张玉良
  * Date: 2017/9/13
  * Time: 10:59
->>>>>>> 2d8f57322d1f9811c36f2028df378b0426d66cc3
  */
 class OrderAddressModel extends PublicModel {
 
     protected $dbName = 'erui2_order'; //数据库名称
     protected $tableName = 'order_address'; //数据表表名
 
-<<<<<<< HEAD
-}
-=======
     /**
      * 根据条件获取查询条件
      * @param Array $condition
@@ -243,4 +230,4 @@ class OrderAddressModel extends PublicModel {
     }
 
 }
->>>>>>> 2d8f57322d1f9811c36f2028df378b0426d66cc3
+

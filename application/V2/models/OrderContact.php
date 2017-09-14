@@ -29,7 +29,7 @@ class OrderContactModel extends PublicModel {
 		}else{			
 			$insert_id = $contact['id'];
 			unset($data['id'],$data['create_at'],$data['create_by']);
-			$this->save($data,['id'=>$insert_id]);
+			$this->where(['id'=>$insert_id])->save($data);
 			return ['code'=>1,'message'=>'更新成功'];			
 		}		
 	}
