@@ -81,17 +81,18 @@ class OrderModel extends PublicModel {
                     $where['pay_status'] = 'UNPAY';
                     break;
                 case 'part_paid':
-
                     $where['pay_status'] = 'PARTPAY';
                     break;
-
                 case 'payment_completed':
                     $where['pay_status'] = 'PAY';
                     break;
             }
         }
 
-        $this->_getValue($where, $condition, 'contract_date', 'between'); //支付状态
+        $this->_getValue($where, $condition, 'contract_date', 'between'); //签约日期
+        if (isset($condition['buyer_id']) && $condition['buyer_id']) {
+            $where['buyer_id'] = $condition['buyer_id'];
+        }
         if (isset($condition['buyername']) && $condition['buyername']) {
 
             $buyermodel = new BuyerModel();
@@ -115,7 +116,7 @@ class OrderModel extends PublicModel {
 
         $where = $this->_getCondition($condition);
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,order_no,po_no,execute_no,contract_date,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
+        $field = 'id,order_no,po_no,execute_no,contract_date,buyer_id,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
         $field .= ',trans_mode_bn,(select trans_mode from erui2_dict.trans_mode as t where t.bn=trans_mode_bn and t.lang=\'' . $lang . '\') as trans_mode';
         $field .= ',from_country_bn,(select name from erui2_dict.country as t where t.bn=from_country_bn and t.lang=\'' . $lang . '\') as from_country';
         $field .= ',to_country_bn,(select name from erui2_dict.country as t where t.bn=to_country_bn and t.lang=\'' . $lang . '\') as to_country';
