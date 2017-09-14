@@ -58,18 +58,19 @@ class OrderCommentModel extends PublicModel {
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['comment_group'] = 'E';
         $order_model = new OrderModel();
-
         $this->startTrans();
         $orderdata['is_reply'] = 0;
-        $flag = $this->where(['id' => $condition['order_id']])
+        $flag = $order_model->where(['id' => $condition['order_id']])
                 ->save($orderdata);
-        if (!$flag) {
+        if ($flag === false) {
+
             $this->rollback();
             return false;
         }
 
         $flag = $this->add($data);
         if (!$flag) {
+
             $this->rollback();
             return false;
         }

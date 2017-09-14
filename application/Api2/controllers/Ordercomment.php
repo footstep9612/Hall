@@ -107,7 +107,8 @@ class OrdercommentController extends PublicController {
             $this->jsonReturn(null);
         }
 
-
+        $order_model = new OrderModel();
+        $info = $order_model->info($condition['order_id']);
 
         if ($info['show_status'] !== OrderModel::SHOW_STATUS_COMPLETED) {
             $this->setCode(MSG::MSG_FAILED);

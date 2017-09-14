@@ -65,22 +65,23 @@ class OrderCommentModel extends PublicModel {
                 ->find();
         $this->startTrans();
         if ($info['comment_flag'] == 'N') {
-            $orderdata['quality'] = $condition['quality'];
-            $orderdata['distributed'] = $condition['distributed'];
+            $orderdata['quality'] = $condition['quality'] >= 0 && $condition['quality'] <= 5 ? intval($condition['quality']) : 5;
+            $orderdata['distributed'] = $condition['distributed'] >= 0 && $condition['distributed'] <= 5 ? intval($condition['distributed']) : 5;
             $orderdata['comment_flag'] = 'Y';
             $orderdata['is_reply'] = 1;
-            $flag = $this->where(['id' => $condition['order_id']])
+            $flag = $order_model->where(['id' => $condition['order_id']])
                     ->save($orderdata);
-            if (!$flag) {
+            if ($flag === false) {
                 $this->rollback();
+
                 return false;
             }
         } else {
 
             $orderdata['is_reply'] = 1;
-            $flag = $this->where(['id' => $condition['order_id']])
+            $flag = $order_model->where(['id' => $condition['order_id']])
                     ->save($orderdata);
-            if (!$flag) {
+            if ($flag === false) {
                 $this->rollback();
                 return false;
             }
