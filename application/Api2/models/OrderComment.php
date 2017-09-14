@@ -56,21 +56,38 @@ class OrderCommentModel extends PublicModel {
         $data = $this->create($condition);
         $data['created_by'] = defined('UID') ? UID : 0;
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['comment_group'] = 'E';
+        $data['comment_group'] = 'B';
+
+
         $order_model = new OrderModel();
+        $info = $order_model->field('comment_flag')
+                ->where(['id' => $condition['order_id']])
+                ->find();
         $this->startTrans();
-        $orderdata['is_reply'] = 0;
-        $flag = $order_model->where(['id' => $condition['order_id']])
-                ->save($orderdata);
-        if ($flag === false) {
+        if ($info['comment_flag'] == 'N') {
+            $orderdata['quality'] = $condition['quality'] >= 1 && $condition['quality'] <= 5 ? intval($condition['quality']) : 5;
+            $orderdata['distributed'] = $condition['distributed'] >= 1 && $condition['distributed'] <= 5 ? intval($condition['distributed']) : 5;
+            $orderdata['comment_flag'] = 'Y';
+            $orderdata['is_reply'] = 1;
+            $flag = $order_model->where(['id' => $condition['order_id']])
+                    ->save($orderdata);
+            if ($flag === false) {
+                $this->rollback();
 
-            $this->rollback();
-            return false;
+                return false;
+            }
+        } else {
+
+            $orderdata['is_reply'] = 1;
+            $flag = $order_model->where(['id' => $condition['order_id']])
+                    ->save($orderdata);
+            if ($flag === false) {
+                $this->rollback();
+                return false;
+            }
         }
-
         $flag = $this->add($data);
         if (!$flag) {
-
             $this->rollback();
             return false;
         }

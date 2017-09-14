@@ -19,6 +19,13 @@ class OrderModel extends PublicModel {
     protected $tableName = 'order';
     protected $dbName = 'erui2_order'; //数据库名称
 
+    const SHOW_STATUS_UNCONFIRM = 'UNCONFIRM'; // 订单展示状态CONFIRM待确认
+    const SHOW_STATUS_GOING = 'GOING'; // 订单展示状态  GOING.进行中
+    const SHOW_STATUS_COMPLETED = 'COMPLETED'; // 订单展示状态 COMPLETED.已完成
+    const PAY_STATUS_UNCONFIRM = 'UNPAY'; //支付状态 UNPAY未付款
+    const PAY_STATUS_GOING = 'PARTPAY'; //支付状态 PARTPAY部分付款
+    const PAY_STATUS_COMPLETED = 'PAY'; //支付状态  PAY已付款
+
     //状态
 //pay_status status show_status
 
@@ -35,7 +42,7 @@ class OrderModel extends PublicModel {
      */
 
     public function info($order_id, $lang = 'en') {
-        $field = 'id,order_no,po_no,execute_no,contract_date,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
+        $field = 'id,order_no,po_no,execute_no,contract_date,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn,quality,distributed';
         $field .= ',trans_mode_bn,(select trans_mode from erui2_dict.trans_mode as t where t.bn=trans_mode_bn and t.lang=\'' . $lang . '\') as trans_mode';
         $field .= ',from_country_bn,(select name from erui2_dict.country as t where t.bn=from_country_bn and t.lang=\'' . $lang . '\') as from_country';
         $field .= ',to_country_bn,(select name from erui2_dict.country as t where t.bn=to_country_bn and t.lang=\'' . $lang . '\') as to_country';
