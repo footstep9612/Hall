@@ -136,6 +136,58 @@ class CentercreditController extends PublicController {
       }
      * @author klp
      */
+    public function updateAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $BuyerCreditLogModel = new BuyerCreditLogModel();
+        if (!empty($data['buyer_id'])) {
+            $array_data['buyer_id'] = $data['buyer_id'];
+        }else{
+            jsonReturn('', -101, '用户名不可以为空!');
+        }
+        if (!empty($data['credit_granted'])) {
+            $array_data['credit_granted'] = $data['credit_granted'];
+        }else{
+            jsonReturn('', -101, '授信额度不能为空!');
+        }
+        if (!empty($data['in_status'])) {
+            $array_data['in_status'] = $data['in_status'];
+        }else{
+            jsonReturn('', -101, '授信状态不能为空!');
+        }
+        if (!empty($data['checked_at'])) {
+            $array_data['checked_at'] = $data['checked_at'];
+        }
+        if (!empty($data['approved_at'])) {
+            $array_data['approved_at'] = $data['approved_at'];
+        }
+        if (!empty($data['in_remarks'])) {
+            $array_data['in_remarks'] = $data['in_remarks'];
+        }
+        $array_data['checked_by'] = $this->user['id'];
+        $info = $BuyerCreditLogModel->getInfo(['buyer_id' => $data['buyer_id']]);
+        if($info){
+            $result = $BuyerCreditLogModel->update_data($array_data,[ 'buyer_id' => $data['buyer_id'] ]);
+        }else{
+            $result = $BuyerCreditLogModel->create_data($array_data);
+        }
+        if($result!==false){
+            if($array_data['in_status']=='CREDIT_APPROVED'){
+                $buyer_model = new BuyerModel();
+                $buyer_data['line_of_credit'] = $data['credit_granted'];
+                $buyer_data['credit_available'] = $data['credit_granted'];
+                $buyer_where['id'] = $data['buyer_id'];
+                $buyer_model->update_data($buyer_data,$buyer_where);
+            }
+            $datajson['code'] = 1;
+            $datajson['message'] = '成功';
+            //$result = $BuyerCreditLogModel->update($array_data);
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function approvelAction() {
 //        //获取当前用户信息
 //        $userInfo = getLoinInfo();
@@ -161,7 +213,6 @@ class CentercreditController extends PublicController {
         }
         $this->returnInfo($result);
     }
-
     //统一回复调用方法
     function returnInfo($result) {
         if ($result && !empty($result)) {

@@ -37,10 +37,10 @@ class BuyerModel extends PublicModel {
      */
 
     public function getlist($condition = [], $order = " id desc") {
-        $sql = 'SELECT `erui2_sys`.`employee`.`id` as employee_id,`erui2_sys`.`employee`.`name` as employee_name,`erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`erui2_buyer`.`buyer`.`area_bn`,`province`,`city`,`official_email`,';
+        $sql = 'SELECT `erui2_sys`.`employee`.`id` as employee_id,`erui2_sys`.`employee`.`name` as employee_name,`erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_code`,`buyer`.`country_bn`,`erui2_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
         $sql .= '`official_email`,`official_phone`,`official_fax`,`erui2_buyer`.`buyer`.`first_name`,`erui2_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`buyer`.`credit_cur_bn`,`buyer_level`,`credit_level`,';
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
-        $sql .= '`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`';
+        $sql .= '`erui2_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`';
         $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
@@ -48,6 +48,7 @@ class BuyerModel extends PublicModel {
         $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $str .= " left Join `erui2_buyer`.`buyer_credit_log` on `erui2_buyer`.`buyer_credit_log`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $str .= " left Join `erui2_sys`.`employee` as em on `erui2_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` ";
+        $str .= " left Join `erui2_buyer`.`buyer_address` on `erui2_buyer`.`buyer_address`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
         $sql .= $str;
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
@@ -348,7 +349,12 @@ class BuyerModel extends PublicModel {
         if (isset($create['city'])) {
             $data['city'] = $create['city'];
         }
-
+        if (isset($create['line_of_credit'])) {
+            $data['line_of_credit'] = $create['line_of_credit'];
+        }
+        if (isset($create['credit_available'])) {
+            $data['credit_available'] = $create['credit_available'];
+        }
         if (isset($create['brand'])) {
             $data['brand'] = $create['brand'];
         }

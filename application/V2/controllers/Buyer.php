@@ -86,7 +86,7 @@ class BuyerController extends PublicController {
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }
-        if (!empty($data['currentPage'])) {
+        if (!empty($data['currentPage'])){
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }
         if (!empty($data['credit_checked_name'])) {
@@ -349,7 +349,6 @@ class BuyerController extends PublicController {
 
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
@@ -443,5 +442,22 @@ class BuyerController extends PublicController {
             );
         }
     }
-
+//    public function creditAction() {
+//        $data = json_decode(file_get_contents("php://input"), true);
+//        $role_user = new RoleUserModel();
+//            $where['user_id'] = $this->user['id'];
+//            $data = $role_user->getRoleslist($where);
+//            $datajson = array(
+//                'code' => 1,
+//                'message' => '数据获取成功',
+//                'data' => $data
+//            );
+//            jsonReturn($datajson);
+//        } else {
+//            $datajson = array(
+//                'code' => -104,
+//                'message' => '用户验证失败',
+//            );
+//        }
+//    }
 }

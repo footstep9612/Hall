@@ -56,7 +56,7 @@ class OrderLogModel extends PublicModel {
         return $this->field('content,log_at,log_group,out_no,waybill_no,amount'
                                 . ',type,order_address_id,log_id,order_id')
                         ->where(['order_id' => $order_id, 'deleted_flag' => 'N'])
-                        ->order('log_at ASC')->select();
+                        ->order('log_at ASC,id ASC')->select();
     }
 
 }
