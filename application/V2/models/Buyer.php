@@ -281,6 +281,13 @@ class BuyerModel extends PublicModel {
                     ->find();
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
+            $sql_address = "SELECT `address` FROM erui2_buyer.buyer_address where  buyer_id = " . $data['id'] ." limit 1";
+            $address = $this->query($sql_address);
+            if ($address) {
+                $buyerInfo['address'] = $address[0]['address'];
+            }else{
+                $buyerInfo['address'] = null;
+            }
             if ($row) {
                 $buyerInfo['attach'] = $row[0];
             }
