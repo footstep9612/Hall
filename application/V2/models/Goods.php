@@ -1258,47 +1258,9 @@ class GoodsModel extends PublicModel {
         $objSheet->setCellValue("AG1", "境内货源地");
         $objSheet->setCellValue("AG2", "境内货源地");
 
-        //以下测试数据
-        $objSheet->setCellValue("B3", "1");
-        $objSheet->setCellValue("C3", "SPU000002");
-        $objSheet->setCellValue("D3", "");
-        $objSheet->setCellValue("E3", "我是ｓｋｕ名称");
-        $objSheet->setCellValue("F3", "我是展示名称");
-        $objSheet->setCellValue("G3", "我是型号");
-        $objSheet->setCellValue("H3", "<p>我是商品描述</p>");
-        $objSheet->setCellValue("I3", "1");
-        $objSheet->setCellValue("J3", "2");
-        $objSheet->setCellValue("K3", "个");
-        $objSheet->setCellValue("L3", "个");
-        //$objSheet->setCellValue("M1", "包装数量");
-        //$objSheet->setCellValue("M2", "Package Quantity");
-        $objSheet->setCellValue("M3", "3");
-        $objSheet->setCellValue("N3", "4");
-        $objSheet->setCellValue("O3", "RMB");
-
-        $objSheet->setCellValue("P1", "物流信息");
-        $objSheet->setCellValue("Q3", "5");
-        $objSheet->setCellValue("R3", "6");
-        $objSheet->setCellValue("S3", "7");
-        $objSheet->setCellValue("T3", "8");
-        $objSheet->setCellValue("U3", "9");
-        $objSheet->setCellValue("V3", "10");
-        $objSheet->setCellValue("W3", "90");
-        $objSheet->setCellValue("X3", "100");
-        $objSheet->setCellValue("Y3", "我是仓储运输包装及其他要求");
-        $objSheet->setCellValue("Z3", "我是包装类型");
-        $objSheet->setCellValue("AA3", "我是申报要素");
-        $objSheet->setCellValue("AB3", "我是报关中文品名");
-        $objSheet->setCellValue("AC3", "我是海关编码");
-        $objSheet->setCellValue("AD3", "个");
-        $objSheet->setCellValue("AE3", "5");
-        $objSheet->setCellValue("AF3", "我是监管条件");
-        $objSheet->setCellValue("AG3", "我是境内货源地");
-
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, time().'.xls');
 
-        //return $localDir ? $localDir : '';
         if($localDir){    //fastDFS
             $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
             ZipHelper::zipDir($localDir ,$zipName);
@@ -1310,10 +1272,11 @@ class GoodsModel extends PublicModel {
                 $url = $server. '/V2/Uploadfile/upload';
                 $data['tmp_name']=$zipName;
                 $data['type']='application/excel';
-                $data['name']=$zipName;
+                $data['name']=pathinfo($zipName,PATHINFO_BASENAME);
                 $fileId = postfile($data,$url);
                 if($fileId){
-                    return array('url'=>$fileId);
+                    unlink($zipName);
+                    return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
                 }
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
                 return false;
@@ -1326,22 +1289,24 @@ class GoodsModel extends PublicModel {
     }
 
     /**
-     * 导入
+     * 导入(单语言单条)
+     * Usage:
+     *  $data_input=>[
+     *      {
+     *          "url":"http://172.18.18.196:85/group1/M00/00/1D/rBISxFm7jbeAV_j1AAAaADTGVyM597.xls",
+     *           "lang":"zh"
+     *       }
+     *   ]
      */
     public function import($data_input = []){
-        $data_input =array(
-            array('url','lang'=>'en'),
-            array('url','lang'=>'zh')
-        );
-
         $this->startTrans();
         try {
             $sku = $this->setupSku();
             $userInfo = getLoinInfo();
             foreach($data_input as $xls) {
                 //下载到本地临时文件
-                //$localFile = ExcelHelperTrait::download2local($xls['url']);
-                $localFile = MYPATH . '/public/tmp/1504663842.xls';
+                $localFile = ExcelHelperTrait::download2local($xls['url']);
+                //$localFile = MYPATH . '/public/tmp/1504663842.xls';
                 $data = ExcelHelperTrait::ready2import( $localFile );
                 if ( empty( $data ) || empty( $r = $data[ 2 ] ) ) {
                     continue;
@@ -1427,8 +1392,8 @@ class GoodsModel extends PublicModel {
         }
 
         //下载到本地临时文件
-        //$localFile = ExcelHelperTrait::download2local($url);
-        $localFile = MYPATH . '/public/tmp/skus.zip';
+        $localFile = ExcelHelperTrait::download2local($url);
+        //$localFile = MYPATH . '/public/tmp/skus.zip';
 
         $pathInfo = ( pathinfo($localFile) );
         if (strtolower($pathInfo['extension']) != 'zip') {
@@ -1593,7 +1558,7 @@ class GoodsModel extends PublicModel {
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
 
-        $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh','en','es','ru');
+        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? array($input['lang']) : array('zh','en','es','ru');
         $userInfo = getLoinInfo();
         $userModel = new UserModel();
 
@@ -1642,7 +1607,6 @@ class GoodsModel extends PublicModel {
                 unset($time_ary);
             }
             do{
-                //echo memory_get_usage()."<br>";
                 $field = 'spu,sku,name,model,show_name,description,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail,status,created_by,created_at';
                 $result = $this->field($field)->where($condition)->limit($i*$length, $length)->select();
                 $count = count($result);
@@ -1778,7 +1742,7 @@ class GoodsModel extends PublicModel {
                         $objPHPExcel->getActiveSheet(0)->setCellValue("AI".$j, $r['created_at']);
 
                         $j++;
-                        if($j > 1002){    //2000条
+                        if($j > 2002){    //2000条
                             //保存文件
                             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
                             $objWriter->save($dirName.'/'.$lang .'_'.$num.'.xls');
@@ -1814,10 +1778,10 @@ class GoodsModel extends PublicModel {
             $url = $server. '/V2/Uploadfile/upload';
             $data['tmp_name']=$dirName.'.zip';
             $data['type']='application/excel';
-            $data['name']=$dirName;
+            $data['name']=pathinfo($dirName.'.zip',PATHINFO_BASENAME);
             $fileId = postfile($data,$url);
             if($fileId){
-                return array('url'=>$fileId['url']);
+                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
             return false;
@@ -1844,7 +1808,7 @@ class GoodsModel extends PublicModel {
             }
         }
 
-        $lang_ary = isset($input['lang']) ? array($input['lang']) : array('en','es','ru');
+        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? array($input['lang']) : array('en','es','ru');
         $titles = array(    //定义标题
             'zh'=>array(
                 'num' => '序号',
@@ -1931,7 +1895,7 @@ class GoodsModel extends PublicModel {
                     foreach ($result as $r) {
                         if(!isset($fhandle) || !$fhandle) {
                             $fhandle = fopen($dirName. '/'.$lang.'_'.$num.'.csv','w');
-                            $titles[$lang] = ZipHelper::toGbk(empty($titles[$lang]) ? $titles['zh'] : $titles[$lang]);
+                            $titles[$lang] = toGbk(empty($titles[$lang]) ? $titles['zh'] : $titles[$lang]);
                             fputcsv($fhandle,$titles[$lang]);
                             unset($title);
                         }
@@ -2000,10 +1964,11 @@ class GoodsModel extends PublicModel {
             $url = $server. '/V2/Uploadfile/upload';
             $data['tmp_name']=$dirName.'.zip';
             $data['type']='application/excel';
-            $data['name']=$dirName;
+            $data['name']=pathinfo($dirName.'.zip',PATHINFO_BASENAME);
             $fileId = postfile($data,$url);
             if($fileId){
-                return array('url'=>$fileId);
+                unlink($dirName.'.zip');
+                return array('url'=>$fastDFSServer.$fileId['url'] , 'name'=>$fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
             return false;

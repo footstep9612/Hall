@@ -534,7 +534,7 @@ class GoodsController extends PublicController {
      */
     public function exportAction() {
         $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->export();
+        $localDir = $goodsModel->export($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
         } else {
@@ -547,7 +547,7 @@ class GoodsController extends PublicController {
      */
     public function exportCsvAction(){
         $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->exportCsv();
+        $localDir = $goodsModel->exportCsv($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
         } else {
@@ -559,8 +559,12 @@ class GoodsController extends PublicController {
      * 导入
      */
     public function importAction(){
+        if (empty($this->put_data['xls'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+
         $goodsModel = new GoodsModel();
-        $localDir =$goodsModel ->import();
+        $localDir =$goodsModel ->import($this->put_data['xls']);
         if($localDir){
             jsonReturn($localDir);
         }else{
@@ -580,7 +584,6 @@ class GoodsController extends PublicController {
      * --- --- es.xls
      */
     public function zipImportAction(){
-        $this->put_data['xls'] =1;    //测试
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
