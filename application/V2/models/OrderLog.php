@@ -189,7 +189,7 @@ class OrderLogModel extends PublicModel {
             $where['a.log_group'] = $condition['log_group'];
         }
 
-        $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.order_no,b.po_no,b.execute_no,b.buyer_id';
+        $field = 'a.id,a.order_id,a.log_group,a.content,a.out_no,a.waybill_no,a.log_at,a.amount,a.type,a.log_id,b.order_no,b.po_no,b.execute_no,b.buyer_id';
 
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
         $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
