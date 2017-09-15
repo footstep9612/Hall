@@ -33,16 +33,17 @@ trait ZipHelper{
      * @param string $folder 要压缩的目录
      * @param Ziparchive $zip
      */
-    public static function folderToZip($folder,&$zip,$exclusiveLength){
+    public static function folderToZip($folder,&$zip,$exclusiveLength,$newDir=''){
         $handle = opendir($folder);
         while(false !== $f = readdir($handle)) {
             if($f != '.' && $f != '..'){
                 $filePath = "$folder/$f";
                 if(is_file($filePath)){
+                    $f = $newDir=='' ? $f : $newDir.$f;
                     $zip->addFile($filePath,$f);
                 }elseif(is_dir($filePath)){
                     $zip->addEmptyDir(substr($filePath, $exclusiveLength));
-                    self::folderToZip($filePath,$zip,$exclusiveLength);
+                    self::folderToZip($filePath,$zip,$exclusiveLength,$newDir.substr($filePath, $exclusiveLength).'/');
                 }
             }
         }
