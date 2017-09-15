@@ -229,20 +229,20 @@ class OrderlogController extends PublicController{
             $buyerinfo = $buyer->field('line_of_credit,credit_available,credit_cur_bn')->where('id='.$data['buyer_id'])->find();
 
 
-            if($info['type'] == $data['type']){ //如果类型相同
+            if($info['data']['type'] == $data['type']){ //如果类型相同
                 if($data['type'] == 'SPENDING'){    //支出
-                    $creditavailable = $buyerinfo['credit_available'] + $info['amount'];
+                    $creditavailable = $buyerinfo['credit_available'] + $info['data']['amount'];
                     $creditavailable = $creditavailable - $data['amount'];
                 }else{  //还款
-                    $creditavailable = $buyerinfo['credit_available'] - $info['amount'];
+                    $creditavailable = $buyerinfo['credit_available'] - $info['data']['amount'];
                     $creditavailable = $creditavailable + $data['amount'];
                 }
             }else{  //如果类型不同
                 if($data['type'] == 'SPENDING'){    //支出
-                    $creditavailable = $buyerinfo['credit_available'] - $info['amount'];
+                    $creditavailable = $buyerinfo['credit_available'] - $info['data']['amount'];
                     $creditavailable = $creditavailable - $data['amount'];
                 }else{  //还款
-                    $creditavailable = $buyerinfo['credit_available'] + $info['amount'];
+                    $creditavailable = $buyerinfo['credit_available'] + $info['data']['amount'];
                     $creditavailable = $creditavailable + $data['amount'];
                 }
             }
@@ -310,9 +310,9 @@ class OrderlogController extends PublicController{
             $creditinfo = $OrderLog->getInfo($where);
             //判断是
             if($creditinfo['type'] == 'SPENDING'){
-                $credit_available = $buyerinfo['credit_available']+$creditinfo['amount'];  //支出就加回去
+                $credit_available = $buyerinfo['credit_available']+$creditinfo['data']['amount'];  //支出就加回去
             }else{
-                $credit_available = $buyerinfo['credit_available']-$creditinfo['amount'];  //还款就减去
+                $credit_available = $buyerinfo['credit_available']-$creditinfo['data']['amount'];  //还款就减去
             }
 
             $OrderLog->startTrans();
@@ -408,6 +408,18 @@ class OrderlogController extends PublicController{
             $results['message'] = '没有订单ID或流程ID!';
             $this->jsonReturn($results);
         }
+    }
 
+    /*
+     * 工作流程附件列表
+     * Author:张玉良
+     */
+    public function getLogListAction() {
+        $orderlog = new OrderLogModel();
+        $where = $this->put_data;
+
+        $results = $orderlog->getBuyerLogList($where);
+
+        $this->jsonReturn($results);
     }
 }
