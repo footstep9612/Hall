@@ -185,6 +185,9 @@ class OrderLogModel extends PublicModel {
         if(!empty($condition['order_id'])) {
             $where['a.order_id'] = $condition['order_id'];
         }
+        if(!empty($condition['log_group'])) {
+            $where['a.log_group'] = $condition['log_group'];
+        }
 
         $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.order_no,b.po_no,b.execute_no,b.buyer_id';
 
