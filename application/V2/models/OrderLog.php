@@ -12,6 +12,52 @@ class OrderLogModel extends PublicModel {
     protected $tableName = 'order_log'; //数据表表名
 
     /**
+     * 组合数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    protected function createData($condition = []){
+        if (!empty($condition['order_id'])) {
+            $data['order_id'] = $condition['order_id'];    //订单ID
+        }
+        if (!empty($condition['log_group'])) {
+            $data['log_group'] = $condition['log_group'];    //工作分组
+        }
+        if (!empty($condition['log_id'])) {
+            $data['log_id'] = $condition['log_id'];  //上级工作流ID
+        }
+        if (!empty($condition['content'])) {
+            $data['content'] = $condition['content'];    //内容
+        }
+        if (!empty($condition['log_at'])) {
+            $data['log_at'] = $condition['log_at'];    //时间
+        }
+        if (!empty($condition['out_no'])) {
+            $data['out_no'] = $condition['out_no'];  //出库编号
+        }
+        if (!empty($condition['waybill_no'])) {
+            $data['waybill_no'] = $condition['waybill_no'];    //运单号
+        }
+        if (!empty($condition['amount'])) {
+            $data['amount'] = $condition['amount'];    //金额
+        }
+        if (!empty($condition['type'])) {
+            $data['type'] = $condition['type'];  //类型
+        }
+        if (!empty($condition['order_address_id'])) {
+            $data['order_address_id'] = $condition['order_address_id'];  //订单地址id
+        }
+        if (!empty($condition['created_by'])) {
+            $data['created_by'] = $condition['created_by'];  //创建人
+        }
+        if (!empty($condition['deleted_flag'])) {
+            $data['deleted_flag'] = $condition['deleted_flag'];  //是否删除
+        }
+        return $data;
+    }
+
+    /**
      * 获取查询条件
      * @param Array $condition
      * @return Array
@@ -215,7 +261,7 @@ class OrderLogModel extends PublicModel {
             return $results;
         }
 
-        $data = $this->create($condition);
+        $data = $this->createData($condition);
         $data['created_at'] = $this->getTime();
 
         try {
@@ -250,7 +296,7 @@ class OrderLogModel extends PublicModel {
             $results['message'] = '没有流程ID!';
             return $results;
         }
-        $data = $this->create($condition);
+        $data = $this->createData($condition);
 
         try {
             $id = $this->where($where)->save($data);
