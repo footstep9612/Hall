@@ -816,8 +816,9 @@ class ProductModel extends PublicModel {
      */
     public function export($input=[]) {
         set_time_limit(0);  # 设置执行时间最大值
+        @ini_set("memory_limit", "1024M"); // 设置php可使用内存
 
-        $lang_ary = array('zh','en','es','ru');
+        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? $input['lang'] : array('zh','en','es','ru');
         $userInfo = getLoinInfo();
         $pModel = new ProductModel();
 
@@ -839,6 +840,7 @@ class ProductModel extends PublicModel {
             foreach ($column_width_25 as $column) {
                 $objSheet->getColumnDimension($column)->setWidth(25);
             }
+            $objPHPExcel->getActiveSheet(0)->getStyle('B')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
 
             $objSheet->setTitle($lang);
             $objSheet->setCellValue("A1", "序号");
@@ -853,6 +855,7 @@ class ProductModel extends PublicModel {
             $objSheet->setCellValue("J1", "质保期");
             $objSheet->setCellValue("K1", "关键字");
             $objSheet->setCellValue("L1", "审核状态");
+
 
             $i = 0;    //用来控制分页查询
             $j = 2;    //excel控制输出
@@ -886,7 +889,7 @@ class ProductModel extends PublicModel {
                 if ($result) {
                     foreach ($result as $r) {
                         $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
-                        $objSheet->setCellValue("B" . $j, $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objSheet->setCellValue("B" . $j, ' '.$r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
                         $objSheet->setCellValue("C" . $j, $r['name']);
                         $objSheet->setCellValue("D" . $j, $r['show_name']);
                         $objSheet->setCellValue("E" . $j, $r['material_cat_no']);
@@ -930,6 +933,7 @@ class ProductModel extends PublicModel {
 
         $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
         ZipHelper::zipDir($localDir ,$zipName);
+
         if(file_exists($zipName)){
             unlink($localDir);   //清除文件
             //把导出的文件上传到文件服务器上
@@ -938,10 +942,11 @@ class ProductModel extends PublicModel {
             $url = $server. '/V2/Uploadfile/upload';
             $data['tmp_name']=$zipName;
             $data['type']='application/excel';
-            $data['name']=$zipName;
+            $data['name']= pathinfo($zipName,PATHINFO_BASENAME);
             $fileId = postfile($data,$url);
             if($fileId){
-                return array('url'=>$fileId);
+                unlink($zipName);
+                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
             return false;
@@ -949,7 +954,6 @@ class ProductModel extends PublicModel {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$zipName.' 打包失败', Log::INFO);
             return false;
         }
-
     }
 
     /**
@@ -974,8 +978,8 @@ class ProductModel extends PublicModel {
                 }
 
                 //下载到本地临时文件
-                //$localFile = ExcelHelperTrait::download2local($xls['url']);
-                $localFile = MYPATH . '/public/tmp/1504073110.xls';
+                $localFile = ExcelHelperTrait::download2local($xls['url']);
+                //$localFile = MYPATH . '/public/tmp/1504073110.xls';
                 $data = ExcelHelperTrait::ready2import($localFile);
                 array_shift($data);
 
@@ -986,7 +990,7 @@ class ProductModel extends PublicModel {
                 $data_tmp = [];
                 $data_tmp['spu'] = $spu;    //生成spu
                 $data_tmp['lang'] = $xls['lang'];
-                $data_tmp['name'] = $r[2];    //名称
+                $data_tmp['name'] = trim($r[2]);    //名称
                 $data_tmp['show_name'] = $r[3];    //展示名称
                 //$catNo = $mcatModel->getCatNoByName($r[5] , 'eq');
                 //$data_tmp['material_cat_no'] = ($catNo && $catNo[0]['level_no']==3) ? $catNo[0]['cat_no'] : null;    //物料分类
@@ -996,7 +1000,7 @@ class ProductModel extends PublicModel {
                     'brand' => array('like', '%' . $r[5] . '%')
                 );
                 $brand_id = $brandModel->Exist($condition_brand);
-                $data_tmp['brand'] = $brand_id ? json_encode(array('id' => $brand_id, 'name' => $r[5]), JSON_UNESCAPED_UNICODE) : null;    //品牌
+                $data_tmp['brand'] = $brand_id ? json_encode(array('id' => $brand_id, 'name' => $r[5]), JSON_UNESCAPED_UNICODE) : json_encode(array('name'=>$r[5],'lang'=>$xls['lang']),JSON_UNESCAPED_UNICODE);    //品牌
 
                 /**
                  * 根据lang 品牌查询name是否存在
@@ -1047,8 +1051,8 @@ class ProductModel extends PublicModel {
         }
 
         //下载到本地临时文件
-        //$localFile = ExcelHelperTrait::download2local($url);
-        $localFile = MYPATH . '/public/tmp/tmp.zip';
+        $localFile = ExcelHelperTrait::download2local($url);
+        //$localFile = MYPATH . '/public/tmp/tmp.zip';
 
         $pathInfo = ( pathinfo($localFile) );
         if (strtolower($pathInfo['extension']) != 'zip') {
@@ -1169,6 +1173,8 @@ class ProductModel extends PublicModel {
                             }
                         }
                     }
+                    $zip->close();
+                    ZipHelper::removeDir($tmpDir);
                     return array(
                         'sucess' => $sucess,
                         'succes_lang' => $sucess_lang,
@@ -1217,7 +1223,7 @@ class ProductModel extends PublicModel {
             $i = 0;    //用来控制分页查询
             $j = 2;    //excel控制输出
             $l = 0;
-            $length = 20;
+            $length = 100;
             //$objPHPExcel = null;
 
             $condition = array('product.lang' => $lang);
@@ -1272,6 +1278,7 @@ class ProductModel extends PublicModel {
                             foreach ($column_width_25 as $column) {
                                 $objPHPExcel->getActiveSheet(0)->getColumnDimension($column)->setWidth(25);
                             }
+                            $objPHPExcel->getActiveSheet(0)->getStyle('B')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
 
                             $objPHPExcel->getActiveSheet(0)->setTitle($lang);
                             $objPHPExcel->getActiveSheet(0)->setCellValue("A1", "序号");
@@ -1290,7 +1297,7 @@ class ProductModel extends PublicModel {
                         }
 
                         $objPHPExcel->getActiveSheet(0)->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("B" . $j, $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("B" . $j, ' '.$r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("C" . $j, $r['name']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("D" . $j, $r['show_name']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("E" . $j, $r['material_cat_no']);
@@ -1363,10 +1370,11 @@ class ProductModel extends PublicModel {
             $url = $server. '/V2/Uploadfile/upload';
             $data['tmp_name']=$dirName.'.zip';
             $data['type']='application/excel';
-            $data['name']=$dirName;
+            $data['name']=pathinfo($dirName.'.zip',PATHINFO_BASENAME);
             $fileId = postfile($data,$url);
             if($fileId){
-                return array('url'=>$fileId);
+                unlink($dirName.'.zip');
+                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
             return false;
