@@ -98,6 +98,9 @@ class BuyerController extends PublicController {
         if (!empty($data['line_of_credit_max'])) {
             $where['line_of_credit_max'] = $data['line_of_credit_max'];
         }
+        if (!empty($data['credit_status'])) {
+            $where['credit_status'] = $data['credit_status'];
+        }
         $model = new BuyerModel();
         $data = $model->getlist($where);
         if (!empty($data)) {
@@ -237,6 +240,8 @@ class BuyerController extends PublicController {
         if (!empty($data['address'])) {
             $buyer_address_data['address'] = $data['address'];
         }
+
+
         $arr['created_by'] = $this->user['id'];
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();

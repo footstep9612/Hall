@@ -91,63 +91,50 @@ class BuyercontactController extends PublicController {
         } else {
             $this->jsonReturn(array("code" => "-101", "message" => "id不能为空"));
         }
-        if (!empty($data['name'])) {
-            $arr['name'] = $data['name'];
-        }
-        if (!empty($data['bn'])) {
-            $arr['bn'] = $data['bn'];
-        }
-        if (!empty($data['province'])) {
-            $arr['province'] = $data['province'];
-        }
-        if (!empty($data['country_code'])) {
-            $arr['country_code'] = $data['country_code'];
-        }
-        if (!empty($data['country_bn'])) {
-            $arr['country_bn'] = $data['country_bn'];
-        }
-        if (!empty($data['first_name'])) {
+        if(isset($data['first_name'])){
             $arr['first_name'] = $data['first_name'];
         }
-        if (!empty($data['last_name'])) {
+        if(isset($data['last_name'])){
             $arr['last_name'] = $data['last_name'];
         }
-        if (!empty($data['email'])) {
-            $arr['official_email'] = $data['email'];
+        if(isset($data['gender'])){
+            $arr['gender'] = $data['gender'];
         }
-        if (!empty($data['mobile'])) {
-            $arr['official_phone'] = $data['mobile'];
+        if(isset($data['title'])){
+            $arr['title'] = $data['title'];
         }
-        if (!empty($data['buyer_level'])) {
-            $arr['buyer_level'] = $data['buyer_level'];
+        if(isset($data['phone'])){
+            $arr['phone'] = $data['phone'];
         }
-        if (!empty($data['remarks'])) {
+        if(isset($data['email'])){
+            $arr['email'] = $data['email'];
+        }
+        if(isset($data['remarks'])){
             $arr['remarks'] = $data['remarks'];
         }
-        if (!empty($data['area_bn'])) {
-            $arr['area_bn'] = $data['area_bn'];
+        if(isset($data['fax'])){
+            $arr['fax'] =$data['fax'];
         }
-        if (!empty($data['status'])) {
-            $arr['status'] = $data['status'];
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
-                $arr['checked_by'] = $this->user['id'];
-                $arr['checked_at'] = Date("Y-m-d H:i:s");
-            }
+        if(isset($data['country_code'])){
+            $arr['country_code'] =$data['country_code'];
         }
-        $model = new BuyerModel();
+        if(isset($data['country_bn'])){
+            $arr['country_bn'] =$data['country_bn'];
+        }
+        if(isset($data['province'])){
+            $arr['province'] =$data['province'];
+        }
+        if(isset($data['city'])){
+            $arr['city'] =$data['city'];
+        }
+        if(isset($data['address'])){
+            $arr['address'] =$data['address'];
+        }
+        if(isset($data['zipcode'])){
+            $arr['zipcode'] =$data['zipcode'];
+        }
+        $model = new BuyercontactModel();
         $res = $model->update_data($arr, $where);
-        $buyer_account_model = new BuyerAccountModel();
-        if (!empty($data['password'])) {
-            $arr_account['password_hash'] = $data['password'];
-            $buyer_account_model->update_data($arr_account, $where_account);
-        }
-        $buyer_attach_model = new BuyerattachModel();
-        if (!empty($data['attach_url'])) {
-            $where_attach['attach_url'] = $data['attach_url'];
-            $buyer_attach_model->update_data($where_attach);
-        }
-        $model = new UserModel();
-        $model->update_data($arr, $where);
         if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = '成功';
