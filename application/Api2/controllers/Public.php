@@ -136,7 +136,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected function _setUid($userinfo) {
         if (!defined('UID') && $userinfo) {
-            define('UID', $userinfo["id"]);
+            define('UID', $userinfo["buyer_id"]);
         }
     }
 
