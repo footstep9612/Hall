@@ -408,6 +408,18 @@ class OrderlogController extends PublicController{
             $results['message'] = '没有订单ID或流程ID!';
             $this->jsonReturn($results);
         }
+    }
 
+    /*
+     * 工作流程附件列表
+     * Author:张玉良
+     */
+    public function getLogListAction() {
+        $orderlog = new OrderLogModel();
+        $where = $this->put_data;
+
+        $results = $orderlog->getBuyerLogList($where);
+
+        $this->jsonReturn($results);
     }
 }
