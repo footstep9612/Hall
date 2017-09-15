@@ -44,6 +44,27 @@ class OrderController extends PublicController {
         $send = $this->saveOrder($data);
         $this->jsonReturn($send);
     }
+	
+	/* 订单全部收款完成
+     * @author  zhengkq
+     * @date    2017-8-1 17:50:09
+     * @param int $order_id // 订单ID
+     * @return array
+     */
+    public function doneAction(){
+        $data = $this->getPut(); 
+        $data = file_get_contents('php://input');
+        $data = @json_decode($data,true);        
+        if(isset($data['id']) && $data['id'] >0){
+			$id = intval($data['id']);
+			$orderModel = new OrderModel();
+			$ret = $orderModel->where(['id'=>$id])->setField(['show_status'=>'COMPLETED','pay_status'=>'PAY']);
+			$this->jsonReturn(['code'=>1,'message'=>'处理完成']);
+		}else{
+			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
+		}
+        $this->jsonReturn($send);
+    }
     
     /* 获取订单详情基本信息
      * @author  zhengkq
@@ -67,6 +88,9 @@ class OrderController extends PublicController {
 					 '`from_country_bn`,`from_port_bn`,`to_country_bn`,`to_port_bn`,'.
 					 '`address`,`status`,`show_status`,`pay_status`';
 			$info = $orderModel->where(['id'=>$id])->field($field)->find();
+			if(empty($info)){
+				$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
+			}
 			//获取客户名称
 			$buyerModel = new BuyerModel();
 			$buyerInfo = $buyerModel->where(['id'=>$info['buyer_id']])->getField('name');
@@ -233,7 +257,7 @@ class OrderController extends PublicController {
         $order['address']         = $this->safeString($data['address']);//地址    
         $order['order_contact_id']= intval($data['order_contact_id']);
         $order['buyer_contact_id']= intval($data['buyer_contact_id']);
-        
+        $order['pay_status']= 'GOING';
         $orderModel = new OrderModel();
         
         //开始执行保存        
