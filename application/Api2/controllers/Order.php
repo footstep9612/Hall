@@ -36,10 +36,12 @@ class OrderController extends PublicController {
         $oder_moder = new OrderModel();
         $info = $oder_moder->info($order_id);
         if ($info) {
-            if ($info['buyer_id'] != $this->user['id']) {
+
+
+            if ($info['buyer_id'] != $this->user['buyer_id']) {
                 $this->setCode(MSG::MSG_FAILED);
-                $this->setMessage('该订单不是你发布的!');
-                $this->jsonReturn(null);
+
+                $this->jsonReturn($this->user);
             }
             $info['show_status_text'] = $oder_moder->getShowStatus($info['show_status']);
             $info['pay_status_text'] = $oder_moder->getPayStatus($info['pay_status']);
