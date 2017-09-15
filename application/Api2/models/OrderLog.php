@@ -67,7 +67,6 @@ class OrderLogModel extends PublicModel {
      */
     public function CerditList($userInfo,$start_no,$pagesize) {
 
-        $userInfo['buyer_id']=135;//测试
         if(empty($userInfo['buyer_id'])){
             jsonReturn('',-1001,'用户ID缺失!');
         }
@@ -81,6 +80,7 @@ class OrderLogModel extends PublicModel {
             $orders = $orderModel->alias('od')
                 ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
                 ->where($where)
+                ->limit($start_no,$pagesize)
                 ->select();
             $count = $orderModel->alias('od')
                 ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
