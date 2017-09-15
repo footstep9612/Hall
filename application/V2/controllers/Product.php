@@ -491,4 +491,17 @@ class ProductController extends PublicController {
         }
     }
 
+    /**
+     * 导出上下架
+     */
+    public function exportShelfAction() {
+        $productModel = new ProductModel();
+        $localDir = $productModel->exportShelf();
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
 }

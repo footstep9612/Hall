@@ -530,6 +530,32 @@ class GoodsController extends PublicController {
     }
 
     /**
+     * 产品导出
+     */
+    public function exportAction() {
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->export();
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 产品导出csv
+     */
+    public function exportCsvAction(){
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->exportCsv();
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
      * 导入
      */
     public function importAction(){
