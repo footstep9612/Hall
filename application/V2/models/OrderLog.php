@@ -169,6 +169,60 @@ class OrderLogModel extends PublicModel {
     }
 
     /**
+     * 获取列表
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function getBuyerLogList($condition = []) {
+        if(!empty($condition['buyer_id'])) {
+            $where['b.buyer_id'] = $condition['buyer_id'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有客户id!';
+            return $results;
+        }
+        if(!empty($condition['order_id'])) {
+            $where['a.order_id'] = $condition['order_id'];
+        }
+
+        $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.order_no,b.po_no,b.execute_no,b.buyer_id';
+
+        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
+        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+
+        try {
+            $count = $this->alias('a')
+                ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                ->where($where)
+                ->count('a.id');
+
+            $list = $this->alias('a')
+                ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                ->field($field)
+                ->where($where)
+                ->page($page, $pagesize)
+                ->order('a.created_at asc')
+                ->select();
+
+            if($list){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+                $results['count'] = $count;
+                $results['data'] = $list;
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
      * 获取物流列表
      * @param Array $condition
      * @return Array
@@ -186,7 +240,7 @@ class OrderLogModel extends PublicModel {
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
         $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
-        $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no';
+        $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no,b.buyer_id';
 
         try {
             $count = $this->getCount($condition);
@@ -300,12 +354,12 @@ class OrderLogModel extends PublicModel {
 
         try {
             $id = $this->where($where)->save($data);
-            if($id){
-                $results['code'] = '1';
-                $results['message'] = '成功！';
-            }else{
+            if($id === false){
                 $results['code'] = '-101';
                 $results['message'] = '修改失败!';
+            }else{
+                $results['code'] = '1';
+                $results['message'] = '成功！';
             }
             return $results;
         } catch (Exception $e) {
