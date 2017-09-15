@@ -47,7 +47,7 @@ class OrderController extends PublicController {
 	
 	/* 订单全部收款完成
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-9-15 17:26:09
      * @param int $order_id // 订单ID
      * @return array
      */
@@ -266,9 +266,11 @@ class OrderController extends PublicController {
             if(isset($data['order_no']) && !empty($data['order_no']) ){
                 $order_no = trim($data['order_no']);
                 $info = $orderModel->where(['order_no'=>$order_no])->find();
-                if(empty($info) || $order_no != $info['order_no']){
+                if(empty($info)){
                     return ['code'=>-105,'参数传递错误'];
-                }                
+                }elseif($info['show_status'] == 'COMPLETED'){
+					$this->jsonReturn(['code'=>-101,'message'=>'订单已完成，禁止修改']);
+				}
                 $ret = $orderModel->where(['id'=>$info['id']])->save($order);
                 if($ret === false){
                     return ['code'=>-106,'更新订单信息失败'.$ret.$orderModel->getError()];
