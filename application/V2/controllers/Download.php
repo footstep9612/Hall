@@ -64,7 +64,8 @@ class DownloadController extends PublicController{
         //$fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server. '/V2/Uploadfile/upload';
         $data['tmp_name']=$localFile;
-        $data['type']='application/vnd.ms-excel';
+        //$data['type']='application/vnd.ms-excel';
+        $data['type']=mime_content_type($localFile);
         $data['name']='excelFile';
         $excel = new ExcelmanagerController();
         $result = $excel->postfile($data,$url);
@@ -151,6 +152,7 @@ class DownloadController extends PublicController{
 
         //保存文件
         ob_end_clean();
+        ob_start();
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $fileName = "BL_".date('Ymd-His'). '.xls';
         $fullFileName = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/".$fileName;
