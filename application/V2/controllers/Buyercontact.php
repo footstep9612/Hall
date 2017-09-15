@@ -28,6 +28,18 @@ class BuyercontactController extends PublicController {
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
         }
+        if (!empty($data['first_name'])) {
+            $where['first_name'] = $data['first_name'];
+        }
+        if (!empty($data['last_name'])) {
+            $where['last_name'] = $data['last_name'];
+        }
+        if (!empty($data['country_bn'])) {
+            $where['country_bn'] = $data['country_bn'];
+        }
+        if (!empty($data['area_bn'])) {
+            $where['area_bn'] = $data['area_bn'];
+        }
         $model = new BuyercontactModel();
         $data = $model->getlist($where);
         if (!empty($data)) {
