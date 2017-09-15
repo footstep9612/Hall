@@ -375,7 +375,7 @@ class Edi {
         $data = array('NoLcQuotaApplyInfoV2' => array($NoLcQuotaApply));
         try{
             $response = $this->client->doEdiNoLcQuotaApplyV2($data);
-
+var_dump($response);die;
             if (is_object($response)) {
                 $results['code'] = 1;
             } else {
@@ -388,6 +388,7 @@ class Edi {
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
+            var_dump($e);
             return $results;
         }
     }
@@ -487,7 +488,7 @@ class Edi {
             $results['code'] = -101;
             $results['message'] = '[tradeNameCode]出口商品类别代码缺失!';
         }
-        if(isset($NoLcQuotaApply['ifHistTrade']) && !empty($NoLcQuotaApply['ifHistTrade'])){
+        if(isset($NoLcQuotaApply['ifHistTrade'])){
             $data['ifHistTrade'] = $NoLcQuotaApply['ifHistTrade'];//是否有历史交易
         } else {
             $results['code'] = -101;
@@ -506,22 +507,22 @@ class Edi {
             $results['message'] = '[startDebtYear]最早放账年份缺失!';
         }
         if(isset($NoLcQuotaApply['declaration']) && !empty($NoLcQuotaApply['declaration'])){
-            $data['declaration'] = 1;//被保险人声明
+            $data['declaration'] = 1;//被保险人声明(只能为1)
         }
 
-        if(isset($NoLcQuotaApply['ifhavetradefinancing']) && !empty($NoLcQuotaApply['ifhavetradefinancing'])){
+        if(isset($NoLcQuotaApply['ifhavetradefinancing'])){
             $data['ifhavetradefinancing'] = $NoLcQuotaApply['ifhavetradefinancing'];//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
         } else {
             $results['code'] = -101;
             $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
         }
-        if(isset($NoLcQuotaApply['ifhaverelation']) && !empty($NoLcQuotaApply['ifhaverelation'])){
+        if(isset($NoLcQuotaApply['ifhaverelation'])){
             $data['ifhaverelation'] = $NoLcQuotaApply['ifhaverelation'];//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
         } else {
             $results['code'] = -101;
             $results['message'] = '[ifhaverelation]关联关系缺失!';
         }
-        if(isset($NoLcQuotaApply['issamewithcontract']) && !empty($NoLcQuotaApply['issamewithcontract'])){
+        if(isset($NoLcQuotaApply['issamewithcontract'])){
             $data['issamewithcontract'] = $NoLcQuotaApply['issamewithcontract'];//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
         } else {
             $results['code'] = -101;
@@ -556,6 +557,7 @@ class Edi {
         $data = array('LcQuotaApplyInfoV2' => array($LcQuotaApply));
         try{
             $response = $this->client->doEdiLcQuotaApplyV2($data);
+            var_dump($response);die;
             if (is_object($response)) {
                 $results['code'] = 1;
             } else {
@@ -568,6 +570,7 @@ class Edi {
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
+            var_dump($e);
             return $results;
         }
     }
@@ -629,7 +632,7 @@ class Edi {
                 $results['message'] = '[buyerChnAddress]买方中文地址缺失!';
             }
         }
-        if(isset($LcQuotaApply['ifRepeat']) && !empty($LcQuotaApply['ifRepeat'])){
+        if(isset($LcQuotaApply['ifRepeat'])){
             $data['ifRepeat'] = $LcQuotaApply['ifRepeat'];//是否循环-->>是：1 否：0
         } else {
             $results['code'] = -101;
@@ -713,19 +716,19 @@ class Edi {
             $data['declaration'] = 1;//被保险人声明
         }
 
-        if(isset($LcQuotaApply['ifhavetradefinancing']) && !empty($LcQuotaApply['ifhavetradefinancing'])){
+        if(isset($LcQuotaApply['ifhavetradefinancing'])){
             $data['ifhavetradefinancing'] = $LcQuotaApply['ifhavetradefinancing'];//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
         } else {
             $results['code'] = -101;
             $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
         }
-        if(isset($LcQuotaApply['ifhaverelation']) && !empty($LcQuotaApply['ifhaverelation'])){
+        if(isset($LcQuotaApply['ifhaverelation'])){
             $data['ifhaverelation'] = $LcQuotaApply['ifhaverelation'];//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
         } else {
             $results['code'] = -101;
             $results['message'] = '[ifhaverelation]关联关系缺失!';
         }
-        if(isset($LcQuotaApply['issamewithcontract']) && !empty($LcQuotaApply['issamewithcontract'])){
+        if(isset($LcQuotaApply['issamewithcontract'])){
             $data['issamewithcontract'] = $LcQuotaApply['issamewithcontract'];//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
         } else {
             $results['code'] = -101;
