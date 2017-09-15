@@ -37,10 +37,8 @@ class OrderController extends PublicController {
         $info = $oder_moder->info($order_id);
         if ($info) {
 
-
             if ($info['buyer_id'] != $this->user['buyer_id']) {
                 $this->setCode(MSG::MSG_FAILED);
-
                 $this->jsonReturn(null);
             }
             $info['show_status_text'] = $oder_moder->getShowStatus($info['show_status']);
