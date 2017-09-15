@@ -412,20 +412,10 @@ class ProductController extends PublicController {
 
     /**
      * 产品导入
+     * Usage:
+     *
      */
     public function importAction() {
-        $this->put_data['xls'] = array(
-            array(
-                'lang' => 'zh',
-                'url' => '11'
-            ),
-            array(
-                'lang' => 'en',
-                'url' => '12'
-            )
-        );
-
-
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
@@ -443,7 +433,6 @@ class ProductController extends PublicController {
      * 压缩包导入
      */
     public function zipImportAction() {
-        $this->put_data['xls'] = 1;
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
