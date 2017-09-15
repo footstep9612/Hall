@@ -753,6 +753,8 @@ class ProductModel extends PublicModel {
      * 导出模板
      */
     public function exportTemp() {
+        set_time_limit(0);  # 设置执行时间最大值
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
@@ -781,8 +783,31 @@ class ProductModel extends PublicModel {
         $objSheet->setCellValue("K1", "关键字");
 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'spu template_' . '.xls');
-        return $localDir ? $localDir : '';
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
+        //return $localDir ? $localDir : '';
+
+        $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
+        ZipHelper::zipDir($localDir ,$zipName);
+        unlink($localDir);    //清理本地空间
+        if(file_exists($zipName)){
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $zipName;
+            $data['type'] = 'application/excel';
+            $data['name'] = pathinfo($zipName,PATHINFO_BASENAME);
+            $fileId = postfile($data,$url);
+            if($fileId){
+                unlink($zipName);    //清理本地空间
+                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
+            return false;
+        }else{
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$zipName.' 打包失败', Log::INFO);
+            return false;
+        }
     }
 
     /**
@@ -790,10 +815,13 @@ class ProductModel extends PublicModel {
      * @return string
      */
     public function export($input=[]) {
+        set_time_limit(0);  # 设置执行时间最大值
+
         $lang_ary = array('zh','en','es','ru');
         $userInfo = getLoinInfo();
         $pModel = new ProductModel();
 
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
         $objPHPExcel = new PHPExcel();
         $objPHPExcel->getProperties()->setCreator($userInfo['name']);
         $objPHPExcel->getProperties()->setTitle("Product List");
@@ -898,8 +926,30 @@ class ProductModel extends PublicModel {
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Product_'.time() . '.xls');
+        //return $localDir ? $localDir : '';
 
-        return $localDir ? $localDir : '';
+        $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
+        ZipHelper::zipDir($localDir ,$zipName);
+        if(file_exists($zipName)){
+            unlink($localDir);   //清除文件
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name']=$zipName;
+            $data['type']='application/excel';
+            $data['name']=$zipName;
+            $fileId = postfile($data,$url);
+            if($fileId){
+                return array('url'=>$fileId);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
+            return false;
+        }else{
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$zipName.' 打包失败', Log::INFO);
+            return false;
+        }
+
     }
 
     /**
@@ -1204,7 +1254,7 @@ class ProductModel extends PublicModel {
                 if ($result) {
                     foreach ($result as $r) {
                         if(!isset($objPHPExcel) || !$objPHPExcel){
-                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_serialized , array('memoryCacheSize'=>'512MB'));
+                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
                             $objPHPExcel = new PHPExcel();
                             $objPHPExcel->getProperties()->setCreator($userInfo['name']);
                             $objPHPExcel->getProperties()->setTitle("Product List");
@@ -1305,9 +1355,23 @@ class ProductModel extends PublicModel {
         }
 
         ZipHelper::zipDir($dirName ,$dirName.'.zip');
+        ZipHelper::removeDir($dirName);    //清除目录
         if(file_exists($dirName.'.zip')){
-            return $dirName.'.zip';
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name']=$dirName.'.zip';
+            $data['type']='application/excel';
+            $data['name']=$dirName;
+            $fileId = postfile($data,$url);
+            if($fileId){
+                return array('url'=>$fileId);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
+            return false;
         }else{
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$dirName.'.zip 打包失败', Log::INFO);
             return false;
         }
     }

@@ -1304,9 +1304,16 @@ class GoodsModel extends PublicModel {
             ZipHelper::zipDir($localDir ,$zipName);
             if(file_exists($zipName)){
                 unlink($localDir);   //清除文件
-                $fileId = ZipHelper::upload2FastDFS($zipName,'zip');
+                //把导出的文件上传到文件服务器上
+                $server = Yaf_Application::app()->getConfig()->myhost;
+                $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+                $url = $server. '/V2/Uploadfile/upload';
+                $data['tmp_name']=$zipName;
+                $data['type']='application/excel';
+                $data['name']=$zipName;
+                $fileId = postfile($data,$url);
                 if($fileId){
-                    return array('url'=>$fileId, 'fileId'=>$fileId);
+                    return array('url'=>$fileId);
                 }
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
                 return false;
@@ -1801,9 +1808,16 @@ class GoodsModel extends PublicModel {
         ZipHelper::zipDir($dirName ,$dirName.'.zip');
         ZipHelper::removeDir($dirName);    //清除目录
         if(file_exists($dirName.'.zip')){
-            $fileId = ZipHelper::upload2FastDFS($dirName.'.zip','zip');
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name']=$dirName.'.zip';
+            $data['type']='application/excel';
+            $data['name']=$dirName;
+            $fileId = postfile($data,$url);
             if($fileId){
-                return array('url'=>$fileId, 'fileId'=>$fileId);
+                return array('url'=>$fileId['url']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
             return false;
@@ -1980,9 +1994,16 @@ class GoodsModel extends PublicModel {
         ZipHelper::zipDir($dirName ,$dirName.'.zip');
         ZipHelper::removeDir($dirName);    //清除目录
         if(file_exists($dirName.'.zip')){
-            $fileId = ZipHelper::upload2FastDFS($dirName.'.zip','zip');
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name']=$dirName.'.zip';
+            $data['type']='application/excel';
+            $data['name']=$dirName;
+            $fileId = postfile($data,$url);
             if($fileId){
-                return array('url'=>$fileId, 'fileId'=>$fileId);
+                return array('url'=>$fileId);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
             return false;
