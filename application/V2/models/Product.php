@@ -753,6 +753,8 @@ class ProductModel extends PublicModel {
      * 导出模板
      */
     public function exportTemp() {
+        set_time_limit(0);  # 设置执行时间最大值
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
@@ -781,8 +783,31 @@ class ProductModel extends PublicModel {
         $objSheet->setCellValue("K1", "关键字");
 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'spu template_' . '.xls');
-        return $localDir ? $localDir : '';
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
+        //return $localDir ? $localDir : '';
+
+        $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
+        ZipHelper::zipDir($localDir ,$zipName);
+        unlink($localDir);    //清理本地空间
+        if(file_exists($zipName)){
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $zipName;
+            $data['type'] = 'application/excel';
+            $data['name'] = pathinfo($zipName,PATHINFO_BASENAME);
+            $fileId = postfile($data,$url);
+            if($fileId){
+                unlink($zipName);    //清理本地空间
+                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
+            return false;
+        }else{
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$zipName.' 打包失败', Log::INFO);
+            return false;
+        }
     }
 
     /**
@@ -790,10 +815,13 @@ class ProductModel extends PublicModel {
      * @return string
      */
     public function export($input=[]) {
+        set_time_limit(0);  # 设置执行时间最大值
+
         $lang_ary = array('zh','en','es','ru');
         $userInfo = getLoinInfo();
         $pModel = new ProductModel();
 
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
         $objPHPExcel = new PHPExcel();
         $objPHPExcel->getProperties()->setCreator($userInfo['name']);
         $objPHPExcel->getProperties()->setTitle("Product List");
@@ -898,8 +926,30 @@ class ProductModel extends PublicModel {
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Product_'.time() . '.xls');
+        //return $localDir ? $localDir : '';
 
-        return $localDir ? $localDir : '';
+        $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
+        ZipHelper::zipDir($localDir ,$zipName);
+        if(file_exists($zipName)){
+            unlink($localDir);   //清除文件
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name']=$zipName;
+            $data['type']='application/excel';
+            $data['name']=$zipName;
+            $fileId = postfile($data,$url);
+            if($fileId){
+                return array('url'=>$fileId);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
+            return false;
+        }else{
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$zipName.' 打包失败', Log::INFO);
+            return false;
+        }
+
     }
 
     /**
@@ -1140,6 +1190,189 @@ class ProductModel extends PublicModel {
                 'succes_lang' => $sucess_lang,
                 'failds' => $failds
             );
+        }
+    }
+
+    /**
+     * 导出上下架
+     */
+    public function exportShelf($input = []){
+        ini_set("memory_limit", "512M"); // 设置php可使用内存
+        set_time_limit(0);  # 设置执行时间最大值
+
+        $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh','en','es','ru');
+        $userInfo = getLoinInfo();
+        $showCatProduct = new ShowCatProductModel();
+        $tableSCP = $showCatProduct->getTableName();
+
+        //目录
+        $tmpDir = MYPATH . '/public/tmp/';
+        $dirName = $tmpDir.time();
+        if(!is_dir($dirName)){
+            mkdir ( $dirName , 0777, true );
+        }
+
+        foreach($lang_ary as $key => $lang){
+            $num = 1;    //控制文件名
+            $i = 0;    //用来控制分页查询
+            $j = 2;    //excel控制输出
+            $l = 0;
+            $length = 20;
+            //$objPHPExcel = null;
+
+            $condition = array('product.lang' => $lang);
+            if(isset($input['spu']) && !empty($input['spu'])) {    //spu编码
+                $condition['product.spu'] = $input['spu'];
+            }
+            if(isset($input['name']) && !empty($input['name'])) {    //名称
+                $condition['product.name'] = array('like' , '%'.$input['spu'].'%');
+            }
+            if(isset($input['material_cat_no']) && !empty($input['material_cat_no'])) {    //物料分类
+                $condition['product.material_cat_no'] = $input['material_cat_no'];
+            }
+            if(isset($input['status']) && !empty($input['status']) ) {    //上架状态
+                if($input['status'] == 'Y'){
+                    $condition[$tableSCP.'.onshelf_flag'] = 'Y';
+                    $condition[$tableSCP.'.status'] = 'VALID';
+                }else{
+                    $condition[$tableSCP.'.onshelf_flag'] = 'N';
+                }
+               // $condition['status'] = $input['status'];
+            }
+            if(isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
+                $condition['product.created_by'] = $input['created_by'];
+            }
+            if(isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                $time_ary = explode(' - ',$input['created_at']);
+                $condition['created_at'] = array('between' , $time_ary);
+                unset($time_ary);
+            }
+            do {
+                unset($result);
+                $field = 'product.spu,product.name,product.show_name,product.material_cat_no,product.brand,product.advantages,product.tech_paras,product.exe_standard,product.warranty,product.keywords,product.status,show_cat_product.onshelf_flag,show_cat_product.status as showcat_status';
+                $result = $this->field($field)->join($tableSCP.' ON product.spu = '.$tableSCP.'.spu AND product.lang = '.$tableSCP.'.lang','LEFT')->where($condition)->limit($i*$length, $length)->select();
+                if ($result) {
+                    foreach ($result as $r) {
+                        if(!isset($objPHPExcel) || !$objPHPExcel){
+                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
+                            $objPHPExcel = new PHPExcel();
+                            $objPHPExcel->getProperties()->setCreator($userInfo['name']);
+                            $objPHPExcel->getProperties()->setTitle("Product List");
+                            $objPHPExcel->getProperties()->setLastModifiedBy($userInfo['name']);
+
+                            //$objPHPExcel->createSheet();    //创建工作表
+                            //$objPHPExcel->setActiveSheetIndex($key);    //设置工作表
+                            //$objSheet = $objPHPExcel->getActiveSheet(0);    //当前sheet
+                            $objPHPExcel->getActiveSheet(0)->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+                            $objPHPExcel->getActiveSheet(0)->getStyle("A1:M1")
+                                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                            $objPHPExcel->getActiveSheet()->getStyle("A1:M1")->getFont()->setSize(11)->setBold(true);    //粗体
+                            $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+                            foreach ($column_width_25 as $column) {
+                                $objPHPExcel->getActiveSheet(0)->getColumnDimension($column)->setWidth(25);
+                            }
+
+                            $objPHPExcel->getActiveSheet(0)->setTitle($lang);
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("A1", "序号");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("B1", "产品编码");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("C1", "产品名称");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("D1", "展示名称");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("E1", "产品组");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("F1", "产品品牌");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("G1", "产品介绍");    //对应产品优势（李志确认）
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("H1", "技术参数");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("I1", "执行标准");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("J1", "质保期");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("K1", "关键字");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("L1", "审核状态");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("M1", "上架状态");
+                        }
+
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("B" . $j, $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("C" . $j, $r['name']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("D" . $j, $r['show_name']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("E" . $j, $r['material_cat_no']);
+                        $brand_ary = json_decode($r['brand'], true);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("F" . $j, (is_array($brand_ary) && isset($brand_ary['name'])) ? $brand_ary['name'] : $r['brand']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("G" . $j, $r['advantages']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("H" . $j, $r['tech_paras']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("I" . $j, $r['exe_standard']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("J" . $j, $r['warranty']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("K" . $j, $r['keywords']);
+                        $status = '';
+                        switch($r['status']){
+                            case 'VALID':
+                                $status = '通过';
+                                break;
+                            case 'INVALID':
+                                $status = '驳回';
+                                break;
+                            case 'CHECKING':
+                                $status = '待审核';
+                                break;
+                            case 'DRAFT':
+                                $status = '草稿';
+                                break;
+                            default:
+                                $status = $r['status'];
+                                break;
+                        }
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("L" . $j, $status);
+
+                        $onshelf = '';
+                        if($r['onshelf_flag'] == 'Y' && $r['showcat_status'] == 'VALID'){
+                            $onshelf = '已上架';
+                        }else{
+                            $onshelf = '下架';
+                        }
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("M". $j, $onshelf);
+                        $j++;
+                        if($j > 2001){    //2000条
+                            //保存文件
+                            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+                            $objWriter->save($dirName.'/'.$lang .'_'.$num.'.xls');
+                            unset($objWriter);
+                            unset($objPHPExcel);
+                            $j=2;
+                            $num ++;
+                        }else{
+                            if(count($result)<$length){
+                                $l++;
+                            }
+                            if($l == count($result)){
+                                $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+                                $objWriter->save($dirName.'/'.$lang .'_'.$num.'.xls');
+                                unset($objWriter);
+                                unset($objPHPExcel);
+                            }
+                        }
+                    }
+                }
+                $i++;
+            } while (count($result) >= $length);
+        }
+
+        ZipHelper::zipDir($dirName ,$dirName.'.zip');
+        ZipHelper::removeDir($dirName);    //清除目录
+        if(file_exists($dirName.'.zip')){
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server. '/V2/Uploadfile/upload';
+            $data['tmp_name']=$dirName.'.zip';
+            $data['type']='application/excel';
+            $data['name']=$dirName;
+            $fileId = postfile($data,$url);
+            if($fileId){
+                return array('url'=>$fileId);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
+            return false;
+        }else{
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$dirName.'.zip 打包失败', Log::INFO);
+            return false;
         }
     }
 

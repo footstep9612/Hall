@@ -115,7 +115,7 @@ class OrdercommentController extends PublicController {
         $oder_comment_moder = new OrderCommentModel();
         $result = $oder_comment_moder->add_data($condition);
         if ($result) {
-            $this->jsonReturn();
+            $this->jsonReturn($result);
         } else {
 
             $this->setCode(MSG::MSG_FAILED);

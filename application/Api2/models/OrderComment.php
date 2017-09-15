@@ -93,7 +93,7 @@ class OrderCommentModel extends PublicModel {
         }
 
         $this->commit();
-        return true;
+        return $flag;
     }
 
 }
