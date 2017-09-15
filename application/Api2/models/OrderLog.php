@@ -59,4 +59,43 @@ class OrderLogModel extends PublicModel {
                         ->order('log_at ASC,id ASC')->select();
     }
 
+    /**
+     * 获取列表
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function CerditList($userInfo,$start_no,$pagesize) {
+
+        if(empty($userInfo['buyer_id'])){
+            jsonReturn('',-1001,'用户ID缺失!');
+        }
+        $where['od.buyer_id'] = $userInfo['buyer_id'];
+        $where['od.deleted_flag'] = 'N';
+        $where['ol.log_group'] = 'CREDIT';    //工作分组--授信
+        $where['ol.deleted_flag'] = 'N'; //删除状态
+
+        $orderModel = new OrderModel();
+        try {
+            $orders = $orderModel->alias('od')
+                ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
+                ->where($where)
+                ->limit($start_no,$pagesize)
+                ->select();
+            $count = $orderModel->alias('od')
+                ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
+                ->where($where)
+                ->count('od.id');
+            if($orders){
+                return [$orders, $count];
+            } else{
+                return false;
+            }
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return false;
+        }
+    }
+
 }
