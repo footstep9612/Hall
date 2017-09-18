@@ -86,7 +86,7 @@ class OrderController extends PublicController {
 			         '`buyer_id`,`agent_id`,`order_contact_id`,`buyer_contact_id`,'.
 					 '`amount`,`currency_bn`,`trade_terms_bn`,`trans_mode_bn`,'.
 					 '`from_country_bn`,`from_port_bn`,`to_country_bn`,`to_port_bn`,'.
-					 '`address`,`status`,`show_status`,`pay_status`';
+					 '`address`,`status`,`show_status`,`pay_status`,`created_at`';
 			$info = $orderModel->where(['id'=>$id])->field($field)->find();
 			if(empty($info)){
 				$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
