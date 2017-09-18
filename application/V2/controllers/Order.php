@@ -86,7 +86,7 @@ class OrderController extends PublicController {
 			         '`buyer_id`,`agent_id`,`order_contact_id`,`buyer_contact_id`,'.
 					 '`amount`,`currency_bn`,`trade_terms_bn`,`trans_mode_bn`,'.
 					 '`from_country_bn`,`from_port_bn`,`to_country_bn`,`to_port_bn`,'.
-					 '`address`,`status`,`show_status`,`pay_status`';
+					 '`address`,`status`,`show_status`,`pay_status`,`created_at`';
 			$info = $orderModel->where(['id'=>$id])->field($field)->find();
 			if(empty($info)){
 				$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
@@ -226,10 +226,10 @@ class OrderController extends PublicController {
      * @return array
      */
     private function saveOrder($data){        
-        if(!isset($data['po_no']) || empty($data['po_no'])){
+        if(!isset($data['po_no']) || empty($data['po_no']) || trim($data['po_no'])==''){
             return ['code'=>-101,'message'=>'PO号不能为空'];
         }
-        if(!isset($data['execute_no']) || empty($data['execute_no'])){
+        if(!isset($data['execute_no']) || empty($data['execute_no']) || trim($data['execute_no'])==''){
             return ['code'=>-101,'message'=>'执行单号不能为空'];
         }
         $order['po_no'] = $this->safeString($data['po_no']);
