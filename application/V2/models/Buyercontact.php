@@ -116,7 +116,11 @@ class BuyercontactModel extends PublicModel
         if ($data['buyer_id']) {
             $where['buyer_id'] = $data['buyer_id'];
         }
-            $list = $this->where($where)
+            $list = $this->field('buyer_contact.id,buyer_id,first_name,last_name,gender,title,phone,fax,email,country_code,country_bn,
+  province,city,address,zipcode,longitude,latitude,buyer_contact.remarks,buyer_contact.created_by,buyer_contact.created_at,area.name as area_name,country.name as country_name')
+                ->where($where)
+                ->join('`erui2_operation`.`market_area` area on area.lang="zh" and area.bn=erui2_buyer.`buyer_contact`.`area_bn` ', 'left')
+                ->join('`erui2_dict`.`country`  on country.lang="zh" and country.bn=erui2_buyer.`buyer_contact`.`country_bn`  ', 'left')
                 ->order('id desc')
                 ->select();
             return $list;
