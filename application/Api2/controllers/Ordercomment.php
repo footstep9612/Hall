@@ -75,6 +75,7 @@ class OrdercommentController extends PublicController {
                 $this->setvalue('quality', 5);
             }
             if (isset($order['distributed']) && $order['distributed']) {
+
                 $this->setvalue('distributed', $order['distributed']);
             } else {
                 $this->setvalue('distributed', 5);
@@ -96,20 +97,22 @@ class OrdercommentController extends PublicController {
 
         if (!isset($condition['order_id']) || empty($condition['order_id'])) {
             $this->setCode(MSG::MSG_PARAM_ERROR);
-            $this->setMessage('订单ID不能为空');
+            $this->setMessage('order_id can not empty');
 
             $this->jsonReturn(null);
         }
         if (!isset($condition['content']) || empty($condition['content'])) {
             $this->setCode(MSG::MSG_PARAM_ERROR);
-            $this->setMessage('内容不能为空');
+            $this->setMessage('Content can not empty');
             $this->jsonReturn(null);
         }
+
         $order_model = new OrderModel();
         $info = $order_model->info($condition['order_id']);
+
         if ($info['show_status'] !== OrderModel::SHOW_STATUS_COMPLETED) {
             $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('未完成的订单,不能回复评论!');
+            $this->setMessage('Un Finished Order Can Not Evaluation!');
             $this->jsonReturn(null);
         }
         $oder_comment_moder = new OrderCommentModel();

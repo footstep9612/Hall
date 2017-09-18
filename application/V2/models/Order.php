@@ -68,13 +68,13 @@ class OrderModel extends PublicModel {
     public function getPayStatus($pay_status) {
         switch ($pay_status) {
             case 'UNPAY':
-                return '未付款';
+                return '未收款';
 
             case 'PARTPAY':
-                return '部分付款';
+                return '部分收款';
 
             case 'PAY':
-                return '已付款';
+                return '收款完成';
 
             default :return'未付款';
         }
@@ -94,7 +94,7 @@ class OrderModel extends PublicModel {
         $field .= ',from_country_bn,(select name from erui2_dict.country as t where t.bn=from_country_bn and t.lang=\'' . $lang . '\') as from_country';
         $field .= ',to_country_bn,(select name from erui2_dict.country as t where t.bn=to_country_bn and t.lang=\'' . $lang . '\') as to_country';
         $field .= ',from_port_bn,(select name from erui2_dict.port as t where t.bn=from_port_bn and t.lang=\'' . $lang . '\') as from_port';
-        $field .= ',to_port_bn,(select name from erui2_dict.port as t where t.bn=to_port_bn and t.lang=\'' . $lang . '\') as to_port,quality,distributed';
+        $field .= ',to_port_bn,(select name from erui2_dict.port as t where t.bn=to_port_bn and t.lang=\',buyer_id' . $lang . '\') as to_port,quality,distributed';
         return $this->field($field)
                         ->where(['id' => $order_id])->find();
     }

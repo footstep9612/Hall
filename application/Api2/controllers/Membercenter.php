@@ -225,10 +225,10 @@ class MembercenterController extends PublicController {
 
     /**
      * 采购商授信额度信息列表
-     * @time 2017-9-11
+     * @time 2017-9-14
      * @author klp
      */
-    public function CerditListAction() {
+    public function OrderCreditListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $pagesize = 10;
         $start_no = 0;
@@ -238,12 +238,12 @@ class MembercenterController extends PublicController {
         if(isset($data['current_no'])) {
             $start_no = ($data['current_no'] - 1) * $data['$pagesize'];
         }
-        $BuyerModel = new BuyerModel();
-        list($result, $count) = $BuyerModel->buyerCerditList($this->user,$start_no,$pagesize);
+        $OrderLog = new OrderLogModel();
+        list($result, $count) = $OrderLog->CerditList($this->user,$start_no,$pagesize);
         if(!empty($result)){
             $datajson['code'] = 1;
             $datajson['count'] = $count;
-            $datajson['data'] = $data;
+            $datajson['data'] = $result;
         } elseif ($result === null){
             $datajson['code'] = -1002;
             $datajson['count'] = 0;
@@ -252,6 +252,32 @@ class MembercenterController extends PublicController {
             $datajson['code'] = -104;
             $datajson['count'] = 0;
             $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 采购商负责人
+     * @time 2017-9-14
+     * @author klp
+     */
+    public function agentlistAction() {
+
+        if (!empty($this->user['buyer_id'])) {
+            $array['buyer_id'] = $this->user['buyer_id'];
+        } else {
+            jsonReturn('',-1001,'用户ID缺失!');
+        }
+        $model = new BuyerAgentModel();
+        $res = $model->getlist($array);
+        if (!empty($res)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+            $datajson['message'] = '成功';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
         }
         $this->jsonReturn($datajson);
     }

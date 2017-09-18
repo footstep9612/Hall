@@ -46,30 +46,30 @@ class EsproductController extends PublicController {
                     $send['sku_count'] = $data['aggregations']['sku_count']['value'];
                 }
             }
+            if (isset($condition['is_catlist']) && $condition['is_catlist'] === 'N') {
 
-            if (!$condition['show_cat_no']) {
-                $material_cat_nos = [];
-                foreach ($data['aggregations']['material_cat_no']['buckets'] as $item) {
-                    $material_cats[$item['key']] = $item['doc_count'];
-                    $material_cat_nos[] = $item['key'];
-                }
             } else {
-
-                unset($condition['show_cat_no']);
-                $ret1 = $model->getproducts($condition, null, $this->getLang());
-
-                if ($ret1) {
+                if (!$condition['show_cat_no']) {
                     $material_cat_nos = [];
-                    foreach ($ret1[0]['aggregations']['material_cat_no']['buckets'] as $item) {
+                    foreach ($data['aggregations']['material_cat_no']['buckets'] as $item) {
                         $material_cats[$item['key']] = $item['doc_count'];
                         $material_cat_nos[] = $item['key'];
                     }
+                } else {
+                    unset($condition['show_cat_no']);
+                    $ret1 = $model->getproducts($condition, null, $this->getLang());
+                    if ($ret1) {
+                        $material_cat_nos = [];
+                        foreach ($ret1[0]['aggregations']['material_cat_no']['buckets'] as $item) {
+                            $material_cats[$item['key']] = $item['doc_count'];
+                            $material_cat_nos[] = $item['key'];
+                        }
+                    }
                 }
+
+                $catlist = $this->getcatlist($material_cat_nos, $material_cats);
+                $send['catlist'] = $catlist;
             }
-
-            $catlist = $this->getcatlist($material_cat_nos, $material_cats);
-
-            $send['catlist'] = $catlist;
             $send['data'] = $list;
             $this->update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);

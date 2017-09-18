@@ -213,9 +213,8 @@ class Edi {
     {
         $result = $this->_EdiBuyerCodeApprove();
         if($result && !isset($result['code'])){
-            $data = self::object_array($result);
-            var_dump($data);die;
-            return $data;
+            var_dump($result);die;
+            return $result;
         } else {
             return $result;
         }
@@ -227,7 +226,7 @@ class Edi {
 
             $buyerCodeApproveInfo = $response->out->BuyerCodeApproveInfo;
             if ($buyerCodeApproveInfo) {
-                return $buyerCodeApproveInfo;
+                return self::object_array($buyerCodeApproveInfo);
 //                date('Y-m-d H:i:s', strtotime('2011-04-01T00:00:00+08:00'));
             } else{
                 return false;
@@ -330,9 +329,8 @@ class Edi {
     public function EdiBankCodeApprove(){
         $result = $this->_EdiBankCodeApprove();
         if($result && !isset($result['code'])){
-            $data = self::object_array($result);
-            var_dump($data);die;
-            return $data;
+            var_dump($result);die;
+            return $result;
         } else {
             return $result;
         }
@@ -343,7 +341,7 @@ class Edi {
 
             $BankCodeApproveInfo = $response->out->BankCodeApproveInfo;
             if ($BankCodeApproveInfo) {
-                return $BankCodeApproveInfo;
+                return self::object_array($BankCodeApproveInfo);
             } else{
                 return false;
             }
@@ -360,15 +358,389 @@ class Edi {
     /**
      * 出口险-非LC限额申请
      */
-    public function EdiNoLcQuotaApplyV2(){
-        return $this->resultInfo("doEdiNoLcQuotaApplyV2");
+    public function EdiNoLcQuotaApplyV2($NoLcQuotaApply){
+        $data = $this->checkParamNoLc($NoLcQuotaApply);
+        $result = $this->_EdiNoLcQuotaApplyV2($data);
+        if($result && $result['code']  == 1){
+            $res['code'] = 1;
+            $res['message'] = '申请成功!';
+        } else{
+            $res['code'] = -101;
+            $res['message'] = '申请失败!';
+        }
+        return $res;
+    }
+    private function _EdiNoLcQuotaApplyV2($NoLcQuotaApply){
+
+        $data = array('NoLcQuotaApplyInfoV2' => array($NoLcQuotaApply));
+        try{
+            $response = $this->client->doEdiNoLcQuotaApplyV2($data);
+var_dump($response);die;
+            if (is_object($response)) {
+                $results['code'] = 1;
+            } else {
+                $results['code'] = -101;
+            }
+            return $results;
+        } catch (Exception $e) {
+            $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            var_dump($e);
+            return $results;
+        }
+    }
+    public function checkParamNoLc($NoLcQuotaApply){
+        $data = $results = array();
+        if(isset($NoLcQuotaApply['buyer_no']) && !empty($NoLcQuotaApply['buyer_no'])){
+            $data['corpSerialNo'] = $NoLcQuotaApply['buyer_no'];//流水号(企业内部非LC限额申请唯一标识)
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[buyer_no]采购商编号缺失!';
+        }
+        if(isset($NoLcQuotaApply['clientNo']) && !empty($NoLcQuotaApply['clientNo'])){
+            $data['clientNo'] = $NoLcQuotaApply['buyer_no'];//企业标识
+        }
+
+        if(isset($NoLcQuotaApply['policyNo']) && !empty($NoLcQuotaApply['policyNo'])){
+            $data['policyNo'] = $NoLcQuotaApply['policyNo'];//易瑞保单号，固定且唯一
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[policyNo]易瑞保单号缺失!';
+        }
+        if(isset($NoLcQuotaApply['sinosureBuyerNo']) && !empty($NoLcQuotaApply['sinosureBuyerNo'])){
+            $data['sinosureBuyerNo'] = $NoLcQuotaApply['sinosureBuyerNo'];//中国信保买方代码
+        } else {//---为空,以下必填
+            if(isset($NoLcQuotaApply['corpBuyerNo']) && !empty($NoLcQuotaApply['corpBuyerNo'])){
+                $data['corpBuyerNo'] = $NoLcQuotaApply['corpBuyerNo'];//企业买方代码
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[corpBuyerNo]企业买方代码缺失!';
+            }
+            if(isset($NoLcQuotaApply['buyerChnName']) && !empty($NoLcQuotaApply['buyerChnName'])){
+                $data['buyerChnName'] = $NoLcQuotaApply['buyerChnName'];//买方中文名称
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerChnName]买方中文名称缺失!';
+            }
+            if(isset($NoLcQuotaApply['buyerEngName ']) && !empty($NoLcQuotaApply['buyerEngName '])){
+                $data['buyerEngName '] = $NoLcQuotaApply['buyerEngName '];//买方英文名称
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerEngName ]买方英文名称缺失!';
+            }
+            if(isset($NoLcQuotaApply['buyerCountryCode']) && !empty($NoLcQuotaApply['buyerCountryCode'])){
+                $data['buyerCountryCode'] = $NoLcQuotaApply['buyerCountryCode'];//买方国家代码
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerCountryCode]买方国家代码缺失!';
+            }
+            if(isset($NoLcQuotaApply['buyerEngAddress']) && !empty($NoLcQuotaApply['buyerEngAddress'])){
+                $data['buyerEngAddress'] = $NoLcQuotaApply['buyerEngAddress'];//买方英文地址
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerEngAddress]买方英文地址缺失!';
+            }
+            if(isset($NoLcQuotaApply['buyerChnAddress']) && !empty($NoLcQuotaApply['buyerChnAddress'])){
+                $data['buyerChnAddress'] = $NoLcQuotaApply['buyerChnAddress'];//买方中文地址
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerChnAddress]买方中文地址缺失!';
+            }
+        }
+        if(isset($NoLcQuotaApply['contractPayMode']) && !empty($NoLcQuotaApply['contractPayMode'])){
+            $data['contractPayMode'] = $NoLcQuotaApply['contractPayMode'];//合同支付方式 LC/DP/OA/DA
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[contractPayMode]合同支付方式缺失!';
+        }
+        if(isset($NoLcQuotaApply['payTermApply']) && !empty($NoLcQuotaApply['payTermApply'])){
+            $data['payTermApply'] = $NoLcQuotaApply['payTermApply'];//申请信用期限
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[payTermApply]申请信用期限缺失!';
+        }
+        if(isset($NoLcQuotaApply['quotaSumApply']) && !empty($NoLcQuotaApply['quotaSumApply'])){
+            $data['quotaSumApply'] = $NoLcQuotaApply['quotaSumApply'];//申请信用限额
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[quotaSumApply]申请信用限额缺失!';
+        }
+        if(isset($NoLcQuotaApply['orderSum']) && !empty($NoLcQuotaApply['orderSum'])){
+            $data['orderSum'] = $NoLcQuotaApply['orderSum'];//当前在手订单金额
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[orderSum]当前在手订单金额缺失!';
+        }
+        if(isset($NoLcQuotaApply['tradeNameCode']) && !empty($NoLcQuotaApply['tradeNameCode'])){
+            $data['tradeNameCode'] = $NoLcQuotaApply['tradeNameCode'];//出口商品类别代码
+            if($NoLcQuotaApply['tradeNameCode']==99) {
+                if (isset($NoLcQuotaApply['tradeElseName']) && !empty($NoLcQuotaApply['tradeElseName'])) {
+                    $data['tradeElseName'] = $NoLcQuotaApply['tradeElseName'];//商品名称
+                }else{
+                    $results['code'] = -101;
+                    $results['message'] = '[tradeElseName]商品名称缺失!';
+                }
+            }
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[tradeNameCode]出口商品类别代码缺失!';
+        }
+        if(isset($NoLcQuotaApply['ifHistTrade'])){
+            $data['ifHistTrade'] = $NoLcQuotaApply['ifHistTrade'];//是否有历史交易
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[ifHistTrade]是否有历史交易缺失!';
+        }
+        if(isset($NoLcQuotaApply['earlyTradeYear']) && !empty($NoLcQuotaApply['earlyTradeYear'])){
+            $data['earlyTradeYear'] = $NoLcQuotaApply['earlyTradeYear'];//最早成交年份
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[earlyTradeYear]最早成交年份缺失!';
+        }
+        if(isset($NoLcQuotaApply['startDebtYear']) && !empty($NoLcQuotaApply['startDebtYear'])){
+            $data['startDebtYear'] = $NoLcQuotaApply['startDebtYear'];//最早放账年份
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[startDebtYear]最早放账年份缺失!';
+        }
+        if(isset($NoLcQuotaApply['declaration']) && !empty($NoLcQuotaApply['declaration'])){
+            $data['declaration'] = 1;//被保险人声明(只能为1)
+        }
+
+        if(isset($NoLcQuotaApply['ifhavetradefinancing'])){
+            $data['ifhavetradefinancing'] = $NoLcQuotaApply['ifhavetradefinancing'];//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
+        }
+        if(isset($NoLcQuotaApply['ifhaverelation'])){
+            $data['ifhaverelation'] = $NoLcQuotaApply['ifhaverelation'];//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[ifhaverelation]关联关系缺失!';
+        }
+        if(isset($NoLcQuotaApply['issamewithcontract'])){
+            $data['issamewithcontract'] = $NoLcQuotaApply['issamewithcontract'];//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[issamewithcontract]付款人是否与合同买方是否一致缺失!';
+        }
+        if(isset($NoLcQuotaApply['swift_code'])){
+            $data['bank_swift'] = $NoLcQuotaApply['swift_code'];
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return $data;
     }
 
     /**
      * 出口险-LC限额申请
      */
-    public function EdiLcQuotaApplyV2(){
-        return $this->resultInfo("doEdiLcQuotaApplyV2");
+    public function EdiLcQuotaApplyV2($LcQuotaApply){
+        $data = $this->checkParamLc($LcQuotaApply);
+        $result = $this->_EdiLcQuotaApplyV2($data);
+        if($result && $result['code']  == 1){
+            $res['code'] = 1;
+            $res['message'] = '申请成功!';
+        } else{
+            $res['code'] = -101;
+            $res['message'] = '申请失败!';
+        }
+        return $res;
+    }
+    private function _EdiLcQuotaApplyV2($LcQuotaApply){
+
+        $data = array('LcQuotaApplyInfoV2' => array($LcQuotaApply));
+        try{
+            $response = $this->client->doEdiLcQuotaApplyV2($data);
+            var_dump($response);die;
+            if (is_object($response)) {
+                $results['code'] = 1;
+            } else {
+                $results['code'] = -101;
+            }
+            return $results;
+        } catch (Exception $e) {
+            $this->exception($e);
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            var_dump($e);
+            return $results;
+        }
+    }
+    public function checkParamLc($LcQuotaApply){
+        $data = $results = array();
+        if(isset($LcQuotaApply['buyer_no']) && !empty($LcQuotaApply['buyer_no'])){
+            $data['corpSerialNo'] = $LcQuotaApply['buyer_no'];//流水号(企业内部非LC限额申请唯一标识)
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[buyer_no]采购商编号缺失!';
+        }
+        if(isset($LcQuotaApply['clientNo']) && !empty($LcQuotaApply['clientNo'])){
+            $data['clientNo'] = $LcQuotaApply['buyer_no'];//企业标识
+        }
+
+        if(isset($LcQuotaApply['policyNo']) && !empty($LcQuotaApply['policyNo'])){
+            $data['policyNo'] = $LcQuotaApply['policyNo'];//易瑞保单号，固定且唯一
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[policyNo]易瑞保单号缺失!';
+        }
+        if(isset($LcQuotaApply['sinosureBuyerNo']) && !empty($LcQuotaApply['sinosureBuyerNo'])){
+            $data['sinosureBuyerNo'] = $LcQuotaApply['sinosureBuyerNo'];//中国信保买方代码
+        } else {//---为空,以下必填
+            if(isset($LcQuotaApply['corpBuyerNo']) && !empty($LcQuotaApply['corpBuyerNo'])){
+                $data['corpBuyerNo'] = $LcQuotaApply['corpBuyerNo'];//企业买方代码
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[corpBuyerNo]企业买方代码缺失!';
+            }
+            if(isset($LcQuotaApply['buyerChnName']) && !empty($LcQuotaApply['buyerChnName'])){
+                $data['buyerChnName'] = $LcQuotaApply['buyerChnName'];//买方中文名称
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerChnName]买方中文名称缺失!';
+            }
+            if(isset($LcQuotaApply['buyerEngName ']) && !empty($LcQuotaApply['buyerEngName '])){
+                $data['buyerEngName '] = $LcQuotaApply['buyerEngName '];//买方英文名称
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerEngName ]买方英文名称缺失!';
+            }
+            if(isset($LcQuotaApply['buyerCountryCode']) && !empty($LcQuotaApply['buyerCountryCode'])){
+                $data['buyerCountryCode'] = $LcQuotaApply['buyerCountryCode'];//买方国家代码
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerCountryCode]买方国家代码缺失!';
+            }
+            if(isset($LcQuotaApply['buyerEngAddress']) && !empty($LcQuotaApply['buyerEngAddress'])){
+                $data['buyerEngAddress'] = $LcQuotaApply['buyerEngAddress'];//买方英文地址
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerEngAddress]买方英文地址缺失!';
+            }
+            if(isset($LcQuotaApply['buyerChnAddress']) && !empty($LcQuotaApply['buyerChnAddress'])){
+                $data['buyerChnAddress'] = $LcQuotaApply['buyerChnAddress'];//买方中文地址
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[buyerChnAddress]买方中文地址缺失!';
+            }
+        }
+        if(isset($LcQuotaApply['ifRepeat'])){
+            $data['ifRepeat'] = $LcQuotaApply['ifRepeat'];//是否循环-->>是：1 否：0
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[ifRepeat]是否循环缺失!';
+        }
+        if(isset($LcQuotaApply['payTermApply']) && !empty($LcQuotaApply['payTermApply'])){
+            $data['payTermApply'] = $LcQuotaApply['payTermApply'];//LC信用期限
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[payTermApply]LC信用期限缺失!';
+        }
+        if(isset($LcQuotaApply['quotaSumApply']) && !empty($LcQuotaApply['quotaSumApply'])){
+            $data['quotaSumApply'] = $LcQuotaApply['quotaSumApply'];//LC信用金额
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[quotaSumApply]LC信用金额缺失!';
+        }
+        if(isset($LcQuotaApply['lcSum']) && !empty($LcQuotaApply['lcSum'])){
+            $data['lcSum'] = $LcQuotaApply['lcSum'];//信用证金额
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[lcSum]信用证金额缺失!';
+        }
+        if(isset($LcQuotaApply['lastLadeDate']) && !empty($LcQuotaApply['lastLadeDate'])){
+            $data['lastLadeDate'] = $LcQuotaApply['lastLadeDate'];//最迟装船日
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[lastLadeDate]最迟装船日缺失!';
+        }
+        if(isset($LcQuotaApply['goodsCode']) && !empty($LcQuotaApply['goodsCode'])){
+            $data['goodsCode'] = $LcQuotaApply['goodsCode'];//出口商品类别代码
+            if($LcQuotaApply['goodsCode']==99) {
+                if (isset($LcQuotaApply['elsegoodsName']) && !empty($LcQuotaApply['elsegoodsName'])) {
+                    $data['elsegoodsName'] = $LcQuotaApply['elsegoodsName'];//商品名称
+                }else{
+                    $results['code'] = -101;
+                    $results['message'] = '[elsegoodsName]商品名称缺失!';
+                }
+            }
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[goodsCode]出口商品类别代码缺失!';
+        }
+
+        if(isset($LcQuotaApply['openBankSwift']) && !empty($LcQuotaApply['openBankSwift'])){
+            $data['openBankSwift'] = $LcQuotaApply['openBankSwift'];//信保开证行SWIFT
+        } else {
+            if(isset($LcQuotaApply['corpOpenBankNo']) && !empty($LcQuotaApply['corpOpenBankNo'])){
+                $data['corpOpenBankNo'] = $LcQuotaApply['corpOpenBankNo'];//开证行企业内部编码
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[corpOpenBankNo]开证行企业内部编码缺失!';
+            }
+            if(isset($LcQuotaApply['openBankChnName']) && !empty($LcQuotaApply['openBankChnName'])){
+                $data['openBankChnName'] = $LcQuotaApply['openBankChnName'];//开证行中文名称
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[openBankChnName]开证行中文名称缺失!';
+            }
+            if(isset($LcQuotaApply['openBankEngName']) && !empty($LcQuotaApply['openBankEngName'])){
+                $data['openBankEngName'] = $LcQuotaApply['openBankEngName'];//开证行英文名称
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[openBankEngName]开证行英文名称缺失!';
+            }
+            if(isset($LcQuotaApply['openBankCountryCode']) && !empty($LcQuotaApply['openBankCountryCode'])){
+                $data['openBankCountryCode'] = $LcQuotaApply['openBankCountryCode'];//开证行国家代码
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[openBankCountryCode]开证行国家代码缺失!';
+            }
+            if(isset($LcQuotaApply['openBankAddress']) && !empty($LcQuotaApply['openBankAddress'])){
+                $data['openBankAddress'] = $LcQuotaApply['openBankAddress'];//开证行地址（英文）
+            } else {
+                $results['code'] = -101;
+                $results['message'] = '[openBankAddress]开证行地址（英文)缺失!';
+            }
+        }
+
+        if(isset($LcQuotaApply['declaration']) && !empty($LcQuotaApply['declaration'])){
+            $data['declaration'] = 1;//被保险人声明
+        }
+
+        if(isset($LcQuotaApply['ifhavetradefinancing'])){
+            $data['ifhavetradefinancing'] = $LcQuotaApply['ifhavetradefinancing'];//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
+        }
+        if(isset($LcQuotaApply['ifhaverelation'])){
+            $data['ifhaverelation'] = $LcQuotaApply['ifhaverelation'];//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[ifhaverelation]关联关系缺失!';
+        }
+        if(isset($LcQuotaApply['issamewithcontract'])){
+            $data['issamewithcontract'] = $LcQuotaApply['issamewithcontract'];//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
+        } else {
+            $results['code'] = -101;
+            $results['message'] = '[issamewithcontract]付款人是否与合同买方是否一致缺失!';
+        }
+        if(isset($LcQuotaApply['swift_code'])){
+            $data['bank_swift'] = $LcQuotaApply['swift_code'];
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return $data;
     }
 
     /**
@@ -378,9 +750,7 @@ class Edi {
     public function EdiQuotaApproveInfo(){
         $result = $this->_EdiQuotaApproveInfo();
         if($result && !isset($result['code'])){
-            $data = self::object_array($result);
-            var_dump($data);die;
-            return $data;
+            return $result;
         } else {
             return $result;
         }
@@ -389,10 +759,10 @@ class Edi {
     private function _EdiQuotaApproveInfo(){
         try{
             $response = $this->client->getEdiQuotaApproveInfo(array('getEdiQuotaApproveInfo'=>array('policyNo'=>'','startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-            var_dump($response);die;
+
             $QuotaApproveInfo = $response->out->QuotaApproveInfo;
-            if (is_object($QuotaApproveInfo)) {
-                return $QuotaApproveInfo;
+            if ($QuotaApproveInfo) {
+                return self::object_array($QuotaApproveInfo);
             } else {
                 return false;
             }
@@ -473,9 +843,9 @@ class Edi {
     public function QuotaBalanceInfoByPolicyNo(){
         $result = $this->_QuotaBalanceInfoByPolicyNo();
         if($result && !isset($result['code'])){
-            $data = self::object_array($result);
-            var_dump($data);die;
-            return $data;
+
+            var_dump($result);die;
+            return $result;
         } else {
             return $result;
         }
@@ -485,11 +855,11 @@ class Edi {
 //        return $this->resultInfo("getQuotaBalanceInfoByPolicyNo",$xmlGetQuotaBalanceInfoByPolicyNo);
 //        policyNoList  保险单号集合(必填)
         try{
-            $QuotaBalanceInfo = $this->client->getQuotaBalanceInfoByPolicyNo(array('policyNoList'=>array()));
-//            var_dump($QuotaBalanceInfo);die;
-            if (is_object($QuotaBalanceInfo->out) && !empty($QuotaBalanceInfo->out)) {
-                return $QuotaBalanceInfo->out;
-//                var_dump($QuotaBalanceInfo);
+            $response = $this->client->getQuotaBalanceInfoByPolicyNo(array('policyNoList'=>array()));
+            var_dump($response);die;
+            $QuotaApproveInfo = $response->out->QuotaBalanceInfo;
+            if ($QuotaApproveInfo) {
+                return self::object_array($QuotaApproveInfo);
             } else {
                 return false;
             }

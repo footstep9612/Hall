@@ -160,17 +160,17 @@ class OrderlogController extends PublicController{
             if(!empty($buyerinfo['line_of_credit']) && $buyerinfo['line_of_credit']>0){
 
                 if($data['type'] == 'SPENDING'){
-                    $total = $buyerinfo['credit_available'] - $data['amount'];  //支出
+                    $creditavailable = $buyerinfo['credit_available'] - $data['amount'];  //支出
                 }else{
-                    $total = $buyerinfo['credit_available'] + $data['amount'];  //还款
+                    $creditavailable = $buyerinfo['credit_available'] + $data['amount'];  //还款
                 }
 
-                if($total>0 || $buyerinfo['line_of_credit']>$total) {
+                if($creditavailable>0 || $buyerinfo['line_of_credit']>$creditavailable) {
                     $OrderLog->startTrans();
                     $results = $OrderLog->addData($data);
 
                     if($results['code'] == 1){
-                        $re = $buyer->where('id='.$data['buyer_id'])->save(['credit_available' => $total]);
+                        $re = $buyer->where('id='.$data['buyer_id'])->save(['credit_available' => $creditavailable]);
                         if($re){
                             $OrderLog->commit();
                             $this->jsonReturn($results);
@@ -215,55 +215,65 @@ class OrderlogController extends PublicController{
 
         $data = $this->put_data;
 
-        if(!empty($data['buyer_id']) && !empty($data['amount'])){
+        if(!empty($data['buyer_id']) && !empty($data['id'] )){
+            if(empty($data['type']) || empty($data['amount'])){
+                $results['code'] = '-103';
+                $results['message'] = '授信类型或授信金为空，请从新填写!';
+                $this->jsonReturn($results);
+            }
+            //查找日志记录信息
+            $info = $OrderLog->getInfo($data);
+
             $buyer = new BuyerModel();
             //查找授信额度和可用额度
             $buyerinfo = $buyer->field('line_of_credit,credit_available,credit_cur_bn')->where('id='.$data['buyer_id'])->find();
 
-            if(!empty($buyerinfo['line_of_credit']) && $buyerinfo['line_of_credit']>0){
 
-                if($data['type'] == 'SPENDING'){
-                    $total = $buyerinfo['credit_available'] - $data['amount'];  //支出
-                }else{
-                    $total = $buyerinfo['credit_available'] + $data['amount'];  //还款
+            if($info['data']['type'] == $data['type']){ //如果类型相同
+                if($data['type'] == 'SPENDING'){    //支出
+                    $creditavailable = $buyerinfo['credit_available'] + $info['data']['amount'];
+                    $creditavailable = $creditavailable - $data['amount'];
+                }else{  //还款
+                    $creditavailable = $buyerinfo['credit_available'] - $info['data']['amount'];
+                    $creditavailable = $creditavailable + $data['amount'];
                 }
+            }else{  //如果类型不同
+                if($data['type'] == 'SPENDING'){    //支出
+                    $creditavailable = $buyerinfo['credit_available'] - $info['data']['amount'];
+                    $creditavailable = $creditavailable - $data['amount'];
+                }else{  //还款
+                    $creditavailable = $buyerinfo['credit_available'] + $info['data']['amount'];
+                    $creditavailable = $creditavailable + $data['amount'];
+                }
+            }
 
-                if($total>0 || $buyerinfo['line_of_credit']>$total) {
-                    $OrderLog->startTrans();
-                    $results = $OrderLog->updateData($data);
+            if($creditavailable>0 || $buyerinfo['line_of_credit']>$creditavailable) {
+                $OrderLog->startTrans();
+                $results = $OrderLog->updateData($data);
 
-                    if($results['code'] == 1){
-                        $re = $buyer->where('id='.$data['buyer_id'])->save(['credit_available' => $total]);
-                        if($re){
-                            $OrderLog->commit();
-                            $this->jsonReturn($results);
-                        }else{
-                            $OrderLog->rollback();
-                            $results['code'] = '-101';
-                            $results['message'] = '修改失败!';
-                            $this->jsonReturn($results);
-                        }
+                if($results['code'] == 1){
+                    $re = $buyer->where('id='.$data['buyer_id'])->save(['credit_available' => $creditavailable]);
+                    if($re){
+                        $OrderLog->commit();
+                        $this->jsonReturn($results);
                     }else{
                         $OrderLog->rollback();
+                        $results['code'] = '-101';
+                        $results['message'] = '修改失败!';
                         $this->jsonReturn($results);
                     }
-
                 }else{
-
-                    $results['code'] = '-103';
-                    $results['message'] = '可用授信额度不够!';
+                    $OrderLog->rollback();
                     $this->jsonReturn($results);
                 }
-
-
             }else{
                 $results['code'] = '-103';
-                $results['message'] = '没有可用授信额度!';
+                $results['message'] = '可用授信额度不够!';
                 $this->jsonReturn($results);
             }
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有客户ID或金额!';
+            $results['message'] = '没有客户ID或日志ID!';
             $this->jsonReturn($results);
         }
     }
@@ -280,6 +290,56 @@ class OrderlogController extends PublicController{
         $results = $OrderLog->deleteData($where);
 
         $this->jsonReturn($results);
+    }
+
+    /*
+     * 删除授信流程日志
+     * Author:张玉良
+     */
+
+    public function deleteCreditAction() {
+        $OrderLog = new OrderLogModel();
+        $where = $this->put_data;
+
+        if(!empty($where['buyer_id'])){
+            $buyer = new BuyerModel();
+            //查找授信可用额度
+            $buyerinfo = $buyer->field('line_of_credit,credit_available,credit_cur_bn')->where('id='.$where['buyer_id'])->find();
+
+            //查询删除的授信记录信息
+            $creditinfo = $OrderLog->getInfo($where);
+            //判断是
+            if($creditinfo['type'] == 'SPENDING'){
+                $credit_available = $buyerinfo['credit_available']+$creditinfo['data']['amount'];  //支出就加回去
+            }else{
+                $credit_available = $buyerinfo['credit_available']-$creditinfo['data']['amount'];  //还款就减去
+            }
+
+            $OrderLog->startTrans();
+            $results = $OrderLog->deleteData($where);
+            if($results['code'] == 1){
+                $re = $buyer->where('id='.$where['buyer_id'])->save(['credit_available' => $credit_available]);
+                if($re){
+                    $OrderLog->commit();
+                    $this->jsonReturn($results);
+                }else{
+                    $OrderLog->rollback();
+                    $results['code'] = '-101';
+                    $results['message'] = '修改失败!';
+                    $this->jsonReturn($results);
+                }
+            }else{
+                $OrderLog->rollback();
+                $this->jsonReturn($results);
+            }
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有客户ID!';
+            $this->jsonReturn($results);
+        }
+
+
+
     }
 
     /*
@@ -348,6 +408,18 @@ class OrderlogController extends PublicController{
             $results['message'] = '没有订单ID或流程ID!';
             $this->jsonReturn($results);
         }
+    }
 
+    /*
+     * 工作流程附件列表
+     * Author:张玉良
+     */
+    public function getLogListAction() {
+        $orderlog = new OrderLogModel();
+        $where = $this->put_data;
+
+        $results = $orderlog->getBuyerLogList($where);
+
+        $this->jsonReturn($results);
     }
 }

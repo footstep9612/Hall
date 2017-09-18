@@ -71,7 +71,7 @@ class UserModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" employee.id desc") {
         $where = $this->getCondition($condition);
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`gender`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`show_name`,`employee`.`gender`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
         $sql .= ' FROM '.$this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id ';
@@ -204,6 +204,9 @@ class UserModel extends PublicModel {
         if(isset($create['user_no'])){
             $data['user_no']=$create['user_no'];
         }
+        if(isset($create['show_name'])){
+            $data['show_name']=$create['show_name'];
+        }
         if(isset($create['name'])){
             $data['name']=$create['name'];
         }
@@ -296,6 +299,9 @@ class UserModel extends PublicModel {
         }
         if(isset($create['mobile2'])){
             $data['mobile2']=$create['mobile2'];
+        }
+        if(isset($create['show_name'])){
+            $data['show_name']=$create['show_name'];
         }
         if(isset($create['phone'])){
             $data['phone']=$create['phone'];

@@ -332,6 +332,10 @@ class LoginController extends PublicController {
         $id = redisHashGet('rest_password_key', $data['key']);
         if ($id) {
             $buyer_account_model = new BuyerAccountModel();
+            $info = $buyer_account_model ->info(['id' => $id]);
+            if($info&&$info['status'] == 'DRAFT'){
+                $user_arr['status'] = "VALID";
+            }
             $check = $buyer_account_model->update_data($user_arr, ['id' => $id]);
             redisHashDel('rest_password_key', $data['key']);
             jsonReturn('', 1, '操作成功');
