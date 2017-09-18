@@ -61,7 +61,7 @@ class DownloadController extends PublicController{
     {
 
         $server = Yaf_Application::app()->getConfig()->myhost;
-        //$fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server. '/V2/Uploadfile/upload';
         $data['tmp_name']=$localFile;
         //$data['type']='application/vnd.ms-excel';

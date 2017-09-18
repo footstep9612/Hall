@@ -332,7 +332,7 @@ class UserController extends PublicController {
         }
         $model = new UserModel();
         $res = $model->update_data($arr,$where);
-        if(!empty($res)){
+        if($res!==false){
             $datajson['code'] = 1;
             $datajson['message'] ='成功';
         }else{

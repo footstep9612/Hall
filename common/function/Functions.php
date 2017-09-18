@@ -1774,3 +1774,15 @@ function postfile($data, $url, $timeout = 30) {
     unset($cfile);
     return json_decode($response, true);
 }
+
+/**
+ * 编码转换成gbk
+ * @param $data 数据数组
+ */
+function toGbk($data=[]){
+    $return = [];
+    foreach($data as $k=>$r){
+        $return[$k] = iconv('UTF-8', 'GBK', $r);
+    }
+    return $return;
+}
