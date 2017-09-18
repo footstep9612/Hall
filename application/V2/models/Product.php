@@ -787,14 +787,7 @@ class ProductModel extends PublicModel {
         if(!file_exists($tmpDir)){
             mkdir($tmpDir,0777,true);
         }
-
-        if($objWriter->save($tmpDir.'template_spu.xls')){
-            $localDir = $tmpDir.'template_spu.xls';
-        }else{
-            return false;
-        }
-        
-        //$localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
         //return $localDir ? $localDir : '';
 
         $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
