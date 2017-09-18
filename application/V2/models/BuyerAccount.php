@@ -15,6 +15,7 @@ class BuyerAccountModel extends PublicModel {
 
     protected $tableName = 'buyer_account';
     protected $dbName = 'erui2_buyer'; //数据库名称
+
     public function __construct($str = '') {
 
         parent::__construct();
@@ -32,22 +33,23 @@ class BuyerAccountModel extends PublicModel {
      * @return mix
      * @author jhw
      */
-    public function Exist($data,$sql='or') {
-        if ( !empty($data['email']) && !empty($data['user_name']) ){
-            if($sql == 'or'){
-                $map1['email']=$data['email'];
-                $map1['user_name']=$data['user_name'];
+
+    public function Exist($data, $sql = 'or') {
+        if (!empty($data['email']) && !empty($data['user_name'])) {
+            if ($sql == 'or') {
+                $map1['email'] = $data['email'];
+                $map1['user_name'] = $data['user_name'];
                 $map1['_logic'] = 'or';
                 $map['_complex'] = $map1;
-            }else{
-                $map['email']=$data['email'];
-                $map['user_name']=$data['user_name'];
+            } else {
+                $map['email'] = $data['email'];
+                $map['user_name'] = $data['user_name'];
             }
             $row = $this->table('erui2_buyer.buyer_account')->where($map)->select();
-        }else{
+        } else {
             $row = $this->table('erui2_buyer.buyer_account')->where($data)->select();
         }
-        return empty($row) ? false : $row ;
+        return empty($row) ? false : $row;
     }
 
     /**
@@ -56,19 +58,19 @@ class BuyerAccountModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='ug.id desc') {
-        $sql  = 'SELECT ug.id,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name ';
-        $sql .= ' FROM '.$this->tableName.'as ug';
+    public function getlist($data, $limit, $order = 'ug.id desc') {
+        $sql = 'SELECT ug.id,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name ';
+        $sql .= ' FROM ' . $this->tableName . 'as ug';
         $sql .= ' LEFT JOIN t_group AS g ON t_group.`id` = ug.`group_id`';
         $sql .= ' LEFT JOIN t_user AS u ON u.`id` = ug.`user_id`';
-        if(!empty($data['group_id'])){
-            $sql .= ' WHERE g.`group_id` = '.$data['group_id'];
+        if (!empty($data['group_id'])) {
+            $sql .= ' WHERE g.`group_id` = ' . $data['group_id'];
         }
-        if(!empty($limit)){
-            $sql .= ' LIMIT '.$limit['page'].','.$limit['num'];
+        if (!empty($limit)) {
+            $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
         }
-        $sql .= ' ORDER BY '.$order;
-        $res = $this->query( $sql );
+        $sql .= ' ORDER BY ' . $order;
+        $res = $this->query($sql);
         return $res;
     }
 
@@ -79,11 +81,11 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function info($data) {
-        if(!empty($data['buyer_id'])){
-            $row = $this->where(['buyer_id' => $data['buyer_id'] ,'deleted_flag' => 'N'])
-                ->find();
+        if (!empty($data['buyer_id'])) {
+            $row = $this->where(['buyer_id' => $data['buyer_id'], 'deleted_flag' => 'N'])
+                    ->find();
             return $row;
-        }else{
+        } else {
             return false;
         }
     }
@@ -97,24 +99,24 @@ class BuyerAccountModel extends PublicModel {
      * @author zyg
      */
     public function login($data) {
-        $where=array();
-        if(!empty($data['email'])){
+        $where = array();
+        if (!empty($data['email'])) {
             $where['email'] = $data['email'];
         }
-        if(!empty($data['user_name'])){
+        if (!empty($data['user_name'])) {
             $where['user_name'] = $data['user_name'];
         }
-        if(empty($where['user_name'])&&empty($where['email'])){
+        if (empty($where['user_name']) && empty($where['email'])) {
             echo json_encode(array("code" => "-101", "message" => "帐号不能为空"));
             exit();
         }
-        if(!empty($data['password'])){
+        if (!empty($data['password'])) {
             $where['password_hash'] = md5($data['password']);
         }
         $where['status'] = 'VALID';
         $row = $this->where($where)
-            ->field('id,customer_id,email,user_name,mobile,role,first_name,last_name,phone,status,login_count,last_login_time,login_failure_count')
-            ->find();
+                ->field('id,customer_id,email,user_name,mobile,role,first_name,last_name,phone,status,login_count,last_login_time,login_failure_count')
+                ->find();
         return $row;
     }
 
@@ -124,33 +126,33 @@ class BuyerAccountModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($data,$where) {
+    public function update_data($data, $where) {
 
-        if(isset($data['email'])){
+        if (isset($data['email'])) {
             $arr['email'] = $data['email'];
         }
-        if(isset($data['user_name'])){
+        if (isset($data['user_name'])) {
             $arr['user_name'] = $data['user_name'];
         }
-        if(isset($data['mobile'])){
+        if (isset($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
         }
-        if(isset($data['password_hash'])){
+        if (isset($data['password_hash'])) {
             $arr['password_hash'] = md5($data['password_hash']);
         }
-        if(isset($data['role'])){
+        if (isset($data['role'])) {
             $arr['role'] = $data['role'];
         }
-        if(isset($data['first_name'])){
+        if (isset($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
         }
-        if(isset($data['last_name'])){
+        if (isset($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
-        if(isset($data['phone'])){
+        if (isset($data['phone'])) {
             $arr['phone'] = $data['phone'];
         }
-        if(isset($data['status'])){
+        if (isset($data['status'])) {
             switch ($data['status']) {
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
@@ -176,32 +178,32 @@ class BuyerAccountModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function create_data($create= []) {
-        if(isset($create['buyer_id'])){
+    public function create_data($create = []) {
+        if (isset($create['buyer_id'])) {
             $arr['buyer_id'] = $create['buyer_id'];
         }
-        if(isset($create['email'])){
+        if (isset($create['email'])) {
             $arr['email'] = $create['email'];
         }
-        if(isset($create['user_name'])){
+        if (isset($create['user_name'])) {
             $arr['user_name'] = $create['user_name'];
         }
-        if(isset($create['mobile'])){
+        if (isset($create['mobile'])) {
             $arr['mobile'] = $create['mobile'];
         }
-        if(isset($create['password_hash'])){
+        if (isset($create['password_hash'])) {
             $arr['password_hash'] = $create['password_hash'];
         }
-        if(isset($create['role'])){
+        if (isset($create['role'])) {
             $arr['role'] = $create['role'];
         }
-        if(isset($create['first_name'])){
+        if (isset($create['first_name'])) {
             $arr['first_name'] = $create['first_name'];
         }
-        if(isset($create['last_name'])){
+        if (isset($create['last_name'])) {
             $arr['last_name'] = $create['last_name'];
         }
-        if(isset($create['phone'])){
+        if (isset($create['phone'])) {
             $arr['phone'] = $create['phone'];
         }
         $arr['created_at'] = Date("Y-m-d H:i:s");
@@ -213,17 +215,17 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data){
-        if(!empty($data['id'])){
+    public function checkPassword($data) {
+        if (!empty($data['id'])) {
             $where['id'] = $data['id'];
-        } else{
-            jsonReturn('','-1001','用户id不可以为空');
+        } else {
+            jsonReturn('', '-1001', '用户id不可以为空');
         }
-        if(!empty($data['password'])){
+        if (!empty($data['password'])) {
             $password = $data['password'];
         }
         $pwd = $this->where($where)->field('password_hash')->find();
-        if($pwd == $password){
+        if ($pwd == $password) {
             return true;
         } else {
             return false;
@@ -235,20 +237,54 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data,$token){
+    public function update_pwd($data, $token) {
 
-        if(!empty($token['customer_id'])){
+        if (!empty($token['customer_id'])) {
             $where['customer_id'] = $token['customer_id'];
-        } else{
-            jsonReturn('','-1001','用户id不可以为空');
+        } else {
+            jsonReturn('', '-1001', '用户id不可以为空');
         }
-        if(!empty($data['password_hash'])){
+        if (!empty($data['password_hash'])) {
             $new['password_hash'] = $data['password_hash'];
         } else {
-            jsonReturn('','-1001','新密码不可以为空');
+            jsonReturn('', '-1001', '新密码不可以为空');
         }
         return $this->where($where)->save($new);
     }
 
-}
+    /*
+     * 根据用户ID 获取用户名 姓
+     * @param array $buyer_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
 
+    public function getBuyerNamesByBuyerids($buyer_ids) {
+
+        try {
+            $where = [];
+
+            if (is_string($buyer_ids)) {
+                $where['buyer_id'] = $buyer_ids;
+            } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
+                $where['buyer_id'] = ['in', $buyer_ids];
+            } else {
+                return false;
+            }
+            $buyers = $this->where($where)->field('buyer_id,first_name,last_name')->select();
+            $buyer_names = [];
+            foreach ($buyers as $buyer) {
+                $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
+            }
+            return $buyer_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+}
