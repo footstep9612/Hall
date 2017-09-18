@@ -783,7 +783,18 @@ class ProductModel extends PublicModel {
         $objSheet->setCellValue("K1", "关键字");
 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
+        $tmpDir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/";
+        if(!file_exists($tmpDir)){
+            mkdir($tmpDir,0777,true);
+        }
+
+        if($objWriter->save($tmpDir.'template_spu.xls')){
+            $localDir = $tmpDir.'template_spu.xls';
+        }else{
+            return false;
+        }
+        
+        //$localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
         //return $localDir ? $localDir : '';
 
         $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
