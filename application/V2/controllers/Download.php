@@ -33,7 +33,8 @@ class DownloadController extends PublicController{
     {
         $buyerList = $this->getBuyerList();
         $localFile = $this->createExcelObjWithData($buyerList);
-        $remoteFile = $this->upload2FileServer($localFile);
+        $compressedFile = $this->compresFile($localFile);
+        $remoteFile = $this->upload2FileServer($compressedFile);
 
         if (!$remoteFile['code']=='1'){
             $this->jsonReturn([
@@ -46,10 +47,30 @@ class DownloadController extends PublicController{
             'code' => '1',
             'message' => '导出成功!',
             'data' => [
-                'url' => $remoteFile['url'].".xls"
+                'url' => $remoteFile
             ]
         ]);
 
+    }
+
+    /**
+     * 压缩
+     * @param $localFile
+     * @return string
+     */
+    private function compresFile($localFile)
+    {
+        $zipFileName = "BY_".date('Ymd-His').'.zip';
+        $filePath = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/".$zipFileName;
+
+        $zip = new ZipArchive();
+        $result = $zip->open($filePath, ZIPARCHIVE::CREATE|ZIPARCHIVE::OVERWRITE);
+        if ($result){
+            $zip->addFile($localFile,basename($localFile));
+            $zip->close();
+            @unlink($localFile);
+            return $filePath;
+        }
     }
 
     /**
@@ -61,19 +82,19 @@ class DownloadController extends PublicController{
     {
 
         $server = Yaf_Application::app()->getConfig()->myhost;
-        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server. '/V2/Uploadfile/upload';
         $data['tmp_name']=$localFile;
-        //$data['type']='application/vnd.ms-excel';
-        $data['type']=mime_content_type($localFile);
-        $data['name']='excelFile';
+        $data['type']='application/zip';
+        $data['name']=basename($localFile);
         $excel = new ExcelmanagerController();
         $result = $excel->postfile($data,$url);
-//        if ($result['code']=='1'){
-//            @unlink($localFile);
-//        }
-        return $result;
+        if ($result['code']=='1'){
+            @unlink($localFile);
+        }
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        return $fastDFSServer.$result['url'];
     }
+
 
     /**
      * 获取会员列表
