@@ -146,8 +146,6 @@ class CentercreditController extends PublicController {
         }
         if (!empty($data['credit_granted'])) {
             $array_data['credit_granted'] = $data['credit_granted'];
-        }else{
-            jsonReturn('', -101, '授信额度不能为空!');
         }
         if (!empty($data['in_status'])) {
             $array_data['in_status'] = $data['in_status'];

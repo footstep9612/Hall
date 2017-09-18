@@ -40,7 +40,7 @@ class BuyerModel extends PublicModel {
         $sql = 'SELECT `erui2_sys`.`employee`.`id` as employee_id,`erui2_sys`.`employee`.`name` as employee_name,`erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_code`,`buyer`.`country_bn`,`erui2_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
         $sql .= '`official_email`,`official_phone`,`official_fax`,`erui2_buyer`.`buyer`.`first_name`,`erui2_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`buyer`.`credit_cur_bn`,`buyer_level`,`credit_level`,';
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
-        $sql .= '`erui2_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`';
+        $sql .= '`erui2_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status ';
         $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
@@ -118,6 +118,10 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['line_of_credit_min'])) {
             $where .= ' And `erui2_buyer`.`buyer`.line_of_credit  >="' . $condition['line_of_credit_min'] . '"';
         }
+        if (!empty($condition['credit_status'])) {
+            $where .= ' And `erui2_buyer`.`buyer_credit_log`.in_status  ="' . $condition['credit_status'] . '"';
+        }
+
         if ($where) {
             $sql .= $where;
             $sql_count .= $where;

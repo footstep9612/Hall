@@ -101,13 +101,25 @@ class BuyercontactModel extends PublicModel
         }
     }
     public function getlist($data) {
+        if (!empty($data['first_name'])) {
+            $where['first_name'] =  ['like',"%".$data['first_name']."%"];
+        }
+        if (!empty($data['last_name'])) {
+            $where['last_name'] =  ['like',"%".$data['last_name']."%"];
+        }
+        if (!empty($data['country_bn'])) {
+            $where['country_bn'] = $data['country_bn'];
+        }
+        if (!empty($data['area_bn'])) {
+            $where['area_bn'] = $data['area_bn'];
+        }
         if ($data['buyer_id']) {
-            $list = $this->where($data)
+            $where['buyer_id'] = $data['buyer_id'];
+        }
+            $list = $this->where($where)
                 ->order('id desc')
                 ->select();
             return $list;
-        }
-        return false;
 
     }
     /**

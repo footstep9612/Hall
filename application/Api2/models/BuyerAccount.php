@@ -85,7 +85,11 @@ class BuyerAccountModel extends PublicModel {
             $row = $this->where(['buyer_id' => $data['buyer_id'], 'deleted_flag' => 'N'])
                     ->find();
             return $row;
-        } else {
+        }elseif(!empty($data['id'])){
+            $row = $this->where(['id' => $data['id'], 'deleted_flag' => 'N'])
+                ->find();
+            return $row;
+        }else {
             return false;
         }
     }
