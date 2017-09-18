@@ -142,6 +142,9 @@ class BuyercontactController extends PublicController {
         if(isset($data['address'])){
             $arr['address'] =$data['address'];
         }
+        if(isset($data['area_bn'])){
+            $arr['area_bn'] =$data['area_bn'];
+        }
         if(isset($data['zipcode'])){
             $arr['zipcode'] =$data['zipcode'];
         }
