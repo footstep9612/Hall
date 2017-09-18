@@ -103,7 +103,14 @@ class BuyercontactModel extends PublicModel
             return false;
         }
     }
-    public function getlist($data) {
+
+    /**
+     * 根据条件获取查询条件
+     * @param Array $condition
+     * @return Array
+     * @author jhw
+     */
+    protected function getCondition($condition = []) {
         if (!empty($data['first_name'])) {
             $where['first_name'] =  ['like',"%".$data['first_name']."%"];
         }
@@ -119,14 +126,27 @@ class BuyercontactModel extends PublicModel
         if ($data['buyer_id']) {
             $where['buyer_id'] = $data['buyer_id'];
         }
-            $list = $this->field('buyer_contact.id,buyer_id,first_name,last_name,gender,title,phone,fax,email,country_code,country_bn,area_bn,
+        return $where;
+    }
+    public function getcount($data = []) {
+        $where =$this -> getCondition($data);
+        $count = $this->where($where)
+            ->count();
+        return $count;
+    }
+    public function getlist($data) {
+        $where =$this -> getCondition($data);
+        $sql = $this->field('buyer_contact.id,buyer_id,first_name,last_name,gender,title,phone,fax,email,country_code,country_bn,area_bn,
   province,city,address,zipcode,longitude,latitude,buyer_contact.remarks,buyer_contact.created_by,buyer_contact.created_at,area.name as area_name,country.name as country_name')
                 ->where($where)
                 ->join('`erui2_operation`.`market_area` area on area.lang="zh" and area.bn=erui2_buyer.`buyer_contact`.`area_bn` ', 'left')
                 ->join('`erui2_dict`.`country`  on country.lang="zh" and country.bn=erui2_buyer.`buyer_contact`.`country_bn`  ', 'left')
-                ->order('id desc')
-                ->select();
-            return $list;
+                ->order('id desc');
+        if ( $data['num'] ){
+            $sql->limit($data['page'],$data['num']);
+        }
+        $list =  $sql ->select();
+        return $list;
 
     }
     /**
