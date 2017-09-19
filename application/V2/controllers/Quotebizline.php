@@ -944,9 +944,12 @@ class QuotebizlineController extends PublicController {
         $pm_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('pm_id');
         $result['pm_name'] =  $employee->where(['id'=>$pm_id])->getField('name');
         $result['exchange_rate'] = $exchange_rate_model->where(['cur_bn1'=>'CNY','cur_bn2'=>'USD'])->getField('rate');
+
         //运输方式
-        $transMode = new TransModeModel();
-        $result['trans_mode_bn'] = $transMode->where(['id'=>$result['trans_mode_bn']])->getField('trans_mode');
+        if (intval($result['trans_mode_bn'])){
+            $transMode = new TransModeModel();
+            $result['trans_mode_bn'] = $transMode->where(['id'=>$result['trans_mode_bn']])->getField('trans_mode');
+        }
         $result['gross_profit_rate'] = sprintf("%.4F",$result['gross_profit_rate']);
         $result['total_purchase'] = sprintf("%.4F",$result['total_purchase']);
         $result['fund_occupation_rate'] = sprintf("%.4F",$result['fund_occupation_rate']);
