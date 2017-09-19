@@ -93,6 +93,9 @@ class OrderModel extends PublicModel {
         }
 
         $this->_getValue($where, $condition, 'contract_date', 'between'); //签约日期
+        if (isset($condition['term']) && $condition['term']) {    //贸易术语
+            $where['trade_terms_bn'] = $condition['term'];
+        }
         if (isset($condition['buyer_id']) && $condition['buyer_id']) {
             $where['buyer_id'] = $condition['buyer_id'];
         }
