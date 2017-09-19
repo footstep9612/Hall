@@ -28,8 +28,8 @@ class BuyerAccountModel extends PublicModel {
 
     /**
      * 判断用户是否存在
-     * @param  string $name 用户名
-     * @param  string $lang 语言
+     * @param  string $data 用户名
+     * @param  string $sql 语言
      * @return mix
      * @author jhw
      */
@@ -76,7 +76,7 @@ class BuyerAccountModel extends PublicModel {
 
     /**
      * 获取用户信息
-     * @param  int  $id
+     * @param  array  $data
      * @return array
      * @author jhw
      */
@@ -174,7 +174,7 @@ class BuyerAccountModel extends PublicModel {
 
     /**
      * 新增数据
-     * @param  mix $createcondition 新增条件
+     * @param  mix $create 新增条件
      * @return bool
      * @author jhw
      */
