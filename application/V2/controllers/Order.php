@@ -257,8 +257,7 @@ class OrderController extends PublicController {
         $order['address']         = $this->safeString($data['address']);//地址    
         $order['order_contact_id']= intval($data['order_contact_id']);
         $order['buyer_contact_id']= intval($data['buyer_contact_id']);
-        $order['pay_status']= 'GOING';
-		$order['deleted_flag']= 'N';
+		
         $orderModel = new OrderModel();
         
         //开始执行保存        
@@ -266,7 +265,7 @@ class OrderController extends PublicController {
             //保存订单基本信息
             if(isset($data['order_no']) && !empty($data['order_no']) ){
                 $order_no = trim($data['order_no']);
-                $info = $orderModel->where(['order_no'=>$order_no])->find();
+                $info = $orderModel->where(['order_no'=>$order_no,'deleted_flag'=>'N'])->find();
                 if(empty($info)){
                     return ['code'=>-105,'参数传递错误'];
                 }elseif($info['show_status'] == 'COMPLETED'){
@@ -281,6 +280,9 @@ class OrderController extends PublicController {
                 $order['created_at'] = date('Y-m-d H:i:s');
                 $order['created_by'] = intval($this->user['id']);
                 $order['order_no'] = $this->generateOrderId();
+				$order['show_status']= 'GOING';	
+				$order['pay_status']= 'UNPAY';							
+		        $order['deleted_flag']= 'N';
                 $id = $orderModel->add($order);
                 if(!$id){
                     return ['code'=>-106,'创建订单失败'];
