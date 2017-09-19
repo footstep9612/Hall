@@ -40,11 +40,20 @@ class BuyercontactController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
+        if (!empty($data['area_bn'])) {
+            $where['area_bn'] = $data['area_bn'];
+        }
+        if(!empty($data['pageSize'])){
+            $where['num'] = $data['pageSize'];
+        }
+        if(!empty($data['currentPage'])) {
+            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
+        }
         $model = new BuyercontactModel();
         $data = $model->getlist($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
-            $datajson['count'] = $data['count'];
+            $datajson['count'] = $model->getcount($where);
             $datajson['data'] = $data;
         } else {
             $datajson['code'] = -104;
@@ -141,6 +150,9 @@ class BuyercontactController extends PublicController {
         }
         if(isset($data['address'])){
             $arr['address'] =$data['address'];
+        }
+        if(isset($data['area_bn'])){
+            $arr['area_bn'] =$data['area_bn'];
         }
         if(isset($data['zipcode'])){
             $arr['zipcode'] =$data['zipcode'];
