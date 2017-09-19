@@ -258,6 +258,7 @@ class OrderController extends PublicController {
         $order['order_contact_id']= intval($data['order_contact_id']);
         $order['buyer_contact_id']= intval($data['buyer_contact_id']);
         $order['pay_status']= 'GOING';
+		$order['deleted_flag']= 'N';
         $orderModel = new OrderModel();
         
         //开始执行保存        
