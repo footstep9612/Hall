@@ -53,7 +53,7 @@ class OrderController extends PublicController {
             } else {
                 $info['delivery_left'] = null;
             }
-
+            $this->_setBuyerName($info);
             $this->_setOrderAttachOther($info, $order_id); //获取附件
             $this->_setOrderAttachPo($info, $order_id); //获取附件
             $this->_setOrderBuyerContact($info, $order_id); //获取采购商信息
@@ -120,11 +120,32 @@ class OrderController extends PublicController {
     private function _setOrderBuyerContact(&$info, $order_id) {
         $order_buyer_contact_model = new OrderBuyerContactModel();
         $order_buyer_contact = $order_buyer_contact_model->info($order_id);
-
         if ($order_buyer_contact) {
             $info['order_buyer_contact'] = $order_buyer_contact;
         } else {
             $info['order_buyer_contact'] = null;
+        }
+    }
+
+    /* 获取采购商信息
+     * @param int $order_id // 订单ID
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   订单
+     */
+
+    private function _setBuyerName(&$info) {
+        if ($info['buyer_id']) {
+            $buyer_model = new BuyerAccountModel();
+            $order_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
+            if (isset($order_buyer_contact[$info['buyer_id']])) {
+                $info['buyer_name'] = $order_buyer_contact[$info['buyer_id']];
+            } else {
+                $info['buyer_name'] = null;
+            }
+        } else {
+            $info['buyer_name'] = '';
         }
     }
 
