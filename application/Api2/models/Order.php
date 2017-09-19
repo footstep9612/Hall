@@ -43,7 +43,7 @@ class OrderModel extends PublicModel {
 
     public function info($order_id, $lang = 'en') {
         $field = 'id,order_no,po_no,execute_no,contract_date,buyer_id,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
-        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn';
+        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn,quality,distributed';
         return $this->field($field)
                         ->where(['id' => $order_id])->find();
     }
