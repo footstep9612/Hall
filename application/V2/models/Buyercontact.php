@@ -110,7 +110,7 @@ class BuyercontactModel extends PublicModel
      * @return Array
      * @author jhw
      */
-    protected function getCondition($condition = []) {
+    protected function getCondition($data = []) {
         if (!empty($data['first_name'])) {
             $where['first_name'] =  ['like',"%".$data['first_name']."%"];
         }
