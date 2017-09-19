@@ -27,6 +27,8 @@ class BuyercontactController extends PublicController {
         $where = [];
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
+        }else{
+            jsonReturn('', -101, '采购商id不可以为空!');
         }
         if (!empty($data['first_name'])) {
             $where['first_name'] = $data['first_name'];
