@@ -543,6 +543,7 @@ class OrderController extends PublicController {
                 ){
                     continue;
                 }
+				$settlement['amount'] = doubleval($settlement['amount']);
 				$settlement['payment_at'] = date('Y-m-d',strtotime($settlement['payment_at']));
                 unset($settlement['id']);
                 $settlement['order_id'] = $order_id;
@@ -576,12 +577,12 @@ class OrderController extends PublicController {
         if(!isset($data['execute_no']) || empty($data['execute_no']) || trim($data['execute_no'])==''){
             return ['code'=>-101,'message'=>'执行单号不能为空'];
         }
-		if(isset($data['amount']) && !is_numeric($data['amount'])){
+		if(isset($data['amount']) && !empty($data['amount']) && !is_numeric($data['amount'])){
 			return ['code'=>-101,'message'=>'订单金额不是一个有效的数字'];
 		}
 		if(isset($data['settlement']) && is_array($data['settlement'])){
 			foreach($data['settlement'] as $item){
-				if(isset($item['amount']) && !is_numeric($item['amount'])){
+				if(isset($item['amount']) && !empty($item['amount']) && !is_numeric($item['amount'])){
 					return ['code'=>-101,'message'=>'结算方式-金额不是一个有效的数字'];
 				}
 			}
