@@ -124,7 +124,9 @@ class OrderModel extends PublicModel {
                 $where['pay_status'] = $condition['pay_status'];
             }
         }
-
+        if (isset($condition['agent_id']) && $condition['agent_id']) {
+                $where['agent_id'] = $condition['agent_id'];
+        }
         $this->_getValue($where, $condition, 'contract_date', 'between'); //支付状态
         if (isset($condition['buyername']) && $condition['buyername']) {
 

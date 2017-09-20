@@ -18,6 +18,38 @@ class OrderController extends PublicController {
     public function init() {
         parent::init();
     }
+    /**
+     * 验证用户权限
+     * Author:张玉良
+     * @return string
+     */
+    public function checkAuthAction() {
+        $groupid = $this->user['group_id'];
+        if (isset($groupid)) {
+            $maketareateam = new MarketAreaTeamModel();
+            $users = [];
+
+            if(is_array($groupid)){
+                //查询是否是市场人员
+                $agent = $maketareateam->where('market_org_id in('.implode(',',$groupid).')')->count('id');
+            }else{
+                //查询是否是市场人员
+                $agent = $maketareateam->where('market_org_id='.$groupid)->count('id');
+            }
+
+            if ($agent>0) {
+                $results['code'] = '2';
+                $results['message'] = '市场人员！';
+            } else {
+                $results['code'] = '3';
+                $results['message'] = '其他人员！';
+            }
+        } else {
+            $results['code'] = '-101';
+            $results['message'] = '用户没有权限此操作！';
+        }
+        return $results;
+    }
     /* 创建新订单
      * @author  zhengkq
      * @date    2017-09-13 17:50:09
@@ -636,9 +668,15 @@ class OrderController extends PublicController {
 
     //put your code here
     public function listAction() {
-
+        $auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
-
+        if ($auth['code'] == '-101') {
+            $this->jsonReturn($auth);
+        }else{
+            if($auth['code'] == '2'){
+                $condition['agent_id']=$this->user['id'];
+            }
+        }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
