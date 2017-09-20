@@ -221,7 +221,6 @@ class OrderController extends PublicController {
         $order_moder = new OrderModel();
         $condition['buyer_id'] = $this->user['buyer_id'];
         $data = $order_moder->getList($condition);
-
         $count = $order_moder->getCount($condition);
         if ($data) {
             $this->_setinfos($data);

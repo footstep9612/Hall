@@ -57,7 +57,6 @@ class OrderModel extends PublicModel {
      */
 
     private function _getCondition($condition) {
-
         $where = [];
         $where['deleted_flag'] = 'N';
         $this->_getValue($where, $condition, 'order_no'); //平台订单号
