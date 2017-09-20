@@ -65,7 +65,9 @@ class PortController extends PublicController {
         $this->_setUserName($arr);
         if ($arr) {
             foreach ($arr as $key => $item) {
-                $item['port_country'] = $item['name'] . '(' . $item['country'] . ')';
+                //   $item['port_country'] = $item['name'] . '(' . $item['country'] . ')';
+
+                $item['name'] = $item['name'] . '(' . $item['country'] . ')';
                 $arr[$key] = $item;
             }
             $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
