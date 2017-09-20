@@ -66,11 +66,12 @@ class OrderAddressModel extends PublicModel {
 
         try {
             $list = $this->field("order_address.`id`,`order_id`,`log_id`, `address`, `zipcode`,`tel_number`,order_address.`name`,country.name as country_name,`country`,`city`,`email`,
-  `fax`,order_address.`created_at`,order_address.`created_by`,order_address.`deleted_flag`")
+  `fax`,order_address.`created_at`,area_bn,area.name as area_name,order_address.`created_by`,order_address.`deleted_flag`")
                 ->where($where)
                 ->join('`erui2_dict`.`country`  on country.lang="zh" and country.bn=erui2_order.`order_address`.`country`  ', 'left')
+                ->join('`erui2_operation`.`market_area` area on area.lang="zh" and area.bn=erui2_order.`order_address`.`area_bn` ', 'left')
                 ->order('created_at desc')
-                    ->select();
+                ->select();
 
             if ($list) {
                 $results['code'] = '1';
