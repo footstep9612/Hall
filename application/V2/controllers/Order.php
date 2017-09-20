@@ -147,7 +147,7 @@ class OrderController extends PublicController {
 				'attach_group'=>['in',['PO','OTHERS']],
 				'deleted_flag'=>'N'
 			];
-			$data = $orderAttach->where($condition)->field('id,attach_name,attach_url')->select();
+			$data = $orderAttach->where($condition)->field('id,attach_group,attach_name,attach_url')->select();
         }else{
 			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
 		}
