@@ -32,6 +32,7 @@ class PortController extends PublicController {
         $arr = $this->_model->getListbycondition($condtion);
         $this->_setUserName($arr);
         if ($arr) {
+
             $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
             $data['code'] = MSG::MSG_SUCCESS;
             $data['data'] = $arr;
@@ -63,6 +64,10 @@ class PortController extends PublicController {
         $arr = $this->_model->getAll($condtion);
         $this->_setUserName($arr);
         if ($arr) {
+            foreach ($arr as $key => $item) {
+                $item['port_country'] = $item['name'] . '(' . $item['country'] . ')';
+                $arr[$key] = $item;
+            }
             $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
             $data['code'] = MSG::MSG_SUCCESS;
             $data['data'] = $arr;

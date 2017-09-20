@@ -173,8 +173,11 @@ class PortModel extends PublicModel {
         if (redisHashExist('Port', $redis_key)) {
             return json_decode(redisHashGet('Port', $redis_key), true);
         }
+        $country_model = new CountryModel();
+        $country = $country_model->getTableName();
         try {
-            $field = 'id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude';
+            $field = 'id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude,'
+                    . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country';
             $result = $this->field($field)
                     ->where($where)
                     ->select();
