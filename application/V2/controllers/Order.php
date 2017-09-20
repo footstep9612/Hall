@@ -514,6 +514,7 @@ class OrderController extends PublicController {
                 if(empty($delivery['describe']) && empty($delivery['delivery_at'])){
                     continue;
                 }
+				$delivery['delivery_at'] = date('Y-m-d',strtotime($delivery['delivery_at']));
                 unset($delivery['id']);
                 $delivery['order_id'] = $order_id;
                 $delivery['created_by'] = $userId;
@@ -542,6 +543,7 @@ class OrderController extends PublicController {
                 ){
                     continue;
                 }
+				$settlement['payment_at'] = date('Y-m-d',strtotime($settlement['payment_at']));
                 unset($settlement['id']);
                 $settlement['order_id'] = $order_id;
                 $settlement['created_by'] = $userId;
