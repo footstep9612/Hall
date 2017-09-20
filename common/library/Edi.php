@@ -372,7 +372,7 @@ class Edi {
     }
     private function _EdiNoLcQuotaApplyV2($NoLcQuotaApply){
 
-        $data = array('NoLcQuotaApplyInfoV2' => array($NoLcQuotaApply));
+        $data = array('noLcQuotaList'=>array('NoLcQuotaApplyInfoV2' => array($NoLcQuotaApply)));
         try{
             $response = $this->client->doEdiNoLcQuotaApplyV2($data);
 var_dump($response);die;
@@ -554,7 +554,7 @@ var_dump($response);die;
     }
     private function _EdiLcQuotaApplyV2($LcQuotaApply){
 
-        $data = array('LcQuotaApplyInfoV2' => array($LcQuotaApply));
+        $data = array('lcQuotaList'=>array('LcQuotaApplyInfoV2' => array($LcQuotaApply)));
         try{
             $response = $this->client->doEdiLcQuotaApplyV2($data);
             var_dump($response);die;

@@ -392,10 +392,8 @@ class OrderlogController extends PublicController{
 
         if(!empty($where['log_id']) && !empty($where['order_id'])){
             $re = $orderaddress->where('order_id='.$where['order_id'].' and log_id='.$where['log_id'])->save(['deleted_flag' => 'Y']);
-
-            if($re){
-                $results = $orderaddress->addData($where);
-
+            $results = $orderaddress->addData($where);
+            if($results!==false){
                 $this->jsonReturn($results);
             }else{
                 $results['code'] = '-101';

@@ -85,11 +85,11 @@ class BuyerAccountModel extends PublicModel {
             $row = $this->where(['buyer_id' => $data['buyer_id'], 'deleted_flag' => 'N'])
                     ->find();
             return $row;
-        }elseif(!empty($data['id'])){
+        } elseif (!empty($data['id'])) {
             $row = $this->where(['id' => $data['id'], 'deleted_flag' => 'N'])
-                ->find();
+                    ->find();
             return $row;
-        }else {
+        } else {
             return false;
         }
     }
@@ -324,7 +324,7 @@ class BuyerAccountModel extends PublicModel {
             $buyers = $this->where($where)->field('buyer_id,first_name,last_name')->select();
             $buyer_names = [];
             foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['name'];
+                $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
             }
             return $buyer_names;
         } catch (Exception $ex) {

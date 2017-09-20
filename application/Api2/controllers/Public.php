@@ -51,6 +51,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     "id" => $userinfo["id"],
                     "token" => $token, //token
                 );
+                $this->_setUid($userinfo);
             }
         }
     }
@@ -82,6 +83,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     "id" => $userinfo["id"],
                     "token" => $token, //token
                 );
+                $this->_setUid($userinfo);
             }
         } else {
             echo json_encode(array("code" => "-104", "message" => "token不存在"));
