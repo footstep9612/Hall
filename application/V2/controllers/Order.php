@@ -698,12 +698,8 @@ class OrderController extends PublicController {
     public function listAction() {
         $auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
-        if ($auth['code'] == '-101') {
-            $this->jsonReturn($auth);
-        }else{
-            if($auth['code'] == '2'){
+        if ($auth['code'] == '2'){
                 $condition['agent_id']=$this->user['id'];
-            }
         }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
