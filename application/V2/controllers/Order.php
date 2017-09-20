@@ -20,29 +20,40 @@ class OrderController extends PublicController {
     }
     /* 创建新订单
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param int $order_id // 订单ID
      * @return array
      */
     public function createAction(){
         $data = $this->getPut(); 
         $data = file_get_contents('php://input');
-        $data = @json_decode($data,true);        
-        $send = $this->saveOrder($data);
-        $this->jsonReturn($send);
+        $data = @json_decode($data,true);  
+        $ret = $this->checkOrderData($data);
+		if($ret === true){
+			$send = $this->saveOrder($data);
+			$this->jsonReturn($send);
+		}else{
+			$this->jsonReturn($ret);
+		}
+        
     }
     /* 修改订单信息
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param int $order_id // 订单ID
      * @return array
      */
     public function updateAction(){
         $data = $this->getPut(); 
         $data = file_get_contents('php://input');
-        $data = @json_decode($data,true);        
-        $send = $this->saveOrder($data);
-        $this->jsonReturn($send);
+        $data = @json_decode($data,true); 
+		$ret = $this->checkOrderData($data,true);
+		if($ret === true){
+			$send = $this->saveOrder($data);
+			$this->jsonReturn($send);
+		}else{
+			$this->jsonReturn($ret);
+		}
     }
 	
 	/* 订单全部收款完成
@@ -68,7 +79,7 @@ class OrderController extends PublicController {
     
     /* 获取订单详情基本信息
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param int $order_id // 订单ID
      * @return array
      */
@@ -122,7 +133,7 @@ class OrderController extends PublicController {
     
     /* 获取订单附件信息
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param int $order_id // 订单ID
      * @return array
      */
@@ -148,7 +159,7 @@ class OrderController extends PublicController {
     
     /* 获取订单收货信息
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param int $order_id // 订单ID
      * @return array
      */
@@ -172,7 +183,7 @@ class OrderController extends PublicController {
     
     /* 获取订单收货人信息
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param int $order_id // 订单ID
      * @return array
      */
@@ -197,7 +208,7 @@ class OrderController extends PublicController {
     
     /* 获取订单结算信息
      * @author  zhengkq
-     * @date    2017-8-1 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param int $order_id // 订单ID
      * @return array
      */
@@ -221,17 +232,12 @@ class OrderController extends PublicController {
     
     /* 保存订单信息
      * @author  zhengkq
-     * @date    2017-9-13 17:50:09
+     * @date    2017-09-13 17:50:09
      * @param array $data // 提交的数据数组
      * @return array
      */
     private function saveOrder($data){        
-        if(!isset($data['po_no']) || empty($data['po_no']) || trim($data['po_no'])==''){
-            return ['code'=>-101,'message'=>'PO号不能为空'];
-        }
-        if(!isset($data['execute_no']) || empty($data['execute_no']) || trim($data['execute_no'])==''){
-            return ['code'=>-101,'message'=>'执行单号不能为空'];
-        }
+        
         $order['po_no'] = $this->safeString($data['po_no']);
         $order['execute_no'] = $this->safeString($data['execute_no']);
         $contract_date = strtotime($data['contract_date']);
@@ -544,7 +550,42 @@ class OrderController extends PublicController {
             }
         }
     }
-    
+	/**
+	* 检查订单数据
+	*
+	**/
+    private function checkOrderData($data,$isUpdate =false){		
+		if($isUpdate){
+			if(empty($data['order_no']) || !is_numeric($data['order_no'])){
+				return ['code'=>-101,'message'=>'订单编号不能为空'];
+			}
+			$order_no = trim($data['order_no']);
+			$orderModel = new OrderModel();
+			$info = $orderModel->where(['order_no'=>$order_no,'deleted_flag'=>'N'])->find();
+			if(empty($info)){
+				return ['code'=>-105,'参数传递错误'];
+			}elseif($info['show_status'] == 'COMPLETED'){
+				return ['code'=>-101,'message'=>'订单已完成，禁止修改'];
+			}
+		}
+		if(!isset($data['po_no']) || empty($data['po_no']) || trim($data['po_no'])==''){
+            return ['code'=>-101,'message'=>'PO号不能为空'];
+        }
+        if(!isset($data['execute_no']) || empty($data['execute_no']) || trim($data['execute_no'])==''){
+            return ['code'=>-101,'message'=>'执行单号不能为空'];
+        }
+		if(isset($data['amount']) && !is_numeric($data['amount'])){
+			return ['code'=>-101,'message'=>'订单金额不是一个有效的数字'];
+		}
+		if(isset($data['settlement']) && is_array($data['settlement'])){
+			foreach($data['settlement'] as $item){
+				if(isset($item['amount']) && !is_numeric($item['amount'])){
+					return ['code'=>-101,'message'=>'结算方式-金额不是一个有效的数字'];
+				}
+			}
+		}
+		return true;
+	}
     private function safeString($str,$type='bn'){
 		$badstr = "`!@#\$%^&*{}\'\"?";
 		for($i=0;$i<strlen($badstr);$i++){
