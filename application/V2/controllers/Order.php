@@ -16,7 +16,7 @@
 class OrderController extends PublicController {
 
     public function init() {
-        parent::init();
+        //parent::init();
     }
     /**
      * 验证用户权限
@@ -543,15 +543,24 @@ class OrderController extends PublicController {
             $userId = intval($this->user['id']);
             $now = date('Y-m-d H:i:s');
             foreach($data['delivery'] as $delivery){
-                if(empty($delivery['describe']) && empty($delivery['delivery_at'])){
-                    continue;
-                }
-				$delivery['delivery_at'] = date('Y-m-d',strtotime($delivery['delivery_at']));
-                unset($delivery['id']);
-                $delivery['order_id'] = $order_id;
-                $delivery['created_by'] = $userId;
-                $delivery['created_at'] = $now;
-                $orderDelivery->add($delivery);
+				$delivery['describe'] = trim($delivery['describe']);
+				if(empty($delivery['describe'])){
+					unset($delivery['describe']);
+				}
+				if(strlen($delivery['delivery_at']) > 10){
+					$delivery['delivery_at'] = substr($delivery['delivery_at'],0,10);
+				}
+				if(!preg_match("/^\d{4}-\d{2}-\d{2}$/i",$delivery['delivery_at'])){
+					unset($delivery['delivery_at']);
+				}
+				
+                if(isset($delivery['describe']) || isset($delivery['delivery_at'])){
+                     unset($delivery['id']);
+					$delivery['order_id'] = $order_id;
+					$delivery['created_by'] = $userId;
+					$delivery['created_at'] = $now;
+					$orderDelivery->add($delivery);
+                }               
             }
         }
     }
@@ -569,19 +578,38 @@ class OrderController extends PublicController {
             $userId = intval($this->user['id']);
             $now = date('Y-m-d H:i:s');
             foreach($data['settlement'] as $settlement){
-                if(empty($settlement['name']) && empty($settlement['amount'])
-                    && empty($settlement['payment_mode'])
-                    && empty($settlement['payment_at'])
+				$settlement['name'] = trim($settlement['name']);
+				if(empty($settlement['name'])){
+					unset($settlement['name']);
+				}
+				if(empty($settlement['amount']) || !is_numeric($settlement['amount'])){
+					unset($settlement['amount']);
+				}else{
+					$settlement['amount'] = doubleval($settlement['amount']);
+				}
+				if(strlen($settlement['payment_at']) > 10){
+					$settlement['payment_at'] = substr($settlement['payment_at'],0,10);
+				}
+				if(!preg_match("/^\d{4}-\d{2}-\d{2}$/i",$settlement['payment_at'])){
+					unset($settlement['payment_at']);
+				}else{
+					$settlement['payment_at'] = date('Y-m-d',strtotime($settlement['payment_at']));
+				}
+				$settlement['payment_mode'] = trim($settlement['payment_mode']);
+				if(empty($settlement['payment_mode'])){
+					unset($settlement['payment_mode']);
+				}
+                if(isset($settlement['name']) || isset($settlement['amount'])
+                    || isset($settlement['payment_mode'])
+                    || isset($settlement['payment_at'])
                 ){
-                    continue;
+					unset($settlement['id']);
+					$settlement['order_id'] = $order_id;
+					$settlement['created_by'] = $userId;
+					$settlement['created_at'] = $now;
+					$orderPayment->add($settlement);
                 }
-				$settlement['amount'] = doubleval($settlement['amount']);
-				$settlement['payment_at'] = date('Y-m-d',strtotime($settlement['payment_at']));
-                unset($settlement['id']);
-                $settlement['order_id'] = $order_id;
-                $settlement['created_by'] = $userId;
-                $settlement['created_at'] = $now;
-                $orderPayment->add($settlement);
+				
             }
         }
     }
