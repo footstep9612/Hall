@@ -1555,6 +1555,7 @@ class GoodsModel extends PublicModel {
      * sku导出
      */
     public function export($input = []){
+        //$input['spu'] = '1303040000100000';
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
 
@@ -1628,8 +1629,8 @@ class GoodsModel extends PublicModel {
                             $objPHPExcel->getActiveSheet(0)->getStyle('O1:X1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('00C957');
                             $objPHPExcel->getActiveSheet(0)->setCellValue("Y1", '申报要素')->mergeCells("Y1:AD1");
                             $objPHPExcel->getActiveSheet(0)->getStyle('Y1:AD1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('00FF00');
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AD1", '其他信息')->mergeCells("AD1:AI1");
-                            $objPHPExcel->getActiveSheet(0)->getStyle('AD1:AI1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AE1", '其他信息')->mergeCells("AE1:AI1");
+                            $objPHPExcel->getActiveSheet(0)->getStyle('AE1:AI1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
                             $objPHPExcel->getActiveSheet(0)->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
                             $objPHPExcel->getActiveSheet(0)->getStyle("A1:AI2")
                                 ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
@@ -1684,8 +1685,8 @@ class GoodsModel extends PublicModel {
                         }
 
                         $objPHPExcel->getActiveSheet(0)->setCellValue("A".$j, $j-2);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("B".$j, $r['spu']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("C".$j, $r['sku']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("B".$j, ' '.$r['spu']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("C".$j, ' '.$r['sku']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("D".$j, $r['name']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("E".$j, $r['show_name']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("F".$j, $r['model']);
@@ -1740,7 +1741,6 @@ class GoodsModel extends PublicModel {
                         $objPHPExcel->getActiveSheet(0)->setCellValue("AH".$j, $createbyInfo ? $createbyInfo['name'] : $r['created_by']);
                         unset($createbyInfo);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("AI".$j, $r['created_at']);
-
                         $j++;
                         if($j > 2002){    //2000条
                             //保存文件
@@ -1751,10 +1751,10 @@ class GoodsModel extends PublicModel {
                             $j=3;
                             $num ++;
                         }else{
-                            if(count($result)<$length){
+                            if($count<$length){
                                 $l++;
                             }
-                            if($l == count($result)){
+                            if($l == $count){
                                 $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
                                 $objWriter->save($dirName.'/'.$lang .'_'.$num.'.xls');
                                 unset($objWriter);
