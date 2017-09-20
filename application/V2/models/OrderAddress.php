@@ -30,7 +30,7 @@ class OrderAddressModel extends PublicModel {
         if (!empty($condition['log_id'])) {
             $where['log_id'] = $condition['log_id'];    //工作流ID
         }
-        $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
+        $where['order_address.deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
 
         return $where;
     }
@@ -65,8 +65,11 @@ class OrderAddressModel extends PublicModel {
         $where = $this->getCondition($condition);
 
         try {
-            $list = $this->where($where)
-                    ->order('created_at desc')
+            $list = $this->field("order_address.`id`,`order_id`,`log_id`, `address`, `zipcode`,`tel_number`,order_address.`name`,country.name as country_name,`country`,`city`,`email`,
+  `fax`,order_address.`created_at`,order_address.`created_by`,order_address.`deleted_flag`")
+                ->where($where)
+                ->join('`erui2_dict`.`country`  on country.lang="zh" and country.bn=erui2_order.`order_address`.`country`  ', 'left')
+                ->order('created_at desc')
                     ->select();
 
             if ($list) {
