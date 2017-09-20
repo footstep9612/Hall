@@ -284,7 +284,13 @@ class EsGoodsModel extends Model {
                         [ESClient::MULTI_MATCH => [
                                 'query' => $show_name,
                                 'type' => 'most_fields',
-                                'fields' => ['name.ik', 'attrs.ik', 'sku', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
+                                'fields' => ['name.ik',
+                                    // 'attrs.ik',
+                                    'sku',
+                                    //'specs.ik',
+                                    'spu',
+                                    'source.ik',
+                                    'brand.ik']
                             ]],
                         [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
