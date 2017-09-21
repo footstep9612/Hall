@@ -359,7 +359,7 @@ class OrderController extends PublicController {
             return ['code'=>1,'message'=>'Success'];
             
         }catch(Exception $e){
-            return ['code'=>-106,'message'=>'更新订单失败'.$e->getMessage()];
+            return ['code'=>-106,'message'=>'更新订单失败'];
         }        
     }
 	/* 保存供应商信息
@@ -645,10 +645,16 @@ class OrderController extends PublicController {
 		if(isset($data['amount']) && !empty($data['amount']) && !is_numeric($data['amount'])){
 			return ['code'=>-101,'message'=>'订单金额不是一个有效的数字'];
 		}
+		if(doubleval($data['amount']) > 100000000000){
+			return ['code'=>-101,'message'=>'订单金额不能大于1000亿'];
+		}
 		if(isset($data['settlement']) && is_array($data['settlement'])){
 			foreach($data['settlement'] as $item){
 				if(isset($item['amount']) && !empty($item['amount']) && !is_numeric($item['amount'])){
 					return ['code'=>-101,'message'=>'结算方式-金额不是一个有效的数字'];
+				}
+				if(doubleval($item['amount']) > 100000000000){
+					return ['code'=>-101,'message'=>'结算金额不能大于1000亿'];
 				}
 			}
 		}
