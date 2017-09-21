@@ -1220,8 +1220,8 @@ class ProductModel extends PublicModel {
         }
 
         //下载到本地临时文件
-        //$localFile = ExcelHelperTrait::download2local($url);
-        $localFile = MYPATH . '/public/tmp/1505902867.zip';
+        $localFile = ExcelHelperTrait::download2local($url);
+        //$localFile = MYPATH . '/public/tmp/spu.zip';
 
         $pathInfo = ( pathinfo($localFile) );
         if (strtolower($pathInfo['extension']) != 'zip') {
