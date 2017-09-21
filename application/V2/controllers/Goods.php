@@ -575,13 +575,6 @@ class GoodsController extends PublicController {
     /**
      * zip导入
      * @param xls zip文件fastdfs地址
-     * @目录格式为:
-     * .zip
-     * --- sku目录
-     * --- --- zh.xls
-     * --- --- en.xls
-     * --- --- ru.xls
-     * --- --- es.xls
      */
     public function zipImportAction(){
         if (empty($this->put_data['xls'])) {
@@ -589,7 +582,7 @@ class GoodsController extends PublicController {
         }
 
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->zipImport($this->put_data['xls']);
+        $result = $goodsModel->zipImport2($this->put_data['xls']);
         if ($result !== false) {
             $error = '';
             if (!empty($result['failds'])) {
