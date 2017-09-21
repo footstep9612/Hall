@@ -79,8 +79,51 @@ class OrderlogController extends PublicController{
         $data['created_by'] = $this->user['id'];
 
         $OrderLog->startTrans();
+        if($data['log_group']=="CREDIT"&&isset($data["order_id"])&&$data["order_id"]) {
+            $order_model = new OrderModel();
+            $order_info = $order_model->where(['id'=>$data["order_id"]])->find();
+            if($order_info){
+                if($order_info['buyer_id']){
+                    $buyer_model = new BuyerModel();
+                    $buyer_info = $buyer_model->where(['id'=>$order_info['buyer_id']])->find();
+                    if($buyer_info){
+                        if($buyer_info['line_of_credit']<=0){
+                            $results['code'] = '-101';
+                            $results['message'] = '该采购商未开通信保或者信保审核未通过，无法授信!';
+                            $this->jsonReturn($results);
+                        }
+                        if($data['type']=="REFUND"){
+                            $buyer_info['credit_available']=$buyer_info['credit_available']+$data['amount'];
+                        }else{
+                            $buyer_info['credit_available']=$buyer_info['credit_available'] - $data['amount'];
+                            if($buyer_info['credit_available']<0){
+                                $results['code'] = '-101';
+                                $results['message'] = '可用余额已不足支付，授信使用失败!';
+                                $this->jsonReturn($results);
+                            }
+                        }
+                        $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
+                    }else{
+                        $results['code'] = '-101';
+                        $results['message'] = '没有获取采购商信息，无法授信!';
+                        $this->jsonReturn($results);
+                    }
+                }else{
+                    $results['code'] = '-101';
+                    $results['message'] = '订单没有采购商，无法授信!';
+                    $this->jsonReturn($results);
+                }
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '修改失败,请输入正确的订单号!';
+                $this->jsonReturn($results);
+            }
+        }
         $results = $OrderLog->addData($data);
-
+        if($data['log_group']=="COLLECTION"&&isset($data["order_id"])&&$data["order_id"]) {
+            $order_model = new OrderModel();
+            $order_model->where(['id'=>$data["order_id"]])->setField(['pay_status'=>'PARTPAY']);
+        }
         if($results['code'] == 1){
             //如果有附件，添加附件
             if(!empty($data['attach_array'])){
