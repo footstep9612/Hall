@@ -1,4 +1,5 @@
 <?php
+
 /**
  * name: OrderLog.php
  * desc: 订单流程模型.
@@ -17,7 +18,8 @@ class OrderLogModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    protected function createData($condition = []){
+
+    protected function createData($condition = []) {
         if (!empty($condition['order_id'])) {
             $data['order_id'] = $condition['order_id'];    //订单ID
         }
@@ -29,6 +31,8 @@ class OrderLogModel extends PublicModel {
         }
         if (!empty($condition['content'])) {
             $data['content'] = $condition['content'];    //内容
+        } elseif (isset($data['content']) && !$data['content']) {
+            $data['content'] = null;
         }
         if (!empty($condition['log_at'])) {
             $data['log_at'] = $condition['log_at'];    //时间
@@ -38,6 +42,8 @@ class OrderLogModel extends PublicModel {
         }
         if (!empty($condition['waybill_no'])) {
             $data['waybill_no'] = $condition['waybill_no'];    //运单号
+        } elseif (isset($data['waybill_no']) && !$data['waybill_no']) {
+            $data['waybill_no'] = null;
         }
         if (!empty($condition['amount'])) {
             $data['amount'] = $condition['amount'];    //金额
@@ -78,7 +84,7 @@ class OrderLogModel extends PublicModel {
         if (!empty($condition['log_id'])) {
             $where['log_id'] = $condition['log_id'];  //上级工作流ID
         }
-        $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
+        $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
 
         return $where;
     }
@@ -107,7 +113,7 @@ class OrderLogModel extends PublicModel {
         if (!empty($condition['show_status'])) {
             $where['b.show_status'] = $condition['show_status'];    //订单状态
         }
-        $where['a.deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N'; //删除状态
+        $where['a.deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
 
         return $where;
     }
@@ -133,7 +139,7 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getList($condition = []) {
-        if(empty($condition['order_id'])){
+        if (empty($condition['order_id'])) {
             $results['code'] = '-103';
             $results['message'] = '没有询单id!';
             return $results;
@@ -147,16 +153,16 @@ class OrderLogModel extends PublicModel {
         try {
             $count = $this->getCount($condition);
             $list = $this->where($where)
-                        //->page($page, $pagesize)
-                        ->order('created_at asc')
-                        ->select();
+                    //->page($page, $pagesize)
+                    ->order('created_at asc')
+                    ->select();
 
-            if($list){
+            if ($list) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['count'] = $count;
                 $results['data'] = $list;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -175,45 +181,45 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getBuyerLogList($condition = []) {
-        if(!empty($condition['buyer_id'])) {
+        if (!empty($condition['buyer_id'])) {
             $where['b.buyer_id'] = $condition['buyer_id'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '没有客户id!';
             return $results;
         }
-        if(!empty($condition['order_id'])) {
+        if (!empty($condition['order_id'])) {
             $where['a.order_id'] = $condition['order_id'];
         }
-        if(!empty($condition['log_group'])) {
+        if (!empty($condition['log_group'])) {
             $where['a.log_group'] = $condition['log_group'];
         }
 
         $field = 'a.id,a.order_id,a.log_group,a.content,a.out_no,a.waybill_no,a.log_at,a.amount,a.type,a.log_id,b.order_no,b.po_no,b.execute_no,b.buyer_id';
 
-        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+        $page = !empty($condition['currentPage']) ? $condition['currentPage'] : 1;
+        $pagesize = !empty($condition['pageSize']) ? $condition['pageSize'] : 10;
 
         try {
             $count = $this->alias('a')
-                ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
-                ->where($where)
-                ->count('a.id');
+                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->where($where)
+                    ->count('a.id');
 
             $list = $this->alias('a')
-                ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
-                ->field($field)
-                ->where($where)
-                ->page($page, $pagesize)
-                ->order('a.created_at asc')
-                ->select();
+                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->field($field)
+                    ->where($where)
+                    ->page($page, $pagesize)
+                    ->order('a.created_at asc')
+                    ->select();
 
-            if($list){
+            if ($list) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['count'] = $count;
                 $results['data'] = $list;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -232,7 +238,7 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getLogiList($condition = []) {
-        if(empty($condition['log_group'])){
+        if (empty($condition['log_group'])) {
             $results['code'] = '-103';
             $results['message'] = '没有日志分组!';
             return $results;
@@ -240,27 +246,27 @@ class OrderLogModel extends PublicModel {
 
         $where = $this->getJionCondition($condition);
 
-        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+        $page = !empty($condition['currentPage']) ? $condition['currentPage'] : 1;
+        $pagesize = !empty($condition['pageSize']) ? $condition['pageSize'] : 10;
 
         $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no,b.buyer_id';
 
         try {
             $count = $this->getCount($condition);
             $list = $this->alias('a')
-                ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
-                ->field($field)
-                ->where($where)
-                ->page($page, $pagesize)
-                ->order('a.order_id desc,a.created_at asc')
-                ->select();
+                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->field($field)
+                    ->where($where)
+                    ->page($page, $pagesize)
+                    ->order('a.order_id desc,a.created_at asc')
+                    ->select();
 
-            if($list){
+            if ($list) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['count'] = $count;
                 $results['data'] = $list;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -284,11 +290,11 @@ class OrderLogModel extends PublicModel {
         try {
             $info = $this->where($where)->find();
 
-            if($info){
+            if ($info) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $info;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -307,27 +313,26 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function addData($condition = []) {
-        if(empty($condition['order_id'])) {
+        if (empty($condition['order_id'])) {
             $results['code'] = '-103';
             $results['message'] = '没有订单ID!';
             return $results;
         }
-        if(empty($condition['log_group'])) {
+        if (empty($condition['log_group'])) {
             $results['code'] = '-103';
             $results['message'] = '没有流程分组!';
             return $results;
         }
-
         $data = $this->createData($condition);
         $data['created_at'] = $this->getTime();
 
         try {
             $id = $this->add($data);
-            if($id){
+            if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $id;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '添加失败!';
             }
@@ -346,21 +351,58 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function updateData($condition = []) {
-        if(!empty($condition['id'])){
+        if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '没有流程ID!';
             return $results;
         }
         $data = $this->createData($condition);
-
+        $info = $this->where($where)->find();
+        if($info['log_group']=="CREDIT"&&isset($info["order_id"])&&$info["order_id"]) {
+            $order_model = new OrderModel();
+            $order_info = $order_model->where(['id'=>$info["order_id"]])->find();
+            if($order_info){
+                if($order_info['buyer_id']){
+                    $buyer_model = new BuyerModel();
+                    $buyer_info = $buyer_model->where(['id'=>$order_info['buyer_id']])->find();
+                    if($buyer_info){
+                        if($info['type']=="REFUND"){
+                            $buyer_info['credit_available']=$buyer_info['credit_available']-$info['amount'];
+                        }else{
+                            $buyer_info['credit_available']=$buyer_info['credit_available'] + $info['amount'];
+                        }
+                        if($data['type']=="REFUND"){
+                            $buyer_info['credit_available']=$buyer_info['credit_available']+$data['amount'];
+                        }else{
+                            $buyer_info['credit_available']=$buyer_info['credit_available'] - $data['amount'];
+                        }
+                        if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
+                            $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
+                        }
+                    }else{
+                        $results['code'] = '-101';
+                        $results['message'] = '没有获取采购商信息，无法授信!';
+                        $this->jsonReturn($results);
+                    }
+                }else{
+                    $results['code'] = '-101';
+                    $results['message'] = '订单没有采购商，无法授信!';
+                    $this->jsonReturn($results);
+                }
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '修改失败,请输入正确的订单号!';
+                $this->jsonReturn($results);
+            }
+        }
         try {
             $id = $this->where($where)->save($data);
-            if($id === false){
+            if ($id === false) {
                 $results['code'] = '-101';
                 $results['message'] = '修改失败!';
-            }else{
+            } else {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
             }
@@ -379,20 +421,62 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function deleteData($condition = []) {
-        if(!empty($condition['id'])){
-            $where['id'] = array('in',explode(',',$condition['id']));
-        }else{
+        if (!empty($condition['id'])) {
+            $where['id'] = array('in', explode(',', $condition['id']));
+        } else {
             $results['code'] = '-103';
             $results['message'] = '没有流程ID!';
             return $results;
         }
 
         try {
+
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
-            if($id){
+            //如果收款全部删除订单状态变成未支付
+            $info = $this->where($where)->find();
+            if($info['order_id']&&$info['log_group']=='COLLECTION'){
+                $res = $this->where(['order_id'=>$info['order_id'],'log_group'=>'COLLECTION','deleted_flag' => 'N'])->find();
+                if(!$res){
+                    $order_model = new OrderModel();
+                    $order_model->where(['id'=>$info['order_id']])->setField(['pay_status'=>'UNPAY']);
+                }
+            }
+            if($info['log_group']=="CREDIT"&&isset($info["order_id"])&&$info["order_id"]) {
+                $order_model = new OrderModel();
+                $order_info = $order_model->where(['id'=>$info["order_id"]])->find();
+                if($order_info){
+                    if($order_info['buyer_id']){
+                        $buyer_model = new BuyerModel();
+                        $buyer_info = $buyer_model->where(['id'=>$order_info['buyer_id']])->find();
+                        if($buyer_info){
+                            if($info['type']=="REFUND"){
+                                $buyer_info['credit_available']=$buyer_info['credit_available']-$info['amount'];
+                            }else{
+                                $buyer_info['credit_available']=$buyer_info['credit_available'] + $info['amount'];
+                            }
+                            if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
+                                $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
+                            }
+                        }else{
+                            $results['code'] = '-101';
+                            $results['message'] = '没有获取采购商信息，无法授信!';
+                            $this->jsonReturn($results);
+                        }
+                    }else{
+                        $results['code'] = '-101';
+                        $results['message'] = '订单没有采购商，无法授信!';
+                        $this->jsonReturn($results);
+                    }
+                }else{
+                    $results['code'] = '-101';
+                    $results['message'] = '修改失败,请输入正确的订单号!';
+                    $this->jsonReturn($results);
+                }
+            }
+            if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '删除失败!';
             }
@@ -409,6 +493,7 @@ class OrderLogModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d H:i:s',time());
+        return date('Y-m-d H:i:s', time());
     }
+
 }

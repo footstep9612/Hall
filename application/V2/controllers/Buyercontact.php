@@ -14,7 +14,7 @@
 class BuyercontactController extends PublicController {
 
     public function __init() {
-        //   parent::__init();
+          parent::__init();
     }
 
     /*

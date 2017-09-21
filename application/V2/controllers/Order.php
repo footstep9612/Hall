@@ -18,6 +18,39 @@ class OrderController extends PublicController {
     public function init() {
         parent::init();
     }
+    /**
+     * 验证用户权限
+     * Author:张玉良
+     * @return string
+     */
+    public function checkAuthAction() {
+        $groupid = $this->user['group_id'];
+
+        if (isset($groupid)) {
+            $maketareateam = new MarketAreaTeamModel();
+            $users = [];
+
+            if(is_array($groupid)){
+                //查询是否是市场人员
+                $agent = $maketareateam->where('market_org_id in('.implode(',',$groupid).')')->count('id');
+            }else{
+                //查询是否是市场人员
+                $agent = $maketareateam->where('market_org_id='.$groupid)->count('id');
+            }
+
+            if ($agent>0) {
+                $results['code'] = '2';
+                $results['message'] = '市场人员！';
+            } else {
+                $results['code'] = '3';
+                $results['message'] = '其他人员！';
+            }
+        } else {
+            $results['code'] = '-101';
+            $results['message'] = '用户没有权限此操作！';
+        }
+        return $results;
+    }
     /* 创建新订单
      * @author  zhengkq
      * @date    2017-09-13 17:50:09
@@ -147,7 +180,7 @@ class OrderController extends PublicController {
 				'attach_group'=>['in',['PO','OTHERS']],
 				'deleted_flag'=>'N'
 			];
-			$data = $orderAttach->where($condition)->field('id,attach_name,attach_url')->select();
+			$data = $orderAttach->where($condition)->field('id,attach_group,attach_name,attach_url')->select();
         }else{
 			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
 		}
@@ -252,7 +285,10 @@ class OrderController extends PublicController {
         if(is_numeric($data['agent_id']) && $data['agent_id'] > 0){
             $order['agent_id'] = intval($data['agent_id']);
         }
-        $order['amount']          = doubleval($data['amount']);//订单金额
+		$data['amount'] = str_replace(',','',$data['amount']);
+		if(is_numeric($data['amount']) && doubleval($data['amount']) > 0){
+            $order['amount']          = doubleval($data['amount']);//订单金额
+		}
         $order['currency_bn']     = $this->safeString($data['currency_bn']);//币种
         $order['trade_terms_bn']  = $this->safeString($data['trade_terms_bn']);    //贸易条款简码
         $order['trans_mode_bn']   = $this->safeString($data['trans_mode_bn']);    //运输方式简码
@@ -323,7 +359,7 @@ class OrderController extends PublicController {
             return ['code'=>1,'message'=>'Success'];
             
         }catch(Exception $e){
-            return ['code'=>-106,'message'=>'更新订单失败'.$e->getMessage()];
+            return ['code'=>-106,'message'=>'更新订单失败'];
         }        
     }
 	/* 保存供应商信息
@@ -421,8 +457,8 @@ class OrderController extends PublicController {
                 if(in_array($file['id'],$others)){
                     $attach->save(
                         [
-                            'attach_name' => $file['name'],
-                            'attach_url'  => $file['file'],
+                            'attach_name' => $file['attach_name'],
+                            'attach_url'  => $file['attach_url'],
                             'deleted_flag'=> 'N'
                         ],
                         [
@@ -436,8 +472,8 @@ class OrderController extends PublicController {
                             'order_id'     => $order_id,
                             'attach_group' => 'OTHERS',
                             'deleted_flag' => 'N',
-                            'attach_name' => $file['name'],
-                            'attach_url'  => $file['file'],
+                            'attach_name' => $file['attach_name'],
+                            'attach_url'  => $file['attach_url'],
                             'created_by'=>$userId,
                             'created_at'=>$now
                         ]
@@ -511,15 +547,24 @@ class OrderController extends PublicController {
             $userId = intval($this->user['id']);
             $now = date('Y-m-d H:i:s');
             foreach($data['delivery'] as $delivery){
-                if(empty($delivery['describe']) && empty($delivery['delivery_at'])){
-                    continue;
-                }
-				$delivery['delivery_at'] = date('Y-m-d',strtotime($delivery['delivery_at']));
-                unset($delivery['id']);
-                $delivery['order_id'] = $order_id;
-                $delivery['created_by'] = $userId;
-                $delivery['created_at'] = $now;
-                $orderDelivery->add($delivery);
+				$delivery['describe'] = trim($delivery['describe']);
+				if(empty($delivery['describe'])){
+					unset($delivery['describe']);
+				}
+				if(strlen($delivery['delivery_at']) > 10){
+					$delivery['delivery_at'] = substr($delivery['delivery_at'],0,10);
+				}
+				if(!preg_match("/^\d{4}-\d{2}-\d{2}$/i",$delivery['delivery_at'])){
+					unset($delivery['delivery_at']);
+				}
+				
+                if(isset($delivery['describe']) || isset($delivery['delivery_at'])){
+                     unset($delivery['id']);
+					$delivery['order_id'] = $order_id;
+					$delivery['created_by'] = $userId;
+					$delivery['created_at'] = $now;
+					$orderDelivery->add($delivery);
+                }               
             }
         }
     }
@@ -537,18 +582,39 @@ class OrderController extends PublicController {
             $userId = intval($this->user['id']);
             $now = date('Y-m-d H:i:s');
             foreach($data['settlement'] as $settlement){
-                if(empty($settlement['name']) && empty($settlement['amount'])
-                    && empty($settlement['payment_mode'])
-                    && empty($settlement['payment_at'])
+				$settlement['name'] = trim($settlement['name']);
+				if(empty($settlement['name'])){
+					unset($settlement['name']);
+				}
+				
+				if(doubleval($settlement['amount']) > 0){
+					$settlement['amount'] = doubleval($settlement['amount']);
+				}else{
+					unset($settlement['amount']);
+				}
+				if(strlen($settlement['payment_at']) > 10){
+					$settlement['payment_at'] = substr($settlement['payment_at'],0,10);
+				}
+				if(!preg_match("/^\d{4}-\d{2}-\d{2}$/i",$settlement['payment_at'])){
+					unset($settlement['payment_at']);
+				}else{
+					$settlement['payment_at'] = date('Y-m-d',strtotime($settlement['payment_at']));
+				}
+				$settlement['payment_mode'] = trim($settlement['payment_mode']);
+				if(empty($settlement['payment_mode'])){
+					unset($settlement['payment_mode']);
+				}
+                if(isset($settlement['name']) || isset($settlement['amount'])
+                    || isset($settlement['payment_mode'])
+                    || isset($settlement['payment_at'])
                 ){
-                    continue;
+					unset($settlement['id']);
+					$settlement['order_id'] = $order_id;
+					$settlement['created_by'] = $userId;
+					$settlement['created_at'] = $now;
+					$orderPayment->add($settlement);
                 }
-				$settlement['payment_at'] = date('Y-m-d',strtotime($settlement['payment_at']));
-                unset($settlement['id']);
-                $settlement['order_id'] = $order_id;
-                $settlement['created_by'] = $userId;
-                $settlement['created_at'] = $now;
-                $orderPayment->add($settlement);
+				
             }
         }
     }
@@ -576,13 +642,19 @@ class OrderController extends PublicController {
         if(!isset($data['execute_no']) || empty($data['execute_no']) || trim($data['execute_no'])==''){
             return ['code'=>-101,'message'=>'执行单号不能为空'];
         }
-		if(isset($data['amount']) && !is_numeric($data['amount'])){
+		if(isset($data['amount']) && !empty($data['amount']) && !is_numeric($data['amount'])){
 			return ['code'=>-101,'message'=>'订单金额不是一个有效的数字'];
+		}
+		if(doubleval($data['amount']) > 100000000000){
+			return ['code'=>-101,'message'=>'订单金额不能大于1000亿'];
 		}
 		if(isset($data['settlement']) && is_array($data['settlement'])){
 			foreach($data['settlement'] as $item){
-				if(isset($item['amount']) && !is_numeric($item['amount'])){
+				if(isset($item['amount']) && !empty($item['amount']) && !is_numeric($item['amount'])){
 					return ['code'=>-101,'message'=>'结算方式-金额不是一个有效的数字'];
+				}
+				if(doubleval($item['amount']) > 100000000000){
+					return ['code'=>-101,'message'=>'结算金额不能大于1000亿'];
 				}
 			}
 		}
@@ -635,9 +707,11 @@ class OrderController extends PublicController {
 
     //put your code here
     public function listAction() {
-
+        $auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
-
+        if ($auth['code'] == '2'){
+                $condition['agent_id']=$this->user['id'];
+        }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);

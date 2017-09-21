@@ -280,15 +280,15 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
 
         if (isset($condition['keyword']) && $condition['keyword']) {
-            $show_name = $condition['keyword'];
+            $keyword = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MULTI_MATCH => [
-                                'query' => $show_name,
-                                'type' => 'most_fields',
-                                'fields' => ['show_name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
-                            ]],
-                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
-                        [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
+                        [ESClient::MATCH => ['name.ik' => $keyword]],
+                        [ESClient::MATCH => ['show_name.ik' => $keyword]],
+                        [ESClient::TERM => ['spu' => $keyword]],
+                        [ESClient::WILDCARD => ['specs.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['brand.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
             ]]];
         }
         return $body;

@@ -14,7 +14,7 @@
 class BuyerController extends PublicController {
 
     public function __init() {
-        //   parent::__init();
+          parent::__init();
     }
 
     /*
@@ -34,10 +34,9 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['agent_id'])) {
+        if(!empty($data['agent_id'])){
             $where['agent_id'] = $data['agent_id'];
         }
-
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $data['buyer_no'];
         }
@@ -225,8 +224,6 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
-        } else {
-            jsonReturn('', -101, '名字不能为空!');
         }
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];

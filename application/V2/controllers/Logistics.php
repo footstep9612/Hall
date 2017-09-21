@@ -206,8 +206,8 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] / $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 8);
     	        $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] / $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
     	        	
-    	        $quoteLogiFee['overland_insu'] = round($quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'] / 100, 8);
-    	        $quoteLogiFee['shipping_insu'] = round($quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'] / 100, 8);
+    	        $quoteLogiFee['overland_insu'] = $this->_getOverlandInsuUSD($quoteLogiFee['total_exw_price'], $quoteLogiFee['overland_insu_rate']);
+    	        $quoteLogiFee['shipping_insu'] = $this->_getShippingInsuUSD($quoteLogiFee['total_exw_price'], $quoteLogiFee['shipping_insu_rate']);
     	        
     	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
     	        
@@ -629,6 +629,46 @@ class LogisticsController extends PublicController {
 	}
 	
 	/**
+	 * @desc 获取陆运险费用接口
+	 *
+	 * @author liujf
+	 * @time 2017-09-21
+	 */
+	public function getOverlandInsuFeeAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['quote_id'])) {
+    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+    	    
+    	    $res['overland_insu'] = $this->_getOverlandInsuUSD($quote['total_exw_price'], $condition['overland_insu_rate']);
+    	    
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 获取国际运输险费用接口
+	 *
+	 * @author liujf
+	 * @time 2017-09-21
+	 */
+	public function getShippingInsuFeeAction() {
+	   $condition = $this->put_data;
+	    
+	    if (!empty($condition['quote_id'])) {
+    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+    	    
+    	    $res['shipping_insu'] = $this->_getShippingInsuUSD($quote['total_exw_price'], $condition['shipping_insu_rate']);
+    	    
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
 	 * @desc 计算物流合计
 	 *
 	 * @param array $condition
@@ -730,7 +770,7 @@ class LogisticsController extends PublicController {
 	     
 	    $inspectionFeeUSD = round($data['inspection_fee'] / $this->_getRateUSD($data['inspection_fee_cur']), 8);
 	    $landFreightUSD = round($data['land_freight'] / $this->_getRateUSD($data['land_freight_cur']), 8);
-	    $overlandInsuUSD = round($data['total_exw_price'] * 1.1 * $data['overland_insu_rate'] / 100, 8);
+	    $overlandInsuUSD = $this->_getOverlandInsuUSD($data['total_exw_price'], $data['overland_insu_rate']);
 	    $portSurchargeUSD = round($data['port_surcharge'] / $this->_getRateUSD($data['port_surcharge_cur']), 8);
 	    $interShippingUSD = round($data['inter_shipping'] / $this->_getRateUSD($data['inter_shipping_cur']), 8);
 	    $destDeliveryFeeUSD = round($data['dest_delivery_fee'] / $this->_getRateUSD($data['dest_delivery_fee_cur']), 8);
@@ -768,7 +808,7 @@ class LogisticsController extends PublicController {
 	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
 	    }
 	     
-	    $shippingInsuUSD = round($totalQuotePrice * 1.1 * $data['shipping_insu_rate'] / 100, 8);
+	    $shippingInsuUSD = $this->_getShippingInsuUSD($data['total_exw_price'], $data['overland_insu_rate']);
 	    $totalBankFeeUSD = round($totalQuotePrice * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_period']  / 365, 8);
 	    $totalInsuFeeUSD =round($totalQuotePrice * $data['premium_rate'], 8);
 	    
@@ -781,9 +821,9 @@ class LogisticsController extends PublicController {
 	    $data['total_logi_fee'] = round($inspectionFeeUSD +  $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD, 8);
 	    
 	    $data['shipping_charge_cny'] = round(($data['inspection_fee_cur'] == 'CNY' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'CNY' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'CNY' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'CNY' ? $data['inter_shipping'] : 0)
-	                                                            + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'CNY' ? $data['dest_clearance_fee'] : 0), 8);
+	                                                            + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0), 8);
 	    $data['shipping_charge_ncny'] = round(($data['inspection_fee_cur'] == 'USD' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'USD' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'USD' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'USD' ? $data['inter_shipping'] : 0)
-	                                                            + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'USD' ? $data['dest_clearance_fee'] : 0), 8);
+	                                                            + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0), 8);
 	    
 	    $data['total_quote_price'] = $totalQuotePrice;
 	    $data['total_bank_fee'] = $totalBankFeeUSD;
@@ -811,6 +851,60 @@ class LogisticsController extends PublicController {
 	    }
 	    
 	    return $totalQuotePrice;
+	}
+	
+	/**
+	 * @desc 获取陆运险费用
+	 *
+	 * @param float $totalExwPrice exw价格合计
+	 * @param float $overlandInsuRate 陆运险率
+	 * @return float
+	 * @author liujf
+	 * @time 2017-09-20
+	 */
+	private function _getOverlandInsuUSD($totalExwPrice = 0, $overlandInsuRate = 0) {
+	    
+	    // 美元兑人民币汇率
+	   $rate = $this->_getRateUSD('CNY');
+	    
+	   $tmpPrice = $totalExwPrice * $overlandInsuRate / 100;
+	   
+	   $overlandInsuCNY = round($tmpPrice * $rate, 8);
+	   
+	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
+	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
+	   } else {
+	       $overlandInsuUSD = round($tmpPrice, 8); 
+	   }
+	   
+	   return $overlandInsuUSD;
+	}
+	
+	/**
+	 * @desc 获取国际运输险费用
+	 *
+	 * @param float $totalExwPrice exw价格合计
+	 * @param float $shippingInsuRate 国际运输险率
+	 * @return float
+	 * @author liujf
+	 * @time 2017-09-20
+	 */
+	private function _getShippingInsuUSD($totalExwPrice = 0, $shippingInsuRate = 0) {
+	
+	    // 美元兑人民币汇率
+	    $rate = $this->_getRateUSD('CNY');
+	    
+	    $tmpPrice = $totalExwPrice * 1.1 * $shippingInsuRate / 100;
+	    
+	    $shippingInsuCNY = round($tmpPrice * $rate, 8);
+	    
+	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
+	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
+	    } else {
+	        $shippingInsuUSD = round($tmpPrice, 8);
+	    }
+	    
+	    return $shippingInsuUSD;
 	}
 	
 	/**

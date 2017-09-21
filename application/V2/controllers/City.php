@@ -58,6 +58,11 @@ class CityController extends PublicController {
 
         $arr = $this->_model->getAll($condtion);
         if ($arr) {
+            foreach ($arr as $key => $item) {
+                // $item['city_country'] = $item['name'] . '(' . $item['country'] . ')';
+                $item['name'] = $item['name'] . '(' . $item['country'] . ')';
+                $arr[$key] = $item;
+            }
             $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
             $data['code'] = MSG::MSG_SUCCESS;
             $data['data'] = $arr;
