@@ -41,7 +41,7 @@ class EsproductController extends PublicController {
                 parent::init();
             }
         } else {
-            // parent::init();
+            parent::init();
         }
     }
 
