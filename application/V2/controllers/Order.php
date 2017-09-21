@@ -16,7 +16,7 @@
 class OrderController extends PublicController {
 
     public function init() {
-        //parent::init();
+        parent::init();
     }
     /**
      * 验证用户权限
@@ -25,6 +25,7 @@ class OrderController extends PublicController {
      */
     public function checkAuthAction() {
         $groupid = $this->user['group_id'];
+
         if (isset($groupid)) {
             $maketareateam = new MarketAreaTeamModel();
             $users = [];
@@ -284,7 +285,10 @@ class OrderController extends PublicController {
         if(is_numeric($data['agent_id']) && $data['agent_id'] > 0){
             $order['agent_id'] = intval($data['agent_id']);
         }
-        $order['amount']          = doubleval($data['amount']);//订单金额
+		$data['amount'] = str_replace(',','',$data['amount']);
+		if(is_numeric($data['amount']) && doubleval($data['amount']) > 0){
+            $order['amount']          = doubleval($data['amount']);//订单金额
+		}
         $order['currency_bn']     = $this->safeString($data['currency_bn']);//币种
         $order['trade_terms_bn']  = $this->safeString($data['trade_terms_bn']);    //贸易条款简码
         $order['trans_mode_bn']   = $this->safeString($data['trans_mode_bn']);    //运输方式简码
@@ -355,7 +359,7 @@ class OrderController extends PublicController {
             return ['code'=>1,'message'=>'Success'];
             
         }catch(Exception $e){
-            return ['code'=>-106,'message'=>'更新订单失败'.$e->getMessage()];
+            return ['code'=>-106,'message'=>'更新订单失败'];
         }        
     }
 	/* 保存供应商信息
@@ -582,10 +586,11 @@ class OrderController extends PublicController {
 				if(empty($settlement['name'])){
 					unset($settlement['name']);
 				}
-				if(empty($settlement['amount']) || !is_numeric($settlement['amount'])){
-					unset($settlement['amount']);
-				}else{
+				
+				if(doubleval($settlement['amount']) > 0){
 					$settlement['amount'] = doubleval($settlement['amount']);
+				}else{
+					unset($settlement['amount']);
 				}
 				if(strlen($settlement['payment_at']) > 10){
 					$settlement['payment_at'] = substr($settlement['payment_at'],0,10);
@@ -640,10 +645,16 @@ class OrderController extends PublicController {
 		if(isset($data['amount']) && !empty($data['amount']) && !is_numeric($data['amount'])){
 			return ['code'=>-101,'message'=>'订单金额不是一个有效的数字'];
 		}
+		if(doubleval($data['amount']) > 100000000000){
+			return ['code'=>-101,'message'=>'订单金额不能大于1000亿'];
+		}
 		if(isset($data['settlement']) && is_array($data['settlement'])){
 			foreach($data['settlement'] as $item){
 				if(isset($item['amount']) && !empty($item['amount']) && !is_numeric($item['amount'])){
 					return ['code'=>-101,'message'=>'结算方式-金额不是一个有效的数字'];
+				}
+				if(doubleval($item['amount']) > 100000000000){
+					return ['code'=>-101,'message'=>'结算金额不能大于1000亿'];
 				}
 			}
 		}

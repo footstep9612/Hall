@@ -14,7 +14,7 @@
 class BuyerController extends PublicController {
 
     public function __init() {
-        //   parent::__init();
+          parent::__init();
     }
 
     /*
@@ -224,8 +224,6 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
-        } else {
-            jsonReturn('', -101, '名字不能为空!');
         }
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];

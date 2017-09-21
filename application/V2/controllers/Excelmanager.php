@@ -10,27 +10,12 @@ class ExcelmanagerController extends PublicController {
         parent::init();
     }
 
+    /**
+     * 本地Form表单上传测试
+     */
     public function uploadAction() {
         $this->getView()->assign("content", "Hello World");
         $this->display('upload');
-    }
-
-    public function uploaderAction() {
-
-        $file = '/data/www/erui_php/public/tmp/FQ_20170904-152249.xls';
-        $fileName = strstr($file, '.', true);
-        $fileSuffix = strstr($file, '.');
-
-        if (extension_loaded('fastdfs_client')) {
-            $fdfs = new FastDFS();
-            $tracker = $fdfs->tracker_get_connection();
-            $fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($fileName, $fileSuffix));
-            $fdfs->tracker_close_all_connections();
-            return $fileId;
-        } else {
-            return array();
-        }
-        p($fileName);
     }
 
     /**
@@ -92,18 +77,17 @@ class ExcelmanagerController extends PublicController {
 
         $response = $this->importSkuHandler($localFile, $data, $inquiry_id);
         $this->jsonReturn($response);
+
     }
 
     /**
      * 执行导入操作
      * @param $data
-     *
      * @return array
      */
     private function importSkuHandler($localFile, $data, $inquiry_id) {
 
         array_shift($data); //去掉第一行数据(excel文件的标题)
-        //p($data);
         if (empty($data)) {
             return ['code' => '-104', 'message' => '没有可导入的数据', 'data' => ''];
         }
@@ -123,7 +107,7 @@ class ExcelmanagerController extends PublicController {
             $sku[$k]['brand'] = $v[10]; //品牌
             $sku[$k]['created_at'] = date('Y-m-d H:i:s', time()); //添加时间
         }
-        //p($sku);
+
         //写入数据库
         $inquiryItem = new InquiryItemModel();
         try {
@@ -162,8 +146,9 @@ class ExcelmanagerController extends PublicController {
 				]
 			]);
 		}
+
         $data = $this->getFinalQuoteData($request['inquiry_id']);
-        //p($data);
+
         //创建excel表格并填充数据
         $excelFile = $this->createExcelAndInsertData($data);
 
@@ -208,6 +193,7 @@ class ExcelmanagerController extends PublicController {
             ]);
             return;
         }
+
         //保存数据库
         $data = [
             'inquiry_id'   => intval($request['inquiry_id']),
@@ -227,11 +213,14 @@ class ExcelmanagerController extends PublicController {
             ]
         ]);
     }
+
     /**
-    * 上传文件至FastDFS
-    * @param string $file 本地文件信息
-    * @param string $url  上传接口地址
-    **/
+     * 上传文件至FastDFS
+     * @param     $data 本地文件信息
+     * @param     $url  上传接口地址
+     * @param int $timeout  响应时间
+     * @return array|mixed
+     */
     function postfile($data, $url, $timeout = 30) {             
         $cfile = new \CURLFile($data['tmp_name'], $data['type'], $data['name']);
         $ch = curl_init($url);
@@ -329,6 +318,11 @@ class ExcelmanagerController extends PublicController {
         return $ret;
     }
 
+    /**
+     * 获取报价单信息
+     * @param $inquiry_id   询单id
+     * @return array    报价信息
+     */
     private function getFinalQuoteData($inquiry_id) {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
@@ -364,7 +358,6 @@ class ExcelmanagerController extends PublicController {
                 ->where(['a.inquiry_id' => $inquiry_id])
                 ->order('a.id DESC')
                 ->select();
-        //p($finalQuoteItems);
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
@@ -377,6 +370,7 @@ class ExcelmanagerController extends PublicController {
             'quote_items' => $finalQuoteItems,
             'quote_info' => $quoteInfo
         ];
+
     }
 	/**
 	* 获取用户所在部门数组
@@ -420,7 +414,6 @@ class ExcelmanagerController extends PublicController {
     /**
      * 创建excel文件对象
      * @param $quote
-     *
      * @return string 文件路径
      */
     private function createExcelAndInsertData($quote) {
@@ -567,6 +560,7 @@ class ExcelmanagerController extends PublicController {
 
                 $row_num++;
             }
+
             $objSheet->getStyle("A7:K" . $row_num)->applyFromArray($styleArray);
 
             $num10 = $row_num + 1;
@@ -676,11 +670,12 @@ class ExcelmanagerController extends PublicController {
             $objSheet->getStyle("A" . $num20 . ":K" . $num21)->applyFromArray($styleArray);
         }
 
-        //添加logo
+        //TODO 添加logo
+
         //4.保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "FQ_" . date('Ymd-His') . '.xls');
+
     }
 
 }

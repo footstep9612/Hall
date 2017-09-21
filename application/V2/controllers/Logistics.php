@@ -629,6 +629,46 @@ class LogisticsController extends PublicController {
 	}
 	
 	/**
+	 * @desc 获取陆运险费用接口
+	 *
+	 * @author liujf
+	 * @time 2017-09-21
+	 */
+	public function getOverlandInsuFeeAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['quote_id'])) {
+    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+    	    
+    	    $res['overland_insu'] = $this->_getOverlandInsuUSD($quote['total_exw_price'], $condition['overland_insu_rate']);
+    	    
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 获取国际运输险费用接口
+	 *
+	 * @author liujf
+	 * @time 2017-09-21
+	 */
+	public function getShippingInsuFeeAction() {
+	   $condition = $this->put_data;
+	    
+	    if (!empty($condition['quote_id'])) {
+    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+    	    
+    	    $res['shipping_insu'] = $this->_getShippingInsuUSD($quote['total_exw_price'], $condition['shipping_insu_rate']);
+    	    
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
 	 * @desc 计算物流合计
 	 *
 	 * @param array $condition
