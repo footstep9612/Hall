@@ -323,6 +323,13 @@ class OrderLogModel extends PublicModel {
             $results['message'] = '没有流程分组!';
             return $results;
         }
+        if (isset($condition['amount'])) {
+            if($condition['amount']<0){
+                $results['code'] = '-103';
+                $results['message'] = '金额不能为负数!';
+                return $results;
+            }
+        }
         $data = $this->createData($condition);
         $data['created_at'] = $this->getTime();
 
@@ -357,6 +364,13 @@ class OrderLogModel extends PublicModel {
             $results['code'] = '-103';
             $results['message'] = '没有流程ID!';
             return $results;
+        }
+        if (isset($condition['amount'])) {
+            if($condition['amount']<0){
+                $results['code'] = '-103';
+                $results['message'] = '金额不能为负数!';
+                return $results;
+            }
         }
         $data = $this->createData($condition);
         $info = $this->where($where)->find();
