@@ -629,6 +629,46 @@ class LogisticsController extends PublicController {
 	}
 	
 	/**
+	 * @desc 获取陆运险费用接口
+	 *
+	 * @author liujf
+	 * @time 2017-09-21
+	 */
+	public function getOverlandInsuFeeAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['quote_id'])) {
+    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+    	    
+    	    $res['overland_insu'] = $this->_getOverlandInsuUSD($quote['total_exw_price'], $condition['overland_insu_rate']);
+    	    
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 获取国际运输险费用接口
+	 *
+	 * @author liujf
+	 * @time 2017-09-21
+	 */
+	public function getShippingInsuFeeAction() {
+	   $condition = $this->put_data;
+	    
+	    if (!empty($condition['quote_id'])) {
+    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+    	    
+    	    $res['shipping_insu'] = $this->_getShippingInsuUSD($quote['total_exw_price'], $condition['shipping_insu_rate']);
+    	    
+    	    $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
 	 * @desc 计算物流合计
 	 *
 	 * @param array $condition
@@ -781,9 +821,9 @@ class LogisticsController extends PublicController {
 	    $data['total_logi_fee'] = round($inspectionFeeUSD +  $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD, 8);
 	    
 	    $data['shipping_charge_cny'] = round(($data['inspection_fee_cur'] == 'CNY' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'CNY' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'CNY' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'CNY' ? $data['inter_shipping'] : 0)
-	                                                            + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'CNY' ? $data['dest_clearance_fee'] : 0), 8);
+	                                                            + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0), 8);
 	    $data['shipping_charge_ncny'] = round(($data['inspection_fee_cur'] == 'USD' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'USD' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'USD' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'USD' ? $data['inter_shipping'] : 0)
-	                                                            + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0)+ ($data['dest_clearance_fee_cur'] == 'USD' ? $data['dest_clearance_fee'] : 0), 8);
+	                                                            + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0), 8);
 	    
 	    $data['total_quote_price'] = $totalQuotePrice;
 	    $data['total_bank_fee'] = $totalBankFeeUSD;
