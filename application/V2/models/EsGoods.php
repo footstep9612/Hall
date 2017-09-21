@@ -322,7 +322,7 @@ class EsGoodsModel extends Model {
 
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
-            echo json_encode($body, 256);
+
             return [$es->setbody($body)
                         ->setsort('_score', 'desc')
                         ->setsort('created_at', 'desc')
