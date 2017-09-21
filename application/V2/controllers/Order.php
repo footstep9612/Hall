@@ -173,13 +173,16 @@ class OrderController extends PublicController {
     public function attachmentsAction(){
         $data = file_get_contents('php://input');
         $data = @json_decode($data,true);
+		
         if(isset($data['id']) && $data['id'] > 0){
             $orderAttach = new OrderAttachModel();
 			$condition = [
 			    'order_id'=>intval($data['id']),
-				'attach_group'=>['in',['PO','OTHERS']],
 				'deleted_flag'=>'N'
 			];
+			if (intval($data['all']) != 1 ){
+				$condition['attach_group'] = ['in',['PO','OTHERS']];
+			}
 			$data = $orderAttach->where($condition)->field('id,attach_group,attach_name,attach_url')->select();
         }else{
 			$this->jsonReturn(['code'=>-101,'message'=>'订单不存在']);
