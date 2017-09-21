@@ -421,8 +421,8 @@ class OrderController extends PublicController {
                 if(in_array($file['id'],$others)){
                     $attach->save(
                         [
-                            'attach_name' => $file['name'],
-                            'attach_url'  => $file['file'],
+                            'attach_name' => $file['attach_name'],
+                            'attach_url'  => $file['attach_url'],
                             'deleted_flag'=> 'N'
                         ],
                         [
@@ -436,8 +436,8 @@ class OrderController extends PublicController {
                             'order_id'     => $order_id,
                             'attach_group' => 'OTHERS',
                             'deleted_flag' => 'N',
-                            'attach_name' => $file['name'],
-                            'attach_url'  => $file['file'],
+                            'attach_name' => $file['attach_name'],
+                            'attach_url'  => $file['attach_url'],
                             'created_by'=>$userId,
                             'created_at'=>$now
                         ]
