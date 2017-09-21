@@ -586,7 +586,7 @@ class OrderController extends PublicController {
 					unset($settlement['name']);
 				}
 				
-				if(doubleval($data['amount']) > 0){
+				if(doubleval($settlement['amount']) > 0){
 					$settlement['amount'] = doubleval($settlement['amount']);
 				}else{
 					unset($settlement['amount']);
