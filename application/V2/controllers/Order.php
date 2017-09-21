@@ -16,7 +16,7 @@
 class OrderController extends PublicController {
 
     public function init() {
-        //parent::init();
+        parent::init();
     }
     /**
      * 验证用户权限
@@ -284,7 +284,10 @@ class OrderController extends PublicController {
         if(is_numeric($data['agent_id']) && $data['agent_id'] > 0){
             $order['agent_id'] = intval($data['agent_id']);
         }
-        $order['amount']          = doubleval($data['amount']);//订单金额
+		$data['amount'] = str_replace(',','',$data['amount']);
+		if(is_numeric($data['amount']) && doubleval($data['amount']) > 0){
+            $order['amount']          = doubleval($data['amount']);//订单金额
+		}
         $order['currency_bn']     = $this->safeString($data['currency_bn']);//币种
         $order['trade_terms_bn']  = $this->safeString($data['trade_terms_bn']);    //贸易条款简码
         $order['trans_mode_bn']   = $this->safeString($data['trans_mode_bn']);    //运输方式简码
@@ -582,10 +585,11 @@ class OrderController extends PublicController {
 				if(empty($settlement['name'])){
 					unset($settlement['name']);
 				}
-				if(empty($settlement['amount']) || !is_numeric($settlement['amount'])){
-					unset($settlement['amount']);
-				}else{
+				
+				if(doubleval($data['amount']) > 0){
 					$settlement['amount'] = doubleval($settlement['amount']);
+				}else{
+					unset($settlement['amount']);
 				}
 				if(strlen($settlement['payment_at']) > 10){
 					$settlement['payment_at'] = substr($settlement['payment_at'],0,10);
