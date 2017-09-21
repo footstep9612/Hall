@@ -41,7 +41,7 @@ class EsproductController extends PublicController {
                 parent::init();
             }
         } else {
-            parent::init();
+            // parent::init();
         }
     }
 
@@ -336,6 +336,8 @@ class EsproductController extends PublicController {
             $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
         }
         $es = new ESClient();
+
+
         $es->create_index($this->index, $body);
         $this->setCode(1);
         $this->setMessage('成功!');
@@ -380,33 +382,41 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function goodsAction() {
-
+        $es = new ESClient();
+        $info = $es->getversion();
+        if (substr($info['version']['number'], 0, 1) == 1) {
+            $analyzer = 'ik';
+            $type = 'string';
+        } else {
+            $analyzer = 'ik_max_word';
+            $type = 'text';
+        }
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
-            'type' => 'string',
+            'type' => $type,
             'fields' => [
                 'all' => [
                     'index' => 'not_analyzed',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'standard' => [
                     'analyzer' => 'standard',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => 'ik',
-                    'type' => 'string'
+                    'analyzer' => $analyzer,
+                    'type' => $type
                 ],
                 'whitespace' => [
                     'analyzer' => 'whitespace',
-                    'type' => 'string'
+                    'type' => $type
                 ]
             ]
         ];
         $not_analyzed = [
             'index' => 'not_analyzed',
-            'type' => 'string'
+            'type' => $type
         ];
         $body = [
             'id' => $int_analyzed, //id
@@ -479,7 +489,15 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function productAction($lang = 'en') {
-
+        $es = new ESClient();
+        $info = $es->getversion();
+        if (substr($info['version']['number'], 0, 1) == 1) {
+            $analyzer = 'ik';
+            $type = 'string';
+        } else {
+            $analyzer = 'ik_max_word';
+            $type = 'text';
+        }
 
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
@@ -488,25 +506,25 @@ class EsproductController extends PublicController {
             'fields' => [
                 'all' => [
                     'index' => 'not_analyzed',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'standard' => [
                     'analyzer' => 'standard',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => 'ik',
-                    'type' => 'string'
+                    'analyzer' => $analyzer,
+                    'type' => $type
                 ],
                 'whitespace' => [
                     'analyzer' => 'whitespace',
-                    'type' => 'string'
+                    'type' => $type
                 ]
             ]
         ];
         $not_analyzed = [
             'index' => 'not_analyzed',
-            'type' => 'string'
+            'type' => $type
         ];
 
         $body = [

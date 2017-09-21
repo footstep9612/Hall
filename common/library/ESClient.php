@@ -162,6 +162,10 @@ class ESClient {
         return $this->server->indices()->create($indexParams);
     }
 
+    public function getversion() {
+        return $this->server->info();
+    }
+
     /*
      * 删除索引
      */
