@@ -1239,6 +1239,7 @@ class ProductModel extends PublicModel {
                     $userInfo = getLoinInfo();
                     $productModel = new ProductModel();
                     $brandModel = new BrandModel();
+                    $es_product_model = new EsProductModel();
 
                     $handle = opendir($tmpDir);
                     while ($xls = readdir($handle)) {    //遍历spu xls
@@ -1247,6 +1248,7 @@ class ProductModel extends PublicModel {
                             $bool_spu = false;
                             $this->startTrans();
                             $sucess_lang_tmp = 0;
+                            $insert_langs = array();
 
                             $xlsFile = $tmpDir . '/' . $xls;
                             $fileType = PHPExcel_IOFactory::identify($xlsFile);    //获取文件类型
@@ -1317,6 +1319,7 @@ class ProductModel extends PublicModel {
                                     Log::write($xls . '下，' . $lang . '导入失败，请检查', Log::INFO);
                                     break;
                                 } else {
+                                    $insert_langs[] = $lang;
                                     $bool_spu = true;
                                     $sucess_lang_tmp++;
                                 }
@@ -1325,6 +1328,11 @@ class ProductModel extends PublicModel {
                                 $sucess++;
                                 $sucess_lang = $sucess_lang + $sucess_lang_tmp;
                                 $this->commit();
+
+                                //更新ｅｓ
+                                foreach($insert_langs as $r){
+                                    $es_product_model->create_data($spu, $r);
+                                }
                             }
                         }
                     }
