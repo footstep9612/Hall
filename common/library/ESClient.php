@@ -162,8 +162,16 @@ class ESClient {
         return $this->server->indices()->create($indexParams);
     }
 
+    /*
+     * 获取版本号
+     */
+
     public function getversion() {
         return $this->server->info();
+    }
+
+    public function getstate() {
+        return $this->server->cluster()->state();
     }
 
     /*

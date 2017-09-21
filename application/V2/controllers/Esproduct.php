@@ -336,9 +336,10 @@ class EsproductController extends PublicController {
             $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
         }
         $es = new ESClient();
-
-
-        $es->create_index($this->index, $body);
+        $state = $es->getstate();
+        if (!isset($state['metadata']['indices'][$this->index])) {
+            $es->create_index($this->index, $body);
+        }
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -396,6 +397,10 @@ class EsproductController extends PublicController {
             'index' => 'no',
             'type' => $type,
             'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
                 'all' => [
                     'index' => 'not_analyzed',
                     'type' => $type
@@ -502,8 +507,12 @@ class EsproductController extends PublicController {
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
-            'type' => 'string',
+            'type' => $type,
             'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
                 'all' => [
                     'index' => 'not_analyzed',
                     'type' => $type

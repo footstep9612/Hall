@@ -439,7 +439,7 @@ class ProductController extends PublicController {
 
         $productModel = new ProductModel();
         $result = $productModel->zipImport2($this->put_data['xls']);
-        if ($result !== false) {
+        if ($result !== false && $result['sucess']>0) {
             $error = '';
             if (!empty($result['failds'])) {
                 foreach ($result['failds'] as $e) {
