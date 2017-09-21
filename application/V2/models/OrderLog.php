@@ -456,6 +456,10 @@ class OrderLogModel extends PublicModel {
                             }
                             if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
                                 $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
+                            }else{
+                                $results['code'] = '-101';
+                                $results['message'] = '可用金额大于授信总额，无法授信!';
+                                $this->jsonReturn($results);
                             }
                         }else{
                             $results['code'] = '-101';
