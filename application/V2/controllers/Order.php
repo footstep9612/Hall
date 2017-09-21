@@ -286,8 +286,12 @@ class OrderController extends PublicController {
             $order['agent_id'] = intval($data['agent_id']);
         }
 		$data['amount'] = str_replace(',','',$data['amount']);
-		if(is_numeric($data['amount']) && doubleval($data['amount']) > 0){
-            $order['amount']          = doubleval($data['amount']);//订单金额
+		if(is_numeric($data['amount']) ){
+			if(doubleval($data['amount']) > 0){
+				$order['amount']          = doubleval($data['amount']);//订单金额
+			}else{
+				$this->jsonReturn(['code'=>-101,'message'=>'订单金额不能为负值']);
+			}
 		}
         $order['currency_bn']     = $this->safeString($data['currency_bn']);//币种
         $order['trade_terms_bn']  = $this->safeString($data['trade_terms_bn']);    //贸易条款简码
