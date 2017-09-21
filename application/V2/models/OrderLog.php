@@ -317,7 +317,6 @@ class OrderLogModel extends PublicModel {
             $results['message'] = '没有流程分组!';
             return $results;
         }
-
         $data = $this->createData($condition);
         $data['created_at'] = $this->getTime();
 
@@ -354,7 +353,44 @@ class OrderLogModel extends PublicModel {
             return $results;
         }
         $data = $this->createData($condition);
-
+        $info = $this->where($where)->find();
+        if($info['log_group']=="CREDIT"&&isset($info["order_id"])&&$info["order_id"]) {
+            $order_model = new OrderModel();
+            $order_info = $order_model->where(['id'=>$info["order_id"]])->find();
+            if($order_info){
+                if($order_info['buyer_id']){
+                    $buyer_model = new BuyerModel();
+                    $buyer_info = $buyer_model->where(['id'=>$order_info['buyer_id']])->find();
+                    if($buyer_info){
+                        if($info['type']=="REFUND"){
+                            $buyer_info['credit_available']=$buyer_info['credit_available']-$info['amount'];
+                        }else{
+                            $buyer_info['credit_available']=$buyer_info['credit_available'] + $info['amount'];
+                        }
+                        if($data['type']=="REFUND"){
+                            $buyer_info['credit_available']=$buyer_info['credit_available']+$data['amount'];
+                        }else{
+                            $buyer_info['credit_available']=$buyer_info['credit_available'] - $data['amount'];
+                        }
+                        if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
+                            $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
+                        }
+                    }else{
+                        $results['code'] = '-101';
+                        $results['message'] = '没有获取采购商信息，无法授信!';
+                        $this->jsonReturn($results);
+                    }
+                }else{
+                    $results['code'] = '-101';
+                    $results['message'] = '订单没有采购商，无法授信!';
+                    $this->jsonReturn($results);
+                }
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '修改失败,请输入正确的订单号!';
+                $this->jsonReturn($results);
+            }
+        }
         try {
             $id = $this->where($where)->save($data);
             if($id === false){
@@ -388,7 +424,49 @@ class OrderLogModel extends PublicModel {
         }
 
         try {
+
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
+            //如果收款全部删除订单状态变成未支付
+            $info = $this->where($where)->find();
+            if($info['order_id']&&$info['log_group']=='COLLECTION'){
+                $res = $this->where(['order_id'=>$info['order_id'],'log_group'=>'COLLECTION','deleted_flag' => 'N'])->find();
+                if(!$res){
+                    $order_model = new OrderModel();
+                    $order_model->where(['id'=>$info['order_id']])->setField(['pay_status'=>'UNPAY']);
+                }
+            }
+            if($info['log_group']=="CREDIT"&&isset($info["order_id"])&&$info["order_id"]) {
+                $order_model = new OrderModel();
+                $order_info = $order_model->where(['id'=>$info["order_id"]])->find();
+                if($order_info){
+                    if($order_info['buyer_id']){
+                        $buyer_model = new BuyerModel();
+                        $buyer_info = $buyer_model->where(['id'=>$order_info['buyer_id']])->find();
+                        if($buyer_info){
+                            if($info['type']=="REFUND"){
+                                $buyer_info['credit_available']=$buyer_info['credit_available']-$info['amount'];
+                            }else{
+                                $buyer_info['credit_available']=$buyer_info['credit_available'] + $info['amount'];
+                            }
+                            if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
+                                $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
+                            }
+                        }else{
+                            $results['code'] = '-101';
+                            $results['message'] = '没有获取采购商信息，无法授信!';
+                            $this->jsonReturn($results);
+                        }
+                    }else{
+                        $results['code'] = '-101';
+                        $results['message'] = '订单没有采购商，无法授信!';
+                        $this->jsonReturn($results);
+                    }
+                }else{
+                    $results['code'] = '-101';
+                    $results['message'] = '修改失败,请输入正确的订单号!';
+                    $this->jsonReturn($results);
+                }
+            }
             if($id){
                 $results['code'] = '1';
                 $results['message'] = '成功！';

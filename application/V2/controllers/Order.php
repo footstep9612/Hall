@@ -16,7 +16,7 @@
 class OrderController extends PublicController {
 
     public function init() {
-        //parent::init();
+        parent::init();
     }
     /**
      * 验证用户权限
@@ -25,6 +25,7 @@ class OrderController extends PublicController {
      */
     public function checkAuthAction() {
         $groupid = $this->user['group_id'];
+
         if (isset($groupid)) {
             $maketareateam = new MarketAreaTeamModel();
             $users = [];
