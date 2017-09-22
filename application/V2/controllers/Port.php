@@ -122,8 +122,11 @@ class PortController extends PublicController {
         if ($bn) {
             $data = [];
             $langs = ['en', 'zh', 'es', 'ru'];
+            $country_model = new CountryModel();
+            $country = $country_model->getTableName();
             foreach ($langs as $lang) {
-                $result = $this->_model->field('country_bn,bn,port_type,trans_mode,name,remarks')
+                $result = $this->_model->field('country_bn,bn,port_type,trans_mode,name,remarks,'
+                                        . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
 
                 if ($result) {

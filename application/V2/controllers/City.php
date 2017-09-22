@@ -93,7 +93,8 @@ class CityController extends PublicController {
             $langs = ['en', 'zh', 'es', 'ru'];
             foreach ($langs as $lang) {
                 $result = $this->_model->field('lang,region_bn,country_bn,bn,'
-                                        . 'name,time_zone,status,created_by,created_at')
+                                        . 'name,time_zone,status,created_by,created_at,'
+                                        . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
 
                 if ($result) {
