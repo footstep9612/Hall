@@ -188,7 +188,10 @@ class PortController extends PublicController {
 
             $this->jsonReturn();
         }
-        if ($data) {
+        if (empty($data['zh']['name']) && empty($data['en']['name']) && empty($data['es']['name']) && empty($data['ru']['name'])) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        } elseif ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
         } elseif ($data === []) {
