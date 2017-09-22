@@ -742,12 +742,19 @@ class BuyerModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getBuyeridsByBuyerName($buyername) {
+    public function getBuyeridsByBuyerName($buyername, $field = 'name') {
 
         try {
             $where = [];
             if ($buyername) {
-                $where['name'] = ['like', '%' . trim($buyername) . '%'];
+
+                if ($field == 'name') {
+                    $where['name'] = ['like', '%' . trim($buyername) . '%'];
+                } elseif ($field == 'buyer_no') {
+                    $where['buyer_no'] = $buyername;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }

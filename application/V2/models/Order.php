@@ -125,7 +125,15 @@ class OrderModel extends PublicModel {
             }
         }
         if (isset($condition['agent_id']) && $condition['agent_id']) {
-                $where['agent_id'] = $condition['agent_id'];
+            $where['agent_id'] = $condition['agent_id'];
+        }
+
+        if (isset($condition['buyer_no']) && $condition['buyer_no']) {
+            $buyermodel = new BuyerModel();
+            $buyerids = $buyermodel->getBuyeridsByBuyerName($condition['buyer_no'], 'buyer_no');
+            if ($buyerids) {
+                $where['buyer_id'] = ['in', $buyerids];
+            }
         }
         $this->_getValue($where, $condition, 'contract_date', 'between'); //支付状态
         if (isset($condition['buyername']) && $condition['buyername']) {
