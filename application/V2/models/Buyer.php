@@ -853,16 +853,17 @@ class BuyerModel extends PublicModel {
             $where = [];
 
             if (is_string($buyer_ids)) {
-                $where['buyer_id'] = $buyer_ids;
+                $where['id'] = $buyer_ids;
             } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
-                $where['buyer_id'] = ['in', $buyer_ids];
+                $where['id'] = ['in', $buyer_ids];
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('buyer_id,buyer_no')->select();
+            $buyers = $this->where($where)->field('id,buyer_no')->select();
+
             $buyer_names = [];
             foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['buyer_id']] = $buyer['buyer_no'];
+                $buyer_names[$buyer['id']] = $buyer['buyer_no'];
             }
             return $buyer_names;
         } catch (Exception $ex) {

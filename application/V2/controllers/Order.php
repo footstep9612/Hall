@@ -752,7 +752,6 @@ class OrderController extends PublicController {
             }
             $buyer_model = new BuyerModel();
             $buyernames = $buyer_model->getBuyerNamesByBuyerids($buyerids);
-
             $buyernos = $buyer_model->getBuyerNosByBuyerids($buyerids);
             foreach ($data as $key => $val) {
                 if ($val['buyer_id'] && isset($buyernames[$val['buyer_id']])) {
