@@ -1597,7 +1597,7 @@ class GoodsModel extends PublicModel {
                 if ($zip->extractTo($tmpDir)) {    //解压缩到目录
                     $userInfo = getLoinInfo();
                     $handle = opendir($tmpDir);
-                    while ($f = readdir($handle)) {    //遍历spu目录层
+                    $es_goods_model = new EsGoodsModel();                    while ($f = readdir($handle)) {    //遍历spu目录层
                         $dir_spu = $tmpDir . '/' . $f;
                         if ( $f != "." && $f != ".." && is_dir( $dir_spu ) ) {
                             $handle2 = opendir( $dir_spu );
@@ -1608,6 +1608,7 @@ class GoodsModel extends PublicModel {
                                     $bool_sku = false;
                                     $this->startTrans();
                                     $sucess_lang_tmp = 0;
+                                    $insert_langs = array();
 
                                     $fileType = PHPExcel_IOFactory::identify( $xlsFile );    //获取文件类型
                                     $objReader = PHPExcel_IOFactory::createReader( $fileType );  //创建PHPExcel读取对象
@@ -1696,6 +1697,7 @@ class GoodsModel extends PublicModel {
                                             Log::write( $xls . '下，' . $data_tmp[ 'lang' ] . '导入失败，请检查' , Log::INFO );
                                             break;
                                         } else {
+                                            $insert_langs[] = $lang;
                                             $bool_sku = true;
                                             $sucess_lang_tmp++;
                                         }
@@ -1705,6 +1707,10 @@ class GoodsModel extends PublicModel {
                                         $sucess++;
                                         $sucess_lang = $sucess_lang + $sucess_lang_tmp;
                                         $this->commit();
+                                        //更新ｅｓ
+                                        foreach($insert_langs as $r){
+                                            $es_goods_model->create_data($sku, $r);
+                                        }
                                     }
                                 }
                             }//End 遍历sku excel
