@@ -1217,9 +1217,9 @@ class GoodsModel extends PublicModel {
         $objSheet->setCellValue("M1", "最小订货数量");
         $objSheet->setCellValue("M2", "Minimum order quantity");
         $objSheet->setCellValue("N1", "进货价格");
-        $objSheet->setCellValue("N2", "进货价格");
+        $objSheet->setCellValue("N2", "Supply price");
         $objSheet->setCellValue("O1", "进货价格币种");
-        $objSheet->setCellValue("O2", "进货价格币种");
+        $objSheet->setCellValue("O2", "Currency");
 
         $objSheet->setCellValue("P1", "物流信息");
         $objSheet->setCellValue("P1", "物流信息");
