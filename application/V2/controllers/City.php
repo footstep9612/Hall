@@ -91,6 +91,8 @@ class CityController extends PublicController {
         if ($bn) {
             $data = [];
             $langs = ['en', 'zh', 'es', 'ru'];
+            $country_model = new CountryModel();
+            $country = $country_model->getTableName();
             foreach ($langs as $lang) {
                 $result = $this->_model->field('lang,region_bn,country_bn,bn,'
                                         . 'name,time_zone,status,created_by,created_at,'
@@ -103,7 +105,7 @@ class CityController extends PublicController {
                         $data['name'] = null;
                         unset($data['name']);
                     }
-
+                    $data[$lang]['country'] = $result['country'];
                     $data[$lang]['name'] = $result['name'];
                 }
             }
