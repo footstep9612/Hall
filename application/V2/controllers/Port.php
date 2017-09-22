@@ -62,6 +62,7 @@ class PortController extends PublicController {
         $condtion['lang'] = $this->getPut('lang', 'zh');
 
         $arr = $this->_model->getAll($condtion);
+        z
         $this->_setUserName($arr);
         if ($arr) {
             foreach ($arr as $key => $item) {
