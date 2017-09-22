@@ -44,10 +44,11 @@ class OrderAttachModel extends PublicModel {
             $where['attach_group'] = $attach_group;
         } elseif (is_array($attach_group)) {
 
-            $where['attach_group'] = ['in' => $attach_group];
+            $where['attach_group'] = ['in', $attach_group];
         } else {
             return [];
         }
+
         return $this->field('attach_name,attach_url')
                         ->where($where)
                         ->order('created_at desc')
