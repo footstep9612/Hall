@@ -143,8 +143,9 @@ class OrderController extends PublicController {
             }
             //获取客户名称
             $buyerModel = new BuyerModel();
-            $buyerInfo = $buyerModel->where(['id' => $info['buyer_id']])->getField('name');
-            $info['buyer'] = $buyerInfo;
+            $buyerInfo = $buyerModel->field('name,buyer_no')->where(['id' => $info['buyer_id']])->find();
+            $info['buyer'] = isset($buyerInfo['name']) ? $buyerInfo['name'] : '';
+            $info['buyer_no'] = isset($buyerInfo['buyer_no']) ? $buyerInfo['buyer_no'] : '';
             //获取市场经办人姓名
             $employeeModel = new EmployeeModel();
             $employee = $employeeModel->where(['id' => $info['agent_id']])->getField('name');
