@@ -837,4 +837,39 @@ class BuyerModel extends PublicModel {
         }
     }
 
+    /*
+     * 根据用户ID Buyer_no
+     * @param array $buyer_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getBuyerNosByBuyerids($buyer_ids) {
+
+        try {
+            $where = [];
+
+            if (is_string($buyer_ids)) {
+                $where['buyer_id'] = $buyer_ids;
+            } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
+                $where['buyer_id'] = ['in', $buyer_ids];
+            } else {
+                return false;
+            }
+            $buyers = $this->where($where)->field('buyer_id,buyer_no')->select();
+            $buyer_names = [];
+            foreach ($buyers as $buyer) {
+                $buyer_names[$buyer['buyer_id']] = $buyer['buyer_no'];
+            }
+            return $buyer_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }
