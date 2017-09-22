@@ -133,6 +133,8 @@ class OrderModel extends PublicModel {
             $buyerids = $buyermodel->getBuyeridsByBuyerName($condition['buyer_no'], 'buyer_no');
             if ($buyerids) {
                 $where['buyer_id'] = ['in', $buyerids];
+            } else {
+                $where['buyer_id'] = null;
             }
         }
         $this->_getValue($where, $condition, 'contract_date', 'between'); //支付状态
@@ -142,6 +144,8 @@ class OrderModel extends PublicModel {
             $buyerids = $buyermodel->getBuyeridsByBuyerName($condition['buyername']);
             if ($buyerids) {
                 $where['buyer_id'] = ['in', $buyerids];
+            } else {
+                $where['buyer_id'] = null;
             }
         }
         return $where;
