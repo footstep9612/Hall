@@ -26,9 +26,6 @@ class PortController extends PublicController {
     public function listAction() {
         $condtion = $this->getPut();
         $condtion['lang'] = $this->getPut('lang', 'zh');
-
-
-
         $arr = $this->_model->getListbycondition($condtion);
         $this->_setUserName($arr);
         if ($arr) {
@@ -107,6 +104,49 @@ class PortController extends PublicController {
                 $arr[$key] = $val;
             }
         }
+    }
+
+    /*
+     * Description of 口岸详情
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   口岸
+     */
+
+    public function detailAction() {
+        $bn = $this->getPut('bn', '');
+        $lang = $this->getPut('lang', 'zh');
+        $country_bn = $this->getPut('country_bn', '');
+        if (!$bn) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('口岸简码不能为空!');
+            $this->jsonReturn(null);
+        }
+        if ($bn) {
+            $country_model = new CountryModel();
+            $country = $country_model->getTableName();
+            $where = ['bn' => $bn, 'lang' => $lang];
+            if ($country_bn) {
+                $where['country_bn'] = $country_bn;
+            }
+            $result = $this->_model->field('country_bn,bn,port_type,trans_mode,name,remarks,'
+                                    . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
+                            ->where($where)->find();
+
+            if ($result) {
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn($result);
+            } elseif ($result === []) {
+                $this->setCode(MSG::ERROR_EMPTY);
+                $this->jsonReturn(null);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        }
+
+        exit;
     }
 
     /*
