@@ -51,7 +51,7 @@ class OrderAttachModel extends PublicModel {
 
         return $this->field('attach_name,attach_url')
                         ->where($where)
-                        ->order('created_at desc')
+                        ->order('created_at asc')
                         ->select();
     }
 
