@@ -290,13 +290,6 @@ class QuoteBizLineModel extends PublicModel {
                     if (empty($value['purchase_price_cur_bn'])){
                         return ['code'=>'-104','message'=>'采购币种必选'];
                     }
-                    //净重
-                    if (empty($value['net_weight_kg'])){
-                        return ['code'=>'-104','message'=>'净重必填'];
-                    }
-                    if (!is_numeric($value['net_weight_kg'])){
-                        return ['code'=>'-104','message'=>'净重必须是数字'];
-                    }
                     //毛重
                     if (empty($value['gross_weight_kg'])){
                         return ['code'=>'-104','message'=>'毛重必填'];
