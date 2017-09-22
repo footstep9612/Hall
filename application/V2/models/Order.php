@@ -110,7 +110,7 @@ class OrderModel extends PublicModel {
     private function _getCondition($condition) {
 
         $where = [];
-        $where['deleted_flag'] = 'N';
+        $where['order.deleted_flag'] = 'N';
         $this->_getValue($where, $condition, 'order_no'); //平台订单号
         $this->_getValue($where, $condition, 'po_no'); //po编号
         $this->_getValue($where, $condition, 'execute_no'); //执行编号
@@ -127,15 +127,13 @@ class OrderModel extends PublicModel {
         if (isset($condition['agent_id']) && $condition['agent_id']) {
                 $where['agent_id'] = $condition['agent_id'];
         }
-        $this->_getValue($where, $condition, 'contract_date', 'between'); //支付状态
-        if (isset($condition['buyername']) && $condition['buyername']) {
-
-            $buyermodel = new BuyerModel();
-            $buyerids = $buyermodel->getBuyeridsByBuyerName($condition['buyername']);
-            if ($buyerids) {
-                $where['buyer_id'] = ['in', $buyerids];
-            }
+        if (isset($condition['buyer_no']) && $condition['buyer_no']) {
+            $where['buyer.buyer_no'] = $condition['buyer_no'];
         }
+        if (isset($condition['name']) && $condition['name']) {
+            $where['buyer.name'] = $condition['name'];
+        }
+        $this->_getValue($where, $condition, 'contract_date', 'between'); //支付状态
         return $where;
     }
 
@@ -152,8 +150,9 @@ class OrderModel extends PublicModel {
         $where = $this->_getCondition($condition);
         list($start_no, $pagesize) = $this->_getPage($condition);
         return $this
-                        ->field('id,is_reply,order_no,po_no,execute_no,contract_date, buyer_id,status,show_status,pay_status')
-                        ->where($where)->limit($start_no, $pagesize)->order('created_at desc')->select();
+            ->field('order.id,is_reply,order_no,po_no,execute_no,contract_date, buyer_id,order.status,show_status,pay_status,buyer.name as buyer_id_name,buyer.buyer_no')
+            ->join('`erui2_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')
+            ->where($where)->limit($start_no, $pagesize)->order('order.created_at desc')->select();
     }
 
     /* 获取订单数量
@@ -168,7 +167,7 @@ class OrderModel extends PublicModel {
 
         $where = $this->_getCondition($condition);
 
-        return $this->where($where)->count();
+        return $this->join('`erui2_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')->where($where)->count();
     }
 
 }

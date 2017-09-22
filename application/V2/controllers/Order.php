@@ -723,22 +723,7 @@ class OrderController extends PublicController {
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
         if ($data) {
-            $buyerids = [];
-            foreach ($data as $order) {
-                $buyerids[] = $order['buyer_id'];
-            }
-            $buyer_model = new BuyerModel();
-            $buyer_arr = $buyer_model->getBuyerNamesByBuyerids($buyerids);
-            $buyernames = $buyer_arr['buyer_names'];
-            $buyerbuyer_nos = $buyer_arr['buyer_nos'];
             foreach ($data as $key => $val) {
-                if ($val['buyer_id'] && isset($buyernames[$val['buyer_id']])) {
-                    $val['buyer_id_name'] = $buyernames[$val['buyer_id']];
-                    $val['buyer_no'] = $buyerbuyer_nos[$val['buyer_id']];
-                } else {
-                    $val['buyer_id_name'] = '';
-                    $val['buyer_nos'] = '';
-                }
                 $val['show_status_text'] = $oder_moder->getShowStatus($val['show_status']);
                 $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);
                 $data[$key] = $val;
