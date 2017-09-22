@@ -786,12 +786,14 @@ class BuyerModel extends PublicModel {
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('id,name')->select();
+            $buyers = $this->where($where)->field('id,name,buyer_no')->select();
+
             $buyer_names = [];
             foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['id']] = $buyer['name'];
+                $buyer_arr['buyer_names'][$buyer['id']] = $buyer['name'];
+                $buyer_arr['buyer_nos'][$buyer['id']] = $buyer['buyer_no'];
             }
-            return $buyer_names;
+            return $buyer_arr;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
