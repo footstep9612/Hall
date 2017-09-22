@@ -139,8 +139,8 @@ class PortController extends PublicController {
                     $data[$lang]['country'] = $result['country'];
                     $data[$lang]['name'] = $result['name'];
                 } else {
-                    $data[$lang]['country'] = null;
-                    $data[$lang]['name'] = null;
+                    $data[$lang]['country'] = '';
+                    $data[$lang]['name'] = '';
                 }
             }
         } else {
