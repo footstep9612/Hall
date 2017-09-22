@@ -163,6 +163,18 @@ class ESClient {
     }
 
     /*
+     * 获取版本号
+     */
+
+    public function getversion() {
+        return $this->server->info();
+    }
+
+    public function getstate() {
+        return $this->server->cluster()->state();
+    }
+
+    /*
      * 删除索引
      */
 

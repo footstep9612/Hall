@@ -403,9 +403,7 @@ class EsProductModel extends Model {
 
             $es = new ESClient();
             $ret = $es->bulk($updateParams);
-            echo json_encode($updateParams);
-            var_dump($ret);
-            die();
+
 //            $ret = $es->setbody($body)
 //                    ->count($this->dbName, $this->tableName . '_' . $lang, '');
 //            if (isset($ret['count'])) {

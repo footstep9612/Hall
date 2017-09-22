@@ -10,27 +10,12 @@ class ExcelmanagerController extends PublicController {
         parent::init();
     }
 
+    /**
+     * 本地Form表单上传测试
+     */
     public function uploadAction() {
         $this->getView()->assign("content", "Hello World");
         $this->display('upload');
-    }
-
-    public function uploaderAction() {
-
-        $file = '/data/www/erui_php/public/tmp/FQ_20170904-152249.xls';
-        $fileName = strstr($file, '.', true);
-        $fileSuffix = strstr($file, '.');
-
-        if (extension_loaded('fastdfs_client')) {
-            $fdfs = new FastDFS();
-            $tracker = $fdfs->tracker_get_connection();
-            $fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($fileName, $fileSuffix));
-            $fdfs->tracker_close_all_connections();
-            return $fileId;
-        } else {
-            return array();
-        }
-        p($fileName);
     }
 
     /**
@@ -92,18 +77,17 @@ class ExcelmanagerController extends PublicController {
 
         $response = $this->importSkuHandler($localFile, $data, $inquiry_id);
         $this->jsonReturn($response);
+
     }
 
     /**
      * 执行导入操作
      * @param $data
-     *
      * @return array
      */
     private function importSkuHandler($localFile, $data, $inquiry_id) {
 
         array_shift($data); //去掉第一行数据(excel文件的标题)
-        //p($data);
         if (empty($data)) {
             return ['code' => '-104', 'message' => '没有可导入的数据', 'data' => ''];
         }
@@ -123,7 +107,7 @@ class ExcelmanagerController extends PublicController {
             $sku[$k]['brand'] = $v[10]; //品牌
             $sku[$k]['created_at'] = date('Y-m-d H:i:s', time()); //添加时间
         }
-        //p($sku);
+
         //写入数据库
         $inquiryItem = new InquiryItemModel();
         try {
@@ -162,8 +146,9 @@ class ExcelmanagerController extends PublicController {
 				]
 			]);
 		}
+
         $data = $this->getFinalQuoteData($request['inquiry_id']);
-        //p($data);
+
         //创建excel表格并填充数据
         $excelFile = $this->createExcelAndInsertData($data);
 
@@ -208,6 +193,7 @@ class ExcelmanagerController extends PublicController {
             ]);
             return;
         }
+
         //保存数据库
         $data = [
             'inquiry_id'   => intval($request['inquiry_id']),
@@ -219,6 +205,9 @@ class ExcelmanagerController extends PublicController {
             'created_at'   => date('Y-m-d H:i:s')
         ];        
         $inquiryAttach->addData($data);
+
+        //删除本地的临时文件
+        @unlink($excelFile);
         $this->jsonReturn([
             'code' => '1',
             'message' => '导出成功!',
@@ -227,11 +216,14 @@ class ExcelmanagerController extends PublicController {
             ]
         ]);
     }
+
     /**
-    * 上传文件至FastDFS
-    * @param string $file 本地文件信息
-    * @param string $url  上传接口地址
-    **/
+     * 上传文件至FastDFS
+     * @param     $data 本地文件信息
+     * @param     $url  上传接口地址
+     * @param int $timeout  响应时间
+     * @return array|mixed
+     */
     function postfile($data, $url, $timeout = 30) {             
         $cfile = new \CURLFile($data['tmp_name'], $data['type'], $data['name']);
         $ch = curl_init($url);
@@ -325,10 +317,15 @@ class ExcelmanagerController extends PublicController {
         $data['name']=$filename;
         $ret = $this->postfile($data,$url);         
         //删除临时压缩文件
-        //@unlink($filepath);
+        @unlink($filepath);
         return $ret;
     }
 
+    /**
+     * 获取报价单信息
+     * @param $inquiry_id   询单id
+     * @return array    报价信息
+     */
     private function getFinalQuoteData($inquiry_id) {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
@@ -364,11 +361,10 @@ class ExcelmanagerController extends PublicController {
                 ->where(['a.inquiry_id' => $inquiry_id])
                 ->order('a.id DESC')
                 ->select();
-        //p($finalQuoteItems);
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
-        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,origin_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks')->find();
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,origin_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no')->find();
         $quoteInfo['logi_remarks'] = $quoteLogiFeeModel->where(['inquiry_id' => $inquiry_id])->getField('logi_remarks');
 
         //综合报价信息
@@ -377,6 +373,7 @@ class ExcelmanagerController extends PublicController {
             'quote_items' => $finalQuoteItems,
             'quote_info' => $quoteInfo
         ];
+
     }
 	/**
 	* 获取用户所在部门数组
@@ -420,7 +417,6 @@ class ExcelmanagerController extends PublicController {
     /**
      * 创建excel文件对象
      * @param $quote
-     *
      * @return string 文件路径
      */
     private function createExcelAndInsertData($quote) {
@@ -484,47 +480,48 @@ class ExcelmanagerController extends PublicController {
             $objSheet->getColumnDimension($big_col)->setWidth('18');
         endforeach;
 
-        $objSheet->setCellValue("A3", "报价人 : " . $quote['quoter_info']['quoter_name'])->mergeCells("A3:E3");
-        $objSheet->setCellValue("A4", "电话 : " . $quote['quoter_info']['quoter_mobile'])->mergeCells("A4:E4");
-        $objSheet->setCellValue("A5", "邮箱 : " . $quote['quoter_info']['quoter_email'])->mergeCells("A5:E5");
+        $objSheet->setCellValue("A3", "报价单号 : " . $quote['quote_info']['quote_no'])->mergeCells("A3:R3");
+        $objSheet->setCellValue("A4", "报价人 : " . $quote['quoter_info']['quoter_name'])->mergeCells("A4:E4");
+        $objSheet->setCellValue("A5", "电话 : " . $quote['quoter_info']['quoter_mobile'])->mergeCells("A5:E5");
+        $objSheet->setCellValue("A6", "邮箱 : " . $quote['quoter_info']['quoter_email'])->mergeCells("A6:E6");
 
-        $objSheet->setCellValue("F3", "询价单位 : " . $quote['quoter_info']['buyer_name'])->mergeCells("F3:R3");
-        $objSheet->setCellValue("F4", "业务对接人 : " . $quote['quoter_info']['agenter'])->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "报价时间 : " . $quote['quoter_info']['quote_time'])->mergeCells("F5:R5");
+        $objSheet->setCellValue("F4", "询价单位 : " . $quote['quoter_info']['buyer_name'])->mergeCells("F4:R4");
+        $objSheet->setCellValue("F5", "业务对接人 : " . $quote['quoter_info']['agenter'])->mergeCells("F5:R5");
+        $objSheet->setCellValue("F6", "报价时间 : " . $quote['quoter_info']['quote_time'])->mergeCells("F6:R6");
 
 
-        $objSheet->setCellValue("A6", '易瑞国际电子商务有限公司商务技术部')
+        $objSheet->setCellValue("A7", '易瑞国际电子商务有限公司商务技术部')
                 //单元格合并
-                ->mergeCells("A6:R6")
+                ->mergeCells("A7:R7")
                 //设置高度
                 ->getRowDimension("6")
                 ->setRowHeight(26);
 
-        $objSheet->getCell("A6")
+        $objSheet->getCell("A7")
                 ->getStyle()
                 ->getAlignment()
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
                 ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
-        $objSheet->setCellValue("A7", "序号\nitem")->mergeCells("A7:A8");
-        $objSheet->setCellValue("B7", "名称\nitem")->mergeCells("B7:B8");
-        $objSheet->setCellValue("C7", "外文名称\nitem")->mergeCells("C7:C8");
-        $objSheet->setCellValue("D7", "规格\nmodel")->mergeCells("D7:D8");
-        $objSheet->setCellValue("E7", "客户需求描述\nRequirementSpecifications")->mergeCells("E7:E8");
-        $objSheet->setCellValue("F7", "报价产品描述\nSupplySpecifications")->mergeCells("F7:F8");
-        $objSheet->setCellValue("G7", "数量\nQty")->mergeCells("G7:G8");
-        $objSheet->setCellValue("H7", "单位\nUnit")->mergeCells("H7:H8");
-        $objSheet->setCellValue("I7", "产品品牌\nBrand")->mergeCells("I7:I8");
-        $objSheet->setCellValue("J7", "报出EXW单价\nQuote EXW Unit Price")->mergeCells("J7:J8");
-        $objSheet->setCellValue("K7", "贸易单价\nTrade Unit Price")->mergeCells("K7:K8");
-        $objSheet->setCellValue("L7", "单重\nUnit\nWeight(kg)")->mergeCells("L7:L8");
-        $objSheet->setCellValue("M7", "包装体积\nPacking\nSizeL*W*H(mm)")->mergeCells("M7:M8");
-        $objSheet->setCellValue("N7", "包装方式\nPacking")->mergeCells("N7:N8");
-        $objSheet->setCellValue("O7", "交货期\nDelivery\n(Working Day)")->mergeCells("O7:O8");
-        $objSheet->setCellValue("P7", "有效期\nValidity\n(Working Day)")->mergeCells("P7:P8");
-        $objSheet->setCellValue("Q7", "备注\nRemark")->mergeCells("Q7:Q8");
+        $objSheet->setCellValue("A8", "序号\nitem")->mergeCells("A8:A9");
+        $objSheet->setCellValue("B8", "名称\nitem")->mergeCells("B8:B9");
+        $objSheet->setCellValue("C8", "外文名称\nitem")->mergeCells("C8:C9");
+        $objSheet->setCellValue("D8", "规格\nmodel")->mergeCells("D8:D9");
+        $objSheet->setCellValue("E8", "客户需求描述\nRequirementSpecifications")->mergeCells("E8:E9");
+        $objSheet->setCellValue("F8", "报价产品描述\nSupplySpecifications")->mergeCells("F8:F9");
+        $objSheet->setCellValue("G8", "数量\nQty")->mergeCells("G8:G9");
+        $objSheet->setCellValue("H8", "单位\nUnit")->mergeCells("H8:H9");
+        $objSheet->setCellValue("I8", "产品品牌\nBrand")->mergeCells("I8:I9");
+        $objSheet->setCellValue("J8", "报出EXW单价\nQuote EXW Unit Price")->mergeCells("J8:J9");
+        $objSheet->setCellValue("K8", "贸易单价\nTrade Unit Price")->mergeCells("K8:K9");
+        $objSheet->setCellValue("L8", "单重\nUnit\nWeight(kg)")->mergeCells("L8:L9");
+        $objSheet->setCellValue("M8", "包装体积\nPacking\nSizeL*W*H(mm)")->mergeCells("M8:M9");
+        $objSheet->setCellValue("N8", "包装方式\nPacking")->mergeCells("N8:N9");
+        $objSheet->setCellValue("O8", "交货期\nDelivery\n(Working Day)")->mergeCells("O8:O9");
+        $objSheet->setCellValue("P8", "有效期\nValidity\n(Working Day)")->mergeCells("P8:P9");
+        $objSheet->setCellValue("Q8", "备注\nRemark")->mergeCells("Q8:Q9");
 
-        $cols = ["A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7", "I7", "J7", "K7", "L7", "M7", "N7", "O7", "P7", "Q7"];
+        $cols = ["A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8", "I8", "J8", "K8", "L8", "M8", "N8", "O8", "P8", "Q8"];
         foreach ($cols as $col) {
             $objSheet->getStyle($col)
                     ->getAlignment()
@@ -535,7 +532,7 @@ class ExcelmanagerController extends PublicController {
 
         //判断quote_item子数组
         if (is_array($quote['quote_items']) && !empty($quote['quote_items'])) {
-            $row_num = 9;
+            $row_num = 10;
             foreach ($quote['quote_items'] as $item) {
                 $objSheet->setCellValue("A" . $row_num, $item['id']);
                 $objSheet->setCellValue("B" . $row_num, $item['name_zh']);
@@ -567,6 +564,7 @@ class ExcelmanagerController extends PublicController {
 
                 $row_num++;
             }
+
             $objSheet->getStyle("A7:K" . $row_num)->applyFromArray($styleArray);
 
             $num10 = $row_num + 1;
@@ -676,11 +674,12 @@ class ExcelmanagerController extends PublicController {
             $objSheet->getStyle("A" . $num20 . ":K" . $num21)->applyFromArray($styleArray);
         }
 
-        //添加logo
+        //TODO 添加logo
+
         //4.保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "FQ_" . date('Ymd-His') . '.xls');
+
     }
 
 }

@@ -179,8 +179,6 @@ class BuyerController extends PublicController {
 
         if (!empty($data['first_name'])) {
             $buyer_account_data['first_name'] = $data['first_name'];
-        } else {
-            jsonReturn('', -101, '名字不能为空!');
         }
         if (!empty($data['last_name'])) {
             $buyer_account_data['last_name'] = $data['last_name'];
