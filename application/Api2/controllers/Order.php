@@ -196,7 +196,12 @@ class OrderController extends PublicController {
 
     private function _setOrderAttachOther(&$info, $order_id) {
         $order_attach_model = new OrderAttachModel();
-        $order_attachs = $order_attach_model->getlist($order_id, 'OTHERS');
+        $order_attachs = $order_attach_model->getlist($order_id, ['OTHERS', 'OUTBOUND',
+            'LOGISTICS',
+            'DELIVERY',
+            'COLLECTION',
+            'CREDIT',
+        ]);
 
         if ($order_attachs) {
             $info['others'] = $order_attachs;
