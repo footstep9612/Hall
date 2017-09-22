@@ -190,6 +190,7 @@ class BuyerController extends PublicController {
             $buyer_account_data['mobile'] = $data['mobile'];
             $arr['official_phone'] = $data['mobile'];
         }
+
         $buyer_account_data['created_at'] = $this->user['id'];
         //附件
         if (!empty($data['attach_url'])) {
@@ -245,6 +246,7 @@ class BuyerController extends PublicController {
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
         $login_arr['user_name'] = $data['user_name'];
+
         $check = $buyer_account_model->Exist($login_arr);
         if ($check) {
             jsonReturn('', -101, 'The company email or user name already exists.');
@@ -252,7 +254,9 @@ class BuyerController extends PublicController {
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
+
         $data_t_buyer = $model->getlist($condition); //($this->put_data);
+
         //var_dump($data_t_buyer);die;
         if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
             $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
@@ -270,6 +274,7 @@ class BuyerController extends PublicController {
             $arr['serial_no'] = $arr['buyer_no'];
         }
         $arr['created_by'] = $this->user['id'];
+
         $id = $model->create_data($arr);
         if ($id) {
             $buyer_account_data['buyer_id'] = $id;

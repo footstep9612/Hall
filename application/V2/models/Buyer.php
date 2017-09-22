@@ -124,7 +124,6 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['credit_status'])) {
             $where .= ' And `erui2_buyer`.`buyer_credit_log`.in_status  ="' . $condition['credit_status'] . '"';
         }
-
         if ($where) {
             $sql .= $where;
             $sql_count .= $where;
