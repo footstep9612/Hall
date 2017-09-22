@@ -219,7 +219,7 @@ class LogisticsController extends PublicController {
     	        $user = $this->getUserInfo();
     	        $quoteLogiFee['current_name'] = $user['name'];
     	        
-    	        if ($quoteLogiFee['logi_agent_id']) $quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id']);
+    	        $quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id'] ? : $this->user['id']);
     	        
     	        $outField = 'logi_quote_org_id';
     	        $findFields = ['logi_check_org_id', $outField];
