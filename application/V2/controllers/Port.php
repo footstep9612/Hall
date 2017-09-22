@@ -130,13 +130,17 @@ class PortController extends PublicController {
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
 
                 if ($result) {
-                    if (!$data) {
+                    if (empty($data['bn'])) {
                         $data = $result;
                         $data['name'] = null;
                         unset($data['name']);
+                        unset($data['country']);
                     }
                     $data[$lang]['country'] = $result['country'];
                     $data[$lang]['name'] = $result['name'];
+                } else {
+                    $data[$lang]['country'] = null;
+                    $data[$lang]['name'] = null;
                 }
             }
         } else {
