@@ -142,7 +142,7 @@ class CentercreditController extends PublicController {
         if (!empty($data['buyer_id'])) {
             $array_data['buyer_id'] = $data['buyer_id'];
         }else{
-            jsonReturn('', -101, '用户名不可以为空!');
+            jsonReturn('', -101, '采购商id不可以为空!');
         }
         if (!empty($data['credit_granted'])) {
             $array_data['credit_granted'] = $data['credit_granted'];
