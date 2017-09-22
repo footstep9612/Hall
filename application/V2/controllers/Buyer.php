@@ -40,6 +40,9 @@ class BuyerController extends PublicController {
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $data['buyer_no'];
         }
+        if (!empty($data['serial_no'])) {
+            $where['serial_no'] = $data['serial_no'];
+        }
         if (!empty($data['official_phone'])) {
             $where['official_phone'] = $data['official_phone'];
         }
@@ -261,11 +264,12 @@ class BuyerController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
         $arr['buyer_no'] = $real_num;
-        if (empty($arr['serial_no'])) {
+        if (!empty($data['serial_no'])) {
+            $arr['serial_no'] = $data['serial_no'];
+        }else{
             $arr['serial_no'] = $arr['buyer_no'];
         }
         $arr['created_by'] = $this->user['id'];
-
         $id = $model->create_data($arr);
         if ($id) {
             $buyer_account_data['buyer_id'] = $id;
@@ -364,6 +368,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['province'])) {
             $arr['province'] = $data['province'];
+        }
+        if (!empty($data['serial_no'])) {
+            $arr['serial_no'] = $data['serial_no'];
         }
         if (!empty($data['country_code'])) {
             $arr['country_code'] = $data['country_code'];

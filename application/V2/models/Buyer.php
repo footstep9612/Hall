@@ -64,6 +64,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['buyer_no'])) {
             $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
         }
+        if (!empty($condition['serial_no'])) {
+            $where .= ' And serial_no  ="' . $condition['serial_no'] . '"';
+        }
         if (!empty($condition['employee_name'])) {
             $where .= " And `erui2_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
@@ -307,9 +310,6 @@ class BuyerModel extends PublicModel {
      */
     public function update_data($create, $where) {
 
-        if (isset($create['buyer_no'])) {
-            $data['buyer_no'] = $create['buyer_no'];
-        }
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
         }
