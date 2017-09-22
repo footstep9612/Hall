@@ -1,4 +1,4 @@
-#!/usr/bin/php/bin/php -q
+#!/usr/local/php/bin/php -q
 <?php
 error_reporting(E_ERROR);
 define('DS', DIRECTORY_SEPARATOR);
