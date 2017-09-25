@@ -244,6 +244,7 @@ class BuyerController extends PublicController {
         $arr['created_by'] = $this->user['id'];
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
+
         $login_email['email'] = $data['email'];
         $check_email = $buyer_account_model->Exist($login_email);
         if ($check_email) {
@@ -254,6 +255,7 @@ class BuyerController extends PublicController {
         if ($check_uname) {
             jsonReturn('', -102, '用户名已经存在!');
         }
+        
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
