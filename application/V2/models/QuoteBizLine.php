@@ -273,7 +273,8 @@ class QuoteBizLineModel extends PublicModel {
                     }
                 }
 
-                if(!empty($value['supplier_id']) && empty($value['reason_for_no_quote'])){
+                //if(!empty($value['supplier_id']) && empty($value['reason_for_no_quote'])){
+                if(empty($value['reason_for_no_quote'])){
                     /**
                      * 如果是选择了供应商，一下信息是必填字段
                      * 报价产品描述，采购单价，采购币种，净重，毛重，包装体积，包装方式，产品来源，存放地，交货期(天)，报价有效期
