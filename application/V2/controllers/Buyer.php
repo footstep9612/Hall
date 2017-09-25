@@ -244,13 +244,18 @@ class BuyerController extends PublicController {
         $arr['created_by'] = $this->user['id'];
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
-        $login_arr['email'] = $data['email'];
-        $login_arr['user_name'] = $data['user_name'];
 
-        $check = $buyer_account_model->Exist($login_arr);
-        if ($check) {
-            jsonReturn('', -101, 'The company email or user name already exists.');
+        $login_email['email'] = $data['email'];
+        $check_email = $buyer_account_model->Exist($login_email);
+        if ($check_email) {
+            jsonReturn('', -101, '公司邮箱已经存在!');
         }
+        $login_uname['user_name'] = $data['user_name'];
+        $check_uname = $buyer_account_model->Exist($login_uname);
+        if ($check_uname) {
+            jsonReturn('', -102, '用户名已经存在!');
+        }
+        
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;

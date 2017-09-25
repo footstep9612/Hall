@@ -35,7 +35,7 @@ class BuyerAccountModel extends PublicModel {
      */
 
     public function Exist($data, $sql = 'or') {
-        if (!empty($data['email']) && !empty($data['user_name'])) {
+        if (isset($data['email']) && isset($data['user_name'])) {
             if ($sql == 'or') {
                 $map1['email'] = $data['email'];
                 $map1['user_name'] = $data['user_name'];
