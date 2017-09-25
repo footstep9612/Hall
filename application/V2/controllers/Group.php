@@ -215,6 +215,32 @@ class GroupController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+    public function deleteuserAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $where = [];
+        if(!empty($data['group_id'])){
+            $where['group_id'] = $data['group_id'];
+        }else{
+            $datajson['code'] = -101;
+            $datajson['message'] = '组织id不能为空!';
+        }
+        if(!empty($data['user_id'])){
+            $where['user_id'] = $data['user_id'];
+        }else{
+            $datajson['code'] = -101;
+            $datajson['message'] = '用户id不能为空!';
+        }
+        $model_group = new GroupUserModel();
+        $data = $model_group->deleteuser($where); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '操作失败!';
+        }
+
+        $this->jsonReturn($datajson);
+    }
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];

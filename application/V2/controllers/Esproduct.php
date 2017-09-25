@@ -336,7 +336,10 @@ class EsproductController extends PublicController {
             $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
         }
         $es = new ESClient();
-        $es->create_index($this->index, $body);
+        $state = $es->getstate();
+        if (!isset($state['metadata']['indices'][$this->index])) {
+            $es->create_index($this->index, $body);
+        }
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -380,33 +383,45 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function goodsAction() {
-
+        $es = new ESClient();
+        $info = $es->getversion();
+        if (substr($info['version']['number'], 0, 1) == 1) {
+            $analyzer = 'ik';
+            $type = 'string';
+        } else {
+            $analyzer = 'ik_max_word';
+            $type = 'text';
+        }
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
-            'type' => 'string',
+            'type' => $type,
             'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
                 'all' => [
                     'index' => 'not_analyzed',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'standard' => [
                     'analyzer' => 'standard',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => 'ik',
-                    'type' => 'string'
+                    'analyzer' => $analyzer,
+                    'type' => $type
                 ],
                 'whitespace' => [
                     'analyzer' => 'whitespace',
-                    'type' => 'string'
+                    'type' => $type
                 ]
             ]
         ];
         $not_analyzed = [
             'index' => 'not_analyzed',
-            'type' => 'string'
+            'type' => $type
         ];
         $body = [
             'id' => $int_analyzed, //id
@@ -461,7 +476,7 @@ class EsproductController extends PublicController {
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
-            'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'material_cat' => $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
@@ -479,34 +494,46 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function productAction($lang = 'en') {
-
+        $es = new ESClient();
+        $info = $es->getversion();
+        if (substr($info['version']['number'], 0, 1) == 1) {
+            $analyzer = 'ik';
+            $type = 'string';
+        } else {
+            $analyzer = 'ik_max_word';
+            $type = 'text';
+        }
 
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
-            'type' => 'string',
+            'type' => $type,
             'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
                 'all' => [
                     'index' => 'not_analyzed',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'standard' => [
                     'analyzer' => 'standard',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => 'ik',
-                    'type' => 'string'
+                    'analyzer' => $analyzer,
+                    'type' => $type
                 ],
                 'whitespace' => [
                     'analyzer' => 'whitespace',
-                    'type' => 'string'
+                    'type' => $type
                 ]
             ]
         ];
         $not_analyzed = [
             'index' => 'not_analyzed',
-            'type' => 'string'
+            'type' => $type
         ];
 
         $body = [
@@ -561,7 +588,7 @@ class EsproductController extends PublicController {
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
-            'meterial_cat' => $ik_analyzed, //物料分类对象 json
+            'material_cat' => $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人

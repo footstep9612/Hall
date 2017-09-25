@@ -28,7 +28,8 @@ class BuyerAccountModel extends PublicModel {
 
     /**
      * 判断用户是否存在
-     * @param  string $data 搜索条件
+     * @param  string $data 用户名
+     * @param  string $sql 语言
      * @return mix
      * @author jhw
      */
@@ -266,7 +267,6 @@ class BuyerAccountModel extends PublicModel {
         try {
             $where = [];
 
-
             if (is_string($buyer_ids)) {
                 $where['buyer_id'] = $buyer_ids;
             } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
@@ -275,11 +275,9 @@ class BuyerAccountModel extends PublicModel {
                 return false;
             }
             $buyers = $this->where($where)->field('buyer_id,first_name,last_name')->select();
-
-
             $buyer_names = [];
             foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . ' ' . $buyer['last_name'];
+                $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
             }
             return $buyer_names;
         } catch (Exception $ex) {
@@ -288,5 +286,5 @@ class BuyerAccountModel extends PublicModel {
             return [];
         }
     }
-
+    
 }

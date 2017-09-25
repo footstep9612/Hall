@@ -281,11 +281,11 @@ class EsGoodsModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $show_name = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MULTI_MATCH => [
-                                'query' => $show_name,
-                                'type' => 'most_fields',
-                                'fields' => ['name.ik', 'attrs.ik', 'sku', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
-                            ]],
+                        [ESClient::MATCH => ['name.ik' => $show_name]],
+                        [ESClient::TERM => ['sku' => $show_name]],
+                        [ESClient::TERM => ['spu' => $show_name]],
+                        [ESClient::WILDCARD => ['specs.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['brand.all' => '*' . $show_name . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
         }
@@ -324,9 +324,9 @@ class EsGoodsModel extends Model {
             $es = new ESClient();
 
             return [$es->setbody($body)
+                        ->setsort('_score', 'desc')
                         ->setsort('created_at', 'desc')
-                        ->setsort('sort_order', 'desc')
-                        ->setsort('_id', 'desc')
+                        ->setsort('sku', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

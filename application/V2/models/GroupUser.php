@@ -33,6 +33,17 @@ class GroupUserModel extends PublicModel {
         }
         return true ;
     }
+    public function deleteuser($data){
+        if(!empty($data['user_id'])){
+            $arr['employee_id'] = $data['user_id'];
+            $arr['org_id'] = $data['group_id'];
+            $this->where($arr)->delete();
+            return true ;
+        }else{
+            return false ;
+        }
+
+    }
     /**
      * 获取列表
      * @param data $data;

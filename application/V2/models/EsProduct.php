@@ -291,12 +291,12 @@ class EsProductModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MULTI_MATCH => [
-                                'query' => $keyword,
-                                'type' => 'most_fields',
-                                'fields' => ['show_name.ik', 'name.ik', 'attrs.ik', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
-                            ]],
-                        [ESClient::WILDCARD => ['show_name.all' => '*' . $keyword . '*']],
+                        [ESClient::MATCH => ['name.ik' => $keyword]],
+                        [ESClient::MATCH => ['show_name.ik' => $keyword]],
+                        [ESClient::TERM => ['spu' => $keyword]],
+                        [ESClient::WILDCARD => ['specs.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['brand.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
             ]]];
         }
@@ -403,9 +403,7 @@ class EsProductModel extends Model {
 
             $es = new ESClient();
             $ret = $es->bulk($updateParams);
-            echo json_encode($updateParams);
-            var_dump($ret);
-            die();
+
 //            $ret = $es->setbody($body)
 //                    ->count($this->dbName, $this->tableName . '_' . $lang, '');
 //            if (isset($ret['count'])) {

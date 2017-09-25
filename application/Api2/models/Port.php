@@ -50,4 +50,40 @@ class PortModel extends PublicModel {
         }
     }
 
+    /**
+     * 根据简称与语言获取国家名称
+     * @param array $bn 简称
+     * @param string $lang 语言
+     * @param string
+     */
+    public function getPortByBns($bns = [], $lang = '') {
+        if (empty($bns) || empty($lang))
+            return '';
+
+        if (redisHashExist('Port', implode('_', $bns) . '_' . $lang)) {
+            return json_decode(redisHashGet('Port', implode('_', $bns) . '_' . $lang), true);
+        }
+        try {
+            $condition = array(
+                'bn' => ['in', $bns],
+                'lang' => $lang,
+                    // 'status'=>self::STATUS_VALID
+            );
+            $field = 'bn,name';
+            $data = $this->field($field)->where($condition)->select();
+            $result = [];
+            if ($data) {
+                foreach ($data as $item) {
+                    $result[$item['bn']] = $item['name'];
+                }
+            }
+            if ($result) {
+                redisHashSet('Port', implode('_', $bns) . '_' . $lang, json_encode($result));
+            }
+            return $result;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
 }

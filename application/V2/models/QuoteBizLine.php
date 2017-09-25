@@ -290,13 +290,6 @@ class QuoteBizLineModel extends PublicModel {
                     if (empty($value['purchase_price_cur_bn'])){
                         return ['code'=>'-104','message'=>'采购币种必选'];
                     }
-                    //净重
-                    if (empty($value['net_weight_kg'])){
-                        return ['code'=>'-104','message'=>'净重必填'];
-                    }
-                    if (!is_numeric($value['net_weight_kg'])){
-                        return ['code'=>'-104','message'=>'净重必须是数字'];
-                    }
                     //毛重
                     if (empty($value['gross_weight_kg'])){
                         return ['code'=>'-104','message'=>'毛重必填'];
@@ -460,19 +453,80 @@ class QuoteBizLineModel extends PublicModel {
      */
     public function submitToBizlineManager($params) {
 
-        //更新当前的报价单状态为产品线报价
-        try {
-            if ($this->where(['id' => $params['quote_bizline_id']])->save(['status' => 'QUOTED'])) {
-                return ['code' => '1', 'message' => '提交成功!'];
-            } else {
-                return ['code' => '-104', 'message' => '提交失败!'];
-            }
-        } catch (Exception $exception) {
+        $quote_bizline_id = $params['quote_bizline_id'];
+
+        //查找最低价的报价，写入到quote_item
+        $selectDefaultQuote = $this->selectDefaultQuotion($quote_bizline_id);
+        //p($selectDefaultQuote);
+
+        //更新当前的报价单状态为已报价
+        $this->startTrans();
+        $where = ['id'=>$quote_bizline_id];
+        $changeStatus = $this->changeStatus($where,'QUOTED');
+
+        if ($changeStatus && $selectDefaultQuote){
+            $this->commit();
             return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
+                'code' => '1',
+                'message' => '提交成功!'
+            ];
+        }else{
+            $this->rollback();
+            return [
+                'code' => '-104',
+                'message' => '提交失败!'
             ];
         }
+
+    }
+
+
+    private function selectDefaultQuotion($quote_bizline_id){
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $priceItems = $quoteItemFormModel->where(['quote_bizline_id'=>$quote_bizline_id, 'status'=> 'QUOTED'])->getField('quote_item_id',true);
+
+        $quoteItemModel = new QuoteItemModel();
+
+        foreach ($priceItems as $priceItem){
+            $quotions = $quoteItemFormModel->where(['quote_item_id'=>$priceItem,'status'=>'QUOTED'])->select();
+            //最低价的报价
+            array_multisort(array_column($quotions,'purchase_unit_price'),SORT_ASC,$quotions);
+
+            $quote_item_data = $quotions[0];
+            $quoteItemModel->where(['id'=>$priceItem])->save($quoteItemModel->create([
+                'supplier_id' => $quote_item_data['supplier_id'],
+                'brand' => $quote_item_data['brand'],
+                'purchase_unit_price' => $quote_item_data['purchase_unit_price'],
+                'purchase_price_cur_bn' => $quote_item_data['purchase_price_cur_bn'],
+                'remarks' => $quote_item_data['goods_desc'],
+                'net_weight_kg' => $quote_item_data['net_weight_kg'],
+                'gross_weight_kg' => $quote_item_data['gross_weight_kg'],
+                'package_size' => $quote_item_data['package_size'],
+                'package_mode' => $quote_item_data['package_mode'],
+                'goods_source' => $quote_item_data['goods_source'],
+                'stock_loc' => $quote_item_data['stock_loc'],
+                'delivery_days' => $quote_item_data['delivery_days'],
+                'period_of_validity' => $quote_item_data['period_of_validity'],
+                'reason_for_no_quote' => $quote_item_data['reason_for_no_quote'],
+                'bizline_agent_id' => $quote_item_data['updated_by'],
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]));
+
+        }
+
+        return true;
+    }
+
+    /**
+     * 更改状态
+     * @param array $where 条件
+     * @param string $status 状态标识
+     * @return bool
+     */
+    private function changeStatus(array $where,$status){
+
+        return $this->where($where)->save(['status'=>$status]);
     }
 
     /**

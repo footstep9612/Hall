@@ -534,7 +534,7 @@ class GoodsController extends PublicController {
      */
     public function exportAction() {
         $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->export();
+        $localDir = $goodsModel->export($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
         } else {
@@ -547,7 +547,7 @@ class GoodsController extends PublicController {
      */
     public function exportCsvAction(){
         $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->exportCsv();
+        $localDir = $goodsModel->exportCsv($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
         } else {
@@ -559,8 +559,12 @@ class GoodsController extends PublicController {
      * 导入
      */
     public function importAction(){
+        if (empty($this->put_data['xls'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+
         $goodsModel = new GoodsModel();
-        $localDir =$goodsModel ->import();
+        $localDir =$goodsModel ->import($this->put_data['xls']);
         if($localDir){
             jsonReturn($localDir);
         }else{
@@ -571,22 +575,14 @@ class GoodsController extends PublicController {
     /**
      * zip导入
      * @param xls zip文件fastdfs地址
-     * @目录格式为:
-     * .zip
-     * --- sku目录
-     * --- --- zh.xls
-     * --- --- en.xls
-     * --- --- ru.xls
-     * --- --- es.xls
      */
     public function zipImportAction(){
-        $this->put_data['xls'] =1;    //测试
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
 
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->zipImport($this->put_data['xls']);
+        $result = $goodsModel->zipImport2($this->put_data['xls']);
         if ($result !== false) {
             $error = '';
             if (!empty($result['failds'])) {

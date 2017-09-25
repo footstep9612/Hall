@@ -14,7 +14,7 @@
 class BuyerController extends PublicController {
 
     public function __init() {
-        //   parent::__init();
+          parent::__init();
     }
 
     /*
@@ -34,12 +34,14 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['agent_id'])) {
+        if(!empty($data['agent_id'])){
             $where['agent_id'] = $data['agent_id'];
         }
-
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $data['buyer_no'];
+        }
+        if (!empty($data['serial_no'])) {
+            $where['serial_no'] = $data['serial_no'];
         }
         if (!empty($data['official_phone'])) {
             $where['official_phone'] = $data['official_phone'];
@@ -97,6 +99,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['line_of_credit_max'])) {
             $where['line_of_credit_max'] = $data['line_of_credit_max'];
+        }
+        if (!empty($data['credit_status'])) {
+            $where['credit_status'] = $data['credit_status'];
         }
         $model = new BuyerModel();
         $data = $model->getlist($where);
@@ -177,8 +182,6 @@ class BuyerController extends PublicController {
 
         if (!empty($data['first_name'])) {
             $buyer_account_data['first_name'] = $data['first_name'];
-        } else {
-            jsonReturn('', -101, '名字不能为空!');
         }
         if (!empty($data['last_name'])) {
             $buyer_account_data['last_name'] = $data['last_name'];
@@ -187,6 +190,7 @@ class BuyerController extends PublicController {
             $buyer_account_data['mobile'] = $data['mobile'];
             $arr['official_phone'] = $data['mobile'];
         }
+
         $buyer_account_data['created_at'] = $this->user['id'];
         //附件
         if (!empty($data['attach_url'])) {
@@ -222,8 +226,6 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
-        } else {
-            jsonReturn('', -101, '名字不能为空!');
         }
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
@@ -237,11 +239,14 @@ class BuyerController extends PublicController {
         if (!empty($data['address'])) {
             $buyer_address_data['address'] = $data['address'];
         }
+
+
         $arr['created_by'] = $this->user['id'];
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
         $login_arr['email'] = $data['email'];
         $login_arr['user_name'] = $data['user_name'];
+
         $check = $buyer_account_model->Exist($login_arr);
         if ($check) {
             jsonReturn('', -101, 'The company email or user name already exists.');
@@ -249,7 +254,9 @@ class BuyerController extends PublicController {
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
+
         $data_t_buyer = $model->getlist($condition); //($this->put_data);
+
         //var_dump($data_t_buyer);die;
         if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
             $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
@@ -261,7 +268,9 @@ class BuyerController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
         $arr['buyer_no'] = $real_num;
-        if (empty($arr['serial_no'])) {
+        if (!empty($data['serial_no'])) {
+            $arr['serial_no'] = $data['serial_no'];
+        }else{
             $arr['serial_no'] = $arr['buyer_no'];
         }
         $arr['created_by'] = $this->user['id'];
@@ -364,6 +373,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['province'])) {
             $arr['province'] = $data['province'];
+        }
+        if (!empty($data['serial_no'])) {
+            $arr['serial_no'] = $data['serial_no'];
         }
         if (!empty($data['country_code'])) {
             $arr['country_code'] = $data['country_code'];

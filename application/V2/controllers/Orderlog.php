@@ -79,8 +79,53 @@ class OrderlogController extends PublicController{
         $data['created_by'] = $this->user['id'];
 
         $OrderLog->startTrans();
+        if($data['log_group']=="CREDIT"&&isset($data["order_id"])&&$data["order_id"]) {
+            $order_model = new OrderModel();
+            $order_info = $order_model->where(['id'=>$data["order_id"]])->find();
+            if($order_info){
+                if($order_info['buyer_id']){
+                    $buyer_model = new BuyerModel();
+                    $buyer_info = $buyer_model->where(['id'=>$order_info['buyer_id']])->find();
+                    if($buyer_info){
+                        if($buyer_info['line_of_credit']<=0){
+                            $results['code'] = '-101';
+                            $results['message'] = '该采购商未开通信保或者信保审核未通过，无法授信!';
+                            $this->jsonReturn($results);
+                        }
+                        if($data['type']=="REFUND"){
+                            $buyer_info['credit_available']=$buyer_info['credit_available']+$data['amount'];
+                        }else{
+                            $buyer_info['credit_available']=$buyer_info['credit_available'] - $data['amount'];
+                            if($buyer_info['credit_available']<0){
+                                $results['code'] = '-101';
+                                $results['message'] = '可用余额已不足支付，授信使用失败!';
+                                $this->jsonReturn($results);
+                            }
+                        }
+                        if($buyer_info['line_of_credit']>=$buyer_info['credit_available']) {
+                            $buyer_model->where(['id' => $order_info['buyer_id']])->setField(['credit_available' => $buyer_info['credit_available']]);
+                        }
+                    }else{
+                        $results['code'] = '-101';
+                        $results['message'] = '没有获取采购商信息，无法授信!';
+                        $this->jsonReturn($results);
+                    }
+                }else{
+                    $results['code'] = '-101';
+                    $results['message'] = '订单没有采购商，无法授信!';
+                    $this->jsonReturn($results);
+                }
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '修改失败,请输入正确的订单号!';
+                $this->jsonReturn($results);
+            }
+        }
         $results = $OrderLog->addData($data);
-
+        if($data['log_group']=="COLLECTION"&&isset($data["order_id"])&&$data["order_id"]) {
+            $order_model = new OrderModel();
+            $order_model->where(['id'=>$data["order_id"]])->setField(['pay_status'=>'PARTPAY']);
+        }
         if($results['code'] == 1){
             //如果有附件，添加附件
             if(!empty($data['attach_array'])){
@@ -301,45 +346,9 @@ class OrderlogController extends PublicController{
         $OrderLog = new OrderLogModel();
         $where = $this->put_data;
 
-        if(!empty($where['buyer_id'])){
-            $buyer = new BuyerModel();
-            //查找授信可用额度
-            $buyerinfo = $buyer->field('line_of_credit,credit_available,credit_cur_bn')->where('id='.$where['buyer_id'])->find();
+        $results = $OrderLog->deleteData($where);
 
-            //查询删除的授信记录信息
-            $creditinfo = $OrderLog->getInfo($where);
-            //判断是
-            if($creditinfo['type'] == 'SPENDING'){
-                $credit_available = $buyerinfo['credit_available']+$creditinfo['data']['amount'];  //支出就加回去
-            }else{
-                $credit_available = $buyerinfo['credit_available']-$creditinfo['data']['amount'];  //还款就减去
-            }
-
-            $OrderLog->startTrans();
-            $results = $OrderLog->deleteData($where);
-            if($results['code'] == 1){
-                $re = $buyer->where('id='.$where['buyer_id'])->save(['credit_available' => $credit_available]);
-                if($re){
-                    $OrderLog->commit();
-                    $this->jsonReturn($results);
-                }else{
-                    $OrderLog->rollback();
-                    $results['code'] = '-101';
-                    $results['message'] = '修改失败!';
-                    $this->jsonReturn($results);
-                }
-            }else{
-                $OrderLog->rollback();
-                $this->jsonReturn($results);
-            }
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有客户ID!';
-            $this->jsonReturn($results);
-        }
-
-
-
+        $this->jsonReturn($results);
     }
 
     /*
@@ -392,10 +401,8 @@ class OrderlogController extends PublicController{
 
         if(!empty($where['log_id']) && !empty($where['order_id'])){
             $re = $orderaddress->where('order_id='.$where['order_id'].' and log_id='.$where['log_id'])->save(['deleted_flag' => 'Y']);
-
-            if($re){
-                $results = $orderaddress->addData($where);
-
+            $results = $orderaddress->addData($where);
+            if($results!==false){
                 $this->jsonReturn($results);
             }else{
                 $results['code'] = '-101';
