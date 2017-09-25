@@ -102,7 +102,9 @@ class OrderlogController extends PublicController{
                                 $this->jsonReturn($results);
                             }
                         }
-                        $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
+                        if($buyer_info['line_of_credit']>=$buyer_info['credit_available']) {
+                            $buyer_model->where(['id' => $order_info['buyer_id']])->setField(['credit_available' => $buyer_info['credit_available']]);
+                        }
                     }else{
                         $results['code'] = '-101';
                         $results['message'] = '没有获取采购商信息，无法授信!';
@@ -344,45 +346,9 @@ class OrderlogController extends PublicController{
         $OrderLog = new OrderLogModel();
         $where = $this->put_data;
 
-        if(!empty($where['buyer_id'])){
-            $buyer = new BuyerModel();
-            //查找授信可用额度
-            $buyerinfo = $buyer->field('line_of_credit,credit_available,credit_cur_bn')->where('id='.$where['buyer_id'])->find();
+        $results = $OrderLog->deleteData($where);
 
-            //查询删除的授信记录信息
-            $creditinfo = $OrderLog->getInfo($where);
-            //判断是
-            if($creditinfo['type'] == 'SPENDING'){
-                $credit_available = $buyerinfo['credit_available']+$creditinfo['data']['amount'];  //支出就加回去
-            }else{
-                $credit_available = $buyerinfo['credit_available']-$creditinfo['data']['amount'];  //还款就减去
-            }
-
-            $OrderLog->startTrans();
-            $results = $OrderLog->deleteData($where);
-            if($results['code'] == 1){
-                $re = $buyer->where('id='.$where['buyer_id'])->save(['credit_available' => $credit_available]);
-                if($re){
-                    $OrderLog->commit();
-                    $this->jsonReturn($results);
-                }else{
-                    $OrderLog->rollback();
-                    $results['code'] = '-101';
-                    $results['message'] = '修改失败!';
-                    $this->jsonReturn($results);
-                }
-            }else{
-                $OrderLog->rollback();
-                $this->jsonReturn($results);
-            }
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有客户ID!';
-            $this->jsonReturn($results);
-        }
-
-
-
+        $this->jsonReturn($results);
     }
 
     /*

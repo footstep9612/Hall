@@ -176,7 +176,7 @@ class OrderAttachModel extends PublicModel {
 
         foreach($condition['attach_array'] as $key=>$val){
             $data[$key]['order_id'] = $condition['order_id'];
-            $data[$key]['attach_group'] = $condition['workflow_group'];
+            $data[$key]['attach_group'] = $condition['log_group'];
             $data[$key]['log_id'] = $condition['log_id'];
             $data[$key]['attach_url'] = $val['attach_url'];
             $data[$key]['attach_name'] = $val['attach_name'];

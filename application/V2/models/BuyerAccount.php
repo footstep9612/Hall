@@ -286,5 +286,5 @@ class BuyerAccountModel extends PublicModel {
             return [];
         }
     }
-
+    
 }

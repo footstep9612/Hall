@@ -64,6 +64,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['buyer_no'])) {
             $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
         }
+        if (!empty($condition['serial_no'])) {
+            $where .= ' And serial_no  ="' . $condition['serial_no'] . '"';
+        }
         if (!empty($condition['employee_name'])) {
             $where .= " And `erui2_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
@@ -121,7 +124,6 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['credit_status'])) {
             $where .= ' And `erui2_buyer`.`buyer_credit_log`.in_status  ="' . $condition['credit_status'] . '"';
         }
-
         if ($where) {
             $sql .= $where;
             $sql_count .= $where;
@@ -285,11 +287,11 @@ class BuyerModel extends PublicModel {
                     ->find();
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
-            $sql_address = "SELECT `address` FROM erui2_buyer.buyer_address where  buyer_id = " . $data['id'] ." limit 1";
+            $sql_address = "SELECT `address` FROM erui2_buyer.buyer_address where  buyer_id = " . $data['id'] . " limit 1";
             $address = $this->query($sql_address);
             if ($address) {
                 $buyerInfo['address'] = $address[0]['address'];
-            }else{
+            } else {
                 $buyerInfo['address'] = null;
             }
             if ($row) {
@@ -307,9 +309,6 @@ class BuyerModel extends PublicModel {
      */
     public function update_data($create, $where) {
 
-        if (isset($create['buyer_no'])) {
-            $data['buyer_no'] = $create['buyer_no'];
-        }
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
         }
@@ -786,16 +785,56 @@ class BuyerModel extends PublicModel {
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('id,name')->select();
+            $buyers = $this->where($where)->field('id,name,buyer_no')->select();
+
             $buyer_names = [];
             foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['id']] = $buyer['name'];
+                $buyer_arr['buyer_names'][$buyer['id']] = $buyer['name'];
+                $buyer_arr['buyer_nos'][$buyer['id']] = $buyer['buyer_no'];
             }
-            return $buyer_names;
+            return $buyer_arr;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
+        }
+    }
+
+    /*
+     * 更新授信金额
+     * @param int $order_id // 订单ID
+     * @param string  $type // 授信类型
+     * @param floatval $amount // 授信金额
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function updateCredite($order_id, $type, $amount) {
+        $order_model = new OrderModel();
+        $orderinfo = $order_model->field('buyer_id,id')->where(['id' => $order_id])->find();
+
+        $amount = floatval($amount);
+        $buyer = $this->field('credit_available,credit_available,id')
+                        ->where(['id' => $orderinfo['buyer_id']])->find();
+        if ($buyer) {
+            if ($type == 'REFUND') {
+                $flag = $this->where(['id' => $buyer['id']])
+                        ->save(['credit_available' => $buyer['credit_available'] + $amount]);
+            } elseif ($type == 'SPENDING') {
+                $flag = $this->where(['id' => $buyer['id']])
+                        ->save(['credit_available' => $buyer['credit_available'] - $amount]);
+            }
+            if ($flag === false) {
+
+                return ['code' => MSG::MSG_FAILED, 'message' => '更新授信额度错误!'];
+            } else {
+                return ['code' => MSG::MSG_SUCCESS, 'message' => '更新成功!'];
+            }
+        } else {
+            return ['code' => MSG::MSG_FAILED, 'message' => '客户不存在!'];
         }
     }
 

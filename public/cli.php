@@ -1,9 +1,8 @@
+#!/usr/local/php/bin/php -f
 <?php
-
 error_reporting(E_ERROR);
 define('DS', DIRECTORY_SEPARATOR);
-if (PHP_SAPI !== 'cli')
-{
+if (PHP_SAPI !== 'cli') {
     die('{"code":"-1","message":"系统错误!"}');
 }
 /* INI配置文件支持常量替换 */

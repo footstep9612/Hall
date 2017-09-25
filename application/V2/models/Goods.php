@@ -1217,9 +1217,9 @@ class GoodsModel extends PublicModel {
         $objSheet->setCellValue("M1", "最小订货数量");
         $objSheet->setCellValue("M2", "Minimum order quantity");
         $objSheet->setCellValue("N1", "进货价格");
-        $objSheet->setCellValue("N2", "进货价格");
+        $objSheet->setCellValue("N2", "Supply price");
         $objSheet->setCellValue("O1", "进货价格币种");
-        $objSheet->setCellValue("O2", "进货价格币种");
+        $objSheet->setCellValue("O2", "Currency");
 
         $objSheet->setCellValue("P1", "物流信息");
         $objSheet->setCellValue("P1", "物流信息");
@@ -1385,6 +1385,16 @@ class GoodsModel extends PublicModel {
 
     /**
      * 压缩包导入
+     * Usage:
+     *   .zip
+     *      sku
+     *        zh.xls
+     *        en.xls
+     *        es.xls
+     *        ru.xls
+     *      sku2
+     *        zh.xls
+     *        en.xls
      */
     public function zipImport($url = ''){
         if (empty($url)) {
@@ -1534,6 +1544,187 @@ class GoodsModel extends PublicModel {
                     );
                 } else {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'failed, code:解压失败', Log::ERR);
+                }
+                $zip->close();
+            } else {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'failed, code:' . $res, Log::ERR);
+                return false;
+            }
+        } catch (Exception $e) {
+            $this->rollback();
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
+            return array(
+                'sucess' => $sucess,
+                'succes_lang' => $sucess_lang,
+                'failds' => $failds
+            );
+        }
+    }
+
+    /**
+     * 压缩包导入
+     * Usage:   压缩包目录
+     *  .zip
+     *      spu
+     *        sku1.xls
+     *        sku2.xls
+     *      spu2
+     *        sku1.xls
+     *        sku2.xls
+     *
+     */
+    public function zipImport2($url = ''){
+        if (empty($url)) {
+            return false;
+        }
+
+        //下载到本地临时文件
+        $localFile = ExcelHelperTrait::download2local($url);
+        //$localFile = MYPATH . '/public/tmp/skus.zip';
+
+        $pathInfo = ( pathinfo($localFile) );
+        if (strtolower($pathInfo['extension']) != 'zip') {
+            jsonReturn('只支持zip格式', ErrorMsg::FAILED);
+        };
+
+        $sucess = $sucess_lang = 0;    //记录成功数
+        $failds = [];   //记录失败项与错误
+        try {
+            $zip = new ZipArchive();
+            $res = $zip->open($localFile);
+            if ($res === true) {
+                $tmpDir = MYPATH . '/public/tmp/' . $pathInfo['filename'];
+                if ($zip->extractTo($tmpDir)) {    //解压缩到目录
+                    $userInfo = getLoinInfo();
+                    $handle = opendir($tmpDir);
+                    $es_goods_model = new EsGoodsModel();                    while ($f = readdir($handle)) {    //遍历spu目录层
+                        $dir_spu = $tmpDir . '/' . $f;
+                        if ( $f != "." && $f != ".." && is_dir( $dir_spu ) ) {
+                            $handle2 = opendir( $dir_spu );
+                            while ( $xls = readdir( $handle2 ) ) {    //遍历sku excel
+                                if ( $xls != '.' && $xls != '..' && is_file( $dir_spu . '/' . $xls ) ) {
+                                    $xlsFile = $dir_spu . '/' . $xls;
+                                    $sku = $this->setupSku();    //生成sku
+                                    $bool_sku = false;
+                                    $this->startTrans();
+                                    $sucess_lang_tmp = 0;
+                                    $insert_langs = array();
+
+                                    $fileType = PHPExcel_IOFactory::identify( $xlsFile );    //获取文件类型
+                                    $objReader = PHPExcel_IOFactory::createReader( $fileType );  //创建PHPExcel读取对象
+                                    $PHPExcel = $objReader->load( $xlsFile );
+                                    $sheetCount = $PHPExcel->getSheetCount();    //获取工作表数
+                                    for ( $i = 0 ; $i < $sheetCount ; $i++ ) {    //获取多工作表（即多语言）
+                                        $lang = $PHPExcel->getSheet( $i )->getTitle();   //工作表标题对应语言
+                                        if ( !in_array( $lang , array( 'zh' , 'en' , 'es' , 'ru' ) ) ) {
+                                            $failds[] = array( 'item' => $xls , 'hint' => '不存在语言' . $lang );
+                                            $this->rollback();
+                                            $sucess_lang_tmp = 0;
+                                            $bool_sku = false;
+                                            Log::write( $xls . '下,不存在语言' . $lang , Log::INFO );
+                                            break;
+                                        }
+                                        $data = $PHPExcel->getSheet( $i )->toArray();
+                                        if ( empty( $data ) || empty( $r = $data[ 2 ] ) ) {
+                                            continue;
+                                        }
+
+                                        $data_tmp = [ ];
+
+                                        $data_tmp[ 'spu' ] = empty( trim( $r[ 2 ] ) ) ? $f : trim( $r[ 2 ] );    //spu
+                                        $data_tmp[ 'sku' ] = $sku;    //sku
+                                        $data_tmp[ 'lang' ] = $lang;
+                                        $data_tmp[ 'name' ] = $r[ 4 ];    //名称
+                                        $data_tmp[ 'show_name' ] = $r[ 5 ];    //展示名称
+                                        $data_tmp[ 'model' ] = $r[ 6 ];    //型号
+                                        $data_tmp[ 'description' ] = $r[ 7 ];    //描述
+
+                                        $data_tmp[ 'exw_days' ] = $r[ 8 ];    //出货周期
+                                        $data_tmp[ 'min_pack_naked_qty' ] = $r[ 9 ];    //最小包装内裸货商品数量
+                                        $data_tmp[ 'nude_cargo_unit' ] = $r[ 10 ];    //商品裸货单位
+                                        $data_tmp[ 'min_pack_unit' ] = $r[ 11 ];    //最小包装单位
+                                        $data_tmp[ 'min_order_qty' ] = $r[ 12 ];    //最小订货数量
+                                        $data_tmp[ 'purchase_price' ] = $r[ 13 ];    //进货价格
+                                        $data_tmp[ 'purchase_price_cur_bn' ] = $r[ 14 ];    //进货价格币种
+
+                                        $data_tmp[ 'nude_cargo_l_mm' ] = $r[ 16 ];    //裸货尺寸长(mm)
+                                        $data_tmp[ 'nude_cargo_w_mm' ] = $r[ 17 ];    //裸货尺寸宽(mm)
+                                        $data_tmp[ 'nude_cargo_h_mm' ] = $r[ 18 ];    //裸货尺寸高(mm)
+                                        $data_tmp[ 'min_pack_l_mm' ] = $r[ 19 ];    //最小包装后尺寸长(mm)
+                                        $data_tmp[ 'min_pack_w_mm' ] = $r[ 20 ];    //最小包装后尺寸宽(mm)
+                                        $data_tmp[ 'min_pack_h_mm' ] = $r[ 21 ];    //最小包装后尺寸高(mm)
+                                        $data_tmp[ 'net_weight_kg' ] = $r[ 22 ];    //净重(kg)
+                                        $data_tmp[ 'gross_weight_kg' ] = $r[ 23 ];    //毛重(kg)
+                                        $data_tmp[ 'compose_require_pack' ] = $r[ 24 ];    //仓储运输包装及其他要求
+                                        $data_tmp[ 'pack_type' ] = $r[ 25 ];    //包装类型
+
+                                        $data_tmp[ 'name_customs' ] = $r[ 27 ];    //报关名称
+                                        $data_tmp[ 'hs_code' ] = $r[ 28 ];    //海关编码
+                                        $data_tmp[ 'tx_unit' ] = $r[ 29 ];    //成交单位
+                                        $data_tmp[ 'tax_rebates_pct' ] = $r[ 30 ];    //退税率(%)
+                                        $data_tmp[ 'regulatory_conds' ] = $r[ 31 ];    //监管条件
+                                        $data_tmp[ 'commodity_ori_place' ] = $r[ 32 ];    //境内货源地
+                                        $data_tmp[ 'source' ] = 'ERUI';
+                                        $data_tmp[ 'source_detail' ] = 'Excel批量导入';
+                                        $data_tmp[ 'created_by' ] = isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null;
+                                        $data_tmp[ 'created_at' ] = date( 'Y-m-d H:i:s' );
+                                        $data_tmp[ 'status' ] = $this::STATUS_VALID;
+
+                                        /**
+                                         * 根据lang spu查询name是否存在
+                                         */
+                                        $condition = array(
+                                            'name' => $data_tmp[ 'name' ] ,
+                                            'lang' => $data_tmp[ 'lang' ] ,
+                                            'spu' => $data_tmp[ 'spu' ] ,
+                                        );
+                                        $exist = $this->field( 'id' )->where( $condition )->find();
+                                        if ( $exist ) {
+                                            $failds[] = array( 'item' => $xls , 'hint' => 'SPU:' . $data_tmp[ 'spu' ] . ' 语言：' . $data_tmp[ 'lang' ] . '下已存在' . $data_tmp[ 'name' ] );
+                                            $this->rollback();
+                                            $bool_sku = false;
+                                            $sucess_lang_tmp = 0;
+                                            Log::write( $xls . '下，SPU:' . $data_tmp[ 'spu' ] . ' 语言：' . $data_tmp[ 'lang' ] . '下已存在' . $data_tmp[ 'name' ] , Log::INFO );
+                                            break;
+                                        }
+
+                                        $insert = $this->add( $this->create( $data_tmp ) );
+                                        if ( !$insert ) {
+                                            $failds[] = array( 'item' => $xls , 'hint' => $data_tmp[ 'lang' ] . '导入失败，请检查' );
+                                            $this->rollback();
+                                            $bool_sku = false;
+                                            $sucess_lang_tmp = 0;
+                                            Log::write( $xls . '下，' . $data_tmp[ 'lang' ] . '导入失败，请检查' , Log::INFO );
+                                            break;
+                                        } else {
+                                            $insert_langs[] = $lang;
+                                            $bool_sku = true;
+                                            $sucess_lang_tmp++;
+                                        }
+                                    }
+                                    unset($sheetCount,$PHPExcel,$objReader,$fileType);
+                                    if ( $bool_sku ) {
+                                        $sucess++;
+                                        $sucess_lang = $sucess_lang + $sucess_lang_tmp;
+                                        $this->commit();
+                                        //更新ｅｓ
+                                        foreach($insert_langs as $r){
+                                            $es_goods_model->create_data($sku, $r);
+                                        }
+                                    }
+                                }
+                            }//End 遍历sku excel
+                        }
+                    }
+                    $zip->close();
+                    return array(
+                        'sucess' => $sucess,
+                        'succes_lang' => $sucess_lang,
+                        'failds' => $failds
+                    );
+                } else {
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'failed, code:解压失败', Log::ERR);
+                    return false;
                 }
                 $zip->close();
             } else {
