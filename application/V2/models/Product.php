@@ -189,8 +189,8 @@ class ProductModel extends PublicModel {
         if (empty($input)) {
             return false;
         }
-
-        $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu(); //不存在生产spu
+        $material_cat_no = isset($input['material_cat_no']) ? $input['material_cat_no'] : (isset($input['zh']['material_cat_no']) ? $input['zh']['material_cat_no'] : (isset($input['eh']['material_cat_no']) ? $input['eh']['material_cat_no'] : (isset($input['es']['material_cat_no']) ? $input['es']['material_cat_no'] : (isset($input['ru']['material_cat_no']) ? $input['ru']['material_cat_no'] : ''))));
+        $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
         $this->startTrans();
         try {
             $userInfo = getLoinInfo(); //获取当前用户信息
@@ -237,6 +237,10 @@ class ProductModel extends PublicModel {
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
                         if (!$result) {
+                            //解锁
+                            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
+                                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+                            }
                             $this->rollback();
                             return false;
                         }
@@ -248,6 +252,10 @@ class ProductModel extends PublicModel {
                         $result = $this->add($data);
                         if (!$result) {
                             $this->rollback();
+                            //解锁
+                            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
+                                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+                            }
                             return false;
                         }
                     }
@@ -285,6 +293,11 @@ class ProductModel extends PublicModel {
                             $attach = $pattach->addAttach($data);
                             if (!$attach) {
                                 $this->rollback();
+                                //解锁
+                                if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
+                                    unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+                                }
+
                                 return false;
                             }/*else{
                                 $ids[] = $attach;
@@ -303,8 +316,18 @@ class ProductModel extends PublicModel {
                 }
             }
             $this->commit();
+            //解锁
+            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
+                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+            }
+
             return $spu;
         } catch (Exception $e) {
+            //解锁
+            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
+                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+            }
+
             $this->rollback();
         }
     }
@@ -639,8 +662,42 @@ class ProductModel extends PublicModel {
      * SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
      * @return string
      */
-    public function createSpu() {
+    public function createSpu($material_cat_no='',$step=1) {
+        if(empty($material_cat_no)) {
+            return false;
+        }
+
+        $condition = array(
+            'material_cat_no' => $material_cat_no
+        );
+        $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
+        if($result){
+            $code = substr($result['spu'],8,4);
+            $code = $code+$step;
+        }else{
+            $code = $step;
+        }
+        $spu = $material_cat_no.'00'.str_pad($code, 4, '0', STR_PAD_LEFT).'0000';
+
+        //上锁
+        $lockFile = MYPATH . '/public/tmp/'.$spu.'.lock';
+        if(file_exists($lockFile)){
+            $this->createSpu($material_cat_no,$step++);
+        }else{
+            $handle = fopen($lockFile, "w");
+            if(!$handle){
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . $lockFile.'] create faild.', Log::ERR);
+            }else{
+                fclose($handle);
+            }
+        }
+
+        return $spu;
+
+        /**
+         * 6位随机数
         $spu = randNumber(6);
+        $spu = $material_cat_no.'00'.$code.'0000';
         $condition = array(
             'spu' => $spu
         );
@@ -649,6 +706,7 @@ class ProductModel extends PublicModel {
             $this->createSpu();
         }
         return $spu;
+        */
     }
 
     /**
@@ -756,32 +814,58 @@ class ProductModel extends PublicModel {
     public function exportTemp() {
         set_time_limit(0);  # 设置执行时间最大值
         PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
+        $lang_ary = array('zh','en','es','ru');
+        $titles = array(
+            'zh'=>array(
+                'no' => '',
+                'spu' => '产品编码',
+                'name' => '产品名称',
+                'show_name' => '展示名称',
+                'material_cat_no' => '物料分类',
+                'brand' => '品牌',
+                'advantages' => '产品介绍',
+                'tech_paras' => '技术参数',
+                'exe_standard' => '执行标准',
+                'warranty' => '质保期',
+                'keywords' => '关键字',
+            ),
+            'en'=>array(),
+            'es'=>array(),
+            'ru'=>array()
+        );
         $objPHPExcel = new PHPExcel();
-        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
-        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
-        $objSheet->getStyle("A1:K1")
-                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:K1")->getFont()->setSize(11)->setBold(true);    //粗体
-        //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
-        //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-        $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
-        foreach ($column_width_25 as $column) {
-            $objSheet->getColumnDimension($column)->setWidth(25);
+        foreach($lang_ary as $key => $lang) {
+            $objPHPExcel->createSheet();    //创建工作表
+            $objPHPExcel->setActiveSheetIndex( $key );    //设置工作表
+            $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+
+            $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+            $objSheet->getDefaultStyle()->getFont()->setName( "宋体" )->setSize( 11 );
+            //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
+            $objSheet->getStyle( "A1:K1" )
+                ->getAlignment()->setVertical( PHPExcel_Style_Alignment::VERTICAL_CENTER )
+                ->setHorizontal( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+            $objSheet->getStyle( "A1:K1" )->getFont()->setSize( 11 )->setBold( true );    //粗体
+            //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
+            //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
+            $column_width_25 = [ "B" , "C" , "D" , "E" , "F" , "G" , "H" , "I" , "J" , "K" ];
+            foreach ( $column_width_25 as $column ) {
+                $objSheet->getColumnDimension( $column )->setWidth( 25 );
+            }
+            $objSheet->setTitle( $lang ); //设置报价单标题
+            $title_ary = empty($titles[$lang]) ? $titles['zh'] : $titles[$lang];
+            $objSheet->setCellValue( "A1" , $title_ary['no'] );
+            $objSheet->setCellValue( "B1" , $title_ary['spu'] );
+            $objSheet->setCellValue( "C1" , $title_ary['name'] );
+            $objSheet->setCellValue( "D1" , $title_ary['show_name'] );
+            $objSheet->setCellValue( "E1" , $title_ary['material_cat_no'] );
+            $objSheet->setCellValue( "F1" , $title_ary['brand'] );
+            $objSheet->setCellValue( "G1" , $title_ary['advantages'] );    //对应产品优势（李志确认）
+            $objSheet->setCellValue( "H1" , $title_ary['tech_paras'] );
+            $objSheet->setCellValue( "I1" , $title_ary['exe_standard'] );
+            $objSheet->setCellValue( "J1" , $title_ary['warranty'] );
+            $objSheet->setCellValue( "K1" , $title_ary['keywords'] );
         }
-        $objSheet->setTitle('产品模板'); //设置报价单标题
-        $objSheet->setCellValue("A1", "序号");
-        $objSheet->setCellValue("B1", "产品编码");
-        $objSheet->setCellValue("C1", "产品名称");
-        $objSheet->setCellValue("D1", "展示名称");
-        $objSheet->setCellValue("E1", "产品组");
-        $objSheet->setCellValue("F1", "产品品牌");
-        $objSheet->setCellValue("G1", "产品介绍");    //对应产品优势（李志确认）
-        $objSheet->setCellValue("H1", "技术参数");
-        $objSheet->setCellValue("I1", "执行标准");
-        $objSheet->setCellValue("J1", "质保期");
-        $objSheet->setCellValue("K1", "关键字");
 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $tmpDir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/";
@@ -946,7 +1030,7 @@ class ProductModel extends PublicModel {
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
             $url = $server. '/V2/Uploadfile/upload';
             $data['tmp_name']=$zipName;
-            $data['type']='application/excel';
+            $data['type']='application/zip';
             $data['name']= pathinfo($zipName,PATHINFO_BASENAME);
             $fileId = postfile($data,$url);
             if($fileId){
@@ -1534,7 +1618,7 @@ class ProductModel extends PublicModel {
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
             $url = $server. '/V2/Uploadfile/upload';
             $data['tmp_name']=$dirName.'.zip';
-            $data['type']='application/excel';
+            $data['type']='application/zip';
             $data['name']=pathinfo($dirName.'.zip',PATHINFO_BASENAME);
             $fileId = postfile($data,$url);
             if($fileId){
