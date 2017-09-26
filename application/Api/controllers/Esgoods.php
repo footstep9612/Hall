@@ -164,7 +164,7 @@ class EsgoodsController extends PublicController {
             $time = redisGet('ES_PRODUCT_TIME');
             redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
 
-            $time = '2017-08-18 00:00:00';
+            $time = '2017-08-20 00:00:00';
             //  $this->langs = ['en'];
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsgoodsModel();

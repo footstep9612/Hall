@@ -28,6 +28,7 @@ class OrderAttachModel extends PublicModel {
 
     /* 获取订单详情
      * @param int $order_id // 订单ID
+     * @param mix $attach_group // 附件类别
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
@@ -36,11 +37,21 @@ class OrderAttachModel extends PublicModel {
 
     public function getlist($order_id, $attach_group) {
 
+        $where = ['order_id' => $order_id,
+            //'attach_group' => $attach_group,
+            'deleted_flag' => 'N'];
+        if (is_string($attach_group)) {
+            $where['attach_group'] = $attach_group;
+        } elseif (is_array($attach_group)) {
+
+            $where['attach_group'] = ['in', $attach_group];
+        } else {
+            return [];
+        }
+
         return $this->field('attach_name,attach_url')
-                        ->where(['order_id' => $order_id,
-                            'attach_group' => $attach_group,
-                            'deleted_flag' => 'N'])
-                        ->order('created_at desc')
+                        ->where($where)
+                        ->order('created_at asc')
                         ->select();
     }
 

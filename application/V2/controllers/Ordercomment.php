@@ -56,8 +56,8 @@ class OrdercommentController extends PublicController {
                 $data[$key] = $comment;
             }
             if ($buyerids) {
-                $buyer_model = new BuyerAccountModel();
-                $buyernames = $buyer_model->getBuyerNamesByBuyerids($buyerids);
+                $buyer_model = new BuyerModel();
+                $buyernames = $buyer_model->getBuyerNosByBuyerids($buyerids);
             }
             foreach ($data as $key => $val) {
                 if ($val['created_by'] && isset($buyernames[$val['created_by']]) && $val['comment_group'] === 'B') {

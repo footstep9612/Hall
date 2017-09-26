@@ -64,6 +64,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['buyer_no'])) {
             $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
         }
+        if (!empty($condition['serial_no'])) {
+            $where .= ' And serial_no  ="' . $condition['serial_no'] . '"';
+        }
         if (!empty($condition['employee_name'])) {
             $where .= " And `erui2_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
@@ -121,7 +124,6 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['credit_status'])) {
             $where .= ' And `erui2_buyer`.`buyer_credit_log`.in_status  ="' . $condition['credit_status'] . '"';
         }
-
         if ($where) {
             $sql .= $where;
             $sql_count .= $where;
@@ -307,9 +309,6 @@ class BuyerModel extends PublicModel {
      */
     public function update_data($create, $where) {
 
-        if (isset($create['buyer_no'])) {
-            $data['buyer_no'] = $create['buyer_no'];
-        }
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
         }
@@ -786,12 +785,14 @@ class BuyerModel extends PublicModel {
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('id,name')->select();
+            $buyers = $this->where($where)->field('id,name,buyer_no')->select();
+
             $buyer_names = [];
             foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['id']] = $buyer['name'];
+                $buyer_arr['buyer_names'][$buyer['id']] = $buyer['name'];
+                $buyer_arr['buyer_nos'][$buyer['id']] = $buyer['buyer_no'];
             }
-            return $buyer_names;
+            return $buyer_arr;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

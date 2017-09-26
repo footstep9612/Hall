@@ -101,7 +101,7 @@ class Edi {
     //            $this->output->writeln('no data');
             }
         } catch(\Exception $e) {
-            $this->exception($e);
+             $this->exception($e,$e->getMessage());
         }
     }
 
@@ -196,7 +196,7 @@ class Edi {
             }
             return $results;
         } catch (Exception $e) {
-            $this->exception($e);
+             $this->exception($e,$e->getMessage());
             $results = [
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
@@ -213,7 +213,7 @@ class Edi {
     {
         $result = $this->_EdiBuyerCodeApprove();
         if($result && !isset($result['code'])){
-            var_dump($result);die;
+//            var_dump($result);die;
             return $result;
         } else {
             return $result;
@@ -232,7 +232,7 @@ class Edi {
                 return false;
             }
         }catch (Exception $e){
-            $this->exception($e);
+             $this->exception($e,$e->getMessage());
             $results = [
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
@@ -313,7 +313,7 @@ class Edi {
             }
             return $results;
         } catch (Exception $e) {
-            $this->exception($e);
+             $this->exception($e,$e->getMessage());
             $results = [
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
@@ -329,7 +329,7 @@ class Edi {
     public function EdiBankCodeApprove(){
         $result = $this->_EdiBankCodeApprove();
         if($result && !isset($result['code'])){
-            var_dump($result);die;
+//            var_dump($result);die;
             return $result;
         } else {
             return $result;
@@ -346,7 +346,7 @@ class Edi {
                 return false;
             }
         } catch (Exception $e) {
-            $this->exception($e);
+             $this->exception($e,$e->getMessage());
             $results = [
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
@@ -375,7 +375,7 @@ class Edi {
         $data = array('noLcQuotaList'=>array('NoLcQuotaApplyInfoV2' => array($NoLcQuotaApply)));
         try{
             $response = $this->client->doEdiNoLcQuotaApplyV2($data);
-var_dump($response);die;
+
             if (is_object($response)) {
                 $results['code'] = 1;
             } else {
@@ -383,15 +383,314 @@ var_dump($response);die;
             }
             return $results;
         } catch (Exception $e) {
-            $this->exception($e);
+             $this->exception($e,$e->getMessage());
             $results = [
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
-            var_dump($e);
             return $results;
         }
     }
+
+    /**
+     * 出口险-LC限额申请
+     */
+    public function EdiLcQuotaApplyV2($LcQuotaApply){
+        $data = $this->checkParamLc($LcQuotaApply);
+        $result = $this->_EdiLcQuotaApplyV2($data);
+        if($result && $result['code']  == 1){
+            $res['code'] = 1;
+            $res['message'] = '申请成功!';
+        } else{
+            $res['code'] = -101;
+            $res['message'] = '申请失败!';
+        }
+        return $res;
+    }
+    private function _EdiLcQuotaApplyV2($LcQuotaApply){
+
+        $data = array('lcQuotaList'=>array('LcQuotaApplyInfoV2' => array($LcQuotaApply)));
+        try{
+            $response = $this->client->doEdiLcQuotaApplyV2($data);
+
+            if (is_object($response)) {
+                $results['code'] = 1;
+            } else {
+                $results['code'] = -101;
+            }
+            return $results;
+        } catch (Exception $e) {
+             $this->exception($e,$e->getMessage());
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
+        }
+    }
+
+
+    /**
+     * 出口险-限额批复通知
+     *
+     */
+    public function EdiQuotaApproveInfo(){
+        $result = $this->_EdiQuotaApproveInfo();
+        if($result && !isset($result['code'])){
+            return $result;
+        } else {
+            return $result;
+        }
+    }
+
+    private function _EdiQuotaApproveInfo(){
+        try{
+            $response = $this->client->getEdiQuotaApproveInfo(array('policyNo'=>'','startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+
+            $QuotaApproveInfo = $response->out->QuotaApproveInfo;
+//            var_dump($QuotaApproveInfo);die;//测试
+            if ($QuotaApproveInfo) {
+                return self::object_array($QuotaApproveInfo);
+            } else {
+                return false;
+            }
+        } catch (Exception $e) {
+             $this->exception($e,$e->getMessage());
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
+        }
+    }
+
+    /**
+     * 出口险-出运明细申报
+     */
+    public function EdiShipmentApply(){
+        return $this->resultInfo("doEdiShipmentApply");
+    }
+
+    /**
+     * 出口险-出运申报受理反馈
+     *
+     */
+    public function EdiShipmentApproveInfo(){
+        return $this->resultInfo("getEdiShipmentApproveInfo");
+    }
+
+    /**
+     * 出口险-出运变更申请
+     */
+    public function doEdiShipmentAlterApply(){
+        return $this->resultInfo("doEdiShipmentAlterApply");
+    }
+
+    /**
+     * 出口险-出运变更受理反馈
+     *
+     */
+    public function EdiShipmentAlterApproveInfo(){
+        return $this->resultInfo("getEdiShipmentAlterApproveInfo");
+    }
+
+    /**
+     * 出口险-收汇确认
+     */
+    public function EdiReceiptApply(){
+        return $this->resultInfo("doEdiReceiptApply");
+    }
+
+    /**
+     * 出口险-收汇确认反馈
+     *
+     */
+    public function EdiReceiptApproveInfo(){
+        return $this->resultInfo("getEdiReceiptApproveInfo");
+    }
+
+    /**
+     * 内贸险-限额申请
+     */
+    public function EdiDomQuotaApply(){
+        return $this->resultInfo("doEdiDomQuotaApply");
+    }
+
+    /**
+     * 内贸险-限额批复
+     *
+     */
+    public function DomEdiQuotaApproveInfo(){
+        return $this->resultInfo("getDomEdiQuotaApproveInfo");
+    }
+
+    /**
+     * 出口险-限额余额查询V2(新版)
+     *
+     */
+    public function QuotaBalanceInfoByPolicyNo(){
+        $result = $this->_QuotaBalanceInfoByPolicyNo();
+        if($result && !isset($result['code'])){
+            return $result;
+        } else {
+            return $result;
+        }
+    }
+
+    private function _QuotaBalanceInfoByPolicyNo(){
+//        return $this->resultInfo("getQuotaBalanceInfoByPolicyNo",$xmlGetQuotaBalanceInfoByPolicyNo);
+//        policyNoList  保险单号集合(必填)
+        try{
+            $response = $this->client->getQuotaBalanceInfoByPolicyNo(array('getQuotaBalanceInfoByPolicyNo'=>array('policyNoList'=>array())));
+//            var_dump($response);die;//测试
+            $QuotaApproveInfo = $response->out->QuotaBalanceInfo;
+            if ($QuotaApproveInfo) {
+                return self::object_array($QuotaApproveInfo);
+            } else {
+                return false;
+            }
+        } catch (Exception $e) {
+             $this->exception($e,$e->getMessage());
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
+        }
+    }
+
+    /**
+     * 出口险-自行掌握限额判断
+     *
+     */
+    public function doEdiCheckAutoQuota(){
+        $xmlEdiCheckAutoQuota =
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+
+            ";
+        return $this->resultInfo("EdiCheckAutoQuota", $xmlEdiCheckAutoQuota);
+    }
+
+    /**
+     * 国家分类查询
+     *
+     */
+    public function EdiCountryClassify(){
+        try{
+
+            $CountryClassify = $this->client->getEdiCountryClassify(array('startDate'=>'2011-01-01T00:00:00','endDate'=>self::getEndDate()));
+            if ($CountryClassify) {
+                $data = @self::object_array($CountryClassify->out->CountryClassify);
+                var_dump($data);die;
+            } else {
+                echo '数据为空!';
+            }
+        } catch (Exception $e) {
+             $this->exception($e,$e->getMessage());
+        }
+    }
+
+    /**
+     * 出口险-基础费率查询
+     *
+     */
+    public function EdiBasicFeeRate(){
+        try{
+            $BasicFeeRateInfo = $this->client->getEdiBasicFeeRate();
+            if ($BasicFeeRateInfo) {
+                var_dump($BasicFeeRateInfo->BasicFeeRate);
+            } else {
+                echo 777;
+            }
+        } catch (Exception $e) {
+             $this->exception($e,$e->getMessage());
+        }
+    }
+
+    /**
+     * 出口险-特殊费率查询
+     *
+     */
+    public function EdiSpecialFeeRate(){
+        try{
+            $result = $this->client->getEdiSpecialFeeRate;
+            var_dump($result);die;//组织处理数据
+        }catch (Exception $e){
+             $this->exception($e,$e->getMessage());
+        }
+    }
+
+    //json传过来的数组并不是标准的array是stdClass类型,转为数组方式一:
+    static function object_array($array) {
+        if(is_object($array)) {
+            $array = (array)$array;
+        } if(is_array($array)) {
+            foreach($array as $key=>$value) {
+                $array[$key] = @self::object_array($value);
+            }
+        }
+        return $array;
+    }
+    //转为数组方式二:
+    static function object2array_pre(&$object) {
+        if (is_object($object)) {
+            $arr = (array)($object);
+        } else {
+            $arr = &$object;
+        }
+        if (is_array($arr)) {
+            foreach($arr as $varName => $varValue){
+                $arr[$varName] = @self::object2array($varValue);
+            }
+        }
+        return $arr;
+    }
+    static function object2array(&$object) {
+        $object =  json_decode( json_encode( $object),true);
+        return  $object;
+    }
+    //xml转为数组方式:
+    static function xml_to_array($xml){
+        $array = (array)(@simplexml_load_string($xml, null, LIBXML_NOCDATA));
+        foreach ($array as $key=>$item){
+            $array[$key]  =  @self::struct_to_array((array)$item);
+        }
+        return $array;
+    }
+
+    static function struct_to_array($item) {
+        if(!is_string($item)) {
+            $item = (array)$item;
+            foreach ($item as $key=>$val){
+                $item[$key]  =  @self::struct_to_array($val);
+            }
+        }
+        return $item;
+    }
+    //公共调用返回结果 --暂不用
+     private function resultInfo($calltype='', $xml){
+        if(empty($calltype)){
+            return false;
+        }
+         try {
+            $client = new SoapClient($this->serviceUri);
+            $paramters = array('xml'=>$xml);
+             $result=call_user_func_array($calltype, $paramters);var_dump($result);die;
+//            $result=$client->doEdiBuyerCodeApprove($paramters);
+//            return $result? $result : '';
+        } catch (Exception $e) {
+             LOG::write('CLASS:' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+             LOG::write($e->getMessage(), LOG::ERR);
+             return $e;
+        }
+    }
+
+    public function exception($e,$msg){
+        LOG::write('CLASS:' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+        LOG::write($msg, LOG::ERR);
+        return $e;
+    }
+
     public function checkParamNoLc($NoLcQuotaApply){
         $data = $results = array();
         if(isset($NoLcQuotaApply['buyer_no']) && !empty($NoLcQuotaApply['buyer_no'])){
@@ -476,17 +775,15 @@ var_dump($response);die;
         }
         if(isset($NoLcQuotaApply['tradeNameCode']) && !empty($NoLcQuotaApply['tradeNameCode'])){
             $data['tradeNameCode'] = $NoLcQuotaApply['tradeNameCode'];//出口商品类别代码
-            if($NoLcQuotaApply['tradeNameCode']==99) {
-                if (isset($NoLcQuotaApply['tradeElseName']) && !empty($NoLcQuotaApply['tradeElseName'])) {
-                    $data['tradeElseName'] = $NoLcQuotaApply['tradeElseName'];//商品名称
-                }else{
-                    $results['code'] = -101;
-                    $results['message'] = '[tradeElseName]商品名称缺失!';
-                }
-            }
         } else {
             $results['code'] = -101;
             $results['message'] = '[tradeNameCode]出口商品类别代码缺失!';
+        }
+        if (isset($NoLcQuotaApply['tradeElseName']) && !empty($NoLcQuotaApply['tradeElseName'])) {
+            $data['tradeElseName'] = $NoLcQuotaApply['tradeElseName'];//商品名称
+        }else{
+            $results['code'] = -101;
+            $results['message'] = '[tradeElseName]商品名称缺失!';
         }
         if(isset($NoLcQuotaApply['ifHistTrade'])){
             $data['ifHistTrade'] = $NoLcQuotaApply['ifHistTrade'];//是否有历史交易
@@ -511,22 +808,33 @@ var_dump($response);die;
         }
 
         if(isset($NoLcQuotaApply['ifhavetradefinancing'])){
-            $data['ifhavetradefinancing'] = $NoLcQuotaApply['ifhavetradefinancing'];//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
+            $data['ifhavetradefinancing'] = intval($NoLcQuotaApply['ifhavetradefinancing']);//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
         } else {
-            $results['code'] = -101;
-            $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
+            $data['ifhavetradefinancing'] = 0;//默认为0
+//            $results['code'] = -101;
+//            $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
         }
         if(isset($NoLcQuotaApply['ifhaverelation'])){
-            $data['ifhaverelation'] = $NoLcQuotaApply['ifhaverelation'];//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
+            $data['ifhaverelation'] = intval($NoLcQuotaApply['ifhaverelation']);//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
+            if($data['ifhaverelation'] == 1){
+                if(isset($NoLcQuotaApply['relationdetail']) && !empty($NoLcQuotaApply['relationdetail'])){
+                    $data['relationdetail'] = $NoLcQuotaApply['relationdetail'];//具体关联为1时,不能为空
+                } else {
+                    $results['code'] = -101;
+                    $results['message'] = '[relationdetail]具体关联情况缺失!';
+                }
+            }
         } else {
-            $results['code'] = -101;
-            $results['message'] = '[ifhaverelation]关联关系缺失!';
+            $data['ifhaverelation'] = 0;//默认为0
+//            $results['code'] = -101;
+//            $results['message'] = '[ifhaverelation]关联关系缺失!';
         }
         if(isset($NoLcQuotaApply['issamewithcontract'])){
-            $data['issamewithcontract'] = $NoLcQuotaApply['issamewithcontract'];//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
+            $data['issamewithcontract'] = intval($NoLcQuotaApply['issamewithcontract']);//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
         } else {
-            $results['code'] = -101;
-            $results['message'] = '[issamewithcontract]付款人是否与合同买方是否一致缺失!';
+            $data['issamewithcontract'] = 1;//默认为1
+//            $results['code'] = -101;
+//            $results['message'] = '[issamewithcontract]付款人是否与合同买方是否一致缺失!';
         }
         if(isset($NoLcQuotaApply['swift_code'])){
             $data['bank_swift'] = $NoLcQuotaApply['swift_code'];
@@ -537,43 +845,6 @@ var_dump($response);die;
         return $data;
     }
 
-    /**
-     * 出口险-LC限额申请
-     */
-    public function EdiLcQuotaApplyV2($LcQuotaApply){
-        $data = $this->checkParamLc($LcQuotaApply);
-        $result = $this->_EdiLcQuotaApplyV2($data);
-        if($result && $result['code']  == 1){
-            $res['code'] = 1;
-            $res['message'] = '申请成功!';
-        } else{
-            $res['code'] = -101;
-            $res['message'] = '申请失败!';
-        }
-        return $res;
-    }
-    private function _EdiLcQuotaApplyV2($LcQuotaApply){
-
-        $data = array('lcQuotaList'=>array('LcQuotaApplyInfoV2' => array($LcQuotaApply)));
-        try{
-            $response = $this->client->doEdiLcQuotaApplyV2($data);
-            var_dump($response);die;
-            if (is_object($response)) {
-                $results['code'] = 1;
-            } else {
-                $results['code'] = -101;
-            }
-            return $results;
-        } catch (Exception $e) {
-            $this->exception($e);
-            $results = [
-                'code' => $e->getCode(),
-                'msg'  => $e->getMessage()
-            ];
-            var_dump($e);
-            return $results;
-        }
-    }
     public function checkParamLc($LcQuotaApply){
         $data = $results = array();
         if(isset($LcQuotaApply['buyer_no']) && !empty($LcQuotaApply['buyer_no'])){
@@ -664,17 +935,15 @@ var_dump($response);die;
         }
         if(isset($LcQuotaApply['goodsCode']) && !empty($LcQuotaApply['goodsCode'])){
             $data['goodsCode'] = $LcQuotaApply['goodsCode'];//出口商品类别代码
-            if($LcQuotaApply['goodsCode']==99) {
-                if (isset($LcQuotaApply['elsegoodsName']) && !empty($LcQuotaApply['elsegoodsName'])) {
-                    $data['elsegoodsName'] = $LcQuotaApply['elsegoodsName'];//商品名称
-                }else{
-                    $results['code'] = -101;
-                    $results['message'] = '[elsegoodsName]商品名称缺失!';
-                }
-            }
         } else {
             $results['code'] = -101;
             $results['message'] = '[goodsCode]出口商品类别代码缺失!';
+        }
+        if (isset($LcQuotaApply['elsegoodsName']) && !empty($LcQuotaApply['elsegoodsName'])) {
+            $data['elsegoodsName'] = $LcQuotaApply['elsegoodsName'];//商品名称
+        }else{
+            $results['code'] = -101;
+            $results['message'] = '[elsegoodsName]商品名称缺失!';
         }
 
         if(isset($LcQuotaApply['openBankSwift']) && !empty($LcQuotaApply['openBankSwift'])){
@@ -717,22 +986,33 @@ var_dump($response);die;
         }
 
         if(isset($LcQuotaApply['ifhavetradefinancing'])){
-            $data['ifhavetradefinancing'] = $LcQuotaApply['ifhavetradefinancing'];//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
+            $data['ifhavetradefinancing'] = intval($LcQuotaApply['ifhavetradefinancing']);//在本信用限额项下是否有贸易融资需求-->>是：1 否：0
         } else {
-            $results['code'] = -101;
-            $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
+            $data['ifhavetradefinancing'] = 0; //默认为0
+//            $results['code'] = -101;
+//            $results['message'] = '[ifhavetradefinancing]贸易融资需求缺失!';
         }
         if(isset($LcQuotaApply['ifhaverelation'])){
-            $data['ifhaverelation'] = $LcQuotaApply['ifhaverelation'];//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
+            $data['ifhaverelation'] = intval($LcQuotaApply['ifhaverelation']);//被保险人及共保人、关联公司、代理人项下是否与买方存在关联关系-->>是：1 否：0
+            if($data['ifhaverelation'] == 1){
+                if(isset($LcQuotaApply['relationdetail']) && !empty($LcQuotaApply['relationdetail'])){
+                    $data['relationdetail'] = $LcQuotaApply['relationdetail'];//具体关联为1时,不能为空
+                } else {
+                    $results['code'] = -101;
+                    $results['message'] = '[relationdetail]具体关联情况缺失!';
+                }
+            }
         } else {
-            $results['code'] = -101;
-            $results['message'] = '[ifhaverelation]关联关系缺失!';
+            $data['ifhaverelation'] = 0; //默认为0
+//            $results['code'] = -101;
+//            $results['message'] = '[ifhaverelation]关联关系缺失!';
         }
         if(isset($LcQuotaApply['issamewithcontract'])){
-            $data['issamewithcontract'] = $LcQuotaApply['issamewithcontract'];//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
+            $data['issamewithcontract'] = intval($LcQuotaApply['issamewithcontract']);//被保险人与买方历史交易记录中付款人是否与合同买方一致-->是：1 否：0
         } else {
-            $results['code'] = -101;
-            $results['message'] = '[issamewithcontract]付款人是否与合同买方是否一致缺失!';
+            $data['issamewithcontract'] = 1; //默认为1
+//            $results['code'] = -101;
+//            $results['message'] = '[issamewithcontract]付款人是否与合同买方是否一致缺失!';
         }
         if(isset($LcQuotaApply['swift_code'])){
             $data['bank_swift'] = $LcQuotaApply['swift_code'];
@@ -743,265 +1023,4 @@ var_dump($response);die;
         return $data;
     }
 
-    /**
-     * 出口险-限额批复通知
-     *
-     */
-    public function EdiQuotaApproveInfo(){
-        $result = $this->_EdiQuotaApproveInfo();
-        if($result && !isset($result['code'])){
-            return $result;
-        } else {
-            return $result;
-        }
-    }
-
-    private function _EdiQuotaApproveInfo(){
-        try{
-            $response = $this->client->getEdiQuotaApproveInfo(array('getEdiQuotaApproveInfo'=>array('policyNo'=>'','startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-
-            $QuotaApproveInfo = $response->out->QuotaApproveInfo;
-            if ($QuotaApproveInfo) {
-                return self::object_array($QuotaApproveInfo);
-            } else {
-                return false;
-            }
-        } catch (Exception $e) {
-            $this->exception($e);
-            $results = [
-                'code' => $e->getCode(),
-                'msg'  => $e->getMessage()
-            ];
-            return $results;
-        }
-    }
-
-    /**
-     * 出口险-出运明细申报
-     */
-    public function EdiShipmentApply(){
-        return $this->resultInfo("doEdiShipmentApply");
-    }
-
-    /**
-     * 出口险-出运申报受理反馈
-     *
-     */
-    public function EdiShipmentApproveInfo(){
-        return $this->resultInfo("getEdiShipmentApproveInfo");
-    }
-
-    /**
-     * 出口险-出运变更申请
-     */
-    public function doEdiShipmentAlterApply(){
-        return $this->resultInfo("doEdiShipmentAlterApply");
-    }
-
-    /**
-     * 出口险-出运变更受理反馈
-     *
-     */
-    public function EdiShipmentAlterApproveInfo(){
-        return $this->resultInfo("getEdiShipmentAlterApproveInfo");
-    }
-
-    /**
-     * 出口险-收汇确认
-     */
-    public function EdiReceiptApply(){
-        return $this->resultInfo("doEdiReceiptApply");
-    }
-
-    /**
-     * 出口险-收汇确认反馈
-     *
-     */
-    public function EdiReceiptApproveInfo(){
-        return $this->resultInfo("getEdiReceiptApproveInfo");
-    }
-
-    /**
-     * 内贸险-限额申请
-     */
-    public function EdiDomQuotaApply(){
-        return $this->resultInfo("doEdiDomQuotaApply");
-    }
-
-    /**
-     * 内贸险-限额批复
-     *
-     */
-    public function DomEdiQuotaApproveInfo(){
-        return $this->resultInfo("getDomEdiQuotaApproveInfo");
-    }
-
-    /**
-     * 出口险-限额余额查询V2(新版)
-     *
-     */
-    public function QuotaBalanceInfoByPolicyNo(){
-        $result = $this->_QuotaBalanceInfoByPolicyNo();
-        if($result && !isset($result['code'])){
-
-            var_dump($result);die;
-            return $result;
-        } else {
-            return $result;
-        }
-    }
-
-    private function _QuotaBalanceInfoByPolicyNo(){
-//        return $this->resultInfo("getQuotaBalanceInfoByPolicyNo",$xmlGetQuotaBalanceInfoByPolicyNo);
-//        policyNoList  保险单号集合(必填)
-        try{
-            $response = $this->client->getQuotaBalanceInfoByPolicyNo(array('policyNoList'=>array()));
-            var_dump($response);die;
-            $QuotaApproveInfo = $response->out->QuotaBalanceInfo;
-            if ($QuotaApproveInfo) {
-                return self::object_array($QuotaApproveInfo);
-            } else {
-                return false;
-            }
-        } catch (Exception $e) {
-            $this->exception($e);
-            $results = [
-                'code' => $e->getCode(),
-                'msg'  => $e->getMessage()
-            ];
-            return $results;
-        }
-    }
-
-    /**
-     * 出口险-自行掌握限额判断
-     *
-     */
-    public function doEdiCheckAutoQuota(){
-        $xmlEdiCheckAutoQuota =
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-
-            ";
-        return $this->resultInfo("EdiCheckAutoQuota", $xmlEdiCheckAutoQuota);
-    }
-
-    /**
-     * 国家分类查询
-     *
-     */
-    public function EdiCountryClassify(){
-        try{
-
-            $CountryClassify = $this->client->getEdiCountryClassify(array('startDate'=>'2011-01-01T00:00:00','endDate'=>self::getEndDate()));
-            if ($CountryClassify) {
-                $data = @self::object_array($CountryClassify->out->CountryClassify);
-                var_dump($data);die;
-            } else {
-                echo '数据为空!';
-            }
-        } catch (Exception $e) {
-            $this->exception($e);
-        }
-    }
-
-    /**
-     * 出口险-基础费率查询
-     *
-     */
-    public function EdiBasicFeeRate(){
-        try{
-            $BasicFeeRateInfo = $this->client->getEdiBasicFeeRate();
-            if ($BasicFeeRateInfo) {
-                var_dump($BasicFeeRateInfo->BasicFeeRate);
-            } else {
-                echo 777;
-            }
-        } catch (Exception $e) {
-            $this->exception($e);
-        }
-    }
-
-    /**
-     * 出口险-特殊费率查询
-     *
-     */
-    public function EdiSpecialFeeRate(){
-        try{
-            $result = $this->client->getEdiSpecialFeeRate;
-            var_dump($result);die;//组织处理数据
-        }catch (Exception $e){
-            $this->exception($e);
-        }
-    }
-
-    //json传过来的数组并不是标准的array是stdClass类型,转为数组方式一:
-    static function object_array($array) {
-        if(is_object($array)) {
-            $array = (array)$array;
-        } if(is_array($array)) {
-            foreach($array as $key=>$value) {
-                $array[$key] = @self::object_array($value);
-            }
-        }
-        return $array;
-    }
-    //转为数组方式二:
-    static function object2array_pre(&$object) {
-        if (is_object($object)) {
-            $arr = (array)($object);
-        } else {
-            $arr = &$object;
-        }
-        if (is_array($arr)) {
-            foreach($arr as $varName => $varValue){
-                $arr[$varName] = @self::object2array($varValue);
-            }
-        }
-        return $arr;
-    }
-    static function object2array(&$object) {
-        $object =  json_decode( json_encode( $object),true);
-        return  $object;
-    }
-    //xml转为数组方式:
-    static function xml_to_array($xml){
-        $array = (array)(@simplexml_load_string($xml, null, LIBXML_NOCDATA));
-        foreach ($array as $key=>$item){
-            $array[$key]  =  @self::struct_to_array((array)$item);
-        }
-        return $array;
-    }
-
-    static function struct_to_array($item) {
-        if(!is_string($item)) {
-            $item = (array)$item;
-            foreach ($item as $key=>$val){
-                $item[$key]  =  @self::struct_to_array($val);
-            }
-        }
-        return $item;
-    }
-    //公共调用返回结果 --暂不用
-     private function resultInfo($calltype='', $xml){
-        if(empty($calltype)){
-            return false;
-        }
-         try {
-            $client = new SoapClient($this->serviceUri);
-            $paramters = array('xml'=>$xml);
-             $result=call_user_func_array($calltype, $paramters);var_dump($result);die;
-//            $result=$client->doEdiBuyerCodeApprove($paramters);
-//            return $result? $result : '';
-        } catch (Exception $e) {
-             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-             LOG::write($e->getMessage(), LOG::ERR);
-             return $e;
-        }
-    }
-
-    public function exception($e){
-        LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-        LOG::write($e->getMessage, LOG::ERR);
-        return $e;
-    }
 }

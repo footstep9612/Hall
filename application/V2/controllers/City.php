@@ -86,24 +86,75 @@ class CityController extends PublicController {
      * @desc   城市
      */
 
+    public function detailAction() {
+        $bn = $this->getPut('bn', '');
+        $lang = $this->getPut('lang', 'zh');
+        $country_bn = $this->getPut('country_bn', '');
+        if (!$bn) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('城市简码不能为空!');
+            $this->jsonReturn(null);
+        }
+        if ($bn) {
+            $country_model = new CountryModel();
+            $country = $country_model->getTableName();
+            $where = ['bn' => $bn, 'lang' => $lang];
+            if ($country_bn) {
+                $where['country_bn'] = $country_bn;
+            }
+            $result = $this->_model->field('lang,region_bn,country_bn,bn,'
+                                    . 'name,time_zone,status,created_by,created_at,'
+                                    . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
+                            ->where($where)->find();
+
+            if ($result) {
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn($result);
+            } elseif ($result === []) {
+                $this->setCode(MSG::ERROR_EMPTY);
+                $this->jsonReturn(null);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        }
+
+        exit;
+    }
+
+    /*
+     * Description of 城市详情
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
+     */
+
     public function infoAction() {
         $bn = $this->getPut('bn');
         if ($bn) {
             $data = [];
             $langs = ['en', 'zh', 'es', 'ru'];
+            $country_model = new CountryModel();
+            $country = $country_model->getTableName();
             foreach ($langs as $lang) {
                 $result = $this->_model->field('lang,region_bn,country_bn,bn,'
-                                        . 'name,time_zone,status,created_by,created_at')
+                                        . 'name,time_zone,status,created_by,created_at,'
+                                        . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
 
                 if ($result) {
-                    if (!$data) {
+                    if (empty($data['bn'])) {
                         $data = $result;
                         $data['name'] = null;
                         unset($data['name']);
+                        unset($data['country']);
                     }
-
+                    $data[$lang]['country'] = $result['country'];
                     $data[$lang]['name'] = $result['name'];
+                } else {
+                    $data[$lang]['country'] = '';
+                    $data[$lang]['name'] = '';
                 }
             }
         } else {
@@ -111,7 +162,10 @@ class CityController extends PublicController {
 
             $this->jsonReturn();
         }
-        if ($data) {
+        if (empty($data['zh']['name']) && empty($data['en']['name']) && empty($data['es']['name']) && empty($data['ru']['name'])) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        } elseif ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
         } elseif ($data === []) {

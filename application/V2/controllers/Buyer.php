@@ -40,6 +40,9 @@ class BuyerController extends PublicController {
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $data['buyer_no'];
         }
+        if (!empty($data['serial_no'])) {
+            $where['serial_no'] = $data['serial_no'];
+        }
         if (!empty($data['official_phone'])) {
             $where['official_phone'] = $data['official_phone'];
         }
@@ -187,6 +190,7 @@ class BuyerController extends PublicController {
             $buyer_account_data['mobile'] = $data['mobile'];
             $arr['official_phone'] = $data['mobile'];
         }
+
         $buyer_account_data['created_at'] = $this->user['id'];
         //附件
         if (!empty($data['attach_url'])) {
@@ -240,16 +244,24 @@ class BuyerController extends PublicController {
         $arr['created_by'] = $this->user['id'];
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
-        $login_arr['email'] = $data['email'];
-        $login_arr['user_name'] = $data['user_name'];
-        $check = $buyer_account_model->Exist($login_arr);
-        if ($check) {
-            jsonReturn('', -101, 'The company email or user name already exists.');
+
+        $login_email['email'] = $data['email'];
+        $check_email = $buyer_account_model->Exist($login_email);
+        if ($check_email) {
+            jsonReturn('', -101, '公司邮箱已经存在!');
         }
+        $login_uname['user_name'] = $data['user_name'];
+        $check_uname = $buyer_account_model->Exist($login_uname);
+        if ($check_uname) {
+            jsonReturn('', -102, '用户名已经存在!');
+        }
+        
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
+
         $data_t_buyer = $model->getlist($condition); //($this->put_data);
+
         //var_dump($data_t_buyer);die;
         if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
             $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
@@ -261,7 +273,9 @@ class BuyerController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
         $arr['buyer_no'] = $real_num;
-        if (empty($arr['serial_no'])) {
+        if (!empty($data['serial_no'])) {
+            $arr['serial_no'] = $data['serial_no'];
+        }else{
             $arr['serial_no'] = $arr['buyer_no'];
         }
         $arr['created_by'] = $this->user['id'];
@@ -364,6 +378,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['province'])) {
             $arr['province'] = $data['province'];
+        }
+        if (!empty($data['serial_no'])) {
+            $arr['serial_no'] = $data['serial_no'];
         }
         if (!empty($data['country_code'])) {
             $arr['country_code'] = $data['country_code'];
