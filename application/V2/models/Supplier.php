@@ -213,7 +213,7 @@ class SupplierModel extends PublicModel {
         if($data['id']) {
             $buyerInfo = $this->where(array("supplier.id" => $data['id']))->field('supplier.*,em.name as checked_name,ma.name as country_name ')
                                 ->join('erui2_sys.employee em on em.id=supplier.checked_by', 'left')
-                ->join('erui2_operation.market_area ma on ma.`bn`=supplier.country_bn and  ma.`lang`=supplier.lang', 'left')
+                ->join('erui2_dict.country ma on ma.`bn`=supplier.country_bn and  ma.`lang`=supplier.lang', 'left')
                               ->find();
             return $buyerInfo;
         } else{
