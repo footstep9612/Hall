@@ -1075,16 +1075,24 @@ class QuotebizlineController extends PublicController {
 
         $quoteItemModel = new QuoteItemModel();
         //商务报出EXW合计total_exw_price
-        $quoteItemExwUnitPrices = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('exw_unit_price,quote_qty')->select();
+        $quoteItemExwUnitPrices = $quoteItemModel->where(['inquiry_id'=>$inquiry_id])->field('exw_unit_price,quote_qty,gross_weight_kg')->select();
         $total_exw_price = [];
         foreach ($quoteItemExwUnitPrices as $price){
             $total_exw_price[] = $price['exw_unit_price'] * $price['quote_qty'];
         }
         $total_exw_price = array_sum($total_exw_price);
 
+        $total_gross_weight_kg = [];
+        foreach ($quoteItemExwUnitPrices as $price){
+            $total_gross_weight_kg[] = $price['gross_weight_kg'];
+        }
+        $total_gross_weight_kg = array_sum($total_gross_weight_kg);
+
         //采购总价total_purchase
         $quoteModel = new QuoteModel();
         return $quoteModel->where(['inquiry_id'=>$inquiry_id])->save([
+            //总重
+            'total_weight' => $total_gross_weight_kg,
             //exw合计
             'total_exw_price' =>$total_exw_price,
             //采购总价
