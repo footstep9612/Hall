@@ -229,7 +229,6 @@ class GoodsModel extends PublicModel {
      */
     public function setupSku() {
         $rand = rand(10000000, 99999999);
-//        $code = str_pad($rand, 8, "0", STR_PAD_LEFT);
         $existCode = $this->where(['sku' => $rand])->find();
         if ($existCode) {
             $this->setupSku();
@@ -257,17 +256,13 @@ class GoodsModel extends PublicModel {
         $temp_num = substr($spus[0],0,12);
         $data = $this->getSkus($temp_num);
         if ($data && substr($data[0]['sku'], 0, 12) == $temp_num) {
-            $num = substr($data[0]['sku'], 13, 4);
+            $num = substr($data[0]['sku'], 12, 4);
             $num++;
             $num = str_pad($num, 4, "0", STR_PAD_LEFT);
         } else {
             $num = str_pad('1', 4, "0", STR_PAD_LEFT);
         }
         $real_num = $temp_num.$num;
-        $existCode = $this->where(['sku' => $real_num])->find();
-        if ($existCode) {
-            $this->setRealSku($input);
-        }
 
         return $real_num;
     }
@@ -277,7 +272,6 @@ class GoodsModel extends PublicModel {
      * @author
      */
     public function getSkus($sku_suffix, $order = " sku desc"){
-        //return $this->where($condition)->order($order)->select();
         $sql =  'SELECT `sku`';
         $sql .= ' FROM '.$this->g_table;
         if ( !empty($sku_suffix) ){
@@ -427,24 +421,10 @@ class GoodsModel extends PublicModel {
                     $condition_attr['lang'] = strtolower($condition['lang']);
                 }
                 $ex_attrs = $goodsAttrModel->getSkuAttrsInfo($condition_attr);
-
-                //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-//                $employee = new EmployeeModel();
+                
                 $checklogModel = new ProductCheckLogModel();
                 $this->_getUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
-                   /* $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0];
-                    }
-                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
-                    if ($updateder && isset($updateder[0])) {
-                        $item['updated_by'] = $updateder[0];
-                    }
-                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-                    if ($checkeder && isset($checkeder[0])) {
-                        $item['checked_by'] = $checkeder[0];
-                    }*/
                     //固定商品属性
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
