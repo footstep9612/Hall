@@ -55,7 +55,8 @@ class ExcelmanagerController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'data' => [
-                'url' => 'http://file01.erui.com/group1/M00/00/03/rBFgyFmegqKAIt1pAAAm7A4b9LA55.xlsx'
+                //'url' => 'http://file01.erui.com/group1/M00/00/03/rBFgyFmegqKAIt1pAAAm7A4b9LA55.xlsx'
+                'url' => 'http://172.18.18.196:85/group1/M00/00/24/rBISxFnJwsiAQaPvAAAnAJ_tM4k67.xlsx'
             ]
         ]);
     }
@@ -65,8 +66,6 @@ class ExcelmanagerController extends PublicController {
      */
     public function importSkuAction() {
 
-        //测试地址 有数据 http://file01.erui.com/group1/M00/00/03/rBFgyFmegTCATPDzAAAniCErWEI19.xlsx
-        //测试地址 没有数据 http://file01.erui.com/group1/M00/00/03/rBFgyFmegqKAIt1pAAAm7A4b9LA55.xlsx
         $request = $this->validateRequests('inquiry_id,file_url');
 
         $remoteFile = $request['file_url'];
@@ -94,17 +93,17 @@ class ExcelmanagerController extends PublicController {
 
         //遍历重组
         foreach ($data as $k => $v) {
-            $sku[$k]['sku'] = $v[1]; //平台sku
+            //$sku[$k]['sku'] = $v[1]; //平台sku
             $sku[$k]['inquiry_id'] = $inquiry_id; //询单id
-            $sku[$k]['buyer_goods_no'] = $v[2]; //客户询单号
-            $sku[$k]['name'] = $v[3]; //外文品名
-            $sku[$k]['name_zh'] = $v[4]; //中文品名
-            $sku[$k]['model'] = $v[5]; //型号
-            $sku[$k]['remarks'] = $v[6]; //客户需求描述
-            $sku[$k]['remarks_zh'] = $v[7]; //客户需求描述(澄清)
-            $sku[$k]['qty'] = $v[8]; //数量
-            $sku[$k]['unit'] = $v[9]; //单位
-            $sku[$k]['brand'] = $v[10]; //品牌
+            $sku[$k]['name'] = $v[1]; //外文品名
+            $sku[$k]['name_zh'] = $v[2]; //中文品名
+            $sku[$k]['qty'] = $v[3]; //数量
+            $sku[$k]['unit'] = $v[4]; //单位
+            $sku[$k]['brand'] = $v[5]; //品牌
+            $sku[$k]['model'] = $v[6]; //型号
+            $sku[$k]['remarks'] = $v[7]; //客户需求描述(外文)
+            $sku[$k]['remarks_zh'] = $v[8]; //客户需求描述(中文)
+            $sku[$k]['buyer_goods_no'] = $v[9]; //客户询单号
             $sku[$k]['created_at'] = date('Y-m-d H:i:s', time()); //添加时间
         }
 
