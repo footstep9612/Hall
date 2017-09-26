@@ -421,10 +421,24 @@ class GoodsModel extends PublicModel {
                     $condition_attr['lang'] = strtolower($condition['lang']);
                 }
                 $ex_attrs = $goodsAttrModel->getSkuAttrsInfo($condition_attr);
-                
+
+                //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
+//                $employee = new EmployeeModel();
                 $checklogModel = new ProductCheckLogModel();
                 $this->_getUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
+                   /* $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
+                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
+                    if ($updateder && isset($updateder[0])) {
+                        $item['updated_by'] = $updateder[0];
+                    }
+                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
+                    if ($checkeder && isset($checkeder[0])) {
+                        $item['checked_by'] = $checkeder[0];
+                    }*/
                     //固定商品属性
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
@@ -546,7 +560,6 @@ class GoodsModel extends PublicModel {
                     if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }
-
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
