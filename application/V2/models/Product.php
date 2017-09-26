@@ -636,6 +636,7 @@ class ProductModel extends PublicModel {
 
     /**
      * 生成ｓｐｕ编码
+     * SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
      * @return string
      */
     public function createSpu() {
@@ -799,7 +800,7 @@ class ProductModel extends PublicModel {
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
             $url = $server. '/V2/Uploadfile/upload';
             $data['tmp_name'] = $zipName;
-            $data['type'] = 'application/excel';
+            $data['type'] = 'application/zip';
             $data['name'] = pathinfo($zipName,PATHINFO_BASENAME);
             $fileId = postfile($data,$url);
             if($fileId){
