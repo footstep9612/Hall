@@ -10,6 +10,7 @@ class GoodsModel extends PublicModel {
 
     protected $tableName = 'goods';
     protected $dbName = 'erui2_goods'; //数据库名称
+    protected $g_table = 'erui2_goods.goods';
 
     //状态
 
@@ -234,6 +235,57 @@ class GoodsModel extends PublicModel {
             $this->setupSku();
         }
         return $rand;
+    }
+    /**
+     * 生成sku编码 - NEW
+     * @time 2017-09-26(经史总,平总确认新规则)
+     * 规则:SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
+            SKU的编码规则为: 产品的12位编码 + 4位商品编码
+     */
+    public function setRealSku($input) {
+
+        foreach($input as $item) {
+            if(!isset($item['spu']) || empty($item['spu'])){
+                continue;
+            } else {
+                $spus[] = $item['spu'];
+            }
+        }
+        if(empty($spus)){
+            jsonReturn('', ErrorMsg::FAILED,'spu编码缺少!');
+        }
+        $temp_num = substr($spus[0],0,12);
+        $data = $this->getSkus($temp_num);
+        if ($data && substr($data[0]['sku'], 0, 12) == $temp_num) {
+            $num = substr($data[0]['sku'], 13, 4);
+            $num++;
+            $num = str_pad($num, 4, "0", STR_PAD_LEFT);
+        } else {
+            $num = str_pad('1', 4, "0", STR_PAD_LEFT);
+        }
+        $real_num = $temp_num.$num;
+        $existCode = $this->where(['sku' => $real_num])->find();
+        if ($existCode) {
+            $this->setRealSku($input);
+        }
+
+        return $real_num;
+    }
+
+    /**
+     * 获取sku 获取列表
+     * @author
+     */
+    public function getSkus($sku_suffix, $order = " sku desc"){
+        //return $this->where($condition)->order($order)->select();
+        $sql =  'SELECT `sku`';
+        $sql .= ' FROM '.$this->g_table;
+        if ( !empty($sku_suffix) ){
+            $sql .= ' WHERE sku like '."'$sku_suffix%'";
+        }
+        $sql .= ' Order By '.$order;
+
+        return $this->query( $sql );
     }
 
     /**
@@ -499,7 +551,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
+        $sku = isset($input['sku']) ? trim($input['sku']) : $this->setRealSku($input);
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
