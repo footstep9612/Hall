@@ -100,10 +100,19 @@ class QuoteLogiFeeModel extends PublicModel {
         
         if (!empty($condition['market_agent_id'])) {
             if (empty($condition['agent_id'])) {
-                $where['d.agent_id'] = ['in', $condition['market_agent_id']];
+                $quoter['d.agent_id'] = ['in', $condition['market_agent_id']];
             } else {
-                $where['d.agent_id'] = [['eq', $condition['agent_id']], ['in', $condition['market_agent_id']], 'and'];
+                $quoter['d.agent_id'] = [['eq', $condition['agent_id']], ['in', $condition['market_agent_id']], 'and'];
             }
+            $quoter['a.status'] = ['neq', 'QUOTED'];
+            
+            $checker['a.checked_by'] = $condition['user_id'];
+            $checker['a.status'] = 'QUOTED';
+            
+            $map[] = $quoter;
+            $map[] = $checker;
+            $map['_logic'] = 'or';
+            $where[] = $map;
          }
          
          /*if (!empty($condition['logi_agent_id'])) {

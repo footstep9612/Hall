@@ -160,7 +160,7 @@ class LogisticsController extends PublicController {
 	    
 	    $condition['market_agent_id'] = array_unique($employeeArr) ? : ['-1'];
 	    
-	    //$condition['logi_agent_id'] = $this->user['id'];
+	    $condition['user_id'] = $this->user['id'];
 	
 	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);
 	    
