@@ -190,6 +190,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
+        if (isset($create['buyer_code'])) {
+            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
+        }
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
         }
@@ -311,6 +314,9 @@ class BuyerModel extends PublicModel {
 
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
+        }
+        if (isset($create['buyer_code'])) {
+            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
         }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];

@@ -230,8 +230,11 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
-        if (!empty($data['area_bn'])) {
-            $arr['area_bn'] = $data['area_bn'];
+        if (isset($create['buyer_no'])) {
+            $data['buyer_no'] = $create['buyer_no'];
+        }
+        if (isset($create['buyer_code'])) {
+            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['zipcode'])) {
             $buyer_address_data['zipcode'] = $data['zipcode'];
@@ -381,6 +384,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['serial_no'])) {
             $arr['serial_no'] = $data['serial_no'];
+        }
+        if (!empty($data['buyer_code'])) {
+            $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['country_code'])) {
             $arr['country_code'] = $data['country_code'];
