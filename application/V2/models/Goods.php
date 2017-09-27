@@ -1331,7 +1331,7 @@ class GoodsModel extends PublicModel {
         $objPHPExcel->setActiveSheetIndex(0)
             ->setCellValue('AH1', '导入结果');
         foreach($data as $key => $r){
-            try {
+            //try {
                 $workType = '';
                 if($key==0 || $key==1){
                     continue;
@@ -1350,24 +1350,24 @@ class GoodsModel extends PublicModel {
                 $data_tmp['nude_cargo_unit'] = trim($r[10]);    //商品裸货单位
                 $data_tmp['min_pack_unit'] = trim($r[11]);    //最小包装单位
                 $data_tmp['min_order_qty'] = intval($r[12]);    //最小订货数量
-                $data_tmp['purchase_price'] = trim($r[13]);    //进货价格
+                $data_tmp['purchase_price'] = (float)trim($r[13]);    //进货价格
                 $data_tmp['purchase_price_cur_bn'] = trim($r[14]);    //进货价格币种
 
-                $data_tmp['nude_cargo_l_mm'] = trim($r[16]);    //裸货尺寸长(mm)
-                $data_tmp['nude_cargo_w_mm'] = trim($r[17]);    //裸货尺寸宽(mm)
-                $data_tmp['nude_cargo_h_mm'] = trim($r[18]);    //裸货尺寸高(mm)
-                $data_tmp['min_pack_l_mm'] = trim($r[19]);    //最小包装后尺寸长(mm)
-                $data_tmp['min_pack_w_mm'] = trim($r[20]);    //最小包装后尺寸宽(mm)
-                $data_tmp['min_pack_h_mm'] = trim($r[21]);    //最小包装后尺寸高(mm)
-                $data_tmp['net_weight_kg'] = intval(trim($r[22]));    //净重(kg)
-                $data_tmp['gross_weight_kg'] = intval(trim($r[23]));    //毛重(kg)
+                $data_tmp['nude_cargo_l_mm'] = intval(trim($r[16]));    //裸货尺寸长(mm)
+                $data_tmp['nude_cargo_w_mm'] = intval(trim($r[17]));    //裸货尺寸宽(mm)
+                $data_tmp['nude_cargo_h_mm'] = intval(trim($r[18]));    //裸货尺寸高(mm)
+                $data_tmp['min_pack_l_mm'] = intval(trim($r[19]));    //最小包装后尺寸长(mm)
+                $data_tmp['min_pack_w_mm'] = intval(trim($r[20]));    //最小包装后尺寸宽(mm)
+                $data_tmp['min_pack_h_mm'] = intval(trim($r[21]));    //最小包装后尺寸高(mm)
+                $data_tmp['net_weight_kg'] = (float)trim($r[22]);    //净重(kg)
+                $data_tmp['gross_weight_kg'] = (float)trim($r[23]);    //毛重(kg)
                 $data_tmp['compose_require_pack'] = trim($r[24]);    //仓储运输包装及其他要求
                 $data_tmp['pack_type'] = trim($r[25]);    //包装类型
 
                 $data_tmp['name_customs'] = trim($r[27]);    //报关名称
                 $data_tmp['hs_code'] = trim($r[28]);    //海关编码
                 $data_tmp['tx_unit'] = trim($r[29]);    //成交单位
-                $data_tmp['tax_rebates_pct'] = trim($r[30]);    //退税率(%)
+                $data_tmp['tax_rebates_pct'] = (float)trim($r[30]);    //退税率(%)
                 $data_tmp['regulatory_conds'] = trim($r[31]);    //监管条件
                 $data_tmp['commodity_ori_place'] = trim($r[32]);    //境内货源地
                 $data_tmp['source'] = 'ERUI';
@@ -1425,12 +1425,12 @@ class GoodsModel extends PublicModel {
                         ->setCellValue('AH'.($key+1), '操作失败');
                     $faild ++;
                 }
-            }catch (Exception $e){
+           /* }catch (Exception $e){
                 $objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('AH'.($key+1), '操作失败-请检查数据类型');
                 $faild ++;
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
-            }
+            }*/
         }
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         $objWriter->save($localFile);    //文件保存
