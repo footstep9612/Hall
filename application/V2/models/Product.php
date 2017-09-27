@@ -82,16 +82,34 @@ class ProductModel extends PublicModel {
                     $brandAry = json_decode($brandInfo['brand'], true);
                     foreach ($brandAry as $r) {
                         if ($r['lang'] == $lang) {
-                            unset($r['lang']);
-                            unset($r['manufacturer']);
-                            $r['id'] = $brandInfo['id'];
-                            $data['brand'] = json_encode($r, JSON_UNESCAPED_UNICODE);
+                            $brand_ary = array(
+                                'name' => $r['name'],
+                                'style' => isset($r['style']) ? $r['style'] : 'TEXT',
+                                'label' => isset($r['label']) ? $r['label'] : $r['name'],
+                                'logo' => isset($r['logo'])? $r['logo'] : '',
+                                'id' => $brandInfo['id']
+                            );
+                            ksort($brand_ary);
+                            $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
                             break;
                         }
                     }
                 }
             } else {
-                $data['brand'] = is_array($input['brand']) ? json_encode($input['brand'], JSON_UNESCAPED_UNICODE) : json_encode(array('lang' => $lang, 'name' => $input['brand']),JSON_UNESCAPED_UNICODE);
+                if(is_array($input['brand'])){
+                    ksort($input['brand']);
+                    $data['brand'] = json_encode($input['brand'], JSON_UNESCAPED_UNICODE);
+                }else{
+                    $brand_ary = array(
+                        'name' => $input['brand'],
+                        'style' => 'TEXT',
+                        'label' => $input['brand'],
+                        'logo' => '',
+                        'id' => ''
+                    );
+                    ksort($brand_ary);
+                    $data['brand'] = json_encode($brand_ary,JSON_UNESCAPED_UNICODE);
+                }
             }
         } elseif ($type == 'INSERT') {
             $data['brand'] = '';
@@ -211,10 +229,11 @@ class ProductModel extends PublicModel {
                         //字段校验
                         $this->checkParam($data, $this->field);
 
-                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
+                        $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $key,
                             'name' => $data['name'],
-                            'material_cat_no' => $data['material_cat_no']
+                            'material_cat_no' => $data['material_cat_no'],
+                            'brand' => $data['brand'],
                             //'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {
