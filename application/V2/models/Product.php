@@ -1079,73 +1079,80 @@ class ProductModel extends PublicModel {
             $objPHPExcel->setActiveSheetIndex(0)
                 ->setCellValue('L1', '导入结果');
             foreach($data as $key =>$r){
-                if($key==0){
-                    continue;
-                }
-                $data_tmp = [];
-                $input_spu = trim($r[1]);    //excel输入的spu
-                $data_tmp['lang'] = $lang;
-                $data_tmp['name'] = trim($r[2]);    //名称
-                $data_tmp['show_name'] = $r[3];    //展示名称
-                $data_tmp['material_cat_no'] = $r[4];    //物料分类
-                //品牌
-                $brand_ary = array('name' => $r[5], 'style' => 'TEXT', 'label' => $r[5], 'logo' => '');
-                ksort($brand_ary);
-                $data_tmp['brand'] = json_encode(array($brand_ary), JSON_UNESCAPED_UNICODE);
-                $data_tmp['advantages'] = $r[6];
-                $data_tmp['tech_paras'] = $r[7];
-                $data_tmp['exe_standard'] = $r[8];
-                $data_tmp['warranty'] = $r[9];
-                $data_tmp['keywords'] = $r[10];
-                $data_tmp['source'] = 'ERUI';
-                $data_tmp['source_detail'] = 'Excel批量导入';
-                $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                $data_tmp['created_at'] = date('Y-m-d H:i:s');
-                $data_tmp['status'] = $this::STATUS_VALID;
-
-                //根据lang,material_cat_no,brand查询name是否存在
-                $condition = array(
-                    'material_cat_no' => $data_tmp['material_cat_no'],
-                    'name' => $data_tmp['name'],
-                    'lang' => $lang,
-                    'brand' => $data_tmp['brand'],
-                );
-                $exist = $this->field('spu')->where($condition)->find();
-                if ($exist) {
-                    if(empty($input_spu)){    //存在且没有传递spu 提示错误
-                        $faild ++;
-                        $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), '操作失败[已存在]');
+                try{
+                    if($key==0){
                         continue;
-                    }else{    //存在且传递了spu 则按修改操作
-                        $condition_update = array(
-                            'spu' => $input_spu,
-                            'lang' => $lang
-                        );
-                        $result = $this->where($condition_update)->save($data_tmp);
                     }
-                }else{
-                    $input_spu = $data_tmp['spu'] = $this->createSpu($r[4]);    //生成spu
-                    $result = $this->add($this->create($data_tmp));
-                    //解锁
-                    if(file_exists(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock')){
-                        unlink(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock');
+                    $data_tmp = [];
+                    $input_spu = trim($r[1]);    //excel输入的spu
+                    $data_tmp['lang'] = $lang;
+                    $data_tmp['name'] = trim($r[2]);    //名称
+                    $data_tmp['show_name'] = $r[3];    //展示名称
+                    $data_tmp['material_cat_no'] = $r[4];    //物料分类
+                    //品牌
+                    $brand_ary = array('name' => $r[5], 'style' => 'TEXT', 'label' => $r[5], 'logo' => '');
+                    ksort($brand_ary);
+                    $data_tmp['brand'] = json_encode(array($brand_ary), JSON_UNESCAPED_UNICODE);
+                    $data_tmp['advantages'] = $r[6];
+                    $data_tmp['tech_paras'] = $r[7];
+                    $data_tmp['exe_standard'] = $r[8];
+                    $data_tmp['warranty'] = $r[9];
+                    $data_tmp['keywords'] = $r[10];
+                    $data_tmp['source'] = 'ERUI';
+                    $data_tmp['source_detail'] = 'Excel批量导入';
+                    $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                    $data_tmp['created_at'] = date('Y-m-d H:i:s');
+                    $data_tmp['status'] = $this::STATUS_VALID;
+
+                    //根据lang,material_cat_no,brand查询name是否存在
+                    $condition = array(
+                        'material_cat_no' => $data_tmp['material_cat_no'],
+                        'name' => $data_tmp['name'],
+                        'lang' => $lang,
+                        'brand' => $data_tmp['brand'],
+                    );
+                    $exist = $this->field('spu')->where($condition)->find();
+                    if ($exist) {
+                        if(empty($input_spu)){    //存在且没有传递spu 提示错误
+                            $faild ++;
+                            $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('L'.($key+1), '操作失败[已存在]');
+                            continue;
+                        }else{    //存在且传递了spu 则按修改操作
+                            $condition_update = array(
+                                'spu' => $input_spu,
+                                'lang' => $lang
+                            );
+                            $result = $this->where($condition_update)->save($data_tmp);
+                        }
+                    }else{
+                        $input_spu = $data_tmp['spu'] = $this->createSpu($r[4]);    //生成spu
+                        $result = $this->add($this->create($data_tmp));
+                        //解锁
+                        if(file_exists(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock')){
+                            unlink(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock');
+                        }
                     }
-                }
 
-                if ($result) {
-                    $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('B'.($key+1), ' '.$input_spu);
-                    $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('L'.($key+1), '操作成功');
-                    $success ++;
+                    if ($result) {
+                        $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('B'.($key+1), ' '.$input_spu);
+                        $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('L'.($key+1), '操作成功');
+                        $success ++;
 
-                    //更新es
-                    $es_product_model->create_data($input_spu, $lang);
-                }else{
+                        //更新es
+                        $es_product_model->create_data($input_spu, $lang);
+                    }else{
+                        $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('L'.($key+1), '操作失败');
+                        $faild ++;
+                    }
+                }catch (Exception $e){
                     $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('L'.($key+1), '操作失败');
+                        ->setCellValue('L'.($key+1), '操作失败-请检查数据');
                     $faild ++;
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
                 }
             }
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
