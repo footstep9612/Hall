@@ -136,7 +136,7 @@ class InquiryCheckLogModel extends PublicModel {
 	}
 
 	public function getInfo($condition = [], $field = '*',$order = 'id desc') {
-		$where = [];$condition['inquiry_id'] = 1551;
+		$where = [];
 		if(!empty($condition['inquiry_id'])) {
 			$where['inquiry_id'] = $condition['inquiry_id'];
 			$where['op_result'] = 'REJECTED';
