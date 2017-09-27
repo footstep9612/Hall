@@ -10,6 +10,7 @@ class GoodsModel extends PublicModel {
 
     protected $tableName = 'goods';
     protected $dbName = 'erui2_goods'; //数据库名称
+    protected $g_table = 'erui2_goods.goods';
 
     //状态
 
@@ -228,12 +229,57 @@ class GoodsModel extends PublicModel {
      */
     public function setupSku() {
         $rand = rand(10000000, 99999999);
-//        $code = str_pad($rand, 8, "0", STR_PAD_LEFT);
         $existCode = $this->where(['sku' => $rand])->find();
         if ($existCode) {
             $this->setupSku();
         }
         return $rand;
+    }
+    /**
+     * 生成sku编码 - NEW
+     * @time 2017-09-26(经史总,平总确认新规则)
+     * 规则:SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
+            SKU的编码规则为: 产品的12位编码 + 4位商品编码
+     */
+    public function setRealSku($input) {
+
+        foreach($input as $item) {
+            if(!isset($item['spu']) || empty($item['spu'])){
+                continue;
+            } else {
+                $spus[] = $item['spu'];
+            }
+        }
+        if(empty($spus)){
+            jsonReturn('', ErrorMsg::FAILED,'spu编码缺少!');
+        }
+        $temp_num = substr($spus[0],0,12);
+        $data = $this->getSkus($temp_num);
+        if ($data && substr($data[0]['sku'], 0, 12) == $temp_num) {
+            $num = substr($data[0]['sku'], 12, 4);
+            $num++;
+            $num = str_pad($num, 4, "0", STR_PAD_LEFT);
+        } else {
+            $num = str_pad('1', 4, "0", STR_PAD_LEFT);
+        }
+        $real_num = $temp_num.$num;
+
+        return $real_num;
+    }
+
+    /**
+     * 获取sku 获取列表
+     * @author
+     */
+    public function getSkus($sku_suffix, $order = " sku desc"){
+        $sql =  'SELECT `sku`';
+        $sql .= ' FROM '.$this->g_table;
+        if ( !empty($sku_suffix) ){
+            $sql .= ' WHERE sku like '."'$sku_suffix%'";
+        }
+        $sql .= ' Order By '.$order;
+
+        return $this->query( $sql );
     }
 
     /**
@@ -376,23 +422,9 @@ class GoodsModel extends PublicModel {
                 }
                 $ex_attrs = $goodsAttrModel->getSkuAttrsInfo($condition_attr);
 
-                //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-//                $employee = new EmployeeModel();
                 $checklogModel = new ProductCheckLogModel();
                 $this->_getUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
-                   /* $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0];
-                    }
-                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
-                    if ($updateder && isset($updateder[0])) {
-                        $item['updated_by'] = $updateder[0];
-                    }
-                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-                    if ($checkeder && isset($checkeder[0])) {
-                        $item['checked_by'] = $checkeder[0];
-                    }*/
                     //固定商品属性
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
@@ -499,7 +531,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        $sku = isset($input['sku']) ? trim($input['sku']) : $this->setupSku();
+        $sku = isset($input['sku']) ? trim($input['sku']) : $this->setRealSku($input);
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
@@ -514,7 +546,6 @@ class GoodsModel extends PublicModel {
                     if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }
-
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
@@ -757,15 +788,6 @@ class GoodsModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-
-            /*  $gattr = new GoodsAttrModel();
-              $resAttr = $gattr->modifyAttr($input['sku'], $status);        //属性状态
-
-              if (!$resAttr || $resAttr['code'] != 1) {
-              $this->rollback();
-
-              return false;
-              } */
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态

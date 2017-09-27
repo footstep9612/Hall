@@ -377,8 +377,14 @@ class QuoteBizLineModel extends PublicModel {
 
         //2.更改该报价所属的sku状态为被驳回状态
         $quoteItemFormModel = new QuoteItemFormModel();
+
         $quoteItemFormModel->startTrans();
-        $quoteItemFormResult = $quoteItemFormModel->where(['quote_id' => $request['quote_id']])->save([
+        $quoteItemFormResult = $quoteItemFormModel->where([
+            'quote_id' => $request['quote_id'],
+            'status'=>[
+                'in',['QUOTED','APPROVED']
+            ]
+        ])->save([
             'status' => 'REJECTED'
         ]);
 

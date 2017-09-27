@@ -160,7 +160,7 @@ class LogisticsController extends PublicController {
 	    
 	    $condition['market_agent_id'] = array_unique($employeeArr) ? : ['-1'];
 	    
-	    //$condition['logi_agent_id'] = $this->user['id'];
+	    $condition['user_id'] = $this->user['id'];
 	
 	    $quoteLogiFeeList = $this->quoteLogiFeeModel->getJoinList($condition);
 	    
@@ -366,6 +366,9 @@ class LogisticsController extends PublicController {
 	    $condition = $this->put_data;
 	    
 	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	    
+	    $volumn = $condition['length'] * $condition['width'] * $condition['height'];
+	    $condition['volumn'] = $volumn > 0 ? $volumn : 0;
 	
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
