@@ -559,12 +559,12 @@ class GoodsController extends PublicController {
      * 导入
      */
     public function importAction(){
-        if (empty($this->put_data['xls'])) {
+        if (empty($this->put_data['spu']) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
 
         $goodsModel = new GoodsModel();
-        $localDir =$goodsModel ->import($this->put_data['xls']);
+        $localDir =$goodsModel ->import($this->put_data['spu'],$this->put_data['xls'],$this->put_data['lang']);
         if($localDir){
             jsonReturn($localDir);
         }else{
