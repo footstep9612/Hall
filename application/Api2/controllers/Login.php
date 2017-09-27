@@ -525,9 +525,19 @@ class LoginController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['email'])) {
             $arr['email'] = $data['email'];
+            if (!isEmail($data['email'])) {
+                jsonReturn('', -101, '邮箱格式不正确!');
+            }
         } else {
             jsonReturn('', -101, '邮箱不可以为空!');
         }
+        $buyer_account_model = new BuyerAccountModel();
+        $login_arr['email'] = $data['email'];
+        $check = $buyer_account_model->Exist($login_arr);
+        if (!$check) {
+            jsonReturn('', -101, 'The company email is not registered yet');
+        }
+
         //生成邮件验证码
         $data_key['key'] = md5(uniqid());
         $verify['code'] = rand(100000,999999);
