@@ -428,7 +428,7 @@ class BuyerController extends PublicController {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
         }
-        $model = new UserModel();
+        $model = new BuyerAccountModel();
         $model->update_data($arr, $where);
         if ($res !== false) {
             $datajson['code'] = 1;
