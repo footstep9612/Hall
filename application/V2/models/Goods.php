@@ -1414,7 +1414,10 @@ class GoodsModel extends PublicModel {
 
                     //更新sku数
                     if($workType == 'add'){
-                        $productModel->where(['spu' => $spu, 'lang' => $lang])->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                        $skuCount = $productModel->where(['spu' => $spu, 'lang' => $lang])->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                        if(!$skuCount){
+                            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'Spu Count Faild: spu['.$spu.'] lang['.$lang.']', Log::ERR);
+                        }
                     }
 
                     //更新ES
