@@ -416,12 +416,12 @@ class ProductController extends PublicController {
      *
      */
     public function importAction() {
-        if (empty($this->put_data['xls'])) {
+        if (empty($this->put_data) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
 
         $productModel = new ProductModel();
-        $result = $productModel->import($this->put_data['xls']);
+        $result = $productModel->import($this->put_data['xls'],$this->put_data['lang']);
         if ($result) {
             jsonReturn($result);
         } else {
