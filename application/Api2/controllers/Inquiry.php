@@ -118,6 +118,23 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
+    //询价单审核日志详情
+    public function getLogAction() {
+        $inquiryLogModel = new InquiryCheckLogModel();
+        $condition = $this->getPut();
+
+        $data = $inquiryLogModel->getInfo($condition);
+        if (!empty($data)) {
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('没有数据!');
+            $this->jsonReturn();
+        }
+    }
+
     /* id转换为姓名
      * @author  zhongyg
      * @date    2017-8-1 16:50:09

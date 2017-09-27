@@ -134,4 +134,14 @@ class InquiryCheckLogModel extends PublicModel {
 
 		return $this->where($where)->save(['status' => 'DELETED']);
 	}
+
+	public function getInfo($condition = [], $field = '*',$order = 'id desc') {
+		$where = [];
+		if(!empty($condition['inquiry_id'])) {
+			$where['inquiry_id'] = $condition['inquiry_id'];
+			$where['op_result'] = 'REJECTED';
+		}
+
+		return $this->field($field)->where($where)->order($order)->select();
+	}
 }
