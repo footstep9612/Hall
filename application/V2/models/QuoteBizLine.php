@@ -464,21 +464,22 @@ class QuoteBizLineModel extends PublicModel {
 
         //查找最低价的报价，写入到quote_item
         $selectDefaultQuote = $this->selectDefaultQuotion($quote_bizline_id);
-        //p($selectDefaultQuote);
 
-        //更新当前的报价单状态为已报价
-        $this->startTrans();
-        $where = ['id'=>$quote_bizline_id];
-        $changeStatus = $this->changeStatus($where,'QUOTED');
+        //更新当前的产品线报价单状态为已报价（只要改产品线下所有报价的状态为已报价的时候才更改产品线报价单的状态）
+        $quoteItemForm = new QuoteItemFormModel();
+        $allQuoted = $quoteItemForm->where(['quote_bizline_id' => $quote_bizline_id, 'status' => 'NOT_QUOTED'])->where("updated_by !='' ")->count();
 
-        if ($changeStatus && $selectDefaultQuote){
-            $this->commit();
+        if (!$allQuoted){
+            $where = ['id'=>$quote_bizline_id];
+            $this->changeStatus($where,'QUOTED');
+        }
+
+        if ($selectDefaultQuote){
             return [
                 'code' => '1',
                 'message' => '提交成功!'
             ];
         }else{
-            $this->rollback();
             return [
                 'code' => '-104',
                 'message' => '提交失败!'
@@ -488,6 +489,11 @@ class QuoteBizLineModel extends PublicModel {
     }
 
 
+    /**
+     * 选择默认报价
+     * @param $quote_bizline_id 产品线id
+     * @return bool
+     */
     private function selectDefaultQuotion($quote_bizline_id){
 
         $quoteItemFormModel = new QuoteItemFormModel();
