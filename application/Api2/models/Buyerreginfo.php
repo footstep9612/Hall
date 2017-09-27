@@ -230,8 +230,75 @@ class BuyerreginfoModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function create_data($createcondition = []) {
-        
+    public function create_data($params = []) {
+        if(isset($params['registered_in'])) {
+            $data['registered_in'] = $params['registered_in'];
+        }
+        if(isset($params['legal_person_name'])) {
+            $data['legal_person_name'] = $params['legal_person_name'];
+        }
+        if(isset($params['legal_person_gender'])) {
+            $data['legal_person_gender'] = $params['legal_person_gender'];
+        }
+        if(isset($params['reg_date'])) {
+            $data['reg_date'] = $params['reg_date'];
+        }
+        if(isset($params['expiry_date'])) {
+            $data['expiry_date'] = $params['expiry_date'];
+        }
+        if(isset($params['reg_capital'])) {
+            $data['reg_capital'] = $params['reg_capital'];
+        }
+        if(isset($params['reg_capital_cur_bn'])) {
+            $data['reg_capital_cur_bn'] = $params['reg_capital_cur_bn'];
+        }
+        if(isset($params['social_credit_code'])) {
+            $data['social_credit_code'] = $params['social_credit_code'];
+        }
+        if(isset($params['biz_nature'])) {
+            $data['biz_nature'] = $params['biz_nature'];
+        }
+        if(isset($params['biz_scope'])) {
+            $data['biz_scope'] = $params['biz_scope'];
+        }
+        if(isset($params['biz_type'])) {
+            $data['biz_type'] = $params['biz_type'];
+        }
+        if(isset($params['service_type'])) {
+            $data['service_type'] = $params['service_type'];
+        }
+        if(isset($params['employee_count'])) {
+            $data['employee_count'] = $params['employee_count'];
+        }
+        if(isset($params['equitiy'])) {
+            $data['equitiy'] = $params['equitiy'];
+        }
+        if(isset($params['turnover'])) {
+            $data['turnover'] = $params['turnover'];
+        }
+        if(isset($params['profit'])) {
+            $data['profit'] = $params['profit'];
+        }
+        if(isset($params['total_assets'])) {
+            $data['total_assets'] = $params['total_assets'];
+        }
+        if(isset($params['equity_ratio'])) {
+            $data['equity_ratio'] = $params['equity_ratio'];
+        }
+        if(isset($params['equity_capital'])) {
+            $data['equity_capital'] = $params['equity_capital'];
+        }
+        if (isset($params['intent_product'])) {
+            $data['intent_product'] = $params['intent_product'];
+        }
+        if (isset($params['purchase_quota'])) {
+            $data['purchase_quota'] = $params['purchase_quota'];
+        }
+        $data['buyer_id'] =$params['buyer_id'];
+        $data['created_by'] = $params['buyer_id'];
+        $data['created_at'] = Date("Y-m-d H:i:s");
+        $arr = $this->create($data);
+        return $this->add($arr);
     }
 
 }

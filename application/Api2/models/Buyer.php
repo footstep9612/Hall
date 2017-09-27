@@ -384,6 +384,16 @@ class BuyerModel extends PublicModel {
     }
 
     /**
+     * 采购商个人信息删除(针对注册--物理删除)
+     * @author
+     */
+    public function delete_data($where){
+//        return $this->where($where)->save(['deleted_flag'=>'Y']);
+        return $this->where($where)->delete();
+    }
+
+
+    /**
      * 判断采购商是否通过审核
      * @author klp
      */
