@@ -446,8 +446,6 @@ class BuyerController extends PublicController {
         if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = '成功';
-            $datajson['where']=$where_account;
-            $datajson['data']=$arr;
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
