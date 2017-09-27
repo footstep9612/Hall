@@ -1331,7 +1331,7 @@ class GoodsModel extends PublicModel {
         $objPHPExcel->setActiveSheetIndex(0)
             ->setCellValue('AH1', '导入结果');
         foreach($data as $key => $r){
-            //try {
+            try {
                 $workType = '';
                 if($key==0 || $key==1){
                     continue;
@@ -1425,12 +1425,12 @@ class GoodsModel extends PublicModel {
                         ->setCellValue('AH'.($key+1), '操作失败');
                     $faild ++;
                 }
-           /* }catch (Exception $e){
+            }catch (Exception $e){
                 $objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('AH'.($key+1), '操作失败-请检查数据类型');
                 $faild ++;
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
-            }*/
+            }
         }
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         $objWriter->save($localFile);    //文件保存
