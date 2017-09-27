@@ -828,10 +828,10 @@ class ProductModel extends PublicModel {
     /**
      * 导出模板
      */
-    public function exportTemp() {
+    public function exportTemp($input=[]) {
         set_time_limit(0);  # 设置执行时间最大值
         PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
-        $lang_ary = array('zh','en','es','ru');
+        $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh');
         $titles = array(
             'zh'=>array(
                 'no' => '',

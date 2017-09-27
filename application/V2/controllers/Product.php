@@ -459,7 +459,7 @@ class ProductController extends PublicController {
      */
     public function exportTempAction() {
         $productModel = new ProductModel();
-        $localDir = $productModel->exportTemp();
+        $localDir = $productModel->exportTemp($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
         } else {

@@ -1317,21 +1317,21 @@ class GoodsModel extends PublicModel {
         if(empty($spu) || empty($url) || empty($lang)){
             return false;
         }
+        
+        $userInfo = getLoinInfo();
+        $productModel = new ProductModel();
+        $es_goods_model = new EsGoodsModel();
+        $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
+        $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
+        $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
+        $objPHPExcel = $objReader->load($localFile);    //加载文件
+        $data = $objPHPExcel->getSheet(0)->toArray();
 
-        try {
-            $userInfo = getLoinInfo();
-            $productModel = new ProductModel();
-            $es_goods_model = new EsGoodsModel();
-            $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
-            $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
-            $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
-            $objPHPExcel = $objReader->load($localFile);    //加载文件
-            $data = $objPHPExcel->getSheet(0)->toArray();
-
-            $success = $faild = 0;
-            $objPHPExcel->setActiveSheetIndex(0)
-                ->setCellValue('AH1', '导入结果');
-            foreach($data as $key => $r){
+        $success = $faild = 0;
+        $objPHPExcel->setActiveSheetIndex(0)
+            ->setCellValue('AH1', '导入结果');
+        foreach($data as $key => $r){
+            try {
                 $workType = '';
                 if($key==0 || $key==1){
                     continue;
@@ -1359,8 +1359,8 @@ class GoodsModel extends PublicModel {
                 $data_tmp['min_pack_l_mm'] = trim($r[19]);    //最小包装后尺寸长(mm)
                 $data_tmp['min_pack_w_mm'] = trim($r[20]);    //最小包装后尺寸宽(mm)
                 $data_tmp['min_pack_h_mm'] = trim($r[21]);    //最小包装后尺寸高(mm)
-                $data_tmp['net_weight_kg'] = trim($r[22]);    //净重(kg)
-                $data_tmp['gross_weight_kg'] = trim($r[23]);    //毛重(kg)
+                $data_tmp['net_weight_kg'] = intval(trim($r[22]));    //净重(kg)
+                $data_tmp['gross_weight_kg'] = intval(trim($r[23]));    //毛重(kg)
                 $data_tmp['compose_require_pack'] = trim($r[24]);    //仓储运输包装及其他要求
                 $data_tmp['pack_type'] = trim($r[25]);    //包装类型
 
@@ -1403,6 +1403,7 @@ class GoodsModel extends PublicModel {
                     $workType = 'add';
                     $input_sku = $data_tmp['sku'] = $this->setRealSku(array(array('spu'=>$spu)));    //生成spu
                     $result = $this->add($this->create($data_tmp));
+                    var_dump($result);die;
                 }
 
                 if ($result) {
@@ -1424,29 +1425,31 @@ class GoodsModel extends PublicModel {
                         ->setCellValue('AH'.($key+1), '操作失败');
                     $faild ++;
                 }
+            }catch (Exception $e){
+                $objPHPExcel->setActiveSheetIndex(0)
+                    ->setCellValue('AH'.($key+1), '操作失败-请检查数据类型');
+                $faild ++;
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
             }
-            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-            $objWriter->save($localFile);    //文件保存
-
-            //把导出的文件上传到文件服务器上
-            $server = Yaf_Application::app()->getConfig()->myhost;
-            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-            $url = $server. '/V2/Uploadfile/upload';
-            $data_fastDFS['tmp_name']=$localFile;
-            $data_fastDFS['type']='application/excel';
-            $data_fastDFS['name']= pathinfo($localFile,PATHINFO_BASENAME);
-            $fileId = postfile($data_fastDFS,$url);
-            if($fileId){
-                unlink($localFile);
-                return array('success'=>$success, 'faild' => $faild, 'url' => $fastDFSServer.$fileId['url'], 'name' => $fileId['name']);
-            }
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localFile.' 上传到FastDFS失败', Log::INFO);
-            return false;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
-            return false;
         }
-        exit;
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save($localFile);    //文件保存
+
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server. '/V2/Uploadfile/upload';
+        $data_fastDFS['tmp_name']=$localFile;
+        $data_fastDFS['type']='application/excel';
+        $data_fastDFS['name']= pathinfo($localFile,PATHINFO_BASENAME);
+        $fileId = postfile($data_fastDFS,$url);
+        if($fileId){
+            unlink($localFile);
+            return array('success'=>$success, 'faild' => $faild, 'url' => $fastDFSServer.$fileId['url'], 'name' => $fileId['name']);
+        }
+        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localFile.' 上传到FastDFS失败', Log::INFO);
+        return false;
+
     }
 
     /**
