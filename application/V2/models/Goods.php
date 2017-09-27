@@ -1403,7 +1403,6 @@ class GoodsModel extends PublicModel {
                     $workType = 'add';
                     $input_sku = $data_tmp['sku'] = $this->setRealSku(array(array('spu'=>$spu)));    //生成spu
                     $result = $this->add($this->create($data_tmp));
-                    var_dump($result);die;
                 }
 
                 if ($result) {
