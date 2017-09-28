@@ -689,7 +689,7 @@ class ProductModel extends PublicModel {
         );
         $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
         if($result){
-            $code = substr($result['spu'],8,4);
+            $code = substr($result['spu'],(strlen($material_cat_no)+2),4);
             $code = intval($code)+$step;
         }else{
             $code = $step;
