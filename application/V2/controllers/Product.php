@@ -66,7 +66,6 @@ class ProductController extends PublicController {
     /*
      * 更新ESgoods
      */
-
     public function updateEsgoods($input, $spu) {
         $es_goods_model = new EsGoodsModel();
         $goods_model = new GoodsModel();
