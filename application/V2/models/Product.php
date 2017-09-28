@@ -834,11 +834,11 @@ class ProductModel extends PublicModel {
         $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh');
         $titles = array(
             'zh'=>array(
-                'no' => '',
+                'no' => '序号',
                 'spu' => '产品编码',
                 'name' => '产品名称',
                 'show_name' => '展示名称',
-                'material_cat_no' => '物料分类',
+                'material_cat_no' => '物料分类编码',
                 'brand' => '品牌',
                 'advantages' => '产品介绍',
                 'tech_paras' => '技术参数',
@@ -1069,6 +1069,7 @@ class ProductModel extends PublicModel {
 
         $userInfo = getLoinInfo();
         $es_product_model = new EsProductModel();
+        $mcatModel = new MaterialCatModel();
         $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
@@ -1089,6 +1090,14 @@ class ProductModel extends PublicModel {
                     $data_tmp['name'] = trim($r[2]);    //名称
                     $data_tmp['show_name'] = $r[3];    //展示名称
                     $data_tmp['material_cat_no'] = $r[4];    //物料分类
+                    //检查物料分类
+                    $mexist = $mcatModel->info($r[4],$lang);
+                    if(!$mexist){
+                        $faild ++;
+                        $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('L'.($key+1), '操作失败[物料分类ID不存在]');
+                        continue;
+                    }
                     //品牌
                     $brand_ary = array('name' => $r[5], 'style' => 'TEXT', 'label' => $r[5], 'logo' => '');
                     ksort($brand_ary);
