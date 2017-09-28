@@ -1341,6 +1341,12 @@ class GoodsModel extends PublicModel {
                 $input_sku = trim($r[2]);    //输入的sku
                 $data_tmp[ 'lang' ] = $lang;
                 $data_tmp[ 'name' ] = trim($r[3]);    //名称
+                if(empty($data_tmp['name'])){    //验证名称
+                    $faild ++;
+                    $objPHPExcel->setActiveSheetIndex(0)
+                        ->setCellValue('AH'.($key+1), '操作失败[名称不能为空]');
+                    continue;
+                }
                 $data_tmp[ 'show_name' ] = trim($r[5]);    //展示名称
                 $data_tmp['model'] = trim($r[4]);    //型号
                 $data_tmp['description'] = trim($r[7]);    //描述
