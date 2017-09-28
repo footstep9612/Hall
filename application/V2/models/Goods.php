@@ -555,9 +555,11 @@ class GoodsModel extends PublicModel {
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     if ($input['status'] != 'DRAFT') {
-                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
+                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
                             'lang' => $key,
+                            'spu' => $checkout['spu'],
                             'name' => $value['name'],
+                            'model' => $checkout['model'],
                             'status' => array('neq', 'DRAFT')
                         );
                         if (!empty($input['sku'])) {
