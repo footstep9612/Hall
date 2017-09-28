@@ -690,7 +690,7 @@ class OrderController extends PublicController {
     }
 
     private function safeString($str, $type = 'bn') {
-        $badstr = "`!@#\$%^&*{}\'\"?";
+        $badstr = "`!#\$%^&*{}\'\"?";
         for ($i = 0; $i < strlen($badstr); $i++) {
             $str = str_replace($badstr[$i], '', $str);
         }
