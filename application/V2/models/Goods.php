@@ -1409,7 +1409,20 @@ class GoodsModel extends PublicModel {
                     }
                 }else{
                     $workType = '添加';
-                    $input_sku = $data_tmp['sku'] = $this->setRealSku(array(array('spu'=>$spu)));    //生成spu
+                    //检查其他语言是否存在
+                    $condition = array(
+                        'name' => $data_tmp['name'],
+                        'lang' => array('neq',$lang),
+                        'spu' => $spu,
+                        'model' => $data_tmp['model'],
+                        'deleted_flag' => 'N',
+                    );
+                    $exist = $this->field('id')->where($condition)->find();
+                    if($exist && !empty($input_sku)){
+                        $data_tmp['sku'] = $input_sku;
+                    }else{
+                        $input_sku = $data_tmp['sku'] = $this->setRealSku(array(array('spu'=>$spu)));    //生成spu
+                    }
                     $result = $this->add($this->create($data_tmp));
                 }
 
