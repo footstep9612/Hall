@@ -1383,6 +1383,7 @@ class GoodsModel extends PublicModel {
                     'name' => $data_tmp['name'],
                     'lang' => $lang,
                     'spu' => $spu,
+                    'deleted_flag' => 'N',
                 );
                 $exist = $this->field('id')->where($condition)->find();
                 if ($exist) {
@@ -1392,7 +1393,7 @@ class GoodsModel extends PublicModel {
                             ->setCellValue('AH'.($key+1), '操作失败[已存在]');
                         continue;
                     }else{
-                        $workType = 'update';
+                        $workType = '更新';
                         $condition_update = array(
                             'sku' => $input_sku,
                             'lang' => $lang
@@ -1400,7 +1401,7 @@ class GoodsModel extends PublicModel {
                         $result = $this->where($condition_update)->save($data_tmp);
                     }
                 }else{
-                    $workType = 'add';
+                    $workType = '添加';
                     $input_sku = $data_tmp['sku'] = $this->setRealSku(array(array('spu'=>$spu)));    //生成spu
                     $result = $this->add($this->create($data_tmp));
                 }
@@ -1409,11 +1410,11 @@ class GoodsModel extends PublicModel {
                     $objPHPExcel->setActiveSheetIndex(0)
                         ->setCellValue('C'.($key+1), ' '.$input_sku);
                     $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('AH'.($key+1), '操作成功');
+                        ->setCellValue('AH'.($key+1), $workType.'操作成功');
                     $success ++;
 
                     //更新sku数
-                    if($workType == 'add'){
+                    if($workType == '添加'){
                         $skuCount = $productModel->where(['spu' => $spu, 'lang' => $lang])->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
                         if(!$skuCount){
                             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'Spu Count Faild: spu['.$spu.'] lang['.$lang.']', Log::ERR);
@@ -1424,7 +1425,7 @@ class GoodsModel extends PublicModel {
                     $es_goods_model->create_data($input_sku, $lang);
                 }else{
                     $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('AH'.($key+1), '操作失败');
+                        ->setCellValue('AH'.($key+1), $workType.'操作失败');
                     $faild ++;
                 }
             }catch (Exception $e){
