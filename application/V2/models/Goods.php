@@ -1383,12 +1383,13 @@ class GoodsModel extends PublicModel {
                 $data_tmp['status'] = $this::STATUS_VALID;
 
                 /**
-                 * 根据lang spu查询name是否存在
+                 * 根据lang spu model查询name是否存在
                  */
                 $condition = array(
                     'name' => $data_tmp['name'],
                     'lang' => $lang,
                     'spu' => $spu,
+                    'model' => $data_tmp['model'],
                     'deleted_flag' => 'N',
                 );
                 $exist = $this->field('id')->where($condition)->find();
