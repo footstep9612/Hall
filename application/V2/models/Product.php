@@ -1120,6 +1120,7 @@ class ProductModel extends PublicModel {
                         'name' => $data_tmp['name'],
                         'lang' => $lang,
                         'brand' => $data_tmp['brand'],
+                        'deleted_flag' => 'N',
                     );
                     $exist = $this->field('spu')->where($condition)->find();
                     if ($exist) {
