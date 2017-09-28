@@ -1081,6 +1081,7 @@ class ProductModel extends PublicModel {
                 ->setCellValue('L1', '导入结果');
             foreach($data as $key =>$r){
                 try{
+                    $workText = '';
                     if($key==0){
                         continue;
                     }
@@ -1128,6 +1129,7 @@ class ProductModel extends PublicModel {
                                 ->setCellValue('L'.($key+1), '操作失败[已存在]');
                             continue;
                         }else{    //存在且传递了spu 则按修改操作
+                            $workText = '修改';
                             $condition_update = array(
                                 'spu' => $input_spu,
                                 'lang' => $lang
@@ -1135,6 +1137,7 @@ class ProductModel extends PublicModel {
                             $result = $this->where($condition_update)->save($data_tmp);
                         }
                     }else{
+                        $workText = '新增';
                         $input_spu = $data_tmp['spu'] = $this->createSpu($r[4]);    //生成spu
                         $result = $this->add($this->create($data_tmp));
                         //解锁
@@ -1147,14 +1150,14 @@ class ProductModel extends PublicModel {
                         $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('B'.($key+1), ' '.$input_spu);
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), '操作成功');
+                            ->setCellValue('L'.($key+1), $workText.'操作成功');
                         $success ++;
 
                         //更新es
                         $es_product_model->create_data($input_spu, $lang);
                     }else{
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), '操作失败');
+                            ->setCellValue('L'.($key+1), $workText.'操作失败');
                         $faild ++;
                     }
                 }catch (Exception $e){
