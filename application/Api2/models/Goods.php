@@ -106,7 +106,7 @@ class GoodsModel extends PublicModel {
             return 0;
         $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID . '_COUNT'));
         if (redisHashExist('specGoods', $keyRedis)) {
-            return json_decode(redisHashGet('specGoods', $keyRedis), true);
+//            return json_decode(redisHashGet('specGoods', $keyRedis), true);
         }
         try {
 
@@ -118,7 +118,7 @@ class GoodsModel extends PublicModel {
             );
 
             $count = $this->where($condition)->count();
-            redisHashSet('specGoods', $keyRedis, $count);
+//            redisHashSet('specGoods', $keyRedis, $count);
             return $count;
         } catch (Exception $e) {
 
@@ -137,7 +137,7 @@ class GoodsModel extends PublicModel {
             return array();
         $keyRedis = md5(json_encode($spu . $lang . $current_no . self::STATUS_VALID));
         if (redisHashExist('specGoods', $keyRedis)) {
-            return json_decode(redisHashGet('specGoods', $keyRedis), true);
+//            return json_decode(redisHashGet('specGoods', $keyRedis), true);
         }
 
         try {
@@ -156,7 +156,7 @@ class GoodsModel extends PublicModel {
             $result = $this->field($field)->where($condition)->limit($current_no * 100 - 100, 100)->select();
 
             $this->getSpecBySku($result, $lang, $spec_type, $spu);
-            redisHashSet('specGoods', $keyRedis, json_encode($result));
+//            redisHashSet('specGoods', $keyRedis, json_encode($result));
             return $result;
         } catch (Exception $e) {
 
@@ -238,7 +238,7 @@ class GoodsModel extends PublicModel {
         }
         //redis
         if (redisHashExist('Sku', md5(json_encode($where)))) {
-            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
+//            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
         $field = 'lang, spu, sku, qrcode, name, show_name_loc, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, source, source_detail, deleted_flag,';
         //固定商品属性
@@ -272,7 +272,7 @@ class GoodsModel extends PublicModel {
                     //按语言分组
                     $data[$item['lang']] = $item;
                 }
-                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
+//                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
