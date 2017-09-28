@@ -1101,7 +1101,7 @@ class ProductModel extends PublicModel {
                     //品牌
                     $brand_ary = array('name' => $r[5], 'style' => 'TEXT', 'label' => $r[5], 'logo' => '');
                     ksort($brand_ary);
-                    $data_tmp['brand'] = json_encode(array($brand_ary), JSON_UNESCAPED_UNICODE);
+                    $data_tmp['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
                     $data_tmp['advantages'] = $r[6];
                     $data_tmp['tech_paras'] = $r[7];
                     $data_tmp['exe_standard'] = $r[8];
