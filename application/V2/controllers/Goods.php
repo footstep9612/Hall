@@ -37,15 +37,27 @@ class GoodsController extends PublicController {
      * @author klp
      */
     public function skuInfoAction() {
-//        $this->put_data = [
-//
-//            'sku'=> '3303060000010001',
-//            'lang'=> 'en',
-//
-//        ];
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getSkuInfo($this->put_data);
         $this->returnInfo($result);
+    }
+
+    /**
+     * 获取用户创建的第一个sku信息
+     * @author klp
+     */
+    public function getFirstSkuAction() {
+        $goodsModel = new GoodsModel();
+        $arr = [];
+        $result = $goodsModel->getSku($this->user);
+        if($result){
+            $data['sku'] = $result[0]['sku'];
+            $res = $goodsModel->getSkuInfo($data);
+            if($res){
+               $arr = $res;
+            }
+        }
+        jsonReturn($arr);
     }
 
     /**
