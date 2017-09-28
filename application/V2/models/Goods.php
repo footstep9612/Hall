@@ -567,7 +567,7 @@ class GoodsModel extends PublicModel {
                         }
                         $exist = $this->where($exist_condition)->find();
                         if ($exist) {
-                            jsonReturn('', ErrorMsg::EXIST);
+                            jsonReturn('', ErrorMsg::EXIST ,'名称：'.$value['name'].' 型号：'.$checkout['model'].'已存在');
                         }
                     }
 
