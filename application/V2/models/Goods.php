@@ -555,9 +555,11 @@ class GoodsModel extends PublicModel {
 
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     if ($input['status'] != 'DRAFT') {
-                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
+                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
                             'lang' => $key,
+                            'spu' => $checkout['spu'],
                             'name' => $value['name'],
+                            'model' => $checkout['model'],
                             'status' => array('neq', 'DRAFT')
                         );
                         if (!empty($input['sku'])) {
@@ -565,7 +567,7 @@ class GoodsModel extends PublicModel {
                         }
                         $exist = $this->where($exist_condition)->find();
                         if ($exist) {
-                            jsonReturn('', ErrorMsg::EXIST);
+                            jsonReturn('', ErrorMsg::EXIST ,'名称：'.$value['name'].' 型号：'.$checkout['model'].'已存在');
                         }
                     }
 
@@ -1341,6 +1343,12 @@ class GoodsModel extends PublicModel {
                 $input_sku = trim($r[2]);    //输入的sku
                 $data_tmp[ 'lang' ] = $lang;
                 $data_tmp[ 'name' ] = trim($r[3]);    //名称
+                if(empty($data_tmp['name'])){    //验证名称
+                    $faild ++;
+                    $objPHPExcel->setActiveSheetIndex(0)
+                        ->setCellValue('AH'.($key+1), '操作失败[名称不能为空]');
+                    continue;
+                }
                 $data_tmp[ 'show_name' ] = trim($r[5]);    //展示名称
                 $data_tmp['model'] = trim($r[4]);    //型号
                 $data_tmp['description'] = trim($r[7]);    //描述
@@ -1377,12 +1385,14 @@ class GoodsModel extends PublicModel {
                 $data_tmp['status'] = $this::STATUS_VALID;
 
                 /**
-                 * 根据lang spu查询name是否存在
+                 * 根据lang spu model查询name是否存在
                  */
                 $condition = array(
                     'name' => $data_tmp['name'],
                     'lang' => $lang,
                     'spu' => $spu,
+                    'model' => $data_tmp['model'],
+                    'deleted_flag' => 'N',
                 );
                 $exist = $this->field('id')->where($condition)->find();
                 if ($exist) {
@@ -1392,7 +1402,7 @@ class GoodsModel extends PublicModel {
                             ->setCellValue('AH'.($key+1), '操作失败[已存在]');
                         continue;
                     }else{
-                        $workType = 'update';
+                        $workType = '更新';
                         $condition_update = array(
                             'sku' => $input_sku,
                             'lang' => $lang
@@ -1400,8 +1410,21 @@ class GoodsModel extends PublicModel {
                         $result = $this->where($condition_update)->save($data_tmp);
                     }
                 }else{
-                    $workType = 'add';
-                    $input_sku = $data_tmp['sku'] = $this->setRealSku(array(array('spu'=>$spu)));    //生成spu
+                    $workType = '添加';
+                    //检查其他语言是否存在
+                    $condition = array(
+                        'name' => $data_tmp['name'],
+                        'lang' => array('neq',$lang),
+                        'spu' => $spu,
+                        'model' => $data_tmp['model'],
+                        'deleted_flag' => 'N',
+                    );
+                    $exist = $this->field('id')->where($condition)->find();
+                    if($exist && !empty($input_sku)){
+                        $data_tmp['sku'] = $input_sku;
+                    }else{
+                        $input_sku = $data_tmp['sku'] = $this->setRealSku(array(array('spu'=>$spu)));    //生成spu
+                    }
                     $result = $this->add($this->create($data_tmp));
                 }
 
@@ -1409,11 +1432,11 @@ class GoodsModel extends PublicModel {
                     $objPHPExcel->setActiveSheetIndex(0)
                         ->setCellValue('C'.($key+1), ' '.$input_sku);
                     $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('AH'.($key+1), '操作成功');
+                        ->setCellValue('AH'.($key+1), $workType.'操作成功');
                     $success ++;
 
                     //更新sku数
-                    if($workType == 'add'){
+                    if($workType == '添加'){
                         $skuCount = $productModel->where(['spu' => $spu, 'lang' => $lang])->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
                         if(!$skuCount){
                             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'Spu Count Faild: spu['.$spu.'] lang['.$lang.']', Log::ERR);
@@ -1424,7 +1447,7 @@ class GoodsModel extends PublicModel {
                     $es_goods_model->create_data($input_sku, $lang);
                 }else{
                     $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('AH'.($key+1), '操作失败');
+                        ->setCellValue('AH'.($key+1), $workType.'操作失败');
                     $faild ++;
                 }
             }catch (Exception $e){

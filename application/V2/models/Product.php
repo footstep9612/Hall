@@ -689,8 +689,8 @@ class ProductModel extends PublicModel {
         );
         $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
         if($result){
-            $code = substr($result['spu'],8,4);
-            $code = $code+$step;
+            $code = substr($result['spu'],(strlen($material_cat_no)+2),4);
+            $code = intval($code)+$step;
         }else{
             $code = $step;
         }
@@ -830,83 +830,88 @@ class ProductModel extends PublicModel {
      */
     public function exportTemp($input=[]) {
         set_time_limit(0);  # 设置执行时间最大值
-        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
-        $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh');
-        $titles = array(
-            'zh'=>array(
-                'no' => '',
-                'spu' => '产品编码',
-                'name' => '产品名称',
-                'show_name' => '展示名称',
-                'material_cat_no' => '物料分类',
-                'brand' => '品牌',
-                'advantages' => '产品介绍',
-                'tech_paras' => '技术参数',
-                'exe_standard' => '执行标准',
-                'warranty' => '质保期',
-                'keywords' => '关键字',
-            ),
-            'en'=>array(),
-            'es'=>array(),
-            'ru'=>array()
-        );
-        $objPHPExcel = new PHPExcel();
-        foreach($lang_ary as $key => $lang) {
-            $objPHPExcel->createSheet();    //创建工作表
-            $objPHPExcel->setActiveSheetIndex( $key );    //设置工作表
-            $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        try{
+            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
+            $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh');
+            $titles = array(
+                'zh'=>array(
+                    'no' => '序号',
+                    'spu' => '产品编码',
+                    'name' => '产品名称',
+                    'show_name' => '展示名称',
+                    'material_cat_no' => '物料分类编码',
+                    'brand' => '品牌',
+                    'advantages' => '产品介绍',
+                    'tech_paras' => '技术参数',
+                    'exe_standard' => '执行标准',
+                    'warranty' => '质保期',
+                    'keywords' => '关键字',
+                ),
+                'en'=>array(),
+                'es'=>array(),
+                'ru'=>array()
+            );
+            $objPHPExcel = new PHPExcel();
+            foreach($lang_ary as $key => $lang) {
+                $objPHPExcel->createSheet();    //创建工作表
+                $objPHPExcel->setActiveSheetIndex( $key );    //设置工作表
+                $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
 
-            $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
-            $objSheet->getDefaultStyle()->getFont()->setName( "宋体" )->setSize( 11 );
-            //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
-            $objSheet->getStyle( "A1:L1" )
-                ->getAlignment()->setVertical( PHPExcel_Style_Alignment::VERTICAL_CENTER )
-                ->setHorizontal( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
-            $objSheet->getStyle( "A1:L1" )->getFont()->setSize( 11 )->setBold( true );    //粗体
-            //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
-            //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-            $column_width_25 = [ "B" , "C" , "D" , "E" , "F" , "G" , "H" , "I" , "J" , "K" ,"L"];
-            foreach ( $column_width_25 as $column ) {
-                $objSheet->getColumnDimension( $column )->setWidth( 25 );
+                $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+                $objSheet->getDefaultStyle()->getFont()->setName( "宋体" )->setSize( 11 );
+                //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
+                $objSheet->getStyle( "A1:L1" )
+                    ->getAlignment()->setVertical( PHPExcel_Style_Alignment::VERTICAL_CENTER )
+                    ->setHorizontal( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
+                $objSheet->getStyle( "A1:L1" )->getFont()->setSize( 11 )->setBold( true );    //粗体
+                //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
+                //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
+                $column_width_25 = [ "B" , "C" , "D" , "E" , "F" , "G" , "H" , "I" , "J" , "K" ,"L"];
+                foreach ( $column_width_25 as $column ) {
+                    $objSheet->getColumnDimension( $column )->setWidth( 25 );
+                }
+                $objSheet->setTitle( '产品模板' ); //设置报价单标题
+                $title_ary = empty($titles[$lang]) ? $titles['zh'] : $titles[$lang];
+                $objSheet->setCellValue( "A1" , $title_ary['no'] );
+                $objSheet->setCellValue( "B1" , $title_ary['spu'] );
+                $objSheet->setCellValue( "C1" , $title_ary['name'] );
+                $objSheet->setCellValue( "D1" , $title_ary['show_name'] );
+                $objSheet->setCellValue( "E1" , $title_ary['material_cat_no'] );
+                $objSheet->setCellValue( "F1" , $title_ary['brand'] );
+                $objSheet->setCellValue( "G1" , $title_ary['advantages'] );    //对应产品优势（李志确认）
+                $objSheet->setCellValue( "H1" , $title_ary['tech_paras'] );
+                $objSheet->setCellValue( "I1" , $title_ary['exe_standard'] );
+                $objSheet->setCellValue( "J1" , $title_ary['warranty'] );
+                $objSheet->setCellValue( "K1" , $title_ary['keywords'] );
             }
-            $objSheet->setTitle( $lang ); //设置报价单标题
-            $title_ary = empty($titles[$lang]) ? $titles['zh'] : $titles[$lang];
-            $objSheet->setCellValue( "A1" , $title_ary['no'] );
-            $objSheet->setCellValue( "B1" , $title_ary['spu'] );
-            $objSheet->setCellValue( "C1" , $title_ary['name'] );
-            $objSheet->setCellValue( "D1" , $title_ary['show_name'] );
-            $objSheet->setCellValue( "E1" , $title_ary['material_cat_no'] );
-            $objSheet->setCellValue( "F1" , $title_ary['brand'] );
-            $objSheet->setCellValue( "G1" , $title_ary['advantages'] );    //对应产品优势（李志确认）
-            $objSheet->setCellValue( "H1" , $title_ary['tech_paras'] );
-            $objSheet->setCellValue( "I1" , $title_ary['exe_standard'] );
-            $objSheet->setCellValue( "J1" , $title_ary['warranty'] );
-            $objSheet->setCellValue( "K1" , $title_ary['keywords'] );
-        }
 
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $tmpDir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/";
-        if(!file_exists($tmpDir)){
-            mkdir($tmpDir,0777,true);
-        }
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
-        if(file_exists($localDir)){
-            //把导出的文件上传到文件服务器上
-            $server = Yaf_Application::app()->getConfig()->myhost;
-            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-            $url = $server. '/V2/Uploadfile/upload';
-            $data['tmp_name'] = $localDir;
-            $data['type'] = 'application/zip';
-            $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
-            $fileId = postfile($data,$url);
-            if($fileId){
-                unlink($localDir);    //清理本地空间
-                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+            $tmpDir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/";
+            if(!file_exists($tmpDir)){
+                mkdir($tmpDir,0777,true);
             }
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localDir.' 上传到FastDFS失败', Log::INFO);
-            return false;
-        }else{
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:'.$localDir.' 模板生成失败', Log::INFO);
+            $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
+            if(file_exists($localDir)){
+                //把导出的文件上传到文件服务器上
+                $server = Yaf_Application::app()->getConfig()->myhost;
+                $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+                $url = $server. '/V2/Uploadfile/upload';
+                $data['tmp_name'] = $localDir;
+                $data['type'] = 'application/zip';
+                $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
+                $fileId = postfile($data,$url);
+                if($fileId){
+                    unlink($localDir);    //清理本地空间
+                    return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+                }
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localDir.' 上传到FastDFS失败', Log::INFO);
+                return false;
+            }else{
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:'.$localDir.' 模板生成失败', Log::INFO);
+                return false;
+            }
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Error: :'.$e.getMessage(), Log::ERR);
             return false;
         }
     }
@@ -1069,6 +1074,7 @@ class ProductModel extends PublicModel {
 
         $userInfo = getLoinInfo();
         $es_product_model = new EsProductModel();
+        $mcatModel = new MaterialCatModel();
         $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
@@ -1080,6 +1086,7 @@ class ProductModel extends PublicModel {
                 ->setCellValue('L1', '导入结果');
             foreach($data as $key =>$r){
                 try{
+                    $workText = '';
                     if($key==0){
                         continue;
                     }
@@ -1089,10 +1096,18 @@ class ProductModel extends PublicModel {
                     $data_tmp['name'] = trim($r[2]);    //名称
                     $data_tmp['show_name'] = $r[3];    //展示名称
                     $data_tmp['material_cat_no'] = $r[4];    //物料分类
+                    //检查物料分类
+                    $mexist = $mcatModel->info($r[4],$lang);
+                    if(!$mexist){
+                        $faild ++;
+                        $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('L'.($key+1), '操作失败[物料分类ID不存在]');
+                        continue;
+                    }
                     //品牌
                     $brand_ary = array('name' => $r[5], 'style' => 'TEXT', 'label' => $r[5], 'logo' => '');
                     ksort($brand_ary);
-                    $data_tmp['brand'] = json_encode(array($brand_ary), JSON_UNESCAPED_UNICODE);
+                    $data_tmp['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
                     $data_tmp['advantages'] = $r[6];
                     $data_tmp['tech_paras'] = $r[7];
                     $data_tmp['exe_standard'] = $r[8];
@@ -1110,6 +1125,7 @@ class ProductModel extends PublicModel {
                         'name' => $data_tmp['name'],
                         'lang' => $lang,
                         'brand' => $data_tmp['brand'],
+                        'deleted_flag' => 'N',
                     );
                     $exist = $this->field('spu')->where($condition)->find();
                     if ($exist) {
@@ -1119,6 +1135,7 @@ class ProductModel extends PublicModel {
                                 ->setCellValue('L'.($key+1), '操作失败[已存在]');
                             continue;
                         }else{    //存在且传递了spu 则按修改操作
+                            $workText = '修改';
                             $condition_update = array(
                                 'spu' => $input_spu,
                                 'lang' => $lang
@@ -1126,6 +1143,7 @@ class ProductModel extends PublicModel {
                             $result = $this->where($condition_update)->save($data_tmp);
                         }
                     }else{
+                        $workText = '新增';
                         $input_spu = $data_tmp['spu'] = $this->createSpu($r[4]);    //生成spu
                         $result = $this->add($this->create($data_tmp));
                         //解锁
@@ -1138,14 +1156,14 @@ class ProductModel extends PublicModel {
                         $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('B'.($key+1), ' '.$input_spu);
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), '操作成功');
+                            ->setCellValue('L'.($key+1), $workText.'操作成功');
                         $success ++;
 
                         //更新es
                         $es_product_model->create_data($input_spu, $lang);
                     }else{
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), '操作失败');
+                            ->setCellValue('L'.($key+1), $workText.'操作失败');
                         $faild ++;
                     }
                 }catch (Exception $e){
