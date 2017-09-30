@@ -190,6 +190,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
+        if (isset($create['buyer_code'])) {
+            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
+        }
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
         }
@@ -311,6 +314,9 @@ class BuyerModel extends PublicModel {
 
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
+        }
+        if (isset($create['buyer_code'])) {
+            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
         }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
@@ -791,6 +797,41 @@ class BuyerModel extends PublicModel {
             foreach ($buyers as $buyer) {
                 $buyer_arr['buyer_names'][$buyer['id']] = $buyer['name'];
                 $buyer_arr['buyer_nos'][$buyer['id']] = $buyer['buyer_no'];
+            }
+            return $buyer_arr;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+ /*
+     * 根据用户ID 获取用户姓名
+     * @param array $user_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getBuyerNosByBuyerids($buyer_ids) {
+
+        try {
+            $where = [];
+
+            if (is_string($buyer_ids)) {
+                $where['id'] = $buyer_ids;
+            } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
+                $where['id'] = ['in', $buyer_ids];
+            } else {
+                return false;
+            }
+            $buyers = $this->where($where)->field('id,name,buyer_no')->select();
+
+            $buyer_names = [];
+            foreach ($buyers as $buyer) {               
+                $buyer_arr[$buyer['id']] = $buyer['buyer_no'];
             }
             return $buyer_arr;
         } catch (Exception $ex) {
