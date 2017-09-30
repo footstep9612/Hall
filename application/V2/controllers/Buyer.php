@@ -230,8 +230,11 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
-        if (!empty($data['area_bn'])) {
-            $arr['area_bn'] = $data['area_bn'];
+        if (isset($create['buyer_no'])) {
+            $data['buyer_no'] = $create['buyer_no'];
+        }
+        if (isset($create['buyer_code'])) {
+            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['zipcode'])) {
             $buyer_address_data['zipcode'] = $data['zipcode'];
@@ -382,6 +385,9 @@ class BuyerController extends PublicController {
         if (!empty($data['serial_no'])) {
             $arr['serial_no'] = $data['serial_no'];
         }
+        if (!empty($data['buyer_code'])) {
+            $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
+        }
         if (!empty($data['country_code'])) {
             $arr['country_code'] = $data['country_code'];
         }
@@ -390,15 +396,26 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
+            $account['first_name'] = $data['first_name'];
         }
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
+            $account['last_name'] = $data['last_name'];
         }
+        $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {
             $arr['official_email'] = $data['email'];
+            $account['email'] = $data['email'];
+            $buyer_id = $buyer_account_model->where(['email'=>$data['email']])->getField('buyer_id');
+            if($buyer_id >0 && $buyer_id != $data['id']){
+                $this->jsonReturn(array("code" => "-101", "message" => "该邮箱已经被其他账号使用"));
+            }
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" => "办公邮箱不能为空"));
         }
         if (!empty($data['mobile'])) {
             $arr['official_phone'] = $data['mobile'];
+            $account['mobile'] = $data['mobile'];
         }
         if (!empty($data['buyer_level'])) {
             $arr['buyer_level'] = $data['buyer_level'];
@@ -418,7 +435,7 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
-        $buyer_account_model = new BuyerAccountModel();
+        
         if (!empty($data['password'])) {
             $arr_account['password_hash'] = $data['password'];
             $buyer_account_model->update_data($arr_account, $where_account);
@@ -428,8 +445,10 @@ class BuyerController extends PublicController {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
         }
-        $model = new UserModel();
-        $model->update_data($arr, $where);
+        //$model = new UserModel();
+        if(!empty($account)){
+            $buyer_account_model->update_data($account, $where_account);
+        }
         if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = '成功';

@@ -37,15 +37,27 @@ class GoodsController extends PublicController {
      * @author klp
      */
     public function skuInfoAction() {
-//        $this->put_data = [
-//
-//            'sku'=> '3303060000010001',
-//            'lang'=> 'en',
-//
-//        ];
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getSkuInfo($this->put_data);
         $this->returnInfo($result);
+    }
+
+    /**
+     * 获取用户创建的第一个sku信息
+     * @author klp
+     */
+    public function getFirstSkuAction() {
+        $goodsModel = new GoodsModel();
+        $arr = [];
+        $result = $goodsModel->getSku($this->user);
+        if($result){
+            $data['sku'] = $result[0]['sku'];
+            $res = $goodsModel->getSkuInfo($data);
+            if($res){
+               $arr = $res;
+            }
+        }
+        jsonReturn($arr);
     }
 
     /**
@@ -559,12 +571,12 @@ class GoodsController extends PublicController {
      * 导入
      */
     public function importAction(){
-        if (empty($this->put_data['xls'])) {
+        if (empty($this->put_data['spu']) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
 
         $goodsModel = new GoodsModel();
-        $localDir =$goodsModel ->import($this->put_data['xls']);
+        $localDir =$goodsModel ->import($this->put_data['spu'],$this->put_data['xls'],$this->put_data['lang']);
         if($localDir){
             jsonReturn($localDir);
         }else{

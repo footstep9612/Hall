@@ -24,7 +24,7 @@ class BizlineModel extends PublicModel {
     public function  getCondition($condition = []) {
         $where = [];
         if (!empty($condition['name'])) {
-            $where['name'] = $condition['name'];
+            $where['name'] = ['like','%'.$condition['name'].'%'];
         }
         //$where['status'] = !empty($condition['status'])?$condition['status']:"VALID";
 
@@ -52,11 +52,12 @@ class BizlineModel extends PublicModel {
         $where = $this->getcondition($condition);
 
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+        //$pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
             $count = $this->getcount($condition);
-            $list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
+            //$list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
+            $list = $this->where($where)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
