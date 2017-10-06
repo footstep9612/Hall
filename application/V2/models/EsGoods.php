@@ -605,7 +605,7 @@ class EsGoodsModel extends Model {
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-        if (!isset($flag['create'])) {
+        if (!isset($flag['created'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
         return $flag;

@@ -600,9 +600,12 @@ class EsProductModel extends Model {
 
     public function importproducts($lang = 'en') {
         try {
-            $count = $this->where(['lang' => $lang])->count('id');
             $max_id = 0;
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])->count('id');
+
+
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
+            // die;
             ob_flush();
 
             flush();
@@ -611,7 +614,8 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])->limit(0, 100)->order('id asc')->select();
+                $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])->limit(0, 100)
+                                ->order('id asc')->select();
                 $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {
@@ -644,13 +648,10 @@ class EsProductModel extends Model {
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                     echo '<pre>';
                     foreach ($products as $key => $item) {
-
                         $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
                         if ($key === 99) {
                             $max_id = $item['id'];
                         }
-
-
                         print_r($flag);
                         ob_flush();
                         flush();
@@ -758,7 +759,7 @@ class EsProductModel extends Model {
         $this->_findnulltoempty($body);
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
-        if ($flag['_shards']['successful'] !== 1) {
+        if (!isset($flag['created'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
 
