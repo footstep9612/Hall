@@ -397,14 +397,16 @@ class EsproductController extends PublicController {
      */
     public function goodsAction() {
         $es = new ESClient();
-        $info = $es->getversion();
-        if (substr($info['version']['number'], 0, 1) == 1) {
-            $analyzer = 'ik';
-            $type = 'string';
-        } else {
-            $analyzer = 'ik_max_word';
-            $type = 'text';
-        }
+//        $info = $es->getversion();
+//        if (substr($info['version']['number'], 0, 1) == 1) {
+//            $analyzer = 'ik';
+//            $type = 'string';
+//        } else {
+//            $analyzer = 'ik_max_word';
+//            $type = 'text';
+//        }
+        $analyzer = 'ik';
+        $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
@@ -483,7 +485,15 @@ class EsproductController extends PublicController {
             /* 扩展内容 */
             'name_loc' => $ik_analyzed, //中文品名
             'brand' => $ik_analyzed, //品牌
+            'brand_childs.name' => $ik_analyzed, //品牌
+            'brand_childs.lang' => $not_analyzed, //品牌
+            'brand_childs.logo' => $not_analyzed, //品牌
+            'brand_childs.manufacturer' => $not_analyzed, //品牌
+            'brand_childs.style' => $not_analyzed, //品牌
+            'brand_childs.label' => $not_analyzed, //品牌
             'suppliers' => $ik_analyzed, //供应商数组 json
+            'suppliers_childs.supplier_id' => $not_analyzed,
+            'suppliers_childs.supplier_name' => $ik_analyzed,
             'supplier_count' => $not_analyzed,
             'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
@@ -508,15 +518,16 @@ class EsproductController extends PublicController {
      */
     public function productAction($lang = 'en') {
         $es = new ESClient();
-        $info = $es->getversion();
-        if (substr($info['version']['number'], 0, 1) == 1) {
-            $analyzer = 'ik';
-            $type = 'string';
-        } else {
-            $analyzer = 'ik_max_word';
-            $type = 'text';
-        }
-
+//        $info = $es->getversion();
+//        if (substr($info['version']['number'], 0, 1) == 1) {
+//            $analyzer = 'ik';
+//            $type = 'string';
+//        } else {
+//            $analyzer = 'ik_max_word';
+//            $type = 'text';
+//        }
+        $analyzer = 'ik';
+        $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
@@ -558,6 +569,12 @@ class EsproductController extends PublicController {
             'name' => $ik_analyzed, //产品名称
             'show_name' => $ik_analyzed, // 产品展示
             'brand' => $ik_analyzed, //品牌
+            'brand_childs.name' => $ik_analyzed, //品牌
+            'brand_childs.lang' => $not_analyzed, //品牌
+            'brand_childs.logo' => $not_analyzed, //品牌
+            'brand_childs.manufacturer' => $not_analyzed, //品牌
+            'brand_childs.style' => $not_analyzed, //品牌
+            'brand_childs.label' => $not_analyzed, //品牌
             'keywords' => $ik_analyzed, //关键词
             'exe_standard' => $ik_analyzed, //执行标准
             'tech_paras' => $ik_analyzed, //简介',
@@ -602,6 +619,9 @@ class EsproductController extends PublicController {
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
             'suppliers' => $ik_analyzed, //供应商数组 json
+            'suppliers' => $ik_analyzed, //供应商数组 json
+            'suppliers_childs.supplier_id' => $not_analyzed,
+            'suppliers_childs.supplier_name' => $ik_analyzed,
             'supplier_count' => $not_analyzed,
             'material_cat' => $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json

@@ -433,8 +433,11 @@ class EsGoodsModel extends Model {
 
     private function _findnulltoempty(&$item) {
         foreach ($item as $key => $val) {
-
-            $item[$key] = strval($val);
+            if ($val === null) {
+                $item[$key] = '';
+            } else {
+                $item[$key] = $val;
+            }
         }
     }
 
@@ -537,15 +540,15 @@ class EsGoodsModel extends Model {
         $body['brand'] = str_replace("\r", '', $body['brand']);
         $body['brand'] = str_replace("\n", '', $body['brand']);
         $body['brand'] = str_replace("\t", '', $body['brand']);
-        if (json_decode($body['brand'], true)) {
-            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
+        if (json_decode($item['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
+            $body['brand_childs'] = json_decode($item['brand'], true);
         } elseif ($body['brand']) {
+            $body['brand_childs'] = json_decode('{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}', true);
             $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
         } else {
+            $body['brand_childs'] = [];
             $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
-        }
-        if (json_decode($body['brand'], true)) {
-            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
         }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
             $body['name_loc'] = $name_locs[$sku];
@@ -565,10 +568,12 @@ class EsGoodsModel extends Model {
             $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
         }
 
-        if (isset($suppliers[$sku]) && $suppliers[$sku]) {
-            $body['suppliers'] = json_encode($suppliers[$sku], 256);
-            $body['supplier_count'] = count($suppliers[$sku]);
+        if (isset($suppliers[$id]) && $suppliers[$id]) {
+            $body['suppliers_childs'] = $suppliers[$id];
+            $body['suppliers'] = json_encode($suppliers[$id], 256);
+            $body['supplier_count'] = count($suppliers[$id]);
         } else {
+            $body['suppliers_childs'] = [];
             $body['suppliers'] = json_encode([], 256);
             $body['supplier_count'] = 0;
         }
