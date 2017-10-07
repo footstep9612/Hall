@@ -216,7 +216,7 @@ class MaterialcatController extends PublicController {
         $arr = [$data];
         $this->_setUserName($arr, ['created_by', 'updated_by']);
         $data = $arr[0];
-
+        $data['id'] = $cat_no;
         if ($data) {
             list($parent1, $parent2) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);

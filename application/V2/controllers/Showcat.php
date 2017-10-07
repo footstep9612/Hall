@@ -223,7 +223,6 @@ class ShowcatController extends PublicController {
             $result = $arr[0];
             if ($result) {
                 if (!$data['cat_no']) {
-
                     $data = array_merge($data, $result);
                     $data['name'] = $data['id'] = null;
                     unset($data['name'], $data['id']);
@@ -233,7 +232,10 @@ class ShowcatController extends PublicController {
                 $data[$lang]['name'] = '';
             }
         }
-
+        $arr = [$data];
+        $this->_setUserName($arr, ['created_by', 'updated_by']);
+        $data = $arr[0];
+        $data['id'] = $cat_no;
 
         if ($data) {
             list($parent1, $parent2) = $this->_getparentcats($data);
@@ -248,6 +250,41 @@ class ShowcatController extends PublicController {
             $this->jsonReturn();
         }
         exit;
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+
+                foreach ($fileds as $filed) {
+                    $userids[] = $val[$filed];
+                }
+            }
+
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
     /**
