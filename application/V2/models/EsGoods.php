@@ -567,10 +567,10 @@ class EsGoodsModel extends Model {
 
         if (isset($suppliers[$sku]) && $suppliers[$sku]) {
             $body['suppliers'] = json_encode($suppliers[$sku], 256);
-            $body['sppplier_count'] = count($suppliers[$sku]);
+            $body['supplier_count'] = count($suppliers[$sku]);
         } else {
             $body['suppliers'] = json_encode([], 256);
-            $body['sppplier_count'] = 0;
+            $body['supplier_count'] = 0;
         }
 
 

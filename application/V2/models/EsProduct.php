@@ -233,7 +233,11 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
-        $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
+        if (empty($condition['deleted_flag'])) {
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => $condition['deleted_flag'] === 'Y' ? 'Y' : 'N']];
+        }
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
@@ -341,6 +345,9 @@ class EsProductModel extends Model {
             } else {
                 $es->setaggs('material_cat_no', 'material_cat_no');
             }
+            $es->setaggs('brand.all', 'brands', 'terms', 0);
+            $es->setaggs('suppliers.all', 'suppliers', 'terms', 0);
+
 
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;
@@ -369,6 +376,7 @@ class EsProductModel extends Model {
             $es = new ESClient();
             $ret = $es->setbody($body)
                     ->count($this->dbName, $this->tableName . '_' . $lang, '');
+
             if (isset($ret['count'])) {
                 return $ret['count'];
             } else {
@@ -637,6 +645,8 @@ class EsProductModel extends Model {
                     $show_cat_product_model = new ShowCatProductModel();
                     $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang); //根据spus获取展示分类编码
 
+                    $goods_supplier_model = new GoodsSupplierModel();
+                    $suppliers = $goods_supplier_model->getsuppliersbyspus($spus, $lang);
                     $product_attr_model = new ProductAttrModel();
                     $product_attrs = $product_attr_model->getproduct_attrbyspus($spus, $lang); //根据spus获取产品属性
 
@@ -648,7 +658,7 @@ class EsProductModel extends Model {
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                     echo '<pre>';
                     foreach ($products as $key => $item) {
-                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs);
+                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers);
                         if ($key === 99) {
                             $max_id = $item['id'];
                         }
@@ -667,7 +677,7 @@ class EsProductModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs) {
+    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers) {
 
         $spu = $id = $item['spu'];
 
@@ -755,6 +765,14 @@ class EsProductModel extends Model {
             $body['onshelf_flag'] = 'N';
             $body['onshelf_by'] = '';
             $body['onshelf_at'] = '';
+        }
+
+        if (isset($suppliers[$id]) && $suppliers[$id]) {
+            $body['suppliers'] = json_encode($suppliers[$id], 256);
+            $body['supplier_count'] = count($suppliers[$id]);
+        } else {
+            $body['suppliers'] = json_encode([], 256);
+            $body['supplier_count'] = 0;
         }
         $this->_findnulltoempty($body);
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
@@ -1089,7 +1107,8 @@ class EsProductModel extends Model {
 
                 $product_attr_model = new ProductAttrModel();
                 $product_attrs = $product_attr_model->getproduct_attrbyspus($spus, $lang); //根据spus获取产品属性
-
+                $goods_supplier_model = new GoodsSupplierModel();
+                $suppliers = $goods_supplier_model->getsuppliersbyspus($spus, $lang);
                 $product_attach_model = new ProductAttachModel();
                 $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
 
@@ -1103,7 +1122,7 @@ class EsProductModel extends Model {
                 $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                 $k = 0;
                 foreach ($products as $item) {
-                    $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs);
+                    $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs, $suppliers);
                 }
             }
             $es->refresh($this->dbName);

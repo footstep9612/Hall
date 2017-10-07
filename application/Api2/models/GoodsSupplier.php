@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-4 11:37:17
  * @version V2.0
- * @desc   
+ * @desc
  */
 class GoodsSupplierModel extends PublicModel {
 
@@ -31,7 +31,7 @@ class GoodsSupplierModel extends PublicModel {
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品   
+     * @desc   ES 商品
      */
 
     public function getsuppliersbyskus($skus, $lang = 'en') {
@@ -42,8 +42,9 @@ class GoodsSupplierModel extends PublicModel {
             $product_attrs = $this->field('sku,supplier_id,brand,supply_ability,'
                             . '(select name from  erui2_supplier.supplier where id=supplier_id ) as supplier_name')
                     ->where(['sku' => ['in', $skus],
-                        'status' => 'VALID'
-                    ])
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])->group('supplier_id,sku')
                     ->select();
             if (!$product_attrs) {
                 return [];
@@ -53,6 +54,50 @@ class GoodsSupplierModel extends PublicModel {
                 $sku = $item['sku'];
                 unset($item['sku']);
                 $ret[$sku][] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /* 通过SKU获取供应商信息
+     * @param mix $skus // 商品SKU编码数组
+     * @param string $lang // 语言
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 商品
+     */
+
+    public function getsuppliersbyspus($spus, $lang = 'en') {
+        try {
+            if (!$spus) {
+                return [];
+            }
+            $goods_model = new GoodsModel();
+            $goods_table = $goods_model->getTableName();
+            $product_attrs = $this->alias('gs')
+                    ->join($goods_table . ' as g on g.sku=gs.sku and g.lang=\'' . $lang . '\'', 'left')
+                    ->field('g.spu,gs.supplier_id,gs.brand,gs.supply_ability,'
+                            . '(select name from  erui2_supplier.supplier where id=gs.supplier_id ) as supplier_name')
+                    ->where(['g.spu' => ['in', $spus],
+                        'gs.status' => 'VALID',
+                        'gs.deleted_flag' => 'N'
+                    ])
+                    ->group('gs.supplier_id,g.spu')
+                    ->select();
+            if (!$product_attrs) {
+                return [];
+            }
+            $ret = [];
+            foreach ($product_attrs as $item) {
+                $spu = $item['spu'];
+                unset($item['spu']);
+                $ret[$spu][] = $item;
             }
             return $ret;
         } catch (Exception $ex) {

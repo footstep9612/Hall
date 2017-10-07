@@ -849,9 +849,17 @@ class ESClient {
      *  @param string $alis // 别名
      */
 
-    public function setaggs($field, $alis, $do = 'terms') {
-        $this->body['aggs'][$alis] = [$do => ['field' => $field,
-        ]];
+    public function setaggs($field, $alis, $do = 'terms', $size = null) {
+        if ($size !== null) {
+
+            $this->body['aggs'][$alis] = [$do => ['field' => $field,
+                    'size' => $size
+            ]];
+        } else {
+            $this->body['aggs'][$alis] = [$do => ['field' => $field
+            ]];
+        }
+
         return $this;
     }
 

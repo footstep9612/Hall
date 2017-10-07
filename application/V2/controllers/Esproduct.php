@@ -59,6 +59,7 @@ class EsproductController extends PublicController {
 
         $condition = $this->getPut();
         $ret = $model->getProducts($condition, null, $lang);
+
         if ($ret) {
             $data = $ret[0];
 
@@ -76,6 +77,17 @@ class EsproductController extends PublicController {
             } else {
                 $send['sku_count'] = 0;
             }
+
+            if (isset($data['aggregations']['brands']['buckets']) && $data['aggregations']['brands']['buckets']) {
+                $send['brand_count'] = count($data['aggregations']['brands']['buckets']);
+            } else {
+                $send['brand_count'] = 0;
+            }
+            if (isset($data['aggregations']['suppliers']['buckets']) && $data['aggregations']['suppliers']['buckets']) {
+                $send['supplier_count'] = count($data['aggregations']['suppliers']['buckets']);
+            } else {
+                $send['supplier_count'] = 0;
+            }
             if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
                 $condition['onshelf_flag'] = 'N';
                 $condition['sku_count'] = 'Y';
@@ -83,12 +95,13 @@ class EsproductController extends PublicController {
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
                 $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
                 $condition['onshelf_flag'] = 'Y';
-
                 $ret_y = $model->getProducts($condition, $lang);
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
                 $send['onshelf_sku_count_Y'] = intval($ret_y[0]['aggregations']['sku_count']['value']);
             }
-
+            $condition['deleted_flag'] = 'Y';
+            $condition['onshelf_flag'] = 'A';
+            $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
             $send['data'] = $list;
             $this->_update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -471,7 +484,7 @@ class EsproductController extends PublicController {
             'name_loc' => $ik_analyzed, //中文品名
             'brand' => $ik_analyzed, //品牌
             'suppliers' => $ik_analyzed, //供应商数组 json
-            'sppplier_count' => $not_analyzed,
+            'supplier_count' => $not_analyzed,
             'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => $ik_analyzed, //展示分类数组 json
@@ -588,6 +601,8 @@ class EsproductController extends PublicController {
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
+            'suppliers' => $ik_analyzed, //供应商数组 json
+            'supplier_count' => $not_analyzed,
             'material_cat' => $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
