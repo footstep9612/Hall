@@ -931,7 +931,7 @@ class EsGoodsModel extends Model {
     public function create_data($sku, $lang = 'en') {
         try {
             $es = new ESClient();
-            if (is_array($sku)) {
+            if (is_array($sku) && !empty($sku)) {
                 $goods_model = new GoodsModel();
                 $goods = $goods_model->where(['sku' => ['in', $sku], 'lang' => $lang])->select();
             } elseif ($sku) {
