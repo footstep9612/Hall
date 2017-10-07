@@ -367,6 +367,84 @@ class QuoteBizLineModel extends PublicModel {
     }
 
     /**
+     * 临时保存(产品线报价人)
+     * 张玉良
+     * 2017-10-7
+     */
+    public function storageQuoteAdd($data, $user) {
+
+        $quoteItemFormModel = new QuoteItemFormModel();
+
+        try{
+
+            foreach ($data as $key => $value) {
+
+                $quoteItemFormFields = $quoteItemFormModel->where(['id'=>$value['id']])->field('quote_id,quote_item_id,inquiry_item_id,quote_bizline_id')->find();
+
+                //如果输填写了未报价分析原因
+                if (!empty($value['reason_for_no_quote'])){
+
+                    $hasQuoted = $quoteItemFormModel->where(['quote_bizline_id'=>$value['quote_bizline_id'],'sku'=>$value['sku'],'updated_by'=>$user])->count();
+
+                    if ($hasQuoted){
+                        $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
+                        $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
+                        $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
+                        $quoteItemFormFields['status'] = 'QUOTED';
+                        $quoteItemFormModel->where(['id'=>$value['id']])->save($quoteItemFormModel->create($quoteItemFormFields));
+                    }else{
+                        $quoteItemFormFields['reason_for_no_quote'] = $value['reason_for_no_quote'];
+                        $quoteItemFormFields['created_at'] = date('Y-m-d H:i:s');
+                        $quoteItemFormFields['updated_at'] = date('Y-m-d H:i:s');
+                        $quoteItemFormFields['updated_by'] = $user;
+                        $quoteItemFormFields['sku'] = $value['sku'];
+                        $quoteItemFormFields['status'] = 'QUOTED';
+
+                        $quoteItemFormModel->add($quoteItemFormModel->create($quoteItemFormFields));
+                    }
+                } else {
+                    //判断必填项有没有填写信息，有保存，没有带过
+                    if (!empty($value['purchase_unit_price']) || !empty($value['purchase_price_cur_bn']) || !empty($value['gross_weight_kg']) || !empty($value['package_size']) || !empty($value['package_mode']) || !empty($value['goods_source']) || !empty($value['stock_loc']) || !empty($value['delivery_days']) || !empty($value['period_of_validity'])){
+                        //判断有没有报过价
+                        $hasQuoted = $quoteItemFormModel->where(['quote_bizline_id'=>$value['quote_bizline_id'],'sku'=>$value['sku'],'updated_by'=>$user])->count();
+
+                        if ($hasQuoted){
+                            //更新
+                            $value['updated_by'] = $user;
+                            $value['updated_at'] = date('Y-m-d H:i:s');
+                            $value['created_at'] = date('Y-m-d H:i:s');
+                            $value['status'] = 'QUOTED';
+                            $quoteItemFormModel->save($quoteItemFormModel->create($value));
+
+                        }else{
+                            //新增
+                            $value['updated_by'] = $user;
+                            $value['updated_at'] = date('Y-m-d H:i:s');
+                            $value['created_at'] = date('Y-m-d H:i:s');
+                            $value['status'] = 'QUOTED';
+                            $newData = array_merge($quoteItemFormFields,$value);
+                            unset($newData['id']);
+                            $quoteItemFormModel->add($quoteItemFormModel->create($newData));
+                        }
+                    }
+
+                }
+
+            }
+
+            return ['code' => '1', 'message' => '成功!'];
+
+        }catch (Exception $exception) {
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+
+    }
+
+    /**
      * 产品线负责人退回产品线报价人重新报价
      */
     public function bizlineManagerRejectQuote($request) {

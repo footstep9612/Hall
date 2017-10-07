@@ -1202,6 +1202,21 @@ class QuotebizlineController extends PublicController {
     }
 
     /**
+     * 暂存(产品线报价人)
+     * 张玉良
+     * 2017-10-7
+     */
+    public function storageQuoteAddAction() {
+
+        $request = $this->_requestParams['data'];
+
+        $quoteBizline = new QuoteBizLineModel();
+        $response = $quoteBizline->storageQuoteAdd($request,$this->user['id']);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
      * 暂存(产品线负责人)
      */
     public function pmStorageQuoteAction(){
