@@ -540,9 +540,9 @@ class EsGoodsModel extends Model {
         $body['brand'] = str_replace("\r", '', $body['brand']);
         $body['brand'] = str_replace("\n", '', $body['brand']);
         $body['brand'] = str_replace("\t", '', $body['brand']);
-        if (json_decode($item['brand'], true)) {
-            $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
-            $body['brand_childs'] = json_decode($item['brand'], true);
+        if (json_decode($body['brand'], true)) {
+            $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
+            $body['brand_childs'] = json_decode($body['brand'], true);
         } elseif ($body['brand']) {
             $body['brand_childs'] = json_decode('{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}', true);
             $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
