@@ -612,7 +612,8 @@ class EsProductModel extends Model {
     public function importproducts($lang = 'en') {
         try {
             $max_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])->count('id');
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
+                    ])->count('id');
 
 
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -625,7 +626,8 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])->limit(0, 100)
+                $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
+                                ])->limit(0, 100)
                                 ->order('id asc')->select();
                 $spus = $mcat_nos = [];
                 if ($products) {
@@ -685,18 +687,17 @@ class EsProductModel extends Model {
         $spu = $id = $item['spu'];
 
         $body = $item;
-        $item['brand'] = str_replace("\r", '', $item['brand']);
-        $item['brand'] = str_replace("\n", '', $item['brand']);
-        $item['brand'] = str_replace("\t", '', $item['brand']);
+        $item['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $item['brand'])));
+
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
             $body['brand_childs'] = json_decode($item['brand'], true);
-        } elseif ($body['brand']) {
-            $body['brand_childs'] = json_decode('{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}', true);
-            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+        } elseif ($item['brand']) {
+            $body['brand_childs'] = ['lang' => $lang, 'name' => $item['brand'], 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = json_encode(['lang' => $lang, 'name' => $item['brand'], 'logo' => '', 'manufacturer' => ''], 256);
         } else {
-            $body['brand_childs'] = [];
-            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
+            $body['brand_childs'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = json_encode(['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''], 256);
         }
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
@@ -783,6 +784,8 @@ class EsProductModel extends Model {
             $body['supplier_count'] = 0;
         }
         $this->_findnulltoempty($body);
+
+
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
 
         if (!isset($flag['created'])) {

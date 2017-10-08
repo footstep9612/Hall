@@ -537,18 +537,18 @@ class EsGoodsModel extends Model {
         }
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
 
-        $body['brand'] = str_replace("\r", '', $body['brand']);
-        $body['brand'] = str_replace("\n", '', $body['brand']);
-        $body['brand'] = str_replace("\t", '', $body['brand']);
+        $body['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $body['brand'])));
+
+
         if (json_decode($body['brand'], true)) {
             $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
             $body['brand_childs'] = json_decode($body['brand'], true);
         } elseif ($body['brand']) {
-            $body['brand_childs'] = json_decode('{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}', true);
-            $body['brand'] = '{"lang": "' . $lang . '", "name": "' . $body['brand'] . '", "logo": "", "manufacturer": ""}';
+            $body['brand_childs'] = ['lang' => $lang, 'name' => $body['brand'], 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = json_encode(['lang' => $lang, 'name' => $body['brand'], 'logo' => '', 'manufacturer' => ''], 256);
         } else {
-            $body['brand_childs'] = [];
-            $body['brand'] = '{"lang": "' . $lang . '", "name": "", "logo": "", "manufacturer": ""}';
+            $body['brand_childs'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = json_encode(['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''], 256);
         }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
             $body['name_loc'] = $name_locs[$sku];
