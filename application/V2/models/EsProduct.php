@@ -702,9 +702,7 @@ class EsProductModel extends Model {
             $body['brand_childs'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
             $body['brand'] = json_encode(['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''], 256);
         }
-        if ($es_product && ($es_product['brand'] !== $body['brand'] || $es_product['material_cat_no'] !== $item['brand'])) {
-            $this->BatchSKU($spu, $lang);
-        }
+
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {
@@ -729,7 +727,12 @@ class EsProductModel extends Model {
         } else {
             $body['material_cat_zh'] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
         }
+
         $body['show_cats'] = $this->_getValue($scats, $spu, [], 'json');
+
+        if ($es_product && ($es_product['brand'] !== $body['brand'] || $es_product['material_cat_no'] !== $item['material_cat_no'])) {
+            $this->BatchSKU($spu, $lang, $body['brand'], $body['brand_childs'], $item['material_cat_no'], $body['material_cat'], $body['material_cat_zh']);
+        }
         if (isset($name_locs[$spu]) && $name_locs[$spu]) {
             $body['name_loc'] = $name_locs[$spu];
         } else {
@@ -814,13 +817,30 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function BatchSKU($spu, $lang) {
+    public function BatchSKU($spu, $lang, $brand, $brand_childs, $material_cat_no, $material_cat, $material_cat_zh) {
         try {
             $goods_model = new GoodsModel();
             $goods = $goods_model->where(['spu' => $spu, 'lang' => $lang])->field('sku')->select();
-            $es_goods_model = new EsGoodsModel();
-            foreach ($goods as $good) {
-                $es_goods_model->create_data($good['sku'], $lang);
+            $updateParams = [];
+
+            $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'goods_' . $lang;
+            if ($goods) {
+                foreach ($goods as $good) {
+
+                    $updateParams['body'][] = ['update' => ['_id' => $good['sku']]];
+                    $updateParams['body'][] = ['doc' =>
+                        ['brand' => $brand,
+                            'brand' => $brand,
+                            'brand_childs' => $brand_childs,
+                            'material_cat_no' => $material_cat_no,
+                            'material_cat' => $material_cat,
+                            'material_cat_zh' => $material_cat_zh,
+                        ]
+                    ];
+                }
+                $es = new ESClient();
+                $es->bulk($updateParams);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
