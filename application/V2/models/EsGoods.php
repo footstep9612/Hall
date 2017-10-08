@@ -539,7 +539,6 @@ class EsGoodsModel extends Model {
 
         $body['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $body['brand'])));
 
-
         if (json_decode($body['brand'], true)) {
             $body['brand'] = json_encode(json_decode($body['brand'], true), 256);
             $body['brand_childs'] = json_decode($body['brand'], true);
