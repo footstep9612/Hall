@@ -686,6 +686,9 @@ class EsProductModel extends Model {
 
         $spu = $id = $item['spu'];
 
+        $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $id);
+
+
         $body = $item;
         $item['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $item['brand'])));
 
@@ -698,6 +701,9 @@ class EsProductModel extends Model {
         } else {
             $body['brand_childs'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
             $body['brand'] = json_encode(['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''], 256);
+        }
+        if ($es_product && ($es_product['brand'] !== $body['brand'] || $es_product['material_cat_no'] !== $item['brand'])) {
+            $this->BatchSKU($spu, $lang);
         }
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
@@ -794,6 +800,33 @@ class EsProductModel extends Model {
 
         $k++;
         return $flag;
+    }
+
+    /*
+     * 批量更新商品的品牌或物理分类编码
+     * @author zyg 2017-07-31
+     * @param string $spu // SPU
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function BatchSKU($spu, $lang) {
+        try {
+            $goods_model = new GoodsModel();
+            $goods = $goods_model->where(['spu' => $spu, 'lang' => $lang])->field('sku')->select();
+            $es_goods_model = new EsGoodsModel();
+            foreach ($goods as $good) {
+                $es_goods_model->create_data($good['sku'], $lang);
+            }
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /*
@@ -1094,7 +1127,6 @@ class EsProductModel extends Model {
                 $product_model = new ProductModel();
                 $products = $product_model->where(['spu' => ['in', $spu], 'lang' => $lang])->select();
             } elseif ($spu) {
-
                 $product_model = new ProductModel();
                 $products = $product_model->where(['spu' => $spu, 'lang' => $lang])->select();
             } else {
@@ -1133,6 +1165,7 @@ class EsProductModel extends Model {
                 $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                 $k = 0;
                 foreach ($products as $item) {
+
                     $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs, $suppliers);
                 }
             }

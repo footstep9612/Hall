@@ -525,7 +525,7 @@ class EsGoodsModel extends Model {
 
         $body = $item;
         $product_attr = $productattrs[$spu];
-
+        $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id);
         $body['material_cat'] = $this->_getValue($product_attr, 'material_cat', [], 'string');
         if (!$body['material_cat']) {
             $body['material_cat'] = '{}';
@@ -577,7 +577,9 @@ class EsGoodsModel extends Model {
             $body['supplier_count'] = 0;
         }
 
-
+        if ($es_goods && ($es_goods['suppliers'] !== $body['suppliers'] || $es_goods['min_order_qty'] !== $body['min_order_qty'] || $es_goods['exw_days'] !== $body['exw_days'] || $es_goods['min_pack_unit'] !== $body['min_pack_unit'] )) {
+            $this->UpdateSPU($spu, $lang);
+        }
 
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
@@ -613,6 +615,30 @@ class EsGoodsModel extends Model {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
         return $flag;
+    }
+
+    /*
+     * 批量更新商品的品牌或物理分类编码
+     * @author zyg 2017-07-31
+     * @param string $spu // SPU
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function UpdateSPU($spu, $lang) {
+        try {
+
+            $es_product_model = new EsproductModel();
+            $es_product_model->create_data($spu, $lang);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /* 通过批量导入商品信息到ES
