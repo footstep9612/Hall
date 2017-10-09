@@ -41,7 +41,7 @@ class EsProductModel extends Model {
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
         if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = $name;
                 }
@@ -51,7 +51,7 @@ class EsProductModel extends Model {
 
             if (isset($condition[$name]) && $condition[$name]) {
 
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = $name;
                 }
@@ -59,7 +59,7 @@ class EsProductModel extends Model {
             }
         } elseif ($qurey_type == ESClient::MULTI_MATCH) {
             if (isset($condition[$name]) && $condition[$name]) {
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = [$name];
                 }
@@ -75,15 +75,15 @@ class EsProductModel extends Model {
                 $field = $name;
             }
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
-                $created_at_end = $condition[$name . '_end'];
+                $created_at_start = trim($condition[$name . '_start']);
+                $created_at_end = trim($condition[$name . '_end']);
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
+                $created_at_start = trim($condition[$name . '_start']);
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
-                $created_at_end = $condition[$name . '_end'];
+                $created_at_end = trim($condition[$name . '_end']);
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
             }
         }
@@ -109,7 +109,7 @@ class EsProductModel extends Model {
             $field = [$name];
         }
         if (isset($condition[$name]) && $condition[$name]) {
-            $status = $condition[$name];
+            $status = trim($condition[$name]);
             if ($status == 'ALL') {
 
                 $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
@@ -149,7 +149,7 @@ class EsProductModel extends Model {
             $name_arr = $condition[$names];
             $bool = [];
             foreach ($name_arr as $name) {
-                $bool[] = [$qurey_type => [$field => $name]];
+                $bool[] = [$qurey_type => [$field => trim($name)]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
         }
@@ -175,7 +175,7 @@ class EsProductModel extends Model {
             $field = $name;
         }
         if (isset($condition[$name]) && $condition[$name]) {
-            $recommend_flag = $condition[$name] == 'Y' ? 'Y' : $default;
+            $recommend_flag = trim($condition[$name]) == 'Y' ? 'Y' : $default;
             $body['query']['bool']['must'][] = [$qurey_type => [$field => $recommend_flag]];
         }
     }
@@ -262,8 +262,8 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
-            $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
-            if ($condition['onshelf_flag'] === 'A') {
+            $onshelf_flag = trim($condition['onshelf_flag']) == 'N' ? 'N' : 'Y';
+            if (trim($condition['onshelf_flag']) === 'A') {
 
             } elseif ($onshelf_flag === 'N') {
                 $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
@@ -274,7 +274,7 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
         }
         if (isset($condition['show_name']) && $condition['show_name']) {
-            $show_name = $condition['show_name'];
+            $show_name = trim($condition['show_name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::MATCH => ['show_name.ik' => $show_name]],
                         [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
@@ -282,7 +282,7 @@ class EsProductModel extends Model {
         }
 
         if (isset($condition['name']) && $condition['name']) {
-            $name = $condition['name'];
+            $name = trim($condition['name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::MATCH => ['name.ik' => $name]],
                         [ESClient::WILDCARD => ['name.all' => '*' . $name . '*']],
@@ -293,7 +293,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
         if (isset($condition['keyword']) && $condition['keyword']) {
-            $keyword = $condition['keyword'];
+            $keyword = trim($condition['keyword']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::MATCH => ['name.ik' => $keyword]],
                         [ESClient::MATCH => ['show_name.ik' => $keyword]],
@@ -999,15 +999,15 @@ class EsProductModel extends Model {
                 $value = $condition[$name];
                 $condition = null;
                 unset($condition);
-                return $value;
+                return trim($value);
             } else {
                 $condition = null;
                 unset($condition);
-                return $default;
+                return trim($default);
             }
         } elseif ($type === 'bool') {
             if (isset($condition[$name]) && $condition[$name]) {
-                $flag = $condition[$name] == 'Y' ? 'Y' : 'N';
+                $flag = trim($condition[$name]) == 'Y' ? 'Y' : 'N';
                 $condition = null;
                 unset($condition);
                 return $flag;
@@ -1030,7 +1030,7 @@ class EsProductModel extends Model {
             }
         } elseif ($type === 'in_array') {
             if (isset($condition[$name]) && in_array($condition[$name], $arr)) {
-                $return = strtoupper($condition[$name]);
+                $return = strtoupper(trim($condition[$name]));
                 $condition = null;
                 unset($condition);
                 return $return;
