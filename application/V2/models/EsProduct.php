@@ -211,7 +211,8 @@ class EsProductModel extends Model {
         if ($mcat_no3) {
             $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no3 . '*']];
         }
-
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers_childs.supplier_name.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers_childs.supplier_id');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -228,8 +229,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.ik');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.all');
+//        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers.all');
+//        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
@@ -322,7 +323,7 @@ class EsProductModel extends Model {
 
         try {
             $body = $this->getCondition($condition);
-
+            echo json_encode($body, 256);
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {

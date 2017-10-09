@@ -371,14 +371,16 @@ class EsproductController extends PublicController {
         $goods_properties = $this->goodsAction('en');
         $es = new ESClient();
         foreach ($this->langs as $lang) {
-            $goods_mapParam = [
-                'properties' => $goods_properties,
-                '_all' => ['enabled' => false]
-            ];
-            $product_mapParam = [
-                'properties' => $product_properties,
-                '_all' => ['enabled' => false]
-            ];
+            $goods_mapParam = ['goods_' . $lang => [
+                    'properties' => $goods_properties,
+                    '_all' => ['enabled' => false]
+            ]];
+            $product_mapParam = ['product_' . $lang => [
+                    'properties' => $product_properties,
+                    '_all' => ['enabled' => false]
+            ]];
+            logs(json_encode($product_mapParam));
+            logs(json_encode($goods_mapParam));
             $es->putMapping($this->index, 'goods_' . $lang, $goods_mapParam);
             $es->putMapping($this->index, 'product_' . $lang, $product_mapParam);
         }
@@ -434,6 +436,7 @@ class EsproductController extends PublicController {
                 ]
             ]
         ];
+
         $not_analyzed = [
             'index' => 'not_analyzed',
             'type' => $type
@@ -485,15 +488,24 @@ class EsproductController extends PublicController {
             /* 扩展内容 */
             'name_loc' => $ik_analyzed, //中文品名
             'brand' => $ik_analyzed, //品牌
-            'brand_childs.name' => $ik_analyzed, //品牌
-            'brand_childs.lang' => $not_analyzed, //品牌
-            'brand_childs.logo' => $not_analyzed, //品牌
-            'brand_childs.manufacturer' => $not_analyzed, //品牌
-            'brand_childs.style' => $not_analyzed, //品牌
-            'brand_childs.label' => $not_analyzed, //品牌
             'suppliers' => $ik_analyzed, //供应商数组 json
-            'suppliers_childs.supplier_id' => $not_analyzed,
-            'suppliers_childs.supplier_name' => $ik_analyzed,
+            'brand_childs' => [
+                'properties' => [
+                    'lang' => $not_analyzed,
+                    'name' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                    'logo' => $not_analyzed,
+                    'manufacturer' => $not_analyzed,
+                    'style' => $not_analyzed,
+                    'label' => $not_analyzed,
+                ],
+            ],
+            'suppliers_childs' => [
+                'properties' => [
+                    'supplier_id' => $not_analyzed,
+                    'supplier_name' => $ik_analyzed,
+                ],
+            ],
             'supplier_count' => $not_analyzed,
             'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
@@ -569,12 +581,6 @@ class EsproductController extends PublicController {
             'name' => $ik_analyzed, //产品名称
             'show_name' => $ik_analyzed, // 产品展示
             'brand' => $ik_analyzed, //品牌
-            'brand_childs.name' => $ik_analyzed, //品牌
-            'brand_childs.lang' => $not_analyzed, //品牌
-            'brand_childs.logo' => $not_analyzed, //品牌
-            'brand_childs.manufacturer' => $not_analyzed, //品牌
-            'brand_childs.style' => $not_analyzed, //品牌
-            'brand_childs.label' => $not_analyzed, //品牌
             'keywords' => $ik_analyzed, //关键词
             'exe_standard' => $ik_analyzed, //执行标准
             'tech_paras' => $ik_analyzed, //简介',
@@ -619,9 +625,23 @@ class EsproductController extends PublicController {
             'show_cats' => $ik_analyzed, //展示分类数组 json
             'attrs' => $ik_analyzed, //属性数组 json
             'suppliers' => $ik_analyzed, //供应商数组 json
-            'suppliers' => $ik_analyzed, //供应商数组 json
-            'suppliers_childs.supplier_id' => $not_analyzed,
-            'suppliers_childs.supplier_name' => $ik_analyzed,
+            'brand_childs' => [
+                'properties' => [
+                    'lang' => $not_analyzed,
+                    'name' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                    'logo' => $not_analyzed,
+                    'manufacturer' => $not_analyzed,
+                    'style' => $not_analyzed,
+                    'label' => $not_analyzed,
+                ],
+            ],
+            'suppliers_childs' => [
+                'properties' => [
+                    'supplier_id' => $not_analyzed,
+                    'supplier_name' => $ik_analyzed,
+                ],
+            ],
             'supplier_count' => $not_analyzed,
             'material_cat' => $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json

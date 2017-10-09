@@ -978,9 +978,7 @@ class ESClient {
         $indexParam['index'] = $index;
         $indexParam['type'] = $type;
 
-        $indexParam['body'] = [
-            $type => $mapParam
-        ];
+        $indexParam['body'] = $mapParam;
         try {
 
             $response = $this->server->indices()->putMapping($indexParam);
