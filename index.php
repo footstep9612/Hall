@@ -2,7 +2,7 @@
 
 error_reporting(E_ERROR);
 header('Access-Control-Allow-Origin:*');
-header('Access-Control-Allow-Headers:x-requested-with,content-type');
+header('Access-Control-Allow-Headers:x-requested-with,content-type,token');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     die('{"code":"200","message":"OK"}');
