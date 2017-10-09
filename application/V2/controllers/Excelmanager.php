@@ -363,8 +363,10 @@ class ExcelmanagerController extends PublicController {
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
-        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,origin_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no')->find();
-        $quoteInfo['logi_remarks'] = $quoteLogiFeeModel->where(['inquiry_id' => $inquiry_id])->getField('logi_remarks');
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,origin_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no,quote_cur_bn')->find();
+        $quoteLogiFee = $quoteLogiFeeModel->where(['inquiry_id' => $inquiry_id])->field('est_transport_cycle,logi_remarks')->find();
+        $quoteInfo['logi_remarks'] =$quoteLogiFee['logi_remarks'];
+        $quoteInfo['est_transport_cycle'] =$quoteLogiFee['est_transport_cycle'];
 
         //综合报价信息
         return $finalQuoteData = [
@@ -579,7 +581,7 @@ class ExcelmanagerController extends PublicController {
             $objSheet->setCellValue("H" . $num11, "");
             $objSheet->setCellValue("I" . $num11, "");
             $objSheet->setCellValue("J" . $num11, "EXW交货周期(天)");
-            $objSheet->setCellValue("K" . $num11, "");
+            $objSheet->setCellValue("K" . $num11, $quote['quote_info']['delivery_period']);
 
             $num12 = $row_num + 3;
             $objSheet->setCellValue("B" . $num12, "贸易术语");
@@ -591,7 +593,7 @@ class ExcelmanagerController extends PublicController {
             $objSheet->setCellValue("H" . $num12, "目的地");
             $objSheet->setCellValue("I" . $num12, $quote['quote_info']['delivery_addr']);
             $objSheet->setCellValue("J" . $num12, "运输周期(天)");
-            $objSheet->setCellValue("K" . $num12, $quote['quote_info']['delivery_period']);
+            $objSheet->setCellValue("K" . $num12, $quote['quote_info']['est_transport_cycle']);
 
             $num13 = $row_num + 4;
             $objSheet->setCellValue("B" . $num13, "物流合计");
@@ -621,7 +623,7 @@ class ExcelmanagerController extends PublicController {
             $objSheet->setCellValue("B" . $num15, "报价合计");
             $objSheet->setCellValue("C" . $num15, $quote['quote_info']['total_quote_price']);
             $objSheet->setCellValue("D" . $num15, "报价合计币种");
-            $objSheet->setCellValue("E" . $num15, '');
+            $objSheet->setCellValue("E" . $num15, $quote['quote_info']['quote_cur_bn']);
             $objSheet->setCellValue("F" . $num15, "");
             $objSheet->setCellValue("G" . $num15, "");
             $objSheet->setCellValue("H" . $num15, "");
