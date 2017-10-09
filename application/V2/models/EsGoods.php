@@ -221,7 +221,8 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers_childs.supplier_name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers_childs.supplier_id');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
+        //  $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand_childs.name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'cat_name', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'checked_desc');

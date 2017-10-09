@@ -220,8 +220,7 @@ class EsProductModel extends Model {
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED',
             'DELETED', 'DRAFT', 'INVALID'], 'VALID');
 
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand_name', 'brand.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand_childs.name.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.ik');
