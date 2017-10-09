@@ -39,7 +39,7 @@ class EsProductModel extends Model {
      */
 
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
-        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
+        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];
                 if (!$field) {
@@ -212,15 +212,16 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = [ESClient::WILDCARD => ['material_cat_no' => $mcat_no3 . '*']];
         }
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers_childs.supplier_name.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers_childs.supplier_id');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers_childs.supplier_id');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED',
             'DELETED', 'DRAFT', 'INVALID'], 'VALID');
-// $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand.ik');
+
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand_name', 'brand.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.ik');
@@ -229,8 +230,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.ik');
-//        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers.all');
-//        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.all');
+
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
@@ -300,7 +300,7 @@ class EsProductModel extends Model {
                         [ESClient::MATCH => ['show_name.ik' => $keyword]],
                         [ESClient::TERM => ['spu' => $keyword]],
                         [ESClient::WILDCARD => ['specs.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['brand.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['brand_childs.name.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
             ]]];

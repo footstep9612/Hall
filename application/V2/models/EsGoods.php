@@ -38,7 +38,7 @@ class EsGoodsModel extends Model {
      */
 
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
-        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
+        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];
                 if (!$field) {
@@ -219,7 +219,8 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'supplier_name', 'suppliers.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers_childs.supplier_name.all');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers_childs.supplier_id');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'cat_name', 'show_cats.all');
@@ -285,7 +286,8 @@ class EsGoodsModel extends Model {
                         [ESClient::TERM => ['sku' => $show_name]],
                         [ESClient::TERM => ['spu' => $show_name]],
                         [ESClient::WILDCARD => ['specs.all' => '*' . $show_name . '*']],
-                        [ESClient::WILDCARD => ['brand.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['brand_childs.name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['model.all' => '*' . $show_name . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
         }
