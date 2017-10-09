@@ -107,10 +107,16 @@ class MaterialCatModel extends PublicModel {
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
         try {
-            return $this->where($where)
-                            ->order('sort_order DESC')
-                            ->field('cat_no as value,name as label,parent_cat_no')
-                            ->select();
+            $data = $this->where($where)
+                    ->order('sort_order DESC')
+                    ->field('cat_no as value,name as label,parent_cat_no')
+                    ->select();
+            if ($condition['level_no'] == 3) {
+                foreach ($data as $key => $val) {
+                    $data[$key]['label'] = $val['label'] . '-' . $val['value'];
+                }
+            }
+            return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
