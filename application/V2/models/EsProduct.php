@@ -685,13 +685,10 @@ class EsProductModel extends Model {
     private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers) {
 
         $spu = $id = $item['spu'];
-
         $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $id);
-
 
         $body = $item;
         $item['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $item['brand'])));
-
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_encode(json_decode($item['brand'], true), 256);
             $body['brand_childs'] = json_decode($item['brand'], true);
@@ -702,7 +699,6 @@ class EsProductModel extends Model {
             $body['brand_childs'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
             $body['brand'] = json_encode(['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''], 256);
         }
-
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {
@@ -762,7 +758,6 @@ class EsProductModel extends Model {
             $body['min_pack_unit'] = '';
         }
         if (isset($onshelf_flags[$id])) {
-
             $body['onshelf_flag'] = 'Y';
             if ($onshelf_flags[$id]['checked_at']) {
                 $body['onshelf_by'] = $onshelf_flags[$id]['checked_at'];
@@ -793,14 +788,10 @@ class EsProductModel extends Model {
             $body['supplier_count'] = 0;
         }
         $this->_findnulltoempty($body);
-
-
         $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-
         if (!isset($flag['created'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
-
         $k++;
         return $flag;
     }
@@ -822,12 +813,10 @@ class EsProductModel extends Model {
             $goods_model = new GoodsModel();
             $goods = $goods_model->where(['spu' => $spu, 'lang' => $lang])->field('sku')->select();
             $updateParams = [];
-
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'goods_' . $lang;
             if ($goods) {
                 foreach ($goods as $good) {
-
                     $updateParams['body'][] = ['update' => ['_id' => $good['sku']]];
                     $updateParams['body'][] = ['doc' =>
                         ['brand' => $brand,
@@ -877,8 +866,6 @@ class EsProductModel extends Model {
                     'lang' => $lang,
                 ];
             }
-
-
 
             $count = $this->where($where)->count('id');
             $max_id = 0;
