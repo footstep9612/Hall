@@ -456,9 +456,10 @@ class EsGoodsModel extends Model {
     public function importgoodss($lang = 'en') {
         try {
             ob_clean();
-            $count = $this->where(['lang' => $lang])->count('id');
+            $min_id = 0;
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]])->count('id');
 
-
+            echo '共有', $count, '条记录需要导入!', PHP_EOL;
             for ($i = 0; $i < $count; $i += 100) {
                 if ($i > $count) {
                     $i = $count;
@@ -467,8 +468,13 @@ class EsGoodsModel extends Model {
                 echo $i, PHP_EOL, '<BR>';
                 ob_flush();
                 flush();
-                $goods = $this->where(['lang' => $lang])
-                                ->limit($i, 100)->select();
+                if ($min_id === 0) {
+                    $goods = $this->where(['lang' => $lang, 'id' => ['gt', 0]])
+                                    ->limit(0, 100)->order('id DESC')->select();
+                } else {
+                    $goods = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]])
+                                    ->limit(0, 100)->order('id DESC')->select();
+                }
 
                 $spus = $skus = [];
 
@@ -506,9 +512,11 @@ class EsGoodsModel extends Model {
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 echo '<pre>';
-                foreach ($goods as $item) {
+                foreach ($goods as $key => $item) {
                     $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
-
+                    if ($key === 99) {
+                        $min_id = $item['id'];
+                    }
                     print_r($flag);
                     ob_flush();
                     flush();

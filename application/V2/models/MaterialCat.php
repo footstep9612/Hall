@@ -856,8 +856,13 @@ class MaterialCatModel extends PublicModel {
                 $newcat3s = [];
                 foreach ($cat3s as $val) {
                     $newcat3s[$val['cat_no']] = [
+                        'cat_no1' => '',
+                        'cat_name1' => '',
+                        'cat_no2' => '',
+                        'cat_name2' => '',
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name']];
+                        'cat_name3' => $val['name']
+                    ];
                 }
                 return $newcat3s;
             }
@@ -877,6 +882,8 @@ class MaterialCatModel extends PublicModel {
                 }
                 foreach ($cat3s as $val) {
                     $newcat3s[$val['cat_no']] = [
+                        'cat_no1' => '',
+                        'cat_name1' => '',
                         'cat_no3' => $val['cat_no'],
                         'cat_name3' => $val['name'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
