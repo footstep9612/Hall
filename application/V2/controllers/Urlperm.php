@@ -36,6 +36,7 @@ class UrlpermController extends PublicController {
         }
         return $tree;
     }
+
     public function listAction() {
         //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];

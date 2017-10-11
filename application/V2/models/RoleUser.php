@@ -97,6 +97,22 @@ class RoleUserModel extends PublicModel {
         }
         return true ;
     }
+    public function update_role_datas($data) {
+        if($data['user_id']){
+            $this->where(['role_id'=>$data['role_id']])->delete();
+            if($data['role_ids']){
+                $role_arr = explode(',',$data['role_ids']);
+                $count = count($role_arr);
+                for($i=0;$i<$count;$i++){
+                    $info = $this -> where(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ])->select();
+                    if(!$info){
+                        $this -> create_data(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ]);
+                    }
+                }
+            }
+        }
+        return true ;
+    }
     /**
      * 新增数据
      * @param  mix $createcondition 新增条件
