@@ -152,25 +152,10 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['name'])){
-            $arr['name'] = $create['name'];
+        $data = $this->create($create);
+        if($data){
+            $data['created_at'] = date("Y-m-d H:i:s");
         }
-        if(isset($create['name_en'])){
-            $arr['name_en'] = $create['name_en'];
-        }
-        if(isset($create['remarks'])){
-            $arr['remarks'] = $create['remarks'];
-        }
-        if(isset($create['status'])){
-            $arr['status'] = $create['status'];
-        }
-        if(isset($create['created_by'])){
-            $arr['created_by'] = $create['created_by'];
-        }
-        if(isset($arr)){
-            $arr['created_at'] = date("Y-m-d H:i:s");
-        }
-        $data = $this->create($arr);
         return $this->add($data);
     }
 
