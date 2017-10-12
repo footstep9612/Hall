@@ -1037,9 +1037,10 @@ class GoodsModel extends PublicModel {
                             }
                             $presult = $pModel->where($where_spu)
                                     ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
-                            if (!$presult) {
+                            
+                            /*if (!$presult) {
                                 return false;
-                            }
+                            }*/
                         } else {
                             return false;
                         }

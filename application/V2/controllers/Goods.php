@@ -8,7 +8,6 @@
  */
 class GoodsController extends PublicController {
 
-//class GoodsController extends Yaf_Controller_Abstract{
     private $input;
 
     public function init() {
@@ -56,7 +55,7 @@ class GoodsController extends PublicController {
 
             $goodsModel = new GoodsAttachModel();
             $attach = $goodsModel->getSkuAttachsInfo($data);
-            
+
             $GoodsCostPriceModel = new GoodsCostPriceModel();
             $supplierCost= $GoodsCostPriceModel->getInfo($data);
             if($res){
@@ -145,8 +144,7 @@ class GoodsController extends PublicController {
      *          attachs=>[]
      *          supplier_cost=>[]
      * ]
-     * {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo",
-      "sku":"69460806","zh":{"lang":"zh","spu":"8832211","name":"888123","show_name":"123","attrs":{"spec_attrs":[{"attr_name":"8121","attr_value":"1","value_unit":"1","spec_flag":"Y"}],"ex_goods_attrs":[{"attr_name":"9212","attr_value":"2","value_unit":"2","goods_flag":"Y"}],"ex_hs_attrs":[{"attr_name":"333","attr_value":"3","value_unit":"3","hs_flag":"Y"}],"other_attrs":[{"attr_name":"444","attr_value":"4","value_unit":"4"}]}},"attachs":[{"supplier_id":"11223","attach_type":"","attach_name":"","attach_url":"a\/b\/c.png","sort_order":"0"}],"supplier_cost":[{"supplier_id":"112123","min_purchase_qty":1}]}
+     *
      *  @return sku编号
      * @author  klp  2017/7-13
      */
