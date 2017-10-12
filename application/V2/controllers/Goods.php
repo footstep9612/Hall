@@ -53,8 +53,10 @@ class GoodsController extends PublicController {
         if($result){
             $data['sku'] = $result[0]['sku'];
             $res = $goodsModel->getSkuInfo($data);
+
             $goodsModel = new GoodsAttachModel();
             $attach = $goodsModel->getSkuAttachsInfo($data);
+            
             $GoodsCostPriceModel = new GoodsCostPriceModel();
             $supplierCost= $GoodsCostPriceModel->getInfo($data);
             if($res){
