@@ -286,6 +286,7 @@ class EsProductModel extends Model {
                         [ESClient::MATCH => ['show_name.ik' => $keyword]],
                         [ESClient::TERM => ['spu' => $keyword]],
                         [ESClient::WILDCARD => ['specs.all' => '*' . $keyword . '*']],
+                        [ESClient::MATCH => ['keywords.ik' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['brand.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
