@@ -49,12 +49,18 @@ class GoodsController extends PublicController {
     public function getFirstSkuAction() {
         $goodsModel = new GoodsModel();
         $arr = [];
-        $result = $goodsModel->getSku($this->user);
+        $result = $goodsModel->getSku($this->user,$this->put_data);
         if($result){
             $data['sku'] = $result[0]['sku'];
             $res = $goodsModel->getSkuInfo($data);
+            $goodsModel = new GoodsAttachModel();
+            $attach = $goodsModel->getSkuAttachsInfo($data);
+            $GoodsCostPriceModel = new GoodsCostPriceModel();
+            $supplierCost= $GoodsCostPriceModel->getInfo($data);
             if($res){
-               $arr = $res;
+                $res['attachs'] = $attach ? $attach : [];
+                $res['supplier_cost'] = $supplierCost ? $supplierCost : [];
+                $arr = $res;
             }
         }
         jsonReturn($arr);

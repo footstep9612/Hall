@@ -612,8 +612,8 @@ class EsProductModel extends Model {
 
     public function importproducts($lang = 'en') {
         try {
-            $max_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
+            $min_id = 0;
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', $min_id]
                     ])->count('id');
 
 
@@ -627,9 +627,17 @@ class EsProductModel extends Model {
                 if ($i > $count) {
                     $i = $count;
                 }
-                $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
-                                ])->limit(0, 100)
-                                ->order('id asc')->select();
+
+
+                if ($min_id === 0) {
+                    $products = $this->where(['lang' => $lang, 'id' => ['gt', 0]
+                                    ])->limit(0, 100)
+                                    ->order('id desc')->select();
+                } else {
+                    $products = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]
+                                    ])->limit(0, 100)
+                                    ->order('id desc')->select();
+                }
                 $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {
@@ -666,7 +674,7 @@ class EsProductModel extends Model {
                     foreach ($products as $key => $item) {
                         $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers);
                         if ($key === 99) {
-                            $max_id = $item['id'];
+                            $min_id = $item['id'];
                         }
                         print_r($flag);
                         ob_flush();
