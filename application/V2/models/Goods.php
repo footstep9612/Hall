@@ -1905,8 +1905,11 @@ class GoodsModel extends PublicModel {
      * 获取用户创建的第一个sku信息
      * @author klp
      */
-    public function getSku($userInfo, $order = 'id asc') {
-
+    public function getSku($userInfo,$spu, $order = 'id asc') {
+        if(empty($spu['spu'])){
+            return array();
+        }
+        $where['spu'] = $spu['spu'];
         $where['status'] = array('neq', self::STATUS_DELETED);
         $where['deleted_flag'] = self::DELETE_N;
         $where['created_by'] = $userInfo['id'];
