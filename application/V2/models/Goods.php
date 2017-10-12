@@ -1907,7 +1907,7 @@ class GoodsModel extends PublicModel {
      */
     public function getSku($userInfo,$spu, $order = 'id asc') {
         if(empty($spu['spu'])){
-            return array();
+            return false;
         }
         $where['spu'] = $spu['spu'];
         $where['status'] = array('neq', self::STATUS_DELETED);
