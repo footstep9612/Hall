@@ -252,7 +252,7 @@ class OrderLogModel extends PublicModel {
         $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no,b.buyer_id';
 
         try {
-            $count = $this->getCount($condition);
+
             $list = $this->alias('a')
                     ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
                     ->field($field)
@@ -260,6 +260,7 @@ class OrderLogModel extends PublicModel {
                     ->page($page, $pagesize)
                     ->order('a.order_id desc,a.created_at asc')
                     ->select();
+            $count = count($list);
 
             if ($list) {
                 $results['code'] = '1';
