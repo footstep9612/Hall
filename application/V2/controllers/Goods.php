@@ -55,8 +55,11 @@ class GoodsController extends PublicController {
             $res = $goodsModel->getSkuInfo($data);
             $goodsModel = new GoodsAttachModel();
             $attach = $goodsModel->getSkuAttachsInfo($data);
+            $GoodsCostPriceModel = new GoodsCostPriceModel();
+            $supplierCost= $GoodsCostPriceModel->getInfo($data);
             if($res){
                 $res['attachs'] = $attach ? $attach : [];
+                $res['supplier_cost'] = $supplierCost ? $supplierCost : [];
                 $arr = $res;
             }
         }
