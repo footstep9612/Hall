@@ -65,10 +65,10 @@ class OrderLogModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    public function CerditList($userInfo,$start_no,$pagesize) {
+    public function CerditList($userInfo, $start_no, $pagesize) {
 
-        if(empty($userInfo['buyer_id'])){
-            jsonReturn('',-1001,'用户ID缺失!');
+        if (empty($userInfo['buyer_id'])) {
+            jsonReturn('', -1001, '用户ID缺失!');
         }
         $where['od.buyer_id'] = $userInfo['buyer_id'];
         $where['od.deleted_flag'] = 'N';
@@ -78,18 +78,19 @@ class OrderLogModel extends PublicModel {
         $orderModel = new OrderModel();
         try {
             $orders = $orderModel->alias('od')
-                ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
-                ->where($where)
-                ->limit($start_no,$pagesize)
-                ->order('ol.log_at desc')
-                ->select();
+                    ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
+                    ->where($where)
+                    ->limit($start_no, $pagesize)
+                    ->order('ol.log_at desc')
+                    ->select();
+            echo $orderModel->_sql();
             $count = $orderModel->alias('od')
-                ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
-                ->where($where)
-                ->count('od.id');
-            if($orders){
+                    ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
+                    ->where($where)
+                    ->count('od.id');
+            if ($orders) {
                 return [$orders, $count];
-            } else{
+            } else {
                 return false;
             }
         } catch (Exception $e) {
