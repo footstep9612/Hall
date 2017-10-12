@@ -83,7 +83,7 @@ class OrderLogModel extends PublicModel {
                     ->limit($start_no, $pagesize)
                     ->order('ol.log_at desc')
                     ->select();
-            echo $orderModel->_sql();
+
             $count = $orderModel->alias('od')
                     ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
                     ->where($where)
