@@ -33,6 +33,20 @@ class GroupUserModel extends PublicModel {
         }
         return true ;
     }
+    public function addgroup($data){
+        if(!empty($data['group_ids'])){
+            $group_arr = explode(",",$data['group_ids']);
+        }
+        for($i=0;$i<count($group_arr);$i++){
+            $arr['org_id'] = $group_arr[$i];
+            $arr['employee_id'] = $data['user_id'];
+            $info = $this -> where($arr)->select();
+            if(!$info){
+                $this -> create_data($arr);
+            }
+        }
+        return true ;
+    }
     public function deleteuser($data){
         if(!empty($data['user_id'])){
             $arr['employee_id'] = $data['user_id'];

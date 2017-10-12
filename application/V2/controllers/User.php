@@ -185,9 +185,8 @@ class UserController extends PublicController {
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if(!empty($data['password'])) {
-            $arr['password_hash'] = md5($data['password']);
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" => "密码不可以都为空"));
+            $password = randStr(6);
+            $arr['password_hash'] = md5($password);
         }
         if(!empty($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
@@ -266,6 +265,28 @@ class UserController extends PublicController {
             $this->jsonReturn(array("code" => "-101", "message" => "用户已存在"));
         }
         $res=$model->create_data($arr);
+        if($res){
+            if( $data['role_ids']){
+                $model_role_user = new RoleUserModel();
+                $role_user_arr['user_id'] = $res;
+                $role_user_arr['role_ids'] = $data['role_ids'];
+                $model_role_user->update_role_datas($role_user_arr);
+            }
+            if( $data['group_ids']){
+                $model_group_user = new GroupUserModel();
+                $group_user_arr['user_id'] = $res;
+                $group_user_arr['group_ids'] = $data['group_ids'];
+                $model_group_user->addGroup($group_user_arr);
+            }
+            if( $data['country_bns']){
+                $model_country_user = new CountryUserModel();
+                $country_user_arr['user_id'] = $res;
+                $country_user_arr['country_bns'] = $data['country_bns'];
+                $model_country_user->addCountry($country_user_arr);
+            }
+           // $body = $this->getView()->render('login/email.html', $email_arr);
+            send_Mail($arr['email'], '帐号创建成功', "密码：".$password, $arr['name']);
+        }
         if(!empty($res)){
             $datajson['code'] = 1;
             $datajson['data'] = [ 'id'=>$res ];

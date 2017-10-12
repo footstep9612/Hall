@@ -71,10 +71,9 @@ class UserModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" employee.id desc") {
         $where = $this->getCondition($condition);
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`em`.`name` as created_name,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
         $sql .= ' FROM '.$this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
-        $sql .= ' left join  `erui2_sys`.employee  em on em.id = employee.created_by ';
         $sql .= ' left join  org on org_member.org_id = org.id ';
         $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
         $sql .= ' left join  role on role_member.role_id = role.id and role.deleted_flag ="N" ';
