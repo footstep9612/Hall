@@ -22,4 +22,40 @@ class ShowCatModel extends PublicModel {
         parent::__construct();
     }
 
+    /*
+     * 获取物料分类
+     *
+     */
+
+    public function getshowcatsByshowcatnos($show_cat_nos, $lang = 'en') {
+
+        try {
+
+            if ($show_cat_nos) {
+                $show_cat_nos = array_values($show_cat_nos);
+
+                $where = [
+                    'cat_no' => ['in', $show_cat_nos],
+                    'status' => 'VALID',
+                    'lang' => $lang,
+                ];
+                $flag = $this
+                        ->where($where)
+                        ->field('cat_no,name')
+                        ->group('cat_no')
+                        ->limit(0, 20)
+                        ->select();
+
+                return $flag;
+            } else {
+                return [];
+            }
+        } catch (Exception $ex) {
+
+            Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
+            Log::write($ex->getMessage());
+            return [];
+        }
+    }
+
 }

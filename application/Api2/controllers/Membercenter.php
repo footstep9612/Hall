@@ -63,16 +63,15 @@ class MembercenterController extends PublicController {
      * 会员服务  --门户(new)
      * @author klp
      */
-    public function LevelInfoAction(){
+    public function LevelInfoAction() {
         $BuyerLevelModel = new BuyerLevelModel();
         $result = $BuyerLevelModel->getLevelService();
-        if(!empty($result)) {
+        if (!empty($result)) {
             jsonReturn($result);
         } else {
-            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
     }
-
 
     /**
      * 源密码校验
@@ -111,7 +110,7 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->getPut(),$this->user);
+        $result = $buyerAccount->checkPassword($this->getPut(), $this->user);
         if ($result) {
             $buyerAccount = new BuyerAccountModel();
             $res = $buyerAccount->update_pwd($this->getPut(), $this->user);
@@ -123,7 +122,6 @@ class MembercenterController extends PublicController {
         } else {
             jsonReturn('', '-1003', '原密码输入错误!');
         }
-
     }
 
     /**
@@ -155,10 +153,10 @@ class MembercenterController extends PublicController {
         $result = $MemberServiceModel->levelService($this->user);
 //        $ServiceCatModel = new ServiceCatModel();
 //        $result = $ServiceCatModel->getAllService($this->user);
-        if(!empty($result)) {
+        if (!empty($result)) {
             jsonReturn($result);
         } else {
-            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
     }
 
@@ -230,21 +228,15 @@ class MembercenterController extends PublicController {
      */
     public function OrderCreditListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $pagesize = 10;
-        $start_no = 0;
-        if(isset($data['pageSize'])){
-            $pagesize = $data['pageSize'];
-        }
-        if(isset($data['current_no'])) {
-            $start_no = ($data['current_no'] - 1) * $data['$pagesize'];
-        }
+
+        list($start_no, $pagesize) = $this->_getPage($data);
         $OrderLog = new OrderLogModel();
-        list($result, $count) = $OrderLog->CerditList($this->user,$start_no,$pagesize);
-        if(!empty($result)){
+        list($result, $count) = $OrderLog->CerditList($this->user, $start_no, $pagesize);
+        if (!empty($result)) {
             $datajson['code'] = 1;
             $datajson['count'] = $count;
             $datajson['data'] = $result;
-        } elseif ($result === null){
+        } elseif ($result === null) {
             $datajson['code'] = -1002;
             $datajson['count'] = 0;
             $datajson['message'] = '参数错误!';
@@ -257,6 +249,25 @@ class MembercenterController extends PublicController {
     }
 
     /**
+     * 分页处理
+     * @param array $condition 条件
+     * @return array
+     * @author zyg
+     *
+     */
+    protected function _getPage($condition) {
+        $pagesize = 10;
+        $start_no = 0;
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        if (isset($condition['current_no'])) {
+            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
+        }
+        return [$start_no, $pagesize];
+    }
+
+    /**
      * 采购商负责人
      * @time 2017-9-14
      * @author klp
@@ -266,7 +277,7 @@ class MembercenterController extends PublicController {
         if (!empty($this->user['buyer_id'])) {
             $array['buyer_id'] = $this->user['buyer_id'];
         } else {
-            jsonReturn('',-1001,'用户ID缺失!');
+            jsonReturn('', -1001, '用户ID缺失!');
         }
         $model = new BuyerAgentModel();
         $res = $model->getlist($array);
@@ -281,4 +292,5 @@ class MembercenterController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
 }

@@ -120,6 +120,8 @@ class OrderModel extends PublicModel {
     public function getList($condition, $lang = 'en') {
 
         $where = $this->_getCondition($condition);
+        $condition['current_no'] = $condition['currentPage'];
+
         list($start_no, $pagesize) = $this->_getPage($condition);
         $field = 'id,order_no,po_no,execute_no,contract_date,buyer_id,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
         $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn';

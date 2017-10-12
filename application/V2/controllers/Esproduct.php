@@ -134,10 +134,7 @@ class EsproductController extends PublicController {
                 $list[$key]['img'] = new stdClass();
             }
             $list[$key]['id'] = $item['_id'];
-            $show_cats = json_decode($item["_source"]["show_cats"], true);
-            if ($show_cats) {
-                rsort($show_cats);
-            }
+
             if ($product['created_by']) {
                 $user_ids[] = $product['created_by'];
             }
@@ -150,21 +147,11 @@ class EsproductController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-            $list[$key]['show_cats'] = $show_cats;
-            $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-            $list[$key]['brand'] = json_decode($list[$key]['brand'], true);
+
+
+            $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
+
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            if (!empty($list[$key]['material_cat'])) {
-                $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
-            } else {
-                $list[$key]['material_cat'] = new \stdClass();
-            }
-            if (!empty($list[$key]['material_cat_zh'])) {
-                $list[$key]['material_cat_zh'] = json_decode($list[$key]['material_cat_zh'], true);
-            } else {
-                $list[$key]['material_cat_zh'] = new \stdClass();
-            }
         }
 
         $employee_model = new EmployeeModel();
@@ -350,8 +337,8 @@ class EsproductController extends PublicController {
         }
         $es = new ESClient();
         $state = $es->getstate();
-        if (!isset($state['metadata']['indices'][$this->index])) {
-            $es->create_index($this->index, $body);
+             if (!isset($state['metadata']['indices'][$this->index])) {
+            $es->create_index($this->index, $body, 16, 0);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
@@ -487,9 +474,9 @@ class EsproductController extends PublicController {
             'deleted_flag' => $not_analyzed, //删除标志
             /* 扩展内容 */
             'name_loc' => $ik_analyzed, //中文品名
-            'brand' => $ik_analyzed, //品牌
-            'suppliers' => $ik_analyzed, //供应商数组 json
-            'brand_childs' => [
+            // 'brand' => $ik_analyzed, //品牌
+            // 'suppliers' => $ik_analyzed, //供应商数组 json
+            'brand' => [
                 'properties' => [
                     'lang' => $not_analyzed,
                     'name' => $ik_analyzed,
@@ -500,19 +487,60 @@ class EsproductController extends PublicController {
                     'label' => $not_analyzed,
                 ],
             ],
-            'suppliers_childs' => [
+            'suppliers' => [
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
                 ],
             ],
             'supplier_count' => $not_analyzed,
-            'specs' => $ik_analyzed, //规格数组 json
+            //   'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
-            'show_cats' => $ik_analyzed, //展示分类数组 json
-            'attrs' => $ik_analyzed, //属性数组 json
-            'material_cat' => $ik_analyzed, //物料分类对象 json
-            'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
+            'show_cats' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                    'market_area_bn' => $not_analyzed,
+                    'country_bn' => $not_analyzed,
+                    'onshelf_flag' => $not_analyzed,
+                ]], //展示分类数组 json
+            'attrs' => ['properties' => [//属性数组 json
+                    'spec_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_goods_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_hs_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'other_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]]
+                ]],
+            'material_cat' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], // $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
@@ -580,7 +608,7 @@ class EsproductController extends PublicController {
             'qrcode' => $not_analyzed, //二维码
             'name' => $ik_analyzed, //产品名称
             'show_name' => $ik_analyzed, // 产品展示
-            'brand' => $ik_analyzed, //品牌
+            //'brand' => $ik_analyzed, //品牌
             'keywords' => $ik_analyzed, //关键词
             'exe_standard' => $ik_analyzed, //执行标准
             'tech_paras' => $ik_analyzed, //简介',
@@ -620,12 +648,39 @@ class EsproductController extends PublicController {
             'min_exw_day' => $not_analyzed, //出货周期（天）
             'min_pack_unit' => $not_analyzed, //成交单位
             'minimumorderouantity' => $not_analyzed, //最小订货数量
-            'specs' => $ik_analyzed, //规格数组 json
+            //  'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
-            'show_cats' => $ik_analyzed, //展示分类数组 json
-            'attrs' => $ik_analyzed, //属性数组 json
-            'suppliers' => $ik_analyzed, //供应商数组 json
-            'brand_childs' => [
+            'show_cats' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                    'market_area_bn' => $not_analyzed,
+                    'country_bn' => $not_analyzed,
+                    'onshelf_flag' => $not_analyzed,
+                ]], //展示分类数组 json
+            'attrs' => ['properties' => [
+                    'spec_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_goods_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_hs_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'other_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]]
+                ]], //$ik_analyzed, //属性数组 json
+            // 'suppliers' => $ik_analyzed, //供应商数组 json
+            'brand' => [
                 'properties' => [
                     'lang' => $not_analyzed,
                     'name' => $ik_analyzed,
@@ -636,15 +691,29 @@ class EsproductController extends PublicController {
                     'label' => $not_analyzed,
                 ],
             ],
-            'suppliers_childs' => [
+            'suppliers' => [
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
                 ],
             ],
             'supplier_count' => $not_analyzed,
-            'material_cat' => $ik_analyzed, //物料分类对象 json
-            'material_cat_zh' => $ik_analyzed, //物料中文分类对象 json
+            'material_cat' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], // $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], //物料中文分类对象 json
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
