@@ -532,7 +532,11 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        $sku = isset($input['sku']) ? trim($input['sku']) : $this->setRealSku($input);
+        if(isset($input['sku']) && !empty($input['sku'])){
+            $sku = trim($input['sku']);
+        } else {
+            $sku = $this->setRealSku($input);
+        }
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
