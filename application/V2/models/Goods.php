@@ -554,26 +554,9 @@ class GoodsModel extends PublicModel {
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
 
-                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    if ($input['status'] != 'DRAFT') {
-                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
-                            'lang' => $key,
-                            'spu' => $checkout['spu'],
-                            'name' => $value['name'],
-                            'model' => $checkout['model'],
-                            'status' => array('neq', 'DRAFT')
-                        );
-                        if (!empty($input['sku'])) {
-                            $exist_condition['sku'] = array('neq', $input['sku']);
-                        }
-                        $exist = $this->where($exist_condition)->find();
-                        if ($exist) {
-                            jsonReturn('', ErrorMsg::EXIST, '名称：' . $value['name'] . ' 型号：' . $checkout['model'] . '已存在');
-                        }
-                    }
-
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
 
+                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
