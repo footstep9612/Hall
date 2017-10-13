@@ -410,8 +410,6 @@ class BuyerController extends PublicController {
             if($buyer_id >0 && $buyer_id != $data['id']){
                 $this->jsonReturn(array("code" => "-101", "message" => "该邮箱已经被其他账号使用"));
             }
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" => "办公邮箱不能为空"));
         }
         if (!empty($data['mobile'])) {
             $arr['official_phone'] = $data['mobile'];
