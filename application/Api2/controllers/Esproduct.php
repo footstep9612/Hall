@@ -49,25 +49,30 @@ class EsproductController extends PublicController {
             if (isset($condition['is_catlist']) && $condition['is_catlist'] === 'N') {
 
             } else {
+                $show_cat_nos = $show_cats = [];
+
+
                 if (!$condition['show_cat_no']) {
-                    $material_cat_nos = [];
-                    foreach ($data['aggregations']['material_cat_no']['buckets'] as $item) {
-                        $material_cats[$item['key']] = $item['doc_count'];
-                        $material_cat_nos[] = $item['key'];
+
+                    foreach ($data['aggregations']['show_cat_no3']['buckets'] as $item) {
+                        $show_cats[$item['key']] = $item['doc_count'];
+                        $show_cat_nos[] = $item['key'];
                     }
                 } else {
+                    $show_cat_no = $condition['show_cat_no'];
                     unset($condition['show_cat_no']);
                     $ret1 = $model->getproducts($condition, null, $this->getLang());
                     if ($ret1) {
-                        $material_cat_nos = [];
-                        foreach ($ret1[0]['aggregations']['material_cat_no']['buckets'] as $item) {
-                            $material_cats[$item['key']] = $item['doc_count'];
-                            $material_cat_nos[] = $item['key'];
+                        $show_cats[$show_cat_no] = $send['count'];
+                        $show_cat_nos[] = $show_cat_no;
+                        foreach ($ret1[0]['aggregations']['show_cat_no3']['buckets'] as $item) {
+                            $show_cats[$item['key']] = $item['doc_count'];
+                            $show_cat_nos[] = $item['key'];
                         }
                     }
                 }
 
-                $catlist = $this->getcatlist($material_cat_nos, $material_cats);
+                $catlist = $this->getcatlist($show_cat_nos, $show_cats);
                 $send['catlist'] = $catlist;
             }
             $send['data'] = $list;
@@ -85,16 +90,12 @@ class EsproductController extends PublicController {
     private function getdata($data) {
         $keyword = $this->getPut('keyword');
         foreach ($data['hits']['hits'] as $key => $item) {
-
-
             $list[$key] = $item["_source"];
-
             if (isset($item['highlight']['show_name.ik'][0])) {
                 $list[$key]['highlight_show_name'] = $item['highlight']['show_name.ik'][0];
             } else {
                 $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
             }
-
             $attachs = json_decode($item["_source"]['attachs'], true);
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
@@ -102,56 +103,40 @@ class EsproductController extends PublicController {
                 $list[$key]['img'] = null;
             }
             $list[$key]['id'] = $item['_id'];
-            $show_cats = json_decode($item["_source"]["show_cats"], true);
-            if ($show_cats) {
-                rsort($show_cats);
-            }
-            $list[$key]['show_cats'] = $show_cats;
-            $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
-            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+
+            $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
+
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            $list[$key]['meterial_cat'] = json_decode($list[$key]['meterial_cat'], true);
         }
-
-
         return $list;
     }
 
-    private function getcatlist($material_cat_nos, $material_cats) {
-        ksort($material_cat_nos);
+    private function getcatlist($show_cat_nos, $show_cats) {
+        ksort($show_cat_nos);
         $condition = $this->getPut();
         $condition['token'] = $condition['show_cat_no'] = null;
         unset($condition['token'], $condition['show_cat_no']);
-        $catno_key = 'ShowCats_' . md5(http_build_query($material_cat_nos) . '&lang = ' . $this->getLang() . http_build_query($condition));
-        $catlist = json_decode(redisGet($catno_key), true);
-        if (!$catlist) {
-            $matshowcatmodel = new ShowMaterialCatModel();
-            $showcats = $matshowcatmodel->getshowcatsBymaterialcatno($material_cat_nos, $this->getLang());
-
-            $new_showcats3 = [];
-            foreach ($showcats as $showcat) {
-                $material_cat_no = $showcat['material_cat_no'];
-                unset($showcat['material_cat_no']);
-                $new_showcats3[$showcat['cat_no']] = $showcat;
-                if (isset($material_cats[$material_cat_no])) {
-                    $new_showcats3[$showcat['cat_no']]['count'] = $material_cats[$material_cat_no];
-                }
-            }
-            rsort($new_showcats3);
-            foreach ($new_showcats3 as $key => $item) {
-                $model = new EsProductModel();
-                $condition['show_cat_no'] = $item['cat_no'];
-                $item['count'] = $model->getcount($condition, $this->getLang());
-                $new_showcats3[$key] = $item;
-            }
-            redisSet($catno_key, json_encode($new_showcats3), 3600);
-            return $new_showcats3;
+        $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos) . '&lang = ' . $this->getLang() . http_build_query($condition));
+        $showcats = json_decode(redisGet($catno_key), true);
+        if (!$showcats) {
+            $showcatmodel = new ShowCatModel();
+            $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $this->getLang());
+            redisSet($catno_key, json_encode($showcats), 3600);
         }
-        return $catlist;
+        $new_showcats3 = [];
+        foreach ($showcats as $showcat) {
+            $new_showcats3[$showcat['cat_no']] = $showcat;
+            if (isset($show_cats[$showcat['cat_no']])) {
+                $new_showcats3[$showcat['cat_no']]['count'] = $show_cats[$showcat['cat_no']];
+            }
+        }
+        rsort($new_showcats3);
+
+        return $new_showcats3;
     }
 
-    private function update_keywords() {
+    private
+            function update_keywords() {
         if ($this->getPut('keyword')) {
             $search = [];
             $search['keywords'] = $this->getPut('keyword');

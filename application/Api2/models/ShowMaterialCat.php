@@ -81,7 +81,7 @@ class ShowMaterialCatModel extends PublicModel {
                 return [];
             }
         } catch (Exception $ex) {
-            var_dump($ex);
+
             Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
             Log::write($ex->getMessage());
             return [];
