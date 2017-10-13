@@ -28,7 +28,7 @@ class GoodsModel extends PublicModel {
     protected $field = array(
         'spu' => array('required'),
         'name' => array('required'),
-            //'show_name' => array('required'),
+        'model' => array('required'),
     );
     //固定属性映射
     protected $const_attr = array(
