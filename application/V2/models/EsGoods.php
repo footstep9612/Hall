@@ -209,6 +209,8 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
+
 
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
@@ -568,6 +570,12 @@ class EsGoodsModel extends Model {
         } else {
             $body['material_cat_zh'] = new stdClass();
         }
+        if (isset($product_attr['bizline_id']) && $product_attr['bizline_id']) {
+            $body['bizline_id'] = $product_attr['bizline_id'];
+        } else {
+            $body['bizline_id'] = new stdClass();
+        }
+
         if (isset($scats[$sku])) {
 
             $show_cats = $scats[$sku];

@@ -210,6 +210,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers.supplier_id');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
@@ -316,8 +317,8 @@ class EsProductModel extends Model {
                         [ESClient::MATCH => ['show_name.ik' => $keyword]],
                         [ESClient::TERM => ['spu' => $keyword]],
                         [ESClient::MATCH => ['keywords.ik' => $keyword]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => '*' . $show_name . '*']],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['brand.name.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
@@ -486,10 +487,10 @@ class EsProductModel extends Model {
     public function getproductattrsbyspus($spus, $lang = 'en') {
         try {
             $products = $this->where(['spu' => ['in', $spus], 'lang' => $lang])
-                    ->field('spu,material_cat_no,brand,source')
+                    ->field('spu,material_cat_no,brand,bizline_id')
                     ->select();
             $brands = [];
-
+            $bizline_ids = [];
             $material_cat_nos = [];
             $attr_spus = $mcat_nos = [];
 
@@ -499,6 +500,8 @@ class EsProductModel extends Model {
                 $mcat_nos[] = $item['material_cat_no'];
                 $attr_spus[] = $spu;
                 $brands[$spu] = $item['brand'];
+                $brands[$spu] = $item['brand'];
+
                 $material_cat_nos[$spu] = $item['material_cat_no'];
             }
 
@@ -523,6 +526,7 @@ class EsProductModel extends Model {
                 }
                 $spu = $item['spu'];
                 $body['brand'] = $brands[$spu];
+                $body['bizline_id'] = $item['bizline_id'];
                 $body['material_cat_no'] = $material_cat_nos[$spu];
                 $ret[$item['spu']] = $body;
             }

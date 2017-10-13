@@ -310,12 +310,13 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::MATCH => ['name.ik' => $keyword]],
                         [ESClient::MATCH => ['show_name.ik' => $keyword]],
-                        [ESClient::TERM => ['spu' => $keyword]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $show_name . '*']],
-                        [ESClient::MATCH => ['keywords.ik' => '*' . $keyword . '*']],
+                        [ESClient::MATCH => ['keywords.ik' => $keyword]],
                         [ESClient::WILDCARD => ['brand.name.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $keyword . '*']],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => '*' . $keyword . '*']],
+                        [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }
         return $body;

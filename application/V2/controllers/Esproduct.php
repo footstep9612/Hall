@@ -337,7 +337,7 @@ class EsproductController extends PublicController {
         }
         $es = new ESClient();
         $state = $es->getstate();
-             if (!isset($state['metadata']['indices'][$this->index])) {
+        if (!isset($state['metadata']['indices'][$this->index])) {
             $es->create_index($this->index, $body, 16, 0);
         }
         $this->setCode(1);
@@ -455,6 +455,7 @@ class EsproductController extends PublicController {
             'net_weight_kg' => $not_analyzed, //净重(kg)
             'gross_weight_kg' => $not_analyzed, //毛重(kg)
             'compose_require_pack' => $not_analyzed, //仓储运输包装及其他要求
+            'bizline_id' => $not_analyzed, //产品线ID
             'pack_type' => $ik_analyzed, //包装类型
             'name_customs' => $ik_analyzed, //报关名称
             'hs_code' => $ik_analyzed, //海关编码
@@ -631,6 +632,7 @@ class EsproductController extends PublicController {
             'source' => $ik_analyzed, //数据来源
             'source_detail' => $ik_analyzed, //数据来源详情
             'sku_count' => $int_analyzed, //SKU数
+            'bizline_id' => $not_analyzed, //产品线ID
             'recommend_flag' => $not_analyzed, //推荐
             'status' => $not_analyzed, //状态
             'created_by' => $int_analyzed, //创建人
