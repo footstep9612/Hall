@@ -774,9 +774,8 @@ class GoodsModel extends PublicModel {
                 'deleted_flag' => 'N'
             );
             if (!empty($condition['sku'])) {
-                $where['sku'] = array('neq', $condition['sku']);
+                $where['sku'] =  $condition['sku'];
             }
-
             $attr_model = new GoodsAttrModel();
             $other_attr = $attr_model->where($where)->select();
 
@@ -786,9 +785,9 @@ class GoodsModel extends PublicModel {
             } else {
                 foreach($other_attr as $key=>$item){
                     $other = json_decode($item['other_attrs'], true);
-                    $other = $other ? $other : [];
-                    $result1 = array_diff_assoc($other,$attr['other_attrs']);
-                    $result2 = array_diff_assoc($attr['other_attrs'],$other);
+                    $otherAttr = $other ? $other : [];
+                    $result1 = array_diff_assoc($otherAttr,$attr['other_attrs']);
+                    $result2 = array_diff_assoc($attr['other_attrs'],$otherAttr);
 
                     if(empty($result1) && empty($result2)){
                         jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在'.'; 扩展属性重复!');
