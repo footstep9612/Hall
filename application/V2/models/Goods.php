@@ -573,6 +573,22 @@ class GoodsModel extends PublicModel {
                     }
 
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+
+                    //校验sku名称/型号/扩展属性
+                    if ($input['status'] != 'DRAFT') {
+                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
+                            'lang' => $key,
+                            'spu' => $checkout['spu'],
+                            'name' => $value['name'],
+                            'model' => $checkout['model'],
+                            'status' => array('neq', 'DRAFT')
+                        );
+                        if (!empty($input['sku'])) {
+                            $exist_condition['sku'] = array('neq', $input['sku']);
+                        }
+                        $this->_checkExit($exist_condition, $attr);
+                    }
+
                     $data = [
                         'lang' => $key,
                         'spu' => $checkout['spu'],
@@ -757,6 +773,44 @@ class GoodsModel extends PublicModel {
             return $statusOut;
         } else {
             return $statusOut = (isset($status) && in_array(strtoupper($status), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($status) : self::STATUS_DRAFT;
+        }
+    }
+
+    /**
+     * 校验sku名称,model,属性
+     * @author klp
+     * @return
+     */
+    private function _checkExit($condition,$attr){
+
+        $exist = $this->where($condition)->find();
+        if($exist){
+            $where = array(
+                'lang' => $condition['lang'],
+                'spu' => $condition['spu'],
+                'deleted_flag' => 'N'
+            );
+            if (!empty($condition['sku'])) {
+                $where['sku'] = array('neq', $condition['sku']);
+            }
+
+            $attr_model = new GoodsAttrModel();
+            $other_attr = $attr_model->where($where)->select();
+
+            if(empty($attr['other_attrs']) && empty($other_attr)){
+                jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在');
+
+            } else {
+                foreach($other_attr as $item){
+                    $other = json_decode($item['other_attrs'], true);
+                    $result = array_diff_assoc($other,$attr['other_attrs']);
+                    if(empty($result)){
+                        jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在'.';扩展属性:' . $attr['attr_name'] . '重复!');
+                    } else {
+                        continue;
+                    }
+                }
+            }
         }
     }
 
@@ -1037,7 +1091,7 @@ class GoodsModel extends PublicModel {
                             }
                             $presult = $pModel->where($where_spu)
                                     ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
-                            
+
                             /*if (!$presult) {
                                 return false;
                             }*/
