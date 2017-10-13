@@ -86,7 +86,7 @@ class ProductModel extends PublicModel {
                                 'name' => $r['name'],
                                 'style' => isset($r['style']) ? $r['style'] : 'TEXT',
                                 'label' => isset($r['label']) ? $r['label'] : $r['name'],
-                                'logo' => isset($r['logo'])? $r['logo'] : '',
+                                'logo' => isset($r['logo']) ? $r['logo'] : '',
                             );
                             ksort($brand_ary);
                             $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
@@ -95,10 +95,10 @@ class ProductModel extends PublicModel {
                     }
                 }
             } else {
-                if(is_array($input['brand'])){
+                if (is_array($input['brand'])) {
                     ksort($input['brand']);
                     $data['brand'] = json_encode($input['brand'], JSON_UNESCAPED_UNICODE);
-                }else{
+                } else {
                     $brand_ary = array(
                         'name' => $input['brand'],
                         'style' => 'TEXT',
@@ -106,7 +106,7 @@ class ProductModel extends PublicModel {
                         'logo' => '',
                     );
                     ksort($brand_ary);
-                    $data['brand'] = json_encode($brand_ary,JSON_UNESCAPED_UNICODE);
+                    $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
                 }
             }
         } elseif ($type == 'INSERT') {
@@ -189,8 +189,12 @@ class ProductModel extends PublicModel {
         } elseif ($type == 'INSERT') {
             $data['supply_ability'] = '';
         }
-
-        if( $type == 'INSERT' ){
+        if (isset($input['bizline_id'])) {
+            $data['bizline_id'] = intval($input['bizline_id']);
+        } elseif ($type == 'INSERT') {
+            $data['bizline_id'] = 0;
+        }
+        if ($type == 'INSERT') {
             $data['status'] = 'DRAFT';
         }
 
@@ -207,6 +211,7 @@ class ProductModel extends PublicModel {
         }
         $material_cat_no = isset($input['material_cat_no']) ? $input['material_cat_no'] : (isset($input['zh']['material_cat_no']) ? $input['zh']['material_cat_no'] : (isset($input['eh']['material_cat_no']) ? $input['eh']['material_cat_no'] : (isset($input['es']['material_cat_no']) ? $input['es']['material_cat_no'] : (isset($input['ru']['material_cat_no']) ? $input['ru']['material_cat_no'] : ''))));
         $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
+        $bizline_id = isset($input['bizline_id']) ? trim($input['bizline_id']) : 0;
         $this->startTrans();
         try {
             $userInfo = getLoinInfo(); //获取当前用户信息
@@ -217,30 +222,30 @@ class ProductModel extends PublicModel {
                     if (empty($data) || empty($data['name'])) {
                         continue;
                     }
-
+                    $data['bizline_id'] = $bizline_id;
                     if (empty($data['show_name'])) {
                         $data['show_name'] = $data['name'];
                     }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     //if ($input['status'] != 'DRAFT') {
-                        //字段校验
-                        $this->checkParam($data, $this->field);
+                    //字段校验
+                    $this->checkParam($data, $this->field);
 
-                        $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
-                            'lang' => $key,
-                            'name' => $data['name'],
-                            'material_cat_no' => $data['material_cat_no'],
-                            'brand' => $data['brand'],
+                    $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
+                        'lang' => $key,
+                        'name' => $data['name'],
+                        'material_cat_no' => $data['material_cat_no'],
+                        'brand' => $data['brand'],
                             //'status' => array('neq', 'DRAFT')
-                        );
-                        if (isset($input['spu'])) {
-                            $exist_condition['spu'] = array('neq', $spu);
-                        }
-                        $exist = $this->where($exist_condition)->find();
-                        if ($exist) {
-                            jsonReturn('', ErrorMsg::EXIST);
-                        }
+                    );
+                    if (isset($input['spu'])) {
+                        $exist_condition['spu'] = array('neq', $spu);
+                    }
+                    $exist = $this->where($exist_condition)->find();
+                    if ($exist) {
+                        jsonReturn('', ErrorMsg::EXIST);
+                    }
                     //}
                     //$data['status'] = $input['status'];
 
@@ -255,8 +260,8 @@ class ProductModel extends PublicModel {
                         $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
                         if (!$result) {
                             //解锁
-                            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
-                                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+                            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+                                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
                             }
                             $this->rollback();
                             return false;
@@ -270,8 +275,8 @@ class ProductModel extends PublicModel {
                         if (!$result) {
                             $this->rollback();
                             //解锁
-                            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
-                                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+                            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+                                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
                             }
                             return false;
                         }
@@ -279,9 +284,9 @@ class ProductModel extends PublicModel {
                 } elseif ($key == 'attachs') {
                     if ($item) {
                         //if (!isset($input['spu'])) {
-                            if (!$this->checkAttachImage($item)) {
-                                jsonReturn('', '1000', '产品图不能为空');
-                            }
+                        if (!$this->checkAttachImage($item)) {
+                            jsonReturn('', '1000', '产品图不能为空');
+                        }
                         //}
 
                         $pattach = new ProductAttachModel();
@@ -289,7 +294,7 @@ class ProductModel extends PublicModel {
                         $update_condition = array(
                             'spu' => $spu
                         );
-                        $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+                        $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
 
                         //$ids = [];
 
@@ -311,21 +316,21 @@ class ProductModel extends PublicModel {
                             if (!$attach) {
                                 $this->rollback();
                                 //解锁
-                                if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
-                                    unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+                                if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+                                    unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
                                 }
 
                                 return false;
-                            }/*else{
-                                $ids[] = $attach;
-                            }
-                            //删除其他附件
-                            $update_condition = array(
-                                'spu' => $spu,
-                                'id' => array('notin',$ids)
-                            );
-                            $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
-                            */
+                            }/* else{
+                              $ids[] = $attach;
+                              }
+                              //删除其他附件
+                              $update_condition = array(
+                              'spu' => $spu,
+                              'id' => array('notin',$ids)
+                              );
+                              $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+                             */
                         }
                     }
                 } else {
@@ -334,15 +339,15 @@ class ProductModel extends PublicModel {
             }
             $this->commit();
             //解锁
-            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
-                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
             }
 
             return $spu;
         } catch (Exception $e) {
             //解锁
-            if(file_exists(MYPATH . '/public/tmp/'.$spu.'.lock')){
-                unlink(MYPATH . '/public/tmp/'.$spu.'.lock');
+            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
             }
 
             $this->rollback();
@@ -556,7 +561,7 @@ class ProductModel extends PublicModel {
             $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,'
                     . 'tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,'
                     . 'supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,'
-                    . 'created_at,updated_by,updated_at,checked_by,checked_at';
+                    . 'created_at,updated_by,updated_at,checked_by,checked_at,bizline_id';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
@@ -679,8 +684,8 @@ class ProductModel extends PublicModel {
      * SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
      * @return string
      */
-    public function createSpu($material_cat_no='',$step=1) {
-        if(empty($material_cat_no)) {
+    public function createSpu($material_cat_no = '', $step = 1) {
+        if (empty($material_cat_no)) {
             return false;
         }
 
@@ -688,23 +693,23 @@ class ProductModel extends PublicModel {
             'material_cat_no' => $material_cat_no
         );
         $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
-        if($result){
-            $code = substr($result['spu'],(strlen($material_cat_no)+2),4);
-            $code = intval($code)+$step;
-        }else{
+        if ($result) {
+            $code = substr($result['spu'], (strlen($material_cat_no) + 2), 4);
+            $code = intval($code) + $step;
+        } else {
             $code = $step;
         }
-        $spu = $material_cat_no.'00'.str_pad($code, 4, '0', STR_PAD_LEFT).'0000';
+        $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
 
         //上锁
-        $lockFile = MYPATH . '/public/tmp/'.$spu.'.lock';
-        if(file_exists($lockFile)){
-            $this->createSpu($material_cat_no,$step++);
-        }else{
+        $lockFile = MYPATH . '/public/tmp/' . $spu . '.lock';
+        if (file_exists($lockFile)) {
+            $this->createSpu($material_cat_no, $step++);
+        } else {
             $handle = fopen($lockFile, "w");
-            if(!$handle){
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . $lockFile.'] create faild.', Log::ERR);
-            }else{
+            if (!$handle) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . $lockFile . '] create faild.', Log::ERR);
+            } else {
                 fclose($handle);
             }
         }
@@ -713,17 +718,17 @@ class ProductModel extends PublicModel {
 
         /**
          * 6位随机数
-        $spu = randNumber(6);
-        $spu = $material_cat_no.'00'.$code.'0000';
-        $condition = array(
-            'spu' => $spu
-        );
-        $exit = $this->where($condition)->find();
-        if ($exit) {
-            $this->createSpu();
-        }
-        return $spu;
-        */
+          $spu = randNumber(6);
+          $spu = $material_cat_no.'00'.$code.'0000';
+          $condition = array(
+          'spu' => $spu
+          );
+          $exit = $this->where($condition)->find();
+          if ($exit) {
+          $this->createSpu();
+          }
+          return $spu;
+         */
     }
 
     /**
@@ -828,13 +833,13 @@ class ProductModel extends PublicModel {
     /**
      * 导出模板
      */
-    public function exportTemp($input=[]) {
+    public function exportTemp($input = []) {
         set_time_limit(0);  # 设置执行时间最大值
-        try{
-            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
+        try {
+            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
             $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh');
             $titles = array(
-                'zh'=>array(
+                'zh' => array(
                     'no' => '序号',
                     'spu' => '产品编码',
                     'name' => '产品名称',
@@ -847,71 +852,71 @@ class ProductModel extends PublicModel {
                     'warranty' => '质保期',
                     'keywords' => '关键字',
                 ),
-                'en'=>array(),
-                'es'=>array(),
-                'ru'=>array()
+                'en' => array(),
+                'es' => array(),
+                'ru' => array()
             );
             $objPHPExcel = new PHPExcel();
-            foreach($lang_ary as $key => $lang) {
+            foreach ($lang_ary as $key => $lang) {
                 $objPHPExcel->createSheet();    //创建工作表
-                $objPHPExcel->setActiveSheetIndex( $key );    //设置工作表
+                $objPHPExcel->setActiveSheetIndex($key);    //设置工作表
                 $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
 
                 $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
-                $objSheet->getDefaultStyle()->getFont()->setName( "宋体" )->setSize( 11 );
+                $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
                 //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
-                $objSheet->getStyle( "A1:L1" )
-                    ->getAlignment()->setVertical( PHPExcel_Style_Alignment::VERTICAL_CENTER )
-                    ->setHorizontal( PHPExcel_Style_Alignment::HORIZONTAL_CENTER );
-                $objSheet->getStyle( "A1:L1" )->getFont()->setSize( 11 )->setBold( true );    //粗体
+                $objSheet->getStyle("A1:L1")
+                        ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                $objSheet->getStyle("A1:L1")->getFont()->setSize(11)->setBold(true);    //粗体
                 //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
                 //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-                $column_width_25 = [ "B" , "C" , "D" , "E" , "F" , "G" , "H" , "I" , "J" , "K" ,"L"];
-                foreach ( $column_width_25 as $column ) {
-                    $objSheet->getColumnDimension( $column )->setWidth( 25 );
+                $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+                foreach ($column_width_25 as $column) {
+                    $objSheet->getColumnDimension($column)->setWidth(25);
                 }
-                $objSheet->setTitle( '产品模板' ); //设置报价单标题
+                $objSheet->setTitle('产品模板'); //设置报价单标题
                 $title_ary = empty($titles[$lang]) ? $titles['zh'] : $titles[$lang];
-                $objSheet->setCellValue( "A1" , $title_ary['no'] );
-                $objSheet->setCellValue( "B1" , $title_ary['spu'] );
-                $objSheet->setCellValue( "C1" , $title_ary['name'] );
-                $objSheet->setCellValue( "D1" , $title_ary['show_name'] );
-                $objSheet->setCellValue( "E1" , $title_ary['material_cat_no'] );
-                $objSheet->setCellValue( "F1" , $title_ary['brand'] );
-                $objSheet->setCellValue( "G1" , $title_ary['advantages'] );    //对应产品优势（李志确认）
-                $objSheet->setCellValue( "H1" , $title_ary['tech_paras'] );
-                $objSheet->setCellValue( "I1" , $title_ary['exe_standard'] );
-                $objSheet->setCellValue( "J1" , $title_ary['warranty'] );
-                $objSheet->setCellValue( "K1" , $title_ary['keywords'] );
+                $objSheet->setCellValue("A1", $title_ary['no']);
+                $objSheet->setCellValue("B1", $title_ary['spu']);
+                $objSheet->setCellValue("C1", $title_ary['name']);
+                $objSheet->setCellValue("D1", $title_ary['show_name']);
+                $objSheet->setCellValue("E1", $title_ary['material_cat_no']);
+                $objSheet->setCellValue("F1", $title_ary['brand']);
+                $objSheet->setCellValue("G1", $title_ary['advantages']);    //对应产品优势（李志确认）
+                $objSheet->setCellValue("H1", $title_ary['tech_paras']);
+                $objSheet->setCellValue("I1", $title_ary['exe_standard']);
+                $objSheet->setCellValue("J1", $title_ary['warranty']);
+                $objSheet->setCellValue("K1", $title_ary['keywords']);
             }
 
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
             $tmpDir = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/";
-            if(!file_exists($tmpDir)){
-                mkdir($tmpDir,0777,true);
+            if (!file_exists($tmpDir)) {
+                mkdir($tmpDir, 0777, true);
             }
             $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'template_spu' . '.xls');
-            if(file_exists($localDir)){
+            if (file_exists($localDir)) {
                 //把导出的文件上传到文件服务器上
                 $server = Yaf_Application::app()->getConfig()->myhost;
                 $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-                $url = $server. '/V2/Uploadfile/upload';
+                $url = $server . '/V2/Uploadfile/upload';
                 $data['tmp_name'] = $localDir;
                 $data['type'] = 'application/zip';
-                $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
-                $fileId = postfile($data,$url);
-                if($fileId){
+                $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
+                $fileId = postfile($data, $url);
+                if ($fileId) {
                     unlink($localDir);    //清理本地空间
-                    return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+                    return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
                 }
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localDir.' 上传到FastDFS失败', Log::INFO);
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
                 return false;
-            }else{
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:'.$localDir.' 模板生成失败', Log::INFO);
+            } else {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:' . $localDir . ' 模板生成失败', Log::INFO);
                 return false;
             }
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Error: :'.$e.getMessage(), Log::ERR);
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Error: :' . $e . getMessage(), Log::ERR);
             return false;
         }
     }
@@ -920,27 +925,27 @@ class ProductModel extends PublicModel {
      * 产品导出
      * @return string
      */
-    public function export($input=[]) {
+    public function export($input = []) {
         set_time_limit(0);  # 设置执行时间最大值
         @ini_set("memory_limit", "1024M"); // 设置php可使用内存
 
-        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? $input['lang'] : array('zh','en','es','ru');
+        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? $input['lang'] : array('zh', 'en', 'es', 'ru');
         $userInfo = getLoinInfo();
         $pModel = new ProductModel();
 
-        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
         $objPHPExcel = new PHPExcel();
         $objPHPExcel->getProperties()->setCreator($userInfo['name']);
         $objPHPExcel->getProperties()->setTitle("Product List");
         $objPHPExcel->getProperties()->setLastModifiedBy($userInfo['name']);
-        foreach($lang_ary as $key => $lang){
+        foreach ($lang_ary as $key => $lang) {
             $objPHPExcel->createSheet();    //创建工作表
             $objPHPExcel->setActiveSheetIndex($key);    //设置工作表
             $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
             $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
             $objSheet->getStyle("A1:L1")
-                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                    ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
             $objSheet->getStyle("A1:L1")->getFont()->setSize(11)->setBold(true);    //粗体
             $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
             foreach ($column_width_25 as $column) {
@@ -968,34 +973,34 @@ class ProductModel extends PublicModel {
             $length = 20;
 
             $condition = array('lang' => $lang);
-            if(isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核spu下不去草稿状态。
-                $condition['status'] = array('neq','DRAFT');
+            if (isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核spu下不去草稿状态。
+                $condition['status'] = array('neq', 'DRAFT');
             }
-            if(isset($input['spu'])) {    //spu编码
+            if (isset($input['spu'])) {    //spu编码
                 $condition['spu'] = $input['spu'];
             }
-            if(isset($input['name'])) {    //名称
-                $condition['name'] = array('like' , '%'.$input['spu'].'%');
+            if (isset($input['name'])) {    //名称
+                $condition['name'] = array('like', '%' . $input['spu'] . '%');
             }
-            if(isset($input['material_cat_no'])) {    //物料分类
+            if (isset($input['material_cat_no'])) {    //物料分类
                 $condition['material_cat_no'] = $input['material_cat_no'];
             }
-            if(isset($input['status'])) {    //状态
+            if (isset($input['status'])) {    //状态
                 $condition['status'] = $input['status'];
             }
-            if(isset($input['created_by'])) {    //创建人
+            if (isset($input['created_by'])) {    //创建人
                 $condition['created_by'] = $input['created_by'];
             }
-            if(isset($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
-                $time_ary = explode(' - ',$input['created_at']);
-                $condition['created_at'] = array('between' , $time_ary);
+            if (isset($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                $time_ary = explode(' - ', $input['created_at']);
+                $condition['created_at'] = array('between', $time_ary);
             }
             do {
                 $result = $pModel->getList($condition, '', $i * $length, $length);
                 if ($result) {
                     foreach ($result as $r) {
                         $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
-                        $objSheet->setCellValue("B" . $j, ' '.$r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objSheet->setCellValue("B" . $j, ' ' . $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
                         $objSheet->setCellValue("C" . $j, $r['name']);
                         $objSheet->setCellValue("D" . $j, $r['show_name']);
                         $objSheet->setCellValue("E" . $j, $r['material_cat_no']);
@@ -1007,7 +1012,7 @@ class ProductModel extends PublicModel {
                         $objSheet->setCellValue("J" . $j, $r['warranty']);
                         $objSheet->setCellValue("K" . $j, $r['keywords']);
                         $status = '';
-                        switch($r['status']){
+                        switch ($r['status']) {
                             case 'VALID':
                                 $status = '通过';
                                 break;
@@ -1034,30 +1039,30 @@ class ProductModel extends PublicModel {
 
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Product_'.time() . '.xls');
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Product_' . time() . '.xls');
         //return $localDir ? $localDir : '';
 
-        $zipName = substr($localDir,0,strrpos($localDir , '.')).'.zip';
-        ZipHelper::zipDir($localDir ,$zipName);
+        $zipName = substr($localDir, 0, strrpos($localDir, '.')) . '.zip';
+        ZipHelper::zipDir($localDir, $zipName);
 
-        if(file_exists($zipName)){
+        if (file_exists($zipName)) {
             unlink($localDir);   //清除文件
             //把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-            $url = $server. '/V2/Uploadfile/upload';
-            $data['tmp_name']=$zipName;
-            $data['type']='application/zip';
-            $data['name']= pathinfo($zipName,PATHINFO_BASENAME);
-            $fileId = postfile($data,$url);
-            if($fileId){
+            $url = $server . '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $zipName;
+            $data['type'] = 'application/zip';
+            $data['name'] = pathinfo($zipName, PATHINFO_BASENAME);
+            $fileId = postfile($data, $url);
+            if ($fileId) {
                 unlink($zipName);
-                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
             }
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$zipName.' 上传到FastDFS失败', Log::INFO);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $zipName . ' 上传到FastDFS失败', Log::INFO);
             return false;
-        }else{
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$zipName.' 打包失败', Log::INFO);
+        } else {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:' . $zipName . ' 打包失败', Log::INFO);
             return false;
         }
     }
@@ -1067,7 +1072,7 @@ class ProductModel extends PublicModel {
      * @param $data   注意这是excel模板数据
      * @param $lang
      */
-    public function import($url = '',$lang = '') {
+    public function import($url = '', $lang = '') {
         if (empty($url) || empty($lang)) {
             return false;
         }
@@ -1080,14 +1085,14 @@ class ProductModel extends PublicModel {
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
         $objPHPExcel = $objReader->load($localFile);    //加载文件
         $data = $objPHPExcel->getSheet(0)->toArray();
-        if(is_array($data)){
+        if (is_array($data)) {
             $success = $faild = 0;
             $objPHPExcel->setActiveSheetIndex(0)
-                ->setCellValue('L1', '导入结果');
-            foreach($data as $key =>$r){
-                try{
+                    ->setCellValue('L1', '导入结果');
+            foreach ($data as $key => $r) {
+                try {
                     $workText = '';
-                    if($key==0){
+                    if ($key == 0) {
                         continue;
                     }
                     $data_tmp = [];
@@ -1097,11 +1102,11 @@ class ProductModel extends PublicModel {
                     $data_tmp['show_name'] = $r[3];    //展示名称
                     $data_tmp['material_cat_no'] = $r[4];    //物料分类
                     //检查物料分类
-                    $mexist = $mcatModel->info($r[4],$lang);
-                    if(!$mexist){
+                    $mexist = $mcatModel->info($r[4], $lang);
+                    if (!$mexist) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), '操作失败[物料分类ID不存在]');
+                                ->setCellValue('L' . ($key + 1), '操作失败[物料分类ID不存在]');
                         continue;
                     }
                     //品牌
@@ -1129,12 +1134,12 @@ class ProductModel extends PublicModel {
                     );
                     $exist = $this->field('spu')->where($condition)->find();
                     if ($exist) {
-                        if(empty($input_spu)){    //存在且没有传递spu 提示错误
+                        if (empty($input_spu)) {    //存在且没有传递spu 提示错误
                             $faild ++;
                             $objPHPExcel->setActiveSheetIndex(0)
-                                ->setCellValue('L'.($key+1), '操作失败[已存在]');
+                                    ->setCellValue('L' . ($key + 1), '操作失败[已存在]');
                             continue;
-                        }else{    //存在且传递了spu 则按修改操作
+                        } else {    //存在且传递了spu 则按修改操作
                             $workText = '修改';
                             $condition_update = array(
                                 'spu' => $input_spu,
@@ -1142,53 +1147,52 @@ class ProductModel extends PublicModel {
                             );
                             $result = $this->where($condition_update)->save($data_tmp);
                         }
-                    }else{
+                    } else {
                         $workText = '新增';
                         $input_spu = $data_tmp['spu'] = $this->createSpu($r[4]);    //生成spu
                         $result = $this->add($this->create($data_tmp));
                         //解锁
-                        if(file_exists(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock')){
-                            unlink(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock');
+                        if (file_exists(MYPATH . '/public/tmp/' . $data_tmp['spu'] . '.lock')) {
+                            unlink(MYPATH . '/public/tmp/' . $data_tmp['spu'] . '.lock');
                         }
                     }
 
                     if ($result) {
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('B'.($key+1), ' '.$input_spu);
+                                ->setCellValue('B' . ($key + 1), ' ' . $input_spu);
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), $workText.'操作成功');
+                                ->setCellValue('L' . ($key + 1), $workText . '操作成功');
                         $success ++;
 
                         //更新es
                         $es_product_model->create_data($input_spu, $lang);
-                    }else{
+                    } else {
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('L'.($key+1), $workText.'操作失败');
+                                ->setCellValue('L' . ($key + 1), $workText . '操作失败');
                         $faild ++;
                     }
-                }catch (Exception $e){
+                } catch (Exception $e) {
                     $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('L'.($key+1), '操作失败-请检查数据');
+                            ->setCellValue('L' . ($key + 1), '操作失败-请检查数据');
                     $faild ++;
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
                 }
             }
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
             $objWriter->save($localFile);    //文件保存
-
             //把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-            $url = $server. '/V2/Uploadfile/upload';
-            $data_fastDFS['tmp_name']=$localFile;
-            $data_fastDFS['type']='application/excel';
-            $data_fastDFS['name']= pathinfo($localFile,PATHINFO_BASENAME);
-            $fileId = postfile($data_fastDFS,$url);
-            if($fileId){
+            $url = $server . '/V2/Uploadfile/upload';
+            $data_fastDFS['tmp_name'] = $localFile;
+            $data_fastDFS['type'] = 'application/excel';
+            $data_fastDFS['name'] = pathinfo($localFile, PATHINFO_BASENAME);
+            $fileId = postfile($data_fastDFS, $url);
+            if ($fileId) {
                 unlink($localFile);
-                return array('success'=>$success, 'faild' => $faild, 'url' => $fastDFSServer.$fileId['url'], 'name' => $fileId['name']);
+                return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
             }
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localFile.' 上传到FastDFS失败', Log::INFO);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
             return false;
         }
         return false;
@@ -1197,23 +1201,23 @@ class ProductModel extends PublicModel {
     /**
      * 导出上下架
      */
-    public function exportShelf($input = []){
+    public function exportShelf($input = []) {
         ini_set("memory_limit", "512M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
 
-        $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh','en','es','ru');
+        $lang_ary = isset($input['lang']) ? array($input['lang']) : array('zh', 'en', 'es', 'ru');
         $userInfo = getLoinInfo();
         $showCatProduct = new ShowCatProductModel();
         $tableSCP = $showCatProduct->getTableName();
 
         //目录
         $tmpDir = MYPATH . '/public/tmp/';
-        $dirName = $tmpDir.time();
-        if(!is_dir($dirName)){
-            mkdir ( $dirName , 0777, true );
+        $dirName = $tmpDir . time();
+        if (!is_dir($dirName)) {
+            mkdir($dirName, 0777, true);
         }
 
-        foreach($lang_ary as $key => $lang){
+        foreach ($lang_ary as $key => $lang) {
             $num = 1;    //控制文件名
             $i = 0;    //用来控制分页查询
             $j = 2;    //excel控制输出
@@ -1222,40 +1226,40 @@ class ProductModel extends PublicModel {
             //$objPHPExcel = null;
 
             $condition = array('product.lang' => $lang);
-            if(isset($input['spu']) && !empty($input['spu'])) {    //spu编码
+            if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
                 $condition['product.spu'] = $input['spu'];
             }
-            if(isset($input['name']) && !empty($input['name'])) {    //名称
-                $condition['product.name'] = array('like' , '%'.$input['spu'].'%');
+            if (isset($input['name']) && !empty($input['name'])) {    //名称
+                $condition['product.name'] = array('like', '%' . $input['spu'] . '%');
             }
-            if(isset($input['material_cat_no']) && !empty($input['material_cat_no'])) {    //物料分类
+            if (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) {    //物料分类
                 $condition['product.material_cat_no'] = $input['material_cat_no'];
             }
-            if(isset($input['status']) && !empty($input['status']) ) {    //上架状态
-                if($input['status'] == 'Y'){
-                    $condition[$tableSCP.'.onshelf_flag'] = 'Y';
-                    $condition[$tableSCP.'.status'] = 'VALID';
-                }else{
-                    $condition[$tableSCP.'.onshelf_flag'] = 'N';
+            if (isset($input['status']) && !empty($input['status'])) {    //上架状态
+                if ($input['status'] == 'Y') {
+                    $condition[$tableSCP . '.onshelf_flag'] = 'Y';
+                    $condition[$tableSCP . '.status'] = 'VALID';
+                } else {
+                    $condition[$tableSCP . '.onshelf_flag'] = 'N';
                 }
-               // $condition['status'] = $input['status'];
+                // $condition['status'] = $input['status'];
             }
-            if(isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
+            if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
                 $condition['product.created_by'] = $input['created_by'];
             }
-            if(isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
-                $time_ary = explode(' - ',$input['created_at']);
-                $condition['created_at'] = array('between' , $time_ary);
+            if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                $time_ary = explode(' - ', $input['created_at']);
+                $condition['created_at'] = array('between', $time_ary);
                 unset($time_ary);
             }
             do {
                 unset($result);
                 $field = 'product.spu,product.name,product.show_name,product.material_cat_no,product.brand,product.advantages,product.tech_paras,product.exe_standard,product.warranty,product.keywords,product.status,show_cat_product.onshelf_flag,show_cat_product.status as showcat_status';
-                $result = $this->field($field)->join($tableSCP.' ON product.spu = '.$tableSCP.'.spu AND product.lang = '.$tableSCP.'.lang','LEFT')->where($condition)->limit($i*$length, $length)->select();
+                $result = $this->field($field)->join($tableSCP . ' ON product.spu = ' . $tableSCP . '.spu AND product.lang = ' . $tableSCP . '.lang', 'LEFT')->where($condition)->limit($i * $length, $length)->select();
                 if ($result) {
                     foreach ($result as $r) {
-                        if(!isset($objPHPExcel) || !$objPHPExcel){
-                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip , array('memoryCacheSize'=>'512MB'));
+                        if (!isset($objPHPExcel) || !$objPHPExcel) {
+                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
                             $objPHPExcel = new PHPExcel();
                             $objPHPExcel->getProperties()->setCreator($userInfo['name']);
                             $objPHPExcel->getProperties()->setTitle("Product List");
@@ -1266,8 +1270,8 @@ class ProductModel extends PublicModel {
                             //$objSheet = $objPHPExcel->getActiveSheet(0);    //当前sheet
                             $objPHPExcel->getActiveSheet(0)->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
                             $objPHPExcel->getActiveSheet(0)->getStyle("A1:M1")
-                                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                                    ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                             $objPHPExcel->getActiveSheet()->getStyle("A1:M1")->getFont()->setSize(11)->setBold(true);    //粗体
                             $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
                             foreach ($column_width_25 as $column) {
@@ -1292,7 +1296,7 @@ class ProductModel extends PublicModel {
                         }
 
                         $objPHPExcel->getActiveSheet(0)->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("B" . $j, ' '.$r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("B" . $j, ' ' . $r['spu'], PHPExcel_Cell_DataType::TYPE_STRING);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("C" . $j, $r['name']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("D" . $j, $r['show_name']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("E" . $j, $r['material_cat_no']);
@@ -1304,7 +1308,7 @@ class ProductModel extends PublicModel {
                         $objPHPExcel->getActiveSheet(0)->setCellValue("J" . $j, $r['warranty']);
                         $objPHPExcel->getActiveSheet(0)->setCellValue("K" . $j, $r['keywords']);
                         $status = '';
-                        switch($r['status']){
+                        switch ($r['status']) {
                             case 'VALID':
                                 $status = '通过';
                                 break;
@@ -1324,28 +1328,28 @@ class ProductModel extends PublicModel {
                         $objPHPExcel->getActiveSheet(0)->setCellValue("L" . $j, $status);
 
                         $onshelf = '';
-                        if($r['onshelf_flag'] == 'Y' && $r['showcat_status'] == 'VALID'){
+                        if ($r['onshelf_flag'] == 'Y' && $r['showcat_status'] == 'VALID') {
                             $onshelf = '已上架';
-                        }else{
+                        } else {
                             $onshelf = '下架';
                         }
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("M". $j, $onshelf);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("M" . $j, $onshelf);
                         $j++;
-                        if($j > 2001){    //2000条
+                        if ($j > 2001) {    //2000条
                             //保存文件
                             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-                            $objWriter->save($dirName.'/'.$lang .'_'.$num.'.xls');
+                            $objWriter->save($dirName . '/' . $lang . '_' . $num . '.xls');
                             unset($objWriter);
                             unset($objPHPExcel);
-                            $j=2;
+                            $j = 2;
                             $num ++;
-                        }else{
-                            if(count($result)<$length){
+                        } else {
+                            if (count($result) < $length) {
                                 $l++;
                             }
-                            if($l == count($result)){
+                            if ($l == count($result)) {
                                 $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-                                $objWriter->save($dirName.'/'.$lang .'_'.$num.'.xls');
+                                $objWriter->save($dirName . '/' . $lang . '_' . $num . '.xls');
                                 unset($objWriter);
                                 unset($objPHPExcel);
                             }
@@ -1356,25 +1360,25 @@ class ProductModel extends PublicModel {
             } while (count($result) >= $length);
         }
 
-        ZipHelper::zipDir($dirName ,$dirName.'.zip');
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
         ZipHelper::removeDir($dirName);    //清除目录
-        if(file_exists($dirName.'.zip')){
+        if (file_exists($dirName . '.zip')) {
             //把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-            $url = $server. '/V2/Uploadfile/upload';
-            $data['tmp_name']=$dirName.'.zip';
-            $data['type']='application/zip';
-            $data['name']=pathinfo($dirName.'.zip',PATHINFO_BASENAME);
-            $fileId = postfile($data,$url);
-            if($fileId){
-                unlink($dirName.'.zip');
-                return array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+            $url = $server . '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $dirName . '.zip';
+            $data['type'] = 'application/zip';
+            $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
+            $fileId = postfile($data, $url);
+            if ($fileId) {
+                unlink($dirName . '.zip');
+                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
             }
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$dirName.'.zip 上传到FastDFS失败', Log::INFO);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
             return false;
-        }else{
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:'.$dirName.'.zip 打包失败', Log::INFO);
+        } else {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:' . $dirName . '.zip 打包失败', Log::INFO);
             return false;
         }
     }
