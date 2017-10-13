@@ -532,9 +532,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        if(isset($input['sku']) && !empty($input['sku'])){
-            $sku = trim($input['sku']);
-        } else {
+        if(!isset($input['sku']) || empty($input['sku'])){
             $sku = $this->setRealSku($input);
         }
         //获取当前用户信息
@@ -656,7 +654,7 @@ class GoodsModel extends PublicModel {
                         }
                     } else {             //------新增
                         $data['sku'] = $sku;
-                        //                    $data['qrcode'] = setupQrcode();                  //二维码字段
+                        //               $data['qrcode'] = setupQrcode();                  //二维码字段
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
