@@ -780,15 +780,18 @@ class GoodsModel extends PublicModel {
             $attr_model = new GoodsAttrModel();
             $other_attr = $attr_model->where($where)->select();
 
-            if(empty($attr['other_attrs']) && empty($other_attr)){
+            if(empty($attr['other_attrs']) && !$other_attr['other_attrs']){
                 jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在');
 
             } else {
-                foreach($other_attr as $item){
+                foreach($other_attr as $key=>$item){
                     $other = json_decode($item['other_attrs'], true);
-                    $result = array_diff_assoc($other,$attr['other_attrs']);
-                    if(empty($result)){
-                        jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在'.';扩展属性:' . $attr['attr_name'] . '重复!');
+                    $other = $other ? $other : [];
+                    $result1 = array_diff_assoc($other,$attr['other_attrs']);
+                    $result2 = array_diff_assoc($attr['other_attrs'],$other);
+
+                    if(empty($result1) && empty($result2)){
+                        jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在'.'; 扩展属性重复!');
                     } else {
                         continue;
                     }
