@@ -392,11 +392,14 @@ class ESClient {
      * 获取文档
      */
 
-    public function get_document($index, $type, $id) {
+    public function get_document($index, $type, $id, $_source = null) {
         $getParams = array();
         $getParams['index'] = $index;
         $getParams['type'] = $type;
         $getParams['id'] = $id;
+        if ($_source) {
+            $getParams['_source'] = $_source;
+        }
         try {
             $retDoc = $this->server->get($getParams);
             return $retDoc;
@@ -957,12 +960,15 @@ class ESClient {
      *
      * @return array
      */
-    public function get($index, $type, $id) {
+    public function get($index, $type, $id, $_source = null) {
         $getParams = array(
             'index' => $index,
             'type' => $type,
             'id' => $id
         );
+        if ($_source) {
+            $getParams['_source'] = $_source;
+        }
         try {
             return $this->server->get($getParams);
         } catch (Exception $ex) {

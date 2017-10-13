@@ -555,7 +555,7 @@ class EsGoodsModel extends Model {
 
         $body = $item;
         $product_attr = $productattrs[$spu];
-        $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id);
+        $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
 
         if (isset($product_attr['material_cat']) && $product_attr['material_cat']) {
             $body['material_cat'] = $product_attr['material_cat'];
@@ -646,11 +646,22 @@ class EsGoodsModel extends Model {
 
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
-        $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-        if (!isset($flag['created'])) {
-            LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
-            LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
+        if ($es_goods) {
+            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            if (!isset($flag['_version'])) {
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
+            }
+        } else {
+            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            if (!isset($flag['created'])) {
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
+            }
         }
+
+
+
         return $flag;
     }
 

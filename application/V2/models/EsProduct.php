@@ -715,7 +715,7 @@ class EsProductModel extends Model {
     private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers) {
 
         $spu = $id = $item['spu'];
-        $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $id);
+        $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'brand,material_cat_no');
 
         $body = $item;
         $item['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $item['brand'])));
@@ -813,11 +813,18 @@ class EsProductModel extends Model {
             $body['supplier_count'] = 0;
         }
         $this->_findnulltoempty($body);
-
-        $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-        if (!isset($flag['created'])) {
-            LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        if ($es_product) {
+            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            if (!isset($flag['_version'])) {
+                LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+            }
+        } else {
+            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            if (!isset($flag['created'])) {
+                LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+            }
         }
+
         $k++;
         return $flag;
     }
