@@ -564,6 +564,7 @@ class GoodsModel extends PublicModel {
                             'spu' => $checkout['spu'],
                             'name' => $value['name'],
                             'model' => $checkout['model'],
+                            'deleted_flag' => 'N',
                             'status' => array('neq', 'DRAFT')
                         );
                         if (!empty($input['sku'])) {
