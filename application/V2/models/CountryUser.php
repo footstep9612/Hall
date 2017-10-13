@@ -22,18 +22,47 @@ class CountryUserModel extends PublicModel {
     }
 
     public function addCountry($data){
-        if(!empty($data['country_bns'])){
-            $country_arr = explode(",",$data['country_bns']);
-        }
-        for($i=0;$i<count($country_arr);$i++){
-            $arr['country_bn'] = $country_arr[$i];
-            $arr['employee_id'] = $data['user_id'];
-            $info = $this -> where($arr)->select();
-            if(!$info){
-                $this -> create_data($arr);
+        if($data['user_id']) {
+            $this->where(['employee_id' => $data['user_id']])->delete();
+            if (!empty($data['country_bns'])) {
+                $country_arr = explode(",", $data['country_bns']);
+            }
+            for ($i = 0; $i < count($country_arr); $i++) {
+                $arr['country_bn'] = $country_arr[$i];
+                $arr['employee_id'] = $data['user_id'];
+                $info = $this->where($arr)->select();
+                if (!$info) {
+                    $this->create_data($arr);
+                }
             }
         }
         return true ;
     }
-
+    /*
+     * 获取用户国家
+     */
+    public function userCountry($user_id,$pid = ''){
+        if($user_id){
+            $sql = 'SELECT country_member.*,country.`id`,`lang`,`region_bn`,`code`,`bn`,`name`,`int_tel_code`,`time_zone`,`status`,`deleted_flag`  ';
+            $sql .= ' FROM  `country_member` ';
+            $sql .= ' LEFT JOIN  `erui2_dict`.`country` ON `erui2_dict`.`country`.`bn` =`country_member`.`country_bn` and `erui2_dict`.`country`.`lang` ="zh"';
+            $sql .= " WHERE 1=1  ";
+            if(!empty($user_id)) {
+                $sql .= ' and `country_member`.`employee_id` =' . $user_id;
+            }
+            $sql .= ' group by country_member.`country_bn`';
+            $sql .= ' order by country.`id` desc';
+            return $this->query( $sql );
+        }
+    }
+    /*
+    * 新增数据
+    * @param  mix $createcondition 新增条件
+    * @return bool
+    * @author jhw
+    */
+    public function create_data($create= []) {
+        $data = $this->create($create);
+        return $this->add($data);
+    }
 }

@@ -56,6 +56,9 @@ class UserController extends PublicController {
         if(!empty($data['user_no'])){
             $where['user_no'] = $data['user_no'];
         }
+        if(!empty($data['bn'])){
+            $where['bn'] = $data['bn'];
+        }
         if(!empty($data['currentPage'])) {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }
@@ -78,7 +81,76 @@ class UserController extends PublicController {
         $this->jsonReturn($datajson);
     }
     /*
-     * 用户列表
+     * 用户角色列表
+     *
+     * */
+    public function userroleAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        if($data['user_id']){
+            $user_id = $data['user_id'];
+        }else{
+            $user_id = $this->user['id'];
+        }
+        $role_user_modle =new RoleUserModel();
+        $data =$role_user_modle->userRole($user_id);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
+     * 用户国家列表
+     *
+     * */
+    public function usercountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        if($data['user_id']){
+            $user_id = $data['user_id'];
+        }else{
+            $user_id = $this->user['id'];
+        }
+        $role_cuntry_modle = new CountryUserModel();
+        $data =$role_cuntry_modle->userCountry($user_id);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
+     * 用户部门列表
+     *
+     * */
+    public function usergroupAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        if($data['user_id']){
+            $user_id = $data['user_id'];
+        }else{
+            $user_id = $this->user['id'];
+        }
+        $role_group_modle = new GroupUserModel();
+        $data =$role_group_modle->getlist(['user_id'=>$user_id]);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /*
+     * 用户权限列表
      *
      * */
     public function userrolelistAction() {
@@ -184,10 +256,6 @@ class UserController extends PublicController {
 
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['password'])) {
-            $password = randStr(6);
-            $arr['password_hash'] = md5($password);
-        }
         if(!empty($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
             if(!isMobile($arr['mobile'])){
@@ -235,6 +303,8 @@ class UserController extends PublicController {
         }else{
             $arr['employee_flag'] = "I";
         }
+        $password = randStr(6);
+        $arr['password_hash'] = md5($password);
         $model = new UserModel();
         if($arr['employee_flag']=="O"){
             $condition['page']=0;
@@ -298,6 +368,32 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+    public function resetpasswordAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!empty($data['id'])) {
+            $where['id'] = $data['id'];
+            $user_modle = new UserModel();
+            $info  = $user_modle->info($data['id']);
+            if(!$info){
+                $this->jsonReturn(array("code" => "-101", "message" => "用户id不正确"));
+            }
+            $password = randStr(6);
+            $arr['password_hash'] = md5($password);
+            $res = $user_modle->update_data($arr,$where);
+            if(!empty($res)){
+                send_Mail($info['email'], '密码重置成功', "新密码：".$password, $info['name']);
+                $datajson['code'] = 1;
+                $datajson['message'] ='成功';
+            }else{
+                $datajson['code'] = -104;
+                $datajson['data'] = "";
+                $datajson['message'] = '修改失败!';
+            }
+            $this->jsonReturn($datajson);
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
+        }
+    }
 
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -353,6 +449,27 @@ class UserController extends PublicController {
         }
         $model = new UserModel();
         $res = $model->update_data($arr,$where);
+        if($res!==false){
+            if( $data['role_ids']){
+                $model_role_user = new RoleUserModel();
+                $role_user_arr['user_id'] = $where['id'];
+                $role_user_arr['role_ids'] = $data['role_ids'];
+                $model_role_user->update_role_datas($role_user_arr);
+            }
+            if( $data['group_ids']){
+                $model_group_user = new GroupUserModel();
+                $group_user_arr['user_id'] = $where['id'];
+                $group_user_arr['group_ids'] = $data['group_ids'];
+                $model_group_user->addGroup($group_user_arr);
+            }
+            if( $data['country_bns']){
+                $model_country_user = new CountryUserModel();
+                $country_user_arr['user_id'] = $where['id'];
+                $country_user_arr['country_bns'] = $data['country_bns'];
+                $model_country_user->addCountry($country_user_arr);
+            }
+            // $body = $this->getView()->render('login/email.html', $email_arr);
+        }
         if($res!==false){
             $datajson['code'] = 1;
             $datajson['message'] ='成功';

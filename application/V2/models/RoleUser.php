@@ -41,7 +41,23 @@ class RoleUserModel extends PublicModel {
             return $this->query( $sql );
         }
     }
-
+    /*
+     * 获取用户角色
+     */
+    public function userRole($user_id,$pid = ''){
+        if($user_id){
+            $sql = 'SELECT  role.`id`,role.`name`,role.`name_en`,role.`role_no`,role.`admin_show`,role.`role_group`,role.`remarks`,role.`status`,role.`deleted_flag`  ';
+            $sql .= ' FROM role';
+            $sql .= ' LEFT JOIN  `role_member` ON `role`.`id` =`role_member`.`role_id`';
+            $sql .= " WHERE role.deleted_flag = 'N'  ";
+            if(!empty($user_id)) {
+                $sql .= ' and `role_member`.`employee_id` =' . $user_id;
+            }
+            $sql .= ' group by role.`id`';
+            $sql .= ' order by role.`id` desc';
+            return $this->query( $sql );
+        }
+    }
     /**
      * 获取列表
      * @param data $data;
@@ -99,7 +115,7 @@ class RoleUserModel extends PublicModel {
     }
     public function update_role_datas($data) {
         if($data['user_id']){
-            $this->where(['role_id'=>$data['role_id']])->delete();
+            $this->where(['employee_id'=>$data['user_id']])->delete();
             if($data['role_ids']){
                 $role_arr = explode(',',$data['role_ids']);
                 $count = count($role_arr);
