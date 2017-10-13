@@ -764,7 +764,7 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return
      */
-    private function _checkExit($condition,$attr){
+    private function _checkExit(&$condition,&$attr){
 
         $exist = $this->where($condition)->find();
         if($exist){
