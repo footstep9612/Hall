@@ -613,7 +613,7 @@ class GoodsModel extends PublicModel {
                     ];
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
-                    if (isset($input['sku'])) {             //------编辑
+                    if (isset($input['sku']) && !empty($input['sku'])) {             //------编辑
                         $where = [
                             'lang' => $key,
                             'sku' => trim($input['sku'])
@@ -692,7 +692,7 @@ class GoodsModel extends PublicModel {
                         'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs'], JSON_UNESCAPED_UNICODE) : null,
                         'status' => $gattr::STATUS_VALID
                     );
-                    if (isset($input['sku'])) {
+                    if (isset($input['sku']) && !empty($input['sku'])) {
                         $attr_obj['sku'] = trim($input['sku']);
                         $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     } else {
@@ -706,7 +706,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = isset($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gattach = new GoodsAttachModel();
                         $resAttach = $gattach->editSkuAttach($value, $input['sku'], $input['user_id']);  //附件新增
@@ -717,7 +717,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'supplier_cost') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = isset($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = (isset($input['sku']) && !empty($input['sku']))? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
                         $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
@@ -968,7 +968,7 @@ class GoodsModel extends PublicModel {
         if (empty($input)) {
             return false;
         }
-        if (!isset($input['sku'])) {
+        if (!(isset($input['sku']))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
         $lang = '';
