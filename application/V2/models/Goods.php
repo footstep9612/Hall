@@ -534,6 +534,8 @@ class GoodsModel extends PublicModel {
         //不存在生成sku
         if(!isset($input['sku']) || empty($input['sku'])){
             $sku = $this->setRealSku($input);
+        } else {
+            $sku = trim($input['sku']);
         }
         //获取当前用户信息
         $userInfo = getLoinInfo();
