@@ -13,7 +13,7 @@
  */
 class EsproductController extends PublicController {
 
-    protected $index = 'erui2_goods';
+    protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
     protected $version = '1';
