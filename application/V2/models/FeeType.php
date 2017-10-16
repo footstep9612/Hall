@@ -17,7 +17,7 @@ class FeeTypeModel extends PublicModel {
 
     //put your code here
 
-    protected $dbName = 'erui2_dict'; //数据库名称
+    protected $dbName = 'erui_dict'; //数据库名称
     protected $tableName = 'fee_type';
 
     /**

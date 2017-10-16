@@ -8,7 +8,7 @@
  */
 class CityModel extends Model {
 
-    protected $dbName = 'erui2_dict'; //数据库名称
+    protected $dbName = 'erui_dict'; //数据库名称
     protected $tableName = 'city';
 
     /**

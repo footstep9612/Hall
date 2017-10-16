@@ -16,7 +16,7 @@
 class ShipownerClauseModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'shipowner_clause';
 
     public function __construct($str = '') {

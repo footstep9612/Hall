@@ -7,7 +7,7 @@
  */
 class OrgMemberModel extends PublicModel {
 
-    protected $dbName = 'erui2_sys';
+    protected $dbName = 'erui_sys';
     protected $tableName = 'org_member';
 			    
     public function __construct() {

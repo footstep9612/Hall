@@ -7,7 +7,7 @@
  */
 class BuyerCreditLogModel extends PublicModel{
     protected $tableName = 'buyer_credit_log';
-    protected $dbName = 'erui2_buyer'; //数据库名称
+    protected $dbName = 'erui_buyer'; //数据库名称
 
     public function __construct($str = ''){
         parent::__construct($str = '');

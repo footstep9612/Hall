@@ -6,7 +6,7 @@
  * Time: 19:31
  */
 class BuyerLevelModel extends PublicModel{
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'buyer_level';
 
     public function __construct()
@@ -27,9 +27,9 @@ class BuyerLevelModel extends PublicModel{
      */
     public function getLevelService(){
       /* $sql =  "select b.id, c.category, t.term, i.item, m.buyer_level_id
-from erui2_config.service_cat c, erui2_config.service_term t, erui2_config.service_item i
-left join erui2_config.member_service m on i.id = m.service_item_id and m.deleted_flag = 'N' and m.status = 'VALID'
-left join erui2_config.buyer_level b on b.id = m.buyer_level_id and b.deleted_flag = 'N' and b.status = 'VALID'
+from erui_config.service_cat c, erui_config.service_term t, erui_config.service_item i
+left join erui_config.member_service m on i.id = m.service_item_id and m.deleted_flag = 'N' and m.status = 'VALID'
+left join erui_config.buyer_level b on b.id = m.buyer_level_id and b.deleted_flag = 'N' and b.status = 'VALID'
 where c.id = t.service_cat_id and t.id = i.service_term_id and c.status = 'VALID' and t.status = 'VALID' and i.status = 'VALID'
 order by c.id, t.id, i.id";
 $row = $this->query( $sql );

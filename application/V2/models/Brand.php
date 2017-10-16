@@ -16,7 +16,7 @@ class BrandModel extends PublicModel {
     //put your code here
 
     protected $tableName = 'brand';
-    protected $dbName = 'erui2_dict'; //数据库名称
+    protected $dbName = 'erui_dict'; //数据库名称
 
     const STATUS_DRAFT = 'DRAFT'; //草稿
     const STATUS_APPROVING = 'APPROVING'; //审核；

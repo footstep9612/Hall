@@ -5,7 +5,7 @@
  */
 class QuoteAttachModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'quote_attach';
     
     public function __construct() {

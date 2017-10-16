@@ -8,7 +8,7 @@
  */
 class GoodsAttachModel extends PublicModel {
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attach'; //数据表表名
 
 //    public function __construct() {
@@ -499,7 +499,7 @@ class GoodsAttachModel extends PublicModel {
     public function getgoods_attachsbyskus($skus, $lang = 'en') {
 
         try {
-            $goods_attachs = $this->table('erui2_goods.goods_attach')
+            $goods_attachs = $this->table('erui_goods.goods_attach')
                     ->field('id,attach_type,attach_url,attach_name,attach_url,sku,default_flag')
                     ->where(['sku' => ['in', $skus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],

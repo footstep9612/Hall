@@ -8,7 +8,7 @@
  */
 class MemberServiceModel extends PublicModel {
 
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'member_service';
 
     public function __construct() {

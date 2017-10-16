@@ -37,9 +37,9 @@ class RoleModel extends PublicModel {
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
             $res= $this->field('role.id,role.name,role.name_en,role.remarks,role.created_by,emby.name as created_name ,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
-                            ->join('`erui2_sys`.`role_member` rm on rm.role_id=role.id', 'left')
-                            ->join('`erui2_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
-                            ->join('`erui2_sys`.`employee` emby on emby.id=role.created_by', 'left')
+                            ->join('`erui_sys`.`role_member` rm on rm.role_id=role.id', 'left')
+                            ->join('`erui_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
+                            ->join('`erui_sys`.`employee` emby on emby.id=role.created_by', 'left')
                             ->where($data)
                             ->limit( $limit['page']. ','. $limit['num'] )
                             ->group('role.id')
@@ -48,9 +48,9 @@ class RoleModel extends PublicModel {
             return $res;
         }else{
             return $this->field('role.id,role.name,role.name_en,role_no,admin_show,role_group,role.remarks,role.created_by,emby.name as created_name ,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
-                ->join('`erui2_sys`.`role_member` rm on rm.role_id=role.id', 'left')
-                ->join('`erui2_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
-                ->join('`erui2_sys`.`employee` emby on emby.id=role.created_by', 'left')
+                ->join('`erui_sys`.`role_member` rm on rm.role_id=role.id', 'left')
+                ->join('`erui_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
+                ->join('`erui_sys`.`employee` emby on emby.id=role.created_by', 'left')
                 ->where($data)
                 ->group('role.id')
                 ->order($order)

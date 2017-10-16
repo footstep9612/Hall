@@ -15,7 +15,7 @@ class MaterialcatproductModel extends PublicModel {
 
     //put your code here
     //put your code here
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'material_cat_product'; //数据表表名
 
     const STATUS_DRAFT = 'DRAFT'; //草稿

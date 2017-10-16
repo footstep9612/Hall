@@ -7,7 +7,7 @@
  */
 class ServiceTermModel extends PublicModel{
     //会员服务条款(二级,条目)
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'service_term';
 
     public function __construct(){

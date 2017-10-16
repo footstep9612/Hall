@@ -14,7 +14,7 @@ class ShowCatModel extends PublicModel {
     const STATUS_VALID = 'VALID'; //生效；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
-    protected $dbName = 'erui2_goods';
+    protected $dbName = 'erui_goods';
     protected $tableName = 'show_cat';
 
     public function __construct() {
@@ -410,18 +410,18 @@ class ShowCatModel extends PublicModel {
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
 
-            $this->Table('erui2_goods.show_material_cat')->where([
+            $this->Table('erui_goods.show_material_cat')->where([
                         'show_cat_no' => $cat_no])
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_goods')->where($where)
+            $this->Table('erui_goods.show_cat_goods')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_product')->where($where)
+            $this->Table('erui_goods.show_cat_product')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
@@ -441,17 +441,17 @@ class ShowCatModel extends PublicModel {
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
 
-            $this->Table('erui2_goods.show_material_cat')->where($pwhere)
+            $this->Table('erui_goods.show_material_cat')->where($pwhere)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_goods')->where($where)
+            $this->Table('erui_goods.show_cat_goods')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_product')->where($where)
+            $this->Table('erui_goods.show_cat_product')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0

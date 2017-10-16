@@ -156,7 +156,7 @@ class QuotebizlineController extends PublicController {
                 $bizline = $quoteitemform->alias('a')
                     ->field('c.id,c.name')
                     ->join('erui2_rfq.quote_bizline b ON a.quote_bizline_id = b.id')
-                    ->join('erui2_operation.bizline c ON b.bizline_id = c.id')
+                    ->join('erui_operation.bizline c ON b.bizline_id = c.id')
                     ->where('a.inquiry_item_id = '.$val['id'])
                     ->find();
 
@@ -251,7 +251,7 @@ class QuotebizlineController extends PublicController {
         // 判断产品线报价记录是否存在
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineInfo = $quoteBizlineModel->where(['inquiry_id' => $request['inquiry_id'], 'bizline_id' => $request['bizline_id']])->find();
-        
+
         if ($quoteBizlineInfo) {
             $quoteBizlineId = $quoteBizlineInfo['id'];
         } else {
@@ -264,7 +264,7 @@ class QuotebizlineController extends PublicController {
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->user['id'],
             ]));
-            
+
             $quoteBizlineId = $quoteBizlineResult;
         }
 
@@ -929,8 +929,8 @@ class QuotebizlineController extends PublicController {
         $fields = 'q.id,q.total_weight,a.trans_mode_bn,q.premium_rate,q.package_volumn,a.dispatch_place,a.delivery_addr,q.dispatch_place logi_dispatch_place,q.delivery_addr logi_delivery_addr,q.gross_profit_rate,q.total_purchase,q.purchase_cur_bn,q.package_mode,q.payment_mode,q.trade_terms_bn,q.payment_period,q.from_country,q.to_country,q.from_port,q.to_port,q.delivery_period,q.fund_occupation_rate,q.bank_interest,q.total_bank_fee,q.period_of_validity,q.exchange_rate,q.total_logi_fee,q.total_quote_price,q.total_exw_price,fq.total_quote_price final_total_quote_price,fq.total_exw_price final_total_exw_price,q.quote_remarks';
         $quoteModel = new QuoteModel();
         $result = $quoteModel->alias('q')
-                             ->join('erui2_rfq.inquiry a ON q.inquiry_id = a.id','LEFT')
-                             ->join('erui2_rfq.final_quote fq ON q.id = fq.quote_id','LEFT')
+                             ->join('erui_rfq.inquiry a ON q.inquiry_id = a.id','LEFT')
+                             ->join('erui_rfq.final_quote fq ON q.id = fq.quote_id','LEFT')
                              ->field($fields)
                              ->where(['q.inquiry_id'=>$request['inquiry_id']])
                              ->find();

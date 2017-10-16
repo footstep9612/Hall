@@ -14,7 +14,7 @@
 class BuyerAccountModel extends PublicModel {
 
     protected $tableName = 'buyer_account';
-    protected $dbName = 'erui2_buyer'; //数据库名称
+    protected $dbName = 'erui_buyer'; //数据库名称
 
     public function __construct($str = '') {
 
@@ -45,9 +45,9 @@ class BuyerAccountModel extends PublicModel {
                 $map['email'] = $data['email'];
                 $map['user_name'] = $data['user_name'];
             }
-            $row = $this->table('erui2_buyer.buyer_account')->where($map)->select();
+            $row = $this->table('erui_buyer.buyer_account')->where($map)->select();
         } else {
-            $row = $this->table('erui2_buyer.buyer_account')->where($data)->select();
+            $row = $this->table('erui_buyer.buyer_account')->where($data)->select();
         }
         return empty($row) ? false : $row;
     }

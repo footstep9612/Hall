@@ -9,7 +9,7 @@
  */
 class OrderLogModel extends PublicModel {
 
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
     protected $tableName = 'order_log'; //数据表表名
 
     /**
@@ -202,12 +202,12 @@ class OrderLogModel extends PublicModel {
 
         try {
             $count = $this->alias('a')
-                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
                     ->where($where)
                     ->count('a.id');
 
             $list = $this->alias('a')
-                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
                     ->field($field)
                     ->where($where)
                     ->page($page, $pagesize)
@@ -254,7 +254,7 @@ class OrderLogModel extends PublicModel {
         try {
             $count = $this->getCount($condition);
             $list = $this->alias('a')
-                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
                     ->field($field)
                     ->where($where)
                     ->page($page, $pagesize)

@@ -15,7 +15,7 @@
 class TradeTermsModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'trade_terms';
 
     public function __construct() {
