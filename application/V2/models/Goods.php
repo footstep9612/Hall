@@ -550,7 +550,7 @@ class GoodsModel extends PublicModel {
                     if (empty($value['name'])) {
                         $spuModel = new ProductModel();
                         $spuName = $spuModel->field('name')->where(['spu' => $value['spu'], 'lang' => $key,
-                                    'deleted_flag' => 'N', 'status' => self::STATUS_VALID])->find();
+                                    'deleted_flag' => 'N'])->find();
 
 
                         $value['name'] = $spuName['name'];
