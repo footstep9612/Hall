@@ -501,10 +501,12 @@ class EsProductModel extends Model {
                 $attr_spus[] = $spu;
                 $brands[$spu] = $item['brand'];
                 $brands[$spu] = $item['brand'];
-
+                $bizline_ids[] = $item['bizline_id'];
                 $material_cat_nos[$spu] = $item['material_cat_no'];
             }
 
+            $bizline_model = new BizlineModel();
+            $bizline_arr = $bizline_model->getNameByIds($bizline_ids);
             $mcat_nos = array_unique($mcat_nos);
 
             $material_cat_model = new MaterialCatModel();
@@ -527,6 +529,7 @@ class EsProductModel extends Model {
                 $spu = $item['spu'];
                 $body['brand'] = $brands[$spu];
                 $body['bizline_id'] = $item['bizline_id'];
+                $body['bizline'] = isset($bizline_arr[$item['bizline_id']]) ? $bizline_arr[$item['bizline_id']] : new stdClass();
                 $body['material_cat_no'] = $material_cat_nos[$spu];
                 $ret[$item['spu']] = $body;
             }
@@ -663,11 +666,12 @@ class EsProductModel extends Model {
                                     ])->limit(0, 100)
                                     ->order('id desc')->select();
                 }
-                $spus = $mcat_nos = [];
+                $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {
                         $mcat_nos[] = $item['material_cat_no'];
                         $spus[] = $item['spu'];
+                        $bizline_ids[] = $item['bizline_id'];
                     }
                     $spus = array_unique($spus);
                     $mcat_nos = array_unique($mcat_nos);
@@ -694,10 +698,12 @@ class EsProductModel extends Model {
                     $es = new ESClient();
                     $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
 
+                    $bizline_model = new BizlineModel();
+                    $bizline_arr = $bizline_model->getNameByIds($bizline_ids);
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                     echo '<pre>';
                     foreach ($products as $key => $item) {
-                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers);
+                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr);
                         if ($key === 99) {
                             $min_id = $item['id'];
                         }
@@ -716,7 +722,7 @@ class EsProductModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers) {
+    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers, &$bizline_arr) {
 
         $spu = $id = $item['spu'];
         $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'brand,material_cat_no');
@@ -744,6 +750,12 @@ class EsProductModel extends Model {
         } else {
             $body['material_cat'] = new stdClass();
         }
+        if (isset($bizline_arr[$item['bizline_id']])) {
+            $body['bizline'] = $bizline_arr[$item['bizline_id']];
+        } else {
+            $body['bizline'] = new stdClass();
+        }
+
 
         if (isset($mcats_zh[$item['material_cat_no']])) {
             $body['material_cat_zh'] = $mcats_zh[$item['material_cat_no']];
@@ -1238,6 +1250,7 @@ class EsProductModel extends Model {
                 foreach ($products as $item) {
                     $mcat_nos[] = $item['material_cat_no'];
                     $spus[] = $item['spu'];
+                    $bizline_ids[] = $item['bizline_id'];
                 }
                 $mcat_nos = array_unique($mcat_nos);
                 $material_cat_model = new MaterialCatModel();
@@ -1252,7 +1265,8 @@ class EsProductModel extends Model {
                 $suppliers = $goods_supplier_model->getsuppliersbyspus($spus, $lang);
                 $product_attach_model = new ProductAttachModel();
                 $attachs = $product_attach_model->getproduct_attachsbyspus($spus, $lang); //根据SPUS获取产品附件
-
+                $bizline_model = new BizlineModel();
+                $bizline_arr = $bizline_model->getNameByIds($bizline_ids);
                 $minimumorderouantitys = $this->getMinimumOrderQuantity($spus, $lang);
                 $productmodel = new ProductModel();
                 if ($lang == 'zh') {
@@ -1264,7 +1278,7 @@ class EsProductModel extends Model {
                 $k = 0;
                 foreach ($products as $item) {
 
-                    $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs, $suppliers);
+                    $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr);
                 }
             }
             $es->refresh($this->dbName);
