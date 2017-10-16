@@ -541,6 +541,7 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
+
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
@@ -548,7 +549,10 @@ class GoodsModel extends PublicModel {
 
                     if (empty($value['name'])) {
                         $spuModel = new ProductModel();
-                        $spuName = $spuModel->field('name')->where(['spu' => $input['spu'], 'lang' => $key, 'deleted_flag' => 'N', 'status' => self::STATUS_VALID])->find();
+                        $spuName = $spuModel->field('name')->where(['spu' => $value['spu'], 'lang' => $key,
+                                    'deleted_flag' => 'N', 'status' => self::STATUS_VALID])->find();
+
+
                         $value['name'] = $spuName['name'];
                     }
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
