@@ -28,6 +28,9 @@ class RoleController extends PublicController {
         if(!empty($data['role_group'])){
             $where['role.role_group'] = $data['role_group'];
         }
+        if(!empty($data['role_no'])){
+            $where['role.role_no'] = $data['role_no'];
+        }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }

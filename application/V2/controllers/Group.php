@@ -100,10 +100,13 @@ class GroupController extends PublicController {
         if(!empty($data['name'])){
             $where['org.name'] = array('like',"%".$data['name']."%");
         }
+        if(!empty($data['org_node'])){
+            $where['org.org_node'] = $data['org_node'];
+        }
         if(!empty($data['parent_id'])){
             $where['org.parent_id'] = $data['parent_id'];
         }else{
-            if(empty($data['name'])){
+            if(empty($data['name'])&&empty($data['org_node'])){
                 $where['org.parent_id'] = 0;
             }
         }
@@ -178,6 +181,9 @@ class GroupController extends PublicController {
         }
         if(!empty($data['name'])){
             $where['org.name'] = array('like',"%".$data['name']."%");
+        }
+        if(!empty($data['org_node'])){
+            $where['org.org_node'] = $data['org_node'];
         }
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
