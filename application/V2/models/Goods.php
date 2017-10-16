@@ -27,6 +27,7 @@ class GoodsModel extends PublicModel {
 
     protected $field = array(
         'spu' => array('required'),
+        'supplier_cost' => array('required'),
 //        'name' => array('required'),
 //        'model' => array('required'),
     );
@@ -561,6 +562,9 @@ class GoodsModel extends PublicModel {
                     if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }
+//                    if (empty($input[$key]['name']) && empty($input[$key]['model']) && empty($input[$key]['attrs']['spec_attrs'])) {
+//                        jsonReturn('', ErrorMsg::EXIST, '名称、型号、扩展属性不能同时为空!');
+//                    }
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field);
 
