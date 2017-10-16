@@ -1188,12 +1188,12 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
                     if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
-                        $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
+                        $data['const_attr'][$attr['attr_key']] = trim($attr['attr_value']);
                     } else {
                         if (in_array($key, array('goods_attrs', 'hs_attrs'))) {
-                            $data['ex_' . $key][$attr['attr_name']] = $attr['attr_value'];
+                            $data['ex_' . $key][$attr['attr_name']] = trim($attr['attr_value']);
                         } else {
-                            $data[$key][$attr['attr_name']] = $attr['attr_value'];
+                            $data[$key][$attr['attr_name']] = trim($attr['attr_value']);
                         }
                     }
                 }
@@ -1955,7 +1955,8 @@ class GoodsModel extends PublicModel {
             return false;
         }
         $where['spu'] = $spu['spu'];
-        $where['status'] = array('neq', self::STATUS_DELETED);
+//        $where['status'] = array('neq', self::STATUS_DELETED);
+        $where['status'] = self::STATUS_VALID;
         $where['deleted_flag'] = self::DELETE_N;
         $where['created_by'] = $userInfo['id'];
         return $this->where($where)->order($order)->select();
