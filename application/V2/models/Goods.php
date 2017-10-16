@@ -308,9 +308,13 @@ class GoodsModel extends PublicModel {
      *      )
      * )
      */
-    private function checkParam($param = [], $field = []) {
+    private function checkParam($param = [], $field = [], $supplier_cost = []) {
         if (empty($param) || empty($field))
             return array();
+
+        if (empty($supplier_cost)) {
+            jsonReturn('', '1000', 'Param supplier Not null !');
+        }
         foreach ($param as $k => $v) {
             if (isset($field[$k])) {
                 $item = $field[$k];
@@ -566,7 +570,7 @@ class GoodsModel extends PublicModel {
 //                        jsonReturn('', ErrorMsg::EXIST, '名称、型号、扩展属性不能同时为空!');
 //                    }
                     //字段校验
-                    $checkout = $this->checkParam($value, $this->field);
+                    $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
 
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
