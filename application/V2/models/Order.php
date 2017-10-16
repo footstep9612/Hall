@@ -17,7 +17,7 @@ class OrderModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'order';
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
 
     const SHOW_STATUS_UNCONFIRM = 'UNCONFIRM'; // 订单展示状态CONFIRM待确认
     const SHOW_STATUS_GOING = 'GOING'; // 订单展示状态  GOING.进行中
@@ -90,11 +90,11 @@ class OrderModel extends PublicModel {
 
     public function info($order_id, $lang = 'zh') {
         $field = 'id,order_no,po_no,execute_no,contract_date,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
-        $field .= ',trans_mode_bn,(select trans_mode from erui2_dict.trans_mode as t where t.bn=trans_mode_bn and t.lang=\'' . $lang . '\') as trans_mode';
-        $field .= ',from_country_bn,(select name from erui2_dict.country as t where t.bn=from_country_bn and t.lang=\'' . $lang . '\') as from_country';
-        $field .= ',to_country_bn,(select name from erui2_dict.country as t where t.bn=to_country_bn and t.lang=\'' . $lang . '\') as to_country';
-        $field .= ',from_port_bn,(select name from erui2_dict.port as t where t.bn=from_port_bn and t.lang=\'' . $lang . '\') as from_port';
-        $field .= ',to_port_bn,(select name from erui2_dict.port as t where t.bn=to_port_bn and t.lang=\',buyer_id' . $lang . '\') as to_port,quality,distributed';
+        $field .= ',trans_mode_bn,(select trans_mode from erui_dict.trans_mode as t where t.bn=trans_mode_bn and t.lang=\'' . $lang . '\') as trans_mode';
+        $field .= ',from_country_bn,(select name from erui_dict.country as t where t.bn=from_country_bn and t.lang=\'' . $lang . '\') as from_country';
+        $field .= ',to_country_bn,(select name from erui_dict.country as t where t.bn=to_country_bn and t.lang=\'' . $lang . '\') as to_country';
+        $field .= ',from_port_bn,(select name from erui_dict.port as t where t.bn=from_port_bn and t.lang=\'' . $lang . '\') as from_port';
+        $field .= ',to_port_bn,(select name from erui_dict.port as t where t.bn=to_port_bn and t.lang=\',buyer_id' . $lang . '\') as to_port,quality,distributed';
         return $this->field($field)
                         ->where(['id' => $order_id])->find();
     }
@@ -154,9 +154,9 @@ class OrderModel extends PublicModel {
         $where = $this->_getCondition($condition);
         list($start_no, $pagesize) = $this->_getPage($condition);
         return $this
-            ->field('order.id,is_reply,order_no,po_no,execute_no,contract_date, buyer_id,order.status,show_status,pay_status,buyer.name as buyer_id_name,buyer.buyer_no')
-            ->join('`erui2_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')
-            ->where($where)->limit($start_no, $pagesize)->order('order.created_at desc')->select();
+                        ->field('order.id,is_reply,order_no,po_no,execute_no,contract_date, buyer_id,order.status,show_status,pay_status,buyer.name as buyer_id_name,buyer.buyer_no')
+                        ->join('`erui_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')
+                        ->where($where)->limit($start_no, $pagesize)->order('order.created_at desc')->select();
     }
 
     /* 获取订单数量
@@ -171,7 +171,7 @@ class OrderModel extends PublicModel {
 
         $where = $this->_getCondition($condition);
 
-        return $this->join('`erui2_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')->where($where)->count();
+        return $this->join('`erui_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')->where($where)->count();
     }
 
 }
