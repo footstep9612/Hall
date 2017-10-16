@@ -311,10 +311,10 @@ class GoodsModel extends PublicModel {
     private function checkParam($param = [], $field = [], $supplier_cost = []) {
         if (empty($param) || empty($field))
             return array();
-
-        if (empty($supplier_cost)) {
-            jsonReturn('', '1000', 'Param supplier Not null !');
-        }
+//
+//        if (empty($supplier_cost)) {
+//            jsonReturn('', '1000', 'Param supplier Not null !');
+//        }
         foreach ($param as $k => $v) {
             if (isset($field[$k])) {
                 $item = $field[$k];
