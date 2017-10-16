@@ -21,7 +21,7 @@ trait QuoteHelper{
         $inquiryInfo = $inquiry->where(['id'=>$inquiry_id])->field([
             'serial_no','status','pm_id'
         ])->find();
-        $inquiryInfo['pm_name'] = Z('erui2_sys.Employee')->where(['id'=>$inquiryInfo['pm_id']])->getField('name');
+        $inquiryInfo['pm_name'] = Z('erui_sys.Employee')->where(['id'=>$inquiryInfo['pm_id']])->getField('name');
         unset($inquiryInfo['pm_id']);
 
         //询单明细信息 [inquiry_item表]

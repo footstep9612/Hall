@@ -17,7 +17,7 @@ class OrderModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'order';
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
 
     const SHOW_STATUS_UNCONFIRM = 'UNCONFIRM'; // 订单展示状态CONFIRM待确认
     const SHOW_STATUS_GOING = 'GOING'; // 订单展示状态  GOING.进行中

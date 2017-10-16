@@ -16,7 +16,7 @@
 class OpLogModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_sys';
+    protected $dbName = 'erui_sys';
     protected $tableName = 'op_log';
 
     public function __construct() {

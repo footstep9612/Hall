@@ -5,7 +5,7 @@
  */
 class ServiceCatModel extends PublicModel {
 
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'service_cat';
     
     public function __construct() {

@@ -16,7 +16,7 @@
 class MarketAreaModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_operation';
+    protected $dbName = 'erui_operation';
     protected $tableName = 'market_area';
 
     public function __construct() {
@@ -65,7 +65,7 @@ class MarketAreaModel extends PublicModel {
                 return json_decode(redisHashGet('Market_Area', $redis_key), true);
             }
             $result = $this->alias('zh')
-                            ->join('erui2_operation.market_area as en on '
+                            ->join('erui_operation.market_area as en on '
                                     . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'inner')
                             ->field('zh.bn,zh.parent_bn,zh.name as zh_name,zh.url,en.name as en_name ')
                             ->where($data)->order($order)->select();

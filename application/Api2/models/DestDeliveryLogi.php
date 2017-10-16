@@ -9,7 +9,7 @@
  */
 class DestDeliveryLogiModel extends PublicModel {
 
-    protected $dbName = 'erui2_config'; //数据库名称
+    protected $dbName = 'erui_config'; //数据库名称
     protected $tableName = 'dest_delivery_logi';
 
     const STATUS_VALID = 'VALID';    //有效的
