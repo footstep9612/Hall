@@ -14,7 +14,7 @@
  */
 class BuyerreginfoModel extends PublicModel {
     protected $tableName = 'buyer_reg_info';
-    protected $dbName = 'erui2_buyer';
+    protected $dbName = 'erui_buyer';
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_INVALID = 'INVALID'; //无效；

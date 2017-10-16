@@ -14,7 +14,7 @@ class ShowCatModel extends PublicModel {
     const STATUS_VALID = 'VALID'; //生效；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
-    protected $dbName = 'erui2_goods';
+    protected $dbName = 'erui_goods';
     protected $tableName = 'show_cat';
 
     public function __construct() {

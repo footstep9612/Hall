@@ -16,7 +16,7 @@
 class ExportTariffModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'export_tariff';
 
     public function __construct($str = '') {

@@ -10,7 +10,7 @@ class QuoteItemFormModel extends PublicModel{
      * 数据库名称
      * @var string
      */
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
 
     /**
      * 数据表名称
@@ -51,8 +51,8 @@ class QuoteItemFormModel extends PublicModel{
         $field = 'a.id,a.quote_bizline_id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.updated_by,c.bizline_id';
 
         $data = $this->alias('a')
-                    ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-                    ->join('erui2_rfq.quote_bizline c ON a.quote_bizline_id = c.id')
+                    ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+                    ->join('erui_rfq.quote_bizline c ON a.quote_bizline_id = c.id')
                     ->field($field)
                     ->where($where)
                     ->where($where2)
@@ -76,8 +76,8 @@ class QuoteItemFormModel extends PublicModel{
         $field = 'a.id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.model,b.remarks,b.remarks_zh,b.qty,b.unit,a.brand,a.supplier_id,a.goods_desc,a.purchase_unit_price,a.purchase_price_cur_bn,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.goods_source,a.stock_loc,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.status,a.created_by,c.bizline_id';
 
         $count = $this->alias('a')
-            ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-            ->join('erui2_rfq.quote_bizline c ON a.quote_bizline_id = c.id')
+            ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->join('erui_rfq.quote_bizline c ON a.quote_bizline_id = c.id')
             ->field($field)
             ->where($where)
             ->where($where2)

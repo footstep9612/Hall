@@ -8,7 +8,7 @@
  */
 class FinalQuoteModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'final_quote';
 
 	public function __construct() {

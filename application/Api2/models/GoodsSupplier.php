@@ -15,7 +15,7 @@
  */
 class GoodsSupplierModel extends PublicModel {
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_supplier'; //数据表表名
 
     //put your code here
@@ -40,7 +40,7 @@ class GoodsSupplierModel extends PublicModel {
                 return [];
             }
             $product_attrs = $this->field('sku,supplier_id,brand,supply_ability,'
-                            . '(select name from  erui2_supplier.supplier where id=supplier_id ) as supplier_name')
+                            . '(select name from  erui_supplier.supplier where id=supplier_id ) as supplier_name')
                     ->where(['sku' => ['in', $skus],
                         'status' => 'VALID',
                         'deleted_flag' => 'N'
@@ -83,7 +83,7 @@ class GoodsSupplierModel extends PublicModel {
             $product_attrs = $this->alias('gs')
                     ->join($goods_table . ' as g on g.sku=gs.sku and g.lang=\'' . $lang . '\'', 'left')
                     ->field('g.spu,gs.supplier_id,gs.brand,gs.supply_ability,'
-                            . '(select name from  erui2_supplier.supplier where id=gs.supplier_id ) as supplier_name')
+                            . '(select name from  erui_supplier.supplier where id=gs.supplier_id ) as supplier_name')
                     ->where(['g.spu' => ['in', $spus],
                         'gs.status' => 'VALID',
                         'gs.deleted_flag' => 'N'

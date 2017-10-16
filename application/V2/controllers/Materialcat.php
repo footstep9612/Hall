@@ -99,7 +99,7 @@ class MaterialcatController extends PublicController {
     private function _getCount($cat_no, $lang = 'en') {
         $redis_key = 'Material_cat_spucount_' . md5(json_encode($cat_no));
         $data = json_decode(redisGet($redis_key), true);
-        $materialcat_product_model = new Model('erui2_goods.product');
+        $materialcat_product_model = new Model('erui_goods.product');
         if (!$data) {
             $arr = $materialcat_product_model->where(['material_cat_no' => $cat_no, 'status' => 'VALID', 'lang' => $lang])->Count();
             if ($arr) {

@@ -17,7 +17,7 @@ class OrderPaymentModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'order_payment';
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
 
     //状态
 //pay_status status show_status
@@ -41,7 +41,7 @@ class OrderPaymentModel extends PublicModel {
                         ->order('op.created_at ASC')
                         ->select();
 //        return $this->alias('op')
-//                        ->join('erui2_dict.payment_mode dp on op.payment_mode_bn=dp.bn and dp.lang=\'en\'', 'left')
+//                        ->join('erui_dict.payment_mode dp on op.payment_mode_bn=dp.bn and dp.lang=\'en\'', 'left')
 //                        ->field('op.amount,op.payment_mode_bn,op.payment_at,dp.name as payment_mode')
 //                        ->where(['op.order_id' => $order_id, 'op.deleted_flag' => 'N'])
 //                        ->order('op.created_at ASC')

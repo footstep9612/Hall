@@ -16,7 +16,7 @@
 class TransBoxTypeModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'trans_box_type';
 
     public function __construct() {
@@ -87,8 +87,8 @@ class TransBoxTypeModel extends PublicModel {
                 return json_decode(redisHashGet('TransBoxType', $redis_keys), true);
             }
             $result = $this->alias('tbt')
-                    ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
-                    ->join('erui2_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
+                    ->join('erui_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
+                    ->join('erui_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
                     ->field('tbt.id,bt.box_type_name,tm.trans_mode,tbt.box_type_bn,'
                             . 'tbt.trans_mode_bn,tbt.created_by,tbt.created_at ')
                     ->order($order)

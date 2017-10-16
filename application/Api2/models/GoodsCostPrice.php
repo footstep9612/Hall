@@ -7,7 +7,7 @@
  */
 class GoodsCostPriceModel extends PublicModel {
     protected $tableName = 'goods_cost_price'; //数据表名称
-    protected $dbName = 'erui2_goods';         //数据库名称
+    protected $dbName = 'erui_goods';         //数据库名称
 
     public function __construct($str = '') {
 

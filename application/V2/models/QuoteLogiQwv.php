@@ -7,7 +7,7 @@
  */
 class QuoteLogiQwvModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'quote_logi_qwv';
 			    
     public function __construct() {

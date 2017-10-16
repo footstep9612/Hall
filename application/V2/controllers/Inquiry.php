@@ -28,7 +28,7 @@ class InquiryController extends PublicController {
                 //查询是否方案中心，下面有多少市场人员
                 $users = $maketareateam->alias('a')
                         ->field('b.employee_id')
-                        ->join('`erui2_sys`.`org_member` b on a.market_org_id = b.org_id')
+                        ->join('`erui_sys`.`org_member` b on a.market_org_id = b.org_id')
                         ->where('a.biz_tech_org_id in('.implode(',',$groupid).')')
                         ->select();
 
@@ -38,7 +38,7 @@ class InquiryController extends PublicController {
                 //查询是否方案中心，下面有多少市场人员
                 $users = $maketareateam->alias('a')
                     ->field('b.employee_id')
-                    ->join('`erui2_sys`.`org_member` b on a.market_org_id = b.org_id')
+                    ->join('`erui_sys`.`org_member` b on a.market_org_id = b.org_id')
                     ->where('a.biz_tech_org_id='.$groupid)
                     ->select();
 
@@ -351,7 +351,7 @@ class InquiryController extends PublicController {
                     $results['data'][$key]['created_name'] = $employeedata['name'];
 
                     $roledata = $roleuser->alias('a')
-                        ->join('erui2_sys.role b ON a.role_id = b.id', 'LEFT')
+                        ->join('erui_sys.role b ON a.role_id = b.id', 'LEFT')
                         ->where('a.employee_id=' . $val['created_by'])
                         ->field('b.name,b.name_en,b.remarks')
                         ->find();
@@ -568,7 +568,7 @@ class InquiryController extends PublicController {
                 $results['data'][$key]['op_name'] = $employeedata['name'];
 
                 $roledata = $roleuser->alias('a')
-                        ->join('erui2_sys.role b ON a.role_id = b.id', 'LEFT')
+                        ->join('erui_sys.role b ON a.role_id = b.id', 'LEFT')
                         ->where('a.employee_id=' . $val['op_id'])
                         ->field('b.name,b.name_en,b.remarks')
                         ->find();

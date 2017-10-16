@@ -354,8 +354,8 @@ class ExcelmanagerController extends PublicController {
         $finalQuoteItemModel = new FinalQuoteItemModel();
         $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks_zh,b.remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.net_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.remarks quote_remarks';
         $finalQuoteItems = $finalQuoteItemModel->alias('a')
-                ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-                ->join('erui2_rfq.quote_item c ON a.quote_item_id = c.id')
+                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
                 ->field($fields)
                 ->where(['a.inquiry_id' => $inquiry_id])
                 ->order('a.id DESC')

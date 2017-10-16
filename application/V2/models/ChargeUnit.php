@@ -16,7 +16,7 @@
 class ChargeUnitModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'charge_unit';
 
     public function __construct($str = '') {

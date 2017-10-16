@@ -45,7 +45,7 @@ class CountryUserModel extends PublicModel {
         if($user_id){
             $sql = 'SELECT country_member.*,country.`id`,`lang`,`region_bn`,`code`,`bn`,`name`,`int_tel_code`,`time_zone`,`status`,`deleted_flag`  ';
             $sql .= ' FROM  `country_member` ';
-            $sql .= ' LEFT JOIN  `erui2_dict`.`country` ON `erui2_dict`.`country`.`bn` =`country_member`.`country_bn` and `erui2_dict`.`country`.`lang` ="zh"';
+            $sql .= ' LEFT JOIN  `erui_dict`.`country` ON `erui_dict`.`country`.`bn` =`country_member`.`country_bn` and `erui_dict`.`country`.`lang` ="zh"';
             $sql .= " WHERE 1=1  ";
             if(!empty($user_id)) {
                 $sql .= ' and `country_member`.`employee_id` =' . $user_id;

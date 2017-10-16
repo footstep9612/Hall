@@ -14,8 +14,8 @@
 class SupplierAgentModel extends PublicModel {
     //put your code here
     protected $tableName = 'supplier_agent';
-    protected $dbName = 'erui2_supplier'; //数据库名称
-    protected $g_table = 'erui2_supplier.supplier_agent';
+    protected $dbName = 'erui_supplier'; //数据库名称
+    protected $g_table = 'erui_supplier.supplier_agent';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }

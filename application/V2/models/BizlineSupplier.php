@@ -11,7 +11,7 @@ class BizlineSupplierModel extends PublicModel
      * 数据库名称
      * @var string
      */
-    protected $dbName = 'erui2_operation';
+    protected $dbName = 'erui_operation';
 
     /**
      * 数据表名称
@@ -34,11 +34,11 @@ class BizlineSupplierModel extends PublicModel
     }
     public function getSupplierGoodsCostList($data){
         $list = $this
-            ->join('`erui2_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')
-            ->join('`erui2_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left')
-            ->join('`erui2_supplier`.`supplier` sp on sp.id=bizline_supplier.supplier_id', 'left');
+            ->join('`erui_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')
+            ->join('`erui_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left')
+            ->join('`erui_supplier`.`supplier` sp on sp.id=bizline_supplier.supplier_id', 'left');
             if($data['sku']){
-                $list =$list->join('`erui2_goods`.`goods_cost_price` gc on gc.supplier_id=bizline_supplier.supplier_id', 'left');
+                $list =$list->join('`erui_goods`.`goods_cost_price` gc on gc.supplier_id=bizline_supplier.supplier_id', 'left');
                 $data[] ='sku=\''.$data['sku'].'\' or sku is null';
                 $list =$list->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name,gc.price,gc.price_validity,sp.name as supplier_name');
                 unset($data['sku']);
@@ -52,9 +52,9 @@ class BizlineSupplierModel extends PublicModel
     public function getSupplierList($data)
     {
         return $this->where($data)->field('bizline_supplier.*,bz.name as bizline_name,org.name as quote_group_name,sp.name as supplier_name')
-            ->join('`erui2_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')
-            ->join('`erui2_supplier`.`supplier` sp on sp.id=bizline_supplier.supplier_id', 'left')
-            ->join('`erui2_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left')->select();
+            ->join('`erui_operation`.`bizline` bz on bz.id=bizline_supplier.bizline_id', 'left')
+            ->join('`erui_supplier`.`supplier` sp on sp.id=bizline_supplier.supplier_id', 'left')
+            ->join('`erui_sys`.`org` org on org.id=bizline_supplier.quote_group_id', 'left')->select();
     }
     public function create_data($create= []) {
         if(isset($create['bizline_id'])){

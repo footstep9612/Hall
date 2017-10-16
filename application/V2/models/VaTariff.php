@@ -8,7 +8,7 @@
  */
 class VaTariffModel extends PublicModel {
 
-    protected $dbName = 'erui2_config'; //数据库名称
+    protected $dbName = 'erui_config'; //数据库名称
     protected $tableName = 'va_tariff'; //数据表表名
 
     public function __construct() {
@@ -115,7 +115,7 @@ class VaTariffModel extends PublicModel {
             }
             $from = ($current_no - 1) * $pagesize;
             $result = $this->alias('vt')
-                    ->join('erui2_dict.country c on vt.country_bn=c.bn and c.lang=\'zh\'', 'left')
+                    ->join('erui_dict.country c on vt.country_bn=c.bn and c.lang=\'zh\'', 'left')
                     ->field($field)
                     ->limit($from, $pagesize)
                     ->where($where)

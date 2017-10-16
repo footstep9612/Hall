@@ -7,7 +7,7 @@
  */
 class ServiceItemModel extends PublicModel{
    //会员服务条款(三级)
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'service_item';
 
     public function __construct(){

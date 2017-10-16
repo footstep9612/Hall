@@ -17,7 +17,7 @@ class OrderContactModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'order_contact';
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
 
     //状态
 //pay_status status show_status

@@ -15,7 +15,7 @@ class ShowCatProductModel extends PublicModel {
     const STATUS_ONSHELF = 'Y';    //上架
     const STATUS_UNSHELF = 'N';    //未上架
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'show_cat_product';
 
     public function __construct() {
@@ -246,7 +246,7 @@ class ShowCatProductModel extends PublicModel {
         try {
             if ($spus && is_array($spus)) {
                 $show_cat_products = $this->alias('scp')
-                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->join('erui_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no,scp.spu,scp.onshelf_flag')
                         ->where(['scp.spu' => ['in', $spus],
                             'scp.status' => 'VALID',
@@ -299,7 +299,7 @@ class ShowCatProductModel extends PublicModel {
         try {
             if ($spus && is_array($spus)) {
                 $show_cat_products = $this->alias('scp')
-                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->join('erui_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no')
                         ->where(['scp.spu' => $spu,
                             'scp.status' => 'VALID',

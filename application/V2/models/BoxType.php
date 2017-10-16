@@ -16,7 +16,7 @@
 class BoxTypeModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'box_type';
 
     public function __construct($str = '') {

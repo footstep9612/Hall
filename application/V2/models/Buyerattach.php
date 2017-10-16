@@ -15,7 +15,7 @@ class BuyerattachModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'buyer_attach';
-    protected $dbName = 'erui2_buyer';
+    protected $dbName = 'erui_buyer';
     Protected $autoCheckFields = false;
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；

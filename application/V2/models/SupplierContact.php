@@ -15,7 +15,7 @@ class SupplierContactModel extends PublicModel
 {
 
     //put your code here
-    protected $dbName = 'erui2_supplier';
+    protected $dbName = 'erui_supplier';
     protected $tableName = 'supplier_contact';
 
     public function __construct($str = '')

@@ -8,7 +8,7 @@
 class BuyerContactModel extends PublicModel{
 
     //put your code here
-    protected $dbName = 'erui2_buyer';
+    protected $dbName = 'erui_buyer';
     protected $tableName = 'buyer_contact';
 
     public function __construct($str = ''){

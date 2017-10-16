@@ -9,7 +9,7 @@
  */
 class InquiryitemModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
 
     public function __construct() {
