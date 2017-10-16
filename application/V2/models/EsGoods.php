@@ -15,7 +15,7 @@ class EsGoodsModel extends Model {
 
     //put your code here
     protected $tableName = 'goods';
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
 
     const STATUS_DELETED = 'DELETED';
 
@@ -366,7 +366,7 @@ class EsGoodsModel extends Model {
 
     public function getonshelf_flag($skus, $lang = 'en') {
         try {
-            $onshelf_flags = $this->table('erui2_goods.show_cat_goods')
+            $onshelf_flags = $this->table('erui_goods.show_cat_goods')
                             ->field('sku,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
                                     . ',max(updated_by) as min_updated_by'

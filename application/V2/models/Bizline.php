@@ -9,7 +9,7 @@
  */
 class BizlineModel extends PublicModel {
 
-    protected $dbName = 'erui2_operation'; //数据库名称
+    protected $dbName = 'erui_operation'; //数据库名称
     protected $tableName = 'bizline'; //数据表表名
 
     public function __construct() {

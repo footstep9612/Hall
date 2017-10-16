@@ -16,7 +16,7 @@ class EsProductModel extends Model {
 
 //put your code here
     protected $tableName = 'product';
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
 
     const STATUS_DELETED = 'DELETED';
 
@@ -550,7 +550,7 @@ class EsProductModel extends Model {
 
     public function getMinimumOrderQuantity($spus, $lang = 'en') {
         try {
-            $minimumorderquantutys = $this->table('erui2_goods.goods')
+            $minimumorderquantutys = $this->table('erui_goods.goods')
                             ->field('spu,min(min_order_qty) as value ,min(exw_days) as min_exw_day,min_pack_unit,'
                                     . 'max(exw_days) as max_exw_day')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang])
@@ -580,7 +580,7 @@ class EsProductModel extends Model {
 
     public function getonshelf_flag($spus, $lang = 'en') {
         try {
-            $onshelf_flags = $this->table('erui2_goods.show_cat_product')
+            $onshelf_flags = $this->table('erui_goods.show_cat_product')
                             ->field('spu,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
                                     . ' ,max(updated_by) as min_updated_by'
