@@ -32,7 +32,7 @@ class GroupModel extends PublicModel {
     public function getlist($data,$limit,$order='sort desc') {
         $data["org.deleted_flag"] = 'N';
         if(!empty($limit)){
-            return    $this->field('org.id,org.sort,org.membership,rg.show_name,org_node,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
+              $res=  $this->field('org.id,org.sort,org.membership,rg.show_name,org_node,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
                             ->join('`erui2_sys`.`org_member` om on om.org_id=org.id', 'left')
                             ->join('`erui2_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
                             ->where($data)
@@ -40,6 +40,8 @@ class GroupModel extends PublicModel {
                             ->group('org.id')
                             ->order($order)
                             ->select();
+
+            return $res;
         }else{
            $res = $this->field('org.id,org.sort,org.show_name,org_node,org.membership,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
                 ->join('`erui2_sys`.`org_member` om on om.org_id=org.id', 'left')
@@ -48,6 +50,7 @@ class GroupModel extends PublicModel {
                 ->group('org.id')
                 ->order($order)
                 ->select();
+
             return $res;
         }
     }
