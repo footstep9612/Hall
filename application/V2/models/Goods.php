@@ -532,7 +532,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        if(!isset($input['sku']) || empty($input['sku'])){
+        if (!isset($input['sku']) || empty($input['sku'])) {
             $sku = $this->setRealSku($input);
         } else {
             $sku = trim($input['sku']);
@@ -544,16 +544,16 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    /*if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
-                        continue;
-                    }*/
 
-                    if(empty($value['name'])) {
+
+                    if (empty($value['name'])) {
                         $spuModel = new ProductModel();
-                        $spuName = $spuModel->field('name')->where(['spu'=>$input['spu'],'lang'=>$key, 'deleted_flag' => 'N', 'status' => self::STATUS_VALID])->find();
+                        $spuName = $spuModel->field('name')->where(['spu' => $input['spu'], 'lang' => $key, 'deleted_flag' => 'N', 'status' => self::STATUS_VALID])->find();
                         $value['name'] = $spuName['name'];
                     }
-
+                    if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
+                        continue;
+                    }
                     if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }
@@ -565,7 +565,6 @@ class GoodsModel extends PublicModel {
                     $input['status'] = $status;
 
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
-
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
@@ -725,7 +724,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'supplier_cost') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = (isset($input['sku']) && !empty($input['sku']))? $input['sku'] : $sku;
+                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
                         $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
@@ -775,33 +774,32 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return
      */
-    private function _checkExit(&$condition,&$attr){
+    private function _checkExit(&$condition, &$attr) {
 
         $exist = $this->where($condition)->find();
-        if($exist){
+        if ($exist) {
             $where = array(
                 'lang' => $condition['lang'],
                 'spu' => $condition['spu'],
                 'deleted_flag' => 'N'
             );
             if (!empty($condition['sku'])) {
-                $where['sku'] =  $condition['sku'];
+                $where['sku'] = $condition['sku'];
             }
             $attr_model = new GoodsAttrModel();
             $other_attr = $attr_model->where($where)->select();
 
-            if(empty($attr['spec_attrs']) && !$other_attr['spec_attrs']){
+            if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
                 jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在');
-
             } else {
-                foreach($other_attr as $key=>$item){
+                foreach ($other_attr as $key => $item) {
                     $other = json_decode($item['spec_attrs'], true);
                     $otherAttr = $other ? $other : [];
-                    $result1 = array_diff_assoc($otherAttr,$attr['spec_attrs']);
-                    $result2 = array_diff_assoc($attr['spec_attrs'],$otherAttr);
+                    $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
+                    $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
 
-                    if(empty($result1) && empty($result2)){
-                        jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在'.'; 扩展属性重复!');
+                    if (empty($result1) && empty($result2)) {
+                        jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在' . '; 扩展属性重复!');
                     } else {
                         continue;
                     }
@@ -1088,9 +1086,9 @@ class GoodsModel extends PublicModel {
                             $presult = $pModel->where($where_spu)
                                     ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
 
-                            /*if (!$presult) {
-                                return false;
-                            }*/
+                            /* if (!$presult) {
+                              return false;
+                              } */
                         } else {
                             return false;
                         }
@@ -1956,8 +1954,8 @@ class GoodsModel extends PublicModel {
      * 获取用户创建的第一个sku信息
      * @author klp
      */
-    public function getSku($userInfo,$spu, $order = 'id asc') {
-        if(empty($spu['spu'])){
+    public function getSku($userInfo, $spu, $order = 'id asc') {
+        if (empty($spu['spu'])) {
             return false;
         }
         $where['spu'] = $spu['spu'];
