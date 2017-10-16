@@ -9,8 +9,8 @@
 class GoodsModel extends PublicModel {
 
     protected $tableName = 'goods';
-    protected $dbName = 'erui2_goods'; //数据库名称
-    protected $g_table = 'erui2_goods.goods';
+    protected $dbName = 'erui_goods'; //数据库名称
+    protected $g_table = 'erui_goods.goods';
 
     //状态
 
@@ -27,8 +27,8 @@ class GoodsModel extends PublicModel {
 
     protected $field = array(
         'spu' => array('required'),
-        'name' => array('required'),
-        'model' => array('required'),
+//        'name' => array('required'),
+//        'model' => array('required'),
     );
     //固定属性映射
     protected $const_attr = array(
@@ -544,8 +544,14 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
+                    /*if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
+                    }*/
+
+                    if(empty($value['name'])) {
+                        $spuModel = new ProductModel();
+                        $spuName = $spuModel->field('name')->where(['spu'=>$input['spu'],'lang'=>$key, 'deleted_flag' => 'N', 'status' => self::STATUS_VALID])->find();
+                        $value['name'] = $spuName['name'];
                     }
 
                     if (empty($value['show_name'])) {
@@ -1188,12 +1194,12 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
                     if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
-                        $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
+                        $data['const_attr'][$attr['attr_key']] = trim($attr['attr_value']);
                     } else {
                         if (in_array($key, array('goods_attrs', 'hs_attrs'))) {
-                            $data['ex_' . $key][$attr['attr_name']] = $attr['attr_value'];
+                            $data['ex_' . $key][$attr['attr_name']] = trim($attr['attr_value']);
                         } else {
-                            $data[$key][$attr['attr_name']] = $attr['attr_value'];
+                            $data[$key][$attr['attr_name']] = trim($attr['attr_value']);
                         }
                     }
                 }
@@ -1955,7 +1961,8 @@ class GoodsModel extends PublicModel {
             return false;
         }
         $where['spu'] = $spu['spu'];
-        $where['status'] = array('neq', self::STATUS_DELETED);
+//        $where['status'] = array('neq', self::STATUS_DELETED);
+        $where['status'] = self::STATUS_VALID;
         $where['deleted_flag'] = self::DELETE_N;
         $where['created_by'] = $userInfo['id'];
         return $this->where($where)->order($order)->select();
