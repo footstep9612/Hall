@@ -36,9 +36,10 @@ class RoleModel extends PublicModel {
      */
     public function getlist($data,$limit,$order='id desc') {
         if(!empty($limit)){
-            $res= $this->field('role.id,role.name,role.name_en,role.remarks,role.created_by,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
+            $res= $this->field('role.id,role.name,role.name_en,role.remarks,role.created_by,emby.name as created_name ,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
                             ->join('`erui2_sys`.`role_member` rm on rm.role_id=role.id', 'left')
                             ->join('`erui2_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
+                            ->join('`erui2_sys`.`employee` emby on emby.id=role.created_by', 'left')
                             ->where($data)
                             ->limit( $limit['page']. ','. $limit['num'] )
                             ->group('role.id')
@@ -46,9 +47,10 @@ class RoleModel extends PublicModel {
                             ->select();
             return $res;
         }else{
-            return $this->field('role.id,role.name,role.name_en,role.remarks,role.created_by,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
+            return $this->field('role.id,role.name,role.name_en,role_no,admin_show,role_group,role.remarks,role.created_by,emby.name as created_name ,role.created_at,role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id')
                 ->join('`erui2_sys`.`role_member` rm on rm.role_id=role.id', 'left')
                 ->join('`erui2_sys`.`employee` em on em.id=`rm`.`employee_id`', 'left')
+                ->join('`erui2_sys`.`employee` emby on emby.id=role.created_by', 'left')
                 ->where($data)
                 ->group('role.id')
                 ->order($order)
@@ -88,7 +90,7 @@ class RoleModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,name,name_en,remarks,created_by,created_at,status')
+                ->field('id,role_no,admin_show,role_group,name,name_en,remarks,created_by,created_at,status')
                 ->find();
             return $row;
         }else{
@@ -119,18 +121,7 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data,$where) {
-        if(isset($data['name'])){
-            $arr['name'] = $data['name'];
-        }
-        if(isset($data['remarks'])){
-            $arr['remarks'] = $data['remarks'];
-        }
-        if(isset($create['name_en'])){
-            $arr['name_en'] = $create['name_en'];
-        }
-        if(isset($data['status'])){
-            $arr['status'] = $data['status'];
-        }
+        $arr = $this->create($data);
         if(!empty($where)&&isset($arr)){
             $result =$this->where($where)->save($arr);
             if (false === $result) {
@@ -152,25 +143,10 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['name'])){
-            $arr['name'] = $create['name'];
+        $data = $this->create($create);
+        if($data){
+            $data['created_at'] = date("Y-m-d H:i:s");
         }
-        if(isset($create['name_en'])){
-            $arr['name_en'] = $create['name_en'];
-        }
-        if(isset($create['remarks'])){
-            $arr['remarks'] = $create['remarks'];
-        }
-        if(isset($create['status'])){
-            $arr['status'] = $create['status'];
-        }
-        if(isset($create['created_by'])){
-            $arr['created_by'] = $create['created_by'];
-        }
-        if(isset($arr)){
-            $arr['created_at'] = date("Y-m-d H:i:s");
-        }
-        $data = $this->create($arr);
         return $this->add($data);
     }
 

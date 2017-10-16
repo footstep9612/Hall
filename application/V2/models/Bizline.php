@@ -1,4 +1,5 @@
 <?php
+
 /**
  * name: Bizline
  * desc: 产品线表
@@ -21,10 +22,10 @@ class BizlineModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    public function  getCondition($condition = []) {
+    public function getCondition($condition = []) {
         $where = [];
         if (!empty($condition['name'])) {
-            $where['name'] = ['like','%'.$condition['name'].'%'];
+            $where['name'] = ['like', '%' . $condition['name'] . '%'];
         }
         //$where['status'] = !empty($condition['status'])?$condition['status']:"VALID";
 
@@ -51,19 +52,19 @@ class BizlineModel extends PublicModel {
     public function getList($condition = []) {
         $where = $this->getcondition($condition);
 
-        $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
+        $page = !empty($condition['currentPage']) ? $condition['currentPage'] : 1;
         //$pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
             $count = $this->getcount($condition);
             //$list = $this->where($where)->page($page, $pagesize)->order('created_at desc')->select();
             $list = $this->where($where)->order('created_at desc')->select();
-            if(isset($list)){
+            if (isset($list)) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['count'] = $count;
                 $results['data'] = $list;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -73,7 +74,6 @@ class BizlineModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
-
     }
 
     /**
@@ -83,9 +83,9 @@ class BizlineModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getInfo($condition = []) {
-        if(!empty($condition['id'])){
+        if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '没有产品线id!';
             return $results;
@@ -94,11 +94,11 @@ class BizlineModel extends PublicModel {
         try {
             $info = $this->where($where)->find();
 
-            if(isset($info)){
+            if (isset($info)) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $info;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -108,7 +108,6 @@ class BizlineModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
-
     }
 
     /**
@@ -118,22 +117,22 @@ class BizlineModel extends PublicModel {
      * @author zhangyuliang
      */
     public function addData($condition = []) {
-        if(!empty($condition['name'])){
+        if (!empty($condition['name'])) {
             $data['name'] = $condition['name'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '缺少名称!';
             return $results;
         }
-        if(!empty($condition['userid'])){
+        if (!empty($condition['userid'])) {
             $data['created_by'] = $condition['userid'];
             $data['updated_by'] = $condition['userid'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '缺少添加人员id!';
             return $results;
         }
-        if(!empty($condition['remarks'])){
+        if (!empty($condition['remarks'])) {
             $data['remarks'] = $condition['remarks'];
         }
         $data['status'] = 'VALID';
@@ -142,11 +141,11 @@ class BizlineModel extends PublicModel {
 
         try {
             $id = $this->add($data);
-            if(isset($id)){
+            if (isset($id)) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $id;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '添加失败!';
             }
@@ -165,17 +164,17 @@ class BizlineModel extends PublicModel {
      * @author zhangyuliang
      */
     public function updateData($condition = []) {
-        if(!empty($condition['id'])){
+        if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '缺少产品线id!';
             return $results;
         }
-        if(!empty($condition['name'])){
+        if (!empty($condition['name'])) {
             $data['name'] = $condition['name'];
         }
-        if(!empty($condition['remarks'])){
+        if (!empty($condition['remarks'])) {
             $data['remarks'] = $condition['remarks'];
         }
         $data['updated_by'] = $condition['userid'];
@@ -183,10 +182,10 @@ class BizlineModel extends PublicModel {
 
         try {
             $id = $this->where($where)->save($data);
-            if(isset($id)){
+            if (isset($id)) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '修改失败!';
             }
@@ -205,16 +204,16 @@ class BizlineModel extends PublicModel {
      * @author zhangyuliang
      */
     public function updateStatus($condition = []) {
-        if(!empty($condition['id'])){
-            $where['id'] = array('in',explode(',',$condition['id']));
-        }else{
+        if (!empty($condition['id'])) {
+            $where['id'] = array('in', explode(',', $condition['id']));
+        } else {
             $results['code'] = '-103';
             $results['message'] = '缺少产品线id!';
             return $results;
         }
-        if(!empty($condition['status'])){
+        if (!empty($condition['status'])) {
             $data['status'] = $condition['status'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '缺少状态!';
             return $results;
@@ -222,10 +221,10 @@ class BizlineModel extends PublicModel {
 
         try {
             $id = $this->where($where)->save($data);
-            if(isset($id)){
+            if (isset($id)) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '删除失败!';
             }
@@ -243,19 +242,19 @@ class BizlineModel extends PublicModel {
      * @author zhangyuliang
      */
     public function deleteData($condition = []) {
-        if(!empty($condition['id'])){
-            $where['id'] = array('in',explode(',',$condition['id']));
-        }else{
+        if (!empty($condition['id'])) {
+            $where['id'] = array('in', explode(',', $condition['id']));
+        } else {
             $results['code'] = '-103';
             $results['message'] = '缺少产品线id!';
         }
 
         try {
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
-            if(isset($id)){
+            if (isset($id)) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '删除失败!';
             }
@@ -266,11 +265,32 @@ class BizlineModel extends PublicModel {
         return $results;
     }
 
+    public function getNameByIds($bizline_ids) {
+        $where = [];
+        if (!empty($bizline_ids) && is_array($bizline_ids)) {
+            $where['id'] = ['in', $bizline_ids];
+        } else {
+            return [];
+        }
+        $list = $this->field('id,name,name_en')->where($where)->order('created_at desc')->select();
+        if (empty($list)) {
+            return [];
+        } else {
+
+            $ret = [];
+            foreach ($list as $item) {
+                $ret[$item['id']] = $item;
+            }
+            return $ret;
+        }
+    }
+
     /**
      * 返回格式化时间
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d H:i:s',time());
+        return date('Y-m-d H:i:s', time());
     }
+
 }

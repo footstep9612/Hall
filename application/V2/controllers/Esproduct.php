@@ -456,6 +456,13 @@ class EsproductController extends PublicController {
             'gross_weight_kg' => $not_analyzed, //毛重(kg)
             'compose_require_pack' => $not_analyzed, //仓储运输包装及其他要求
             'bizline_id' => $not_analyzed, //产品线ID
+            'bizline' => [
+                'properties' => [
+                    'name' => $ik_analyzed,
+                    'name_en' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                ],
+            ],
             'pack_type' => $ik_analyzed, //包装类型
             'name_customs' => $ik_analyzed, //报关名称
             'hs_code' => $ik_analyzed, //海关编码
@@ -633,6 +640,13 @@ class EsproductController extends PublicController {
             'source_detail' => $ik_analyzed, //数据来源详情
             'sku_count' => $int_analyzed, //SKU数
             'bizline_id' => $not_analyzed, //产品线ID
+            'bizline' => [
+                'properties' => [
+                    'name' => $ik_analyzed,
+                    'name_en' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                ],
+            ],
             'recommend_flag' => $not_analyzed, //推荐
             'status' => $not_analyzed, //状态
             'created_by' => $int_analyzed, //创建人

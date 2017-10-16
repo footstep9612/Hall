@@ -576,6 +576,12 @@ class EsGoodsModel extends Model {
             $body['bizline_id'] = new stdClass();
         }
 
+        if (isset($product_attr['bizline']) && $product_attr['bizline']) {
+            $body['bizline'] = $product_attr['bizline'];
+        } else {
+            $body['bizline'] = new stdClass();
+        }
+
         if (isset($scats[$sku])) {
 
             $show_cats = $scats[$sku];

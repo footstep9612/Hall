@@ -33,6 +33,23 @@ class GroupUserModel extends PublicModel {
         }
         return true ;
     }
+    public function addgroup($data){
+        if($data['user_id']) {
+            $this->where(['employee_id' => $data['user_id']])->delete();
+            if (!empty($data['group_ids'])) {
+                $group_arr = explode(",", $data['group_ids']);
+            }
+            for ($i = 0; $i < count($group_arr); $i++) {
+                $arr['org_id'] = $group_arr[$i];
+                $arr['employee_id'] = $data['user_id'];
+                $info = $this->where($arr)->select();
+                if (!$info) {
+                    $this->create_data($arr);
+                }
+            }
+            return true;
+        }
+    }
     public function deleteuser($data){
         if(!empty($data['user_id'])){
             $arr['employee_id'] = $data['user_id'];
@@ -50,13 +67,12 @@ class GroupUserModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='ug.id desc') {
-        $sql  = 'SELECT ug.id ,ug.group_id,g.name as group_name,ug.user_id,u.name as user_name,ug.user_id as value ,u.name as label';
-        $sql .= ' FROM '.$this->table.' as ug';
-        $sql .= ' LEFT JOIN t_group AS g ON g.`id` = ug.`group_id`';
-        $sql .= ' LEFT JOIN t_user AS u ON u.`id` = ug.`user_id`';
-        if(!empty($data['group_id'])){
-            $sql .= ' WHERE ug.`group_id` = '.$data['group_id'];
+    public function getlist($data,$limit,$order='id desc') {
+        $sql  = 'SELECT org.`id`,`parent_id`,`org`,`name`,`name_en`,`remarks`,`status`,`sort`,`show_name`,`org_node`';
+        $sql .= ' FROM org ';
+        $sql .= ' LEFT JOIN org_member  ON org.`id` = org_member.`org_id`';
+        if(!empty($data['user_id'])){
+            $sql .= ' WHERE org_member.`employee_id` = '.$data['user_id'];
         }
         if(!empty($limit)){
             $sql .= ' LIMIT '.$limit['page'].','.$limit['num'];

@@ -252,11 +252,7 @@ class OrderLogModel extends PublicModel {
         $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no,b.buyer_id';
 
         try {
-            $count = $this->alias('a')
-                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
-                    ->where($where)
-                    ->count('a.id');
-
+            $count = $this->getCount($condition);
             $list = $this->alias('a')
                     ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
                     ->field($field)

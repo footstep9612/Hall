@@ -288,12 +288,12 @@ class ProductAttrModel extends PublicModel {
     /*
      * 根据SPUS 获取产品属性信息
      * @param mix $spus // 产品SPU数组
-     * @param string $lang // 语言 zh en ru es 
+     * @param string $lang // 语言 zh en ru es
      * @return mix  属性信息
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 产品 
+     * @desc   ES 产品
      */
 
     public function getproduct_attrbyspus($spus, $lang = 'en') {
@@ -310,8 +310,7 @@ class ProductAttrModel extends PublicModel {
             $ret = [];
             if ($product_attrs) {
                 foreach ($product_attrs as $item) {
-
-                    $ret[$item['spu']][] = $item;
+                    $ret[$item['spu']] = $item;
                 }
             }
             return $ret;

@@ -31,14 +31,14 @@ class UrlPermModel extends PublicModel {
     public function getlist($data,$limit,$order='sort desc') {
         if(!empty($limit)){
             //,'false' as check
-            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
+            return $this->field("id,fn,fn_group,show_name,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
             //,'false' as `check`
-            return $this->field("id,fn,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
+            return $this->field("id,fn,fn_group,show_name,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -55,7 +55,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,fn,url,sort,remarks,parent_id,grant_flag,created_by,created_at')
+                ->field('id,fn,fn_group,show_name,url,sort,remarks,parent_id,grant_flag,created_by,created_at')
                 ->find();
             return $row;
         }else{
@@ -86,21 +86,7 @@ class UrlPermModel extends PublicModel {
      * @author jhw
      */
     public function update_data($data,$where) {
-        if(isset($data['url'])){
-            $arr['url'] = $data['url'];
-        }
-        if(isset($data['remarks'])){
-            $arr['remarks'] = $data['remarks'];
-        }
-        if(isset($data['fn'])){
-            $arr['fn'] = $data['fn'];
-        }
-        if(isset($data['sort'])){
-            $arr['sort'] = $data['sort'];
-        }
-        if(isset($data['parent_id'])){
-            $arr['parent_id'] = $data['parent_id'];
-        }
+        $arr = $this->create($data);
         if(!empty($where)){
             return $this->where($where)->save($arr);
         }else{
@@ -117,32 +103,8 @@ class UrlPermModel extends PublicModel {
      * @author jhw
      */
     public function create_data($create= []) {
-        if(isset($create['url'])){
-            $arr['url'] = $create['url'];
-        }
-        if(isset($create['parent_id'])){
-            $arr['parent_id'] = $create['parent_id'];
-        }
-        if(isset($create['grant_flag'])){
-            $arr['grant_flag'] = $create['grant_flag'];
-        }
-        if(isset($create['fn'])){
-            $arr['fn'] = $create['fn'];
-        }
-        if(isset($create['sort'])){
-            $arr['sort'] = $create['sort'];
-        }
-        if(isset($create['remarks'])){
-            $arr['remarks'] = $create['remarks'];
-        }
-        if(isset($create['created_at'])){
-            $arr['created_at'] = date("Y-m-d H:i:s");
-        }
-        if(isset($create['created_by'])){
-            $arr['created_by'] = $create['created_by'];
-        }
-        $arr['created_at'] = date("Y-m-d H:i:s");
-        $data = $this->create($arr);
+        $data = $this->create($create);
+        $data['created_at'] = date("Y-m-d H:i:s");
         return $this->add($data);
     }
 
