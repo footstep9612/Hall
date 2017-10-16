@@ -117,7 +117,7 @@ class BrandModel extends PublicModel {
             $item = $this->where($where)
                     ->field('id,brand,status,created_by,'
                             . 'created_at,updated_by,updated_at')
-                    ->order('created_at desc,id desc')
+                    ->order('id desc')
                     ->limit($row_start, $pagesize)
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
