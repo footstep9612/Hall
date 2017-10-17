@@ -502,6 +502,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'supplier_count' => $not_analyzed,
+            'image_count' => $not_analyzed,
             //   'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => ['properties' => [
@@ -714,6 +715,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'supplier_count' => $not_analyzed,
+            'image_count' => $not_analyzed,
             'material_cat' => ['properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
