@@ -203,6 +203,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
         $area = new MarketAreaCountryModel();
+        $org = new OrgModel();
         
         $where = $this->put_data;
 
@@ -237,6 +238,11 @@ class InquiryController extends PublicController {
         if (!empty($results['data']['country_bn'])) {
             $rs4 = $area->field('market_area_bn')->where(['country_bn' => $results['data']['country_bn']])->find();
             $results['data']['market_area_bn'] = $rs4['market_area_bn'];
+        }
+        //事业部
+        if (!empty($results['data']['org_id'])) {
+            $rs5 = $org->field('name')->where('id=' . $results['data']['org_id'])->find();
+            $results['data']['org_name'] = $rs5['name'];
         }
 
         //权限
