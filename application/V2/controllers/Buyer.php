@@ -179,7 +179,9 @@ class BuyerController extends PublicController {
         } else {
             jsonReturn('', -101, '邮箱不可以都为空!');
         }
-
+        if (!empty($data['area_bn'])) {
+            $arr['area_bn'] = $data['area_bn'];
+        }
         if (!empty($data['first_name'])) {
             $buyer_account_data['first_name'] = $data['first_name'];
         }
