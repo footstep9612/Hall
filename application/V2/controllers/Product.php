@@ -418,9 +418,10 @@ class ProductController extends PublicController {
         if (empty($this->put_data) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
+        $process = isset($this->put_data['process']) ? 1 : '';
 
         $productModel = new ProductModel();
-        $result = $productModel->import($this->put_data['xls'],$this->put_data['lang']);
+        $result = $productModel->import($this->put_data['xls'],$this->put_data['lang'],$process);
         if ($result) {
             jsonReturn($result);
         } else {
