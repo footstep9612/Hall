@@ -58,6 +58,33 @@ class EsproductController extends PublicController {
         $lang = $this->getPut('lang', 'zh');
 
         $condition = $this->getPut();
+        switch ($condition['user_type']) {
+            case 'create':
+                $condition['create_by_name'] = $condition['user_name'];
+                break;
+            case 'updated':
+                $condition['updated_by_name'] = $condition['user_name'];
+                break;
+            case 'checked':
+                $condition['checked_by_name'] = $condition['user_name'];
+                break;
+        }
+        switch ($condition['date_type']) {
+            case 'create':
+                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'updated':
+                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+            case 'checked':
+                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+        }
         $ret = $model->getProducts($condition, null, $lang);
 
         if ($ret) {
@@ -77,7 +104,7 @@ class EsproductController extends PublicController {
             } else {
                 $send['sku_count'] = 0;
             }
-            if (isset($this->put_data['image_count']) && $this->put_data['image_count'] == 'Y') {
+            if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
                 $send['image_count'] = $data['aggregations']['image_count']['value'];
             } else {
                 $send['image_count'] = 0;
