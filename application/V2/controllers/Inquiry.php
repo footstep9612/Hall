@@ -192,6 +192,31 @@ class InquiryController extends PublicController {
 
         $this->jsonReturn($results);
     }
+    
+    /**
+	 * @desc 询价单列表
+	 *
+	 * @author liujf
+	 * @time 2017-10-18
+	 */
+    public function getList2Action() {
+
+        $inquiry = new InquiryModel();
+
+        $condition = $this->put_data;
+    
+        $results = $inquiry->getList2($condition);
+        
+        if ($results) {
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($results);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('失败!');
+            $this->jsonReturn();
+        }
+    }
 
     /*
      * 询价单详情

@@ -54,6 +54,43 @@ class InquiryModel extends PublicModel {
 
         return $where;
     }
+    
+    /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-10-18
+     */
+    public function getWhere($condition = []) {
+         
+        $where = [];
+        
+        if (!empty($condition['status'])) {
+            $where['status'] = $condition['status'];    //项目状态
+        }
+        
+        if (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];  //流程编码
+        }
+        
+        if (!empty($condition['buyer_name'])) {
+            $where['buyer_name'] = $condition['buyer_name'];  //客户名称
+        }
+
+        if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
+            $where['created_at'] = [
+                ['egt', $condition['start_time']],
+                ['elt', $condition['end_time'] . ' 23:59:59']
+            ];
+        }
+    
+        $where['deleted_flag'] = 'N';
+         
+        return $where;
+    
+    }
 
     /**
      * 获取数据条数
@@ -139,6 +176,29 @@ class InquiryModel extends PublicModel {
             return $results;
         }
 
+    }
+    
+    /**
+     * @desc 获取列表
+     *
+     * @param array $condition
+     * @param string $field
+     * @return array
+     * @author liujf
+     * @time 2017-10-18
+     */
+    public function getList2($condition = [], $field = '*') {
+    
+        $where = $this->getWhere($condition);
+         
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+         
+        return $this->field($field)
+                            ->where($where)
+                            ->page($currentPage, $pageSize)
+                            ->order('id DESC')
+                            ->select();
     }
 
     /**
