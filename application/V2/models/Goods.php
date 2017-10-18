@@ -1245,116 +1245,28 @@ class GoodsModel extends PublicModel {
      * @return string
      */
     public function exportTemp() {
-        $objPHPExcel = new PHPExcel();
-        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
-        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        //$objSheet->getStyle("A1:K1")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setARGB('ccffff');
-        $objSheet->getStyle("A1:AH2")
-                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:AH2")->getFont()->setSize(11)->setBold(true);    //粗体
-        //$objSheet->getStyle("A1:K1")->getFill()->getStartColor()->setARGB('FF808080');
-        //$objSheet->getRowDimension("1")->setRowHeight(25);    //设置行高
-
-        $column_width_20 = ["C", "D", "G", "I", "P", "Q", "R", "S", "T", "U", "AA", "AE", "J", "K", "L", "M", "N", "O"];
-        foreach ($column_width_20 as $column) {
-            $objSheet->getColumnDimension($column)->setWidth(20);
-        }
-        $column_width_25 = ["E", "F", "H", "X", "Y"];
-        foreach ($column_width_25 as $column) {
-            $objSheet->getColumnDimension($column)->setWidth(25);
-        }
-        $objSheet->setTitle('商品模板'); //设置报价单标题
-        $objSheet->setCellValue("A1", "商品信息");
-        $objSheet->setCellValue("A2", "商品信息");
-        $objSheet->setCellValue("B1", "序号");
-        $objSheet->setCellValue("B2", "No.");
-        $objSheet->setCellValue("C1", "订货号");
-        $objSheet->setCellValue("C2", "Item No.");
-        $objSheet->setCellValue("D1", "名称");
-        $objSheet->setCellValue("D2", "name");
-        $objSheet->setCellValue("E1", "型号");
-        $objSheet->setCellValue("E2", "Model");
-        $objSheet->setCellValue("F1", "展示名称");
-        $objSheet->setCellValue("F2", "show name");
-        $objSheet->setCellValue("G1", "供应商名称");
-        $objSheet->setCellValue("G2", "Supplier");
-        $objSheet->setCellValue("H1", "描述");
-        $objSheet->setCellValue("H2", "description");
-        $objSheet->setCellValue("I1", "出货周期（天）");
-        $objSheet->setCellValue("I2", "EXW(day)");
-        $objSheet->setCellValue("J1", "最小包装内裸货商品数量");
-        $objSheet->setCellValue("J2", "Minimum packing Naked quantity");
-        $objSheet->setCellValue("K1", "商品裸货单位");
-        $objSheet->setCellValue("K2", "Goods nude cargo units");
-        $objSheet->setCellValue("L1", "最小包装单位");
-        $objSheet->setCellValue("L2", "Minimum packing unit");
-        //$objSheet->setCellValue("M1", "包装数量");
-        //$objSheet->setCellValue("M2", "Package Quantity");
-        $objSheet->setCellValue("M1", "最小订货数量");
-        $objSheet->setCellValue("M2", "Minimum order quantity");
-        $objSheet->setCellValue("N1", "进货价格");
-        $objSheet->setCellValue("N2", "Supply price");
-        $objSheet->setCellValue("O1", "进货价格币种");
-        $objSheet->setCellValue("O2", "Currency");
-
-        $objSheet->setCellValue("P1", "物流信息");
-        $objSheet->setCellValue("P1", "物流信息");
-        $objSheet->setCellValue("Q1", "裸货尺寸长(mm)");
-        $objSheet->setCellValue("Q2", "裸货尺寸长(mm)");
-        $objSheet->setCellValue("R1", "裸货尺寸宽(mm)");
-        $objSheet->setCellValue("R2", "裸货尺寸宽(mm)");
-        $objSheet->setCellValue("S1", "裸货尺寸高(mm)");
-        $objSheet->setCellValue("S2", "裸货尺寸高(mm)");
-        $objSheet->setCellValue("T1", "最小包装后尺寸长(mm)");
-        $objSheet->setCellValue("T2", "最小包装后尺寸长(mm)");
-        $objSheet->setCellValue("U1", "最小包装后尺寸宽(mm)");
-        $objSheet->setCellValue("U2", "最小包装后尺寸宽(mm)");
-        $objSheet->setCellValue("V1", "最小包装后尺寸高(mm)");
-        $objSheet->setCellValue("V2", "最小包装后尺寸高(mm)");
-        $objSheet->setCellValue("W1", "净重(kg)");
-        $objSheet->setCellValue("W2", "净重(kg)");
-        $objSheet->setCellValue("X1", "毛重(kg)");
-        $objSheet->setCellValue("X2", "毛重(kg)");
-        $objSheet->setCellValue("Y1", "仓储运输包装及其他要求");
-        $objSheet->setCellValue("Y2", "仓储运输包装及其他要求");
-        $objSheet->setCellValue("Z1", "包装类型");
-        $objSheet->setCellValue("Z2", "包装类型");
-        $objSheet->setCellValue("AA1", "申报要素");
-        $objSheet->setCellValue("AA2", "申报要素");
-        $objSheet->setCellValue("AB1", "中文品名(报关用)");
-        $objSheet->setCellValue("AB2", "中文品名(报关用)");
-        $objSheet->setCellValue("AC1", "海关编码");
-        $objSheet->setCellValue("AC2", "海关编码");
-        $objSheet->setCellValue("AD1", "成交单位");
-        $objSheet->setCellValue("AD2", "成交单位");
-        $objSheet->setCellValue("AE1", "退税率(%)");
-        $objSheet->setCellValue("AE2", "退税率(%)");
-        $objSheet->setCellValue("AF1", "监管条件");
-        $objSheet->setCellValue("AF2", "监管条件");
-        $objSheet->setCellValue("AG1", "境内货源地");
-        $objSheet->setCellValue("AG2", "境内货源地");
-
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, time() . '.xls');
-        if (file_exists($localDir)) {
-            //把导出的文件上传到文件服务器上
-            $server = Yaf_Application::app()->getConfig()->myhost;
-            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-            $url = $server . '/V2/Uploadfile/upload';
-            $data['tmp_name'] = $localDir;
-            $data['type'] = 'application/excel';
-            $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
-            $fileId = postfile($data, $url);
-            if ($fileId) {
-                unlink($localDir);
-                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+        if(redisHashExist('sku','skutemplate')){
+            return json_decode(redisHashGet('sku','skutemplate'),true);
+        }else{
+            $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/skuTemplate.xls";
+            if(file_exists($localDir)){
+                //把导出的文件上传到文件服务器上
+                $server = Yaf_Application::app()->getConfig()->myhost;
+                $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+                $url = $server. '/V2/Uploadfile/upload';
+                $data['tmp_name'] = $localDir;
+                $data['type'] = 'application/excel';
+                $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
+                $fileId = postfile($data,$url);
+                if($fileId){
+                    //unlink($localDir);    //清理本地空间
+                    $data = array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+                    redisHashSet('sku','skutemplate',json_encode($data));
+                    return $data;
+                }
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localDir.' 上传到FastDFS失败', Log::INFO);
+                return false;
             }
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
-            return false;
-        } else {
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:' . $localDir . ' 生成模板文件失败', Log::INFO);
-            return false;
         }
     }
 
