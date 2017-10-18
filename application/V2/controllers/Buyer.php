@@ -446,7 +446,7 @@ class BuyerController extends PublicController {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
         }
-        $buyer_address_model = new BuyeraddressModel();
+        $buyer_address_model = new BuyerAddressModel();
         if (!empty($data['address'])) {
             $arr_address['address'] = $data['address'];
             $buyer_address_model->update_data($arr_address,$where_address);
