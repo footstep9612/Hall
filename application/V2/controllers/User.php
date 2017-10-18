@@ -139,7 +139,7 @@ class UserController extends PublicController {
             $user_id = $this->user['id'];
         }
         $role_group_modle = new GroupUserModel();
-        $data =$role_group_modle->getlist(['user_id'=>$user_id]);
+        $data =$role_group_modle->getlist(['user_id'=>$user_id],'');
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
