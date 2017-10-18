@@ -16,7 +16,7 @@ class QuoteModel extends PublicModel {
     /**
      * 获取综合报价信息
      * @param array $condition    条件
-     * @param       $field    筛选字段
+     * @param string $field    筛选字段
      * @return array
      */
     public function getGeneralInfo(array $condition,$field){
@@ -32,7 +32,10 @@ class QuoteModel extends PublicModel {
 
         try{
             $this->where($condition)->save($this->create($data));
+            //处理计算相关逻辑
+            $this->calculate($condition);
             return true;
+
         }catch (Exception $exception){
             return [
                 'code' => $exception->getCode(),
@@ -40,6 +43,105 @@ class QuoteModel extends PublicModel {
             ];
         }
 
+    }
+
+
+    /**
+     * 处理所有计算相关逻辑
+     * @param $condition    条件
+     * @return bool
+     */
+    private function calculate($condition){
+
+        $quoteItemModel = new QuoteItemModel();
+        $exchangeRateModel = new ExchangeRateModel();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 计算商务报出EXW单价         计算公式 : EXW单价=采购单价*毛利率/汇率
+        |--------------------------------------------------------------------------
+        */
+        $quoteInfo = $this->where($condition)->field('id,gross_profit_rate,exchange_rate')->find();
+        $gross_profit_rate = $quoteInfo['gross_profit_rate'];//毛利率
+
+        $quoteItemIds = $quoteItemModel->where($condition)->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')->select();
+        if (!empty($quoteItemIds)) {
+            foreach ($quoteItemIds as $key => $value) {
+                if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
+                    $exchange_rate = $exchangeRateModel->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])->order('created_at DESC')->getField('rate');
+                    $exw_unit_price = $value['purchase_unit_price'] * $gross_profit_rate / $exchange_rate;
+                    $exw_unit_price = sprintf("%.8f", $exw_unit_price);
+                    $quoteItemModel->where(['id' => $value['id']])->save([
+                        'exw_unit_price' => $exw_unit_price
+                    ]);
+                }
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 计算商务报出EXW总价        计算公式 : EXW总价=EXW单价*条数*数量
+        |--------------------------------------------------------------------------
+        */
+        $quoteItemExwUnitPrices = $quoteItemModel->where($condition)->field('exw_unit_price,quote_qty,gross_weight_kg')->select();
+
+        $total_exw_price = [];
+        foreach ($quoteItemExwUnitPrices as $price) {
+            $total_exw_price[] = $price['exw_unit_price'] * $price['quote_qty'];
+        }
+        $total_exw_price = array_sum($total_exw_price);
+
+        $total_gross_weight_kg = [];
+        foreach ($quoteItemExwUnitPrices as $price) {
+            $total_gross_weight_kg[] = $price['gross_weight_kg'];
+        }
+        $total_gross_weight_kg = array_sum($total_gross_weight_kg);
+
+       $this->where($condition)->save([
+            //总重
+            'total_weight' => $total_gross_weight_kg,
+            //exw合计
+            'total_exw_price' => $total_exw_price
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 采购合计          计算公式 : 采购总价=采购单价*条数
+        |--------------------------------------------------------------------------
+        */
+        $totalPurchase = [];
+        $quoteItemsData = $quoteItemModel->where($condition)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
+        foreach ($quoteItemsData as $quote => $item) {
+            switch ($item['purchase_price_cur_bn']) {
+                case 'EUR' :
+                    $rate = $exchangeRateModel->where(['cur_bn2' => 'EUR', 'cur_bn1' => 'USD'])->order('created_at DESC')->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
+                    break;
+                case 'USD' :
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'];
+                    break;
+                case 'CNY' :
+                    $rate = $exchangeRateModel->where(['cur_bn2' => 'CNY', 'cur_bn1' => 'USD'])->order('created_at DESC')->getField('rate');
+                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
+                    break;
+            }
+        }
+
+        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase)]);
+
+    }
+
+    public function rejectToBiz(array $condition){
+
+        /*
+        |--------------------------------------------------------------------------
+        | 退回事业部分单员
+        |--------------------------------------------------------------------------
+        |
+        | 询单(inquiry): ['status'=>BIZ_DISPATCHING,'quote_status'=>NOT_QUOTED]
+        | 报价单(quote): ['status'=>'BIZ_DISPATCHING']
+        |
+        */
     }
 
     /**
