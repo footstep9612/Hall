@@ -371,6 +371,7 @@ class BuyerController extends PublicController {
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
+            $where_address['buyer_id'] = $data['id'];
             $where_attach['buyer_id'] = $data['id'];
         } else {
             $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
@@ -444,6 +445,11 @@ class BuyerController extends PublicController {
         if (!empty($data['attach_url'])) {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
+        }
+        $buyer_address_model = new BuyeraddressModel();
+        if (!empty($data['address'])) {
+            $arr_address['address'] = $data['address'];
+            $buyer_address_model->update_data($arr_address,$where_address);
         }
         //$model = new UserModel();
         if(!empty($account)){

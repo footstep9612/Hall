@@ -155,7 +155,13 @@ class BuyerAddressModel extends PublicModel
         if ($condition['official_email']) {
             $data['official_email'] = $condition['official_email'];
         }
-
-        return $this->where($where)->save($data);
+        $data['created_at'] =date("Y-m-d H:i:s");
+        if($this->where($where)->find()){
+            return $this->where($where)->save($data);
+        }else{
+            $data['buyer_id'] = $where['buyer_id'];
+            $data = $this->create($data);
+            return $this->add($data);
+        }
     }
 }
