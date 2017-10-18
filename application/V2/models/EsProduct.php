@@ -271,9 +271,9 @@ class EsProductModel extends Model {
             if (trim($condition['onshelf_flag']) === 'A') {
 
             } elseif ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'N']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
             }
         } else {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
@@ -368,6 +368,7 @@ class EsProductModel extends Model {
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');
             }
+            $es->setaggs('image_count', 'image_count', 'sum');
 //            else {
 //                $es->setaggs('show_cats.cat_no3', 'show_cat_no3');
 //                $es->setaggs('show_cats.cat_no2', 'show_cat_no2');
@@ -375,6 +376,7 @@ class EsProductModel extends Model {
 //            }
             $es->setaggs('brand.name.all', 'brands', 'terms', 0);
             $es->setaggs('suppliers.supplier_id', 'suppliers', 'terms', 0);
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;
         } catch (Exception $ex) {
