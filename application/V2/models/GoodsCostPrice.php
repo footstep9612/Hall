@@ -126,10 +126,15 @@ class GoodsCostPriceModel extends PublicModel {
             $results['code'] = '-1001';
             $results['message'] = '[最小购买量]缺失!';
         }
+        if (empty($checkout['price']) || !is_numeric($checkout['price'])) {
+            $results['code'] = '-1001';
+            $results['message'] = '[价格]缺失或非数字!';
+        }
         if (empty($checkout['supplier_id'])) {
             $results['code'] = '-1001';
-            $results['message'] = '[supplier_id]缺失!';
+            $results['message'] = '[供应商]缺失!';
         }
+
         if (!empty($checkout['supplier_id'])) {
             $data['supplier_id'] = $checkout['supplier_id'];
         }
@@ -139,7 +144,7 @@ class GoodsCostPriceModel extends PublicModel {
         if (!empty($checkout['contact_last_name'])) {
             $data['contact_last_name'] = $checkout['contact_last_name'];
         }
-        if (!empty($checkout['price'])) {
+        if (!empty($checkout['price']) && is_numeric($checkout['price'])) {
             $data['price'] = $checkout['price'];
         }
         if (!empty($checkout['price_unit'])) {
@@ -161,7 +166,7 @@ class GoodsCostPriceModel extends PublicModel {
             $data['id'] = $checkout['id'];
         }
         if($results){
-            return $results;
+            jsonReturn($results);
         }
         return $data;
     }

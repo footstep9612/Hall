@@ -27,8 +27,8 @@ class GoodsModel extends PublicModel {
 
     protected $field = array(
         'spu' => array('required'),
-        'name' => array('required'),
-        'model' => array('required'),
+//        'name' => array('required'),
+//        'model' => array('required'),
     );
     //固定属性映射
     protected $const_attr = array(
@@ -544,6 +544,12 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
+
+                    if(empty($value['name'])) {
+                        $spuModel = new ProductModel();
+                        $spuName = $spuModel->field('name')->where(['spu'=>$input['spu'],'lang'=>$key, 'deleted_flag' => 'N'])->find();
+                        $value['name'] = $spuName['name'];
+                    }
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
@@ -1955,8 +1961,8 @@ class GoodsModel extends PublicModel {
             return false;
         }
         $where['spu'] = $spu['spu'];
-//        $where['status'] = array('neq', self::STATUS_DELETED);
-        $where['status'] = self::STATUS_VALID;
+        $where['status'] = array('neq', self::STATUS_DELETED);
+//        $where['status'] = self::STATUS_VALID;
         $where['deleted_flag'] = self::DELETE_N;
         $where['created_by'] = $userInfo['id'];
         return $this->where($where)->order($order)->select();
