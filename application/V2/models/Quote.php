@@ -1,23 +1,47 @@
 <?php
+
 /**
- * @desc 报价单模型
- * @author liujf 2017-06-17
+ * @desc   QuoteModel
+ * @Author 买买提
  */
 class QuoteModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'quote';
-    protected $joinInquiry = 'erui_rfq.t_inquiry b ON a.inquiry_no = b.inquiry_no';
-	protected $fieldJoin = 'a.*, b.inquiry_name, b.customer_id, b.buyer_name, b.inquirer, b.inquirer_email, b.agent, b.agent_email,
-			    			b.inquiry_time, b.inquiry_region, b.inquiry_country, b.inquiry_lang, b.trans_mode, b.from_country, b.from_port,
-			    			b.to_country, b.clearance_loc, b.to_port, b.delivery_address, b.transfer_flag, b.delivery_date, b.currency, b.payment_mode, b.bid_flag,
-			    			b.lastest_quote_date, b.kerui_flag, b.project_name, b.project_basic_info, b.quote_notes, b.adhoc_request, b.first_name, b.last_name,
-			    			b.gender, b.title, b.phone, b.email, b.inquiry_status';
-			    
+
     public function __construct() {
         parent::__construct();
     }
-    
+
+    /**
+     * 获取综合报价信息
+     * @param array $condition    条件
+     * @param       $field    筛选字段
+     * @return array
+     */
+    public function getGeneralInfo(array $condition,$field){
+        return $this->where($condition)->field($field)->find();
+    }
+
+    /**
+     * @param array $condition    条件
+     * @param array $data    数据
+     * @return array|bool
+     */
+    public function updateGeneralInfo(array $condition,$data){
+
+        try{
+            $this->where($condition)->save($this->create($data));
+            return true;
+        }catch (Exception $exception){
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+
+    }
+
     /**
      * @desc 获取查询条件
  	 * @author liujf 2017-06-17
