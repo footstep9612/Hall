@@ -83,6 +83,12 @@ class EsproductController extends PublicController {
             } else {
                 $send['brand_count'] = 0;
             }
+            if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
+                $send['image_count'] = $data['aggregations']['image_count']['value'];
+            } else {
+                $send['image_count'] = 0;
+            }
+
             if (isset($data['aggregations']['suppliers']['buckets']) && $data['aggregations']['suppliers']['buckets']) {
                 $send['supplier_count'] = count($data['aggregations']['suppliers']['buckets']);
             } else {
@@ -91,6 +97,7 @@ class EsproductController extends PublicController {
             if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
                 $condition['onshelf_flag'] = 'N';
                 $condition['sku_count'] = 'Y';
+                $condition['pagesize'] = 0;
                 $ret_N = $model->getProducts($condition, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
                 $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
@@ -502,6 +509,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'supplier_count' => $not_analyzed,
+            'image_count' => $int_analyzed,
             //   'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => ['properties' => [
@@ -714,6 +722,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'supplier_count' => $not_analyzed,
+            'image_count' => $int_analyzed,
             'material_cat' => ['properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
