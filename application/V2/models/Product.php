@@ -237,12 +237,15 @@ class ProductModel extends PublicModel {
                         'name' => $data['name'],
                         'material_cat_no' => $data['material_cat_no'],
                         'brand' => $data['brand'],
-                            //'status' => array('neq', 'DRAFT')
+                        'deleted_flag' => 'N'
+                            //  'status' => array('neq', 'DRAFT')
                     );
                     if (isset($input['spu'])) {
                         $exist_condition['spu'] = array('neq', $spu);
                     }
-                    $exist = $this->where($exist_condition)->find();
+                    $exist = $this->field('spu')->where($exist_condition)->find();
+                    echo $this->_sql();
+                    die;
                     if ($exist) {
                         jsonReturn('', ErrorMsg::EXIST);
                     }
