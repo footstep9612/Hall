@@ -58,6 +58,35 @@ class EsproductController extends PublicController {
         $lang = $this->getPut('lang', 'zh');
 
         $condition = $this->getPut();
+        switch ($condition['user_type']) {
+            case 'create':
+                $condition['create_by_name'] = $condition['user_name'];
+                break;
+            case 'updated':
+                $condition['updated_by_name'] = $condition['user_name'];
+                break;
+            case 'checked':
+                $condition['checked_by_name'] = $condition['user_name'];
+                break;
+        }
+        switch ($condition['date_type']) {
+            case 'create':
+                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'updated':
+                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+            case 'checked':
+                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+        }
+
+
         $ret = $model->getProducts($condition, null, $lang);
 
         if ($ret) {
@@ -345,7 +374,7 @@ class EsproductController extends PublicController {
         $es = new ESClient();
         $state = $es->getstate();
         if (!isset($state['metadata']['indices'][$this->index])) {
-            $es->create_index($this->index, $body, 16, 0);
+            $es->create_index($this->index, $body, 5, 1);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
