@@ -111,27 +111,23 @@ class BizlineController extends PublicController {
         $bizline->startTrans();
         $results = $bizline->updateData($createcondition);
         if($results['code'] == 1){
-            if(!empty($createcondition['material_cat'])){
-                $createcondition['bizline_id'] = $createcondition['id'];
+            $createcondition['bizline_id'] = $createcondition['id'];
 
-                $delcat = $bizlinecat->deleteBizlineCat($createcondition);
-                if($delcat['code'] == 1){
-                    $catid = $bizlinecat->addData($createcondition);
+            $delcat = $bizlinecat->deleteBizlineCat($createcondition);
+            if($delcat['code'] == 1){
+                $catid = $bizlinecat->addData($createcondition);
 
-                    if($catid['code'] == 1){
-                        $bizline->commit();
-                    }else{
-                        $bizline->rollback();
-                        $results['code'] = '-101';
-                        $results['message'] = '添加失败!';
-                    }
+                if($catid['code'] == 1){
+                    $bizline->commit();
                 }else{
                     $bizline->rollback();
                     $results['code'] = '-101';
                     $results['message'] = '添加失败!';
                 }
             }else{
-                $bizline->commit();
+                $bizline->rollback();
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
             }
         }else{
             $bizline->rollback();
@@ -169,17 +165,23 @@ class BizlineController extends PublicController {
         $createcondition['group_role'] = 'BIZLINE_MANAGER';
         $createcondition['userid'] = $this->user['id'];
 
-        $results = $bizlinegroup->addData($createcondition);
+        $bizlinegroup->startTrans();
+        $results = $bizlinegroup->deleteBizlineGroup($createcondition);
 
-        $this->jsonReturn($results);
-    }
-
-    //修改产品线负责人
-    public function updateManagerAction() {
-        $bizlinegroup = new BizlineGroupModel();
-        $createcondition =  $this->put_data;
-
-        $results = $bizlinegroup->updateData($createcondition);
+        if($results['code'] == 1){
+            $resdata = $bizlinegroup->addData($createcondition);
+            if($resdata['code'] == 1){
+                $bizlinegroup->commit();
+            }else{
+                $bizlinegroup->rollback();
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
+            }
+        }else{
+            $bizlinegroup->rollback();
+            $results['code'] = '-101';
+            $results['message'] = '添加失败!';
+        }
 
         $this->jsonReturn($results);
     }
@@ -197,18 +199,6 @@ class BizlineController extends PublicController {
 
     //添加产品线报价人
     public function createQuoterAction() {
-        $bizlinegroup = new BizlineGroupModel();
-        $createcondition =  $this->put_data;
-        $createcondition['group_role'] = 'SKU_QUOTER';
-        $createcondition['userid'] = $this->user['id'];
-
-        $results = $bizlinegroup->addData($createcondition);
-
-        $this->jsonReturn($results);
-    }
-
-    //修改产品线报价人
-    public function updateQuoterAction() {
         $bizlinegroup = new BizlineGroupModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'SKU_QUOTER';
@@ -232,27 +222,24 @@ class BizlineController extends PublicController {
             $results['message'] = '添加失败!';
         }
 
-
-        $this->jsonReturn($results);
-    }
-
-    //删除产品线报价人
-    public function deleteQuoterAction() {
-        $bizlinegroup = new BizlineGroupModel();
-        $createcondition =  $this->put_data;
-
-        $results = $bizlinegroup->deleteBizlineGroup($createcondition);
-
         $this->jsonReturn($results);
     }
 
     //产品线报价人列表
     public function getQuoterAction() {
         $bizlinegroup = new BizlineGroupModel();
+        $org = new OrgModel();
         $createcondition =  $this->put_data;
         $createcondition['group_role'] = 'SKU_QUOTER';
 
         $results = $bizlinegroup->getList($createcondition);
+
+        foreach($results['data'] as $key=>$val){
+            $rs = $org->field('name')->where('id='.$val['group_id'])->find();
+            if(!empty($rs)){
+                $results['data'][$key]['group_name'] = $rs['name'];
+            }
+        }
 
         $this->jsonReturn($results);
     }

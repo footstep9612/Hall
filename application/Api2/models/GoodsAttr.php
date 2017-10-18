@@ -6,7 +6,7 @@
  */
 class GoodsAttrModel extends PublicModel {
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
@@ -527,7 +527,7 @@ class GoodsAttrModel extends PublicModel {
                     }
                     $find = $this->where($where)->select();
                     if($find) {
-                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                        $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if (!$res) {
                             return false;
                         }
@@ -542,7 +542,7 @@ class GoodsAttrModel extends PublicModel {
                 }
                 $find = $this->where($where)->select();
                 if($find) {
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                     if (!$res) {
                         return false;
                     }
@@ -572,11 +572,11 @@ class GoodsAttrModel extends PublicModel {
     public function getgoods_attrbyskus($skus, $lang = 'en') {
 
         try {
-            $product_attrs = $this->field('*')
-                    ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID'])
+            $sku_attrs = $this->field('*')
+                    ->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => 'VALID','deleted_flag'=>'N'])
                     ->select();
             $ret = [];
-            foreach ($product_attrs as $item) {
+            foreach ($sku_attrs as $item) {
                 $ret[$item['sku']][] = $item;
             }
             return $ret;

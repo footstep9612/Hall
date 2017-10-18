@@ -6,7 +6,7 @@
  */
 class GoodsAttrModel extends PublicModel {
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr'; //数据表表名
 
     //状态
@@ -17,34 +17,32 @@ class GoodsAttrModel extends PublicModel {
     const STATUS_CHECKING = 'CHECKING'; //审核
     const STATUS_DRAFT = 'DRAFT'; //草稿
 
-
-    public function editAttr($data=[]){
-        if(!empty($data)) {
-            if(empty($data['lang']) || empty($data['sku'])) {
+    public function editAttr($data = []) {
+        if (!empty($data)) {
+            if (empty($data['lang']) || empty($data['sku'])) {
                 return false;
             }
             $condition = array(
                 'lang' => $data['lang'],
                 'sku' => $data['sku'],
             );
-            try{
+            try {
                 $result = $this->field('id')->where($condition)->find();
-                if($result) {
-                    $data['updated_at'] = date('Y-m-d H:i:s',time());
-                    $rel = $this->where(array('id'=>$result['id']))->save($data);
-                }else{
-                    $data['created_at'] = date('Y-m-d H:i:s',time());
+                if ($result) {
+                    $data['updated_at'] = date('Y-m-d H:i:s', time());
+                    $rel = $this->where(array('id' => $result['id']))->save($data);
+                } else {
+                    $data['created_at'] = date('Y-m-d H:i:s', time());
                     $rel = $this->add($data);
                 }
 
                 return $rel ? true : false;
-            }catch (Exception $e){
+            } catch (Exception $e) {
                 return false;
             }
         }
         return true;
     }
-
 
     /**
      * 商品属性 -- 公共
@@ -339,10 +337,10 @@ class GoodsAttrModel extends PublicModel {
         } else {
             $where['status'] = array('neq', self::STATUS_DELETED);
         }
-
+        $where['deleted_flag'] = 'N';
         //redis
         if (redisHashExist('SkuAttrs', md5(json_encode($where)))) {
-//            return json_decode(redisHashGet('SkuAttrs', md5(json_encode($where))), true);
+            // return json_decode(redisHashGet('SkuAttrs', md5(json_encode($where))), true);
         }
         $field = 'lang, spu, sku, spec_attrs, ex_goods_attrs, ex_hs_attrs, other_attrs, status, created_by,  created_at';
         //spec_attrs--规格属性   ex_goods_attrs--其它商品属性  ex_hs_attrs--其它申报要素  other_attrs--其它属性
@@ -359,16 +357,16 @@ class GoodsAttrModel extends PublicModel {
                 //按语言分组,类型分组
                 foreach ($attrs as $item) {
                     if (isset($item['spec_attrs'])) {    //对应扩展属性
-                        $item['spec_attrs'] = json_decode($item['spec_attrs'],true);
+                        $item['spec_attrs'] = json_decode($item['spec_attrs'], true);
                     }
                     if (isset($item['ex_goods_attrs'])) {
-                        $item['ex_goods_attrs'] = json_decode($item['ex_goods_attrs'],true);
+                        $item['ex_goods_attrs'] = json_decode($item['ex_goods_attrs'], true);
                     }
                     if (isset($item['ex_hs_attrs'])) {
-                        $item['ex_hs_attrs'] = json_decode($item['ex_hs_attrs'],true);
+                        $item['ex_hs_attrs'] = json_decode($item['ex_hs_attrs'], true);
                     }
                     if (isset($item['other_attrs'])) {
-                        $item['other_attrs'] = json_decode($item['other_attrs'],true);
+                        $item['other_attrs'] = json_decode($item['other_attrs'], true);
                     }
                     $data[$item['lang']] = $item;
                 }
@@ -446,44 +444,50 @@ class GoodsAttrModel extends PublicModel {
      */
     private function checkParam($param = []) {
         $data = $results = [];
-        if(!empty($param['attrs']['spec_attrs']) ){
-            $data['spec_attrs'] =  json_encode($param['attrs']['spec_attrs']);
+        if (!empty($param['attrs']['spec_attrs'])) {
+            $data['spec_attrs'] = json_encode($param['attrs']['spec_attrs']);
         }
-        if(!empty($param['attrs']['ex_goods_attrs'])){
-            $data['ex_goods_attrs'] =  json_encode($param['attrs']['ex_goods_attrs']);
+        if (!empty($param['attrs']['ex_goods_attrs'])) {
+            $data['ex_goods_attrs'] = json_encode($param['attrs']['ex_goods_attrs']);
         }
-        if(!empty($param['attrs']['ex_hs_attrs'])){
-            $data['ex_hs_attrs'] =   json_encode($param['attrs']['ex_hs_attrs']);
+        if (!empty($param['attrs']['ex_hs_attrs'])) {
+            $data['ex_hs_attrs'] = json_encode($param['attrs']['ex_hs_attrs']);
         }
-        if(!empty($param['attrs']['other_attrs'])){
-            $data['other_attrs'] =  json_encode($param['attrs']['other_attrs']);
+        if (!empty($param['attrs']['other_attrs'])) {
+            $data['other_attrs'] = json_encode($param['attrs']['other_attrs']);
         }
 
         return $data;
     }
+
     /**
      * sku属性[状态更改]
      * @author klp
      * @return bool
      */
     public function modifyAttr($data, $status) {
+
         if (empty($data) || empty($status)) {
             return false;
         }
         $results = array();
+
         if ($data && is_array($data)) {
             try {
-                foreach ($data as $item) {
+                foreach ($data as $sku) {
                     $where = [
-                        "sku" => $item['sku'],
+                        "sku" => $sku,
                     ];
-                    if(isset($item['lang']) && !empty($item['lang'])) {
+                    if (isset($item['lang']) && !empty($item['lang'])) {
                         $where["lang"] = $item['lang'];
                     }
-
                     $resatr = $this->field('sku')->where($where)->find();
+
                     if ($resatr) {
-                        $res = $this->where($where)->save(['status' => $status]);
+                        $res = $this->where($where)->save(['status' => $status,
+                            'updated_by' => defined('UID') ? UID : 0,
+                            'updated_at' => date('Y-m-d H:i:s')]);
+
                         if (!$res) {
                             return false;
                         }
@@ -500,6 +504,7 @@ class GoodsAttrModel extends PublicModel {
             } catch (Exception $e) {
                 $results['code'] = $e->getCode();
                 $results['message'] = $e->getMessage();
+
                 return $results;
             }
         }
@@ -511,7 +516,7 @@ class GoodsAttrModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function deleteSkuAttr($skus,$lang) {
+    public function deleteSkuAttr($skus, $lang) {
         if (empty($skus)) {
             return false;
         }
@@ -522,27 +527,27 @@ class GoodsAttrModel extends PublicModel {
                     $where = [
                         "sku" => $del,
                     ];
-                    if(!empty( $lang)){
+                    if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
                     $find = $this->where($where)->select();
-                    if($find) {
-                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    if ($find) {
+                        $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if (!$res) {
                             return false;
                         }
                     }
                 }
-            } else{
+            } else {
                 $where = [
                     "sku" => $skus,
                 ];
-                if(!empty( $lang)){
+                if (!empty($lang)) {
                     $where['lang'] = $lang;
                 }
                 $find = $this->where($where)->select();
-                if($find) {
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                if ($find) {
+                    $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                     if (!$res) {
                         return false;
                     }
@@ -562,11 +567,11 @@ class GoodsAttrModel extends PublicModel {
     /* 通过SKU获取数据商品属性列表
      * @param mix $skus // 商品SKU编码数组
      * @param string $lang // 语言
-     * @return mix 
+     * @return mix
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
      * @version V2.0
-     * @desc   ES 商品 
+     * @desc   ES 商品
      */
 
     public function getgoods_attrbyskus($skus, $lang = 'en') {
@@ -577,7 +582,7 @@ class GoodsAttrModel extends PublicModel {
                     ->select();
             $ret = [];
             foreach ($product_attrs as $item) {
-                $ret[$item['sku']][] = $item;
+                $ret[$item['sku']] = $item;
             }
             return $ret;
         } catch (Exception $ex) {

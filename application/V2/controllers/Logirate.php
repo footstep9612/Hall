@@ -28,7 +28,7 @@ class LogirateController extends PublicController {
      * @desc   物流费率
      */
     public function listAction() {
-        $data = $this->get() ?: $this->getPut();
+        $data = $this->getPut();
 
         $Logi_Rate_model = new LogiRateModel();
         if (redisGet('Logi_Rate_listall_' . md5(json_encode($data)))) {
@@ -57,7 +57,7 @@ class LogirateController extends PublicController {
      * @desc   物流费率
      */
     public function infoAction() {
-        $id = $this->get('id') ?: $this->getPut('id');
+        $id = $this->getPut('id');
 
         if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
@@ -121,7 +121,7 @@ class LogirateController extends PublicController {
      * @desc   物流费率
      */
     public function updateAction() {
-        $id = $this->get('id') ?: $this->getPut('id');
+        $id = $this->getPut('id');
         $data = $this->getPut();
         if (!isset($data['id']) || !$data['id']) {
             $data['id'] = $id;
@@ -147,7 +147,7 @@ class LogirateController extends PublicController {
      */
     public function deleteAction() {
 
-        $id = $this->get('id') ?: $this->getPut('id');
+        $id = $this->getPut('id');
         if (!$id) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();

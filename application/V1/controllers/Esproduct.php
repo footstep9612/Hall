@@ -26,24 +26,8 @@ class EsproductController extends ShopMallController {
         $this->put_data = $jsondata = json_decode(file_get_contents("php://input"), true);
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
-        if (!empty($jsondata["token"])) {
-            $token = $jsondata["token"];
-        }
-        if (!empty($token)) {
-            try {
-                $tokeninfo = JwtInfo($token); //解析token
-                $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
-                if (empty($userinfo)) {
-                    $this->put_data['source'] = 'ERUI';
-                } else {
-                    $this->user = $userinfo;
-                }
-            } catch (Exception $e) {
-                $this->put_data['source'] = 'ERUI';
-            }
-        } else {
-            $this->put_data['source'] = 'ERUI';
-        }
+
+
         $this->es = new ESClient();
     }
 
@@ -98,7 +82,7 @@ class EsproductController extends ShopMallController {
     }
 
     private function getdata($data) {
-
+        $keyword = $this->put_data['keyword'];
         foreach ($data['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
@@ -106,6 +90,11 @@ class EsproductController extends ShopMallController {
                 $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
             } else {
                 $list[$key]['img'] = null;
+            }
+            if (isset($item['highlight']['show_name'][0])) {
+                $list[$key]['show_name'] = $item['highlight']['show_name'][0];
+            } elseif ($keyword) {
+                $list[$key]['show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
             }
             $list[$key]['id'] = $item['_id'];
             $show_cats = json_decode($item["_source"]["show_cats"], true);

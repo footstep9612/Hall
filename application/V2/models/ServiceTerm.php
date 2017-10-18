@@ -7,7 +7,7 @@
  */
 class ServiceTermModel extends PublicModel{
     //会员服务条款(二级,条目)
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'service_term';
 
     public function __construct(){
@@ -70,7 +70,7 @@ class ServiceTermModel extends PublicModel{
             $data['add_flag'] = $condition['add_flag'];
         }
         if(!empty($condition['term'])){
-            $data['term'] = json_encode($condition['term']);
+            $data['term'] = json_encode($condition['term'],JSON_UNESCAPED_UNICODE);
         }
         $data['service_cat_id'] = $service_cat_id;
         $data['created_by'] = $userInfo['id'];
@@ -105,7 +105,7 @@ class ServiceTermModel extends PublicModel{
             $data['add_flag'] = $condition['add_flag'];
         }
         if(!empty($condition['term'])){
-            $data['term'] = json_encode($condition['term']);
+            $data['term'] = json_encode($condition['term'],JSON_UNESCAPED_UNICODE);
         }
         $data['updated_by'] = $userInfo['id'];
         $data['updated_at'] = date('Y-m-d H:i:s', time());
@@ -132,7 +132,7 @@ class ServiceTermModel extends PublicModel{
         }
         try{
             $where = ['service_cat_id'=>$id];
-            $res = $this->where($where)->save(['status'=>$status]);
+            $res = $this->where($where)->save(['deleted_flag' => 'Y']);
             if(!$res){
                 return false;
             }
@@ -185,7 +185,7 @@ class ServiceTermModel extends PublicModel{
             $serviceItemModel = new ServiceItemModel();
             foreach($data['term'] as $r){
                 $data_edit = array(
-                    'term' => json_encode($r['term']),
+                    'term' => json_encode($r['term'],JSON_UNESCAPED_UNICODE),
                     'service_cat_id' => $service_cat_id,
                     'choice_flag' => $r['choice_flag'],
                     'add_flag' => $r['add_flag']

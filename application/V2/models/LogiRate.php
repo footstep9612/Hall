@@ -16,7 +16,7 @@
 class LogiRateModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'logi_rate';
 
     public function __construct() {
@@ -64,7 +64,7 @@ class LogiRateModel extends PublicModel {
             $data = $this->_getCondition($condition);
 
             $this->alias('zh')
-                    ->join('erui2_operation.market_area as en on '
+                    ->join('erui_operation.market_area as en on '
                             . 'en.bn=zh.bn and en.lang=\'en\' and en.`status` = \'VALID\' ', 'left')
                     ->field('zh.bn,zh.parent_bn,zh.name as zh_name,zh.url,en.name as en_name ')
                     ->where($data);

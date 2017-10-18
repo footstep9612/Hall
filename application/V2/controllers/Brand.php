@@ -62,7 +62,7 @@ class BrandController extends PublicController {
             $brands = json_decode($item['brand'], true);
             $brand = [];
             foreach ($this->langs as $lang) {
-                $brand[$lang] = null;
+                $brand[$lang] = array();
             }
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
@@ -155,7 +155,7 @@ class BrandController extends PublicController {
 
     public function deleteAction() {
         $brand_model = new BrandModel();
-        $id = $this->get('id') ?: $this->getPut('id');
+        $id = $this->getPut('id');
         $result = $brand_model->delete_data($id);
         if ($result !== false) {
             $this->delcache();
@@ -169,7 +169,7 @@ class BrandController extends PublicController {
 
     public function batchdeleteAction() {
         $brand_model = new BrandModel();
-        $ids = $this->get('ids') ?: $this->getPut('ids');
+        $ids = $this->getPut('ids');
         if (is_string($ids)) {
             $ids = explode(',', $ids);
         }

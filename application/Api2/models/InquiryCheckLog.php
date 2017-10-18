@@ -7,7 +7,7 @@
  */
 class InquiryCheckLogModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'inquiry_check_log';
 			    
     public function __construct() {
@@ -133,5 +133,15 @@ class InquiryCheckLogModel extends PublicModel {
 		}
 
 		return $this->where($where)->save(['status' => 'DELETED']);
+	}
+
+	public function getInfo($condition = [], $field = '*',$order = 'id desc') {
+		$where = [];
+		if(!empty($condition['inquiry_id'])) {
+			$where['inquiry_id'] = $condition['inquiry_id'];
+			$where['op_result'] = 'REJECTED';
+		}
+
+		return $this->field($field)->where($where)->order($order)->select();
 	}
 }

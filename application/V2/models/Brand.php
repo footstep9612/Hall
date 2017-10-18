@@ -16,7 +16,7 @@ class BrandModel extends PublicModel {
     //put your code here
 
     protected $tableName = 'brand';
-    protected $dbName = 'erui2_dict'; //数据库名称
+    protected $dbName = 'erui_dict'; //数据库名称
 
     const STATUS_DRAFT = 'DRAFT'; //草稿
     const STATUS_APPROVING = 'APPROVING'; //审核；
@@ -117,7 +117,7 @@ class BrandModel extends PublicModel {
             $item = $this->where($where)
                     ->field('id,brand,status,created_by,'
                             . 'created_at,updated_by,updated_at')
-                    ->order('created_at desc')
+                    ->order('id desc')
                     ->limit($row_start, $pagesize)
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
@@ -145,7 +145,7 @@ class BrandModel extends PublicModel {
         try {
             $item = $this->where($where)
                     ->field('id,brand')
-                    ->order('created_at desc')
+                    ->order('id desc')
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;

@@ -24,7 +24,7 @@ class MaterialcatController extends PublicController {
      */
 
     public function treeAction() {
-        $lang = $this->get('lang', 'zh');
+        $lang = $this->getPut('lang', 'zh');
 
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
@@ -99,7 +99,7 @@ class MaterialcatController extends PublicController {
     private function _getCount($cat_no, $lang = 'en') {
         $redis_key = 'Material_cat_spucount_' . md5(json_encode($cat_no));
         $data = json_decode(redisGet($redis_key), true);
-        $materialcat_product_model = new Model('erui2_goods.product');
+        $materialcat_product_model = new Model('erui_goods.product');
         if (!$data) {
             $arr = $materialcat_product_model->where(['material_cat_no' => $cat_no, 'status' => 'VALID', 'lang' => $lang])->Count();
             if ($arr) {
@@ -135,7 +135,7 @@ class MaterialcatController extends PublicController {
      */
     public function listAction() {
 
-        $condition = $this->get() ? $this->get() : $this->getPut();
+        $condition = $this->getPut();
         $condition['token'] = null;
         unset($condition['token']);
         $key = 'Material_cat_list_' . md5(json_encode($condition));
@@ -192,7 +192,7 @@ class MaterialcatController extends PublicController {
      *
      */
     public function infoAction() {
-        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
+        $cat_no = $this->getPut('cat_no');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -213,7 +213,10 @@ class MaterialcatController extends PublicController {
                 $data[$lang]['name'] = '';
             }
         }
-
+        $arr = [$data];
+        $this->_setUserName($arr, ['created_by', 'updated_by']);
+        $data = $arr[0];
+        $data['id'] = $cat_no;
         if ($data) {
             list($parent1, $parent2) = $this->_getparentcats($data);
             $this->setCode(MSG::MSG_SUCCESS);
@@ -226,6 +229,41 @@ class MaterialcatController extends PublicController {
             $this->jsonReturn(null);
         }
         exit;
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+
+                foreach ($fileds as $filed) {
+                    $userids[] = $val[$filed];
+                }
+            }
+
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
     /**
@@ -281,7 +319,7 @@ class MaterialcatController extends PublicController {
      *
      */
     public function getInfoAction() {
-        $cat_no = $this->get('cat_no') ?: $this->getPut('cat_no');
+        $cat_no = $this->getPut('cat_no');
         $lang = $this->getPut('lang', 'zh');
         if (!$cat_no) {
             $this->setCode(MSG::MSG_FAILED);
@@ -293,7 +331,7 @@ class MaterialcatController extends PublicController {
 
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($result);
-        } elseif ($result === []) {
+        } elseif ($result !== false) {
             $this->setCode(MSG::ERROR_EMPTY);
 
             $this->jsonReturn(null);
@@ -363,8 +401,8 @@ class MaterialcatController extends PublicController {
      */
 
     public function deleteAction() {
-        $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
-        $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
+        $cat_no = $this->getPut('cat_no');
+        $lang = $this->getPut('lang');
         $product_model = new ProductModel();
         $data = $product_model->where(['material_cat_no' => ['like', $cat_no . '%']])
                 ->find();
@@ -390,8 +428,8 @@ class MaterialcatController extends PublicController {
      */
 
     public function approvingAction() {
-        $cat_no = $this->get('cat_no') ? $this->get('cat_no') : $this->getPut('cat_no');
-        $lang = $this->get('lang') ? $this->get('lang') : $this->getPut('lang');
+        $cat_no = $this->getPut('cat_no');
+        $lang = $this->getPut('lang');
         $result = $this->_model->approving($cat_no, $lang);
 
         if ($result) {

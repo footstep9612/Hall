@@ -17,7 +17,7 @@ class SupervisedCriteriaModel extends PublicModel {
 
     //put your code here
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'supervised_criteria';
 
     public function __construct() {

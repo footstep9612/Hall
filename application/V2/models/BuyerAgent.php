@@ -14,8 +14,8 @@
 class BuyerAgentModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer_agent';
-    protected $dbName = 'erui2_buyer'; //数据库名称
-    protected $g_table = 'erui2_buyer.buyer_agent';
+    protected $dbName = 'erui_buyer'; //数据库名称
+    protected $g_table = 'erui_buyer.buyer_agent';
 //    protected $autoCheckFields = false;
     public function __construct($str = '') {
         parent::__construct($str = '');
@@ -36,8 +36,11 @@ class BuyerAgentModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" id desc") {
         return $this->where($condition)
-            ->field('buyer_agent.id,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at')
-            ->join('erui2_sys.employee em on em.id=buyer_agent.buyer_id', 'left')
+            ->field('buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at')
+            ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+            ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
+            ->join('erui_sys.org on org.id=org_member.org_id', 'left')
+            ->group('em.id')
             ->order('buyer_agent.id desc')
             ->select();
     }
@@ -79,7 +82,7 @@ class BuyerAgentModel extends PublicModel {
         if($data['id']) {
             $buyerInfo = $this->where(array("id" => $data['id']))
                               ->find();
-            $sql ="SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N'";
+            $sql ="SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`buyer_attach` where deleted_flag ='N'";
             $row = $this->query( $sql );
             $buyerInfo['attach`']=$row;
             return $buyerInfo;

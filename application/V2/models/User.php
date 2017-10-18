@@ -34,7 +34,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND `employee`.`status`= "'.$condition['status'].'"';
         }
         if ( !empty($condition['group_id']) ){
-            $sql .= ' AND org_member.org_id ='.$condition['group_id'];
+            $sql .= ' AND org_member.org_id in ('.$condition['group_id'].')';
         }
         if ( !empty($condition['mobile']) ){
             $sql .= ' AND employee.mobile ="'.$condition['mobile'].'"';
@@ -42,7 +42,7 @@ class UserModel extends PublicModel {
         if ( !empty($condition['role_id']) ){
             $sql .= ' AND role_member.role_id ='.$condition['role_id'];
         }
-        if ( !empty($condition['name']) ){
+        if ( !empty($condition['role_name']) ){
             $sql .= ' AND role.name like "'.$condition['role_name'].'"';
         }
         if ( !empty($condition['status']) ){
@@ -55,12 +55,14 @@ class UserModel extends PublicModel {
             $sql .= ' AND employee.name like "%'.$condition['username'].'%"';
         }
         if ( !empty($condition['employee_flag']) ){
-            $sql .= ' AND employee.employee_flag ='.$condition['employee_flag'];
+            $sql .= ' AND employee.employee_flag ="'.$condition['employee_flag'].'"';
         }
         if ( !empty($condition['user_no']) ){
             $sql .= ' AND employee.user_no = "'.$condition['user_no'].'"';
         }
-
+        if ( !empty($condition['bn']) ){
+            $sql .= ' AND country_member.country_bn ="'.$condition['bn'].'"';
+        }
         return $sql;
     }
     /**
@@ -71,12 +73,14 @@ class UserModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" employee.id desc") {
         $where = $this->getCondition($condition);
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`gender`,`user_no`,`employee`.`name`,`email`,`mobile` ,group_concat(`org`.`name`) as group_name,group_concat(`role`.`name`) as role_name';
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name`) as group_name,group_concat(DISTINCT `role`.`name`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name';
         $sql .= ' FROM '.$this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id ';
         $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
-        $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .= ' left join  role on role_member.role_id = role.id and role.deleted_flag ="N" ';
+        $sql .= ' left join  country_member on employee.id = country_member.employee_id ';
+        $sql .= ' left join  `erui_dict`.`country` on country_member.country_bn = country.bn and country.lang="zh"';
         $sql .=$where;
         $sql .= ' group by `employee`.`id`';
         if ( $condition['num'] ){
@@ -92,6 +96,7 @@ class UserModel extends PublicModel {
         $sql .= ' left join  org on org_member.org_id = org.id ';
         $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
         $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .= ' left join  country_member on employee.id = country_member.employee_id ';
         $sql .=$where;
         return $this->query( $sql );
     }
@@ -157,7 +162,7 @@ class UserModel extends PublicModel {
         }
         $where['status'] = 'NORMAL';
         $row = $this->where($where)
-            ->field('id,user_no,name,email,mobile,status')
+            ->field('id,user_no,name,email,mobile,status,password_status')
             ->find();
         return $row;
     }
@@ -171,32 +176,13 @@ class UserModel extends PublicModel {
      * @author zyg
      */
     public function Exist($data) {
+        $map =[];
         $sql = 'SELECT `id`,`user_no`,`name`,`email`,`mobile`';
         $sql .= ' FROM '.$this->g_table;
-        $where = '';
-        if ( !empty($data['email']) ){
-            $where .= " where email = '" .$data['email']."'";
-        }
-        if ( !empty($data['mobile']) ){
-            if($where){
-                $where .= " or mobile = '" .$data['mobile']."'";
-            }else{
-                $where .= " where mobile = '" .$data['mobile']."'";
-            }
-
-        }
         if ( !empty($data['user_no']) ){
-            if($where){
-                $where .= " or user_no = '" .$data['user_no']."'";
-            }else{
-                $where .= " where user_no = '" .$data['user_no']."'";
-            }
+            $map['user_no']=$data['user_no'];
         }
-
-        if ( $where){
-            $sql .= $where;
-        }
-        $row = $this->query( $sql );
+        $row = $this->where($map)->find();
         return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
     }
 
@@ -223,6 +209,9 @@ class UserModel extends PublicModel {
         if(isset($create['user_no'])){
             $data['user_no']=$create['user_no'];
         }
+        if(isset($create['show_name'])){
+            $data['show_name']=$create['show_name'];
+        }
         if(isset($create['name'])){
             $data['name']=$create['name'];
         }
@@ -234,6 +223,7 @@ class UserModel extends PublicModel {
         }
         if(isset($create['password_hash'])){
             $data['password_hash']=$create['password_hash'];
+            $data['password_status'] = 'N';
         }
         if(isset($create['name_en'])){
             $data['name_en']=$create['name_en'];
@@ -253,9 +243,6 @@ class UserModel extends PublicModel {
         if(isset($create['remarks'])){
             $data['remarks']=$create['remarks'];
         }
-        if(isset($data)){
-            $data['created_at']=date("Y-m-d H:i:s");
-        }
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
@@ -270,7 +257,6 @@ class UserModel extends PublicModel {
         if(!$where){
             return false;
         }else{
-
             return $this->where($where)->save($data);
         }
 
@@ -319,6 +305,9 @@ class UserModel extends PublicModel {
         if(isset($create['mobile2'])){
             $data['mobile2']=$create['mobile2'];
         }
+        if(isset($create['show_name'])){
+            $data['show_name']=$create['show_name'];
+        }
         if(isset($create['phone'])){
             $data['phone']=$create['phone'];
         }
@@ -330,6 +319,9 @@ class UserModel extends PublicModel {
         }
         if(isset($data)){
             $data['created_at']=date("Y-m-d H:i:s");
+        }
+        if(isset($create['employee_flag'])){
+            $data['employee_flag']=$create['employee_flag'];
         }
         $datajson = $this->create($data);
         return $this->add($datajson);

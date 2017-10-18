@@ -9,7 +9,7 @@
  */
 class EmployeeModel extends PublicModel {
 
-    protected $dbName = 'erui2_sys'; //数据库名称
+    protected $dbName = 'erui_sys'; //数据库名称
     protected $tableName = 'employee'; //数据表表名
 
     const DELETE_Y = 'Y';   //删除
@@ -29,7 +29,7 @@ class EmployeeModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getUserNamesByUserids($user_ids) {
+    public function getUserNamesByUserids($user_ids, $show_type = true) {
 
         try {
             $where = [];
@@ -41,10 +41,15 @@ class EmployeeModel extends PublicModel {
             } else {
                 return false;
             }
-            $users = $this->where($where)->field('id,name')->select();
+            $users = $this->where($where)->field('id,name,email')->select();
             $user_names = [];
             foreach ($users as $user) {
-                $user_names[$user['id']] = $user['name'];
+                if ($show_type) {
+                    $user_names[$user['id']] = $user['name'];
+                } else {
+                    $user_names[$user['id']]['name'] = $user['name'];
+                    $user_names[$user['id']]['email'] = $user['email'];
+                }
             }
             return $user_names;
         } catch (Exception $ex) {

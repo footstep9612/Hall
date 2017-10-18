@@ -15,8 +15,8 @@ class BuyerModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'buyer';
-    protected $dbName = 'erui2_buyer'; //数据库名称
-    protected $g_table = 'erui2_buyer.buyer';
+    protected $dbName = 'erui_buyer'; //数据库名称
+    protected $g_table = 'erui_buyer.buyer';
 
 //    protected $autoCheckFields = false;
     public function __construct() {
@@ -28,7 +28,6 @@ class BuyerModel extends PublicModel {
     const STATUS_APPROVING = 'APPROVING'; //待报审；
     const STATUS_APPROVED = 'APPROVED'; //审核；
     const STATUS_REJECTED = 'REJECTED'; //无效；
-    const STATUS_DRAFT = 'DRAFT'; //临时未验证；
 
     /**
      * 获取列表
@@ -38,15 +37,15 @@ class BuyerModel extends PublicModel {
      */
 
     public function getlist($condition = [], $order = " id desc") {
-        $sql = 'SELECT `erui2_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui2_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
-        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui2_buyer`.`buyer`.`first_name`,`erui2_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`buyer_level`,`credit_level`,';
-        $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui2_buyer`.`buyer`.`status`,`erui2_buyer`.`buyer`.`remarks`,`apply_at`,`erui2_buyer`.`buyer`.`created_by`,`erui2_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
-        $sql_count = 'SELECT count(`erui2_buyer`.`buyer`.`id`) as num ';
+        $sql = 'SELECT `erui_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
+        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`first_name`,`erui_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`buyer_level`,`credit_level`,';
+        $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
+        $sql_count = 'SELECT count(`erui_buyer`.`buyer`.`id`) as num ';
         $str = ' FROM ' . $this->g_table;
         if (!empty($condition['employee_name'])) {
-            $str .= " left Join `erui2_buyer`.`buyer_agent` on `erui2_buyer`.`buyer_agent`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
-            $str .= " left Join `erui2_sys`.`employee` on `erui2_buyer`.`buyer_agent`.`agent_id` = `erui2_sys`.`employee`.`id` ";
-            $str .= " left Join `erui2_buyer`.`buyer_account` on `erui2_buyer`.`buyer_account`.`buyer_id` = `erui2_buyer`.`buyer`.`id` ";
+            $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
+            $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` ";
+            $str .= " left Join `erui_buyer`.`buyer_account` on `erui_buyer`.`buyer_account`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
         }
         $sql .= $str;
         $sql_count .= $str;
@@ -61,34 +60,34 @@ class BuyerModel extends PublicModel {
             $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
         }
         if (!empty($condition['employee_name'])) {
-            $where .= " And `erui2_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
+            $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
         if (!empty($condition['official_phone'])) {
             $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
         }
         if (!empty($condition['status'])) {
-            $where .= ' And `erui2_buyer`.`buyer_account`.status  ="' . $condition['status'] . '"';
+            $where .= ' And `erui_buyer`.`buyer_account`.status  ="' . $condition['status'] . '"';
         }
         if (!empty($condition['user_name'])) {
-            $where .= ' And `erui2_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
+            $where .= ' And `erui_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
         }
         if (!empty($condition['last_name'])) {
-            $where .= " And `erui2_buyer`.`buyer_account`.last_name like '%" . $condition['last_name'] . "%'";
+            $where .= " And `erui_buyer`.`buyer_account`.last_name like '%" . $condition['last_name'] . "%'";
         }
         if (!empty($condition['first_name'])) {
-            $where .= " And `erui2_buyer`.`buyer_account`.first_name like '%" . $condition['first_name'] . "%'";
+            $where .= " And `erui_buyer`.`buyer_account`.first_name like '%" . $condition['first_name'] . "%'";
         }
         if (!empty($condition['checked_at_start'])) {
-            $where .= ' And `erui2_buyer`.`buyer`.checked_at  >="' . $condition['checked_at_start'] . '"';
+            $where .= ' And `erui_buyer`.`buyer`.checked_at  >="' . $condition['checked_at_start'] . '"';
         }
         if (!empty($condition['checked_at_end'])) {
-            $where .= ' And `erui2_buyer`.`buyer`.checked_at  <="' . $condition['checked_at_end'] . '"';
+            $where .= ' And `erui_buyer`.`buyer`.checked_at  <="' . $condition['checked_at_end'] . '"';
         }
         if (!empty($condition['created_at_start'])) {
-            $where .= ' And `erui2_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
+            $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
         }
         if (!empty($condition['created_at_end'])) {
-            $where .= ' And `erui2_buyer`.`buyer`.created_at  <="' . $condition['created_at_end'] . '"';
+            $where .= ' And `erui_buyer`.`buyer`.created_at  <="' . $condition['created_at_end'] . '"';
         }
         if ($where) {
             $sql .= $where;
@@ -219,7 +218,7 @@ class BuyerModel extends PublicModel {
         if (isset($create['checked_by'])) {
             $data['checked_by'] = $create['checked_by'];
         }
-        $data['status'] = 'DRAFT';
+        $data['status'] = 'APPROVING';
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['checked_at'] = date('Y-m-d H:i:s');
         try {
@@ -243,9 +242,9 @@ class BuyerModel extends PublicModel {
     public function info($data) {
         if ($data['buyer_id']) {
             $buyerInfo = $this->where(array("buyer.id" => $data['buyer_id']))->field('buyer.*,em.name as checked_name')
-                    ->join('erui2_sys.employee em on em.id=buyer.checked_by', 'left')
+                    ->join('erui_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
-            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui2_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
+            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['buyer_id'];
             $row = $this->query($sql);
             if ($row) {
                 $buyerInfo['attach'] = $row[0];
@@ -262,31 +261,30 @@ class BuyerModel extends PublicModel {
      * 采购商个人信息更新  -- 门户通用
      * @author klp
      */
-    public function upUserInfo($data,$where){
+    public function upUserInfo($data, $where) {
         $this->startTrans();
-        try{
+        try {
 
             $resultBuyer = $this->update_data($data, $where);
-            if(!$resultBuyer){
+            if (!$resultBuyer) {
                 $this->rollback();
                 return false;
             }
             $buyerAccount = new BuyerAccountModel();
             $resultAccount = $buyerAccount->update_data($data, $where);
-            if(!$resultAccount){
+            if (!$resultAccount) {
                 $this->rollback();
                 return false;
             }
             $buyerAddress = new BuyerAddressModel();
             $resultAddress = $buyerAddress->update_data($data, $where);
-            if(!$resultAddress){
+            if (!$resultAddress) {
                 $this->rollback();
                 return false;
             }
-
             $this->commit();
             return true;
-        }catch (Exception $e){
+        } catch (Exception $e) {
             $this->rollback();
             return false;
         }
@@ -297,7 +295,7 @@ class BuyerModel extends PublicModel {
      * @author klp
      */
     public function update_data($create, $where) {
-
+        $data=[];
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
@@ -306,8 +304,6 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
-        } else {
-            $data['lang'] = 'en';
         }
         if (isset($create['name'])) {
             $data['name'] = $create['name'];
@@ -320,6 +316,9 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['country_code'])) {
             $data['country_code'] = $create['country_code'];
+        }
+        if (isset($create['area_bn'])) {
+            $data['area_bn'] = $create['area_bn'];
         }
         if (isset($create['country_bn'])) {
             $data['country_bn'] = $create['country_bn'];
@@ -348,12 +347,8 @@ class BuyerModel extends PublicModel {
         if (isset($create['city'])) {
             $data['city'] = $create['city'];
         }
-
         if (isset($create['brand'])) {
             $data['brand'] = $create['brand'];
-        }
-        if (isset($create['bank_name'])) {
-            $data['bank_name'] = $create['bank_name'];
         }
         if (isset($create['official_website'])) {
             $data['official_website'] = $create['official_website'];
@@ -364,14 +359,8 @@ class BuyerModel extends PublicModel {
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
-        if (isset($create['checked_by'])) {
-            $data['checked_by'] = $create['checked_by'];
-        }
-        if (isset($create['checked_at'])) {
-            $data['checked_at'] = $create['checked_at'];
-        }
         if (isset($create['status'])) {
-            switch ($create['status']) {
+            switch (strtoupper($create['status'])) {
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
@@ -383,12 +372,40 @@ class BuyerModel extends PublicModel {
                     break;
             }
         }
-        if(empty($data)){
+        if (!empty($where)) {
+            $res = $this->where(['id' => $where['buyer_id']])->save($data);
+        } else {
+            return false;
+        }
+        if($res!==false){
             return true;
         }
-        $res =  $this->where($where)->save($data);
-        if($res){
-            return true;
+        return false;
+    }
+
+    /**
+     * 采购商个人信息删除(针对注册--物理删除)
+     * @author
+     */
+    public function delete_data($where){
+//        return $this->where($where)->save(['deleted_flag'=>'Y']);
+        return $this->where($where)->delete();
+    }
+
+
+    /**
+     * 判断采购商是否通过审核
+     * @author klp
+     */
+    public function isBuyerApproved($where){
+        $result = $this->field('status,id')->where($where)->find();
+        if($result){
+            if($result['status'] == self::STATUS_APPROVED){
+                $BuyerAgentModel = new BuyerAgentModel();
+                $res = $BuyerAgentModel->field('agent_id')->where(['buyer_id'=>$where['id']])->find();
+                return $res['agent_id'] ? $res['agent_id'] : false;
+            }
+            return false;
         }
         return false;
     }
@@ -407,11 +424,11 @@ class BuyerModel extends PublicModel {
         $lang = $info['lang'] ? strtolower($info['lang']) : (browser_lang() ? browser_lang() : 'en');
         //获取会员等级
         $buyerLevel = $this->field('buyer_level')
-                ->where("customer_id='" . $where['customer_id'] . "'")
+                ->where($where)
                 ->find();
-        //获取服务
-        $MemberBizService = new MemberBizServiceModel();
-        $result = $MemberBizService->getService($buyerLevel, $lang);
+//        //获取服务
+//        $MemberBizService = new MemberBizServiceModel();
+//        $result = $MemberBizService->getService($buyerLevel, $lang);
         if ($result) {
             return $result;
         } else {
@@ -662,42 +679,89 @@ class BuyerModel extends PublicModel {
                     jsonReturn('', '-1001', '用户[id]不可以为空');
                 }
                 $buyerInfo = $this->where("id='" . $data['id'] . "'")
-                    ->field($field)
-                    ->find();
+                        ->field($field)
+                        ->find();
             } else {
                 $buyerInfo = $this->where("buyer_no='" . $data['buyer_no'] . "'")
-                    ->field($field)
-                    ->find();
+                        ->field($field)
+                        ->find();
             }
 
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
             $userInfo = $buyerAccount->field('email,mobile,first_name,last_name')
-                ->where(array('id' => $data['id'],'status'=>'VALID'))
-                ->find();
+                    ->where(array('id' => $data['id'], 'status' => 'VALID'))
+                    ->find();
 
             //通过顾客id查询用户邮编
             $buyerAddress = new BuyerAddressModel();
             $zipCode = $buyerAddress->field('zipcode,address')
-                ->where(array('id' => $buyerInfo['id']))
-                ->find();
-            if($buyerInfo){
-                if($userInfo){
+                    ->where(array('id' => $buyerInfo['id']))
+                    ->find();
+            if ($buyerInfo) {
+                if ($userInfo) {
                     $buyerInfo['email'] = $userInfo['email'];
                     $buyerInfo['user_name'] = $userInfo['user_name'];
                     $buyerInfo['mobile'] = $userInfo['mobile'];
                     $buyerInfo['first_name'] = $userInfo['first_name'];
                     $buyerInfo['last_name'] = $userInfo['last_name'];
                 }
-                if($zipCode){
+                if ($zipCode) {
                     $buyerInfo['zipcode'] = $zipCode['zipcode'];
                     $buyerInfo['address'] = $zipCode['address'];
                 }
                 return $buyerInfo;
             }
             return array();
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return array();
         }
     }
+
+    /**
+     * 门户授信 -- 获取采购商信息 NEW
+     * @author klp
+     * @time 2017-9-8
+     */
+    public function buyerCerdit($userInfo) {
+        $where = array();
+        $userInfo['id'] = 1;
+        if (!empty($userInfo['id'])) {
+            $where['b.id'] = $userInfo['id'];
+        } else {
+            jsonReturn('', '-1001', '用户[id]不可以为空');
+        }
+        if(isset($userInfo['buyer_no'])) {
+            $where['b.buyer_no'] = $userInfo['buyer_no'];
+        }
+        $where['b.deleted_flag'] = 'N';
+
+        $buyercontactModel = new BuyerContactModel();
+        $tableAcon = $buyercontactModel->getTableName();
+        $buyeraddress_model = new BuyerAddressModel();
+        $tableAddr = $buyeraddress_model->getTableName();
+//        $BuyerreginfoModel = new BuyerreginfoModel();
+//        $tableReg = $BuyerreginfoModel->getTableName();
+        try {
+            //基本信息-$this
+            $fields = 'b.id as buyer_id, b.lang, bd.address, b.serial_no, b.buyer_no, b.country_code, b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.sec_ex_listed_on,b.line_of_credit,b.credit_available,b.credit_cur_bn,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
+            //联系信息-BuyercontactModel
+            $fields .= ',ba.first_name as con_first_name,ba.last_name as con_last_name,ba.gender,ba.title,ba.phone as con_phone,ba.email as con_email,ba.remarks as con_remarks';
+
+            $buyerInfo = $this->alias('b')
+                ->field($fields)
+                ->join($tableAcon . ' as ba on ba.buyer_id=b.id ', 'left')
+                ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
+//                ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
+                ->where($where)
+                ->find();
+            if ($buyerInfo) {
+                return $buyerInfo ? $buyerInfo : array();
+            }
+            return array();
+        } catch (Exception $e) {
+            return array();
+        }
+    }
+
 }

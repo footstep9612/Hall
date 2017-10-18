@@ -17,7 +17,7 @@ class CountryModel extends PublicModel {
 
     //put your code here
 
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'country';
 
     public function __construct($str = '') {
@@ -68,9 +68,9 @@ class CountryModel extends PublicModel {
                 return json_decode(redisHashGet('Country', $redis_key), true);
             }
             $this->alias('c')
-                    ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
-                    ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
-                    ->join('erui2_dict.region r on r.bn=c.region_bn and r.lang=c.lang', 'left')
+                    ->join('erui_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
+                    ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
+                    ->join('erui_dict.region r on r.bn=c.region_bn and r.lang=c.lang', 'left')
                     ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,r.name as region_name,'
                             . 'ma.name as market_area_name ,mac.market_area_bn')
                     ->where($where);
@@ -95,8 +95,8 @@ class CountryModel extends PublicModel {
     public function getCount($condition) {
         try {
             $data = $this->alias('c')
-                    ->join('erui2_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
-                    ->join('erui2_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
+                    ->join('erui_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
+                    ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
                     ->_getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
@@ -178,7 +178,7 @@ class CountryModel extends PublicModel {
             $update = ['market_area_bn' => $update['market_area_bn'],
                 'country_bn' => $arr['bn']];
             if ($this->getmarket_area_countryexit($update)) {
-                $this->table('erui2_operation.market_area_country')
+                $this->table('erui_operation.market_area_country')
                         ->add($update, [], true);
             }
 
@@ -212,7 +212,7 @@ class CountryModel extends PublicModel {
 
     public function getmarket_area_countryexit($where) {
 
-        return $this->table('erui2_operation.market_area_country')->where($where)->find();
+        return $this->table('erui_operation.market_area_country')->where($where)->find();
     }
 
     /**
@@ -242,7 +242,7 @@ class CountryModel extends PublicModel {
         if ($data && $create['market_area_bn']) {
             $update = ['market_area_bn' => $create['market_area_bn'],
                 'country_bn' => $arr['bn']];
-            $this->table('erui2_operation.market_area_country')
+            $this->table('erui_operation.market_area_country')
                     ->create($update);
         }
         $flag = $this->add($data);
@@ -250,7 +250,7 @@ class CountryModel extends PublicModel {
             $update = ['market_area_bn' => $create['market_area_bn'],
                 'country_bn' => $arr['bn']];
             if ($this->getmarket_area_countryexit($update)) {
-                $this->table('erui2_operation.market_area_country')
+                $this->table('erui_operation.market_area_country')
                         ->create($update);
             }
         }
@@ -473,7 +473,7 @@ class CountryModel extends PublicModel {
             return '';
         }
         if (redisHashExist('Country', $name)) {
-            return redisHashGet('Country', $name);
+            return json_decode(redisHashGet('Country', $name), true);
         }
         try {
             $condition = array(
@@ -485,7 +485,7 @@ class CountryModel extends PublicModel {
             $bns = [];
             if ($result) {
                 foreach ($result as $bn) {
-                    $bns[] = $bn;
+                    $bns[] = $bn['bn'];
                 }
             } else {
                 return [];

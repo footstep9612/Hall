@@ -9,7 +9,7 @@
  */
 class InquiryitemModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
 
     public function __construct() {
@@ -171,7 +171,7 @@ class InquiryitemModel extends PublicModel {
         for($i = 0; $i < $condition['inquiry_rows']; $i++){
             $test['inquiry_id'] = $condition['inquiry_id'];
             $test['qty']        = '1';
-            $test['created_by'] = $condition['user_id'];
+            $test['created_by'] = $condition['created_by'];
             $test['created_at'] = $this->getTime();
             $inquirydata[] = $test;
         }
@@ -264,7 +264,7 @@ class InquiryitemModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d h:i:s', time());
+        return date('Y-m-d H:i:s', time());
     }
 
 }

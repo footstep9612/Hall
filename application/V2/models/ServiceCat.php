@@ -5,7 +5,7 @@
  */
 class ServiceCatModel extends PublicModel {
 
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'service_cat';
     
     public function __construct() {
@@ -45,7 +45,12 @@ class ServiceCatModel extends PublicModel {
         $data =array();
         if($result){
             $termModel = new ServiceTermModel();
+            $employee = new EmployeeModel();
             foreach($result as $item){
+                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
+                    if ($createder && isset($createder[0])) {
+                        $item['created_by'] = $createder[0];
+                    }
                 $count = $termModel->field('id')->where(['service_cat_id'=>$item['id']])->count();
                 $item['count']=$count?$count:0;
                 $item['category'] = json_decode($item['category']);
@@ -72,7 +77,7 @@ class ServiceCatModel extends PublicModel {
                 foreach ($condition['services'] as $item) {
                     $data = $this->create($item);
                     if(!empty($data['category'])){
-                        $save['category'] = json_encode($data['category']);
+                        $save['category'] = json_encode($data['category'],JSON_UNESCAPED_UNICODE);
                     }
                     $save['created_by'] = $userInfo['id'];
                     $save['created_at'] = date('Y-m-d H:i:s', time());
@@ -115,11 +120,11 @@ class ServiceCatModel extends PublicModel {
             $info = $this->where($condition)->select();
             if($info){
                 for($i=0;$i<count($info);$i++){
-                    $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui2_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info[$i]['cat_no']."'";
+                    $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info[$i]['cat_no']."'";
                     $row = $this->query( $sql );
                 }
             }
-            $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui2_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info['cat_no']."'";
+            $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info['cat_no']."'";
             $row = $this->query( $sql );
             $info['service_item'] = $row;
 		return $info;
@@ -143,7 +148,7 @@ class ServiceCatModel extends PublicModel {
                 foreach ($condition['services'] as $item) {
                     $where = ['id'=>$item['id']];
                     if(!empty($item['category'])){
-                        $data['category'] = json_encode($item['category']);
+                        $data['category'] = json_encode($item['category'],JSON_UNESCAPED_UNICODE);
                     }
                     $data['updated_by'] = $userInfo['id'];
                     $data['updated_at'] = date('Y-m-d H:i:s', time());
@@ -187,7 +192,7 @@ class ServiceCatModel extends PublicModel {
         try{
             $status = self::STATUS_DELETED;
             $where = ['id'=>$id];
-            $res = $this->where($where)->save(['status'=>$status]);
+            $res = $this->where($where)->save(['deleted_flag' => 'Y']);
             if (!$res) {
                 $this->rollback();
                 return false;
@@ -381,7 +386,7 @@ class ServiceCatModel extends PublicModel {
             return false;
         }
 
-        $category = json_encode($data['category']);
+        $category = json_encode($data['category'],JSON_UNESCAPED_UNICODE);
         $userInfo = getLoinInfo();
 
         try{

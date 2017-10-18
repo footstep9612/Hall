@@ -8,7 +8,7 @@
  */
 class BizlineGroupModel extends PublicModel {
 
-    protected $dbName = 'erui2_operation'; //数据库名称
+    protected $dbName = 'erui_operation'; //数据库名称
     protected $tableName = 'bizline_group'; //数据表表名
 
     public function __construct()
@@ -206,6 +206,12 @@ class BizlineGroupModel extends PublicModel {
             $results['code'] = '-103';
             $results['message'] = '缺少产品线id!';
         }
+        if(!empty($condition['group_role'])){
+            $where['group_role'] = $condition['group_role'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '缺少产品线组角色!';
+        }
 
         try {
             $id = $this->where($where)->delete();
@@ -228,6 +234,6 @@ class BizlineGroupModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d h:i:s',time());
+        return date('Y-m-d H:i:s',time());
     }
 }

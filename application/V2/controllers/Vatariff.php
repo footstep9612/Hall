@@ -28,7 +28,7 @@ class VatariffController extends PublicController {
      * @desc   目的国 增值税、关税
      */
     public function listAction() {
-        $data = $this->get() ?: $this->getPut();
+        $data = $this->getPut();
 
         $va_tariff_model = new VaTariffModel();
         $key = $data['id'] . $data['current_no'] . $data['pagesize'] . md5($data['keyword']);
@@ -36,7 +36,6 @@ class VatariffController extends PublicController {
             $arr = json_decode(redisHashGet('Vatariff', $key), true);
         } else {
             $arr = $va_tariff_model->getlist($data, false);
-
 
             $this->_setUserName($arr);
             if ($arr) {
@@ -127,8 +126,18 @@ class VatariffController extends PublicController {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
 
-        $result = $va_tariff_model->create_data($data);
 
+        if (isset($data['country_bn']) && $data['country_bn']) {
+            $country_bn = $data['country_bn'];
+            $row = $va_tariff_model->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
+
+            if ($row) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('已存在该国家的增值税、关税信息！');
+                $this->jsonReturn();
+            }
+        }
+        $result = $va_tariff_model->create_data($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -149,6 +158,15 @@ class VatariffController extends PublicController {
     public function updateAction() {
         $data = $this->getPut();
         $va_tariff_model = new VaTariffModel();
+        if (isset($data['country_bn']) && $data['country_bn']) {
+            $country_bn = $data['country_bn'];
+            $row = $va_tariff_model->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
+
+            if ($row && $row['id'] != $data['id']) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
         $result = $va_tariff_model->update_data($data);
         if ($result) {
             $this->delcache();
@@ -169,7 +187,7 @@ class VatariffController extends PublicController {
      */
     public function deleteAction() {
 
-        $id = $this->get('id') ?: $this->getPut('id');
+        $id = $this->getPut('id');
 
         $va_tariff_model = new VaTariffModel();
         $result = $va_tariff_model->delete_data($id);

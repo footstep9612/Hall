@@ -15,7 +15,7 @@
 class TradeTermsModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'trade_terms';
 
     public function __construct() {
@@ -62,16 +62,16 @@ class TradeTermsModel extends PublicModel {
         try {
             $field = 'id,terms,trans_mode_bn,lang';
 
-
-            $redis_key = md5(json_encode($where) . '_' . $from . '_' . $pagesize);
-            if (redisHashExist('TradeTerms', $redis_key)) {
-                return json_decode(redisHashGet('TradeTerms', $redis_key), true);
+            $redis_key = md5(md5(json_encode($where) . '_' . $from . '_' . $pagesize));
+            if (redisHashExist('TradeTermsList', $redis_key)) {
+                return json_decode(redisHashGet('TradeTermsList', $redis_key), true);
             }
             $result = $this->field($field)
                     ->where($where)
+                    ->group('terms')
                     ->select();
             if ($result) {
-                redisHashSet('TradeTerms', $redis_key, json_encode($result));
+                redisHashSet('TradeTermsList', $redis_key, json_encode($result));
             }
             return $result;
         } catch (Exception $ex) {

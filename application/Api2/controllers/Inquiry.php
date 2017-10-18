@@ -9,13 +9,28 @@
 class InquiryController extends PublicController {
 
     public function init() {
-        $this->token = false;
         parent::init();
+    }
+
+    //判断采购商是否经过审核,通过返回市场经办人agent_id
+    public function isBuyerApprovedAction(){
+        $where['id'] = $this->user['buyer_id'];
+        $buyerModel = new BuyerModel();
+        $res = $buyerModel->isBuyerApproved($where);
+        if($res){
+            $this->setCode('1');
+            $this->setMessage('通过!');
+            $this->jsonReturn($res);
+        }else {
+            $this->setCode('-101');
+            $this->setMessage('未通过!');
+            $this->jsonReturn();
+        }
     }
 
     //返回询价单流水号
     public function getInquiryNoAction() {
-        $data['serial_no'] = $this->getInquirySerialNo();
+        $data['serial_no'] = InquirySerialNo::getInquirySerialNo();
         if (!empty($data)) {
             $this->setCode('1');
             $this->setMessage('成功!');
@@ -30,7 +45,8 @@ class InquiryController extends PublicController {
     //获取询单总数
     public function getInquiryCountAction() {
         $inquiry = new InquiryModel();
-        $where['buy_id'] = $this->user['id'];
+        $where['buyer_id'] = $this->user['buyer_id'];
+
         $data['count'] = $inquiry->getcount($where);
 
         if ($data['count'] > 0) {
@@ -50,13 +66,20 @@ class InquiryController extends PublicController {
         $data = $this->getPut();
 
         $inquiryNo = $inquiry->checkInquiryNo($data['inquiry_no']);
-
         if ($inquiryNo['code'] == 1) {
-            $data['customer_id'] = $this->user['customer_id'];
+            $data['buyer_id'] = $this->user['buyer_id'];
             $data['inquirer'] = $this->user['user_name'];
             $data['inquirer_email'] = $this->user['email'];
+            $buyerInfo = $this->user['buyer_id'];
 
-            $results = $inquiry->addData($data);
+            $results = $inquiry->addInquiry($data, $buyerInfo);
+            if (!$results) {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            } else {
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn();
+            }
         } else {
             $results = $inquiryNo;
         }
@@ -68,11 +91,11 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $item = new InquiryItemModel();
         $where = $this->getPut();
-
+        $where['buyer_id'] = $this->user['buyer_id'];
         $results = $inquiry->getlist($where);
 
         foreach ($results['data'] as $key => $val) {
-            $test['serial_no'] = $val['serial_no'];
+            $test['inquiry_id'] = $val['id'];
             $results['data'][$key]['quantity'] = $item->getcount($test);
         }
 
@@ -86,7 +109,57 @@ class InquiryController extends PublicController {
 
         $results = $inquiry->getinfo($where);
 
+        if (isset($results['data'])) {
+            $data = $results['data'];
+            $this->_setAgent($data);
+            $results['data'] = $data;
+        }
+
         $this->jsonReturn($results);
+    }
+
+    //询价单审核日志详情
+    public function getLogAction() {
+        $inquiryLogModel = new InquiryCheckLogModel();
+        $condition = $this->getPut();
+
+        $data = $inquiryLogModel->getInfo($condition);
+        if (!empty($data)) {
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('没有数据!');
+            $this->jsonReturn();
+        }
+    }
+
+    /* id转换为姓名
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   汇率列表
+     */
+
+    private function _setAgent(&$arr) {
+
+        if ($arr && $arr['agent_id']) {
+            $buyer_model = new EmployeeModel();
+            $agent_ids = $arr['agent_id'];
+
+            $usernames = $buyer_model->getUserNamesByUserids($agent_ids, false);
+            if ($arr['agent_id'] && isset($usernames[$arr['agent_id']])) {
+                $arr['agent'] = $usernames[$arr['agent_id']]['name'];
+                $arr['agent_email'] = strval($usernames[$arr['agent_id']]['email']);
+            } else {
+                $arr['agent'] = '';
+                $arr['agent_email'] = '';
+            }
+        } else {
+            $arr['agent'] = '';
+            $arr['agent_email'] = '';
+        }
     }
 
     //修改询价单
@@ -122,7 +195,7 @@ class InquiryController extends PublicController {
         $attach = new InquiryAttachModel();
         $data = $this->getPut();
 
-        $results = $attach->add_data($data);
+        $results = $attach->addData($data);
 
         $this->jsonReturn($results);
     }

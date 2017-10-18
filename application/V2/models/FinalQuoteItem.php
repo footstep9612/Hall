@@ -5,12 +5,12 @@
  */
 class FinalQuoteItemModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'final_quote_item';
-	protected $joinTable1 = 'erui2_rfq.quote_item b ON a.quote_item_id = b.id';
-	protected $joinTable2 = 'erui2_rfq.inquiry_item c ON a.inquiry_item_id = c.id';
+	protected $joinTable1 = 'erui_rfq.quote_item b ON a.quote_item_id = b.id';
+	protected $joinTable2 = 'erui_rfq.inquiry_item c ON a.inquiry_item_id = c.id';
 	protected $joinField = 'a.id,a.inquiry_id,a.quote_id,a.sku,a.supplier_id,a.exw_unit_price as final_exw_unit_price,a.quote_unit_price as final_quote_unit_price,'.
-								'b.quote_qty,b.quote_unit,b.brand,b.exw_unit_price,b.quote_unit_price,b.net_weight_kg,b.gross_weight_kg,'.
+								'c.qty as quote_qty,c.unit as quote_unit,b.brand,b.exw_unit_price,b.quote_unit_price,b.net_weight_kg,b.gross_weight_kg,b.remarks as final_remarks,'.
 								'b.package_mode,b.package_size,b.delivery_days,b.period_of_validity,b.goods_source,b.stock_loc,b.reason_for_no_quote,'.
 								'c.buyer_goods_no,c.name,c.name_zh,c.model,c.remarks,c.remarks_zh';
 
@@ -72,7 +72,7 @@ class FinalQuoteItemModel extends PublicModel {
     	$where = $this->getWhere($condition);
 
 		try {
-			$count = $this->getCount($where);
+			$count = $this->getCount($condition);
 			$list = $this->alias('a')
 					->join($this->joinTable1, 'LEFT')
 					->join($this->joinTable2, 'LEFT')
@@ -224,5 +224,13 @@ class FinalQuoteItemModel extends PublicModel {
 			$results['message'] = $e->getMessage();
 			return $results;
 		}
+	}
+
+	/**
+	 * 返回格式化时间
+	 * @author zhangyuliang
+	 */
+	public function getTime() {
+		return date('Y-m-d H:i:s',time());
 	}
 }

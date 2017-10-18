@@ -163,6 +163,18 @@ class ESClient {
     }
 
     /*
+     * 获取版本号
+     */
+
+    public function getversion() {
+        return $this->server->info();
+    }
+
+    public function getstate() {
+        return $this->server->cluster()->state();
+    }
+
+    /*
      * 删除索引
      */
 
@@ -201,6 +213,19 @@ class ESClient {
         $params['index'] = $index;
         try {
             $this->server->indices()->open($params);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+        }
+    }
+
+    /*
+     * 开启索引
+     */
+
+    public function refresh($index) {
+        $params['index'] = $index;
+        try {
+            $this->server->indices()->refresh($params);
         } catch (Exception $ex) {
             LOG::write($ex->getMessage(), LOG::ERR);
         }
@@ -367,11 +392,14 @@ class ESClient {
      * 获取文档
      */
 
-    public function get_document($index, $type, $id) {
+    public function get_document($index, $type, $id, $_source = null) {
         $getParams = array();
         $getParams['index'] = $index;
         $getParams['type'] = $type;
         $getParams['id'] = $id;
+        if ($_source) {
+            $getParams['_source'] = $_source;
+        }
         try {
             $retDoc = $this->server->get($getParams);
             return $retDoc;
@@ -447,7 +475,7 @@ class ESClient {
             }
             return true;
         } catch (Exception $ex) {
-            print_r($ex->getMessage());
+
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
@@ -798,6 +826,8 @@ class ESClient {
      */
 
     public function sethighlight($fields) {
+
+        $this->body['highlight']['require_field_match'] = true;
         $this->body['highlight']['fields'] = $fields;
         return $this;
     }
@@ -824,9 +854,17 @@ class ESClient {
      *  @param string $alis // 别名
      */
 
-    public function setaggs($field, $alis, $do = 'terms') {
-        $this->body['aggs'][$alis] = [$do => ['field' => $field,
-        ]];
+    public function setaggs($field, $alis, $do = 'terms', $size = null) {
+        if ($size !== null) {
+
+            $this->body['aggs'][$alis] = [$do => ['field' => $field,
+                    'size' => $size
+            ]];
+        } else {
+            $this->body['aggs'][$alis] = [$do => ['field' => $field
+            ]];
+        }
+
         return $this;
     }
 
@@ -924,12 +962,15 @@ class ESClient {
      *
      * @return array
      */
-    public function get($index, $type, $id) {
+    public function get($index, $type, $id, $_source = null) {
         $getParams = array(
             'index' => $index,
             'type' => $type,
             'id' => $id
         );
+        if ($_source) {
+            $getParams['_source'] = $_source;
+        }
         try {
             return $this->server->get($getParams);
         } catch (Exception $ex) {
@@ -945,9 +986,7 @@ class ESClient {
         $indexParam['index'] = $index;
         $indexParam['type'] = $type;
 
-        $indexParam['body'] = [
-            $type => $mapParam
-        ];
+        $indexParam['body'] = $mapParam;
         try {
 
             $response = $this->server->indices()->putMapping($indexParam);

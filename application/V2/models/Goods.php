@@ -10,6 +10,7 @@ class GoodsModel extends PublicModel {
 
     protected $tableName = 'goods';
     protected $dbName = 'erui2_goods'; //数据库名称
+    protected $g_table = 'erui2_goods.goods';
 
     //状态
 
@@ -19,13 +20,40 @@ class GoodsModel extends PublicModel {
     const STATUS_DELETED = 'DELETED';      //删除
     const STATUS_CHECKING = 'CHECKING';    //审核中
     const STATUS_DRAFT = 'DRAFT';          //草稿
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     //定义校验规则
 
     protected $field = array(
         'spu' => array('required'),
-        'name' => array('required'),
-            //'show_name' => array('required'),
+        'supplier_cost' => array('required'),
+//        'name' => array('required'),
+//        'model' => array('required'),
+    );
+    //固定属性映射
+    protected $const_attr = array(
+        'exw_days' => array('zh' => '出货周期(天)', 'en' => 'EXW(day)', 'es' => 'EXW(Día )', 'ru' => 'Время доставки (дней)'),
+        'min_pack_naked_qty' => array('zh' => '最小包装内裸货商品数量', 'en' => 'Minimum packing Naked quantity', 'es' => 'La cantidad mínima de embalaje desnudo', 'ru' => 'Количество голого товара минимальном упаковке'),
+        'nude_cargo_unit' => array('zh' => '商品裸货单位', 'en' => 'Goods nude cargo units', 'es' => 'Las unidades de carga de mercancías Nude', 'ru' => 'Единица голого товара'),
+        'min_pack_unit' => array('zh' => '最小包装单位', 'en' => 'Minimum packing unit', 'es' => 'Mínimo de unidad de embalaje', 'ru' => 'Минимальная единица упаковки'),
+        'min_order_qty' => array('zh' => '最小订货数量', 'en' => 'Minimum order quantity', 'es' => 'Cantidad de orden mínima', 'ru' => 'Минимальное количество заказа'),
+        'nude_cargo_l_mm' => array('zh' => '裸货尺寸长(mm)', 'en' => 'Length of nude cargo(mm)', 'es' => 'Longitud de Nude carga (mm)', 'ru' => 'Длина голого товара（mm）'),
+        'nude_cargo_w_mm' => array('zh' => '裸货尺寸宽(mm)', 'en' => 'Width of nude cargo(mm)', 'es' => 'Anchura de Nude carga (mm)', 'ru' => 'Ширина  голого товара（mm）'),
+        'nude_cargo_h_mm' => array('zh' => '裸货尺寸高(mm)', 'en' => 'Height of nude cargo(mm)', 'es' => 'Altura de Nude carga (mm)', 'ru' => 'Высота голого товара（mm）'),
+        'min_pack_l_mm' => array('zh' => '最小包装后尺寸长(mm)', 'en' => 'Minimum packing Length size (mm)', 'es' => 'Longitud mínima de embalaje tama?o (mm)', 'ru' => 'Длина наименьшего размера упаковки（mm）'),
+        'min_pack_w_mm' => array('zh' => '最小包装后尺寸宽(mm)', 'en' => 'Minimum packing Width size (mm)', 'es' => 'Ancho mínimo de embalaje tama?o (mm)', 'ru' => 'Ширина наименьшего размера упаковки（mm）'),
+        'min_pack_h_mm' => array('zh' => '最小包装后尺寸高(mm)', 'en' => 'Minimum packing Height size (mm)', 'es' => 'Altura mínima de embalaje tama?o(mm)', 'ru' => 'Высота  наименьшего размера упаковки（mm）'),
+        'net_weight_kg' => array('zh' => '净重(kg)', 'en' => 'Net Weight(kg)', 'es' => 'Peso neto (kg)', 'ru' => 'Вес (кг)'),
+        'gross_weight_kg' => array('zh' => '毛重(kg)', 'en' => 'Gross Weight(kg)', 'es' => 'Peso bruto (kg)', 'ru' => 'Брутто (кг)'),
+        'compose_require_pack' => array('zh' => '仓储运输包装及其他要求', 'en' => 'Compose Require', 'es' => ' Las plantillas componer incluyen Require', 'ru' => 'Требования написания'),
+        'pack_type' => array('zh' => '包装类型', 'en' => 'Packing type', 'es' => 'Tipo de embalaje', 'ru' => 'Тип упаковки'),
+        'name_customs' => array('zh' => '中文品名(报关用)', 'en' => 'Name (customs)', 'es' => 'Nombre (aduanas)', 'ru' => 'Китайское название (сделать заявку в таможню)'),
+        'hs_code' => array('zh' => '海关编码', 'en' => 'HS CODE', 'es' => 'HS CODE', 'ru' => 'Таможенный кодекс'),
+        'tx_unit' => array('zh' => '成交单位', 'en' => 'Transaction Unit', 'es' => 'Unidad de transacción', 'ru' => 'Единица доставки'),
+        'tax_rebates_pct' => array('zh' => '退税率(%)', 'en' => 'Tax rebates(%)', 'es' => 'Rebajas fiscales', 'ru' => 'Ставка налога'),
+        'regulatory_conds' => array('zh' => '监管条件', 'en' => 'Regulatory conditions', 'es' => 'Condiciones reglamentarias', 'ru' => 'Условие регулирования'),
+        'commodity_ori_place' => array('zh' => '境内货源地', 'en' => 'Domestic supply of goods to', 'es' => 'La oferta nacional de bienes', 'ru' => 'Происхождения товаров в границах'),
     );
 
     public function __construct() {
@@ -202,12 +230,58 @@ class GoodsModel extends PublicModel {
      */
     public function setupSku() {
         $rand = rand(10000000, 99999999);
-//        $code = str_pad($rand, 8, "0", STR_PAD_LEFT);
         $existCode = $this->where(['sku' => $rand])->find();
         if ($existCode) {
             $this->setupSku();
         }
         return $rand;
+    }
+
+    /**
+     * 生成sku编码 - NEW
+     * @time 2017-09-26(经史总,平总确认新规则)
+     * 规则:SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
+      SKU的编码规则为: 产品的12位编码 + 4位商品编码
+     */
+    public function setRealSku($input) {
+
+        foreach ($input as $item) {
+            if (!isset($item['spu']) || empty($item['spu'])) {
+                continue;
+            } else {
+                $spus[] = $item['spu'];
+            }
+        }
+        if (empty($spus)) {
+            jsonReturn('', ErrorMsg::FAILED, 'spu编码缺少!');
+        }
+        $temp_num = substr($spus[0], 0, 12);
+        $data = $this->getSkus($temp_num);
+        if ($data && substr($data[0]['sku'], 0, 12) == $temp_num) {
+            $num = substr($data[0]['sku'], 12, 4);
+            $num++;
+            $num = str_pad($num, 4, "0", STR_PAD_LEFT);
+        } else {
+            $num = str_pad('1', 4, "0", STR_PAD_LEFT);
+        }
+        $real_num = $temp_num . $num;
+
+        return $real_num;
+    }
+
+    /**
+     * 获取sku 获取列表
+     * @author
+     */
+    public function getSkus($sku_suffix, $order = " sku desc") {
+        $sql = 'SELECT `sku`';
+        $sql .= ' FROM ' . $this->g_table;
+        if (!empty($sku_suffix)) {
+            $sql .= ' WHERE sku like ' . "'$sku_suffix%'";
+        }
+        $sql .= ' Order By ' . $order;
+
+        return $this->query($sql);
     }
 
     /**
@@ -234,9 +308,13 @@ class GoodsModel extends PublicModel {
      *      )
      * )
      */
-    private function checkParam($param = [], $field = []) {
+    private function checkParam($param = [], $field = [], $supplier_cost = []) {
         if (empty($param) || empty($field))
             return array();
+//
+//        if (empty($supplier_cost)) {
+//            jsonReturn('', '1000', 'Param supplier Not null !');
+//        }
         foreach ($param as $k => $v) {
             if (isset($field[$k])) {
                 $item = $field[$k];
@@ -266,7 +344,16 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskubyspu($spu, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['spu' => $spu, 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        if (!$spu) {
+            return [];
+        }
+        $where = ['lang' => $lang, 'status' => self::STATUS_VALID];
+        if (is_array($spu) && $spu) {
+            $where['spu'] = ['in', $spu];
+        } else {
+            $where['spu'] = $spu;
+        }
+        return $this->field('sku,name,model,show_name')->where($where)->select();
     }
 
     /**
@@ -274,7 +361,10 @@ class GoodsModel extends PublicModel {
      * @author zyg
      */
     public function getskusbyskus($skus, $lang = 'en') {
-        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'satus' => self::STATUS_VALID])->select();
+        if (!$skus && !is_array($skus)) {
+            return [];
+        }
+        return $this->field('sku,name,model,show_name')->where(['sku' => ['in', $skus], 'lang' => $lang, 'status' => self::STATUS_VALID])->select();
     }
 
     //--------------------------------BOSS.V2--------------------------------------------------------//
@@ -300,11 +390,12 @@ class GoodsModel extends PublicModel {
         } else {
             $where['status'] = array('neq', self::STATUS_DELETED);
         }
+        $where['deleted_flag'] = self::DELETE_N;
         //redis
         if (redisHashExist('Sku', md5(json_encode($where)))) {
 //            return json_decode(redisHashGet('Sku', md5(json_encode($where))), true);
         }
-        $field = 'lang, spu, sku, qrcode, name, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, source, source_detail, deleted_flag,';
+        $field = 'lang, spu, sku, qrcode, name, show_name_loc, show_name, model, description, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, source, source_detail, deleted_flag,';
         //固定商品属性
         $field .= 'exw_days, min_pack_naked_qty, nude_cargo_unit, min_pack_unit, min_order_qty, purchase_price, purchase_price_cur_bn, nude_cargo_l_mm,';
         //固定物流属性
@@ -337,80 +428,102 @@ class GoodsModel extends PublicModel {
                 }
                 $ex_attrs = $goodsAttrModel->getSkuAttrsInfo($condition_attr);
 
-                //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-                $employee = new EmployeeModel();
+                $checklogModel = new ProductCheckLogModel();
+                $this->_getUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
-                    $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-                    if ($createder && isset($createder[0])) {
-                        $item['created_by'] = $createder[0];
-                    }
-                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
-                    if ($updateder && isset($updateder[0])) {
-                        $item['updated_by'] = $updateder[0];
-                    }
-                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-                    if ($checkeder && isset($checkeder[0])) {
-                        $item['checked_by'] = $checkeder[0];
-                    }
                     //固定商品属性
                     $goodsAttr = ['exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit', 'min_order_qty'];
                     $goods_attrs = [];
                     foreach ($goodsAttr as $gAttr) {
-                        $goods_attrs[] = ['attr_name' => $gAttr, 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
+                        $goods_attrs[] = ['attr_name' => $this->const_attr[$gAttr][$item['lang']], 'attr_value' => $item[$gAttr], 'attr_key' => $gAttr, 'flag' => 'Y'];
                     }
                     //扩展商品属性
-                    if(isset($ex_attrs[$item['lang']]['ex_goods_attrs']) && !empty($ex_attrs[$item['lang']]['ex_goods_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['ex_goods_attrs'] as $ex_key =>$ex_value){
-                            $goods_attrs[] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    if (isset($ex_attrs[$item['lang']]['ex_goods_attrs']) && !empty($ex_attrs[$item['lang']]['ex_goods_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['ex_goods_attrs'] as $ex_key => $ex_value) {
+                            $goods_attrs[] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
                     $item['goods_attrs'] = $goods_attrs;
                     //固定物流属性
-                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'nude_cargo_l_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', ' net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
+                    $logiAttr = ['nude_cargo_w_mm', 'nude_cargo_h_mm', 'nude_cargo_l_mm', 'min_pack_l_mm', 'min_pack_w_mm', 'min_pack_h_mm', 'net_weight_kg', 'gross_weight_kg', 'compose_require_pack', 'pack_type'];
                     foreach ($logiAttr as $lAttr) {
-                        $item['logi_attrs'][] = ['attr_name' => $lAttr, 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
+                        $item['logi_attrs'][] = ['attr_name' => $this->const_attr[$lAttr][$item['lang']], 'attr_value' => $item[$lAttr], 'attr_key' => $lAttr, 'flag' => 'Y'];
                     }
 
                     //固定申报要素属性
                     $hsAttr = ['name_customs', 'hs_code', 'tx_unit', 'tax_rebates_pct', 'regulatory_conds', 'commodity_ori_place'];
                     $hs_attrs = [];
                     foreach ($hsAttr as $hAttr) {
-                        $hs_attrs[] = ['attr_name' => $hAttr, 'attr_value' => $item[$hAttr], 'attr_key' => $hAttr, 'flag' => 'Y'];
+                        $hs_attrs[] = ['attr_name' => $this->const_attr[$hAttr][$item['lang']], 'attr_value' => $item[$hAttr], 'attr_key' => $hAttr, 'flag' => 'Y'];
                     }
                     //扩展申报要素属性
-                    if(isset($ex_attrs[$item['lang']]['ex_hs_attrs']) && !empty($ex_attrs[$item['lang']]['ex_hs_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['ex_hs_attrs'] as $ex_key =>$ex_value){
-                            $hs_attrs[] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    if (isset($ex_attrs[$item['lang']]['ex_hs_attrs']) && !empty($ex_attrs[$item['lang']]['ex_hs_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['ex_hs_attrs'] as $ex_key => $ex_value) {
+                            $hs_attrs[] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
                     $item['hs_attrs'] = $hs_attrs;
 
                     //规格属性（即前台展示的扩展属性，用作页面显示， 上面的商品扩展与申报要素扩展不做展示用）
-                    $item['spec_attrs'] =[];
-                    if(isset($ex_attrs[$item['lang']]['spec_attrs']) && !empty($ex_attrs[$item['lang']]['spec_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['spec_attrs'] as $ex_key =>$ex_value){
-                            $item['spec_attrs'][] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    $item['spec_attrs'] = [];
+                    if (isset($ex_attrs[$item['lang']]['spec_attrs']) && !empty($ex_attrs[$item['lang']]['spec_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['spec_attrs'] as $ex_key => $ex_value) {
+                            $item['spec_attrs'][] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
                     //其他属性
-                    $item['other_attrs'] =[];
-                    if(isset($ex_attrs[$item['lang']]['other_attrs']) && !empty($ex_attrs[$item['lang']]['other_attrs'])) {
-                        foreach($ex_attrs[$item['lang']]['other_attrs'] as $ex_key =>$ex_value){
-                            $item['other_attrs'][] = ['attr_name' => $ex_key,'attr_value' =>$ex_value,'attr_key'=>'','flag'=>'N'];
+                    $item['other_attrs'] = [];
+                    if (isset($ex_attrs[$item['lang']]['other_attrs']) && !empty($ex_attrs[$item['lang']]['other_attrs'])) {
+                        foreach ($ex_attrs[$item['lang']]['other_attrs'] as $ex_key => $ex_value) {
+                            $item['other_attrs'][] = ['attr_name' => $ex_key, 'attr_value' => $ex_value, 'attr_key' => '', 'flag' => 'N'];
                         }
                     }
-
+                    $item['remark'] = '';
+                    $remark_checked = $checklogModel->getSkuRecord(['sku' => $item['sku'], 'lang' => $item['lang']]);
+                    if ($remark_checked) {
+                        $item['remark'] = $remark_checked['remarks'];
+                    }
                     //按语言分组
                     $kData[$item['lang']] = $item;
                 }
-                $data = array_merge($kData, $pData);    
-                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
+                $data = array_merge($kData, $pData);
+//                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
+        }
+    }
+
+    /**
+     * 用户IDS获取names
+     * @author klp
+     * @return names
+     */
+    private function _getUserName(&$result, $fileds) {
+        if ($result) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($result as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($result as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed . '_name'] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed . '_name'] = '';
+                    }
+                }
+                $result[$key] = $val;
+            }
         }
     }
 
@@ -424,44 +537,68 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        $sku = !empty($input['sku']) ? trim($input['sku']) : $this->setupSku();
+        if (!isset($input['sku']) || empty($input['sku'])) {
+            $sku = $this->setRealSku($input);
+        } else {
+            $sku = trim($input['sku']);
+        }
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
+
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
+
+
+                    if (empty($value['name'])) {
+                        $spuModel = new ProductModel();
+                        $spuName = $spuModel->field('name')->where(['spu' => $value['spu'], 'lang' => $key,
+                                    'deleted_flag' => 'N'])->find();
+
+
+                        $value['name'] = $spuName['name'];
+                    }
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
-
+                    if (empty($value['show_name'])) {
+                        $value['show_name'] = $value['name'];
+                    }
+//                    if (empty($input[$key]['name']) && empty($input[$key]['model']) && empty($input[$key]['attrs']['spec_attrs'])) {
+//                        jsonReturn('', ErrorMsg::EXIST, '名称、型号、扩展属性不能同时为空!');
+//                    }
                     //字段校验
-                    $checkout = $this->checkParam($value, $this->field);
+                    $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
 
+                    //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
+                    $status = $this->checkSkuStatus($input['status']);
+                    $input['status'] = $status;
+
+                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    $input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT','TEST','CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
-                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no是否存在
+                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
                             'lang' => $key,
+                            'spu' => $checkout['spu'],
                             'name' => $value['name'],
-                            'status' => array('neq','DRAFT')
+                            'model' => $checkout['model'],
+                            'deleted_flag' => 'N',
+                            'status' => array('neq', 'DRAFT')
                         );
                         if (!empty($input['sku'])) {
                             $exist_condition['sku'] = array('neq', $input['sku']);
                         }
-                        $exist = $this->where($exist_condition)->find();
-                        if ($exist) {
-                            jsonReturn('', ErrorMsg::EXIST);
-                        }
+                        $this->_checkExit($exist_condition, $attr);
                     }
 
-                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
                     $data = [
                         'lang' => $key,
                         'spu' => $checkout['spu'],
                         'name' => $checkout['name'],
-                        'show_name' => $checkout['show_name'],
+                        'show_name' => isset($checkout['show_name']) ? $checkout['show_name'] : '',
                         'model' => !empty($checkout['model']) ? $checkout['model'] : '',
                         'description' => !empty($checkout['description']) ? $checkout['description'] : '',
                         'source' => !empty($checkout['source']) ? $checkout['source'] : '',
@@ -495,7 +632,7 @@ class GoodsModel extends PublicModel {
                     ];
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
-                    if (!empty($input['sku'])) {             //------编辑
+                    if (isset($input['sku']) && !empty($input['sku'])) {             //------编辑
                         $where = [
                             'lang' => $key,
                             'sku' => trim($input['sku'])
@@ -504,21 +641,26 @@ class GoodsModel extends PublicModel {
                          * 修改时根据sku语言查询下，不存在则添加。
                          */
                         $exist = $this->field('id')->where($where)->find();
-                        if($exist) {
+                        if ($exist) {
                             $data['updated_by'] = $userInfo['id'];
                             $data['updated_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
                             $res = $this->where($where)->save($data);
-                        }else{
+                        } else {
                             $data['sku'] = trim($input['sku']);
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                            if ($key == 'zh') {
+                                $data['show_name_loc'] = $input['en']['name'];
+                            } else {
+                                $data['show_name_loc'] = $input['zh']['name'];
+                            }
                             $res = $this->add($data);
-                            if($res) {
+                            if ($res) {
                                 $pModel = new ProductModel();                                 //sku_count加一
                                 $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
-                                    ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                                        ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
                                 if (!$presult) {
                                     $this->rollback();
                                     return false;
@@ -527,25 +669,30 @@ class GoodsModel extends PublicModel {
                         }
                         if (!$res) {
                             $this->rollback();
-                            echo __LINE__, PHP_EOL;
                             return false;
                         }
                     } else {             //------新增
                         $data['sku'] = $sku;
-                        //                    $data['qrcode'] = setupQrcode();                  //二维码字段
+                        //               $data['qrcode'] = setupQrcode();                  //二维码字段
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
+                        if ($key == 'zh') {
+                            $data['show_name_loc'] = $input['en']['name'];
+                        } else {
+                            $data['show_name_loc'] = $input['zh']['name'];
+                        }
                         $res = $this->add($data);
                         if (!$res) {
                             $this->rollback();
-                            echo __LINE__, PHP_EOL;
+
                             return false;
                         }
                         $pModel = new ProductModel();                                 //sku_count加一
                         $presult = $pModel->where(['spu' => $checkout['spu'], 'lang' => $key])
                                 ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
-                        if (!$presult) {
+                        if ($presult === false) {
+
                             $this->rollback();
                             return false;
                         }
@@ -558,30 +705,30 @@ class GoodsModel extends PublicModel {
                     $attr_obj = array(
                         'lang' => $key,
                         'spu' => isset($checkout['spu']) ? $checkout['spu'] : null,
-                        'spec_attrs' => !empty($attr['spec_attrs']) ? json_encode($attr['spec_attrs']) : null,
-                        'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs']) : null,
-                        'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs']) : null,
-                        'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs']) : null,
+                        'spec_attrs' => !empty($attr['spec_attrs']) ? json_encode($attr['spec_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs'], JSON_UNESCAPED_UNICODE) : null,
                         'status' => $gattr::STATUS_VALID
                     );
-                    if(!empty($input['sku'])){
+                    if (isset($input['sku']) && !empty($input['sku'])) {
                         $attr_obj['sku'] = trim($input['sku']);
                         $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                    }else{
+                    } else {
                         $attr_obj['sku'] = $sku;
                         $attr_obj['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     }
                     $resAttr = $gattr->editAttr($attr_obj);        //属性新增
-                    if (!$resAttr || $resAttr===false) {
+                    if (!$resAttr || $resAttr === false) {
                         $this->rollback();
                         return false;
                     }
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gattach = new GoodsAttachModel();
-                        $resAttach = $gattach->editSkuAttach($value,$input['sku'],$input['user_id']);  //附件新增
+                        $resAttach = $gattach->editSkuAttach($value, $input['sku'], $input['user_id']);  //附件新增
                         if (!$resAttach || $resAttach['code'] != 1) {
                             $this->rollback();
                             return false;
@@ -589,16 +736,16 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'supplier_cost') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = !empty($input['sku']) ? $input['sku'] : $sku;
+                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
-                        $resCost = $gcostprice->editCostprice($value,$input['sku'],$input['user_id']);  //供应商/价格策略
+                        $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
                         if (!$resCost || $resCost['code'] != 1) {
                             $this->rollback();
                             return false;
                         }
                     }
-                }else{
+                } else {
                     continue;
                 }
             }
@@ -608,6 +755,76 @@ class GoodsModel extends PublicModel {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
             $this->rollback();
             return false;
+        }
+    }
+
+    /**
+     * sku-status状态校验
+     * @author klp
+     */
+    private function checkSkuStatus($status) {
+        if (empty($status)) {
+            return self::STATUS_DRAFT;
+        }
+        switch ($status) {
+            case '通过':
+                $statusOut = self::STATUS_VALID;
+                break;
+            case '待审核':
+                $statusOut = self::STATUS_CHECKING;
+                break;
+        }
+        if ($statusOut) {
+            return $statusOut;
+        } else {
+            return $statusOut = (isset($status) && in_array(strtoupper($status), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($status) : self::STATUS_DRAFT;
+        }
+    }
+
+    /**
+     * 校验sku名称,model,属性
+     * @author klp
+     * @return
+     */
+    private function _checkExit(&$condition,&$attr,$boolen=false){
+
+        $exist = $this->where($condition)->find();
+        if ($exist) {
+            $where = array(
+                'lang' => $condition['lang'],
+                'spu' => $condition['spu'],
+                'deleted_flag' => 'N'
+            );
+            if (!empty($condition['sku'])) {
+                $where['sku'] = $condition['sku'];
+            }
+            $attr_model = new GoodsAttrModel();
+            $other_attr = $attr_model->where($where)->select();
+
+            if(empty($attr['spec_attrs']) && !$other_attr['spec_attrs']){
+                if($boolen){
+                    return false;
+                }else{
+                    jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在');
+                }
+            } else {
+                foreach ($other_attr as $key => $item) {
+                    $other = json_decode($item['spec_attrs'], true);
+                    $otherAttr = $other ? $other : [];
+                    $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
+                    $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
+
+                    if(empty($result1) && empty($result2)){
+                        if($boolen){
+                            return false;
+                        }else {
+                            jsonReturn( '' , ErrorMsg::EXIST , '名称：' . $condition[ 'name' ] . '型号：' . $condition[ 'model' ] . '已存在' . '; 扩展属性重复!' );
+                        }
+                    } else {
+                        continue;
+                    }
+                }
+            }
         }
     }
 
@@ -636,41 +853,30 @@ class GoodsModel extends PublicModel {
         unset($input['status_type']);
         $this->startTrans();
         try {
-            $res = $this->modifySku($input['sku'],$lang,$status,$remark);               //sku状态
+            $res = $this->modifySku($input['sku'], $lang, $status, $remark);               //sku状态
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;
             }
-
-             $gattr = new GoodsAttrModel();
-             $resAttr = $gattr->modifyAttr($input['skus'], $status);        //属性状态
-             if (!$resAttr || $resAttr['code'] != 1) {
-                 $this->rollback();
-                 return false;
-             }
 
             $gattach = new GoodsAttachModel();
             $resAttach = $gattach->modifyAttach($input['sku'], $status);  //附件状态
 
             if (!$resAttach || $resAttach['code'] != 1) {
                 $this->rollback();
+
                 return false;
             }
-            if ('CHECKING' != $status) {
-                $checkLogModel = new ProductCheckLogModel();          //审核记录
-                $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
-                if (!$resLogs || $resLogs['code'] != 1) {
-                    $this->rollback();
-                    return false;
-                }
-            }
-//            if ($sku) {
-//                $langs = ['en', 'zh', 'es', 'ru'];
-//                foreach ($langs as $lang) {
-//                    $es_goods_model = new EsGoodsModel();
-//                    $es_goods_model->create_data($sku, $lang);
-//                }
-//            }
+            /*  if ('CHECKING' != $status) {
+              $checkLogModel = new ProductCheckLogModel();          //审核记录
+              $resLogs = $checkLogModel->takeRecord($input['sku'], $status);
+              if (!$resLogs || $resLogs['code'] != 1) {
+              $this->rollback();
+
+              return false;
+              }
+              } */
+
 
             $this->commit();
             return true;
@@ -685,15 +891,13 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return bool
      */
-    public function modifySku($skuObj,$lang='', $status,$remark='') {
+    public function modifySku($skuObj, $lang = '', $status, $remark = '') {
         if (empty($skuObj) || empty($status)) {
             return false;
         }
         $results = array();
         //获取当前用户信息
         $userInfo = getLoinInfo();
-        $es_goods_model = new EsGoodsModel();
-        $es_product_model = new EsProductModel();
         if ($skuObj && is_array($skuObj)) {
             try {
                 $skuary = [];
@@ -705,7 +909,8 @@ class GoodsModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $result = $this->where($where)->save(['status' => $status]);
+                        $result = $this->where($where)
+                                ->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
                         if (!$result) {
                             return false;
                         }
@@ -727,28 +932,37 @@ class GoodsModel extends PublicModel {
                             if ('VALID' == $status) {
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
-                                $spuWhere = array(
-                                    'spu'=>$spuCode['spu'],
-                                );
-                                if(!empty($lang)) {
-                                    $spuCode['lang'] = $lang;
-                                }
-                                if($spuCode){
-                                    $result_spu = $pModel->where($spuWhere)->save(array('status'=>$pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s',time())));
-                                    if($result_spu) {
+                                if ($spuCode) {
+                                    $spuWhere = array(
+                                        'spu' => $spuCode['spu'],
+                                    );
+                                    if (!empty($lang)) {
+                                        $spuCode['lang'] = $lang;
+                                    }
+                                    $result_spu = $pModel->where($spuWhere)->save(array('status' => $pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s', time())));
+                                    if ($result_spu) {
                                         $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
-                                        $es_product_model->create_data($spuCode['spu'], $lang);
+
+                                        //同步product es
+                                        $es_product_model = new EsProductModel();
+                                        $langs = ['en', 'zh', 'es', 'ru'];
+                                        if (empty($lang)) {
+                                            foreach ($langs as $l) {
+                                                $es_product_model->create_data($spuCode['spu'], $l);
+                                            }
+                                        } else {
+                                            $es_product_model->create_data($spuCode['spu'], $lang);
+                                        }
                                     }
                                 }
                             }
-                            $es_goods_model->create_data($sku, $lang);
                         } else {
                             return false;
                         }
                     }
                 }
                 if ($result) {
-                    if(!empty($skuary)) {
+                    if (!empty($skuary)) {
                         $checkLogModel = new ProductCheckLogModel();          //审核记录
                         $resLogs = $checkLogModel->takeRecord($skuary, $status);
                         if (!$resLogs || $resLogs['code'] != 1) {
@@ -772,7 +986,6 @@ class GoodsModel extends PublicModel {
         return false;
     }
 
-
     /**
      * sku真实删除-（BOSS后台）
      * @author klp
@@ -781,7 +994,7 @@ class GoodsModel extends PublicModel {
         if (empty($input)) {
             return false;
         }
-        if (!isset($input['sku'])) {
+        if (!(isset($input['sku']))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
         $lang = '';
@@ -851,10 +1064,7 @@ class GoodsModel extends PublicModel {
               return false;
               } */
             $this->commit();
-//            if ($input['sku']) {
-//                $es_goods_model = new EsGoodsModel();
-//                $es_goods_model->delete_data($input['sku'], $lang);
-//            }
+
 
             return true;
         } catch (Exception $e) {
@@ -884,7 +1094,7 @@ class GoodsModel extends PublicModel {
                     }
                     $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
                     if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
-                        $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                        $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if ($res) {
                             $pModel = new ProductModel();                               //sku_count减一
                             $where_spu = array(
@@ -895,9 +1105,10 @@ class GoodsModel extends PublicModel {
                             }
                             $presult = $pModel->where($where_spu)
                                     ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
-                            if (!$presult) {
-                                return false;
-                            }
+
+                            /* if (!$presult) {
+                              return false;
+                              } */
                         } else {
                             return false;
                         }
@@ -912,7 +1123,7 @@ class GoodsModel extends PublicModel {
                 }
                 $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
                 if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
-                    $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                    $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                     if ($res) {
                         $pModel = new ProductModel();                               //sku_count减一
                         $where_spu = array(
@@ -938,10 +1149,7 @@ class GoodsModel extends PublicModel {
                 $results['code'] = '-101';
                 $results['message'] = '失败!';
             }
-//            if ($skus) {
-//                $es_goods_model = new EsGoodsModel();
-//                $es_goods_model->batchdelete($skus, $lang);
-//            }
+
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
@@ -973,7 +1181,6 @@ class GoodsModel extends PublicModel {
         }
     }
 
-
     /**
      * 属性输入格式化
      * 属性包括商品固定属性 物流固定属性 申报要素固定属性 ，都在 goods 表的字段中，不能新增或减少
@@ -983,31 +1190,34 @@ class GoodsModel extends PublicModel {
      * @param array $attrs
      * @return array
      */
-    function attrGetInit($attrs=[]) {
+    function attrGetInit($attrs = []) {
         $data = array(
-            'const_attr'=>array(),
-            'ex_goods_attrs'=>array(),
-            'ex_hs_attrs'=>array(),
-            'spec_attrs'=>array(),
-            'other_attrs'=>array()
+            'const_attr' => array(),
+            'ex_goods_attrs' => array(),
+            'ex_hs_attrs' => array(),
+            'spec_attrs' => array(),
+            'other_attrs' => array()
         );
-        if(empty($attrs)) {
+        if (empty($attrs)) {
             return $data;
         }
 
-        foreach($attrs as $key => $value) {
-            if(!in_array($key,array('goods_attrs','hs_attrs','logi_attrs','spec_attrs','other_attrs'))) {
+        foreach ($attrs as $key => $value) {
+            if (!in_array($key, array('goods_attrs', 'hs_attrs', 'logi_attrs', 'spec_attrs', 'other_attrs'))) {
                 continue;
             }
-            if(!empty($value))  {
-                foreach($value as $attr){
-                    if(isset($attr['flag']) && $attr['flag']=='Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
-                        $data['const_attr'][$attr['attr_key']] = $attr['attr_value'];
-                    }else{
-                        if(in_array($key,array('goods_attrs','hs_attrs'))) {
-                            $data['ex_'.$key][$attr['attr_name']] = $attr['attr_value'];
-                        }else{
-                            $data[$key][$attr['attr_name']] = $attr['attr_value'];
+            if (!empty($value)) {
+                foreach ($value as $attr) {
+                    if (empty(trim($attr['attr_name']))) {
+                        continue;
+                    }
+                    if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
+                        $data['const_attr'][$attr['attr_key']] = trim($attr['attr_value']);
+                    } else {
+                        if (in_array($key, array('goods_attrs', 'hs_attrs'))) {
+                            $data['ex_' . $key][$attr['attr_name']] = trim($attr['attr_value']);
+                        } else {
+                            $data[$key][$attr['attr_name']] = trim($attr['attr_value']);
                         }
                     }
                 }
@@ -1016,6 +1226,903 @@ class GoodsModel extends PublicModel {
             }
         }
         return $data;
+    }
+
+    /*
+     * 根据skus 获取SKU名称
+     */
+
+    public function getNamesBySkus($skus, $lang = 'zh') {
+        $where = [];
+        if (is_array($skus) && $skus) {
+            $where['sku'] = ['in', $skus];
+        } else {
+            return [];
+        }
+        if (empty($lang)) {
+            $where['lang'] = 'zh';
+        } else {
+            $where['lang'] = $lang;
+        }
+        $result = $this->where($where)->field('name,sku')->select();
+        if ($result) {
+            $data = [];
+            foreach ($result as $item) {
+                $data[$item['sku']] = $item['name'];
+            }
+            return $data;
+        } else {
+            return [];
+        }
+    }
+
+    /**
+     * 导出模板
+     * @return string
+     */
+    public function exportTemp() {
+        if(redisHashExist('sku','skutemplate')){
+            return json_decode(redisHashGet('sku','skutemplate'),true);
+        }else{
+            $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/skuTemplate.xls";
+            if(file_exists($localDir)){
+                //把导出的文件上传到文件服务器上
+                $server = Yaf_Application::app()->getConfig()->myhost;
+                $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+                $url = $server. '/V2/Uploadfile/upload';
+                $data['tmp_name'] = $localDir;
+                $data['type'] = 'application/excel';
+                $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
+                $fileId = postfile($data,$url);
+                if($fileId){
+                    //unlink($localDir);    //清理本地空间
+                    $data = array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
+                    redisHashSet('sku','skutemplate',json_encode($data));
+                    return $data;
+                }
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localDir.' 上传到FastDFS失败', Log::INFO);
+                return false;
+            }
+        }
+    }
+
+    /**
+     * sku导出
+     */
+    public function export($input = []) {
+        //$input['spu'] = '1303040000100000';
+        ini_set("memory_limit", "1024M"); // 设置php可使用内存
+        set_time_limit(0);  # 设置执行时间最大值
+
+        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? array($input['lang']) : array('zh', 'en', 'es', 'ru');
+        $userInfo = getLoinInfo();
+        $userModel = new UserModel();
+
+        //目录
+        $tmpDir = MYPATH . '/public/tmp/';
+        $dirName = $tmpDir . time();
+        if (!is_dir($dirName)) {
+            if (!mkdir($dirName, 0777, true)) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+            }
+        }
+
+        foreach ($lang_ary as $key => $lang) {
+            $num = 1;    //控制文件名
+            $i = 0;    //用来控制分页查询
+            $j = 3;    //excel控制输出
+            $l = 0;    //控制结束
+            $length = 100;    //分页取
+
+            $condition = array('lang' => $lang);
+            if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
+                $condition['spu'] = $input['spu'];
+            }
+
+            if (isset($input['sku']) && !empty($input['sku'])) {    //spu编码
+                $condition['sku'] = $input['sku'];
+            }
+
+            if (isset($input['name']) && !empty($input['name'])) {    //名称
+                $condition['name'] = array('like', '%' . $input['name'] . '%');
+            }
+
+            if (isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核不取草稿状态。
+                $condition['status'] = array('neq', 'DRAFT');
+            }
+
+            if (isset($input['status']) && !empty($input['status'])) {    //上架状态
+                $condition['status'] = $input['status'];
+            }
+            if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
+                $condition['created_by'] = $input['created_by'];
+            }
+            if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                $time_ary = explode(' - ', $input['created_at']);
+                $condition['created_at'] = array('between', $time_ary);
+                unset($time_ary);
+            }
+            do {
+                $field = 'spu,sku,name,model,show_name,description,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail,status,created_by,created_at';
+                $result = $this->field($field)->where($condition)->limit($i * $length, $length)->select();
+                $count = count($result);
+                if ($result) {
+                    foreach ($result as $r) {
+                        if (!isset($objPHPExcel) || !$objPHPExcel) {
+                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+                            $objPHPExcel = new PHPExcel();
+                            $objPHPExcel->getProperties()->setCreator($userInfo['name']);
+                            $objPHPExcel->getProperties()->setTitle("Product List");
+                            $objPHPExcel->getProperties()->setLastModifiedBy($userInfo['name']);
+
+                            //$objPHPExcel->createSheet();    //创建工作表
+                            //$objPHPExcel->setActiveSheetIndex($key);    //设置工作表
+                            //$objSheet = $objPHPExcel->getActiveSheet(0);    //当前sheet
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("A1", '商品信息')->mergeCells("A1:N1");
+                            $objPHPExcel->getActiveSheet(0)->getStyle('A1:N1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("O1", '物流信息')->mergeCells("O1:X1");
+                            $objPHPExcel->getActiveSheet(0)->getStyle('O1:X1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('00C957');
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("Y1", '申报要素')->mergeCells("Y1:AD1");
+                            $objPHPExcel->getActiveSheet(0)->getStyle('Y1:AD1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('00FF00');
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AE1", '其他信息')->mergeCells("AE1:AI1");
+                            $objPHPExcel->getActiveSheet(0)->getStyle('AE1:AI1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
+                            $objPHPExcel->getActiveSheet(0)->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+                            $objPHPExcel->getActiveSheet(0)->getStyle("A1:AI2")
+                                    ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                            $objPHPExcel->getActiveSheet(0)->getStyle("A1:AI2")->getFont()->setSize(11)->setBold(true);    //粗体
+                            $objPHPExcel->getActiveSheet(0)->getStyle('A2:AI2')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('4F94CD');
+                            $objPHPExcel->getActiveSheet(0)->getRowDimension(1)->setRowHeight(20);
+                            $objPHPExcel->getActiveSheet(0)->getRowDimension(2)->setRowHeight(20);
+                            $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+                            foreach ($column_width_25 as $column) {
+                                $objPHPExcel->getActiveSheet(0)->getColumnDimension($column)->setWidth(25);
+                            }
+
+                            $objPHPExcel->getActiveSheet(0)->setTitle($lang);
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("A2", "序号");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("B2", "SPU");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("C2", "SKU");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("D2", "商品名称");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("E2", "展示名称");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("F2", "型号");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("G2", "描述");    //对应产品优势（李志确认）
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("H2", "出货周期（天）");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("I2", "最小包装内裸货商品数量");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("J2", "商品裸货单位");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("K2", "最小包装单位");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("L2", "最小订货数量");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("M2", "进货价格");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("N2", "进货价格币种");
+
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("O2", "裸货尺寸长(mm)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("P2", "裸货尺寸宽(mm)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("Q2", "裸货尺寸高(mm)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("R2", "最小包装后尺寸长(mm)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("S2", "最小包装后尺寸宽(mm)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("T2", "最小包装后尺寸高(mm)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("U2", "净重(kg)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("V2", "毛重(kg)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("W2", "仓储运输包装及其他要求");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("X2", "包装类型");
+
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("Y2", "报关名称");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("Z2", "海关编码");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AA2", "成交单位");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AB2", "退税率(%)");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AC2", "监管条件");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AD2", "境内货源地");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AE2", "数据来源");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AF2", "数据来源详情");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AG2", "状态");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AH2", "创建人");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("AI2", "创建时间");
+                        }
+
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("A" . $j, $j - 2);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("B" . $j, ' ' . $r['spu']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("C" . $j, ' ' . $r['sku']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("D" . $j, $r['name']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("E" . $j, $r['show_name']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("F" . $j, $r['model']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("G" . $j, $r['description']);    //对应产品优势（李志确认）
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("H" . $j, $r['exw_days']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("I" . $j, $r['min_pack_naked_qty']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("J" . $j, $r['nude_cargo_unit']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("K" . $j, $r['min_pack_unit']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("L" . $j, $r['min_order_qty']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("M" . $j, $r['purchase_price']);
+
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("N" . $j, $r['purchase_price_cur_bn']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("O" . $j, $r['nude_cargo_l_mm']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("P" . $j, $r['nude_cargo_w_mm']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("Q" . $j, $r['nude_cargo_h_mm']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("R" . $j, $r['min_pack_l_mm']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("S" . $j, $r['min_pack_w_mm']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("T" . $j, $r['min_pack_h_mm']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("U" . $j, $r['net_weight_kg']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("V" . $j, $r['gross_weight_kg']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("W" . $j, $r['compose_require_pack']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("X" . $j, $r['pack_type']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("Y" . $j, $r['name_customs']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("Z" . $j, $r['hs_code']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AA" . $j, $r['tx_unit']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AB" . $j, $r['tax_rebates_pct']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AC" . $j, $r['regulatory_conds']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AD" . $j, $r['commodity_ori_place']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AE" . $j, $r['source']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AF" . $j, $r['source_detail']);
+                        $status = '';
+                        switch ($r['status']) {
+                            case 'VALID':
+                                $status = '通过';
+                                break;
+                            case 'INVALID':
+                                $status = '驳回';
+                                break;
+                            case 'CHECKING':
+                                $status = '待审核';
+                                break;
+                            case 'DRAFT':
+                                $status = '草稿';
+                                break;
+                            default:
+                                $status = $r['status'];
+                                break;
+                        }
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AG" . $j, $status);
+                        unset($status);
+                        $createbyInfo = $userModel->info($r['created_by']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AH" . $j, $createbyInfo ? $createbyInfo['name'] : $r['created_by']);
+                        unset($createbyInfo);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("AI" . $j, $r['created_at']);
+                        $j++;
+                        if ($j > 2002) {    //2000条
+                            //保存文件
+                            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+                            $objWriter->save($dirName . '/' . $lang . '_' . $num . '.xls');
+                            unset($objWriter);
+                            unset($objPHPExcel);
+                            $j = 3;
+                            $num ++;
+                        } else {
+                            if ($count < $length) {
+                                $l++;
+                            }
+                            if ($l == $count) {
+                                $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+                                $objWriter->save($dirName . '/' . $lang . '_' . $num . '.xls');
+                                unset($objWriter);
+                                unset($objPHPExcel);
+                            }
+                        }
+                        array_shift($result);
+                    }
+                }
+                $i++;
+                unset($result);
+            } while ($count >= $length);
+        }
+
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
+        ZipHelper::removeDir($dirName);    //清除目录
+        if (file_exists($dirName . '.zip')) {
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server . '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $dirName . '.zip';
+            $data['type'] = 'application/excel';
+            $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
+            $fileId = postfile($data, $url);
+            if ($fileId) {
+                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
+            return false;
+        } else {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:' . $dirName . '.zip 打包失败', Log::INFO);
+            return false;
+        }
+    }
+
+    /**
+     * sku导出csv
+     * @param array $input
+     * @return bool|string
+     */
+    public function exportCsv($input = []) {
+        set_time_limit(0);  # 设置执行时间最大值
+        //目录
+        $tmpDir = MYPATH . '/public/tmp/';
+        $dirName = $tmpDir . time();
+        if (!is_dir($dirName)) {
+            if (!mkdir($dirName, 0777, true)) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+            }
+        }
+
+        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? array($input['lang']) : array('en', 'es', 'ru');
+        $titles = array(//定义标题
+            'zh' => array(
+                'num' => '序号',
+                'spu' => 'SPU',
+                'sku' => 'SKU',
+                'name' => '商品名称',
+                'show_name' => '展示名称',
+                'model' => '型号',
+                'description' => '描述',
+                'exw_days' => '出货周期（天）',
+                'min_pack_naked_qty' => '最小包装内裸货商品数量',
+                'nude_cargo_unit' => '商品裸货单位',
+                'min_pack_unit' => '最小包装单位',
+                'min_order_qty' => '最小订货数量',
+                'purchase_price' => '进货价格',
+                'purchase_price_cur_bn' => '进货价格币种',
+                'nude_cargo_l_mm' => '裸货尺寸长(mm)',
+                'nude_cargo_w_mm' => '裸货尺寸宽(mm)',
+                'nude_cargo_h_mm' => '裸货尺寸高(mm)',
+                'min_pack_l_mm' => '最小包装后尺寸长(mm)',
+                'min_pack_w_mm' => '最小包装后尺寸宽(mm)',
+                'min_pack_h_mm' => '最小包装后尺寸高(mm)',
+                'net_weight_kg' => '净重(kg)',
+                'gross_weight_kg' => '毛重(kg)',
+                'compose_require_pack' => '仓储运输包装及其他要求',
+                'pack_type' => '包装类型',
+                'name_customs' => '报关名称',
+                'hs_code' => '海关编码',
+                'tx_unit' => '成交单位',
+                'tax_rebates_pct' => '退税率(%)',
+                'regulatory_conds' => '监管条件',
+                'commodity_ori_place' => '境内货源地',
+                'source' => '数据来源',
+                'source_detail' => '数据来源详情',
+                'status' => '状态',
+                'created_by' => '创建人',
+                'created_at' => '创建时间'
+            ),
+            'en' => array(),
+            'ru' => array(),
+            'es' => array()
+        );
+        $userModel = new UserModel();
+        foreach ($lang_ary as $key => $lang) {
+            $num = 1;    //控制文件名
+            $i = 0;    //用来控制分页查询
+            $j = 1;    //excel控制输出
+            $l = 0;    //控制结束
+            $length = 100;    //分页取
+
+            $condition = array('lang' => $lang);
+            if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
+                $condition['spu'] = $input['spu'];
+            }
+
+            if (isset($input['sku']) && !empty($input['sku'])) {    //spu编码
+                $condition['sku'] = $input['sku'];
+            }
+
+            if (isset($input['name']) && !empty($input['name'])) {    //名称
+                $condition['name'] = array('like', '%' . $input['name'] . '%');
+            }
+
+            if (isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核不取草稿状态。
+                $condition['status'] = array('neq', 'DRAFT');
+            }
+
+            if (isset($input['status']) && !empty($input['status'])) {    //上架状态
+                $condition['status'] = $input['status'];
+            }
+            if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
+                $condition['created_by'] = $input['created_by'];
+            }
+            if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                $time_ary = explode(' - ', $input['created_at']);
+                $condition['created_at'] = array('between', $time_ary);
+                unset($time_ary);
+            }
+            do {
+                $field = 'spu,sku,name,model,show_name,description,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail,status,created_by,created_at';
+                $result = $this->field($field)->where($condition)->limit($i * $length, $length)->select();
+                $count = count($result);
+                if ($result) {
+                    foreach ($result as $r) {
+                        if (!isset($fhandle) || !$fhandle) {
+                            $fhandle = fopen($dirName . '/' . $lang . '_' . $num . '.csv', 'w');
+                            $titles[$lang] = toGbk(empty($titles[$lang]) ? $titles['zh'] : $titles[$lang]);
+                            fputcsv($fhandle, $titles[$lang]);
+                            unset($title);
+                        }
+
+                        $content = [];
+                        foreach ($titles[$lang] as $k => $value) {
+                            if ($k == 'num') {
+                                $r['num'] = $j;
+                            }
+                            if ($k == 'status') {
+                                switch ($r['status']) {
+                                    case 'VALID':
+                                        $r[$k] = '通过';
+                                        break;
+                                    case 'INVALID':
+                                        $r[$k] = '驳回';
+                                        break;
+                                    case 'CHECKING':
+                                        $r[$k] = '待审核';
+                                        break;
+                                    case 'DRAFT':
+                                        $r[$k] = '草稿';
+                                        break;
+                                    default:
+                                        $r[$k] = $r['status'];
+                                        break;
+                                }
+                            }
+                            if ($k == 'created_by') {
+                                $createbyInfo = $userModel->info($r['created_by']);
+                                $r[$k] = $createbyInfo ? $createbyInfo['name'] : $r['created_by'];
+                            }
+                            $content[$k] = iconv('UTF-8', 'GBK', "\t" . $r[$k]);
+                        }
+                        fputcsv($fhandle, $content);
+                        unset($r);
+                        unset($content);
+                        if ($j > 2000) {    //2000条
+                            fclose($fhandle);
+                            unset($fhandle);
+                            $j = 1;
+                            $num ++;
+                        } else {
+                            if ($count < $length) {
+                                $l++;
+                            }
+                            if ($l == $count) {
+                                fclose($fhandle);
+                                unset($fhandle);
+                            }
+                        }
+                        $j++;
+                    }
+                    unset($result);
+                }
+                $i++;
+            } while ($count >= $length);
+        }
+
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
+        ZipHelper::removeDir($dirName);    //清除目录
+        if (file_exists($dirName . '.zip')) {
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server . '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $dirName . '.zip';
+            $data['type'] = 'application/excel';
+            $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
+            $fileId = postfile($data, $url);
+            if ($fileId) {
+                unlink($dirName . '.zip');
+                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
+            return false;
+        } else {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:' . $dirName . '.zip 打包失败', Log::INFO);
+            return false;
+        }
+    }
+
+    /**
+     * 获取用户创建的第一个sku信息
+     * @author klp
+     */
+    public function getSku($userInfo, $spu, $order = 'id asc') {
+        if (empty($spu['spu'])) {
+            return false;
+        }
+        $where['spu'] = $spu['spu'];
+//        $where['status'] = array('neq', self::STATUS_DELETED);
+        $where['status'] = self::STATUS_VALID;
+        $where['deleted_flag'] = self::DELETE_N;
+        $where['created_by'] = $userInfo['id'];
+        return $this->where($where)->order($order)->select();
+    }
+
+
+    public function import($spu='',$url='',$lang='',$process=''){
+        if (empty($spu) || empty($url) || empty($lang)) {
+            return false;
+        }
+
+        /** 返回导入进度start */
+        $progress_key = md5(json_encode(array($spu,$url,$lang)));
+        if(!empty($process)){
+            if(redisExist($progress_key)){
+                $progress_redis = json_decode(redisGet($progress_key),true);
+                return $progress_redis['processed'] < $progress_redis['total'] ? ceil($progress_redis['processed']/$progress_redis['total']*100) : 100;
+            }else{
+                return 100;
+            }
+        }
+        /** 导入进度end */
+
+        $progress_redis = array('start_time'=>time());    //用来记录导入进度信息
+        //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/skuTemplate1.xls";
+        $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
+        if(!file_exists($localFile)){
+            return false;
+        }
+        $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
+        $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
+        $objPHPExcel = $objReader->load($localFile);    //加载文件
+        //$data = $objPHPExcel->getSheet(0)->toArray();
+        $columns = $objPHPExcel->getSheet(0)->getHighestColumn();    //获取总列
+        $rows = $objPHPExcel->getSheet(0)->getHighestRow();    //获取总行
+        $columnsIndex = PHPExcel_Cell::columnIndexFromString($columns);
+        if($rows<=4){
+            return false;
+        }
+        $progress_redis['total'] = $rows;
+        $userInfo = getLoinInfo();
+        $productModel = new ProductModel();
+        $es_goods_model = new EsGoodsModel();
+        $supplierModel =  new SupplierModel();
+        $goodsSupplierModel = new GoodsSupplierModel();
+        $goodsCostPriceModel = new GoodsCostPriceModel();
+        $goodsAttrModel = new GoodsAttrModel();
+        $faild = $success = $ext_goods_start = $ext_goods_end = $ext_hs_start = 0;
+        $maxCol = PHPExcel_Cell::stringFromColumnIndex($columnsIndex);
+        $itemNo = '';
+        for($i=1; $i<=$rows; $i++){
+            $progress_redis['processed'] = $i;    //记录导入进度信息
+            redisSet($progress_key,json_encode($progress_redis));
+
+            $key = $objPHPExcel->getSheet(0)->toArray();//转码
+            if($i==3){    //获取扩展属性起止值
+                for($index=0;$index<$columnsIndex;$index++){
+                    $col_name = PHPExcel_Cell::stringFromColumnIndex($index);//由列数反转列名(0->'A')
+                    $key = $objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue();//转码
+                    if($index==$columnsIndex-1 && $key=='导入结果'){
+                        $maxCol = $col_name;
+                    }
+                    if($key=='币种'){    //获取币种下标用以取扩展属性
+                        $ext_goods_start = $index+1;
+                    }
+                    if($key=='物流信息'){    //获取物流信息下标用以取扩展属性
+                        $ext_goods_end = $index-1;
+                    }
+                    if($key=='境内货源地'){    //获取境内货源地下标用以取申报扩展属性
+                        $ext_hs_start = $index+1;
+                    }
+                    if($key=='订货号'){        //获取订货号下标用以存储sku编码
+                        $itemNo = $col_name;
+                    }
+                }
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.'3', '导入结果');
+            }
+
+            if($i<=4){
+                continue;
+            }
+            $data = array();
+            for($index=0;$index<$columnsIndex;$index++){
+                $col_name = PHPExcel_Cell::stringFromColumnIndex($index);//由列数反转列名(0->'A')
+                //$value    = mb_convert_encoding($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue(), 'gbk', 'utf8');//转码
+                $key = trim($objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue());//转码
+                if(empty($key) || $key == '…' || $key == '导入结果'){
+                    continue;
+                }
+                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue());//转码
+                if($index>=$ext_goods_start && $index<=$ext_goods_end){    //扩展属性
+                    if(!empty($value)){
+                        $data['spec_attrs'][$key] = $value;
+                    }
+                    continue;
+                }
+                if($index>=$ext_hs_start){    //申报要素扩展属性
+                    if(!empty($value)){
+                        $data['ex_hs_attrs'][$key] = $value;
+                    }
+                    continue;
+                }
+                $data[$key] = $value;
+            }
+            if(empty($data)){
+                continue;
+            }
+
+            //数据组装与校验开始
+            $supplie = $data['供应商名称'];    //先处理供应商 必填
+            if(empty($data['供应商名称'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[供应商不能为空]');
+                continue;
+            }
+            $supplierInfo = $supplierModel->field('id,supplier_no,brand')->where(array('deleted_flag'=>'N','name'=>$supplie))->find();
+            if(!$supplierInfo){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[供应商不存在]');
+                continue;
+            }
+            $data_tmp = [];
+            $data_tmp['spu'] = $spu;
+            $input_sku = $data['订货号'];    //输入的sku  订货号
+            $data_tmp['lang'] = $lang;
+            $data_tmp['name'] = $data['名称'];    //名称
+            $data_tmp['model'] = $data['型号'];    //型号
+            $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
+            if(empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[出货周期有误]');
+                continue;
+            }
+            $data_tmp['min_pack_naked_qty'] = $data['最小包装内裸货商品数量'];    //最小包装内裸货商品数量
+            if(empty($data_tmp['min_pack_naked_qty']) || !is_numeric($data_tmp['min_pack_naked_qty'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装内裸货商品数量有误]');
+                continue;
+            }
+            $data_tmp['nude_cargo_unit'] = $data['商品裸货单位'];    //商品裸货单位
+            if(empty($data_tmp['nude_cargo_unit'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[商品裸货单位必填]');
+                continue;
+            }
+            $data_tmp['min_pack_unit'] = $data['最小包装单位'];    //最小包装单位
+            if(empty($data_tmp['min_pack_unit'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装单位必填]');
+                continue;
+            }
+            $data_tmp['min_order_qty'] = $data['最小订货数量'];    //最小订货数量
+            if(empty($data_tmp['min_order_qty']) || !is_numeric($data_tmp['min_order_qty'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小订货数量有误]');
+                continue;
+            }
+            $data_tmp['purchase_price'] = $data['供应商供货价'];    //进货价格
+            if(!is_numeric($data_tmp['purchase_price'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[供应商供货价有误]');
+                continue;
+            }
+            $data_tmp['purchase_price_cur_bn'] = $data['币种'];    //进货价格币种
+            if(!isset($data['spec_attrs']) || empty($data['spec_attrs'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[非固定属性必填]');
+                continue;
+            }
+            $data_tmp['nude_cargo_l_mm'] = $data['裸货尺寸长(mm)'];    //裸货尺寸长(mm)
+            if(!is_numeric($data_tmp['nude_cargo_l_mm'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[裸货尺寸长有误]');
+                continue;
+            }
+            $data_tmp['nude_cargo_w_mm'] = $data['裸货尺寸宽(mm)'];    //裸货尺寸宽(mm)
+            if(!is_numeric($data_tmp['nude_cargo_w_mm'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[裸货尺寸宽有误]');
+                continue;
+            }
+            $data_tmp['nude_cargo_h_mm'] = $data['裸货尺寸高(mm)'];    //裸货尺寸高(mm)
+            if(!is_numeric($data_tmp['nude_cargo_h_mm'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[裸货尺寸高有误]');
+                continue;
+            }
+            $data_tmp['min_pack_l_mm'] = $data['最小包装后尺寸长(mm)'];    //最小包装后尺寸长(mm)
+            if(!is_numeric($data_tmp['min_pack_l_mm'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装后尺寸长有误]');
+                continue;
+            }
+            $data_tmp['min_pack_w_mm'] = $data['最小包装后尺寸宽(mm)'];    //最小包装后尺寸宽(mm)
+            if(!is_numeric($data_tmp['min_pack_w_mm'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装后尺寸宽有误]');
+                continue;
+            }
+            $data_tmp['min_pack_h_mm'] = $data['最小包装后尺寸高(mm)'];    //最小包装后尺寸高(mm)
+            if(!is_numeric($data_tmp['min_pack_h_mm'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装后尺寸高有误]');
+                continue;
+            }
+            $data_tmp['net_weight_kg'] = $data['净重(kg)'];    //净重(kg)
+            if(!is_numeric($data_tmp['net_weight_kg'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[净重有误]');
+                continue;
+            }
+            $data_tmp['gross_weight_kg'] = (float) $data['毛重(kg)'];    //毛重(kg)
+            if(!is_numeric($data_tmp['gross_weight_kg'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[毛重有误]');
+                continue;
+            }
+            $data_tmp['compose_require_pack'] = $data['仓储运输包装及其他要求'];    //仓储运输包装及其他要求
+            $data_tmp['pack_type'] = $data['包装类型'];    //包装类型
+            $data_tmp['name_customs'] = $data['中文品名(报关用)'];    //报关名称
+            $data_tmp['hs_code'] = $data['海关编码'];    //海关编码
+            $data_tmp['tx_unit'] = $data['成交单位'];    //成交单位
+            $data_tmp['tax_rebates_pct'] = $data['退税率(%)'];    //退税率(%)
+            if(!is_numeric($data_tmp['tax_rebates_pct'])){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[退税率有误]');
+                continue;
+            }
+            $data_tmp['regulatory_conds'] = $data['监管条件'];    //监管条件
+            $data_tmp['commodity_ori_place'] = $data['境内货源地'];    //境内货源地
+            $data_tmp['source'] = 'ERUI';
+            $data_tmp['source_detail'] = 'Excel批量导入';
+            $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+            $data_tmp['created_at'] = date('Y-m-d H:i:s');
+            $data_tmp['status'] = $this::STATUS_VALID;
+            // 数据组装与校验结束
+
+            /**
+             * 查询是否存在
+             */
+            $condition = array(
+                'name' => $data_tmp['name'],
+                'lang' => $lang,
+                'spu' => $spu,
+                'model' => $data_tmp['model'],
+                'deleted_flag' => 'N',
+            );
+            $spec_attrs_array = array('spec_attrs' => $data['spec_attrs']);
+            //数据导入
+            $this->startTrans();
+            $workType = '';
+            $result = 0;
+            try{
+                if($this->_checkExit($condition ,$spec_attrs_array,true) === false){
+                    if (empty($input_sku)) {    //存在并且未输入sku则报存在
+                        $faild++;
+                        $this->rollback();
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[已存在]');
+                        continue;
+                    } else {
+                        $workType = '更新';
+                        $condition_update = array(
+                            'sku' => $input_sku,
+                            'lang' => $lang
+                        );
+                        $result = $this->where($condition_update)->save($data_tmp);
+                    }
+                }else{
+                    $workType = '添加';
+
+                    $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku(array(array('spu' => $spu)));    //生成sku
+                    $result = $this->add($this->create($data_tmp));
+                }
+            } catch (Exception $e) {
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[内部错误]');
+                $faild++;
+                $this->rollback();
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e, Log::ERR);
+                continue;
+            }
+
+            if ($result) {
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作成功');
+                $success1 = 1;
+                if ($workType == '添加') {
+                    //更新sku数
+                    try{
+                        $productModel->where(['spu' => $spu, 'lang' => $lang])->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                    }catch (Exception $e){
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[更新spu的sku统计失败]');
+                        $faild++;
+                        $this->rollback();
+                        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                        continue;
+                    }
+                }
+
+                try {    //商品供应商关系
+                    $data_supplier = array(
+                        'sku' => $input_sku ,
+                        'supplier_id' => $supplierInfo[ 'id' ] ,
+                        'brand' => $supplierInfo[ 'brand' ] ,
+                        'created_by' => isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null ,
+                        'created_at' => date( 'Y-m-d H:i:s' , time() ) ,
+                        'status' => 'VALID'
+                    );
+                    $where_supplier = array( 'sku' => $input_sku , 'supplier_id' => $supplierInfo[ 'id' ] );
+                    $select_gs = $goodsSupplierModel->where( $where_supplier )->find();
+                    if ( $select_gs ) {
+                        $goodsSupplierModel->where( $where_supplier )->save( $data_supplier );
+                    } else {
+                        $goodsSupplierModel->where( $where_supplier )->add( $goodsSupplierModel->create( $data_supplier ) );
+                    }
+                }catch (Exception $e){
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[操作商品供应商失败]');
+                    $faild++;
+                    $this->rollback();
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                    continue;
+                }
+
+                try {    //供应商商品价格
+                    $data_goods_cost_price = array(
+                        'sku' => $input_sku ,
+                        'supplier_id' => $supplierInfo[ 'id' ] ,
+                        'price' => $data_tmp[ 'purchase_price' ] ,
+                        'price_unit' => $data_tmp[ 'min_pack_unit' ] ,
+                        'price_cur_bn' => $data_tmp[ 'purchase_price_cur_bn' ] ,
+                        'min_purchase_qty' => $data_tmp[ 'min_order_qty' ] ,
+                        'pricing_date' => date( 'Y-m-d H:i:s' , time() ) ,
+                        'created_by' => isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null ,
+                        'created_at' => date( 'Y-m-d H:i:s' , time() ) ,
+                        'status' => 'VALID'
+                    );
+                    $select_gsp = $goodsCostPriceModel->where( $where_supplier )->find();
+                    if ( $select_gsp ) {
+                        $goodsCostPriceModel->where( $where_supplier )->save( $data_goods_cost_price );
+                    } else {
+                        $goodsCostPriceModel->where( $where_supplier )->add( $goodsCostPriceModel->create( $data_goods_cost_price ) );
+                    }
+                }catch (Exception $e){
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[操作商品供应商价格失败]');
+                    $faild++;
+                    $this->rollback();
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                    continue;
+                }
+
+                try {    //商品属性
+                    $data_goodsattr = array(
+                        'spu' => $spu ,
+                        'lang' => $lang ,
+                        'sku' => $input_sku ,
+                        'spec_attrs' => empty($data['spec_attrs']) ? null : json_encode($data[ 'spec_attrs' ] , JSON_UNESCAPED_UNICODE) ,
+                        'ex_goods_attrs' => empty( $data[ 'ex_goods_attrs' ] ) ? null : json_encode( $data[ 'ex_goods_attrs' ] , JSON_UNESCAPED_UNICODE ) ,
+                        'ex_hs_attrs' => empty( $data[ 'ex_hs_attrs' ] ) ? null : json_encode( $data[ 'ex_hs_attrs' ] , JSON_UNESCAPED_UNICODE ) ,
+                        'created_by' => isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null ,
+                        'created_at' => date( 'Y-m-d H:i:s' , time() )
+                    );
+                    $where_attr = array( 'spu' => $spu , 'lang' => $lang , 'sku' => $input_sku );
+                    $select_attr = $goodsAttrModel->where( $where_attr )->find();
+                    if ( $select_attr ) {
+                        $goodsAttrModel->where( $where_attr )->save( $data_goodsattr );
+                    } else {
+                        $goodsAttrModel->where( $where_attr )->add( $goodsAttrModel->create( $data_goodsattr ) );
+                    }
+                }catch (Exception $e){
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[操作商品属性失败]');
+                    $faild++;
+                    $this->rollback();
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                    continue;
+                }
+
+                $objPHPExcel->getSheet(0)->setCellValue($itemNo .$i, ' ' . $input_sku);
+                $success++;
+                $this->commit();
+            } else {
+                $faild++;
+                $this->rollback();
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败');
+                continue;
+            }
+        }
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save($localFile);    //文件保存
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $data_fastDFS['tmp_name'] = $localFile;
+        $data_fastDFS['type'] = 'application/excel';
+        $data_fastDFS['name'] = pathinfo($localFile, PATHINFO_BASENAME);
+        $fileId = postfile($data_fastDFS, $url);
+        if ($fileId) {
+            unlink($localFile);
+            return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+        }
+        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
+        return false;
     }
 
 }

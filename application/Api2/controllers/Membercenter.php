@@ -13,8 +13,6 @@
  */
 class MembercenterController extends PublicController {
 
-//class MembercenterController extends Yaf_Controller_Abstract {
-
     public function init() {
         parent::init();
     }
@@ -46,8 +44,8 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function upUserInfoAction() {
-        if (!empty($this->user['id'])) {
-            $where['id'] = $this->user['id'];
+        if (!empty($this->user['buyer_id'])) {
+            $where['buyer_id'] = $this->user['buyer_id'];
         } else {
             jsonReturn('', '-1001', '参数[id]不能为空');
         }
@@ -59,6 +57,20 @@ class MembercenterController extends PublicController {
             jsonReturn('', '-1002', '保存失败');
         }
         exit;
+    }
+
+    /**
+     * 会员服务  --门户(new)
+     * @author klp
+     */
+    public function LevelInfoAction() {
+        $BuyerLevelModel = new BuyerLevelModel();
+        $result = $BuyerLevelModel->getLevelService();
+        if (!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
+        }
     }
 
     /**
@@ -98,7 +110,7 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->getPut());
+        $result = $buyerAccount->checkPassword($this->getPut(), $this->user);
         if ($result) {
             $buyerAccount = new BuyerAccountModel();
             $res = $buyerAccount->update_pwd($this->getPut(), $this->user);
@@ -110,7 +122,6 @@ class MembercenterController extends PublicController {
         } else {
             jsonReturn('', '-1003', '原密码输入错误!');
         }
-
     }
 
     /**
@@ -138,20 +149,15 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function listServiceAction() {
-
-        $MemberBizServiceModel = new MemberBizServiceModel();
-        $result = $MemberBizServiceModel->getVipService($this->getPut(), $this->user);
-        if ($result) {
-            $data = array(
-                'code' => 1,
-                'message' => '数据获取成功',
-                'data' => $result
-            );
-            jsonReturn($data);
+        $MemberServiceModel = new MemberServiceModel();
+        $result = $MemberServiceModel->levelService($this->user);
+//        $ServiceCatModel = new ServiceCatModel();
+//        $result = $ServiceCatModel->getAllService($this->user);
+        if (!empty($result)) {
+            jsonReturn($result);
         } else {
-            jsonReturn('', '-1002', '获取失败');
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
-        exit;
     }
 
     /**
@@ -192,6 +198,99 @@ class MembercenterController extends PublicController {
             jsonReturn('', '-1003', '失败');
         }
         exit;
+    }
+
+    /**
+     * 采购商授信信息详情
+     * @time 2017-9-8
+     * @author klp
+     */
+    public function buyerCerditInfoAction() {
+        $BuyerModel = new BuyerModel();
+        $result = $BuyerModel->buyerCerdit($this->user);
+        if ($result) {
+            $data = array(
+                'code' => 1,
+                'message' => '获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1002', '获取失败');
+        }
+        exit;
+    }
+
+    /**
+     * 采购商授信额度信息列表
+     * @time 2017-9-14
+     * @author klp
+     */
+    public function OrderCreditListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        list($start_no, $pagesize) = $this->_getPage($data);
+        $OrderLog = new OrderLogModel();
+        list($result, $count) = $OrderLog->CerditList($this->user, $start_no, $pagesize);
+        if (!empty($result)) {
+            $datajson['code'] = 1;
+            $datajson['count'] = $count;
+            $datajson['data'] = $result;
+        } elseif ($result === null) {
+            $datajson['code'] = -1002;
+            $datajson['count'] = 0;
+            $datajson['message'] = '参数错误!';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['count'] = 0;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 分页处理
+     * @param array $condition 条件
+     * @return array
+     * @author zyg
+     *
+     */
+    protected function _getPage($condition) {
+        $pagesize = 10;
+        $start_no = 0;
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        if (isset($condition['current_no'])) {
+            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
+        }
+        return [$start_no, $pagesize];
+    }
+
+    /**
+     * 采购商负责人
+     * @time 2017-9-14
+     * @author klp
+     */
+    public function agentlistAction() {
+
+        if (!empty($this->user['buyer_id'])) {
+            $array['buyer_id'] = $this->user['buyer_id'];
+        } else {
+            jsonReturn('', -1001, '用户ID缺失!');
+        }
+        $model = new BuyerAgentModel();
+        $res = $model->getlist($array);
+        if (!empty($res)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+            $datajson['message'] = '成功';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
+        }
+        $this->jsonReturn($datajson);
     }
 
 }

@@ -17,7 +17,33 @@ class GroupController extends PublicController {
         //   parent::__init();
     }
     //递归获取子记录
-    function get_group_children($a,$pid =null){
+    function get_group_children($a,$pid =null,$employee=null){
+        if(!$pid){
+            $pid =$a[0]['parent_id'];
+        }
+        $tree = array();
+        $limit =[];
+        if($employee){
+            $user_modle =new UserModel();
+        }
+        $i=0;
+        foreach($a as $v){
+            $model_group = new GroupModel();
+            if($v['parent_id'] == $pid){
+                $v['children'] = $this->get_group_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id'],$employee); //递归获取子记录
+                if($v['children'] == null){
+                    if($employee){
+                        $where_user['group_id'] = $v['id'];
+                        $v['children'] =$user_modle->getlist($where_user);
+                    }
+                }
+                $tree[] = $v;
+            }
+        }
+        return $tree;
+    }
+    //递归获取子记录
+    function get_group_tree($a,$pid =null){
         if(!$pid){
             $pid =$a[0]['parent_id'];
         }
@@ -26,16 +52,20 @@ class GroupController extends PublicController {
         foreach($a as $v){
             $model_group = new GroupModel();
             if($v['parent_id'] == $pid){
-                $v['children'] = $this->get_group_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id']); //递归获取子记录
-                if($v['children'] == null){
-                    unset($v['children']);
-                }
                 $tree[] = $v;
+                $list = $this->get_group_tree($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id']); //递归获取子记录
+                if($list != null){
+                    for($i = 0; $i < count($list); $i++){
+                        $list[$i]['name']='|-'.$list[$i]['name'];
+                        $tree[] = $list[$i];
+                    }
+                }
+
             }
         }
         return $tree;
     }
-    public function listAction(){
+    public function grouptreelistAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
@@ -46,6 +76,37 @@ class GroupController extends PublicController {
             $where['org.parent_id'] = $data['parent_id'];
         }else{
             if(empty($data['name'])){
+                $where['org.parent_id'] = 0;
+            }
+        }
+        $model_group = new GroupModel();
+        $data = $model_group->getlist($where,$limit); //($this->put_data);
+        $arr  = $this->get_group_tree($data);
+        if(!empty($arr)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $arr;
+            $datajson['message'] = '数据为空!';
+        }
+
+        $this->jsonReturn($datajson);
+    }
+    public function listAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $where = [];
+        if(!empty($data['name'])){
+            $where['org.name'] = array('like',"%".$data['name']."%");
+        }
+        if(!empty($data['org_node'])){
+            $where['org.org_node'] = $data['org_node'];
+        }
+        if(!empty($data['parent_id'])){
+            $where['org.parent_id'] = $data['parent_id'];
+        }else{
+            if(empty($data['name'])&&empty($data['org_node'])){
                 $where['org.parent_id'] = 0;
             }
         }
@@ -63,6 +124,54 @@ class GroupController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+
+    public function homelistAction(){
+        if(redisExist('homelist')){
+            $arr  =  json_decode(redisGet('homelist'),true);
+            if(!empty($arr)){
+                $datajson['code'] = 0;
+                $datajson['data'] = $arr;
+            }else{
+                $datajson['code'] = -104;
+                $datajson['data'] = $arr;
+                $datajson['message'] = '数据为空!';
+            }
+            $this->jsonReturn($datajson);
+        }else{
+            $data = json_decode(file_get_contents("php://input"), true);
+            $limit = [];
+            $where = [];
+            if(!empty($data['name'])){
+                $where['org.name'] = array('like',"%".$data['name']."%");
+            }
+            if(!empty($data['parent_id'])){
+                $where['org.parent_id'] = $data['parent_id'];
+                $where_user['group_id'] = $data['parent_id'];
+            }else{
+                if(empty($data['name'])){
+                    $where['org.parent_id'] = 0;
+                }
+            }
+            $user_modle =new UserModel();
+            $model_group = new GroupModel();
+            $data = $model_group->getlist($where,$limit); //($this->put_data);
+            if(!isset( $where_user['group_id'])){
+                $where_user['group_id']=$data[0]['id'];
+            }
+            $arr  = $this->get_group_children($data,'',1);
+            if(!empty($arr)){
+                redisSet('homelist',json_encode($arr),3000);
+                $datajson['code'] = 0;
+                $datajson['data'] = $arr;
+            }else{
+                $datajson['code'] = -104;
+                $datajson['data'] = $arr;
+                $datajson['message'] = '数据为空!';
+            }
+            $this->jsonReturn($datajson);
+        }
+
+    }
     public function listallAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
@@ -72,6 +181,9 @@ class GroupController extends PublicController {
         }
         if(!empty($data['name'])){
             $where['org.name'] = array('like',"%".$data['name']."%");
+        }
+        if(!empty($data['org_node'])){
+            $where['org.org_node'] = $data['org_node'];
         }
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
@@ -100,6 +212,32 @@ class GroupController extends PublicController {
         }
         $model_group = new GroupUserModel();
         $data = $model_group->addusers($where); //($this->put_data);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['message'] = '操作失败!';
+        }
+
+        $this->jsonReturn($datajson);
+    }
+    public function deleteuserAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $where = [];
+        if(!empty($data['group_id'])){
+            $where['group_id'] = $data['group_id'];
+        }else{
+            $datajson['code'] = -101;
+            $datajson['message'] = '组织id不能为空!';
+        }
+        if(!empty($data['user_id'])){
+            $where['user_id'] = $data['user_id'];
+        }else{
+            $datajson['code'] = -101;
+            $datajson['message'] = '用户id不能为空!';
+        }
+        $model_group = new GroupUserModel();
+        $data = $model_group->deleteuser($where); //($this->put_data);
         if(!empty($data)){
             $datajson['code'] = 1;
         }else{
@@ -156,8 +294,8 @@ class GroupController extends PublicController {
             $datajson['message'] = '数据不可为空!';
             $this->jsonReturn($datajson);
         }
-        if($data[id]){
-            $where['id'] =$data[id];
+        if($data['id']){
+            $where['id'] =$data['id'];
             $model_group = new GroupModel();
             $id = $model_group->update_data($data,$where);
             if(!empty($id)){

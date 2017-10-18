@@ -8,7 +8,7 @@
  */
 class InquiryAttachModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_attach'; //数据表表名
 
     public function __construct() {
@@ -95,6 +95,12 @@ class InquiryAttachModel extends PublicModel {
             $results['message'] = '没有询单ID!';
             return $results;
         }
+        if(isset($condition['attach_name'])){
+            $data['attach_name'] = $condition['attach_name'];
+        }
+        if(isset($condition['attach_type'])){
+            $data['attach_type'] = $condition['attach_type'];
+        }
         if(isset($condition['attach_url'])){
             $data['attach_url'] = $condition['attach_url'];
         }else{
@@ -102,9 +108,11 @@ class InquiryAttachModel extends PublicModel {
             $results['message'] = '没有文件URL!';
             return $results;
         }
+        if(isset($condition['created_by'])){
+            $data['created_by'] = $condition['created_by'];
+        }
         $data['created_at'] = $this->getTime();
 
-        $data = $this->create($data);
         try {
             $id = $this->add($data);
             if($id){

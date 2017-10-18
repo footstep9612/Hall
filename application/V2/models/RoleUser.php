@@ -26,6 +26,7 @@ class RoleUserModel extends PublicModel {
             $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`sort`,`func_perm`.`fn`,`func_perm`.`parent_id` ';
             $sql .= ' FROM employee';
             $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
+            $sql .= ' LEFT JOIN  `role` ON `role`.`id` =`role_member`.`role_id` and  `role`.`deleted_flag` = "N"';
             $sql .= ' LEFT JOIN  `role_access_perm` ON `role_access_perm`.`role_id` =`role_member`.`role_id`';
             $sql .= ' LEFT JOIN  `func_perm` ON `func_perm`.`id` =`role_access_perm`.`func_perm_id`';
             $sql .= "WHERE `func_perm`.`id` is not null ";
@@ -40,7 +41,23 @@ class RoleUserModel extends PublicModel {
             return $this->query( $sql );
         }
     }
-
+    /*
+     * 获取用户角色
+     */
+    public function userRole($user_id,$pid = ''){
+        if($user_id){
+            $sql = 'SELECT  role.`id`,role.`name`,role.`name_en`,role.`role_no`,role.`admin_show`,role.`role_group`,role.`remarks`,role.`status`,role.`deleted_flag`  ';
+            $sql .= ' FROM role';
+            $sql .= ' LEFT JOIN  `role_member` ON `role`.`id` =`role_member`.`role_id`';
+            $sql .= " WHERE role.deleted_flag = 'N'  ";
+            if(!empty($user_id)) {
+                $sql .= ' and `role_member`.`employee_id` =' . $user_id;
+            }
+            $sql .= ' group by role.`id`';
+            $sql .= ' order by role.`id` desc';
+            return $this->query( $sql );
+        }
+    }
     /**
      * 获取列表
      * @param data $data;
@@ -87,10 +104,30 @@ class RoleUserModel extends PublicModel {
                 $user_arr = explode(',',$data['role_user_ids']);
                 $count = count($user_arr);
                 for($i=0;$i<$count;$i++){
-                    $this -> create_data(['role_id'=>$data['role_id'],'employee_id' =>$user_arr[$i] ]);
+                   $info = $this -> where(['role_id'=>$data['role_id'],'employee_id' =>$user_arr[$i] ])->select();
+                   if(!$info){
+                       $this -> create_data(['role_id'=>$data['role_id'],'employee_id' =>$user_arr[$i] ]);
+                   }
                 }
             }
         }
+        return true ;
+    }
+    public function update_role_datas($data) {
+        if($data['user_id']){
+            $this->where(['employee_id'=>$data['user_id']])->delete();
+            if($data['role_ids']){
+                $role_arr = explode(',',$data['role_ids']);
+                $count = count($role_arr);
+                for($i=0;$i<$count;$i++){
+                    $info = $this -> where(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ])->select();
+                    if(!$info){
+                        $this -> create_data(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ]);
+                    }
+                }
+            }
+        }
+        return true ;
     }
     /**
      * 新增数据

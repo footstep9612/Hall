@@ -7,7 +7,7 @@
  */
 class BuyerBankInfoModel extends PublicModel{
     protected $tableName = 'buyer_bank_info';
-    protected $dbName = 'erui2_buyer'; //数据库名称
+    protected $dbName = 'erui_buyer'; //数据库名称
 
     public function __construct($str = '')
     {
@@ -22,16 +22,15 @@ class BuyerBankInfoModel extends PublicModel{
     {
 //        $info = getLoinInfo();
         $where=array();
-        if(isset($userInfo['buyer_id'])) {
+        if(isset($userInfo['buyer_id']) && !empty($userInfo['buyer_id'])) {
             $where['buyer_id'] = $userInfo['buyer_id'];
-        }elseif (!empty($userInfo['id'])){
-            $where['buyer_id'] = $userInfo['id'];
         } else{
             jsonReturn('','-1001','用户[id]不可以为空');
         }
         if (isset($info['lang']) && in_array($info['lang'], array('zh', 'en', 'es', 'ru'))) {
             $where['lang'] = strtolower($info['lang']);
         }
+        $where['deleted_flag'] = 'N';
         $field = 'buyer_id,swift_code,bank_name,bank_account,country_code,country_bn,address,zipcode,phone,fax,turnover,profit,total_assets,reg_capital_cur_bn,equity_ratio,equity_capital,branch_count,employee_count,remarks,created_by,created_at';
         try{
             $buyerBankInfo =  $this->field($field)->where($where)->find();

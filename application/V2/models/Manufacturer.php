@@ -17,7 +17,7 @@ class ManufacturerModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'manufacturer';
-    protected $dbName = 'erui2_supplier'; //数据库名称
+    protected $dbName = 'erui_supplier'; //数据库名称
 
 //    protected $autoCheckFields = false;
 

@@ -8,7 +8,7 @@
  */
 class CityModel extends Model {
 
-    protected $dbName = 'erui2_dict'; //数据库名称
+    protected $dbName = 'erui_dict'; //数据库名称
     protected $tableName = 'city';
 
     /**
@@ -159,8 +159,12 @@ class CityModel extends Model {
         if (redisHashExist('City', $redis_key)) {
             return json_decode(redisHashGet('City', $redis_key), true);
         }
+        $country_model = new CountryModel();
+        $country = $country_model->getTableName();
         try {
-            $field = 'id,bn,country_bn,name,lang,region_bn,time_zone';
+            $field = 'id,bn,country_bn,name,lang,region_bn,time_zone,'
+                    . '(select name from ' . $country . ' where bn=country_bn and lang=city.lang) as country';
+
             $result = $this->field($field)
                     ->where($where)
                     ->select();
@@ -169,7 +173,7 @@ class CityModel extends Model {
             }
             return $result;
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE: ' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return array();
         }

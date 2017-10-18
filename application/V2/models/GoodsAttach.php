@@ -8,7 +8,7 @@
  */
 class GoodsAttachModel extends PublicModel {
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attach'; //数据表表名
 
 //    public function __construct() {
@@ -28,6 +28,8 @@ class GoodsAttachModel extends PublicModel {
     const STATUS_DELETED = 'DELETED'; //删除；
     const STATUS_CHECKING = 'CHECKING'; //审核；
     const STATUS_DRAFT = 'DRAFT';       //草稿
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     //定义校验规则
 
@@ -65,7 +67,7 @@ class GoodsAttachModel extends PublicModel {
 
         //读取redis缓存
         if (redisHashExist('Attach', $sku . '_' . $type . '_' . $status)) {
-            return (array) json_decode(redisHashGet('Attach', $sku . '_' . $type . '_' . $status));
+//            return (array) json_decode(redisHashGet('Attach', $sku . '_' . $type . '_' . $status));
         }
 
         try {
@@ -81,7 +83,7 @@ class GoodsAttachModel extends PublicModel {
                     $result = $data;
                 }
                 //添加到缓存
-                redisHashSet('Attach', $sku . '_' . $type . '_' . $status, json_encode($result));
+//                redisHashSet('Attach', $sku . '_' . $type . '_' . $status, json_encode($result));
                 return $result;
             }
         } catch (Exception $e) {
@@ -251,14 +253,14 @@ class GoodsAttachModel extends PublicModel {
         if (!empty($condition['attach_type']) && !in_array($condition['attach_type'], array('SMALL_IMAGE', 'MIDDLE_IMAGE', 'BIG_IMAGE', 'DOC'))) {
             $where['status'] = strtoupper($condition['attach_type']);
         }
-
+        $where['deleted_flag'] = self::DELETE_N;
         //redis
-        if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
+       /* if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
             $data = json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
-            if($data){
+            if ($data) {
                 return $data;
             }
-        }
+        }*/
         $field = 'id, sku, supplier_id, attach_type, attach_name, attach_url, default_flag, sort_order, status, created_by,  created_at, updated_by, updated_at, checked_by, checked_at';
         try {
             $result = $this->field($field)->where($where)->select();
@@ -268,7 +270,7 @@ class GoodsAttachModel extends PublicModel {
                 foreach ($result as $item) {
                     $data[$item['attach_type']][] = $item;
                 }
-                redisHashSet('SkuAttachs', md5(json_encode($where)), json_encode($data));
+//                redisHashSet('SkuAttachs', md5(json_encode($where)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
@@ -281,13 +283,22 @@ class GoodsAttachModel extends PublicModel {
      * @author klp
      * @return array
      */
-    public function editSkuAttach($input,$sku='',$admin='') {
+    public function editSkuAttach($input, $sku = '', $admin = '') {
         if (empty($input) || empty($sku)) {
             return false;
         }
         $results = array();
         if ($input && is_array($input)) {
             try {
+                //暂时新增/编辑时都为删除旧数据新增新数据,前端操作处理改为如此,个人感觉不太好
+                $where = array('sku' => $sku);
+                $resach = $this->field('sku')->where($where)->find();
+                if ($resach) {
+                    $resOut = $this->where($where)->save(['status'=> self::STATUS_DELETED,'deleted_flag' => 'N']);
+                    if(!$resOut){
+                        return false;
+                    }
+                }
                 foreach ($input as $key => $value) {
                     $data = $this->checkParam($value);
                     //存在sku编辑,反之新增,后续扩展性
@@ -303,7 +314,7 @@ class GoodsAttachModel extends PublicModel {
                             return false;
                         }
                     } else {
-                        $data['status'] = self::STATUS_DRAFT;
+                        $data['status'] = self::STATUS_VALID;
                         $data['sku'] = $sku;
                         $data['created_by'] = $admin;
                         $data['created_at'] = date('Y-m-d H:i:s', time());
@@ -352,7 +363,7 @@ class GoodsAttachModel extends PublicModel {
                     ];
                     $resach = $this->field('sku')->where($where)->find();
                     if ($resach) {
-                        $res = $this->where($where)->save(['status' => $status]);
+                        $res = $this->where($where)->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
                         if (!$res) {
                             return false;
                         }
@@ -375,7 +386,7 @@ class GoodsAttachModel extends PublicModel {
                     }
                 }
             }
-            return array('code'=>1,'message'=>'成功！');
+            return array('code' => 1, 'message' => '成功！');
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
@@ -399,7 +410,7 @@ class GoodsAttachModel extends PublicModel {
                 $where = [
                     "sku" => ['in', $skus],
                 ];
-                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                $res = $this->where($where)->save(['deleted_flag' => 'Y']);
 
                 if ($res === false) {
                     return false;
@@ -408,7 +419,7 @@ class GoodsAttachModel extends PublicModel {
                 $where = [
                     "sku" => $skus
                 ];
-                $res = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
+                $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                 if ($res === false) {
                     return false;
                 }
@@ -444,25 +455,29 @@ class GoodsAttachModel extends PublicModel {
             jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
         }
         $data = $results = [];
-        if (!empty($param['supplier_id'])) {
+        if (isset($param['supplier_id']) && !empty($param['supplier_id'])) {
             $data['supplier_id'] = $param['supplier_id'];
         }
-        if (!empty($param['attach_type'])) {
+        if (isset($param['attach_type']) && !empty($param['attach_type'])) {
             $data['attach_type'] = $param['attach_type'];
         }
-        if (!empty($param['attach_name'])) {
+        if (isset($param['attach_name']) && !empty($param['attach_name'])) {
             $data['attach_name'] = $param['attach_name'];
+        }else{
+            if (isset($param['attach_url']) && !empty($param['attach_url'])) {
+                $data['attach_name'] = $param['attach_url'];
+            }
         }
-        if (!empty($param['attach_url'])) {
+        if (isset($param['attach_url']) && !empty($param['attach_url'])) {
             $data['attach_url'] = $param['attach_url'];
         } else {
             $results['code'] = -101;
             $results['message'] = '[attach_url]参数缺少!';
         }
-        if (!empty($param['default_flag'])) {
+        if (isset($param['default_flag']) && !empty($param['default_flag'])) {
             $data['default_flag'] = $param['default_flag'];
         }
-        if (!empty($param['sort_order'])) {
+        if (isset($param['supplier_id']) && !empty($param['sort_order'])) {
             $data['sort_order'] = $param['sort_order'];
         }
         if ($results) {
@@ -484,11 +499,12 @@ class GoodsAttachModel extends PublicModel {
     public function getgoods_attachsbyskus($skus, $lang = 'en') {
 
         try {
-            $goods_attachs = $this->table('erui2_goods.goods_attach')
-                    ->field('id,attach_type,attach_url,attach_name,attach_url,sku')
+            $goods_attachs = $this->table('erui_goods.goods_attach')
+                    ->field('id,attach_type,attach_url,attach_name,attach_url,sku,default_flag')
                     ->where(['sku' => ['in', $skus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
                         'status' => 'VALID'])
+                    ->order('default_flag desc')
                     ->select();
             $ret = [];
             if ($goods_attachs) {

@@ -8,7 +8,7 @@
  */
 class InquiryModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry'; //数据表表名
 
     public function __construct() {
@@ -36,10 +36,13 @@ class InquiryModel extends PublicModel {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
         if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = $condition['agent_id'];//市场经办人
+            $where['agent_id'] = array('in',$condition['agent_id']);//市场经办人
         }
         if (!empty($condition['pm_id'])) {
             $where['pm_id'] = $condition['pm_id'];  //项目经理
+        }
+        if (!empty($condition['status'])) {
+            $where['status'] = $condition['status'];  //项目经理
         }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
@@ -75,12 +78,51 @@ class InquiryModel extends PublicModel {
     public function getList($condition = []) {
         $where = $this->getCondition($condition);
 
+        if(!empty($condition['user_id'])){
+            if(!empty($condition['agent_id'])){
+                if(!empty($condition['status'])){
+                    if(!in_array($condition['user_id'],$condition['agent_id'])){
+                        $condition['agent_id'][] = $condition['user_id'];
+                    }
+                    switch($condition['status']) {
+                        case 'DRAFT':
+                            $where2 ='(agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].') ';
+                            break;
+                        default:
+                            $where2 ='agent_id in('.implode(',',$condition['agent_id']).') ';
+                            break;
+                    }
+                }else{
+                    $where2 = '(agent_id in('.implode(',',$condition['agent_id']).') and status<>"DRAFT") ';
+                    $where2 .='or (agent_id='.$condition['user_id'].') ';
+                    $where2 .='or (created_by='.$condition['user_id'].' and status="DRAFT") ';
+                }
+                unset($where['agent_id']);
+            }else{
+                $where2 = '(agent_id='.$condition['user_id'].') or (created_by='.$condition['user_id'].' and status="DRAFT")';
+            }
+        }
+
         $page = !empty($condition['currentPage'])?$condition['currentPage']:1;
         $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
         try {
-            $count = $this->getCount($where);
-            $list = $this->where($where)->page($page, $pagesize)->order('updated_at desc')->select();
+            if(!empty($where2)){
+                $count = $this->where($where)->where($where2)->count('id');
+                $list = $this->where($where)
+                        ->where($where2)
+                        ->page($page, $pagesize)
+                        ->order('updated_at desc')
+                        ->select();
+            }else{
+                $count = $this->where($where)->count('id');
+                $list = $this->where($where)
+                        ->page($page, $pagesize)
+                        ->order('updated_at desc')
+                        ->select();
+            }
+            $count = $count > 0 ? $count : 0;
+
             if($list){
                 $results['code'] = '1';
                 $results['message'] = '成功！';
@@ -147,20 +189,6 @@ class InquiryModel extends PublicModel {
         }else{
             $results['code'] = '-103';
             $results['message'] = '没有流程编码!';
-            return $results;
-        }
-        if(!empty($condition['buyer_id'])){
-            $data['buyer_id'] = $condition['buyer_id'];
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有客户ID!';
-            return $results;
-        }
-        if(!empty($condition['country_bn'])){
-            $data['country_bn'] = $condition['country_bn'];
-        }else{
-            $results['code'] = '-103';
-            $results['message'] = '没有国家简称!';
             return $results;
         }
         $data['status'] = 'DRAFT';
@@ -265,7 +293,9 @@ class InquiryModel extends PublicModel {
         if(!empty($condition['id'])){
             $where['id'] = array('in',explode(',',$condition['id']));
         }else{
-
+            $results['code'] = '-103';
+            $results['message'] = '没有ID!';
+            return $results;
         }
 
         try {
@@ -322,6 +352,6 @@ class InquiryModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d h:i:s',time());
+        return date('Y-m-d H:i:s',time());
     }
 }

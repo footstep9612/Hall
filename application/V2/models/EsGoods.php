@@ -15,7 +15,9 @@ class EsGoodsModel extends Model {
 
     //put your code here
     protected $tableName = 'goods';
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
+
+    const STATUS_DELETED = 'DELETED';
 
     public function __construct($str = '') {
         parent::__construct($str = '');
@@ -36,7 +38,7 @@ class EsGoodsModel extends Model {
      */
 
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
-        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
+        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];
                 if (!$field) {
@@ -109,7 +111,10 @@ class EsGoodsModel extends Model {
         if (isset($condition[$name]) && $condition[$name]) {
             $status = $condition[$name];
             if ($status == 'ALL') {
-
+                $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
+                            [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
+                            [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]]
+                ]];
             } elseif (in_array($status, $array)) {
 
                 $body['query']['bool']['must'][] = [$qurey_type => [$field => $status]];
@@ -182,84 +187,127 @@ class EsGoodsModel extends Model {
      * @desc   ES 商品
      */
 
-    private function getCondition($condition) {
+    private function getCondition($condition, $lang = 'en') {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'skus', 'sku');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'market_area_bn', 'show_cats.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'country_bn', 'show_cats.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no1', 'material_cat.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no2', 'material_cat.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'mcat_no3', 'material_cat.all');
+        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
+            $show_cat_no = trim($condition['show_cat_no']);
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::TERM => ['show_cats.cat_no1' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats.cat_no2' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats.cat_no3' => $show_cat_no]],
+            ]]];
+        }
+        $this->_getQurey($condition, $body, ESClient::TERM, 'market_area_bn', 'show_cats.market_area_bn');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'country_bn', 'show_cats.country_bn');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no1', 'show_cats.cat_no1');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no2', 'show_cats.cat_no2');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no3', 'show_cats.cat_no3');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
+
+        $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'supplier_name', 'suppliers.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers.supplier_id');
+        //  $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'cat_name', 'show_cats.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'checked_desc');
-
-
-        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
+        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED',
+            'DELETED', 'DRAFT', 'INVALID']);
         $this->_getQureyByBool($condition, $body, ESClient::MATCH_PHRASE, 'recommend_flag', 'recommend_flag', 'N');
         // $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'model', 'model');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'attrs', 'attrs.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'specs', 'specs.ik');
+        if (isset($condition['attrs']) && $condition['attrs']) {
+            $attrs = trim($condition['attrs']);
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.ex_goods_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.ex_hs_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.other_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.ex_goods_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.ex_hs_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.other_attrs.name.all' => '*' . $attrs . '*']],
+            ]]];
+        }
+        if (isset($condition['attrs']) && $condition['attrs']) {
+            $attrs = trim($condition['attrs']);
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
+            ]]];
+        }
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'onshelf_by');
+        $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
             if ($condition['onshelf_flag'] === 'A') {
 
             } elseif ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'N']];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
         }
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+
             foreach ($userids as $created_by) {
                 $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $created_by_bool]];
+            if ($userids) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $created_by_bool]];
+            }
         }
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
             foreach ($userids as $updated_by) {
                 $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
+            if ($userids) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
+            }
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
             foreach ($userids as $checked_by) {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
+
+            if ($userids) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
+            }
         }
         if (isset($condition['keyword']) && $condition['keyword']) {
             $show_name = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MULTI_MATCH => [
-                                'query' => $show_name,
-                                'type' => 'most_fields',
-                                'fields' => ['name.ik', 'attrs.ik', 'sku', 'specs.ik', 'spu', 'source.ik', 'brand.ik']
-                            ]],
+                        [ESClient::MATCH => ['name.ik' => $show_name]],
+                        [ESClient::TERM => ['sku' => $show_name]],
+                        [ESClient::TERM => ['spu' => $show_name]],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['brand.name.all' => '*' . $show_name . '*']],
+                        [ESClient::WILDCARD => ['model.all' => '*' . $show_name . '*']],
                         [ESClient::WILDCARD => ['name.all' => '*' . $show_name . '*']],
             ]]];
         }
@@ -279,8 +327,9 @@ class EsGoodsModel extends Model {
 
     public function getgoods($condition, $_source = null, $lang = 'en') {
         try {
-            $body = $this->getCondition($condition);
-            if ($body) {
+            $body = $this->getCondition($condition, $lang);
+
+            if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
             $pagesize = 10;
@@ -291,12 +340,15 @@ class EsGoodsModel extends Model {
             if (isset($condition['pagesize'])) {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
+
+
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
             return [$es->setbody($body)
-                        ->setsort('sort_order', 'desc')
-                        ->setsort('_id', 'desc')
+                        ->setsort('_score', 'desc')
+                        ->setsort('created_at', 'desc')
+                        ->setsort('sku', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -314,13 +366,13 @@ class EsGoodsModel extends Model {
 
     public function getonshelf_flag($skus, $lang = 'en') {
         try {
-            $onshelf_flags = $this->table('erui2_goods.show_cat_goods')
+            $onshelf_flags = $this->table('erui_goods.show_cat_goods')
                             ->field('sku,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
                                     . ',max(updated_by) as min_updated_by'
                                     . ',max(updated_at) as max_updated_at'
                                     . ',max(checked_by) as min_checked_by'
-                                    . ' ,max(checked_by) as min_checked_at')
+                                    . ',max(checked_by) as min_checked_at')
                             ->where(['sku' => ['in', $skus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('sku')->select();
             $ret = [];
@@ -362,7 +414,6 @@ class EsGoodsModel extends Model {
             $skus = array_unique($skus);
             $espoducmodel = new EsProductModel();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-
             $goods_attr_model = new GoodsAttrModel();
             $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
 
@@ -380,6 +431,8 @@ class EsGoodsModel extends Model {
                 } else {
                     $body['specs'] = json_encode([]);
                 }
+
+
                 $ret[$id] = $body;
             }
             return $ret;
@@ -402,8 +455,10 @@ class EsGoodsModel extends Model {
 
     private function _findnulltoempty(&$item) {
         foreach ($item as $key => $val) {
-            if (is_null($val)) {
+            if ($val === null) {
                 $item[$key] = '';
+            } else {
+                $item[$key] = $val;
             }
         }
     }
@@ -419,19 +474,28 @@ class EsGoodsModel extends Model {
 
     public function importgoodss($lang = 'en') {
         try {
-            $count = $this->where(['lang' => $lang])->count('id');
+            ob_clean();
+            $min_id = 0;
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]])->count('id');
 
-
+            echo '共有', $count, '条记录需要导入!', PHP_EOL;
             for ($i = 0; $i < $count; $i += 100) {
                 if ($i > $count) {
                     $i = $count;
                 }
-                echo $i, PHP_EOL;
 
+                echo $i, PHP_EOL, '<BR>';
                 ob_flush();
                 flush();
-                $goods = $this->where(['lang' => $lang])
-                                ->limit($i, 100)->select();
+
+                $time1 = microtime(true);
+                if ($min_id === 0) {
+                    $goods = $this->where(['lang' => $lang, 'id' => ['gt', 0]])
+                                    ->limit(0, 100)->order('id DESC')->select();
+                } else {
+                    $goods = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]])
+                                    ->limit(0, 100)->order('id DESC')->select();
+                }
 
                 $spus = $skus = [];
 
@@ -448,6 +512,12 @@ class EsGoodsModel extends Model {
                 $skus = array_unique($skus);
                 $espoducmodel = new EsProductModel();
                 $es = new ESClient();
+                $goodsmodel = new GoodsModel();
+                if ($lang == 'zh') {
+                    $name_locs = $goodsmodel->getNamesBySkus($skus, 'en');
+                } else {
+                    $name_locs = $goodsmodel->getNamesBySkus($skus, 'zh');
+                }
                 $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
                 $goods_attach_model = new GoodsAttachModel();
@@ -462,9 +532,23 @@ class EsGoodsModel extends Model {
                 $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
-                foreach ($goods as $item) {
-                    $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es);
+                echo '<pre>';
+//                $updateParams = [];
+//                $updateParams['index'] = $this->dbName;
+//                $updateParams['type'] = 'goods_' . $lang;
+                foreach ($goods as $key => $item) {
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+                    if ($key === 99) {
+                        $min_id = $item['id'];
+                    }
+                    print_r($flag);
+                    ob_flush();
+                    flush();
                 }
+                echo microtime(true) - $time1, "\r\n";
+                sleep(1);
+//                $flag = $es->bulk($updateParams);
+//                var_dump($flag);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -473,32 +557,95 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
-        $this->_findnulltoempty($item);
+
         $body = $item;
         $product_attr = $productattrs[$spu];
+        $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
 
-        $body['material_cat'] = $this->_getValue($product_attr, 'material_cat', [], 'string');
-        if (!$body['material_cat']) {
-            $body['material_cat'] = '{}';
-        }
-        $body['attachs'] = $this->_getValue($attachs, $sku, [], 'json');
-        if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
-            $body['attrs'] = json_encode($goods_attrs[$sku], JSON_UNESCAPED_UNICODE);
-            if ($goods_attrs[$sku][0]['spec_attrs']) {
-                $body['specs'] = $goods_attrs[$item['sku']][0]['spec_attrs'];
-            } else {
-                $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
-            }
+        if (isset($product_attr['material_cat']) && $product_attr['material_cat']) {
+            $body['material_cat'] = $product_attr['material_cat'];
         } else {
-            $body['attrs'] = json_encode([], JSON_UNESCAPED_UNICODE);
-            $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
+            $body['material_cat'] = new stdClass();
         }
 
-        $body['suppliers'] = $this->_getValue($suppliers, $sku, [], 'json');
+        if (isset($product_attr['material_cat_zh']) && $product_attr['material_cat_zh']) {
+            $body['material_cat_zh'] = $product_attr['material_cat_zh'];
+        } else {
+            $body['material_cat_zh'] = new stdClass();
+        }
+        if (isset($product_attr['bizline_id']) && $product_attr['bizline_id']) {
+            $body['bizline_id'] = $product_attr['bizline_id'];
+        } else {
+            $body['bizline_id'] = new stdClass();
+        }
+
+        if (isset($product_attr['bizline']) && $product_attr['bizline']) {
+            $body['bizline'] = $product_attr['bizline'];
+        } else {
+            $body['bizline'] = new stdClass();
+        }
+
+        if (isset($scats[$sku])) {
+
+            $show_cats = $scats[$sku];
+            rsort($show_cats);
+            $body['show_cats'] = $show_cats;
+        } else {
+            $body['show_cats'] = [];
+        }
+        $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
+
+        $body['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $body['brand'])));
+
+        if (json_decode($body['brand'], true)) {
+
+            $body['brand'] = json_decode($body['brand'], true);
+        } elseif ($body['brand']) {
+            $body['brand'] = ['lang' => $lang, 'name' => $body['brand'], 'logo' => '', 'manufacturer' => ''];
+        } else {
+            $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
+        }
+        if (isset($name_locs[$sku]) && $name_locs[$sku]) {
+            $body['name_loc'] = $name_locs[$sku];
+        } else {
+            $body['name_loc'] = '';
+        }
+
+        if (isset($attachs[$sku])) {
+            $body['attachs'] = json_encode($attachs[$sku], 256);
+            $body['image_count'] = isset($attachs[$sku]['BIG_IMAGE']) ? count($attachs[$sku]['BIG_IMAGE']) : 0;
+        } else {
+            $body['attachs'] = '[]';
+            $body['image_count'] = 0;
+        }
+
+        if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
+            $attrs = $goods_attrs[$sku];
+            $attrs = $this->_setattrs($attrs);
+            $body['attrs'] = $attrs;
+        } else {
+            $body['attrs'] = new stdClass();
+            //json_encode([], JSON_UNESCAPED_UNICODE);
+        }
+
+        if (isset($suppliers[$id]) && $suppliers[$id]) {
+            $body['suppliers'] = $suppliers[$id];
+
+            $body['supplier_count'] = count($suppliers[$id]);
+        } else {
+            $body['suppliers'] = [];
+
+            $body['supplier_count'] = 0;
+        }
+
+        if ($es_goods && ($es_goods['suppliers'] !== $body['suppliers'] || $es_goods['min_order_qty'] !== $body['min_order_qty'] || $es_goods['exw_days'] !== $body['exw_days'] || $es_goods['min_pack_unit'] !== $body['min_pack_unit'] )) {
+            $this->UpdateSPU($spu, $lang);
+        }
+
         if ($body['source'] == 'ERUI') {
             $body['sort_order'] = 100;
         } else {
@@ -525,15 +672,114 @@ class EsGoodsModel extends Model {
             $body['onshelf_by'] = '';
             $body['onshelf_at'] = '';
         }
-        $body['show_cats'] = $this->_getValue($scats, $sku, [], 'json');
+
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
-        $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-        if (!isset($flag['create'])) {
-            LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        $this->_findnulltoempty($body);
+
+        if ($es_goods) {
+
+//            $updateParams['body'][] = ['update' => ['_id' => $sku]];
+//            $updateParams['body'][] = ['doc' => $body];
+            // return $updateParams;
+            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            if (!isset($flag['_version'])) {
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
+            }
+        } else {
+
+//            $updateParams['body'][] = ['create' => ['_id' => $sku]];
+//            $updateParams['body'][] = [$body];
+            // return $updateParams;
+            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            if (!isset($flag['created'])) {
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
+                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
+            }
         }
-        print_r($flag);
-        ob_flush();
-        flush();
+
+
+
+        return $flag;
+    }
+
+    /* 设置属性
+     * @author zyg 2017-10-12
+     * @param string $spu // SPU
+     * @return mix
+     * @author  zhongyg
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    private function _setattrs($attrs) {
+        $ret = [];
+        if (!empty($attrs['spec_attrs'])) {
+            $ret['spec_attrs'] = $this->_formatattr($attrs['spec_attrs']);
+        } else {
+            $ret['spec_attrs'] = [];
+        }
+        if (!empty($attrs['ex_goods_attrs'])) {
+            $ret['ex_goods_attrs'] = $this->_formatattr($attrs['ex_goods_attrs']);
+        } else {
+            $ret['ex_goods_attrs'] = [];
+        }
+        if (!empty($attrs['ex_hs_attrs'])) {
+            $ret['ex_hs_attrs'] = $this->_formatattr($attrs['ex_hs_attrs']);
+        } else {
+            $ret['ex_hs_attrs'] = [];
+        }
+        if (!empty($attrs['other_attrs'])) {
+            $ret['other_attrs'] = $this->_formatattr($attrs['other_attrs']);
+        } else {
+            $ret['other_attrs'] = [];
+        }
+        return $ret;
+    }
+
+    /* 属性格式化
+     * @author zyg 2017-10-12
+     * @param string $spu // SPU
+     * @return mix
+     * @author  zhongyg
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    private function _formatattr($attrs_json) {
+        $attrs_arr = json_decode($attrs_json, true);
+        $ret = [];
+        if ($attrs_arr) {
+            foreach ($attrs_arr as $name => $value) {
+                $ret[] = ['name' => $name,
+                    'value' => $value];
+            }
+        }
+        return $ret;
+    }
+
+    /*
+     * 批量更新商品的品牌或物理分类编码
+     * @author zyg 2017-07-31
+     * @param string $spu // SPU
+     * @param string $lang // 语言 zh en ru es
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function UpdateSPU($spu, $lang) {
+        try {
+
+            $es_product_model = new EsproductModel();
+            $es_product_model->create_data($spu, $lang);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
     }
 
     /* 通过批量导入商品信息到ES
@@ -851,26 +1097,56 @@ class EsGoodsModel extends Model {
     public function create_data($sku, $lang = 'en') {
         try {
             $es = new ESClient();
-            if ($sku) {
+            if (is_array($sku) && !empty($sku)) {
                 $goods_model = new GoodsModel();
-                $data = $goods_model->where(['sku' => $sku, 'lang' => $lang])->find();
+                $goods = $goods_model->where(['sku' => ['in', $sku], 'lang' => $lang])->select();
+            } elseif ($sku) {
+
+                $goods_model = new GoodsModel();
+                $goods = $goods_model->where(['sku' => $sku, 'lang' => $lang])->select();
+            } else {
+                return false;
+            }
+            $spus = $skus = [];
+            if ($goods) {
+                foreach ($goods as $item) {
+                    $skus[] = $item['sku'];
+                    $spus[] = $item['spu'];
+                }
             } else {
                 return false;
             }
 
-            if (!$data) {
+            $spus = array_unique($spus);
+            $skus = array_unique($skus);
 
-                return false;
-            }
-            $body = $this->getInsertCodition($data);
-            $id = $data['sku'];
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (isset($flag['_shards']['successful']) && $flag['_shards']['successful'] !== 1) {
-                LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
-                return true;
+            $goodsmodel = new GoodsModel();
+            if ($lang == 'zh') {
+                $name_locs = $goodsmodel->getNamesBySkus($spus, 'en');
             } else {
-                return false;
+                $name_locs = $goodsmodel->getNamesBySkus($spus, 'zh');
             }
+            $espoducmodel = new EsProductModel();
+            $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
+
+            $goods_attach_model = new GoodsAttachModel();
+            $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
+
+            $goods_attr_model = new GoodsAttrModel();
+            $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
+
+            $goods_supplier_model = new GoodsSupplierModel();
+            $suppliers = $goods_supplier_model->getsuppliersbyskus($skus);
+            $show_cat_goods_model = new ShowCatGoodsModel();
+            $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
+
+            $onshelf_flags = $this->getonshelf_flag($skus, $lang);
+
+            foreach ($goods as $item) {
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+            }
+
+            $es->refresh($this->dbName);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

@@ -17,7 +17,29 @@ class GoodsController extends PublicController {
     }
 
     /**
-     * 商品（sku）基本信息  --- 公共接口
+     * sku基本详情 --- 门户2.0公共接口
+     * @pararm  sku编码 lang status
+     * @return array
+     * @author klp
+     */
+    public function skuInfoAction() {
+//        $this->put_data = [
+//
+//            'sku'=> '3303060000010001',
+//            'lang'=> 'en',
+//
+//        ];
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->getSkuInfo($this->put_data);
+        if ($result && !isset($result['code'])) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', MSG::MSG_FAILED, '失败!');
+        }
+    }
+
+    /**
+     * 商品（sku）基本信息  --- 公共接口1.0==暂废弃
      * @author link 2017-06-26
      */
     public function infoBaseAction() {

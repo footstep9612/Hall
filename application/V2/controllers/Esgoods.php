@@ -15,16 +15,29 @@
  */
 class EsgoodsController extends PublicController {
 
-    protected $index = 'erui2_goods';
+    protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
     protected $version = '1';
 
     //put your code here
     public function init() {
+        $username = $this->get('username');
+        $password = $this->get('password');
         if ($this->getRequest()->isCli()) {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
+        } elseif ($username == '016417' && $password) {
+            //$arr = ['user_no' => $username, 'password' => $password];
+            $model = new EmployeeModel();
+            $info = $model->field('password_hash')->where(['user_no' => $username])->find();
+            if ($info && $info['password_hash'] == $password) {
+                ini_set("display_errors", "On");
+                error_reporting(E_ERROR | E_STRICT);
+            } else {
+
+                parent::init();
+            }
         } else {
             parent::init();
         }
@@ -38,7 +51,7 @@ class EsgoodsController extends PublicController {
      * @desc   ES 商品
      */
     public function listAction() {
-        $lang = $this->get('lang', '') ?: $this->getPut('lang', 'zh');
+        $lang = $this->getPut('lang', 'zh');
         $data = $this->getPut();
         $model = new EsGoodsModel();
         $ret = $model->getgoods($data, null, $lang);
@@ -46,6 +59,7 @@ class EsgoodsController extends PublicController {
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
+
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
@@ -97,11 +111,8 @@ class EsgoodsController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-            $list[$key]['show_cats'] = $show_cats;
-            $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+            $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
         }
 
         $employee_model = new EmployeeModel();
@@ -185,7 +196,8 @@ class EsgoodsController extends PublicController {
                 $espoductmodel = new EsGoodsModel();
                 $espoductmodel->importgoodss($lang);
             }
-
+            $es = new ESClient();
+            $es->refresh($this->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();

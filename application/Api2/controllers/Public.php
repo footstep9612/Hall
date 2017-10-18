@@ -44,7 +44,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
 
             if (!empty($userinfo)) {
-
                 $this->user = array(
                     "buyer_id" => $userinfo["buyer_id"],
                     "user_name" => $tokeninfo["user_name"],
@@ -52,6 +51,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     "id" => $userinfo["id"],
                     "token" => $token, //token
                 );
+                $this->_setUid($userinfo);
             }
         }
     }
@@ -83,6 +83,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     "id" => $userinfo["id"],
                     "token" => $token, //token
                 );
+                $this->_setUid($userinfo);
             }
         } else {
             echo json_encode(array("code" => "-104", "message" => "token不存在"));
@@ -137,7 +138,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected function _setUid($userinfo) {
         if (!defined('UID') && $userinfo) {
-            define('UID', $userinfo["id"]);
+            define('UID', $userinfo["buyer_id"]);
         }
     }
 

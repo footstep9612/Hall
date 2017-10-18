@@ -22,6 +22,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
+
         $this->headers = getHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
         //Log::write('Method:'.$this->getMethod().' Token:'.$this->getQuery('token',''),Log::INFO);
@@ -57,7 +58,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             }
             if (!empty($token)) {
                 try {
-                    $tks = explode('.', $token);
+                    //$tks = explode('.', $token);
                     $tokeninfo = JwtInfo($token); //解析token
                     $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
                     if (empty($userinfo)) {
@@ -68,6 +69,11 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
                             "token" => $token, //token
+                            "group_id" => $userinfo["group_id"],
+                            "group_org" => $userinfo["group_org"],
+                            "country_bn" => $userinfo['country_bn'],
+                            "role_id" => $userinfo['role_id'],
+                            "role_no" => $userinfo['role_no'],
                         );
                         $this->_setUid($userinfo);
                     }
@@ -223,7 +229,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
         if ($name) {
-            $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            $data = isset($this->put_data [$name]) && !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
             return $data;
         } else {
             $data = $this->put_data;

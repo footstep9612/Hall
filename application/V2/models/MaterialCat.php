@@ -14,7 +14,7 @@
 class MaterialCatModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'material_cat'; //数据表表名
     protected $langs = ['en', 'es', 'zh', 'ru'];
 
@@ -26,18 +26,6 @@ class MaterialCatModel extends PublicModel {
     public function __construct() {
         parent::__construct();
     }
-
-    /*
-     * 自动表单验证
-     */
-
-    protected $_validate = array(
-        array('lang', 'require', '语言不能为空'),
-        array('cat_no', 'require', '分类编码不能为空'),
-        array('level_no', 'number', '层级不能为空'),
-        array('name', 'require', '名称不能为空'),
-        array('status', 'require', '状态不能为空'),
-    );
 
     /**
      * 根据条件获取查询条件
@@ -119,10 +107,16 @@ class MaterialCatModel extends PublicModel {
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
         try {
-            return $this->where($where)
-                            ->order('sort_order DESC')
-                            ->field('cat_no as value,name as label,parent_cat_no')
-                            ->select();
+            $data = $this->where($where)
+                    ->order('sort_order DESC')
+                    ->field('cat_no as value,name as label,parent_cat_no')
+                    ->select();
+            if ($condition['level_no'] == 3) {
+                foreach ($data as $key => $val) {
+                    $data[$key]['label'] = $val['label'] . '-' . $val['value'];
+                }
+            }
+            return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -198,7 +192,7 @@ class MaterialCatModel extends PublicModel {
         }
         try {
             return $this->where($where)
-                            ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by')
+                            ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by,updated_at,updated_by')
                             ->find();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -289,6 +283,7 @@ class MaterialCatModel extends PublicModel {
                     ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y',]);
 
             $es_product_model = new EsProductModel();
+
             if ($lang) {
                 $es_product_model->Updatemeterialcatno($cat_no, null, $lang);
             } else {
@@ -398,7 +393,7 @@ class MaterialCatModel extends PublicModel {
      */
     public function update_data($upcondition = []) {
         $data = $this->getUpdateCondition($upcondition, defined('UID') ? UID : 0);
-        $data['created_by'] = defined('UID') ? UID : 0;
+        //   $data['created_by'] = defined('UID') ? UID : 0;
         try {
             $info = $this->info($upcondition['cat_no'], null);
             if (!$data) {
@@ -418,19 +413,25 @@ class MaterialCatModel extends PublicModel {
                 }
             }
             $this->startTrans();
-
+            $data['updated_by'] = defined('UID') ? UID : 0;
+            $data['updated_at'] = date('Y-m-d H:i:s');
             foreach ($this->langs as $lang) {
-                if (isset($upcondition[$lang])) {
+                if (isset($upcondition[$lang]) && $upcondition[$lang]['name']) {
                     $data['lang'] = $lang;
                     $data['name'] = $upcondition[$lang]['name'];
+
                     $where['lang'] = $lang;
+
                     $exist_flag = $this->Exist($where);
                     $add = $data;
                     $add['cat_no'] = $data['cat_no'];
-                    $add['status'] = self::STATUS_APPROVING;
+                    $add['status'] = self::STATUS_VALID;
+                    $add['created_by'] = defined('UID') ? UID : 0;
+                    $add['created_at'] = date('Y-m-d H:i:s');
                     $data = $this->create($data);
                     $add = $this->create($add);
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
+
                     if (!$flag) {
                         $this->rollback();
                         return false;
@@ -535,8 +536,7 @@ class MaterialCatModel extends PublicModel {
         if ($upcondition['sort_order']) {
             $data['sort_order'] = $upcondition['sort_order'];
         }
-        $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = defined('UID') ? UID : 0;
+
         return $data;
     }
 
@@ -689,7 +689,7 @@ class MaterialCatModel extends PublicModel {
         $this->data = null;
         foreach ($this->langs as $lang) {
 
-            if (isset($createcondition[$lang])) {
+            if (isset($createcondition[$lang]) && $createcondition[$lang]['name']) {
                 $data['lang'] = $lang;
                 $data['name'] = $createcondition[$lang]['name'];
                 $data = $this->create($data);
@@ -856,8 +856,13 @@ class MaterialCatModel extends PublicModel {
                 $newcat3s = [];
                 foreach ($cat3s as $val) {
                     $newcat3s[$val['cat_no']] = [
+                        'cat_no1' => '',
+                        'cat_name1' => '',
+                        'cat_no2' => '',
+                        'cat_name2' => '',
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name']];
+                        'cat_name3' => $val['name']
+                    ];
                 }
                 return $newcat3s;
             }
@@ -877,6 +882,8 @@ class MaterialCatModel extends PublicModel {
                 }
                 foreach ($cat3s as $val) {
                     $newcat3s[$val['cat_no']] = [
+                        'cat_no1' => '',
+                        'cat_name1' => '',
                         'cat_no3' => $val['cat_no'],
                         'cat_name3' => $val['name'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],

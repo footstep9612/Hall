@@ -9,7 +9,7 @@
  */
 class EmployeeModel extends PublicModel {
 
-    protected $dbName = 'erui2_sys'; //数据库名称
+    protected $dbName = 'erui_sys'; //数据库名称
     protected $tableName = 'employee'; //数据表表名
 
     const DELETE_Y = 'Y';   //删除
@@ -69,14 +69,14 @@ class EmployeeModel extends PublicModel {
         try {
             $where = [];
             if ($UserName) {
-                $where['name'] = ['like', '%' . $UserName . '%'];
+                $where['name'] = ['like', '%' . trim($UserName) . '%'];
             } else {
                 return false;
             }
             $users = $this->where($where)->field('id')->select();
             $userids = [];
             foreach ($users as $user) {
-                $userids = $user['id'];
+                $userids[] = $user['id'];
             }
             return $userids;
         } catch (Exception $ex) {
@@ -98,9 +98,9 @@ class EmployeeModel extends PublicModel {
             return false;
         }
 
-        if (!isset($condition['deleted_flag'])) {
+        /*if (!isset($condition['deleted_flag'])) {
             $condition['deleted_flag'] = self::DELETE_N;
-        }
+        }*/
 
         if (empty($field)) {
             $field = 'id,user_no,email,mobile,password_hash,name,name_en,avatar,gender,mobile2,phone,ext,remarks,status';

@@ -9,9 +9,9 @@
 
 class SinosurerateModel extends PublicModel {
 
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'sinosure_rate';
-    protected $joinTable = 'erui2_sys.employee b ON a.created_by = b.id';
+    protected $joinTable = 'erui_sys.employee b ON a.created_by = b.id';
     protected $joinField = 'a.*, b.name';
 
     public function __construct() {
@@ -37,19 +37,25 @@ class SinosurerateModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where['b.name'] = ['like', '%' . $condition['name'] . '%'];
         }
-
         if (isset($condition['keyword']) && $condition['keyword']) {
             $map = [];
             $keyword = $condition['keyword'];
             $country_model = new CountryModel();
             $bns = $country_model->getBnByName($keyword);
+
             if ($bns) {
-                $map['a.country_bn'] = ['in', $bns];
+                $bns[] = $keyword;
+                $map['a.country_bn'][] = ['in', $bns];
+
+
                 $this->_getValue($map, $condition, 'keyword', 'like', 'b.name');
                 $map['_logic'] = 'or';
                 $where['_complex'] = $map;
             } else {
-                $this->_getValue($where, $condition, 'keyword', 'like', 'b.name');
+                $map['a.country_bn'] = $keyword;
+                $this->_getValue($map, $condition, 'keyword', 'like', 'b.name');
+                $map['_logic'] = 'or';
+                $where['_complex'] = $map;
             }
         }
         if (!empty($condition['keyword'])) {
@@ -84,6 +90,11 @@ class SinosurerateModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
+    }
+
+    public function Exits($where) {
+
+        return $this->where($where)->find();
     }
 
     /**
@@ -156,7 +167,14 @@ class SinosurerateModel extends PublicModel {
             unset($condition['id']);
         }
         $condition['deleted_flag'] = isset($condition['deleted_flag']) && $condition['deleted_flag'] === 'Y' ? 'Y' : 'N';
-
+        $condition['settle_period_e_tt'] = empty($condition['settle_period_e_tt']) ? 0 : floatval($condition['settle_period_e_tt']);
+        $condition['tax_rate_e_tt'] = empty($condition['tax_rate_e_tt']) ? 0 : floatval($condition['tax_rate_e_tt']);
+        $condition['settle_period_e_lc'] = empty($condition['settle_period_e_lc']) ? 0 : floatval($condition['settle_period_e_lc']);
+        $condition['tax_rate_e_lc'] = empty($condition['tax_rate_e_lc']) ? 0 : floatval($condition['tax_rate_e_lc']);
+        $condition['settle_period_k_tt'] = empty($condition['settle_period_k_tt']) ? 0 : floatval($condition['settle_period_k_tt']);
+        $condition['tax_rate_k_tt'] = empty($condition['tax_rate_k_tt']) ? 0 : floatval($condition['tax_rate_k_tt']);
+        $condition['settle_period_k_lc'] = empty($condition['settle_period_k_lc']) ? 0 : floatval($condition['settle_period_k_lc']);
+        $condition['tax_rate_k_lc'] = empty($condition['tax_rate_k_lc']) ? 0 : floatval($condition['tax_rate_k_lc']);
         $data = $this->create($condition);
         try {
             return $this->add($data);
@@ -180,6 +198,15 @@ class SinosurerateModel extends PublicModel {
             if (isset($condition['id'])) {
                 unset($condition['id']);
             }
+            $condition['deleted_flag'] = isset($condition['deleted_flag']) && $condition['deleted_flag'] === 'Y' ? 'Y' : 'N';
+            $condition['settle_period_e_tt'] = empty($condition['settle_period_e_tt']) ? 0 : floatval($condition['settle_period_e_tt']);
+            $condition['tax_rate_e_tt'] = empty($condition['tax_rate_e_tt']) ? 0 : floatval($condition['tax_rate_e_tt']);
+            $condition['settle_period_e_lc'] = empty($condition['settle_period_e_lc']) ? 0 : floatval($condition['settle_period_e_lc']);
+            $condition['tax_rate_e_lc'] = empty($condition['tax_rate_e_lc']) ? 0 : floatval($condition['tax_rate_e_lc']);
+            $condition['settle_period_k_tt'] = empty($condition['settle_period_k_tt']) ? 0 : floatval($condition['settle_period_k_tt']);
+            $condition['tax_rate_k_tt'] = empty($condition['tax_rate_k_tt']) ? 0 : floatval($condition['tax_rate_k_tt']);
+            $condition['settle_period_k_lc'] = empty($condition['settle_period_k_lc']) ? 0 : floatval($condition['settle_period_k_lc']);
+            $condition['tax_rate_k_lc'] = empty($condition['tax_rate_k_lc']) ? 0 : floatval($condition['tax_rate_k_lc']);
             $condition['updated_by'] = defined('UID') ? UID : 0;
             $condition['updated_at'] = date('Y-m-d H:i:s');
             $data = $this->create($condition);

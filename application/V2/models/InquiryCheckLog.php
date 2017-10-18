@@ -7,7 +7,7 @@
  */
 class InquiryCheckLogModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'inquiry_check_log';
 			    
     public function __construct() {

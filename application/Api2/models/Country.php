@@ -17,7 +17,7 @@ class CountryModel extends PublicModel {
 
     //put your code here
 
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'country';
 
     public function __construct($str = '') {
@@ -111,7 +111,8 @@ class CountryModel extends PublicModel {
      */
     public function getMarketArea($country, $lang) {
         $where = array(
-            'name' => $country
+            'name' => $country,
+            'lang' => $lang
         );
         $country_bn = $this->field('bn')->where($where)->find();
 
@@ -215,6 +216,42 @@ class CountryModel extends PublicModel {
             return $result['name'];
         } catch (Exception $e) {
             return '';
+        }
+    }
+
+    /**
+     * 根据简称与语言获取国家名称
+     * @param array $bn 简称
+     * @param string $lang 语言
+     * @param string
+     */
+    public function getCountryByBns($bns = [], $lang = '') {
+        if (empty($bns) || empty($lang))
+            return '';
+
+        if (redisHashExist('Country', implode('_', $bns) . '_' . $lang)) {
+            return json_decode(redisHashGet('Country', implode('_', $bns) . '_' . $lang), true);
+        }
+        try {
+            $condition = array(
+                'bn' => ['in', $bns],
+                'lang' => $lang,
+                    // 'status'=>self::STATUS_VALID
+            );
+            $field = 'bn,name';
+            $data = $this->field($field)->where($condition)->select();
+            $result = [];
+            if ($data) {
+                foreach ($data as $item) {
+                    $result[$item['bn']] = $item['name'];
+                }
+            }
+            if ($result) {
+                redisHashSet('Country', implode('_', $bns) . '_' . $lang, json_encode($result));
+            }
+            return $result;
+        } catch (Exception $e) {
+            return [];
         }
     }
 

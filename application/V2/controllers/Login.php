@@ -30,16 +30,7 @@ class LoginController extends Yaf_Controller_Abstract {
             exit();
         }
         if(!empty($data['user_name'])){
-            if(isEmail($data['user_name'])){
-                $arr['email'] = $data['user_name'];
-            }else{
-                if(strlen($data['user_name'])==6||strlen($data['user_name'])==9){
-                    $arr['user_no'] = $data['user_name'];
-                }else{
-                    $arr['mobile'] = $data['user_name'];
-                }
-
-            }
+            $arr['user_no'] = $data['user_name'];
         }else{
             echo json_encode(array("code" => "-101", "message" => "帐号不可以都为空"));
             exit();
@@ -47,15 +38,53 @@ class LoginController extends Yaf_Controller_Abstract {
         $model = new UserModel();
         $info = $model->login($arr);
         if ($info) {
+            $info['group_id'] = array();
+            $info['group_org'] = array() ;
+            $group_model = new GroupModel();
+            $group_where['em.id']=$info['id'];
+            $list = $group_model->getlist($group_where,"");
+            if($list){
+                for($i=0;$i<count($list);$i++){
+                    $info['group_id'][] =$list[$i]['id'] ;
+                    $info['group_org'][] =$list[$i]['org'] ;
+                }
+            }
+            $info['role_id'] = array();;
+            $info['role_no'] = array(); ;
+            $role_model = new RoleModel();
+            $role_where['em.id']=$info['id'];
+            $list_role = $role_model->getlist($group_where,"");
+            if($list_role){
+                for($i=0;$i<count($list_role);$i++){
+                    $info['role_id'][] =$list_role[$i]['id'] ;
+                    $info['role_no'][] =$list_role[$i]['role_no'] ;
+                }
+            }
+            $info['country_bn'] = array();
+            $country_model = new CountryUserModel();
+            $list_country = $country_model->userCountry($info['id']);
+            if($list_country){
+                for($i=0;$i<count($list_country);$i++){
+                    $info['country_bn'][] =$list_country[$i]['bn'] ;
+                }
+            }
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['ext'] = time();
             $jwt['iat'] = time();
             $jwt['name'] = $info['name'];
             $datajson['mobile'] = $info['mobile'];
+            $datajson['id'] = $info['id'];
+            $datajson['group_id'] = $info['group_id'];
+            $datajson['group_org'] = $info['group_org'];
+            $datajson['country_bn'] = $info['country_bn'];
+            $datajson['role_id'] = $info['role_id'];
+            $datajson['role_no'] = $info['role_no'];
             $datajson['email'] = $info['email'];
             $datajson['name'] = $info['name'];
+            $datajson['password_status'] = $info['password_status'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
+            //var_dump($info);
             redisSet('user_info_'.$info['id'],json_encode($info),18000);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();

@@ -14,7 +14,7 @@
 class MarketAreaCountryModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_operation';
+    protected $dbName = 'erui_operation';
     protected $tableName = 'market_area_country';
 
     public function __construct() {
@@ -146,7 +146,7 @@ class MarketAreaCountryModel extends PublicModel {
                 'country.status' => 'VALID',
             ];
             $row = $this->alias('mac')
-                    ->join('erui2_dict.country country on country.bn=mac.country_bn')
+                    ->join('erui_dict.country country on country.bn=mac.country_bn')
                     ->field('mac.market_area_bn')
                     ->where($data)
                     ->find();

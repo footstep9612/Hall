@@ -25,7 +25,7 @@ class EsgoodsController extends PublicController {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
         } else {
-            parent::init();
+            // parent::init();
         }
     }
 
@@ -137,6 +137,38 @@ class EsgoodsController extends PublicController {
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsgoodsModel();
                 $espoductmodel->importgoodss($lang, $time);
+            }
+            $this->es->refresh($rhis->index);
+
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->setCode(-2001);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * goods 数据导入
+     */
+
+    public function importattrAction() {
+        try {
+            //$lang = 'zh';
+            set_time_limit(0);
+            ini_set('memory_limi', '1G');
+            $time = redisGet('ES_PRODUCT_TIME');
+            redisSet('ES_PRODUCT_TIME', date('Y-m-d H:i:s'));
+
+            $time = '2017-08-21 00:00:00';
+            //  $this->langs = ['en'];
+            foreach ($this->langs as $lang) {
+                $espoductmodel = new EsgoodsModel();
+                $espoductmodel->importgoodsattr($lang, $time);
             }
             $this->setCode(1);
             $this->setMessage('成功!');

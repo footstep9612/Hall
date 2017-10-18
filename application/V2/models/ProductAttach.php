@@ -12,6 +12,7 @@ class ProductAttachModel extends PublicModel {
     const STATUS_TEST = 'TEST'; //测试；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
     const STATUS_INVALID = 'INVALID';  //无效
+    const STATUS_DELETED = 'DELETED';  //无效
     const DELETED_Y = 'Y'; //删除
     const DELETED_N = 'N'; //未删除
 
@@ -48,24 +49,24 @@ class ProductAttachModel extends PublicModel {
         //根据缓存读取,没有则查找数据库并缓存
         $key_redis = md5(json_encode($condition));
         if (redisHashExist('spu_attach', $key_redis)) {
-            $result = redisHashGet('spu_attach', $key_redis);
-            return json_decode($result, true);
-        } else {
-            try {
-                $result = $this->field($field)->where($condition)->select();
-                if ($result) {
-                    $data = array();
-                    //按类型分组
-                    foreach ($result as $item) {
-                        $data[$item['attach_type']][] = $item;
-                    }
-                    redisHashSet('spu_attach', $key_redis, json_encode($data));
-                    return $data;
+            //$result = redisHashGet('spu_attach', $key_redis);
+            //return json_decode($result, true);
+        }
+
+        try {
+            $result = $this->field($field)->where($condition)->select();
+            if ($result) {
+                $data = array();
+                //按类型分组
+                foreach ($result as $item) {
+                    $data[$item['attach_type']][] = $item;
                 }
-                return array();
-            } catch (Exception $e) {
-                return false;
+                redisHashSet('spu_attach', $key_redis, json_encode($data));
+                return $data;
             }
+            return array();
+        } catch (Exception $e) {
+            return false;
         }
     }
 
@@ -82,7 +83,7 @@ class ProductAttachModel extends PublicModel {
         $data = [];
         $data['spu'] = isset($input['spu']) ? $input['spu'] : '';
         $data['attach_type'] = isset($input['attach_type']) ? $input['attach_type'] : '';
-        $data['attach_name'] = isset($input['attach_name']) ? $input['attach_name'] : '';
+        $data['attach_name'] = isset($input['attach_name']) ? $input['attach_name'] : $input['attach_url'];
         $data['attach_url'] = isset($input['attach_url']) ? $input['attach_url'] : '';
         $data['sort_order'] = isset($input['sort_order']) ? $input['sort_order'] : 0;
         $data['default_flag'] = isset($input['default_flag']) ? 'Y' : 'N';
@@ -90,7 +91,11 @@ class ProductAttachModel extends PublicModel {
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
         if (isset($input['id']) && !empty($input['id'])) {    //修改
-            return $this->where(array('id' => $input['id']))->save($data);
+            if($this->where(array('id' => $input['id']))->save($data)){
+                return  $input['id'];
+            }else{
+                return false;
+            }
         }
         return $this->add($data);
     }
@@ -108,10 +113,11 @@ class ProductAttachModel extends PublicModel {
     public function getproduct_attachsbyspus($spus, $lang = 'en') {
 
         try {
-            $product_attachs = $this->field('id,attach_type,attach_url,attach_name,attach_url,spu')
+            $product_attachs = $this->field('id,attach_type,attach_url,attach_name,attach_url,spu,default_flag')
                     ->where(['spu' => ['in', $spus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
                         'status' => 'VALID'])
+                    ->order('default_flag desc')
                     ->select();
             $ret = [];
             if ($product_attachs) {

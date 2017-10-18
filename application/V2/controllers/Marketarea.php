@@ -12,6 +12,8 @@ class MarketareaController extends PublicController {
     public function init() {
         // parent::init();
 
+        ini_set("display_errors", "On");
+        error_reporting(E_ERROR | E_STRICT);
         $this->_model = new MarketAreaModel();
     }
 
@@ -27,8 +29,8 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function listAction() {
-        $data = $this->get() ?: $this->getPut();
-        $data['lang'] = $this->get('lang', '') ?: $this->getPut('lang', '');
+        $data = $this->getPut();
+        $data['lang'] = $this->getPut('lang', '');
         $market_area_model = new MarketAreaModel();
 
         $arr = $market_area_model->getlist($data, false);
@@ -72,7 +74,7 @@ class MarketareaController extends PublicController {
      * @desc   营销区域
      */
     public function infoAction() {
-        $bn = $this->get('bn', '') ?: $this->getPut('bn', '');
+        $bn = $this->getPut('bn', '');
         if (!$bn) {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
@@ -144,7 +146,7 @@ class MarketareaController extends PublicController {
      */
     private function delcache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Market_Area_*');
+        $keys = $redis->getKeys('Market_Area*');
         $redis->delete($keys);
     }
 
@@ -164,14 +166,15 @@ class MarketareaController extends PublicController {
             $this->jsonReturn();
         } else {
             $newbn = ucwords($data['en']['name']);
-            $flag = $market_area_model->Exits(['bn' => $newbn]);
-            if ($flag) {
+            $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
+
+            if ($row) {
+
                 $this->setCode(MSG::MSG_EXIST);
                 $this->jsonReturn();
             }
         }
         $result = $market_area_model->create_data($data);
-
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -193,7 +196,17 @@ class MarketareaController extends PublicController {
         $this->_init();
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
+        $newbn = ucwords($data['en']['name']);
+        if ($newbn != $data['bn']) {
+            $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
+            if ($row) {
+
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
         $result = $market_area_model->update_data($data);
+
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -213,7 +226,7 @@ class MarketareaController extends PublicController {
      */
     public function deleteAction() {
         $this->_init();
-        $bn = $this->get('bn') ?: $this->getPut('bn');
+        $bn = $this->getPut('bn');
         if ($bn) {
             $bns = explode(',', $bn);
             if (is_array($bns)) {

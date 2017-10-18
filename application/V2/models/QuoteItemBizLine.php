@@ -7,7 +7,7 @@ class QuoteItemBizLineModel extends PublicModel
      * 数据库名称
      * @var string
      */
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
 
     /**
      * 数据表名称

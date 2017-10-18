@@ -8,7 +8,7 @@
  */
 class BizlineCatModel extends PublicModel {
 
-    protected $dbName = 'erui2_operation'; //数据库名称
+    protected $dbName = 'erui_operation'; //数据库名称
     protected $tableName = 'bizline_cat'; //数据表表名
 
     public function __construct()
@@ -230,6 +230,6 @@ class BizlineCatModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d h:i:s',time());
+        return date('Y-m-d H:i:s',time());
     }
 }

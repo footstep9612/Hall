@@ -249,6 +249,11 @@ class SupplierController extends PublicController {
         if(!empty($arr['serial_no'])){
             $arr['supplier_no'] = $arr['serial_no'];
         }
+        if(!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+        }else{
+            $arr['status'] = 'DRAFT';
+        }
         $id=$model->create_data($arr);
         if($id){
             if(isset($data['user_name'])){
@@ -267,7 +272,7 @@ class SupplierController extends PublicController {
             $supplier_attach = new SupplierAttachModel();
             if(!empty($data['license_attach_url'])) {
                 $supplier_attach_data['supplier_id'] = $id;
-                $supplier_attach_data['license_attach_url'] = $data['license_attach_url'];
+                $supplier_attach_data['attach_url'] = $data['license_attach_url'];
                 $supplier_attach_data['attach_name'] = $data['attach_name'];
                 $supplier_attach_data['attach_group'] = 'LICENSE';
                 $supplier_attach_data['created_by']= $this->user['id'];
@@ -304,7 +309,7 @@ class SupplierController extends PublicController {
             if($data['other_attach_url']){
                 for($i=0;$i<count($data['other_attach_url']);$i++){
                     $supplier_attach_other_data['supplier_id'] = $id;
-                    $supplier_attach_other_data['license_attach_url'] = $data['other_attach_url'][$i];
+                    $supplier_attach_other_data['attach_url'] = $data['other_attach_url'][$i];
                     $supplier_attach_other_data['attach_name'] = $data['other_attach_name'][$i];
                     $supplier_attach_other_data['attach_group'] = 'CERT';
                     $supplier_attach_other_data['created_by']= $this->user['id'];
@@ -373,6 +378,10 @@ class SupplierController extends PublicController {
         if(isset($data['ids'])&&isset($data['status'])){
             $arr_ids = explode(",",$data['ids']);
             $arr['status'] = $data['status'];
+            if($data['status']=='APPROVED'|| $data['status']=='APPLING'){
+                $arr['checked_by'] = $this->user['id'];
+                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            }
             for($i=0;$i<count($arr_ids);$i++){
                 $where['id'] = $arr_ids[$i];
                 $res = $model->update_data($arr,$where);
@@ -406,9 +415,6 @@ class SupplierController extends PublicController {
         }
         if(!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
-        }
-        if(!empty($data['lang'])) {
-            $arr['lang'] = $data['lang'];
         }
         if(!empty($data['lang'])) {
             $arr['lang'] = $data['lang'];
@@ -460,8 +466,15 @@ class SupplierController extends PublicController {
         if(!empty($data['employee_count'])) {
             $arr['employee_count'] = $data['employee_count'];
         }
+        if(isset($data['remarks'])){
+            $arr['remarks'] = $data['remarks'];
+        }
         if(!empty($data['status'])) {
             $arr['status'] = $data['status'];
+            if($data['status']=='APPROVED'|| $data['status']=='REJECTED'){
+                $arr['checked_by'] = $this->user['id'];
+                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            }
         }
         if(!isset($data['barnd'])) {
            $brank_arr =  explode(",",$data['brand']) ;
@@ -503,7 +516,7 @@ class SupplierController extends PublicController {
             $supplier_attach = new SupplierAttachModel();
             if(!empty($data['license_attach_url'])){
                 $where_attach['attach_group'] ='LICENSE';
-                $supplier_attach_data['license_attach_url'] = $data['license_attach_url'];
+                $supplier_attach_data['attach_url'] = $data['license_attach_url'];
                 $supplier_attach_data['attach_name'] = $data['attach_name'];
                 $supplier_attach ->update_data($supplier_attach_data,$where_attach);
             }
@@ -534,7 +547,7 @@ class SupplierController extends PublicController {
                 $supplier_attach ->deleteall(['supplier_id'=>$data['id'],'attach_group'=>'CERT']);
                 for($i=0;$i<count($data['other_attach_url']);$i++){
                     $supplier_attach_other_data['supplier_id'] = $data['id'];
-                    $supplier_attach_other_data['license_attach_url'] = $data['other_attach_url'][$i];
+                    $supplier_attach_other_data['attach_url'] = $data['other_attach_url'][$i];
                     $supplier_attach_other_data['attach_name'] = $data['other_attach_name'][$i];
                     $supplier_attach_other_data['attach_group'] = 'CERT';
                     $supplier_attach_other_data['created_by']= $this->user['id'];

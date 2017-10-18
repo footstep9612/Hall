@@ -16,7 +16,7 @@
 class MarketAreaTeamModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_operation';
+    protected $dbName = 'erui_operation';
     protected $tableName = 'market_area_team';
 
     public function __construct() {
@@ -72,10 +72,10 @@ class MarketAreaTeamModel extends PublicModel {
 
         $where['market_area_bn'] = $market_area_bn;
         $arr['market_area_bn'] = $market_area_bn;
-        $arr['market_org_id'] = $data['market_org_id'];
-        $arr['biz_tech_org_id'] = $data['biz_tech_org_id'];
-        $arr['logi_check_org_id'] = $data['logi_check_org_id'];
-        $arr['logi_quote_org_id'] = $data['logi_quote_org_id'];
+        $arr['market_org_id'] = intval($data['market_org_id']);
+        $arr['biz_tech_org_id'] = intval($data['biz_tech_org_id']);
+        $arr['logi_check_org_id'] = intval($data['logi_check_org_id']);
+        $arr['logi_quote_org_id'] = intval($data['logi_quote_org_id']);
         if ($this->Exits($where)) {
             $flag = $this->where($where)->save($arr);
             return $flag;

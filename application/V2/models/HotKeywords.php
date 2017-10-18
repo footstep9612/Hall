@@ -16,7 +16,7 @@
 class HotKeywordsModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_operation';
+    protected $dbName = 'erui_operation';
     protected $tableName = 'hot_keywords';
     protected $redis_name = 'HotKeywords';
 

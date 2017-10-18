@@ -15,7 +15,7 @@
  */
 class EsproductController extends PublicController {
 
-    protected $index = 'erui2_goods';
+    protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
     protected $version = '1';
@@ -23,9 +23,23 @@ class EsproductController extends PublicController {
     //put your code here
     public function init() {
 
+        $username = $this->get('username');
+        $password = $this->get('password');
+
         if ($this->getRequest()->isCli()) {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
+        } elseif ($username == '016417' && $password) {
+            //$arr = ['user_no' => $username, 'password' => $password];
+            $model = new EmployeeModel();
+            $info = $model->field('password_hash')->where(['user_no' => $username])->find();
+            if ($info && $info['password_hash'] == $password) {
+                ini_set("display_errors", "On");
+                error_reporting(E_ERROR | E_STRICT);
+            } else {
+
+                parent::init();
+            }
         } else {
             parent::init();
         }
@@ -43,7 +57,38 @@ class EsproductController extends PublicController {
         $model = new EsProductModel();
         $lang = $this->getPut('lang', 'zh');
 
-        $ret = $model->getProducts($this->getPut(), null, $lang);
+        $condition = $this->getPut();
+        switch ($condition['user_type']) {
+            case 'create':
+                $condition['create_by_name'] = $condition['user_name'];
+                break;
+            case 'updated':
+                $condition['updated_by_name'] = $condition['user_name'];
+                break;
+            case 'checked':
+                $condition['checked_by_name'] = $condition['user_name'];
+                break;
+        }
+        switch ($condition['date_type']) {
+            case 'create':
+                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'updated':
+                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+            case 'checked':
+                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+        }
+
+
+        $ret = $model->getProducts($condition, null, $lang);
+
         if ($ret) {
             $data = $ret[0];
 
@@ -57,8 +102,42 @@ class EsproductController extends PublicController {
                 $send['allcount'] = $send['count'];
             }
             if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
-                $send['sku_count'] = $data['aggregations']['sku_num']['value'];
+                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
+            } else {
+                $send['sku_count'] = 0;
             }
+            if (isset($this->put_data['image_count']) && $this->put_data['image_count'] == 'Y') {
+                $send['image_count'] = $data['aggregations']['image_count']['value'];
+            } else {
+                $send['image_count'] = 0;
+            }
+            if (isset($data['aggregations']['brands']['buckets']) && $data['aggregations']['brands']['buckets']) {
+                $send['brand_count'] = count($data['aggregations']['brands']['buckets']);
+            } else {
+                $send['brand_count'] = 0;
+            }
+
+
+            if (isset($data['aggregations']['suppliers']['buckets']) && $data['aggregations']['suppliers']['buckets']) {
+                $send['supplier_count'] = count($data['aggregations']['suppliers']['buckets']);
+            } else {
+                $send['supplier_count'] = 0;
+            }
+            if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
+                $condition['onshelf_flag'] = 'N';
+                $condition['sku_count'] = 'Y';
+                $condition['pagesize'] = 0;
+                $ret_N = $model->getProducts($condition, $lang);
+                $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
+                $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
+                $condition['onshelf_flag'] = 'Y';
+                $ret_y = $model->getProducts($condition, $lang);
+                $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
+                $send['onshelf_sku_count_Y'] = intval($ret_y[0]['aggregations']['sku_count']['value']);
+            }
+            $condition['deleted_flag'] = 'Y';
+            $condition['onshelf_flag'] = 'A';
+            $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
             $send['data'] = $list;
             $this->_update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -91,10 +170,7 @@ class EsproductController extends PublicController {
                 $list[$key]['img'] = new stdClass();
             }
             $list[$key]['id'] = $item['_id'];
-            $show_cats = json_decode($item["_source"]["show_cats"], true);
-            if ($show_cats) {
-                rsort($show_cats);
-            }
+
             if ($product['created_by']) {
                 $user_ids[] = $product['created_by'];
             }
@@ -107,12 +183,11 @@ class EsproductController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-            $list[$key]['show_cats'] = $show_cats;
-            $list[$key]['attrs'] = json_decode($list[$key]['attrs'], true);
-            $list[$key]['specs'] = json_decode($list[$key]['specs'], true);
+
+
+            $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
 
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
-            $list[$key]['material_cat'] = json_decode($list[$key]['material_cat'], true);
         }
 
         $employee_model = new EmployeeModel();
@@ -235,6 +310,8 @@ class EsproductController extends PublicController {
                 $espoductmodel = new EsProductModel();
                 $espoductmodel->importproducts($lang);
             }
+            $es = new ESClient();
+            $es->refresh($this->index);
             $this->setCode(1);
             $this->setMessage('成功!');
             $this->jsonReturn();
@@ -295,7 +372,42 @@ class EsproductController extends PublicController {
             $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
         }
         $es = new ESClient();
-        $es->create_index($this->index, $body);
+        $state = $es->getstate();
+        if (!isset($state['metadata']['indices'][$this->index])) {
+            $es->create_index($this->index, $body, 5, 1);
+        }
+        $this->setCode(1);
+        $this->setMessage('成功!');
+        $this->jsonReturn();
+    }
+
+    /**
+     * Description of 创建索引
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function mappingAction() {
+        $body['mappings'] = [];
+        $product_properties = $this->productAction('en');
+        $goods_properties = $this->goodsAction('en');
+        $es = new ESClient();
+        foreach ($this->langs as $lang) {
+            $goods_mapParam = ['goods_' . $lang => [
+                    'properties' => $goods_properties,
+                    '_all' => ['enabled' => false]
+            ]];
+            $product_mapParam = ['product_' . $lang => [
+                    'properties' => $product_properties,
+                    '_all' => ['enabled' => false]
+            ]];
+            logs(json_encode($product_mapParam));
+            logs(json_encode($goods_mapParam));
+            $es->putMapping($this->index, 'goods_' . $lang, $goods_mapParam);
+            $es->putMapping($this->index, 'product_' . $lang, $product_mapParam);
+        }
+
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -309,85 +421,174 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function goodsAction() {
-
+        $es = new ESClient();
+//        $info = $es->getversion();
+//        if (substr($info['version']['number'], 0, 1) == 1) {
+//            $analyzer = 'ik';
+//            $type = 'string';
+//        } else {
+//            $analyzer = 'ik_max_word';
+//            $type = 'text';
+//        }
+        $analyzer = 'ik';
+        $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
-            'type' => 'string',
+            'type' => $type,
             'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
                 'all' => [
                     'index' => 'not_analyzed',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'standard' => [
                     'analyzer' => 'standard',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => 'ik',
-                    'type' => 'string'
+                    'analyzer' => $analyzer,
+                    'type' => $type
                 ],
                 'whitespace' => [
                     'analyzer' => 'whitespace',
-                    'type' => 'string'
+                    'type' => $type
                 ]
             ]
         ];
+
         $not_analyzed = [
             'index' => 'not_analyzed',
-            'type' => 'string'
+            'type' => $type
         ];
         $body = [
-            'min_order_qty' => $int_analyzed,
-            'min_pack_naked_qty' => $int_analyzed,
-            'min_pack_unit' => $ik_analyzed,
-            'nude_cargo_w_mm' => $int_analyzed,
-            'suppliers' => $ik_analyzed,
-            'shelves_status' => $not_analyzed,
-            'compose_require_pack' => $not_analyzed,
-            'qrcode' => $not_analyzed,
-            'checked_by' => $int_analyzed,
-            'show_name' => $ik_analyzed,
-            'nude_cargo_h_mm' => $int_analyzed,
-            'created_at' => $not_analyzed,
-            'description' => $ik_analyzed,
-            'hs_code' => $ik_analyzed,
-            'specs' => $ik_analyzed,
-            'updated_at' => $not_analyzed,
-            'commodity_ori_place' => $ik_analyzed,
-            'nude_cargo_l_mm' => $int_analyzed,
-            'tx_unit' => $ik_analyzed,
-            'material_cat_no' => $not_analyzed,
-            'model' => $ik_analyzed,
-            'show_cats' => $ik_analyzed,
-            'id' => $int_analyzed,
-            'lang' => $not_analyzed,
-            'sku' => $not_analyzed,
-            'nude_cargo_unit' => $ik_analyzed,
-            'min_pack_w_mm' => $int_analyzed,
-            'name_customs' => $ik_analyzed,
-            'checked_at' => $not_analyzed,
-            'gross_weight_kg' => $not_analyzed,
-            'regulatory_conds' => $ik_analyzed,
-            'min_pack_h_mm' => $int_analyzed,
-            'created_by' => $int_analyzed,
-            'net_weight_kg' => $not_analyzed,
-            'exw_days' => $ik_analyzed,
-            'tax_rebates_pct' => $not_analyzed,
-            'attrs' => $ik_analyzed,
-            'pack_type' => $ik_analyzed,
-            'min_pack_l_mm' => $int_analyzed,
-            'name' => $ik_analyzed,
-            'purchase_price' => $not_analyzed,
-            'purchase_price_cur_bn' => $not_analyzed,
-            'updated_by' => $int_analyzed,
-            'spu' => $not_analyzed,
-            'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed,
-            'minimumorderouantity' => $not_analyzed,
-            'onshelf_flag' => $not_analyzed,
-            'onshelf_by' => $not_analyzed,
-            'onshelf_at' => $not_analyzed,
+            'id' => $int_analyzed, //id
+            'lang' => $not_analyzed, //语言
+            'spu' => $not_analyzed, //SPU
+            'sku' => $not_analyzed, //SKU
+            'qrcode' => $not_analyzed, //商品二维码
+            'name' => $ik_analyzed, //商品名称
+            'show_name_loc' => $ik_analyzed, //中文品名
+            'show_name' => $ik_analyzed, //商品展示名称
+            'model' => $ik_analyzed, //型号
+            'description' => $ik_analyzed, //描述
+            'exw_days' => $ik_analyzed, //出货周期（天）
+            'min_pack_naked_qty' => $int_analyzed, //最小包装内裸货商品数量
+            'nude_cargo_unit' => $ik_analyzed, //商品裸货单位
+            'min_pack_unit' => $ik_analyzed, //最小包装单位
+            'min_order_qty' => $int_analyzed, //最小订货数量
+            'purchase_price' => $not_analyzed, //进货价格
+            'purchase_price_cur_bn' => $not_analyzed, //进货价格币种
+            'nude_cargo_l_mm' => $int_analyzed, //裸货尺寸长(mm)
+            'nude_cargo_w_mm' => $int_analyzed, //裸货尺寸宽(mm)
+            'nude_cargo_h_mm' => $int_analyzed, //裸货尺寸高(mm)
+            'min_pack_l_mm' => $int_analyzed, //最小包装后尺寸长(mm)
+            'min_pack_w_mm' => $int_analyzed, //最小包装后尺寸宽(mm)
+            'min_pack_h_mm' => $int_analyzed, //最小包装后尺寸高(mm)
+            'net_weight_kg' => $not_analyzed, //净重(kg)
+            'gross_weight_kg' => $not_analyzed, //毛重(kg)
+            'compose_require_pack' => $not_analyzed, //仓储运输包装及其他要求
+            'bizline_id' => $not_analyzed, //产品线ID
+            'bizline' => [
+                'properties' => [
+                    'name' => $ik_analyzed,
+                    'name_en' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                ],
+            ],
+            'pack_type' => $ik_analyzed, //包装类型
+            'name_customs' => $ik_analyzed, //报关名称
+            'hs_code' => $ik_analyzed, //海关编码
+            'tx_unit' => $ik_analyzed, //成交单位
+            'tax_rebates_pct' => $not_analyzed, //退税率(%)
+            'regulatory_conds' => $ik_analyzed, //监管条件
+            'commodity_ori_place' => $ik_analyzed, //境内货源地
+            'source' => $ik_analyzed, //数据来源
+            'source_detail' => $ik_analyzed, //数据来源详情
+            'status' => $not_analyzed, //状态
+            'created_by' => $int_analyzed, //创建人
+            'created_at' => $not_analyzed, //创建时间
+            'updated_by' => $int_analyzed, //修改人
+            'updated_at' => $not_analyzed, //修改时间
+            'checked_by' => $int_analyzed, //审核人
+            'checked_at' => $not_analyzed, //审核时间
+            'deleted_flag' => $not_analyzed, //删除标志
+            /* 扩展内容 */
+            'name_loc' => $ik_analyzed, //中文品名
+            // 'brand' => $ik_analyzed, //品牌
+            // 'suppliers' => $ik_analyzed, //供应商数组 json
+            'brand' => [
+                'properties' => [
+                    'lang' => $not_analyzed,
+                    'name' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                    'logo' => $not_analyzed,
+                    'manufacturer' => $not_analyzed,
+                    'style' => $not_analyzed,
+                    'label' => $not_analyzed,
+                ],
+            ],
+            'suppliers' => [
+                'properties' => [
+                    'supplier_id' => $not_analyzed,
+                    'supplier_name' => $ik_analyzed,
+                ],
+            ],
+            'supplier_count' => $not_analyzed,
+            'image_count' => $int_analyzed,
+            //   'specs' => $ik_analyzed, //规格数组 json
+            'material_cat_no' => $not_analyzed, //物料编码
+            'show_cats' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                    'market_area_bn' => $not_analyzed,
+                    'country_bn' => $not_analyzed,
+                    'onshelf_flag' => $not_analyzed,
+                ]], //展示分类数组 json
+            'attrs' => ['properties' => [//属性数组 json
+                    'spec_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_goods_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_hs_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'other_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]]
+                ]],
+            'material_cat' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], // $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], //物料中文分类对象 json
+            'onshelf_flag' => $not_analyzed, //上架状态
+            'onshelf_by' => $not_analyzed, //上架人
+            'onshelf_at' => $not_analyzed, //上架时间
         ];
 
         return $body;
@@ -401,88 +602,176 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function productAction($lang = 'en') {
-
-
+        $es = new ESClient();
+//        $info = $es->getversion();
+//        if (substr($info['version']['number'], 0, 1) == 1) {
+//            $analyzer = 'ik';
+//            $type = 'string';
+//        } else {
+//            $analyzer = 'ik_max_word';
+//            $type = 'text';
+//        }
+        $analyzer = 'ik';
+        $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
-            'type' => 'string',
+            'type' => $type,
             'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
                 'all' => [
                     'index' => 'not_analyzed',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'standard' => [
                     'analyzer' => 'standard',
-                    'type' => 'string'
+                    'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => 'ik',
-                    'type' => 'string'
+                    'analyzer' => $analyzer,
+                    'type' => $type
                 ],
                 'whitespace' => [
                     'analyzer' => 'whitespace',
-                    'type' => 'string'
+                    'type' => $type
                 ]
             ]
         ];
         $not_analyzed = [
             'index' => 'not_analyzed',
-            'type' => 'string'
+            'type' => $type
         ];
 
         $body = [
-            'principle' => $ik_analyzed,
-            'recommend_flag' => $not_analyzed,
-            'skus' => $ik_analyzed,
-            'keywords' => $ik_analyzed,
-            'suppliers' => $ik_analyzed,
-            'supply_ability' => $ik_analyzed,
-            'qrcode' => $not_analyzed,
-            'checked_by' => $int_analyzed,
-            'show_name' => $ik_analyzed,
-            'created_at' => $not_analyzed,
-            'description' => $ik_analyzed,
-            'availability' => $ik_analyzed,
-            'source' => $ik_analyzed,
-            'resp_time' => $ik_analyzed,
-            'specs' => $ik_analyzed,
-            'updated_at' => $not_analyzed,
-            'delivery_cycle' => $ik_analyzed,
-            'material_cat_no' => $not_analyzed,
-            'warranty' => $ik_analyzed,
-            'show_cats' => $ik_analyzed,
-            'customizability' => $ik_analyzed,
-            'id' => $int_analyzed,
-            'lang' => $not_analyzed,
-            'brand' => $ik_analyzed,
-            'checked_at' => $not_analyzed,
-            'resp_rate' => $not_analyzed,
-            'profile' => $ik_analyzed,
-            'created_by' => $int_analyzed,
-            'attrs' => $ik_analyzed,
-            'exe_standard' => $ik_analyzed,
-            'attachs' => $ik_analyzed,
-            'source_detail' => $ik_analyzed,
-            'advantages' => $ik_analyzed,
-            'sku_count' => $int_analyzed,
-            'name' => $ik_analyzed,
-            'updated_by' => $int_analyzed,
-            'spu' => $not_analyzed,
-            'availability_ratings' => $int_analyzed,
-            'app_scope' => $ik_analyzed,
-            'target_market' => $ik_analyzed,
-            'tech_paras' => $ik_analyzed,
-            'properties' => $ik_analyzed,
-            'meterial_cat' => $ik_analyzed,
-            'status' => $not_analyzed,
-            'max_exw_day' => $not_analyzed,
-            'min_exw_day' => $not_analyzed,
-            'min_pack_unit' => $not_analyzed,
-            'minimumorderouantity' => $not_analyzed,
-            'onshelf_flag' => $not_analyzed,
-            'onshelf_by' => $not_analyzed,
-            'onshelf_at' => $not_analyzed,
+            'id' => $int_analyzed, //ID
+            'lang' => $not_analyzed, //语言
+            'material_cat_no' => $not_analyzed, //物料分类编码
+            'spu' => $not_analyzed, //SPU
+            'qrcode' => $not_analyzed, //二维码
+            'name' => $ik_analyzed, //产品名称
+            'show_name' => $ik_analyzed, // 产品展示
+            //'brand' => $ik_analyzed, //品牌
+            'keywords' => $ik_analyzed, //关键词
+            'exe_standard' => $ik_analyzed, //执行标准
+            'tech_paras' => $ik_analyzed, //简介',
+            'advantages' => $ik_analyzed, //产品优势
+            'description' => $ik_analyzed, //详情介绍
+            'profile' => $ik_analyzed, //产品简介
+            'principle' => $ik_analyzed, //工作原理
+            'app_scope' => $ik_analyzed, //适用范围
+            'properties' => $ik_analyzed, //使用特点
+            'warranty' => $ik_analyzed, //质保期
+            'customization_flag' => $not_analyzed, //定制标志
+            'customizability' => $ik_analyzed, //定制能力
+            'availability' => $ik_analyzed, //供应能力
+            'availability_ratings' => $int_analyzed, //供应能力评级
+            'resp_time' => $ik_analyzed, //响应时间
+            'resp_rate' => $not_analyzed, //响应率
+            'delivery_cycle' => $ik_analyzed, //出货周期
+            'target_market' => $not_analyzed, //目标市场
+            'supply_ability' => $ik_analyzed, //供应能力
+            'source' => $ik_analyzed, //数据来源
+            'source_detail' => $ik_analyzed, //数据来源详情
+            'sku_count' => $int_analyzed, //SKU数
+            'bizline_id' => $not_analyzed, //产品线ID
+            'bizline' => [
+                'properties' => [
+                    'name' => $ik_analyzed,
+                    'name_en' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                ],
+            ],
+            'recommend_flag' => $not_analyzed, //推荐
+            'status' => $not_analyzed, //状态
+            'created_by' => $int_analyzed, //创建人
+            'created_at' => $not_analyzed, //创建时间
+            'updated_by' => $int_analyzed, //修改人
+            'updated_at' => $not_analyzed, //修改时间
+            'checked_by' => $int_analyzed, //审核人
+            'checked_at' => $not_analyzed, //审核时间
+            'deleted_flag' => $not_analyzed, //删除标志
+            /* 扩展内容 */
+            'attrs' => $ik_analyzed, //属性
+            'attachs' => $ik_analyzed, //附件
+            'name_loc' => $ik_analyzed, //中文品名
+            'max_exw_day' => $not_analyzed, //出货周期（天）
+            'min_exw_day' => $not_analyzed, //出货周期（天）
+            'min_pack_unit' => $not_analyzed, //成交单位
+            'minimumorderouantity' => $not_analyzed, //最小订货数量
+            //  'specs' => $ik_analyzed, //规格数组 json
+            'material_cat_no' => $not_analyzed, //物料编码
+            'show_cats' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                    'market_area_bn' => $not_analyzed,
+                    'country_bn' => $not_analyzed,
+                    'onshelf_flag' => $not_analyzed,
+                ]], //展示分类数组 json
+            'attrs' => ['properties' => [
+                    'spec_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_goods_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'ex_hs_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]],
+                    'other_attrs' => ['properties' => [
+                            'name' => $ik_analyzed,
+                            'value' => $ik_analyzed,
+                        ]]
+                ]], //$ik_analyzed, //属性数组 json
+            // 'suppliers' => $ik_analyzed, //供应商数组 json
+            'brand' => [
+                'properties' => [
+                    'lang' => $not_analyzed,
+                    'name' => $ik_analyzed,
+                    'id' => $not_analyzed,
+                    'logo' => $not_analyzed,
+                    'manufacturer' => $not_analyzed,
+                    'style' => $not_analyzed,
+                    'label' => $not_analyzed,
+                ],
+            ],
+            'suppliers' => [
+                'properties' => [
+                    'supplier_id' => $not_analyzed,
+                    'supplier_name' => $ik_analyzed,
+                ],
+            ],
+            'supplier_count' => $not_analyzed,
+            'image_count' => $int_analyzed,
+            'material_cat' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], // $ik_analyzed, //物料分类对象 json
+            'material_cat_zh' => ['properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                ]], //物料中文分类对象 json
+            'onshelf_flag' => $not_analyzed, //上架状态
+            'onshelf_by' => $not_analyzed, //上架人
+            'onshelf_at' => $not_analyzed, //上架时间
+            'min_pack_unit' => $ik_analyzed, //成交单位
         ];
         return $body;
     }

@@ -106,4 +106,12 @@ class FinalQuoteItemAttachModel extends PublicModel {
 
 		return $this->where($where)->delete();
 	}
+
+	/**
+	 * 返回格式化时间
+	 * @author zhangyuliang
+	 */
+	public function getTime() {
+		return date('Y-m-d H:i:s',time());
+	}
 }

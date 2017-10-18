@@ -9,7 +9,7 @@
  */
 class DestDeliveryLogiModel extends PublicModel {
 
-    protected $dbName = 'erui2_config'; //数据库名称
+    protected $dbName = 'erui_config'; //数据库名称
     protected $tableName = 'dest_delivery_logi';
 
     const STATUS_VALID = 'VALID';    //有效的
@@ -27,7 +27,7 @@ class DestDeliveryLogiModel extends PublicModel {
     public function getList($country = '', $lang = '') {
 
         if (redisHashExist('DestDeliveryLogi', md5($country . '_' . $lang))) {
-            return json_decode(redisHashGet('DestDeliveryLogi', md5($country . '_' . $lang)), true);
+//            return json_decode(redisHashGet('DestDeliveryLogi', md5($country . '_' . $lang)), true);
         }
         try {
             $condition = array(
@@ -41,12 +41,13 @@ class DestDeliveryLogiModel extends PublicModel {
 
             if ($result) {
                 redisHashSet('DestDeliveryLogi', md5($country . '_' . $lang), json_encode($result));
+                return $result;
             }
-            return $result;
+            return array();
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
-            return '';
+            return false;
         }
     }
 

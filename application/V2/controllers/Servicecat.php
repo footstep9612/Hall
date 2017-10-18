@@ -195,19 +195,35 @@ class ServicecatController extends PublicController {
      */
     public function levelAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $limit = [];
-        $where = [];
-        if(!empty($data['buyer_level'])){
-            $where['buyer_level'] = $data['buyer_level'];
-        }
+        /*$limit = [];
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
         }
         if(!empty($data['currentPage'])) {
             $limit['page'] = ($data['currentPage'] - 1) * $limit['num'];
+        }*/
+        $MemberServiceModel = new BuyerLevelModel();
+        $result = $MemberServiceModel->levelInfo();
+        if(!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
+    }
+
+    /**
+     * 会员等级对应服务条款
+     * @time  2017-08-23
+     * @author klp
+     */
+    public function levelServiceAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(!isset($data['buyer_level_id']) || empty($data['buyer_level_id'])){
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+        $buyer_level_id = $data['buyer_level_id'];
         $MemberServiceModel = new MemberServiceModel();
-        $result = $MemberServiceModel->levelInfo($limit,$where);
+        $result = $MemberServiceModel->levelService($buyer_level_id);
         if(!empty($result)) {
             jsonReturn($result);
         } else {
@@ -218,48 +234,48 @@ class ServicecatController extends PublicController {
     /**
      * 会员等级新建/编辑
      * @time  2017-08-05
-     *{"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo","buyer_level":"\u4f1a\u5458","levels":[{"id":"","category":{"service_cat_id":"1"},"term":[{"service_term_id":"1","item":[{"service_item_id":"1"},{"service_item_id":"2"}]},{"service_term_id":"2","item":[{"service_item_id":"1"},{"service_item_id":"2"}]}]}]}
+     *
      * @author klp
      */
     public function editLevelAction(){
         /* $this->put_data = [
-              'buyer_level'=>'会员',
-            'levels'=>[
-                     0=>[
-                            'category'=>[
-                                "service_cat_id"=> "1",
+                'buyer_level_id'=>'1',
+              'levels'=>[
+                       0=>[
+                              'category'=>[
+                                  "service_cat_id"=> "1",
+                                  "term"=> [
+                                      0=>[
+                                          "service_term_id"=> "1",
+                                          "item"=> [
+                                              0=>[
+                                                  "service_item_id"=> "1",
+                                                  "id"=> "34",
+                                              ],
+                                              1=>[
+                                                  "service_item_id"=> "2",
+                                                  "id"=> "35",
+                                              ]
+                                          ]
+                                      ],
+                                      1=>[
+                                          "service_term_id"=> "2",
+                                          "item"=> [
+                                              0=>[
+                                                  "service_item_id"=> "1",
+                                                  "id"=> "36",
+                                              ],
+                                              1=>[
+                                                  "service_item_id"=> "2",
+                                                  "id"=> "37",
+                                              ]
+                                          ]
+                                      ]
+                                   ],
                                 ],
-                                "term"=> [
-                                    0=>[
-                                        "service_term_id"=> "1",
-                                        "item"=> [
-                                            0=>[
-                                                "service_item_id"=> "1",
-                                                "id"=> "34",
-                                            ],
-                                            1=>[
-                                                "service_item_id"=> "2",
-                                                "id"=> "35",
-                                            ]
-                                        ]
-                                    ],
-                                    1=>[
-                                        "service_term_id"=> "2",
-                                        "item"=> [
-                                            0=>[
-                                                "service_item_id"=> "1",
-                                                "id"=> "36",
-                                            ],
-                                            1=>[
-                                                "service_item_id"=> "2",
-                                                "id"=> "37",
-                                            ]
-                                        ]
-                                    ]
-                                 ],
-                              ],
-                     ]
-            ];   */
+                           ],
+                       ]
+              ];     */
         //获取用户信息
         $userInfo = getLoinInfo();
         $MemberServiceModel = new MemberServiceModel();
@@ -277,17 +293,16 @@ class ServicecatController extends PublicController {
 
     public function deleteLevelAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data['id'] = '1';//测试
-        if(empty($data['id'])){
+        if(empty($data['buyer_level_id'])){
             $datajson['code'] = -101;
-            $datajson['message'] = '用户等级i[id]不可为空!';
+            $datajson['message'] = '用户等级[buyer_level_id]不可为空!';
             $this->jsonReturn($datajson);
         }
         $MemberServiceModel = new MemberServiceModel();
-        $res = $MemberServiceModel->delData($data['id']);
+        $res = $MemberServiceModel->delData($data['buyer_level_id']);
         if($res){
             $datajson['code'] = 1;
-            $datajson['data'] = $res;
+            $datajson['data'] = '成功!';
         }else{
             $datajson['code'] = -104;
             $datajson['message'] = '失败!';
@@ -303,6 +318,20 @@ class ServicecatController extends PublicController {
     public function serviceInfoAction(){
         $ServiceCatModel = new ServiceCatModel();
         $result = $ServiceCatModel->getAllService();
+        if(!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
+    /**
+     * 会员服务  --门户
+     * @author klp
+     */
+    public function LevelInfoAction(){
+        $BuyerLevelModel = new BuyerLevelModel();
+        $result = $BuyerLevelModel->getLevelService();
         if(!empty($result)) {
             jsonReturn($result);
         } else {

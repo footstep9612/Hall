@@ -8,7 +8,6 @@
  */
 class GoodsController extends PublicController {
 
-//class GoodsController extends Yaf_Controller_Abstract{
     private $input;
 
     public function init() {
@@ -37,15 +36,35 @@ class GoodsController extends PublicController {
      * @author klp
      */
     public function skuInfoAction() {
-//        $this->put_data = [
-//
-//            'sku'=> '3303060000010001',
-//            'lang'=> 'en',
-//
-//        ];
         $goodsModel = new GoodsModel();
         $result = $goodsModel->getSkuInfo($this->put_data);
         $this->returnInfo($result);
+    }
+
+    /**
+     * 获取用户创建的第一个sku信息
+     * @author klp
+     */
+    public function getFirstSkuAction() {
+        $goodsModel = new GoodsModel();
+        $arr = [];
+        $result = $goodsModel->getSku($this->user,$this->put_data);
+        if($result){
+            $data['sku'] = $result[0]['sku'];
+            $res = $goodsModel->getSkuInfo($data);
+
+            $goodsModel = new GoodsAttachModel();
+            $attach = $goodsModel->getSkuAttachsInfo($data);
+
+            $GoodsCostPriceModel = new GoodsCostPriceModel();
+            $supplierCost= $GoodsCostPriceModel->getInfo($data);
+            if($res){
+                $res['attachs'] = $attach ? $attach : [];
+                $res['supplier_cost'] = $supplierCost ? $supplierCost : [];
+                $arr = $res;
+            }
+        }
+        jsonReturn($arr);
     }
 
     /**
@@ -69,8 +88,8 @@ class GoodsController extends PublicController {
     public function skuAttachsInfoAction() {
         $goodsModel = new GoodsAttachModel();
         $result = $goodsModel->getSkuAttachsInfo($this->put_data);
-        if($result === false) {
-            jsonReturn('',ErrorMsg::FAILED);
+        if ($result === false) {
+            jsonReturn('', ErrorMsg::FAILED);
         } else {
             jsonReturn($result);
         }
@@ -99,9 +118,9 @@ class GoodsController extends PublicController {
     public function supplierCostInfoAction() {
         $GoodsCostPriceModel = new GoodsCostPriceModel();
         $result = $GoodsCostPriceModel->getInfo($this->put_data);
-        if($result === false){
-            jsonReturn('',ErrorMsg::FAILED);
-        }else{
+        if ($result === false) {
+            jsonReturn('', ErrorMsg::FAILED);
+        } else {
             jsonReturn($result);
         }
     }
@@ -125,15 +144,55 @@ class GoodsController extends PublicController {
      *          attachs=>[]
      *          supplier_cost=>[]
      * ]
-     * {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ijk4IiwiZXh0IjoxNDk5MjM2NTE2LCJpYXQiOjE0OTkyMzY1MTYsIm5hbWUiOiJcdTUyMThcdTY2NTYifQ.CpeZKj2ar7OradKomSuMzeIYF6M1ZcWLHw8ko81bDJo",
-      "sku":"69460806","zh":{"lang":"zh","spu":"8832211","name":"888123","show_name":"123","attrs":{"spec_attrs":[{"attr_name":"8121","attr_value":"1","value_unit":"1","spec_flag":"Y"}],"ex_goods_attrs":[{"attr_name":"9212","attr_value":"2","value_unit":"2","goods_flag":"Y"}],"ex_hs_attrs":[{"attr_name":"333","attr_value":"3","value_unit":"3","hs_flag":"Y"}],"other_attrs":[{"attr_name":"444","attr_value":"4","value_unit":"4"}]}},"attachs":[{"supplier_id":"11223","attach_type":"","attach_name":"","attach_url":"a\/b\/c.png","sort_order":"0"}],"supplier_cost":[{"supplier_id":"112123","min_purchase_qty":1}]}
+     *
      *  @return sku编号
      * @author  klp  2017/7-13
      */
     public function editSkuAction() {
         $goodsModel = new GoodsModel();
         $result = $goodsModel->editSku($this->put_data);
+        if ($result) {
+            $this->updateEsgoods($this->put_data, $result);
+        }
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            if ($this->put_data[$lang]['spu']) {
+                $this->updateEsproduct([$lang => $lang], $this->put_data[$lang]['spu']);
+            }
+        }
         $this->returnInfo($result);
+    }
+
+    /*
+     * 更新ESproduct
+     */
+
+    public function updateEsproduct($input, $spu) {
+        $es_product_model = new EsProductModel();
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            if (isset($input[$lang]) && $input[$lang]) {
+                $es_product_model->create_data($spu, $lang);
+            } elseif (empty($input)) {
+                $es_product_model->create_data($spu, $lang);
+            }
+        }
+    }
+
+    /*
+     * 更新ESgoods
+     */
+
+    public function updateEsgoods($input, $sku) {
+        $es_product_model = new EsGoodsModel();
+        $langs = ['en', 'zh', 'es', 'ru'];
+        foreach ($langs as $lang) {
+            if (isset($input[$lang]) && $input[$lang]) {
+                $flag = $es_product_model->create_data($sku, $lang);
+            } elseif (empty($input)) {
+                $flag = $es_product_model->create_data($sku, $lang);
+            }
+        }
     }
 
     /**
@@ -173,6 +232,16 @@ class GoodsController extends PublicController {
         }
         $goodsModel = new GoodsModel();
         $result = $goodsModel->modifySkuStatus($this->put_data);
+
+        if ($result) {
+            if ($this->put_data['lang']) {
+                $lang = $this->put_data['lang'];
+                $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);
+            } else {
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
+        }
+
         $this->returnInfo($result);
     }
 
@@ -195,6 +264,15 @@ class GoodsController extends PublicController {
         }
         $goodsModel = new GoodsModel();
         $result = $goodsModel->deleteSkuReal($this->put_data);
+
+        if ($result === true) {
+            if ($this->put_data['lang']) {
+                $lang = $this->put_data['lang'];
+                $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);
+            } else {
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
+        }
         $this->returnInfo($result);
     }
 
@@ -220,6 +298,11 @@ class GoodsController extends PublicController {
         $gattach = new GoodsAttachModel();
         $resAttach = $gattach->editSkuAttach($this->put_data);
         if ($resAttach) {
+
+            if ($resAttach['code'] == 1) {
+
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
             $this->jsonReturn($resAttach);
         } else {
             jsonReturn('', -1, '失败!');
@@ -237,6 +320,11 @@ class GoodsController extends PublicController {
 //        $this->put_data = $this->getPut('sku');
         $resAttach = $gattach->deleteSkuAttach($this->put_data);
         if ($resAttach) {
+
+            if ($resAttach['code'] == 1) {
+
+                $this->updateEsgoods(null, $this->put_data['sku']);
+            }
             $this->jsonReturn($resAttach);
         } else {
             jsonReturn('', -1, '失败!');
@@ -444,6 +532,89 @@ class GoodsController extends PublicController {
                 'price_validity' => '',
             ]
         ];
+    }
+
+    /**
+     * 导出模板
+     */
+    public function exportTempAction(){
+        $goodsModel = new GoodsModel();
+        $localDir =$goodsModel ->exportTemp();
+        if($localDir){
+            jsonReturn($localDir);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 产品导出
+     */
+    public function exportAction() {
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->export($this->put_data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 产品导出csv
+     */
+    public function exportCsvAction(){
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->exportCsv($this->put_data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 导入
+     */
+    public function importAction(){
+        if (empty($this->put_data['spu']) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+        $process = isset($this->put_data['process']) ? 1 : '';
+
+        $goodsModel = new GoodsModel();
+        $localDir =$goodsModel ->import($this->put_data['spu'],$this->put_data['xls'],$this->put_data['lang'],$process);
+        if($localDir){
+            jsonReturn($localDir);
+        }else{
+            jsonReturn('',ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * zip导入
+     * @param xls zip文件fastdfs地址
+     */
+    public function zipImportAction(){
+        if (empty($this->put_data['xls'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->zipImport2($this->put_data['xls']);
+        if ($result !== false) {
+            $error = '';
+            if (!empty($result['failds'])) {
+                foreach ($result['failds'] as $e) {
+                    $error .= '[' . $e['item'] . ']失败：' . $e['hint'] . ';';
+                }
+            }
+            $result['failds'] = $error;
+            //$str = '成功导入'.$result['succes_lang'].'条，spu'.$result['sucess'].'个；'.$error;
+            jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
     }
 
 }

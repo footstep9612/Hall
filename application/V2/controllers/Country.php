@@ -12,6 +12,7 @@ class CountryController extends PublicController {
     public function init() {
         ini_set("display_errors", "off");
         error_reporting(E_ERROR | E_STRICT);
+
         $this->es = new ESClient();
     }
 
@@ -24,6 +25,9 @@ class CountryController extends PublicController {
      */
 
     public function listAction() {
+
+
+
         $data = $this->getPut();
         $data['lang'] = $this->getPut('lang', 'zh');
         $country_model = new CountryModel();
@@ -50,7 +54,7 @@ class CountryController extends PublicController {
 
         $data['lang'] = $this->getPut('lang', 'zh');
         $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data, 'c.id desc', false);
+        $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
 
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);

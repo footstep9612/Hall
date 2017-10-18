@@ -23,7 +23,13 @@ class RoleController extends PublicController {
         $limit = [];
         $where = [];
         if(!empty($data['name'])){
-            $where['name'] = array('like','%'.$data['name'].'%');
+            $where['role.name'] = array('like','%'.$data['name'].'%');
+        }
+        if(!empty($data['role_group'])){
+            $where['role.role_group'] = $data['role_group'];
+        }
+        if(!empty($data['role_no'])){
+            $where['role.role_no'] = $data['role_no'];
         }
         if(!empty($data['pageSize'])){
             $limit['num'] = $data['pageSize'];
@@ -31,6 +37,13 @@ class RoleController extends PublicController {
         if(!empty($data['currentPage'])){
             $limit['page'] = ($data['currentPage']-1)* $limit['num'];
         }
+        //判断用户可分配权限
+        if($data['is_show']==1){
+            if($this->user['id']!=1){
+                $where['role.admin_show'] = ['exp', ' NOT IN (1) '];
+            }
+        }
+        $where['role.deleted_flag'] = "N";
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where,$limit);
         if($limit){
@@ -46,6 +59,51 @@ class RoleController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+    public function roleurllistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $limit = [];
+        $model_url_perm = new UrlPermModel();
+        if($data['id']){
+            $arr['id'] = $data['id'];
+        }else{
+            $datajson['code'] = -102;
+            $datajson['message'] = '角色id不能为空!';
+            $this->jsonReturn($datajson);
+        }
+        $arr['parent_id'] = 0;
+        $model_rolo = new RoleModel();
+        $arr_data = $model_rolo->getRoleslist( $arr['id']);
+        $res = $this -> get_roleurlperm_children($arr_data,0);
+        if(!empty($data)){
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '数据为空!';
+        }
+
+        $this->jsonReturn($datajson);
+    }
+    //递归获取子记录
+    function get_roleurlperm_children($a,$pid =null,$employee=null){
+        if(!$pid){
+            $pid =$a[0]['parent_id'];
+        }
+        $tree = array();
+        foreach($a as $v){
+            $v['check']= false;
+            if($v['parent_id'] == $pid){
+                $v['children'] = $this->get_roleurlperm_children($a,$v['func_perm_id'],$employee); //递归获取子记录
+                if($v['children'] == null ){
+                    unset($v['children']);
+                }
+                $tree[] = $v;
+            }
+        }
+        return $tree;
+    }
+
     public function roleuserAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
@@ -146,8 +204,8 @@ class RoleController extends PublicController {
             $this->jsonReturn($datajson);
         }
         $model_rolo = new RoleModel();
+        $data['created_by']=$this->user['id'];
         $id = $model_rolo->create_data($data);
-
         if(!empty($id)){
             if($data['url_perm_ids']){
                 $model_role_access_perm = new RoleAccessPermModel();
@@ -159,7 +217,7 @@ class RoleController extends PublicController {
                 $model_role_user = new RoleUserModel();
                 $role_user_arr['role_user_ids'] = $data['role_user_ids'];
                 $role_user_arr['role_id'] = $id;
-                $model_role_user->update_datas($role_arr);
+                $model_role_user->update_datas($role_user_arr);
             }
             $datajson['code'] = 1;
             $datajson['data']['id'] = $id;
@@ -170,7 +228,30 @@ class RoleController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    public function addroleAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty( $data['user_id'])){
+            $datajson['code'] = -101;
+            $datajson['message'] = '用户id不可为空!';
+            $this->jsonReturn($datajson);
+        }
+        $user_id = $data['user_id'];
+        if(!empty($user_id)){
+            if( $data['role_ids']){
+                $model_role_user = new RoleUserModel();
+                $role_user_arr['user_id'] = $user_id;
+                $role_user_arr['role_ids'] = $data['role_ids'];
+                $model_role_user->update_role_datas($role_user_arr);
+            }
+            $datajson['code'] = 1;
+            $datajson['message'] = "成功";
+        }else{
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = '添加失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if(empty($data)){
@@ -185,26 +266,19 @@ class RoleController extends PublicController {
         }else{
             $where['id'] = $data['id'];
             $role_arr['role_id'] = $data['id'];
-            $role_user_arr['role_id'] = $data['id'];
-
-        }
-        if(isset($data['name'])){
-            $arr['name'] = $data['name'];
-        }
-        if(isset($data['remarks'])){
-            $arr['remarks'] = $data['remarks'];
-        }
-        if(isset($data['status'])){
-            $arr['status'] = $data['status'];
         }
         $model_rolo = new RoleModel();
-        $model_rolo->update_data($arr,$where);
+        $data['created_by']=$this->user['id'];
+        $model_rolo->update_data($data,$where);
         $model_role_access_perm = new RoleAccessPermModel();
         $role_arr['url_perm_ids'] = $data['url_perm_ids'];
         $model_role_access_perm->update_datas($role_arr);
-        $model_role_user = new RoleUserModel();
-        $role_user_arr['role_user_ids'] = $data['role_user_ids'];
-        $model_role_user->update_datas($role_user_arr);
+//        if(isset( $data['role_user_ids'])){
+//            $model_role_user = new RoleUserModel();
+//            $role_user_arr['role_id'] = $data['id'];
+//            $role_user_arr['role_user_ids'] = $data['role_user_ids'];
+//            $model_role_user->update_datas($role_user_arr);
+//        }
         $datajson['code'] = 1;
         $datajson['message'] = '操作完成!';
         $this->jsonReturn($datajson);

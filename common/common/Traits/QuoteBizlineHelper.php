@@ -323,64 +323,64 @@ trait QuoteBizlineHelper{
      */
     public static function submitToManager($request){
 
-        $inquiry = new InquiryModel();
-        $status = $inquiry->where(['serial_no'=>$request['serial_no']])->getField('status');
-        if ($status=="QUOTED_BY_BIZLINE"){
-            return ['code'=>'-104','message'=>'不能重复提交!'];
-        }
-
-        $inquiry->startTrans();
-        $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
-            'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
-            'goods_quote_status'=>'QUOTED'//当前报价的状态
-        ]);
-
-        //更改报价的状态(quote表)
-        $quoteModel = new QuoteModel();
-        $quoteModel->startTrans();
-        $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
-            'status' => 'QUOTED_BY_BIZLINE'
-        ]);
-
-        //数据回写(从quote_item_form到quote_item)
-        $quoteItemFormModel = new QuoteItemFormModel();
-        $fields = ['quote_item_id,brand,supplier_id,quote_unit,quote_qty,purchase_unit_price,purchase_price_cur_bn,net_weight_kg,gross_weight_kg,package_size,package_mode,goods_source,stock_loc,exw_days,delivery_days,period_of_validity,reason_for_no_quote'];
-        $quoteItems = $quoteItemFormModel->where(['quote_id'=>$request['quote_id']])->field($fields)->select();
-
-        //p($quoteItems);
-
-        $quoteItemModel = new QuoteItemModel();
-        $quoteItemModel->startTrans();
-        $quoteItemResult = true;
-        foreach ($quoteItems as $quote=>$item){
-            $result = $quoteItemModel->where(['id'=>$item['quote_item_id']])->save($quoteItemModel->create($item));
-            //p($result);
-            //p($quoteItemModel->getLastSql());
-            if (!$result) {
-                $quoteItemResult = false;
-                break;
-            }
-        }
-
-        //更改产品线报价的状态
+        //更改产品线报价的状态(quote_bizline)
         $quoteBizlineModel = new QuoteBizLineModel();
         $quoteBizlineModel->startTrans();
-        $quoteBizlineResult = $quoteBizlineModel->where(['quote_id'=>$request['quote_id']])->save(['status'=>'APPROVED']);
+        $quoteBizlineResult = $quoteBizlineModel->where(['id'=>$request['quote_bizline_id']])->save(['status'=>'APPROVED']);
 
-        if ($inquiryResult && $quoteResult && $quoteBizlineResult && $quoteItemResult){
-            $inquiry->commit();
-            $quoteModel->commit();
+        //更改产品线报价单项的状态(quote_item_form)
+        $quoteItemFormModel = new QuoteItemFormModel();
+        $quoteItemFormModel->startTrans();
+        $quoteItemFormResult = $quoteItemFormModel->where(['quote_bizline_id'=>$request['quote_bizline_id']])->save([
+            'status'=>'APPROVED'
+        ]);
+
+        $where = "quote_id = ".$request['quote_id']." and (status='NOT_QUOTED' OR status='REJECTED')";
+
+        $quoteBizlineItemsCount = $quoteBizlineModel->where($where)->count('id');
+
+        //判断多个产品线报价
+        if ($quoteBizlineItemsCount>0){
             $quoteBizlineModel->commit();
-            $quoteItemModel->commit();
-            return ['code'=>'1','message'=>'成功!'];
+            $quoteItemFormModel->commit();
+            return ['code'=>'1','message'=>'提交成功!'];
+
         }else{
-            $inquiry->rollback();
-            $quoteModel->rollback();
-            $quoteBizlineModel->rollback();
-            $quoteItemModel->rollback();
-            return ['code'=>'-104','message'=>'失败!'];
+
+            $inquiry = new InquiryModel();
+            //更改询单的状态(inquiry)
+            $inquiry->startTrans();
+            $inquiryResult = $inquiry->where(['serial_no'=>$request['serial_no']])->save([
+                'status'=>'QUOTED_BY_BIZLINE',//询单(项目)的状态
+                'goods_quote_status'=>'QUOTED'//当前报价的状态
+            ]);
+
+            //更改报价的状态(quote)
+            $quoteModel = new QuoteModel();
+            $quoteModel->startTrans();
+            $quoteResult = $quoteModel->where(['id'=>$request['quote_id']])->save([
+                'status' => 'QUOTED_BY_BIZLINE'
+            ]);
+
+
+            if ($inquiryResult && $quoteResult && $quoteBizlineResult && $quoteItemFormResult){
+                $inquiry->commit();
+                $quoteModel->commit();
+                $quoteBizlineModel->commit();
+                $quoteItemFormModel->commit();
+                return ['code'=>'1','message'=>'提交成功!'];
+            }else{
+                $inquiry->rollback();
+                $quoteModel->rollback();
+                $quoteBizlineModel->rollback();
+                $quoteItemFormModel->rollback();
+                return ['code'=>'-104','message'=>'提交失败!'];
+            }
+
         }
+
     }
+
 
     /**
      * 产品线报价->项目经理->提交物流报价

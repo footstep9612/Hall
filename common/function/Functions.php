@@ -870,6 +870,7 @@ function redisHashSet($name, $key, $value, $Expire = null) {
         return false;
     }
 
+
     if ($reids->hashExists($name, $key)) {
         $reids->hashDel($name, $key);
     }
@@ -897,6 +898,7 @@ function redisHashSet($name, $key, $value, $Expire = null) {
 
 function redisDel($name) {
     $reids = new phpredis();
+
     if (strpos('*', $name) !== false) {
         $keys = $reids->getKeys($name);
     } else {
@@ -921,6 +923,7 @@ function redisDel($name) {
 
 function redisHashDel($name, $key) {
     $reids = new phpredis();
+
     if ($reids->hashDel($name, $key)) {
         return true;
     } else {
@@ -939,6 +942,7 @@ function redisHashDel($name, $key) {
 
 function redisHashGet($name, $key) {
     $reids = new phpredis();
+
     $string = $reids->hashGet($name, $key);
     if ($string) {
         return $string;
@@ -958,6 +962,7 @@ function redisHashGet($name, $key) {
 
 function redisHashExist($name, $key) {
     $reids = new phpredis();
+
     if ($reids->hashExists($name, $key)) {
         return true;
     } else {
@@ -983,6 +988,7 @@ function redisSet($name, $value, $second = 0) {
     if (empty($value) && !is_string($value)) {
         return false;
     }
+
     if ($reids->exists($name)) {
         $reids->delete($name);
     }
@@ -1010,6 +1016,7 @@ function redisSet($name, $value, $second = 0) {
 
 function redisGet($name) {
     $reids = new phpredis();
+
     $result = $reids->get($name);
     if ($result) {
         return $result;
@@ -1029,6 +1036,7 @@ function redisGet($name) {
 
 function redisExist($name) {
     $reids = new phpredis();
+
     if ($reids->exists($name)) {
         return true;
     } else {
@@ -1737,4 +1745,44 @@ function C($name = null, $value = null, $default = null) {
         return null;
     }
     return null; // 避免非法参数
+}
+
+/**
+ * 上传文件至FastDFS
+ * @param string $file 本地文件信息
+ * @param string $url  上传接口地址
+ **/
+function postfile($data, $url, $timeout = 30) {
+    $cfile = new \CURLFile($data['tmp_name'], $data['type'], $data['name']);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, ['upFile' => $cfile]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+        print_r(curl_error($ch));
+        Log::write('Curl error: ' . curl_error($ch), LOG_ERR);
+        return [];
+    }
+    curl_close($ch);
+    $cfile = null;
+    unset($cfile);
+    return json_decode($response, true);
+}
+
+/**
+ * 编码转换成gbk
+ * @param $data 数据数组
+ */
+function toGbk($data=[]){
+    $return = [];
+    foreach($data as $k=>$r){
+        $return[$k] = iconv('UTF-8', 'GBK', $r);
+    }
+    return $return;
 }
