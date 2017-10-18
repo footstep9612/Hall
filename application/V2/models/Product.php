@@ -842,7 +842,7 @@ class ProductModel extends PublicModel {
                 //把导出的文件上传到文件服务器上
                 $server = Yaf_Application::app()->getConfig()->myhost;
                 $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-                $url = $server. '/V2/Uploadfile/upload';
+                $url = $server . '/V2/Uploadfile/upload';
                 $data['tmp_name'] = $localDir;
                 $data['type'] = 'application/excel';
                 $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
@@ -853,9 +853,15 @@ class ProductModel extends PublicModel {
                     redisHashSet('spu','sputemplate',json_encode($data));
                     return $data;
                 }
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localDir.' 上传到FastDFS失败', Log::INFO);
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
+                return false;
+            } else {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:' . $localDir . ' 模板生成失败', Log::INFO);
                 return false;
             }
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Error: :' . $e . getMessage(), Log::ERR);
+            return false;
         }
     }
 
@@ -1038,7 +1044,7 @@ class ProductModel extends PublicModel {
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
         $objPHPExcel = $objReader->load($localFile);    //加载文件
         $data = $objPHPExcel->getSheet(0)->toArray();
-        if(is_array($data)){
+        if (is_array($data)) {
             $success = $faild = 0;
             $objPHPExcel->setActiveSheetIndex(0)
                 ->setCellValue('N1', '导入结果');
@@ -1146,12 +1152,12 @@ class ProductModel extends PublicModel {
                     );
                     $exist = $this->field('spu')->where($condition)->find();
                     if ($exist) {
-                        if(empty($input_spu)){    //存在且没有传递spu 提示错误
+                        if (empty($input_spu)) {    //存在且没有传递spu 提示错误
                             $faild ++;
                             $objPHPExcel->setActiveSheetIndex(0)
                                 ->setCellValue('N'.($key+1), '操作失败[已存在]');
                             continue;
-                        }else{    //存在且传递了spu 则按修改操作
+                        } else {    //存在且传递了spu 则按修改操作
                             $workText = '修改';
                             $condition_update = array(
                                 'spu' => $input_spu,
@@ -1159,13 +1165,13 @@ class ProductModel extends PublicModel {
                             );
                             $result = $this->where($condition_update)->save($data_tmp);
                         }
-                    }else{
+                    } else {
                         $workText = '新增';
                         $input_spu = $data_tmp['spu'] = $this->createSpu($r[3]);    //生成spu
                         $result = $this->add($this->create($data_tmp));
                         //解锁
-                        if(file_exists(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock')){
-                            unlink(MYPATH . '/public/tmp/'.$data_tmp['spu'].'.lock');
+                        if (file_exists(MYPATH . '/public/tmp/' . $data_tmp['spu'] . '.lock')) {
+                            unlink(MYPATH . '/public/tmp/' . $data_tmp['spu'] . '.lock');
                         }
                     }
 
@@ -1178,12 +1184,12 @@ class ProductModel extends PublicModel {
 
                         //更新es
                         $es_product_model->create_data($input_spu, $lang);
-                    }else{
+                    } else {
                         $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('N'.($key+1), $workText.'操作失败');
                         $faild ++;
                     }
-                }catch (Exception $e){
+                } catch (Exception $e) {
                     $objPHPExcel->setActiveSheetIndex(0)
                         ->setCellValue('N'.($key+1), '操作失败-请检查数据');
                     $faild ++;
@@ -1192,20 +1198,19 @@ class ProductModel extends PublicModel {
             }
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
             $objWriter->save($localFile);    //文件保存
-
             //把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-            $url = $server. '/V2/Uploadfile/upload';
-            $data_fastDFS['tmp_name']=$localFile;
-            $data_fastDFS['type']='application/excel';
-            $data_fastDFS['name']= pathinfo($localFile,PATHINFO_BASENAME);
-            $fileId = postfile($data_fastDFS,$url);
-            if($fileId){
+            $url = $server . '/V2/Uploadfile/upload';
+            $data_fastDFS['tmp_name'] = $localFile;
+            $data_fastDFS['type'] = 'application/excel';
+            $data_fastDFS['name'] = pathinfo($localFile, PATHINFO_BASENAME);
+            $fileId = postfile($data_fastDFS, $url);
+            if ($fileId) {
                 unlink($localFile);
-                return array('success'=>$success, 'faild' => $faild, 'url' => $fastDFSServer.$fileId['url'], 'name' => $fileId['name']);
+                return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
             }
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localFile.' 上传到FastDFS失败', Log::INFO);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
             return false;
         }
         return false;
