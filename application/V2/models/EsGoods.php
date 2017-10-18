@@ -211,12 +211,12 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
 
-
+        $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
@@ -496,7 +496,7 @@ class EsGoodsModel extends Model {
                     $goods = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]])
                                     ->limit(0, 100)->order('id DESC')->select();
                 }
-                echo microtime(true) - $time1, "|r\n";
+
                 $spus = $skus = [];
 
                 if ($goods) {
@@ -533,6 +533,9 @@ class EsGoodsModel extends Model {
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 echo '<pre>';
+//                $updateParams = [];
+//                $updateParams['index'] = $this->dbName;
+//                $updateParams['type'] = 'goods_' . $lang;
                 foreach ($goods as $key => $item) {
                     $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
                     if ($key === 99) {
@@ -542,6 +545,10 @@ class EsGoodsModel extends Model {
                     ob_flush();
                     flush();
                 }
+                echo microtime(true) - $time1, "\r\n";
+                sleep(1);
+//                $flag = $es->bulk($updateParams);
+//                var_dump($flag);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -607,7 +614,15 @@ class EsGoodsModel extends Model {
         } else {
             $body['name_loc'] = '';
         }
-        $body['attachs'] = $this->_getValue($attachs, $sku, [], 'json');
+
+        if (isset($attachs[$sku])) {
+            $body['attachs'] = json_encode($attachs[$sku], 256);
+            $body['image_count'] = isset($attachs[$sku]['BIG_IMAGE']) ? count($attachs[$sku]['BIG_IMAGE']) : 0;
+        } else {
+            $body['attachs'] = '[]';
+            $body['image_count'] = 0;
+        }
+
         if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
             $attrs = $goods_attrs[$sku];
             $attrs = $this->_setattrs($attrs);
@@ -660,13 +675,22 @@ class EsGoodsModel extends Model {
 
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
+
         if ($es_goods) {
+
+//            $updateParams['body'][] = ['update' => ['_id' => $sku]];
+//            $updateParams['body'][] = ['doc' => $body];
+            // return $updateParams;
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
             if (!isset($flag['_version'])) {
                 LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
                 LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
             }
         } else {
+
+//            $updateParams['body'][] = ['create' => ['_id' => $sku]];
+//            $updateParams['body'][] = [$body];
+            // return $updateParams;
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
             if (!isset($flag['created'])) {
                 LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
@@ -1117,9 +1141,11 @@ class EsGoodsModel extends Model {
             $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
 
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
+
             foreach ($goods as $item) {
                 $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
             }
+
             $es->refresh($this->dbName);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

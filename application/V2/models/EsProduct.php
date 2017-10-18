@@ -211,6 +211,9 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
+
+
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers.supplier_id');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
@@ -229,6 +232,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.ik');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.ik');
+
+
 
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
@@ -266,9 +271,9 @@ class EsProductModel extends Model {
             if (trim($condition['onshelf_flag']) === 'A') {
 
             } elseif ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'N']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
             }
         } else {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
@@ -284,7 +289,7 @@ class EsProductModel extends Model {
         if (isset($condition['name']) && $condition['name']) {
             $name = trim($condition['name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.ik' => $name]],
+                        // [ESClient::MATCH => ['name.ik' => $name]],
                         [ESClient::WILDCARD => ['name.all' => '*' . $name . '*']],
             ]]];
         }
@@ -363,6 +368,10 @@ class EsProductModel extends Model {
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');
             }
+            if (isset($condition['image_count']) && $condition['image_count'] == 'Y') {
+
+                $es->setaggs('image_count', 'image_count', 'sum');
+            }
 //            else {
 //                $es->setaggs('show_cats.cat_no3', 'show_cat_no3');
 //                $es->setaggs('show_cats.cat_no2', 'show_cat_no2');
@@ -370,6 +379,7 @@ class EsProductModel extends Model {
 //            }
             $es->setaggs('brand.name.all', 'brands', 'terms', 0);
             $es->setaggs('suppliers.supplier_id', 'suppliers', 'terms', 0);
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;
         } catch (Exception $ex) {
@@ -486,54 +496,62 @@ class EsProductModel extends Model {
 
     public function getproductattrsbyspus($spus, $lang = 'en') {
         try {
-            $products = $this->where(['spu' => ['in', $spus], 'lang' => $lang])
-                    ->field('spu,material_cat_no,brand,bizline_id')
-                    ->select();
-            $brands = [];
-            $bizline_ids = [];
-            $material_cat_nos = [];
-            $attr_spus = $mcat_nos = [];
+            rsort($spus);
+            $key = json_encode($spus) . '_' . $lang;
+            $data = redisGet($key);
+            if ($data && json_decode($data)) {
+                return json_decode($data, true);
+            } else {
+                $products = $this->where(['spu' => ['in', $spus], 'lang' => $lang])
+                        ->field('spu,material_cat_no,brand,bizline_id')
+                        ->select();
+                $brands = [];
+                $bizline_ids = [];
+                $material_cat_nos = [];
+                $attr_spus = $mcat_nos = [];
 
-            foreach ($products as $item) {
-                $this->_findnulltoempty($item);
-                $spu = $item['spu'];
-                $mcat_nos[] = $item['material_cat_no'];
-                $attr_spus[] = $spu;
-                $brands[$spu] = $item['brand'];
-                $brands[$spu] = $item['brand'];
-                $bizline_ids[] = $item['bizline_id'];
-                $material_cat_nos[$spu] = $item['material_cat_no'];
-            }
-
-            $bizline_model = new BizlineModel();
-            $bizline_arr = $bizline_model->getNameByIds($bizline_ids);
-            $mcat_nos = array_unique($mcat_nos);
-
-            $material_cat_model = new MaterialCatModel();
-            $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang);
-            $mcats_zh = $material_cat_model->getmaterial_cats($mcat_nos, 'zh');
-
-            $ret = [];
-            foreach ($products as $item) {
-
-                if (isset($mcats[$item['material_cat_no']])) {
-                    $body['material_cat'] = $mcats[$item['material_cat_no']];
-                } else {
-                    $body['material_cat'] = new stdClass();
+                foreach ($products as $item) {
+                    $this->_findnulltoempty($item);
+                    $spu = $item['spu'];
+                    $mcat_nos[] = $item['material_cat_no'];
+                    $attr_spus[] = $spu;
+                    $brands[$spu] = $item['brand'];
+                    $brands[$spu] = $item['brand'];
+                    $bizline_ids[] = $item['bizline_id'];
+                    $material_cat_nos[$spu] = $item['material_cat_no'];
                 }
-                if (isset($mcats_zh[$item['material_cat_no']])) {
-                    $body['material_cat_zh'] = $mcats_zh[$item['material_cat_no']]; //json_encode($mcats_zh[$item['material_cat_no']], JSON_UNESCAPED_UNICODE);
-                } else {
-                    $body['material_cat_zh'] = new stdClass(); // json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
+
+                $bizline_model = new BizlineModel();
+                $bizline_arr = $bizline_model->getNameByIds($bizline_ids);
+                $mcat_nos = array_unique($mcat_nos);
+
+                $material_cat_model = new MaterialCatModel();
+                $mcats = $material_cat_model->getmaterial_cats($mcat_nos, $lang);
+                $mcats_zh = $material_cat_model->getmaterial_cats($mcat_nos, 'zh');
+
+                $ret = [];
+                foreach ($products as $item) {
+
+                    if (isset($mcats[$item['material_cat_no']])) {
+                        $body['material_cat'] = $mcats[$item['material_cat_no']];
+                    } else {
+                        $body['material_cat'] = new stdClass();
+                    }
+                    if (isset($mcats_zh[$item['material_cat_no']])) {
+                        $body['material_cat_zh'] = $mcats_zh[$item['material_cat_no']]; //json_encode($mcats_zh[$item['material_cat_no']], JSON_UNESCAPED_UNICODE);
+                    } else {
+                        $body['material_cat_zh'] = new stdClass(); // json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
+                    }
+                    $spu = $item['spu'];
+                    $body['brand'] = $brands[$spu];
+                    $body['bizline_id'] = $item['bizline_id'];
+                    $body['bizline'] = isset($bizline_arr[$item['bizline_id']]) ? $bizline_arr[$item['bizline_id']] : new stdClass();
+                    $body['material_cat_no'] = $material_cat_nos[$spu];
+                    $ret[$item['spu']] = $body;
                 }
-                $spu = $item['spu'];
-                $body['brand'] = $brands[$spu];
-                $body['bizline_id'] = $item['bizline_id'];
-                $body['bizline'] = isset($bizline_arr[$item['bizline_id']]) ? $bizline_arr[$item['bizline_id']] : new stdClass();
-                $body['material_cat_no'] = $material_cat_nos[$spu];
-                $ret[$item['spu']] = $body;
+                redisSet($key, json_encode($ret), 60);
+                return $ret;
             }
-            return $ret;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -740,8 +758,10 @@ class EsProductModel extends Model {
         $body['sort_order'] = $body['source'] == 'ERUI' ? 100 : 1;
         if (isset($attachs[$spu])) {
             $body['attachs'] = json_encode($attachs[$spu], 256);
+            $body['image_count'] = isset($attachs[$spu]['BIG_IMAGE']) ? count($attachs[$spu]['BIG_IMAGE']) : 0;
         } else {
             $body['attachs'] = '[]';
+            $body['image_count'] = 0;
         }
 
         $material_cat_no = $item['material_cat_no'];
@@ -831,6 +851,9 @@ class EsProductModel extends Model {
         $this->_findnulltoempty($body);
         if ($es_product) {
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+
+
+
             if (!isset($flag['_version'])) {
                 LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
             }
