@@ -49,7 +49,6 @@ class GroupModel extends PublicModel {
                 ->group('org.id')
                 ->order($order)
                 ->select();
-
             return $res;
         }
     }
