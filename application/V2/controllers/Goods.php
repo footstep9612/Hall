@@ -580,9 +580,10 @@ class GoodsController extends PublicController {
         if (empty($this->put_data['spu']) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
+        $process = isset($this->put_data['process']) ? 1 : '';
 
         $goodsModel = new GoodsModel();
-        $localDir =$goodsModel ->import($this->put_data['spu'],$this->put_data['xls'],$this->put_data['lang']);
+        $localDir =$goodsModel ->import($this->put_data['spu'],$this->put_data['xls'],$this->put_data['lang'],$process);
         if($localDir){
             jsonReturn($localDir);
         }else{
