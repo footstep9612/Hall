@@ -836,32 +836,29 @@ class ProductModel extends PublicModel {
     public function exportTemp($input = []) {
         if(redisHashExist('spu','sputemplate')){
             return json_decode(redisHashGet('spu','sputemplate'),true);
-        }else{
-            $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/spuTemplate.xls";
-            if(file_exists($localDir)){
+        }else {
+            $localDir = $_SERVER[ 'DOCUMENT_ROOT' ] . "/public/file/spuTemplate.xls";
+            if ( file_exists( $localDir ) ) {
                 //把导出的文件上传到文件服务器上
                 $server = Yaf_Application::app()->getConfig()->myhost;
                 $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
                 $url = $server . '/V2/Uploadfile/upload';
-                $data['tmp_name'] = $localDir;
-                $data['type'] = 'application/excel';
-                $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
-                $fileId = postfile($data,$url);
-                if($fileId){
+                $data[ 'tmp_name' ] = $localDir;
+                $data[ 'type' ] = 'application/excel';
+                $data[ 'name' ] = pathinfo( $localDir , PATHINFO_BASENAME );
+                $fileId = postfile( $data , $url );
+                if ( $fileId ) {
                     //unlink($localDir);    //清理本地空间
-                    $data = array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
-                    redisHashSet('spu','sputemplate',json_encode($data));
+                    $data = array( 'url' => $fastDFSServer . $fileId[ 'url' ] , 'name' => $fileId[ 'name' ] );
+                    redisHashSet( 'spu' , 'sputemplate' , json_encode( $data ) );
                     return $data;
                 }
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
+                Log::write( __CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败' , Log::INFO );
                 return false;
             } else {
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:' . $localDir . ' 模板生成失败', Log::INFO);
+                Log::write( __CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Excel failed:' . $localDir . ' 模板生成失败' , Log::INFO );
                 return false;
             }
-        } catch (Exception $e) {
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Error: :' . $e . getMessage(), Log::ERR);
-            return false;
         }
     }
 
