@@ -10,6 +10,14 @@ class InquiryModel extends PublicModel {
 
     protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry'; //数据表表名
+    
+    const  inquiryIssueRole = 'A001'; //客户中心分单员角色编号
+    const quoteIssueMainRole = 'A002'; //报价主分单员角色编号
+    const quoteIssueAuxiliaryRole = 'A003'; //报价辅分单员角色编号
+    const quoteCheckRole = 'A004'; //报价审核人角色编号
+    const logiIssueMainRole = 'A005'; //物流报价主分单员角色编号
+    const logiIssueAuxiliaryRole = 'A006'; //物流报价辅分单员角色编号
+    const logiCheckRole = 'A007'; //物流报价审核人角色编号
 
     public function __construct() {
         parent::__construct();
@@ -71,6 +79,10 @@ class InquiryModel extends PublicModel {
             $where['status'] = $condition['status'];    //项目状态
         }
         
+        if (!empty($condition['country_bn'])) {
+            $where['country_bn'] = $condition['country_bn'];    //国家
+        }
+        
         if (!empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];  //流程编码
         }
@@ -78,12 +90,77 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
+        
+        if (!empty($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
                 ['egt', $condition['start_time']],
                 ['elt', $condition['end_time'] . ' 23:59:59']
             ];
+        }
+        
+        if (!empty($condition['list_type'])) {
+            $orgMember = new OrgMemberModel();
+            
+            $orgMemberList = $orgMember->getList(['org_id' => ['in', $condition['group_id']]], 'employee_id');
+            
+            // 当前用户所在组的所有员工ID
+            $orgUserId = [];
+            foreach ($orgMemberList['employee_id'] as $employeeId) {
+                $orgUserId[] = $employeeId;
+            }
+            
+            switch ($condition['list_type']) {
+                case 'inquiry' :
+                    $map[] = ['created_by' => $condition['user_id']];
+                    $map[] = ['agent_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == $this->inquiryIssueRole) {
+                            $map[] = ['erui_id' => $condition['user_id']];
+                        }
+                    }
+                    break;
+                case 'quote' :
+                    $map[] = ['quote_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == $this->quoteIssueMainRole) {
+                            $map[] = ['org_id' => $condition['user_id']];
+                        }
+                        if ($roleNo == $this->quoteIssueAuxiliaryRole) {
+                            $roleUserId = $this->_getIssueMainUserId($orgUserId, $this->quoteIssueMainRole);
+                            
+                            $map[] = ['org_id' => ['in', $roleUserId]];
+                        }
+                        if ($roleNo == $this->quoteCheckRole) {
+                            $map[] = ['check_org_id' => $condition['user_id']];
+                        }
+                    }
+                    break;
+                case 'logi' :
+                    $map[] = ['logi_agent_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == $this->logiIssueMainRole) {
+                            $map[] = ['logi_org_id' => $condition['user_id']];
+                        }
+                        if ($roleNo == $this->logiIssueAuxiliaryRole) {
+                            $roleUserId = $this->_getIssueMainUserId($orgUserId, $this->logiIssueAuxiliaryRole);
+                            
+                            $map[] = ['logi_org_id' => ['in', $roleUserId]];
+                        }
+                        if ($roleNo == $this->logiCheckRole) {
+                            $map[] = ['logi_check_id' => $condition['user_id']];
+                        }
+                    }
+            }
+            
+            $map['_logic'] = 'or';
+            $where[] = $map;
         }
     
         $where['deleted_flag'] = 'N';
@@ -103,6 +180,23 @@ class InquiryModel extends PublicModel {
 
         $count = $this->where($where)->count('id');
 
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-10-19
+     */
+    public function getCount_($condition = []) {
+         
+        $where = $this->getWhere($condition);
+         
+        $count = $this->where($where)->count('id');
+         
         return $count > 0 ? $count : 0;
     }
 
@@ -187,7 +281,7 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-10-18
      */
-    public function getList2($condition = [], $field = '*') {
+    public function getList_($condition = [], $field = '*') {
     
         $where = $this->getWhere($condition);
          
@@ -413,5 +507,41 @@ class InquiryModel extends PublicModel {
      */
     public function getTime() {
         return date('Y-m-d H:i:s',time());
+    }
+    
+    /**
+     * @desc 获取主分单员ID
+     *
+     * @param array $orgUserId 用户所在组的全部员工ID
+     * @param string $issueMainRole 主分单员角色编号
+     * @return array
+     * @author liujf
+     * @time 2017-10-19
+     */
+    private function _getIssueMainUserId($orgUserId, $issueMainRole = '-1') {
+        $role = new RoleModel();
+        $roleUser = new RoleUserModel();
+        
+        // 主分单员角色ID
+        $roleId = [];
+        
+        // 主分单员用户ID
+        $userId = [];
+        
+        $roleList = $role->field('id')->where(['role_no' => $issueMainRole])->select();
+                            
+        foreach ($roleList['id'] as $id) {
+            $roleId[] = $id;
+        }
+        
+        $roleUserList = $roleUser->field('employee_id')->where(['role_id' => ['in', $roleId]])->select();
+        
+        foreach ($roleUserList['employee_id'] as $employeeId) {
+            if (in_array($employeeId, $orgUserId)) {
+                $userId[] = $employeeId;
+            }
+        }
+        
+        return $userId;
     }
 }
