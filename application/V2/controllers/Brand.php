@@ -67,6 +67,7 @@ class BrandController extends PublicController {
             $this->jsonReturn();
         }
         $brand_model = new BrandModel();
+        unset($condition['id']);
         $arr = $brand_model->listall($condition, $lang);
         $ret = '';
         foreach ($arr as $item) {
