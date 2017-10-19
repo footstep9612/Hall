@@ -9,6 +9,25 @@ class QuoteModel extends PublicModel {
     protected $dbName = 'erui_rfq';
     protected $tableName = 'quote';
 
+    const INQUIRY_DRAFT = 'DRAFT'; //新建询单
+    const INQUIRY_BIZ_DISPATCHING = 'BIZ_DISPATCHING'; //事业部分单员
+    const INQUIRY_CC_DISPATCHING = 'CC_DISPATCHING'; //易瑞客户中心
+    const INQUIRY_BIZ_QUOTING = 'BIZ_QUOTING'; //事业部报价
+    const INQUIRY_LOGI_DISPATCHING = 'LOGI_DISPATCHING'; //物流分单员
+    const INQUIRY_LOGI_QUOTING = 'LOGI_QUOTING'; //物流报价
+    const INQUIRY_LOGI_APPROVING = 'LOGI_APPROVING'; //物流审核
+    const INQUIRY_BIZ_APPROVING = 'BIZ_APPROVING'; //事业部核算
+    const INQUIRY_MARKET_APPROVING = 'MARKET_APPROVING'; //事业部审核
+    const INQUIRY_MARKET_CONFIRMING = 'MARKET_CONFIRMING'; //市场确认
+    const INQUIRY_QUOTE_SENT = 'QUOTE_SENT'; //报价单已发出
+    const INQUIRY_INQUIRY_CLOSED = 'INQUIRY_CLOSED'; //报价关闭
+
+    const QUOTE_NOT_QUOTED = 'NOT_QUOTED'; //未报价
+    const QUOTE_ONGOING = 'ONGOING'; //报价中
+    const QUOTE_QUOTED = 'QUOTED'; //已报价
+    const QUOTE_COMPLETED = 'COMPLETED'; //已完成
+
+
     public function __construct() {
         parent::__construct();
     }
@@ -131,6 +150,10 @@ class QuoteModel extends PublicModel {
 
     }
 
+    /**
+     * @param array $condition
+     * @return array
+     */
     public function rejectToBiz(array $condition){
 
         /*
@@ -142,6 +165,28 @@ class QuoteModel extends PublicModel {
         | 报价单(quote): ['status'=>'BIZ_DISPATCHING']
         |
         */
+        $this->startTrans();
+        $quoteResult = $this->where($condition)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
+
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
+        $inquiryResult = $inquiry->where([
+            'id' => $condition['inquiry_id']
+        ])->save([
+            'status' => self::INQUIRY_BIZ_DISPATCHING,
+            'quote_status' => self::QUOTE_NOT_QUOTED
+        ]);
+
+        if ($quoteResult && $inquiryResult){
+            $this->commit();
+            $inquiry->commit();
+            return ['code'=>'1','message'=>'退回成功!'];
+        }else{
+            $this->rollback();
+            $inquiry->rollback();
+            return ['code'=>'1','message'=>'不能重复退回!'];
+        }
+
     }
 
     /**

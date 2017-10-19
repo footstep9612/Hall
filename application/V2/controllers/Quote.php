@@ -63,12 +63,13 @@ class QuoteController extends PublicController{
     /**
      *退回分单员(事业部分单员)
      */
-    public function rejectToBiz(){
+    public function rejectToBizAction(){
 
         $request = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         $response =  $result = $this->quoteModel->rejectToBiz($condition);
         $this->jsonReturn($response);
+
     }
 
     public function sendToLogi(){
