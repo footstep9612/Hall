@@ -86,6 +86,34 @@ class QuoteController extends PublicController{
     }
 
     /**
+     * SKU列表
+     */
+    public function skuAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $list = $this->quoteItemModel->getList($request);
+        if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
+
+        foreach ($list as $key=>$value){
+            $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
+        }
+
+        $this->jsonReturn($list);
+
+    }
+
+    /**
+     * 保存SKU信息
+     */
+    public function updateSkuAction(){
+
+        $request = $this->validateRequests();
+        $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
+        $this->jsonReturn($response);
+    }
+
+    /**
      * 删除SKU
      */
     public function delItemAction(){
