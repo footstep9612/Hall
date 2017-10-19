@@ -217,6 +217,14 @@ class PortController extends PublicController {
         $redis = new phpredis();
         $keys = $redis->getKeys('Port');
         $redis->delete($keys);
+        unset($redis);
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $keys3 = $redis3->getKeys('Tradeterms*');
+        $redis3->delete($keys3);
+        unset($redis3);
     }
 
     /*

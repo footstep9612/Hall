@@ -313,6 +313,14 @@ class ShowcatController extends PublicController {
         $redis = new phpredis();
         $treekeys = $redis->getKeys('show_cat*');
         $redis->delete($treekeys);
+        unset($redis);
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $keys = $redis3->getKeys('ShowCats_*');
+        $redis3->delete($keys);
+        unset($redis3);
     }
 
     public function createAction() {
