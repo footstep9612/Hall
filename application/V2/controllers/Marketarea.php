@@ -160,16 +160,24 @@ class MarketareaController extends PublicController {
     public function createAction() {
         $this->_init();
         $data = $this->getPut();
+
+
         $market_area_model = new MarketAreaModel();
-        if (!isset($data['en']['name']) || !isset($data['zh']['name'])) {
+        if (empty($data['en']['name'])) {
             $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (empty($data['zh']['name'])) {
+
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
             $this->jsonReturn();
         } else {
             $newbn = ucwords($data['en']['name']);
             $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
 
             if ($row) {
-
+                $this->setMessage('输入的英文');
                 $this->setCode(MSG::MSG_EXIST);
                 $this->jsonReturn();
             }
@@ -197,10 +205,21 @@ class MarketareaController extends PublicController {
         $data = $this->getPut();
         $market_area_model = new MarketAreaModel();
         $newbn = ucwords($data['en']['name']);
-        if ($newbn != $data['bn']) {
-            $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
-            if ($row) {
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (empty($data['zh']['name'])) {
 
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        } elseif ($newbn != $data['bn']) {
+            $newbn = ucwords($data['en']['name']);
+            $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
+
+            if ($row) {
+                $this->setMessage('输入的英文已存在!');
                 $this->setCode(MSG::MSG_EXIST);
                 $this->jsonReturn();
             }

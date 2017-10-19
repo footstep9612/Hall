@@ -371,6 +371,7 @@ class BuyerController extends PublicController {
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
+            $where_address['buyer_id'] = $data['id'];
             $where_attach['buyer_id'] = $data['id'];
         } else {
             $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
@@ -437,13 +438,20 @@ class BuyerController extends PublicController {
         $res = $model->update_data($arr, $where);
         
         if (!empty($data['password'])) {
-            $arr_account['password_hash'] = $data['password'];
-            $buyer_account_model->update_data($arr_account, $where_account);
+            $account['password_hash'] = $data['password'];
+           // $buyer_account_model->update_data($arr_account, $where_account);
         }
         $buyer_attach_model = new BuyerattachModel();
         if (!empty($data['attach_url'])) {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
+        }
+        if (!empty($data['address'])) {
+            $buyer_address_data['address'] = $data['address'];
+        }
+        if (!empty($buyer_address_data)) {
+            $buyer_address_model = new BuyerAddressModel();
+            $buyer_address_model->update_data($buyer_address_data,$where_address);
         }
         //$model = new UserModel();
         if(!empty($account)){

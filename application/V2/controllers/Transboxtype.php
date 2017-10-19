@@ -105,6 +105,16 @@ class TransboxtypeController extends PublicController {
 
     public function createAction() {
         $condition = $this->getPut(null);
+        if (empty($condition['box_type_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择发货箱型!');
+            $this->jsonReturn();
+        }
+        if (empty($condition['trans_mode_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择运输方式!');
+            $this->jsonReturn();
+        }
         $trans_box_type_model = new TransBoxTypeModel();
 
         $result = $trans_box_type_model->create_data($condition);
@@ -122,7 +132,16 @@ class TransboxtypeController extends PublicController {
         $trans_box_type_model = new TransBoxTypeModel();
         $condition = $this->getPut(null);
 
-
+        if (empty($condition['box_type_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择发货箱型!');
+            $this->jsonReturn();
+        }
+        if (empty($condition['trans_mode_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择运输方式!');
+            $this->jsonReturn();
+        }
         $result = $trans_box_type_model->update_data($condition);
 
         if ($result) {
