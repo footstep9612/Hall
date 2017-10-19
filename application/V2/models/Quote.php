@@ -199,7 +199,7 @@ class QuoteModel extends PublicModel {
         }else{
             $this->rollback();
             $inquiry->rollback();
-            return ['code'=>'1','message'=>'不能重复退回!'];
+            return ['code'=>'-104','message'=>'不能重复退回!'];
         }
 
     }
