@@ -257,8 +257,8 @@ class InquiryController extends PublicController {
         $inquiryList = $inquiry->getList_($condition);
         
         if ($inquiryList) {
-            $this->setCode('1');
-            $this->setMessage('成功!');
+            $res['code'] = 1;
+    		$res['message'] = '成功!';
             $res['data'] = $inquiryList;
             $res['is_issue'] = $isIssue;
             $res['is_check'] = $isCheck;

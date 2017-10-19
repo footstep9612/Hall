@@ -105,7 +105,7 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['list_type'])) {
             $orgMember = new OrgMemberModel();
             
-            $orgMemberList = $orgMember->getList(['org_id' => ['in', $condition['group_id']]], 'employee_id');
+            $orgMemberList = $orgMember->getList(['org_id' => $condition['group_id'] ? : ['-1']], 'employee_id');
             
             // 当前用户所在组的所有员工ID
             $orgUserId = [];
@@ -134,7 +134,7 @@ class InquiryModel extends PublicModel {
                         if ($roleNo == $this->quoteIssueAuxiliaryRole) {
                             $roleUserId = $this->_getIssueMainUserId($orgUserId, $this->quoteIssueMainRole);
                             
-                            $map[] = ['org_id' => ['in', $roleUserId]];
+                            if ($roleUserId) $map[] = ['org_id' => ['in', $roleUserId]];
                         }
                         if ($roleNo == $this->quoteCheckRole) {
                             $map[] = ['check_org_id' => $condition['user_id']];
@@ -151,7 +151,7 @@ class InquiryModel extends PublicModel {
                         if ($roleNo == $this->logiIssueAuxiliaryRole) {
                             $roleUserId = $this->_getIssueMainUserId($orgUserId, $this->logiIssueAuxiliaryRole);
                             
-                            $map[] = ['logi_org_id' => ['in', $roleUserId]];
+                            if ($roleUserId) $map[] = ['logi_org_id' => ['in', $roleUserId]];
                         }
                         if ($roleNo == $this->logiCheckRole) {
                             $map[] = ['logi_check_id' => $condition['user_id']];
@@ -534,7 +534,7 @@ class InquiryModel extends PublicModel {
             $roleId[] = $id;
         }
         
-        $roleUserList = $roleUser->field('employee_id')->where(['role_id' => ['in', $roleId]])->select();
+        $roleUserList = $roleUser->field('employee_id')->where(['role_id' => ['in', $roleId ? : ['-1']]])->select();
         
         foreach ($roleUserList['employee_id'] as $employeeId) {
             if (in_array($employeeId, $orgUserId)) {
