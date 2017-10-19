@@ -154,7 +154,7 @@ class QuoteModel extends PublicModel {
      * @param array $condition
      * @return array
      */
-    public function rejectToBiz(array $condition){
+    public function rejectToBiz(array $condition,$request,$user){
 
         /*
         |--------------------------------------------------------------------------
@@ -178,13 +178,28 @@ class QuoteModel extends PublicModel {
         ]);
 
         if ($quoteResult && $inquiryResult){
+            //写记录
+            $inquiryCheckLog = new InquiryCheckLogModel();
+            $inquiryCheckLog->add($inquiryCheckLog->create([
+                'inquiry_id' => $request['inquiry_id'],
+                'agent_id' => $user,
+                'action' => 'REJECT',
+                'in_node' => 'BIZ_QUOTING',
+                'out_node' => 'BIZ_DISPATCHING',
+                'into_at' => date('Y-m-d H:i:s'),
+                'out_at' => date('Y-m-d H:i:s'),
+                'created_at' => date('Y-m-d H:i:s'),
+                'op_note' => $request['op_note'],
+                'created_by' => $user
+            ]));
+
             $this->commit();
             $inquiry->commit();
             return ['code'=>'1','message'=>'退回成功!'];
         }else{
             $this->rollback();
             $inquiry->rollback();
-            return ['code'=>'1','message'=>'不能重复退回!'];
+            return ['code'=>'-104','message'=>'不能重复退回!'];
         }
 
     }

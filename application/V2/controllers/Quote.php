@@ -67,9 +67,9 @@ class QuoteController extends PublicController{
      */
     public function rejectToBizAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request = $this->validateRequests('inquiry_id,op_note');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $response =  $result = $this->quoteModel->rejectToBiz($condition);
+        $response =  $result = $this->quoteModel->rejectToBiz($condition,$request,$this->user['id']);
         $this->jsonReturn($response);
 
     }
