@@ -8,6 +8,7 @@
 class QuoteController extends PublicController{
 
     private $quoteModel;
+    private $quoteItemModel;
 
     private $requestParams = [];
 
@@ -16,6 +17,7 @@ class QuoteController extends PublicController{
         parent::init();
 
         $this->quoteModel = new QuoteModel();
+        $this->quoteItemModel = new QuoteItemModel();
 
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
@@ -79,6 +81,29 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user['id']);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 删除SKU
+     */
+    public function delItemAction(){
+
+        $request = $this->validateRequests('id');
+        $quoteItemIds = $request['id'];
+
+        //只能删除自己的SKU
+        /*
+        $quoteItems = $this->quoteItemModel->where('id IN('.$quoteItemIds.')')->getField('created_by',true);
+        foreach ($quoteItems as $item){
+            if ($item !== $this->user['id']){
+                $this->jsonReturn(['code'=>'-104','message'=>'你没有权限删除该SKU!']);
+            }
+        }
+        */
+
+        $response = $this->quoteItemModel->delItem($quoteItemIds);
         $this->jsonReturn($response);
 
     }
