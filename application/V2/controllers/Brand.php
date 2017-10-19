@@ -70,20 +70,21 @@ class BrandController extends PublicController {
         unset($condition['id']);
         $arr = $brand_model->listall($condition, $lang);
 
-        $ret = '';
+        $ret['similar'] = '';
         foreach ($arr as $item) {
             $brands = json_decode($item['brand'], true);
 
             foreach ($brands as $val) {
                 if ($val['lang'] === $lang && $item['id'] != $id) {
-                    $ret .= $val['name'];
+                    $ret['similar'] .= $val['name'] . ',';
                 }
             }
         }
-        if ($ret) {
+        $ret['similar'] = trim($ret['similar'], ',');
+        if (!empty($ret)) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($ret);
-        } elseif ($ret === '') {
+        } elseif ($arr === null || ($arr && $ret == '')) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
         } else {
