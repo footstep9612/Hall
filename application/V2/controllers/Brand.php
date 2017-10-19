@@ -48,6 +48,50 @@ class BrandController extends PublicController {
     }
 
     /*
+     * 获取相似品牌
+     */
+
+    public function getSimilarAction() {
+
+        $condition = $this->getPut();
+        $lang = $this->getPut('lang', '');
+        $id = $this->getPut('id', '');
+        if (empty($id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入ID!');
+            $this->jsonReturn();
+        }
+        if (empty($lang)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入语言!');
+            $this->jsonReturn();
+        }
+        $brand_model = new BrandModel();
+        $arr = $brand_model->listall($condition, $lang);
+
+        $ret = '';
+        foreach ($arr as $item) {
+            $brands = json_decode($item['brand'], true);
+
+            foreach ($brands as $val) {
+                if ($val['lang'] === $lang && $item['id'] != $id) {
+                    $ret .= $val['name'];
+                }
+            }
+        }
+        if ($ret) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($ret);
+        } elseif ($ret === '') {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
      * 获取所有品牌
      */
 
