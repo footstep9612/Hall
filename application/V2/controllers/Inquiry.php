@@ -203,10 +203,11 @@ class InquiryController extends PublicController {
         $condition = $this->put_data;
         
         $inquiry = new InquiryModel();
+        $user = new UserModel();
         
         // 市场经办人
         if (!empty($condition['agent_name'])) {
-            $agent = $this->userModel->where(['name' => $condition['agent_name']])->find();
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
             $condition['agent_id'] = $agent['id'];
         }
         
