@@ -8,14 +8,16 @@
 class QuoteController extends PublicController{
 
     private $quoteModel;
+    private $quoteItemModel;
 
     private $requestParams = [];
 
     public function init(){
 
-        //parent::init();
+        parent::init();
 
         $this->quoteModel = new QuoteModel();
+        $this->quoteItemModel = new QuoteItemModel();
 
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
@@ -63,15 +65,46 @@ class QuoteController extends PublicController{
     /**
      *退回分单员(事业部分单员)
      */
-    public function rejectToBiz(){
+    public function rejectToBizAction(){
 
         $request = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         $response =  $result = $this->quoteModel->rejectToBiz($condition);
         $this->jsonReturn($response);
+
     }
 
-    public function sendToLogi(){
+    /**
+     * 提交物流分单员
+     */
+    public function sendLogisticsAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $response = $this->quoteModel->sendLogisticsHandler($request, $this->user['id']);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 删除SKU
+     */
+    public function delItemAction(){
+
+        $request = $this->validateRequests('id');
+        $quoteItemIds = $request['id'];
+
+        //只能删除自己的SKU
+        /*
+        $quoteItems = $this->quoteItemModel->where('id IN('.$quoteItemIds.')')->getField('created_by',true);
+        foreach ($quoteItems as $item){
+            if ($item !== $this->user['id']){
+                $this->jsonReturn(['code'=>'-104','message'=>'你没有权限删除该SKU!']);
+            }
+        }
+        */
+
+        $response = $this->quoteItemModel->delItem($quoteItemIds);
+        $this->jsonReturn($response);
 
     }
 

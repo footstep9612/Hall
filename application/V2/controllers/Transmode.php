@@ -64,6 +64,14 @@ class TransmodeController extends PublicController {
         $redis = new phpredis();
         $keys = $redis->getKeys('TransMode_*');
         $redis->delete($keys);
+        unset($redis);
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $keys3 = $redis3->getKeys('Tradeterms*');
+        $redis3->delete($keys3);
+        unset($redis3);
     }
 
     public function createAction() {
