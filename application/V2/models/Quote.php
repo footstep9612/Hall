@@ -189,6 +189,69 @@ class QuoteModel extends PublicModel {
 
     }
 
+
+    /**
+     * 提交物流分单员
+     * @param $request 数据
+     * @param $user 操作用户id
+     * @return array
+     */
+    public function sendLogisticsHandler($request,$user){
+
+        //更改询单(inqury->status)的状态
+        $inquiry = new InquiryModel();
+        $inquiry->startTrans();
+        $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
+
+        //更改报价(quote->status)的状态
+        $this->startTrans();
+        $quoteResult = $this->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
+
+
+        if ($inquiryResult && $quoteResult) {
+
+            //给物流表创建一条记录
+            $quoteLogiFeeModel = new QuoteLogiFeeModel();
+
+            $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
+
+           $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
+                'quote_id' => $quoteInfo['id'],
+                'inquiry_id' => $request['inquiry_id'],
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $user,
+                'premium_rate' => $quoteInfo['premium_rate']
+            ]));
+
+            //给物流报价单项形成记录
+            $quoteItemModel = new QuoteItemModel();
+            $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id']])->getField('id', true);
+
+            $quoteItemLogiModel = new QuoteItemLogiModel();
+            foreach ($quoteItemIds as $quoteItemId) {
+                $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                    'quote_id' => $quoteInfo['id'],
+                    'quote_item_id' => $quoteItemId,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'created_by' => $user
+                ]));
+            }
+
+            $inquiry->commit();
+            $this->commit();
+
+            return ['code' => '1', 'message' => '提交成功!'];
+
+        } else {
+
+            $inquiry->rollback();
+            $this->rollback();
+
+            return ['code' => '-104', 'message' => '不能重复提交!'];
+        }
+
+    }
+
     /**
      * @desc 获取查询条件
  	 * @author liujf 2017-06-17
