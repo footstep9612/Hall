@@ -29,7 +29,12 @@ class BuyerController extends PublicController {
             $where['name'] = $data['name'];
         }
         if (!empty($data['country_bn'])) {
-            $where['country_bn'] = $data['country_bn'];
+            $pieces = explode(",",$data['country_bn']);
+            for($i=0;$i<count($pieces);$i++){
+                $where['country_bn']=$where['country_bn']."'".$pieces[$i]."',";
+
+            }
+            $where['country_bn'] =rtrim($where['country_bn'], ",");
         }
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
