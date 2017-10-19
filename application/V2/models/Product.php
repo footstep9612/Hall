@@ -1042,6 +1042,7 @@ class ProductModel extends PublicModel {
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
         $objPHPExcel = $objReader->load($localFile);    //加载文件
         $data = $objPHPExcel->getSheet(0)->toArray();
+
         if (is_array($data)) {
             $success = $faild = 0;
             $objPHPExcel->setActiveSheetIndex(0)
@@ -1053,8 +1054,11 @@ class ProductModel extends PublicModel {
                 try {
                     $workText = '';
                     if ($key <= 2) {
+
                         continue;
                     }
+
+
                     $data_tmp = [];
                     $input_spu = trim($r[2]);    //excel输入的spu
                     $data_tmp['lang'] = $lang;
@@ -1087,6 +1091,10 @@ class ProductModel extends PublicModel {
                         $objPHPExcel->setActiveSheetIndex(0)
                                 ->setCellValue('N' . ($key + 1), '操作失败[产品组不能为空]');
                         continue;
+                    } else {
+                        $bizline_model = new BizlineModel();
+                        $bizline = $bizline_model->field('id')->where(['name' => trim($r[6])])->find();
+                        $data_tmp['bizline_id'] = isset($bizline['id']) ? $bizline['id'] : 0;
                     }
                     //品牌
                     if (empty($r[7])) {
@@ -1194,6 +1202,8 @@ class ProductModel extends PublicModel {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
                 }
             }
+
+
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
             $objWriter->save($localFile);    //文件保存
             //把导出的文件上传到文件服务器上
