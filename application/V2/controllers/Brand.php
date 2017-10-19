@@ -128,6 +128,16 @@ class BrandController extends PublicController {
     public function createAction() {
         $brand_model = new BrandModel();
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
         $result = $brand_model->create_data($data);
         if ($result !== false) {
             $this->delcache();
@@ -142,6 +152,16 @@ class BrandController extends PublicController {
     public function updateAction() {
         $brand_model = new BrandModel();
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
         $result = $brand_model->update_data($data);
         if ($result !== false) {
             $this->delcache();
