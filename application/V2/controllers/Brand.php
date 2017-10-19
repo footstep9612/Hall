@@ -68,7 +68,7 @@ class BrandController extends PublicController {
         }
         $brand_model = new BrandModel();
         unset($condition['id']);
-        $arr = $brand_model->listall($condition, $lang);
+        $arr = $brand_model->getlist($condition, $lang);
         $ret['similar'] = '';
         foreach ($arr as $item) {
             $brands = json_decode($item['brand'], true);
