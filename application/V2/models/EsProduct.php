@@ -224,7 +224,7 @@ class EsProductModel extends Model {
             'DELETED', 'DRAFT', 'INVALID'], 'VALID');
 
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'brand_id', 'brand.id');
+
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.ik');
