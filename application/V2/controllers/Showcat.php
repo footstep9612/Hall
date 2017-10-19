@@ -317,7 +317,16 @@ class ShowcatController extends PublicController {
 
     public function createAction() {
         $data = $this->getPut();
-
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
         if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
 
 
@@ -345,6 +354,16 @@ class ShowcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
         if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('营销区域不能为空');
