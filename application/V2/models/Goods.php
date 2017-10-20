@@ -1958,7 +1958,7 @@ class GoodsModel extends PublicModel {
             $data_tmp['source_detail'] = 'Excel批量导入';
             $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
             $data_tmp['created_at'] = date('Y-m-d H:i:s');
-            $data_tmp['status'] = $this::STATUS_VALID;
+            $data_tmp['status'] = $this::STATUS_CHECKING;
             // 数据组装与校验结束
 
             /**

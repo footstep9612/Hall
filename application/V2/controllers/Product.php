@@ -140,8 +140,6 @@ class ProductController extends PublicController {
                 $this->updateEsproduct(null, $this->put_data['spu']);
                 $this->updateEsgoods(null, $this->put_data['spu']);
             }
-
-
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
@@ -472,7 +470,7 @@ class ProductController extends PublicController {
      */
     public function exportAction() {
         $productModel = new ProductModel();
-        $localDir = $productModel->export();
+        $localDir = $productModel->export($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
         } else {
