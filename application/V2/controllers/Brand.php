@@ -182,6 +182,8 @@ class BrandController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请输入英文');
             $this->jsonReturn();
+        } elseif (isset($data['en']['name'])) {
+            $this->_verifyName($data['en']['name']);
         }
         $result = $brand_model->create_data($data);
         if ($result !== false) {
@@ -206,6 +208,8 @@ class BrandController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请输入英文');
             $this->jsonReturn();
+        } elseif (isset($data['en']['name'])) {
+            $this->_verifyName($data['en']['name']);
         }
         $result = $brand_model->update_data($data);
         if ($result !== false) {
@@ -214,6 +218,22 @@ class BrandController extends PublicController {
             $this->jsonReturn();
         } else {
             $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 判断英文中是否含有中文
+     */
+
+    private function _verifyName($name) {
+        if (preg_match('/^[\x{4e00}-\x{9fa5}\。\，、\“\”\：\；\！\【\】\？\、\》\《\）\（]+$/u', $name) > 0) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('该输入英文品牌中全是中文，请您查证后重新输入！');
+            $this->jsonReturn();
+        } elseif (preg_match('/[\x{4e00}-\x{9fa5}\。\，、\“\”\：\；\！\【\】\？\、\》\《\）\（]/u', $name) > 0) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('该输入英文品牌中含有中文，请您查证后重新输入！');
             $this->jsonReturn();
         }
     }
