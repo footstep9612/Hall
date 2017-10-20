@@ -34,7 +34,7 @@ class GoodsCostPriceModel extends PublicModel {
         if (empty($input['sku'])) {
             return false;
         }
-        $fields = 'id, sku, supplier_id, price, price_unit, price_cur_bn, min_purchase_qty, pricing_date, price_validity, status, created_by, created_at';
+        $fields = 'id, sku, supplier_id, price,max_price, price_unit, price_cur_bn, min_purchase_qty,max_purchase_qty, pricing_date, price_validity, status, created_by, created_at';
         try {
             $result = $this->field($fields)->where(['sku' => $input['sku']])->select();
             $data = array();
@@ -142,6 +142,9 @@ class GoodsCostPriceModel extends PublicModel {
         if (!empty($checkout['price'])) {
             $data['price'] = $checkout['price'];
         }
+        if (!empty($checkout['max_price'])) {
+            $data['max_price'] = $checkout['max_price'];
+        }
         if (!empty($checkout['price_unit'])) {
             $data['price_unit'] = $checkout['price_unit'];
         }
@@ -150,6 +153,9 @@ class GoodsCostPriceModel extends PublicModel {
         }
         if (!empty($checkout['min_purchase_qty'])) {
             $data['min_purchase_qty'] = $checkout['min_purchase_qty'];
+        }
+        if (!empty($checkout['max_purchase_qty'])) {
+            $data['max_purchase_qty'] = $checkout['max_purchase_qty'];
         }
         if (!empty($checkout['pricing_date'])) {
             $data['pricing_date'] = $checkout['pricing_date'];
