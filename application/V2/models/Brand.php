@@ -63,11 +63,16 @@ class BrandModel extends PublicModel {
 
         $where = [];
         $this->_getValue($where, $condition, 'id', 'string');
-        $this->_getValue($where, $condition, 'name', 'like', 'brand');
+
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
         // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
-        if ($lang) {
-            $where['brand'] = ['like', '%' . $lang . '%'];
+        if (!empty($condition['name']) && $lang) {
+            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"' . trim($condition['name']) . '%\'';
+        } elseif ($lang) {
+
+            $where['brand'] = ['like', '%"lang":"' . $lang . '"%'];
+        } elseif (!empty($condition['name'])) {
+            $where['brand'] = ['like', '%"name":"' . trim($condition['name']) . '%'];
         }
         return $where;
     }
@@ -147,9 +152,12 @@ class BrandModel extends PublicModel {
                     ->field('id,brand')
                     ->order('id desc')
                     ->select();
+
             redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;
         } catch (Exception $ex) {
+
+            print_r($ex->getMessage());
             Log::write($ex->getMessage(), Log::ERR);
             return false;
         }

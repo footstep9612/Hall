@@ -442,9 +442,7 @@ class OrderLogModel extends PublicModel {
             $results['message'] = '没有流程ID!';
             return $results;
         }
-
         try {
-
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
             //如果收款全部删除订单状态变成未支付
             $info = $this->where($where)->find();
@@ -467,6 +465,11 @@ class OrderLogModel extends PublicModel {
                                 $buyer_info['credit_available']=$buyer_info['credit_available']-$info['amount'];
                             }else{
                                 $buyer_info['credit_available']=$buyer_info['credit_available'] + $info['amount'];
+                            }
+                            if($buyer_info['credit_available']<0){
+                                $results['code'] = '-101';
+                                $results['message'] = '可用金额小于0请认真核对，无法删除!';
+                                $this->jsonReturn($results);
                             }
                             if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
                                 $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);

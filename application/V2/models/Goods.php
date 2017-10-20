@@ -28,8 +28,8 @@ class GoodsModel extends PublicModel {
     protected $field = array(
         'spu' => array('required'),
         'supplier_cost' => array('required'),
-//       'name' => array('required'),
-//       'model' => array('required'),
+//        'name' => array('required'),
+//        'model' => array('required'),
     );
     //固定属性映射
     protected $const_attr = array(
@@ -786,7 +786,7 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return
      */
-    private function _checkExit(&$condition,&$attr,$boolen=false){
+     private function _checkExit(&$condition,&$attr,$boolen=false){
 
         $exist = $this->where($condition)->find();
         if($exist){

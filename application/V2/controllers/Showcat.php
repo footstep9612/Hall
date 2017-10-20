@@ -313,11 +313,28 @@ class ShowcatController extends PublicController {
         $redis = new phpredis();
         $treekeys = $redis->getKeys('show_cat*');
         $redis->delete($treekeys);
+        unset($redis);
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $keys = $redis3->getKeys('ShowCats_*');
+        $redis3->delete($keys);
+        unset($redis3);
     }
 
     public function createAction() {
         $data = $this->getPut();
-
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
         if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
 
 
@@ -345,6 +362,16 @@ class ShowcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
         if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('营销区域不能为空');

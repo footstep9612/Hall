@@ -48,6 +48,51 @@ class BrandController extends PublicController {
     }
 
     /*
+     * 获取相似品牌
+     */
+
+    public function getSimilarAction() {
+
+        $condition = $this->getPut();
+        $lang = $this->getPut('lang', '');
+        $id = $this->getPut('id', '');
+        if (empty($id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入ID!');
+            $this->jsonReturn();
+        }
+        if (empty($lang)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入语言!');
+            $this->jsonReturn();
+        }
+        $brand_model = new BrandModel();
+        unset($condition['id']);
+        $arr = $brand_model->getlist($condition, $lang);
+        $ret['similar'] = '';
+        foreach ($arr as $item) {
+            $brands = json_decode($item['brand'], true);
+
+            foreach ($brands as $val) {
+                if ($val['lang'] === $lang && $item['id'] != $id) {
+                    $ret['similar'] .= $val['name'] . ',';
+                }
+            }
+        }
+        $ret['similar'] = trim($ret['similar'], ',');
+        if (!empty($ret)) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($ret);
+        } elseif ($arr === null || ($arr && $ret == '')) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
      * 获取所有品牌
      */
 
@@ -128,6 +173,18 @@ class BrandController extends PublicController {
     public function createAction() {
         $brand_model = new BrandModel();
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (isset($data['en']['name'])) {
+            $this->_verifyName($data['en']['name']);
+        }
         $result = $brand_model->create_data($data);
         if ($result !== false) {
             $this->delcache();
@@ -142,6 +199,18 @@ class BrandController extends PublicController {
     public function updateAction() {
         $brand_model = new BrandModel();
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (isset($data['en']['name'])) {
+            $this->_verifyName($data['en']['name']);
+        }
         $result = $brand_model->update_data($data);
         if ($result !== false) {
             $this->delcache();
@@ -149,6 +218,22 @@ class BrandController extends PublicController {
             $this->jsonReturn();
         } else {
             $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 判断英文中是否含有中文
+     */
+
+    private function _verifyName($name) {
+        if (preg_match('/^[\x{4e00}-\x{9fa5}\。\，、\“\”\：\；\！\【\】\？\、\》\《\）\（]+$/u', $name) > 0) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('该输入英文品牌中全是中文，请您查证后重新输入！');
+            $this->jsonReturn();
+        } elseif (preg_match('/[\x{4e00}-\x{9fa5}\。\，、\“\”\：\；\！\【\】\？\、\》\《\）\（]/u', $name) > 0) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('该输入英文品牌中含有中文，请您查证后重新输入！');
             $this->jsonReturn();
         }
     }
