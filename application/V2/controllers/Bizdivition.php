@@ -69,7 +69,7 @@ class BizdivitionController extends PublicController{
      */
     public function assignQuoterAction(){
 
-        $request = $this->validateRequests('inquiry_id,quote_id');
+        $request = $this->validateRequests('inquiry_id,quote_id,serial_no');
 
         $inquiry = new InquiryModel();
         $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
@@ -78,6 +78,30 @@ class BizdivitionController extends PublicController{
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s')
         ]);
+
+        $quoteModel = new QuoteModel();
+        $quote_id = $quoteModel->add($quoteModel->create([
+            'inquiry_id' => $request['inquiry_id'],
+            'serial_no' => $request['serial_no'],
+            'quote_no' => $this->getQuoteNo(),
+            'created_by' => $this->user['id'],
+            'created_at' => date('Y-m-d H:i:s')
+        ]));
+
+        $inquiryItemModel = new InquiryItemModel();
+        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,sku')->select();
+
+        $quoteItemModel = new QuoteItemModel();
+        foreach ($inquiryItems as $item=>$value){
+            $quoteItemModel->add($quoteItemModel->create([
+                'quote_id' => $quote_id,
+                'inquiry_id' => $request['inquiry_id'],
+                'inquiry_item_id' => $value['id'],
+                'sku' => $value['sku'],
+                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+        }
 
         $this->jsonReturn($response);
 
