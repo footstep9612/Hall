@@ -999,7 +999,6 @@ class ProductModel extends PublicModel {
                     $data_tmp['source_detail'] = 'Excel批量导入';
                     $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     $data_tmp['created_at'] = date('Y-m-d H:i:s');
-                    $data_tmp['status'] = $this::STATUS_CHECKING;
 
                     //根据lang,material_cat_no,brand查询name是否存在
                     $condition = array(
@@ -1025,6 +1024,7 @@ class ProductModel extends PublicModel {
                             $result = $this->where($condition_update)->save($data_tmp);
                         }
                     } else {
+                        $data_tmp['status'] = $this::STATUS_CHECKING;
                         $workText = '新增';
                         $input_spu = $data_tmp['spu'] = $this->createSpu($r[3]);    //生成spu
                         $result = $this->add($this->create($data_tmp));
@@ -1081,7 +1081,7 @@ class ProductModel extends PublicModel {
      * 产品导出
      * @return string
      */
-    public function export($input = []) {
+    public function export($input = [] , $process = '') {
         /** 返回导出进度start */
         $progress_key = md5(json_encode($input));
         if(!empty($process)){
