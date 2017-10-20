@@ -10,10 +10,13 @@ class BizdivitionController extends PublicController{
     //请求参数
     private $requestParams = [];
 
+    private $inquiryModel;
+
     public function init(){
 
         parent::init();
 
+        $this->inquiryModel = new InquiryModel();
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
     }
@@ -41,6 +44,23 @@ class BizdivitionController extends PublicController{
      * 退回易瑞
      */
     public function rejectToEruiAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $inquiry = new InquiryModel();
+        $roleModel = new RoleModel();
+        $roleUserModel = new RoleUserModel();
+        $role_id = $roleModel->where(['role_no'=>$inquiry::inquiryIssueRole])->getField('id');
+        $roleUser = $roleUserModel->where(['role_id'=>$role_id])->getField('employee_id');
+
+        $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+            'status' => 'CC_DISPATCHING', //易瑞客户中心
+            'erui_id' => $roleUser,
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->jsonReturn($response);
 
     }
 
