@@ -470,7 +470,8 @@ class ProductController extends PublicController {
      */
     public function exportAction() {
         $productModel = new ProductModel();
-        $localDir = $productModel->export($this->put_data);
+        $process = isset($this->put_data['process']) ? 1 : '';
+        $localDir = $productModel->export($this->put_data,$process);
         if ($localDir) {
             jsonReturn($localDir);
         } else {

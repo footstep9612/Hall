@@ -1958,7 +1958,6 @@ class GoodsModel extends PublicModel {
             $data_tmp['source_detail'] = 'Excel批量导入';
             $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
             $data_tmp['created_at'] = date('Y-m-d H:i:s');
-            $data_tmp['status'] = $this::STATUS_CHECKING;
             // 数据组装与校验结束
 
             /**
@@ -1993,7 +1992,7 @@ class GoodsModel extends PublicModel {
                     }
                 }else{
                     $workType = '添加';
-
+                    $data_tmp['status'] = $this::STATUS_CHECKING;
                     $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku(array(array('spu' => $spu)));    //生成sku
                     $result = $this->add($this->create($data_tmp));
                 }
