@@ -103,16 +103,6 @@ class InquiryModel extends PublicModel {
         }
         
         if (!empty($condition['list_type'])) {
-            $orgMember = new OrgMemberModel();
-            
-            $orgMemberList = $orgMember->getList(['org_id' => $condition['group_id'] ? : ['-1']], 'employee_id');
-            
-            // 当前用户所在组的所有员工ID
-            $orgUserId = [];
-            foreach ($orgMemberList['employee_id'] as $employeeId) {
-                $orgUserId[] = $employeeId;
-            }
-            
             switch ($condition['list_type']) {
                 case 'inquiry' :
                     $map[] = ['created_by' => $condition['user_id']];
@@ -128,16 +118,15 @@ class InquiryModel extends PublicModel {
                     $map[] = ['quote_id' => $condition['user_id']];
                     
                     foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == $this->quoteIssueMainRole) {
-                            $map[] = ['org_id' => $condition['user_id']];
-                        }
-                        if ($roleNo == $this->quoteIssueAuxiliaryRole) {
-                            $roleUserId = $this->_getIssueMainUserId($orgUserId, $this->quoteIssueMainRole);
+                        if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id']);
                             
-                            if ($roleUserId) $map[] = ['org_id' => ['in', $roleUserId]];
+                            if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
-                        if ($roleNo == $this->quoteCheckRole) {
-                            $map[] = ['check_org_id' => $condition['user_id']];
+                        if ($roleNo == self::quoteCheckRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id']);
+                            
+                            if ($orgId) $map[] = ['check_org_id' => ['in', $orgId]];
                         }
                     }
                     break;
@@ -145,16 +134,15 @@ class InquiryModel extends PublicModel {
                     $map[] = ['logi_agent_id' => $condition['user_id']];
                     
                     foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == $this->logiIssueMainRole) {
-                            $map[] = ['logi_org_id' => $condition['user_id']];
-                        }
-                        if ($roleNo == $this->logiIssueAuxiliaryRole) {
-                            $roleUserId = $this->_getIssueMainUserId($orgUserId, $this->logiIssueAuxiliaryRole);
+                        if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
                             
-                            if ($roleUserId) $map[] = ['logi_org_id' => ['in', $roleUserId]];
+                            if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
                         }
-                        if ($roleNo == $this->logiCheckRole) {
-                            $map[] = ['logi_check_id' => $condition['user_id']];
+                        if ($roleNo == self::logiCheckRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
+                            
+                            if ($orgId) $map[] = ['logi_check_id' => ['in', $orgId]];
                         }
                     }
             }
@@ -345,8 +333,11 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有流程编码!';
             return $results;
         }
-        $data['status'] = 'DRAFT';
-        $data['created_at'] = $this->getTime();
+
+        $time = $this->getTime();
+        
+        $data['inflow_time'] = $time;
+        $data['created_at'] = $time;
 
         try {
             $id = $this->add($data);
@@ -510,38 +501,29 @@ class InquiryModel extends PublicModel {
     }
     
     /**
-     * @desc 获取主分单员ID
+     * @desc 获取询单办理部门组ID
      *
-     * @param array $orgUserId 用户所在组的全部员工ID
-     * @param string $issueMainRole 主分单员角色编号
+     * @param array $groupId 当前用户的全部组ID
+     * @param string $orgNode 部门节点
      * @return array
      * @author liujf
-     * @time 2017-10-19
+     * @time 2017-10-20
      */
-    private function _getIssueMainUserId($orgUserId, $issueMainRole = '-1') {
-        $role = new RoleModel();
-        $roleUser = new RoleUserModel();
+    private function _getDeptOrgId($groupId = [], $orgNode = 'ub') {
+        $org = new OrgModel();
         
-        // 主分单员角色ID
-        $roleId = [];
+        $where = [
+             'id' => ['in', $groupId ? : ['-1']],
+             'org_node' => $orgNode
+        ];
+        $orgList = $org->field('id')->where($where)->select();
         
-        // 主分单员用户ID
-        $userId = [];
-        
-        $roleList = $role->field('id')->where(['role_no' => $issueMainRole])->select();
-                            
-        foreach ($roleList['id'] as $id) {
-            $roleId[] = $id;
+        // 用户所在部门的组ID
+        $orgId = [];
+        foreach ($orgList as $org) {
+            $orgId[] = $org['id'];
         }
         
-        $roleUserList = $roleUser->field('employee_id')->where(['role_id' => ['in', $roleId ? : ['-1']]])->select();
-        
-        foreach ($roleUserList['employee_id'] as $employeeId) {
-            if (in_array($employeeId, $orgUserId)) {
-                $userId[] = $employeeId;
-            }
-        }
-        
-        return $userId;
+        return $orgId;
     }
 }

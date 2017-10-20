@@ -210,8 +210,9 @@ class BrandController extends PublicController {
             $this->setMessage('请输入英文');
             $this->jsonReturn();
         } elseif (isset($data['en']['name'])) {
-            $this->_verifyName($data['en']['name']);
+            $data['en']['name'] = $this->_verifyName($data['en']['name']);
         }
+        $this->_verifyLog($data);
         $result = $brand_model->update_data($data);
         if ($result !== false) {
             $this->delcache();
@@ -224,14 +225,92 @@ class BrandController extends PublicController {
     }
 
     private function _verifyName($name) {
-        if (preg_match('/^[\x{4e00}-\x{9fa5}\。\，、\“\”\：\；\！\【\】\？\、\》\《\）\（]+$/u', $name) > 0) {
+
+        $name = $this->SBC_DBC($name);
+        $p = '[\x{4e00}-\x{9fa5}'
+                . '\。\，\、\；\：\？\！\…\—\·\ˉ\¨\‘\’'
+                . '\“\”\々\～\‖\∶\＂\＇\｀\｜\〃\〔\〕'
+                . '\〈\〉\《\》\「\」\『\』\．\〖\〗\【'
+                . '\】\（\）\［\］\｛\｝]';
+        if (preg_match('/^' . $p . '+$/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('该输入英文语言中全是中文，请您查证后重新输入！');
+            $this->setMessage('该输入英文语言中全是中文ｈｕｏ　，请您查证后重新输入！');
             $this->jsonReturn();
-        } elseif (preg_match('/[\x{4e00}-\x{9fa5}\。\，、\“\”\：\；\！\【\】\？\、\》\《\）\（]/u', $name) > 0) {
+        } elseif (preg_match('/' . $p . '/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('该输入英文语言中含有中文，请您查证后重新输入！');
             $this->jsonReturn();
+        }
+        return $name;
+    }
+
+    /*
+     * 判断文件格式和大小
+     */
+
+    private function _verifyLog($data) {
+        $maxsize = 1048576;
+        foreach ($this->langs as $lang) {
+            if (!empty($data[$lang]['logo'])) {
+                $imageinfo = getimagesize($data[$lang]['logo']);
+                if (!$imageinfo || !isset($imageinfo['2']) || !in_array($imageinfo['2'], [2, 3])) {
+                    $this->setCode(MSG::ERROR_PARAM);
+                    $this->setMessage('只能上传jpg、png格式图片！');
+                    $this->jsonReturn();
+                }
+                $headers = get_headers($data[$lang]['logo'], 1);
+                echo $headers['Content-Length'];
+                die;
+                if (isset($headers['Content-Length']) && $headers['Content-Length'] > $maxsize) {
+                    $this->setCode(MSG::ERROR_PARAM);
+                    $this->setMessage('您上传的文件大于1M！');
+                    $this->jsonReturn();
+                }
+            }
+        }
+    }
+
+// 第一个参数：传入要转换的字符串
+// 第二个参数：取0，半角转全角；取1，全角到半角
+    function SBC_DBC($str, $args2 = 1) {
+        $DBC = Array(
+            '０', '１', '２', '３', '４', '５', '６', '７', '８', '９', 'Ａ', 'Ｂ', 'Ｃ', 'Ｄ', 'Ｅ',
+            'Ｆ', 'Ｇ', 'Ｈ', 'Ｉ', 'Ｊ', 'Ｋ', 'Ｌ', 'Ｍ', 'Ｎ', 'Ｏ', 'Ｐ', 'Ｑ', 'Ｒ', 'Ｓ', 'Ｔ',
+            'Ｕ', 'Ｖ', 'Ｗ', 'Ｘ', 'Ｙ', 'Ｚ', 'ａ', 'ｂ', 'ｃ', 'ｄ', 'ｅ', 'ｆ', 'ｇ', 'ｈ', 'ｉ',
+            'ｊ', 'ｋ', 'ｌ', 'ｍ', 'ｎ', 'ｏ', 'ｐ', 'ｑ', 'ｒ', 'ｓ', 'ｔ', 'ｕ', 'ｖ', 'ｗ', 'ｘ',
+            'ｙ', 'ｚ', '－', '　', '：', '．', '，', '／', '％', '＃', '！', '＠', '＆', '（', '）',
+            '＜', '＞', '＂', '＇', '？', '［', '］', '｛', '｝', '＼', '｜', '＋', '＝', '＿', '＾',
+            '￥', '￣', '｀'
+        );
+        $SBC = Array(// 半角
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
+            'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+            'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
+            'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+            'y', 'z', '-', ' ', ':', '.', ',', '/', '%', '#', '!', '@', '&', '(', ')',
+            '<', '>', '"', '\'', '?', '[', ']', '{', '}', '\\', '|', '+', '=', '_', '^',
+            '$', '~', '`'
+        );
+        if ($args2 == 0) {
+            return str_replace($SBC, $DBC, $str);  // 半角到全角
+        } else if ($args2 == 1) {
+            return str_replace($DBC, $SBC, $str);  // 全角到半角
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 导出品牌
+     */
+    public function exportAction() {
+        $data = $this->getPut();
+        $brand_model = new BrandModel();
+        $localDir = $brand_model->export($data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
         }
     }
 
