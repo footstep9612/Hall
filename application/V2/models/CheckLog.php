@@ -107,11 +107,6 @@ class CheckLogModel extends PublicModel {
             $results['message'] = '没有询单ID!';
             return $results;
         }
-        if(empty($condition['category'])){
-            $results['code'] = '-103';
-            $results['message'] = '没有业务分类!';
-            return $results;
-        }
         if(empty($condition['action'])){
             $results['code'] = '-103';
             $results['message'] = '没有操作类型!';

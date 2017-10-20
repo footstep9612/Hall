@@ -333,7 +333,7 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有流程编码!';
             return $results;
         }
-        $data['status'] = 'DRAFT';
+
         $data['created_at'] = $this->getTime();
 
         try {

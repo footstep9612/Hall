@@ -674,7 +674,7 @@ class InquiryController extends PublicController {
     public function addCheckLogAction() {
         $checklog = new CheckLogModel();
         $data = $this->put_data;
-        $data['op_id'] = $this->user['id'];
+        $data['agent_id'] = $this->user['id'];
         $data['created_by'] = $this->user['id'];
 
         $results = $checklog->addData($data);
