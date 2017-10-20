@@ -113,7 +113,10 @@ class CheckLogModel extends PublicModel {
             return $results;
         }
 
-        $data['created_at'] = $this->getTime();
+        $time = $this->getTime();
+        
+        $data['out_at'] = $time;
+        $data['created_at'] = $time;
 
         try {
             $id = $this->add($data);

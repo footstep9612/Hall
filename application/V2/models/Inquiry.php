@@ -334,7 +334,10 @@ class InquiryModel extends PublicModel {
             return $results;
         }
 
-        $data['created_at'] = $this->getTime();
+        $time = $this->getTime();
+        
+        $data['inflow_time'] = $time;
+        $data['created_at'] = $time;
 
         try {
             $id = $this->add($data);
