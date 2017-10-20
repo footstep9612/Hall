@@ -154,17 +154,8 @@ class QuoteModel extends PublicModel {
      * @param array $condition
      * @return array
      */
-    public function rejectToBiz(array $condition,$request,$user){
+    public function rejectToBiz(array $condition){
 
-        /*
-        |--------------------------------------------------------------------------
-        | 退回事业部分单员
-        |--------------------------------------------------------------------------
-        |
-        | 询单(inquiry): ['status'=>BIZ_DISPATCHING,'quote_status'=>NOT_QUOTED]
-        | 报价单(quote): ['status'=>'BIZ_DISPATCHING']
-        |
-        */
         $this->startTrans();
         $quoteResult = $this->where($condition)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
 
@@ -178,21 +169,6 @@ class QuoteModel extends PublicModel {
         ]);
 
         if ($quoteResult && $inquiryResult){
-            //写记录
-            $inquiryCheckLog = new InquiryCheckLogModel();
-            $inquiryCheckLog->add($inquiryCheckLog->create([
-                'inquiry_id' => $request['inquiry_id'],
-                'agent_id' => $user,
-                'action' => 'REJECT',
-                'in_node' => 'BIZ_QUOTING',
-                'out_node' => 'BIZ_DISPATCHING',
-                'into_at' => date('Y-m-d H:i:s'),
-                'out_at' => date('Y-m-d H:i:s'),
-                'created_at' => date('Y-m-d H:i:s'),
-                'op_note' => $request['op_note'],
-                'created_by' => $user
-            ]));
-
             $this->commit();
             $inquiry->commit();
             return ['code'=>'1','message'=>'退回成功!'];
@@ -213,12 +189,10 @@ class QuoteModel extends PublicModel {
      */
     public function sendLogisticsHandler($request,$user){
 
-        //更改询单(inqury->status)的状态
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
         $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
 
-        //更改报价(quote->status)的状态
         $this->startTrans();
         $quoteResult = $this->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
 
