@@ -32,6 +32,10 @@ class QuoteModel extends PublicModel {
         parent::__construct();
     }
 
+    public function getQuoteIdByInQuiryId($inquiry_id){
+        return $this->where(['inquiry_id'=>$inquiry_id])->getField('id');
+    }
+
     /**
      * 获取综合报价信息
      * @param array $condition    条件

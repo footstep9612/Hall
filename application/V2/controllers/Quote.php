@@ -134,9 +134,35 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
 
-        $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
+        //$this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
 
-        $response ;
+        //$this->where()->save(['status' => 'MARKET_APPROVING']);
+
+//        $finalQuoteModel = new FinalQuoteModel();
+//        $finalQuoteModel->add($finalQuoteModel->create([
+//            'inquiry_id' => $request['inquiry_id'],
+//            'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
+//            'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+//            'created_by' => $this->user['id'],
+//            'created_at' => date('Y-m-d H:i:s')
+//        ]));
+
+        $quoteItems = $this->quoteItemModel->where()->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
+
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        foreach ($quoteItems as $quote=>$item){
+            $finalQuoteItemModel->add($finalQuoteItemModel->create([
+                'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                'inquiry_id' => $request['inquiry_id'],
+                'inquiry_item_id' => $item['inquiry_item_id'],
+                'quote_item_id' => $item['id'],
+                'sku' => $item['sku'],
+                'supplier_id' => $item['supplier_id'],
+                'created_by' => ''
+            ]));
+        }
+
+        $this->jsonReturn();
     }
 
     /**
@@ -168,6 +194,13 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests();
         $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
         $this->jsonReturn($response);
+    }
+
+    public function updateSupplierAction(){
+
+        $request = $this->validateRequests();
+        $this->quoteItemModel->updateSupplier($request['data']);
+        $this->jsonReturn();
     }
 
     /**

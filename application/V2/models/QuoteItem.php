@@ -39,6 +39,14 @@ class QuoteItemModel extends PublicModel {
 
     }
 
+    public function updateSupplier($data){
+        foreach ($data as $key=>$value){
+            $value['updated_at'] = date('Y-m-d H:i:s');
+            $this->save($this->create($value));
+        }
+        return true;
+    }
+
     /**
      * 更新SKU信息
      * @param $data 数据对象
