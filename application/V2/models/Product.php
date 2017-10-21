@@ -898,8 +898,8 @@ class ProductModel extends PublicModel {
         $userInfo = getLoinInfo();
         $es_product_model = new EsProductModel();
         $mcatModel = new MaterialCatModel();
-        //$localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
-        $localFile =  $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/impspu.xls";
+        $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
+        //$localFile =  $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/impspu.xls";
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
         $objPHPExcel = $objReader->load($localFile);    //加载文件
