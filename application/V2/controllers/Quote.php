@@ -86,6 +86,42 @@ class QuoteController extends PublicController{
     }
 
     /**
+     * 退回物流报价
+     */
+    public function rejectLogisticAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $condition = ['id'=>$request['inquiry_id']];
+
+        $inquiryModel = new InquiryModel();
+        $result = $inquiryModel->where($condition)->save([
+            'status' => 'LOGI_QUOTING', //物流报价
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->jsonReturn($result);
+    }
+
+    /**
+     * 提交报价审核
+     */
+    public function submitQuoteAuditorAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $condition = ['id'=>$request['inquiry_id']];
+
+        $inquiryModel = new InquiryModel();
+        $result = $inquiryModel->where($condition)->save([
+            'status' => 'BIZ_APPROVING', //事业部核算
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->jsonReturn($result);
+    }
+
+    /**
      * SKU列表
      */
     public function skuAction(){
