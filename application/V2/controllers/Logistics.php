@@ -349,7 +349,7 @@ class LogisticsController extends PublicController {
 	public function getQuoteLogiQwvListAction() {
 	    $condition = $this->put_data;
 	     
-	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	     
 	    $data = $this->quoteLogiQwvModel->getList($condition);
 	    
@@ -365,7 +365,7 @@ class LogisticsController extends PublicController {
 	public function addQuoteLogiQwvRecordAction() {
 	    $condition = $this->put_data;
 	    
-	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	    
 	    $volumn = $condition['length'] * $condition['width'] * $condition['height'];
 	    $condition['volumn'] = $volumn > 0 ? $volumn : 0;
