@@ -488,7 +488,23 @@ class LogisticsController extends PublicController {
 	        
 	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
 	        
-	        $res = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_agent_id' => $condition['logi_agent_id']]);
+	        $this->inquiryModel->startTrans();
+	        $this->quoteModel->startTrans();
+	        
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_agent_id' => $condition['logi_agent_id'], 'status' => 'LOGI_QUOTING']);
+	        
+	        // 更改报价单状态
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_QUOTING']);
+	        
+	        if ($res1['code'] == 1 && $res2) {
+	            $this->inquiryModel->commit();
+	            $this->quoteModel->commit();
+	            $res = true;
+	        } else {
+	            $this->inquiryModel->rollback();
+	            $this->quoteModel->rollback();
+	            $res = false;
+	        }
 	        
 	        $this->jsonReturn($res);
         } else {
