@@ -191,7 +191,11 @@ class QuoteModel extends PublicModel {
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
-        $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
+        $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
+            'status' => self::INQUIRY_LOGI_DISPATCHING,
+            //TODO 物流部ID(临时写死)
+            'logi_org_id' => '9733'
+        ]);
 
         $this->startTrans();
         $quoteResult = $this->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);

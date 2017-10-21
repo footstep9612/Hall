@@ -9,6 +9,7 @@ class QuoteController extends PublicController{
 
     private $quoteModel;
     private $quoteItemModel;
+    private $inquiryModel;
 
     private $requestParams = [];
 
@@ -18,6 +19,7 @@ class QuoteController extends PublicController{
 
         $this->quoteModel = new QuoteModel();
         $this->quoteItemModel = new QuoteItemModel();
+        $this->inquiryModel = new InquiryModel();
 
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
@@ -109,17 +111,22 @@ class QuoteController extends PublicController{
     public function submitQuoteAuditorAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $condition = ['id'=>$request['inquiry_id']];
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
+        $this->jsonReturn($response);
 
-        $inquiryModel = new InquiryModel();
-        $result = $inquiryModel->where($condition)->save([
-            'status' => 'BIZ_APPROVING', //事业部核算
-            'updated_by' => $this->user['id'],
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
-
-        $this->jsonReturn($result);
     }
+
+    /**
+     * 退回报价(审核人)
+     */
+    public function rejectAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_QUOTING');
+        $this->jsonReturn($response);
+
+    }
+
 
     /**
      * SKU列表
@@ -170,6 +177,15 @@ class QuoteController extends PublicController{
         $response = $this->quoteItemModel->delItem($quoteItemIds);
         $this->jsonReturn($response);
 
+    }
+
+    private function changeInquiryStatus($id,$status){
+
+        return $this->inquiryModel->where(['id'=>$id])->save([
+            'status'=>$status,
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
     }
 
     /**
