@@ -134,20 +134,21 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
 
-        //$this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
+        $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
+        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['quote_status' => 'QUOTED']);
 
-        //$this->where()->save(['status' => 'MARKET_APPROVING']);
+        $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
 
-//        $finalQuoteModel = new FinalQuoteModel();
-//        $finalQuoteModel->add($finalQuoteModel->create([
-//            'inquiry_id' => $request['inquiry_id'],
-//            'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
-//            'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
-//            'created_by' => $this->user['id'],
-//            'created_at' => date('Y-m-d H:i:s')
-//        ]));
+        $finalQuoteModel = new FinalQuoteModel();
+        $finalQuoteModel->add($finalQuoteModel->create([
+            'inquiry_id' => $request['inquiry_id'],
+            'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
+            'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+            'created_by' => $this->user['id'],
+            'created_at' => date('Y-m-d H:i:s')
+        ]));
 
-        $quoteItems = $this->quoteItemModel->where()->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
+        $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
 
         $finalQuoteItemModel = new FinalQuoteItemModel();
         foreach ($quoteItems as $quote=>$item){
@@ -158,7 +159,8 @@ class QuoteController extends PublicController{
                 'quote_item_id' => $item['id'],
                 'sku' => $item['sku'],
                 'supplier_id' => $item['supplier_id'],
-                'created_by' => ''
+                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s'),
             ]));
         }
 
