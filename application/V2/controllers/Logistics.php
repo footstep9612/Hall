@@ -479,14 +479,16 @@ class LogisticsController extends PublicController {
 	    $condition = $this->put_data;
 	    
 	    if (!empty($condition['inquiry_id'])) {
-	        $where['inquiry_id'] = $condition['inquiry_id'];
+	        /*$where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $data = [
 	            'logi_agent_id' => $condition['logi_agent_id'],
 	            'updated_at' => $this->time
 	        ];
 	        
-	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);
+	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
+	        
+	        $res = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_agent_id' => $condition['logi_agent_id']]);
 	        
 	        $this->jsonReturn($res);
         } else {
