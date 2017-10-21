@@ -294,7 +294,7 @@ class LogisticsController extends PublicController {
 	            $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        }
 	        
-	        $quoteItemList = $this->quoteItemModel->getItemList($where);
+	        $quoteItemList = $this->quoteItemModel->where($where)->select();
 	        
 	        $res3 = true;
 	        $this->quoteItemModel->startTrans();
