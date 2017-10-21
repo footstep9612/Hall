@@ -713,7 +713,8 @@ class ProductModel extends PublicModel {
         //上锁
         $lockFile = MYPATH . '/public/tmp/' . $spu . '.lock';
         if (file_exists($lockFile)) {
-            $this->createSpu($material_cat_no, $step++);
+            $step = $step+1;
+            $this->createSpu($material_cat_no, $step);
         } else {
             $handle = fopen($lockFile, "w");
             if (!$handle) {
@@ -897,8 +898,8 @@ class ProductModel extends PublicModel {
         $userInfo = getLoinInfo();
         $es_product_model = new EsProductModel();
         $mcatModel = new MaterialCatModel();
-        $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
-        //$localFile =  $_SERVER['DOCUMENT_ROOT'] . "/public/file/spuTemplate.xls";
+        //$localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
+        $localFile =  $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/impspu.xls";
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
         $objPHPExcel = $objReader->load($localFile);    //加载文件
@@ -915,10 +916,8 @@ class ProductModel extends PublicModel {
                 try {
                     $workText = '';
                     if ($key <= 2) {
-
                         continue;
                     }
-
 
                     $data_tmp = [];
                     $input_spu = trim($r[2]);    //excel输入的spu
@@ -1034,7 +1033,8 @@ class ProductModel extends PublicModel {
                     } else {
                         $data_tmp['status'] = $this::STATUS_CHECKING;
                         $workText = '新增';
-                        $input_spu = $data_tmp['spu'] = $this->createSpu($r[3]);    //生成spu
+                        $input_spu = $input_spu ? $input_spu : $this->createSpu($r[3]);    //生成spu
+                        $data_tmp['spu'] = $input_spu;
                         $result = $this->add($this->create($data_tmp));
                         //解锁
                         if (file_exists(MYPATH . '/public/tmp/' . $data_tmp['spu'] . '.lock')) {
