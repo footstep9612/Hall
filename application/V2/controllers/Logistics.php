@@ -33,7 +33,7 @@ class LogisticsController extends PublicController {
 	public function getQuoteItemLogiListAction() {
 	    $condition = $this->put_data;
 	
-	    if (empty($condition['quote_id'])) $this->jsonReturn(false);
+	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	    
 	    $data = $this->quoteItemLogiModel->getJoinList($condition);
 	
@@ -241,7 +241,7 @@ class LogisticsController extends PublicController {
 	public function updateQuoteLogiFeeInfoAction() {
 	    $condition = $this->put_data;
 	
-	    if (!empty($condition['quote_id'])) {
+	    if (!empty($condition['inquiry_id'])) {
 	        
 	        $data = $condition;
 	        
@@ -251,12 +251,12 @@ class LogisticsController extends PublicController {
 	        unset($data['box_type_bn']);
 	        unset($data['quote_remarks']);
 	        
-	        $where['quote_id'] = $condition['quote_id'];
+	        $where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getDetail($where);
 	        $data['premium_rate'] = $quoteLogiFee['premium_rate'];
 	        
-	        $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+	        $quote = $this->quoteModel->where($where)->select();
 	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
 	        $data['payment_period'] = $quote['payment_period'];
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
@@ -291,7 +291,7 @@ class LogisticsController extends PublicController {
 	        
 	        if ($quoteData) {
 	            $this->quoteModel->startTrans();
-	            $res2 = $this->quoteModel->updateQuote(['quote_no' => $quote['quote_no']], $quoteData);
+	            $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        }
 	        
 	        $quoteItemList = $this->quoteItemModel->getItemList($where);
@@ -703,8 +703,8 @@ class LogisticsController extends PublicController {
 	public function getOverlandInsuFeeAction() {
 	    $condition = $this->put_data;
 	    
-	    if (!empty($condition['quote_id'])) {
-    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+	    if (!empty($condition['inquiry_id'])) {
+    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->select();
     	    
     	    $overlandInsuFee = $this->_getOverlandInsuFee($quote['total_exw_price'], $condition['overland_insu_rate']);
     	    $res['overland_insu'] = $overlandInsuFee['CNY'];
@@ -724,8 +724,8 @@ class LogisticsController extends PublicController {
 	public function getShippingInsuFeeAction() {
 	   $condition = $this->put_data;
 	    
-	    if (!empty($condition['quote_id'])) {
-    	    $quote = $this->quoteModel->getDetail(['id' =>$condition['quote_id']]);
+	    if (!empty($condition['inquiry_id'])) {
+    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->select();
     	    
     	    $shippingInsuFee = $this->_getShippingInsuFee($quote['total_exw_price'], $condition['shipping_insu_rate']);
     	    $res['shipping_insu'] = $shippingInsuFee['CNY'];

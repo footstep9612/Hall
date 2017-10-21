@@ -34,8 +34,8 @@ class QuoteItemLogiModel extends PublicModel {
             $where['a.id'] = $condition['id'];
         }
          
-        if(!empty($condition['quote_id'])) {
-            $where['a.quote_id'] = $condition['quote_id'];
+        if(!empty($condition['inquiry_id'])) {
+            $where['a.inquiry_id'] = $condition['inquiry_id'];
         }
          
         $where['a.deleted_flag'] = 'N';
