@@ -127,6 +127,17 @@ class QuoteController extends PublicController{
 
     }
 
+    /**
+     * 确认报价(审核人)
+     */
+    public function confirmAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
+
+        $response ;
+    }
 
     /**
      * SKU列表
@@ -138,8 +149,11 @@ class QuoteController extends PublicController{
         $list = $this->quoteItemModel->getList($request);
         if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
 
+        $supplier = new SupplierModel();
+
         foreach ($list as $key=>$value){
             $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
+            $list[$key]['supplier_name'] = $supplier->where(['id' => $value['supplier_id']])->getField('name');
         }
 
         $this->jsonReturn($list);
