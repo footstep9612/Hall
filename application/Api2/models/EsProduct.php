@@ -39,7 +39,7 @@ class EsProductModel extends Model {
      */
 
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
-        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
+        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];
                 if (!$field) {
