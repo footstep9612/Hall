@@ -32,6 +32,10 @@ class QuoteModel extends PublicModel {
         parent::__construct();
     }
 
+    public function getQuoteIdByInQuiryId($inquiry_id){
+        return $this->where(['inquiry_id'=>$inquiry_id])->getField('id');
+    }
+
     /**
      * 获取综合报价信息
      * @param array $condition    条件
@@ -156,15 +160,6 @@ class QuoteModel extends PublicModel {
      */
     public function rejectToBiz(array $condition){
 
-        /*
-        |--------------------------------------------------------------------------
-        | 退回事业部分单员
-        |--------------------------------------------------------------------------
-        |
-        | 询单(inquiry): ['status'=>BIZ_DISPATCHING,'quote_status'=>NOT_QUOTED]
-        | 报价单(quote): ['status'=>'BIZ_DISPATCHING']
-        |
-        */
         $this->startTrans();
         $quoteResult = $this->where($condition)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
 
@@ -184,7 +179,7 @@ class QuoteModel extends PublicModel {
         }else{
             $this->rollback();
             $inquiry->rollback();
-            return ['code'=>'1','message'=>'不能重复退回!'];
+            return ['code'=>'-104','message'=>'不能重复退回!'];
         }
 
     }
@@ -198,12 +193,14 @@ class QuoteModel extends PublicModel {
      */
     public function sendLogisticsHandler($request,$user){
 
-        //更改询单(inqury->status)的状态
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
-        $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
+        $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
+            'status' => self::INQUIRY_LOGI_DISPATCHING,
+            //TODO 物流部ID(临时写死)
+            'logi_org_id' => '9733'
+        ]);
 
-        //更改报价(quote->status)的状态
         $this->startTrans();
         $quoteResult = $this->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
 

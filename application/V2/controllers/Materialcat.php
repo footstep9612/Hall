@@ -480,4 +480,18 @@ class MaterialcatController extends PublicController {
         }
     }
 
+    /**
+     * 导出分类
+     */
+    public function exportAction() {
+        $data = $this->getPut();
+        $materialcat_model = new MaterialCatModel();
+        $localDir = $materialcat_model->export($data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
 }

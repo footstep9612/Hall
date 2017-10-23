@@ -10,6 +10,14 @@ class InquiryModel extends PublicModel {
 
     protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry'; //数据表表名
+    
+    const  inquiryIssueRole = 'A001'; //客户中心分单员角色编号
+    const quoteIssueMainRole = 'A002'; //报价主分单员角色编号
+    const quoteIssueAuxiliaryRole = 'A003'; //报价辅分单员角色编号
+    const quoteCheckRole = 'A004'; //报价审核人角色编号
+    const logiIssueMainRole = 'A005'; //物流报价主分单员角色编号
+    const logiIssueAuxiliaryRole = 'A006'; //物流报价辅分单员角色编号
+    const logiCheckRole = 'A007'; //物流报价审核人角色编号
 
     public function __construct() {
         parent::__construct();
@@ -71,6 +79,10 @@ class InquiryModel extends PublicModel {
             $where['status'] = $condition['status'];    //项目状态
         }
         
+        if (!empty($condition['country_bn'])) {
+            $where['country_bn'] = $condition['country_bn'];    //国家
+        }
+        
         if (!empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];  //流程编码
         }
@@ -78,12 +90,65 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
+        
+        if (!empty($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
                 ['egt', $condition['start_time']],
                 ['elt', $condition['end_time'] . ' 23:59:59']
             ];
+        }
+        
+        if (!empty($condition['list_type'])) {
+            switch ($condition['list_type']) {
+                case 'inquiry' :
+                    $map[] = ['created_by' => $condition['user_id']];
+                    $map[] = ['agent_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == $this->inquiryIssueRole) {
+                            $map[] = ['erui_id' => $condition['user_id']];
+                        }
+                    }
+                    break;
+                case 'quote' :
+                    $map[] = ['quote_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id']);
+                            
+                            if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
+                        }
+                        if ($roleNo == self::quoteCheckRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id']);
+                            
+                            if ($orgId) $map[] = ['check_org_id' => ['in', $orgId]];
+                        }
+                    }
+                    break;
+                case 'logi' :
+                    $map[] = ['logi_agent_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
+                            
+                            if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
+                        }
+                        if ($roleNo == self::logiCheckRole) {
+                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
+                            
+                            if ($orgId) $map[] = ['logi_check_id' => ['in', $orgId]];
+                        }
+                    }
+            }
+            
+            $map['_logic'] = 'or';
+            $where[] = $map;
         }
     
         $where['deleted_flag'] = 'N';
@@ -103,6 +168,23 @@ class InquiryModel extends PublicModel {
 
         $count = $this->where($where)->count('id');
 
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-10-19
+     */
+    public function getCount_($condition = []) {
+         
+        $where = $this->getWhere($condition);
+         
+        $count = $this->where($where)->count('id');
+         
         return $count > 0 ? $count : 0;
     }
 
@@ -187,7 +269,7 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-10-18
      */
-    public function getList2($condition = [], $field = '*') {
+    public function getList_($condition = [], $field = '*') {
     
         $where = $this->getWhere($condition);
          
@@ -251,8 +333,11 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有流程编码!';
             return $results;
         }
-        $data['status'] = 'DRAFT';
-        $data['created_at'] = $this->getTime();
+
+        $time = $this->getTime();
+        
+        $data['inflow_time'] = $time;
+        $data['created_at'] = $time;
 
         try {
             $id = $this->add($data);
@@ -413,5 +498,32 @@ class InquiryModel extends PublicModel {
      */
     public function getTime() {
         return date('Y-m-d H:i:s',time());
+    }
+    
+    /**
+     * @desc 获取询单办理部门组ID
+     *
+     * @param array $groupId 当前用户的全部组ID
+     * @param string $orgNode 部门节点
+     * @return array
+     * @author liujf
+     * @time 2017-10-20
+     */
+    private function _getDeptOrgId($groupId = [], $orgNode = 'ub') {
+        $org = new OrgModel();
+        
+        $where = [
+             'id' => ['in', $groupId ? : ['-1']],
+             'org_node' => $orgNode
+        ];
+        $orgList = $org->field('id')->where($where)->select();
+        
+        // 用户所在部门的组ID
+        $orgId = [];
+        foreach ($orgList as $org) {
+            $orgId[] = $org['id'];
+        }
+        
+        return $orgId;
     }
 }

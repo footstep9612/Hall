@@ -111,7 +111,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
 
-    public function getListAction() {
+    /*public function getListAction() {
         $auth = $this->checkAuthAction();
         //判断是否有权限访问
         if ($auth['code'] == '-101') {
@@ -191,7 +191,7 @@ class InquiryController extends PublicController {
         }
 
         $this->jsonReturn($results);
-    }
+    }*/
     
     /**
 	 * @desc 询价单列表
@@ -199,18 +199,71 @@ class InquiryController extends PublicController {
 	 * @author liujf
 	 * @time 2017-10-18
 	 */
-    public function getList2Action() {
-
-        $inquiry = new InquiryModel();
-
+    public function getListAction() {
         $condition = $this->put_data;
-    
-        $results = $inquiry->getList2($condition);
         
-        if ($results) {
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            $this->jsonReturn($results);
+        $inquiry = new InquiryModel();
+        $user = new UserModel();
+        
+        // 市场经办人
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+        
+        // 是否是分单员的标识
+        $isIssue = 'N';
+        
+        // 是否是审核人的标识
+        $isCheck = 'N';
+        
+        switch ($condition['list_type']) {
+            case 'inquiry' :
+                foreach ($this->user['role_no'] as $roleNo) {
+                    if ($roleNo == $inquiry::inquiryIssueRole) {
+                        $isIssue = 'Y';
+                    }
+                }
+                break;
+            case 'quote' :
+                foreach ($this->user['role_no'] as $roleNo) {
+                    if ($roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole) {
+                        $isIssue = 'Y';
+                    }
+                    if ($roleNo == $inquiry::quoteCheckRole) {
+                        $isCheck = 'Y';
+                    }
+                }
+                break;
+            case 'logi' :
+                foreach ($this->user['role_no'] as $roleNo) {
+                    if ($roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
+                        $isIssue = 'Y';
+                    }
+                    if ($roleNo == $inquiry::logiCheckRole ) {
+                        $isCheck = 'Y';
+                    }
+                }
+        }
+    
+        // 当前用户的所有角色编号
+        $condition['role_no'] = $this->user['role_no'];
+        
+        // 当前用户的所有组织ID
+        $condition['group_id'] = $this->user['group_id'];
+        
+        $condition['user_id'] = $this->user['id'];
+        
+        $inquiryList = $inquiry->getList_($condition);
+        
+        if ($inquiryList) {
+            $res['code'] = 1;
+    		$res['message'] = '成功!';
+            $res['data'] = $inquiryList;
+            $res['is_issue'] = $isIssue;
+            $res['is_check'] = $isCheck;
+            $res['count'] = $inquiry->getCount_($condition);
+            $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
             $this->setMessage('失败!');
@@ -621,7 +674,7 @@ class InquiryController extends PublicController {
     public function addCheckLogAction() {
         $checklog = new CheckLogModel();
         $data = $this->put_data;
-        $data['op_id'] = $this->user['id'];
+        $data['agent_id'] = $this->user['id'];
         $data['created_by'] = $this->user['id'];
 
         $results = $checklog->addData($data);

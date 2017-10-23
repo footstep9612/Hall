@@ -9,6 +9,7 @@ class QuoteController extends PublicController{
 
     private $quoteModel;
     private $quoteItemModel;
+    private $inquiryModel;
 
     private $requestParams = [];
 
@@ -18,6 +19,7 @@ class QuoteController extends PublicController{
 
         $this->quoteModel = new QuoteModel();
         $this->quoteItemModel = new QuoteItemModel();
+        $this->inquiryModel = new InquiryModel();
 
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
@@ -86,6 +88,124 @@ class QuoteController extends PublicController{
     }
 
     /**
+     * 退回物流报价
+     */
+    public function rejectLogisticAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $condition = ['id'=>$request['inquiry_id']];
+
+        $inquiryModel = new InquiryModel();
+        $result = $inquiryModel->where($condition)->save([
+            'status' => 'LOGI_QUOTING', //物流报价
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->jsonReturn($result);
+    }
+
+    /**
+     * 提交报价审核
+     */
+    public function submitQuoteAuditorAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 退回报价(审核人)
+     */
+    public function rejectAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_QUOTING');
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 确认报价(审核人)
+     */
+    public function confirmAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
+        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['quote_status' => 'QUOTED']);
+
+        $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
+
+        $finalQuoteModel = new FinalQuoteModel();
+        $finalQuoteModel->add($finalQuoteModel->create([
+            'inquiry_id' => $request['inquiry_id'],
+            'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
+            'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+            'created_by' => $this->user['id'],
+            'created_at' => date('Y-m-d H:i:s')
+        ]));
+
+        $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
+
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        foreach ($quoteItems as $quote=>$item){
+            $finalQuoteItemModel->add($finalQuoteItemModel->create([
+                'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                'inquiry_id' => $request['inquiry_id'],
+                'inquiry_item_id' => $item['inquiry_item_id'],
+                'quote_item_id' => $item['id'],
+                'sku' => $item['sku'],
+                'supplier_id' => $item['supplier_id'],
+                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s'),
+            ]));
+        }
+
+        $this->jsonReturn();
+    }
+
+    /**
+     * SKU列表
+     */
+    public function skuAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $list = $this->quoteItemModel->getList($request);
+        if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
+
+        $supplier = new SupplierModel();
+
+        foreach ($list as $key=>$value){
+            $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
+            $list[$key]['supplier_name'] = $supplier->where(['id' => $value['supplier_id']])->getField('name');
+        }
+
+        $this->jsonReturn($list);
+
+    }
+
+    /**
+     * 保存SKU信息
+     */
+    public function updateSkuAction(){
+
+        $request = $this->validateRequests();
+        $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
+        $this->jsonReturn($response);
+    }
+
+    public function updateSupplierAction(){
+
+        $request = $this->validateRequests();
+        $this->quoteItemModel->updateSupplier($request['data']);
+        $this->jsonReturn();
+    }
+
+    /**
      * 删除SKU
      */
     public function delItemAction(){
@@ -106,6 +226,15 @@ class QuoteController extends PublicController{
         $response = $this->quoteItemModel->delItem($quoteItemIds);
         $this->jsonReturn($response);
 
+    }
+
+    private function changeInquiryStatus($id,$status){
+
+        return $this->inquiryModel->where(['id'=>$id])->save([
+            'status'=>$status,
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
     }
 
     /**

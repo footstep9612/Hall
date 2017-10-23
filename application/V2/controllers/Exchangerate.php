@@ -166,7 +166,7 @@ class ExchangerateController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('生效日期不能为空!');
             $this->jsonReturn();
-        } elseif ($this->isDateTime($condition['effective_date'])) {
+        } elseif (!$this->isDateTime($condition['effective_date'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('生效日期格式不对!');
             $this->jsonReturn();
@@ -199,7 +199,8 @@ class ExchangerateController extends PublicController {
     }
 
     function isDateTime($dateTime) {
-        $ret = strtotime($dateTime);
+        echo $dateTime;
+        $ret = strtotime($dateTime . '-01');
         return $ret !== FALSE && $ret != -1;
     }
 
@@ -225,7 +226,7 @@ class ExchangerateController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('生效日期不能为空!');
             $this->jsonReturn();
-        } elseif ($this->isDateTime($condition['effective_date'])) {
+        } elseif (!$this->isDateTime($condition['effective_date'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('生效日期格式不对!');
             $this->jsonReturn();
@@ -242,7 +243,8 @@ class ExchangerateController extends PublicController {
         }
         $where['id'] = $this->getPut('id');
         $result = $this->_model->update_data($condition, $where);
-        if ($result) {
+
+        if ($result !== false) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
