@@ -201,7 +201,7 @@ class ProductController extends PublicController {
                 }
                 $message = substr($message,0,-1).']';
             }
-            jsonReturn($message);
+            jsonReturn($result,ErrorMsg::SUCCESS,$message);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
