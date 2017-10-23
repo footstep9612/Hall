@@ -167,9 +167,8 @@ class ProductController extends PublicController {
         } else {
             $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
         }
-
-        $this->checkproduct();
-        $this->checkimg();
+       // $this->checkproduct();
+       // $this->checkimg();
         $remark = isset($this->put_data['remark']) ? htmlspecialchars($this->put_data['remark']) : '';
 
         $result = '';
@@ -188,19 +187,27 @@ class ProductController extends PublicController {
                 break;
         }
 
-        if ($result) {
+        if ($result !== false) {
             if ($lang) {
                 $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
             }
-            jsonReturn($result);
+            $message =  $result[0]>0 ? '操作成功！' : '操作失败！';
+            if($result[1]){
+                $message.= '[';    //失败数
+                foreach($result[1] as $k=>$r){
+                    $message.= array_keys($r)[0].':'.array_values($r)[0].';';
+                }
+                $message = substr($message,0,-1).']';
+            }
+            jsonReturn($result,ErrorMsg::SUCCESS,$message);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
     }
 
-    public function checkproduct() {
+/*    public function checkproduct() {
 
         if ($this->put_data['update_type'] === 'verifyno') {
             return true;
@@ -253,9 +260,9 @@ class ProductController extends PublicController {
                 $this->jsonReturn(false);
             }
         }
-    }
+    }*/
 
-    public function checkimg() {
+ /*   public function checkimg() {
         if ($this->put_data['update_type'] === 'verifyno') {
             return true;
         }
@@ -293,7 +300,7 @@ class ProductController extends PublicController {
                 }
             }
         }
-    }
+    }*/
 
     /**
      * 产品附件

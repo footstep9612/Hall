@@ -228,26 +228,24 @@ class ProductModel extends PublicModel {
                     }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
-                    //if ($input['status'] != 'DRAFT') {
-                    //字段校验
-                    $this->checkParam($data, $this->field);
-
-                    $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
-                        'lang' => $key,
-                        'name' => $data['name'],
-                        'material_cat_no' => $data['material_cat_no'],
-                        'brand' => $data['brand'],
-                        'deleted_flag' => 'N',
-                            //'status' => array('neq', 'DRAFT')
-                    );
-                    if (isset($input['spu'])) {
-                        $exist_condition['spu'] = array('neq', $spu);
+                    $this->checkParam($data, $this->field);     //字段校验
+                    if ($input['status'] == 'VALID') {
+                        $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
+                            'lang' => $key,
+                            'name' => $data['name'],
+                            'material_cat_no' => $data['material_cat_no'],
+                            'brand' => $data['brand'],
+                            'deleted_flag' => 'N',
+                                //'status' => array('neq', 'DRAFT')
+                        );
+                        if (isset($input['spu'])) {
+                            $exist_condition['spu'] = array('neq', $spu);
+                        }
+                        $exist = $this->field('spu')->where($exist_condition)->find();
+                        if ($exist) {
+                            jsonReturn('', ErrorMsg::EXIST);
+                        }
                     }
-                    $exist = $this->field('spu')->where($exist_condition)->find();
-                    if ($exist) {
-                        jsonReturn('', ErrorMsg::EXIST);
-                    }
-                    //}
                     //$data['status'] = $input['status'];
 
                     $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
@@ -368,10 +366,10 @@ class ProductModel extends PublicModel {
             return false;
 
         if ($spu) {
-            $this->startTrans();
+            //$this->startTrans();
             try {
-
                 $spuary = [];
+                $faild_ary = [];    //记录失败的
                 $userInfo = getLoinInfo();
                 if (is_array($spu)) {
                     foreach ($spu as $r) {
@@ -382,6 +380,16 @@ class ProductModel extends PublicModel {
                             $where['lang'] = $lang;
                         }
                         $updata = array('status' => $status);
+
+                        /** 报审走报审验证*/
+                        if($status == self::STATUS_CHECKING || $status == self::STATUS_VALID){
+                            $applyInfo = $this->applyExamine($r,$lang);
+                            if($applyInfo['code']===false){
+                                $faild_ary[][$r] = $applyInfo['message'];
+                                continue;
+                            }
+                        }
+
                         /**
                          * 审核人跟时间
                          */
@@ -393,8 +401,9 @@ class ProductModel extends PublicModel {
                         if ($result) {
                             $spuary[] = array('spu' => $r, 'lang' => $lang, 'remarks' => $remark);
                         } else {
-                            $this->rollback();
-                            return false;
+                            //$this->rollback();
+                            $faild_ary[][$r] = '失败';
+                            continue;
                         }
                     }
                 } else {
@@ -405,6 +414,16 @@ class ProductModel extends PublicModel {
                         $where['lang'] = $lang;
                     }
                     $updata = array('status' => $status);
+
+                    /** 报审走报审验证*/
+                    if($status == self::STATUS_CHECKING || $status == self::STATUS_VALID){
+                        $applyInfo = $this->applyExamine($spu,$lang);
+                        if($applyInfo['code']===false){
+                            $faild_ary[][$spu] = $applyInfo['message'];
+                            return array(0,$faild_ary);
+                        }
+                    }
+
                     /**
                      * 审核人跟时间
                      */
@@ -416,8 +435,10 @@ class ProductModel extends PublicModel {
                     if ($result) {
                         $spuary[] = array('spu' => $spu, 'lang' => $lang, 'remarks' => $remark);
                     } else {
-                        $this->rollback();
-                        return false;
+                        //$this->rollback();
+                        //return false;
+                        $faild_ary[][$spu] = '失败';
+                        return $faild_ary;
                     }
                 }
                 switch ($status) {
@@ -431,14 +452,58 @@ class ProductModel extends PublicModel {
                         break;
                 }
 
-                $this->commit();
-                return true;
+                //$this->commit();
+                return array(count($spuary),$faild_ary);
             } catch (Exception $e) {
-                $this->rollback();
+                //$this->rollback();
                 return false;
             }
         }
         return false;
+    }
+
+    /**
+     * 报审验证
+     * 验证名称+品牌是否库中存在
+     * 验证图片
+     * @param string $spu
+     * @param string $lang
+     */
+    public function applyExamine($spu='',$lang=''){
+        if(empty($spu)){
+            return ['code' => false,'message' => 'system error: spu is null'];
+        }
+        $condition = [ 'spu' => $spu ];
+        if(!empty($lang)){
+            $condition['lang'] = $lang;
+        }
+        $result = $this->field('spu,lang,name,brand,material_cat_no')->where($condition)->select();
+        if($result){
+            $attachModel = new ProductAttachModel();
+            foreach($result as $key => $item){
+                if(empty(trim($item['name']))){    //检测名称
+                    return ['code' => false,'message' => $item['lang'].'名称不能为空'];
+                }
+                if(empty(trim($item['brand']))){    //检测品牌
+                    return ['code' => false,'message' => $item['lang'].'品牌不能为空'];
+                }
+                $condition_new = [ 'lang' => $item['lang'], 'name' => $item['name'] , 'brand'=>$item['brand'],'deleted_flag'=>self::DELETE_N,'spu'=>['neq',$item['spu']]];
+                $exist = $this->field('id')->where($condition_new)->find();
+                if($exist){
+                    return ['code' => false,'message' => $item['lang'].'已存在'];
+                }
+            }
+
+            //检测图片
+            $condition_attach = ['spu' => $spu , 'deleted_flag' => $attachModel::DELETED_N, 'status' => $attachModel::STATUS_VALID ];
+            $find = $attachModel->field('id')->where($condition_attach)->find();
+            if(!$find){
+                return ['code' => false,'message' => '无图片'];
+            }
+            return ['code' => true, 'message' => ''];
+        }else{
+            return ['code' => false,'message' => 'system error: spu is null'];
+        }
     }
 
     /*
