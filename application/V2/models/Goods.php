@@ -915,10 +915,12 @@ class GoodsModel extends PublicModel {
                         $this->checkModify($sku, $lang);
 
                         $where = [
-                            'lang' => $lang,
-                            'sku' =>  $sku,
+                            'sku'          => $sku,
                             'deleted_flag' => 'N'
                         ];
+                        if(!empty($lang)){
+                            $exit_where['lang'] = $lang;
+                        }
                         $result = $this->where($where)
                                 ->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
                         if (!$result) {
@@ -1001,28 +1003,58 @@ class GoodsModel extends PublicModel {
 
     //批量报审校验
     public function checkModify($sku,$lang) {
+
+        $supplierCostModel = new GoodsCostPriceModel();
+        $thisSupplierCost = $supplierCostModel->field('supplier_id')->where([ 'sku'=> $sku,'deleted_flag' => self::DELETE_N])->select();
+        if(!$thisSupplierCost) {
+            jsonReturn('',-1001,'[供应商信息]缺失!');
+        }
+
+        $attrModel = new GoodsAttrModel();
+        $attrTable = $attrModel->getTableName();
+        $thisTable = $this->getTableName();
+
         $exit_where = [
-            'lang'         => $lang,
-            'sku'          => $sku,
-            'deleted_flag' => self::DELETE_N
-        ];
-        $thisSkuInfo = $this->field('lang,spu,name,model')->where($exit_where)->find();
-        $thisSkuInfo ? $thisSkuInfo : jsonReturn('',-1001,'['. $sku .']不存在或已经删除!');
+            "$thisTable.sku"          => $sku,
+            "$thisTable.deleted_flag" => self::DELETE_N,
 
-        $thisSpecAttr = $this->where($exit_where)->find();
-        $thisSpecAttr ? $thisSpecAttr : jsonReturn('',-1001,'['. $sku .']属性不存在或已经删除!');
-
-        $where = [
-            'spu'          => $thisSkuInfo['spu'],
-            'name'         => $thisSkuInfo['name'],
-            'model'        => $thisSkuInfo['model'],
-            'lang'         => $lang,
-            'sku'          => array('neq', $sku),
-            'deleted_flag' => self::DELETE_N,
-            'status'       => array('neq', self::STATUS_DRAFT)
+            "$attrTable.sku"          => $sku,
+            "$attrTable.deleted_flag" => self::DELETE_N,
         ];
 
-        $this->_checkExit($where, $thisSpecAttr);
+        if(!empty($lang)){
+            $exit_where["$thisTable.lang"] = $lang;
+            $exit_where["$attrTable.lang"] = $lang;
+        }
+
+        $field = "$thisTable.lang, $thisTable.spu, $thisTable.name, $thisTable.model, $attrTable.spec_attrs";
+        $thisSkuInfo = $this->field($field)
+                            ->join($attrTable . " On $attrTable.sku = $thisTable.sku AND $attrTable.lang = $thisTable.lang", 'LEFT')
+                            ->where($exit_where)
+                            ->select();
+
+        if(!$thisSkuInfo) {
+            jsonReturn('',-1001,'['. $sku .']不存在或已经删除!');
+        }
+
+        foreach ($thisSkuInfo as $item) {
+            if(in_array($item['lang'], ['zh','en','es','ru'])) {
+                $where = [
+                    'spu'          => $item['spu'],
+                    'name'         => $item['name'],
+                    'model'        => $item['model'],
+                    'lang'         => $lang,
+                    'sku'          => array('neq', $sku),
+                    'deleted_flag' => self::DELETE_N,
+                    'status'       => array('neq', self::STATUS_DRAFT)
+                ];
+
+                $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
+                $this->_checkExit($where, $thisSpecAttr);
+            } else{
+                jsonReturn('',-1002,'对应语言错误!');
+            }
+        }
     }
 
     /**
