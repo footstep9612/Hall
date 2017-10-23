@@ -2006,6 +2006,9 @@ class GoodsModel extends PublicModel {
                 'model' => $data_tmp['model'],
                 'deleted_flag' => 'N',
             );
+            if(!empty($input_sku)){
+                $condition['sku'] = ['neq',$input_sku];
+            }
             $spec_attrs_array = array('spec_attrs' => $data['spec_attrs']);
             //数据导入
             $this->startTrans();
