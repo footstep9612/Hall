@@ -982,6 +982,7 @@ class ProductModel extends PublicModel {
         $userInfo = getLoinInfo();
         $es_product_model = new EsProductModel();
         $mcatModel = new MaterialCatModel();
+        $brandModel = new BrandModel();
         $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
         //$localFile =  $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/impspu.xls";
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
@@ -1045,6 +1046,16 @@ class ProductModel extends PublicModel {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不能为空]');
+                        continue;
+                    }
+                    $condition_brand = array(
+                        'brand' => array('like','%"name":"'.trim($r[7]).'"%')
+                    );
+                    $brand_id = $brandModel->field('id')->where($condition_brand)->find();
+                    if(!$brand_id){
+                        $faild ++;
+                        $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不存在]');
                         continue;
                     }
                     $brand_ary = array('name' => trim($r[7]), 'style' => 'TEXT', 'label' => trim($r[7]), 'logo' => '');

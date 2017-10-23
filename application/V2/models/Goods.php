@@ -1815,15 +1815,19 @@ class GoodsModel extends PublicModel {
                 }
                 $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue());//转码
                 if($index>=$ext_goods_start && $index<=$ext_goods_end){    //扩展属性
-                    if(!empty($value)){
-                        $data['spec_attrs'][$key] = $value;
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue());//转码
+                    if(!empty($key_attr) && !empty($value)){
+                        $data['spec_attrs'][$key_attr] = $value;
                     }
+                    unset($key_attr);
                     continue;
                 }
                 if($index>=$ext_hs_start){    //申报要素扩展属性
-                    if(!empty($value)){
-                        $data['ex_hs_attrs'][$key] = $value;
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue());//转码
+                    if(!empty($key_attr) && !empty($value)){
+                        $data['ex_hs_attrs'][$key_attr] = $value;
                     }
+                    unset($key_attr);
                     continue;
                 }
                 $data[$key] = $value;
@@ -1850,6 +1854,12 @@ class GoodsModel extends PublicModel {
             $input_sku = $data['订货号'];    //输入的sku  订货号
             $data_tmp['lang'] = $lang;
             $data_tmp['name'] = $data['名称'];    //名称
+            if(empty($data_tmp['name'])){
+                $spu_name = $productModel->field('name')->where(array("spu"=>$spu , "lang"=>$lang))->find();
+                if($spu_name){
+                    $data_tmp['name'] = $spu_name['name'];
+                }
+            }
             $data_tmp['model'] = $data['型号'];    //型号
             $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
             if(empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])){
@@ -2099,6 +2109,9 @@ class GoodsModel extends PublicModel {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
                     continue;
                 }
+
+                //更新es
+                $es_goods_model->create_data($input_sku, $lang);
 
                 $objPHPExcel->getSheet(0)->setCellValue($itemNo .$i, ' ' . $input_sku);
                 $success++;
