@@ -331,6 +331,18 @@ class ProductModel extends PublicModel {
                               $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
                              */
                         }
+                    }else{
+                        if ($input['status'] != 'DRAFT') {
+                            jsonReturn('', '1000', '产品图不能为空');
+                        }else{
+                            if (isset($input['spu'])) {
+                                $pattach = new ProductAttachModel();
+                                $update_condition = array(
+                                    'spu' => trim($input['spu'])
+                                );
+                                $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
+                            }
+                        }
                     }
                 } else {
                     continue;
