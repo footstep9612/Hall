@@ -940,6 +940,7 @@ class GoodsModel extends PublicModel {
                         if ($result && $sku) {
                             $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
+                                
                                 $this->checkModify($sku, $lang);
 
                                 $pModel = new ProductModel();                         //spu审核通过
