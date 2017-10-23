@@ -420,7 +420,7 @@ class ProductModel extends PublicModel {
                         $applyInfo = $this->applyExamine($spu,$lang);
                         if($applyInfo['code']===false){
                             $faild_ary[][$spu] = $applyInfo['message'];
-                            return $faild_ary;
+                            return array(0,$faild_ary);
                         }
                     }
 

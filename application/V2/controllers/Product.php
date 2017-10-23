@@ -195,7 +195,7 @@ class ProductController extends PublicController {
             }
             $message =  $result[0]>0 ? '操作成功！' : '操作失败！';
             if($result[1]){
-                $message.= '[失败'.count($result[1]).'条,';    //失败数
+                $message.= '[';    //失败数
                 foreach($result[1] as $k=>$r){
                     $message.= array_keys($r)[0].':'.array_values($r)[0].';';
                 }
