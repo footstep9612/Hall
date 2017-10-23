@@ -189,9 +189,9 @@ class ProductController extends PublicController {
 
         if ($result !== false) {
             if ($lang) {
-               // $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
             } else {
-                //$this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsproduct(null, $this->put_data['spu']);
             }
             $message =  $result[0]>0 ? '操作成功，' : '操作失败，';
             if($result[1]){
