@@ -52,7 +52,7 @@ class UploadfileController extends PublicController {
         exit;
         $file = $this->getRequest()->getFiles();
 
-        $max_size = 1000000;
+        $max_size = 1048576;
 
         //检查文件大小
 
@@ -97,7 +97,7 @@ class UploadfileController extends PublicController {
             $this->alert("上传失败。");
         }
         if ($file_size > $max_size) {
-            $this->alert("上传文件大小超过限制。");
+            $this->alert("您上传的文件大于1M。");
         }
 
         $fastdfs = new FastDFSclient();

@@ -12,7 +12,6 @@ class ProductController extends PublicController {
 
     public function init() {
         parent::init();
-
         $this->method = $this->getMethod();
         Log::write(json_encode($this->put_data), Log::INFO);
     }
@@ -66,6 +65,7 @@ class ProductController extends PublicController {
     /*
      * 更新ESgoods
      */
+
     public function updateEsgoods($input, $spu) {
         $es_goods_model = new EsGoodsModel();
         $goods_model = new GoodsModel();
@@ -167,8 +167,8 @@ class ProductController extends PublicController {
         } else {
             $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
         }
-       // $this->checkproduct();
-       // $this->checkimg();
+        // $this->checkproduct();
+        // $this->checkimg();
         $remark = isset($this->put_data['remark']) ? htmlspecialchars($this->put_data['remark']) : '';
 
         $result = '';
@@ -193,114 +193,114 @@ class ProductController extends PublicController {
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
             }
-            $message =  $result[0]>0 ? '操作成功！' : '操作失败！';
-            if($result[1]){
-                $message.= '[';    //失败数
-                foreach($result[1] as $k=>$r){
-                    $message.= array_keys($r)[0].':'.array_values($r)[0].';';
+            $message = $result[0] > 0 ? '操作成功！' : '操作失败！';
+            if ($result[1]) {
+                $message .= '[';    //失败数
+                foreach ($result[1] as $k => $r) {
+                    $message .= array_keys($r)[0] . ':' . array_values($r)[0] . ';';
                 }
-                $message = substr($message,0,-1).']';
+                $message = substr($message, 0, -1) . ']';
             }
-            jsonReturn($result,ErrorMsg::SUCCESS,$message);
+            jsonReturn($result, ErrorMsg::SUCCESS, $message);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
     }
 
-/*    public function checkproduct() {
+    /*    public function checkproduct() {
 
-        if ($this->put_data['update_type'] === 'verifyno') {
-            return true;
-        }
-        $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
-        if (is_array($this->put_data['spu'])) {
-            $productModel = new ProductModel();
-            $checkinfo = ['spu' => ['in', $this->put_data['spu']]];
+      if ($this->put_data['update_type'] === 'verifyno') {
+      return true;
+      }
+      $lang = isset($this->put_data['lang']) ? strtolower($this->put_data['lang']) : '';
+      if (is_array($this->put_data['spu'])) {
+      $productModel = new ProductModel();
+      $checkinfo = ['spu' => ['in', $this->put_data['spu']]];
 
-            if (!empty($lang)) {
-                $checkinfo['lang'] = $lang;
-            }
-            $checkinfo[] = 'isnull(material_cat_no) or material_cat_no=\'\''
-                    . ' or isnull(name) or `name`=\'\' or isnull(brand) or brand=\'\'';
-            $pinfo = $productModel->field('spu')->where($checkinfo)->select();
-            $spus = [];
-            foreach ($pinfo as $item) {
-                $spus[] = $item['spu'];
-            }
-            $spus = implode(',', $spus);
-            if ($pinfo && $this->put_data['update_type'] == 'declare') {
-                $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('批量审核产品中SPU为[' . $spus . ']必填参数不全');
-                $this->jsonReturn(false);
-            } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
-                $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('批量报审产品中SPU为[' . $spus . ']必填参数不全');
-                $this->jsonReturn(false);
-            }
-        } else {
-            $productModel = new ProductModel();
-            $checkinfo = ['spu' => $this->put_data['spu']];
+      if (!empty($lang)) {
+      $checkinfo['lang'] = $lang;
+      }
+      $checkinfo[] = 'isnull(material_cat_no) or material_cat_no=\'\''
+      . ' or isnull(name) or `name`=\'\' or isnull(brand) or brand=\'\'';
+      $pinfo = $productModel->field('spu')->where($checkinfo)->select();
+      $spus = [];
+      foreach ($pinfo as $item) {
+      $spus[] = $item['spu'];
+      }
+      $spus = implode(',', $spus);
+      if ($pinfo && $this->put_data['update_type'] == 'declare') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('批量审核产品中SPU为[' . $spus . ']必填参数不全');
+      $this->jsonReturn(false);
+      } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('批量报审产品中SPU为[' . $spus . ']必填参数不全');
+      $this->jsonReturn(false);
+      }
+      } else {
+      $productModel = new ProductModel();
+      $checkinfo = ['spu' => $this->put_data['spu']];
 
-            if (!empty($lang)) {
-                $checkinfo['lang'] = $lang;
-            }
-            $checkinfo[] = 'isnull(material_cat_no) or material_cat_no=\'\''
-                    . ' or isnull(name) or `name`=\'\' or isnull(brand) or brand=\'\'';
+      if (!empty($lang)) {
+      $checkinfo['lang'] = $lang;
+      }
+      $checkinfo[] = 'isnull(material_cat_no) or material_cat_no=\'\''
+      . ' or isnull(name) or `name`=\'\' or isnull(brand) or brand=\'\'';
 
 
-            $pinfo = $productModel->where($checkinfo)->find();
+      $pinfo = $productModel->where($checkinfo)->find();
 
-            if ($pinfo && $this->put_data['update_type'] == 'declare') {
-                $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('审核产品必填参数不全');
-                $this->jsonReturn(false);
-            } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
-                $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('报审产品必填参数不全');
-                $this->jsonReturn(false);
-            }
-        }
-    }*/
+      if ($pinfo && $this->put_data['update_type'] == 'declare') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('审核产品必填参数不全');
+      $this->jsonReturn(false);
+      } elseif ($pinfo && $this->put_data['update_type'] == 'verifyok') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('报审产品必填参数不全');
+      $this->jsonReturn(false);
+      }
+      }
+      } */
 
- /*   public function checkimg() {
-        if ($this->put_data['update_type'] === 'verifyno') {
-            return true;
-        }
-        if (is_array($this->put_data['spu'])) {
-            $productattachModel = new ProductAttachModel();
-            if (is_array($this->put_data['spu'])) {
+    /*   public function checkimg() {
+      if ($this->put_data['update_type'] === 'verifyno') {
+      return true;
+      }
+      if (is_array($this->put_data['spu'])) {
+      $productattachModel = new ProductAttachModel();
+      if (is_array($this->put_data['spu'])) {
 
-                $checkinfo = ['spu' => ['in', $this->put_data['spu']], 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
-                $pinfo = $productattachModel->field('spu')->where($checkinfo)->group('spu')->select();
-                $spus = [];
-                foreach ($pinfo as $item) {
-                    $spus[] = $item['spu'];
-                }
-                $spus = implode(',', $spus);
-                if (!$pinfo && $this->put_data['update_type'] == 'declare') {
-                    $this->setCode(MSG::ERROR_PARAM);
-                    $this->setMessage('批量审核产品SPU为[' . $spus . ']没有图片');
-                    $this->jsonReturn(false);
-                } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
-                    $this->setCode(MSG::ERROR_PARAM);
-                    $this->setMessage('批量报审产品SPU为[' . $spus . ']没有图片');
-                    $this->jsonReturn(false);
-                }
-            } else {
-                $checkinfo = ['spu' => $this->put_data['spu'], 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
-                $pinfo = $productattachModel->where($checkinfo)->find();
-                if (!$pinfo && $this->put_data['update_type'] == 'declare') {
-                    $this->setCode(MSG::ERROR_PARAM);
-                    $this->setMessage('审核产品没有图片');
-                    $this->jsonReturn(false);
-                } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
-                    $this->setCode(MSG::ERROR_PARAM);
-                    $this->setMessage('报审产品没有图片');
-                    $this->jsonReturn(false);
-                }
-            }
-        }
-    }*/
+      $checkinfo = ['spu' => ['in', $this->put_data['spu']], 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
+      $pinfo = $productattachModel->field('spu')->where($checkinfo)->group('spu')->select();
+      $spus = [];
+      foreach ($pinfo as $item) {
+      $spus[] = $item['spu'];
+      }
+      $spus = implode(',', $spus);
+      if (!$pinfo && $this->put_data['update_type'] == 'declare') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('批量审核产品SPU为[' . $spus . ']没有图片');
+      $this->jsonReturn(false);
+      } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('批量报审产品SPU为[' . $spus . ']没有图片');
+      $this->jsonReturn(false);
+      }
+      } else {
+      $checkinfo = ['spu' => $this->put_data['spu'], 'attach_type' => 'BIG_IMAGE', 'deleted_flag' => 'N'];
+      $pinfo = $productattachModel->where($checkinfo)->find();
+      if (!$pinfo && $this->put_data['update_type'] == 'declare') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('审核产品没有图片');
+      $this->jsonReturn(false);
+      } elseif (!$pinfo && $this->put_data['update_type'] == 'verifyok') {
+      $this->setCode(MSG::ERROR_PARAM);
+      $this->setMessage('报审产品没有图片');
+      $this->jsonReturn(false);
+      }
+      }
+      }
+      } */
 
     /**
      * 产品附件
@@ -420,13 +420,13 @@ class ProductController extends PublicController {
      *
      */
     public function importAction() {
-        if (empty($this->put_data) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
+        if (empty($this->put_data) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
         $process = isset($this->put_data['process']) ? 1 : '';
 
         $productModel = new ProductModel();
-        $result = $productModel->import($this->put_data['xls'],$this->put_data['lang'],$process);
+        $result = $productModel->import($this->put_data['xls'], $this->put_data['lang'], $process);
         if ($result) {
             jsonReturn($result);
         } else {
@@ -444,7 +444,7 @@ class ProductController extends PublicController {
 
         $productModel = new ProductModel();
         $result = $productModel->zipImport2($this->put_data['xls']);
-        if ($result !== false && $result['sucess']>0) {
+        if ($result !== false && $result['sucess'] > 0) {
             $error = '';
             if (!empty($result['failds'])) {
                 foreach ($result['failds'] as $e) {
@@ -478,7 +478,7 @@ class ProductController extends PublicController {
     public function exportAction() {
         $productModel = new ProductModel();
         $process = isset($this->put_data['process']) ? 1 : '';
-        $localDir = $productModel->export($this->put_data,$process);
+        $localDir = $productModel->export($this->put_data, $process);
         if ($localDir) {
             jsonReturn($localDir);
         } else {

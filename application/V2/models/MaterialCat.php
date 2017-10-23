@@ -916,4 +916,172 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
+    /**
+     * 导出品牌
+     * @param  mix $input 导出条件
+     * @return bool
+     * @author zyg
+     */
+    public function export($input) {
+        set_time_limit(0);  # 设置执行时间最大值
+        ini_set("memory_limit", "1024M"); // 设置php可使用内存
+        $userInfo = getLoinInfo();
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+        $objPHPExcel = new PHPExcel();
+        $objPHPExcel->getProperties()->setCreator($userInfo['name']);
+        $objPHPExcel->getProperties()->setTitle("material_cat List");
+        $objPHPExcel->getProperties()->setLastModifiedBy($userInfo['name']);
+        $objPHPExcel->createSheet();    //创建工作表
+        $objPHPExcel->setActiveSheetIndex(0);    //设置工作表
+        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        $objSheet->getStyle("A1:K1")
+                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:K1")->getFont()->setSize(12)->setBold(true);    //粗体
+        $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+        foreach ($column_width_25 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(25);
+        }
+        $objPHPExcel->getActiveSheet(0)->getStyle('B')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
+//id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by
+        $objSheet->setTitle('物料分类');
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "分类编码");
+        $objSheet->setCellValue("C1", "父类分类编码");
+        $objSheet->setCellValue("D1", "分类中文名称");
+        $objSheet->setCellValue("E1", "分类英文名称");
+        $objSheet->setCellValue("F1", "分类西语名称");
+        $objSheet->setCellValue("G1", "分类俄语名称");
+        $objSheet->setCellValue("H1", "分类状态");
+        $objSheet->setCellValue("I1", "分类等级");
+        $objSheet->setCellValue("J1", "创建人");
+        $objSheet->setCellValue("K1", "创建时间");
+
+        $j = 2;    //excel控制输出
+
+        $result = $this->listall($input);
+
+        if ($result) {
+            foreach ($result as $cat_no => $item) {
+
+                $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("B" . $j, ' ' . $cat_no, PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("C" . $j, ' ' . $item['parent_cat_no'], PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("D" . $j, isset($item['zh']['name']) ? $item['zh']['name'] : '');
+
+                $objSheet->setCellValue("E" . $j, isset($item['en']['name']) ? $item['en']['name'] : '');
+
+                $objSheet->setCellValue("F" . $j, isset($item['es']['name']) ? $item['es']['name'] : '');
+
+                $objSheet->setCellValue("G" . $j, isset($item['ru']['name']) ? $item['ru']['name'] : '');
+
+                $status = '';
+
+                switch ($item['status']) {
+                    case self::STATUS_APPROVING:
+                        $status = '审核中';
+                        break;
+                    case self::STATUS_DRAFT:
+                        $status = '草稿';
+                        break;
+                    case self::STATUS_VALID:
+                        $status = '通过';
+                        break;
+                    case self::STATUS_DELETED:
+                        $status = '已删除';
+                        break;
+                    default:
+                        $status = $r['status'];
+                        break;
+                }
+                $objSheet->setCellValue("H" . $j, $status);
+                $objSheet->setCellValue("I" . $j, isset($item['level_no']) ? $item['level_no'] : '');
+                $objSheet->setCellValue("J" . $j, isset($item['created_by_name']) ? $item['created_by_name'] : '');
+                $objSheet->setCellValue("K" . $j, isset($item['created_at']) ? $item['created_at'] : '');
+                $j++;
+            }
+        }
+        //保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'MaterialCat_' . time() . '.xls');
+
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $data['tmp_name'] = $localDir;
+        $data['type'] = 'application/xls';
+        $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
+        $fileId = postfile($data, $url);
+        if ($fileId) {
+            unlink($localDir);
+            return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+        }
+        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
+        return false;
+    }
+
+    /**
+     * 获取列表
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function listall($condition, $lang = '') {
+        $where = $this->_getcondition($condition, $lang);
+        try {
+            $data = $this->where($where)
+                    ->order('cat_no DESC')
+                    ->field('id,cat_no,parent_cat_no,level_no,lang,name,status,'
+                            . 'sort_order,created_at,created_by')
+                    ->select();
+            $ret = [];
+            $this->_setUserName($data);
+            foreach ($data as $item) {
+                $ret[$item['cat_no']]['parent_cat_no'] = $item['parent_cat_no'];
+                $ret[$item['cat_no']]['status'] = $item['status'];
+                $ret[$item['cat_no']]['created_at'] = $item['created_at'];
+                $ret[$item['cat_no']]['created_by'] = $item['created_by'];
+                $ret[$item['cat_no']]['level_no'] = $item['level_no'];
+                $ret[$item['cat_no']]['created_by_name'] = $item['created_by_name'];
+                $ret[$item['cat_no']][$item['lang']]['name'] = $item['name'];
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   物流费率
+     */
+
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
 }
