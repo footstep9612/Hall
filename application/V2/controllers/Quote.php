@@ -37,6 +37,9 @@ class QuoteController extends PublicController{
 
         $info = $this->quoteModel->getGeneralInfo($condition,$field);
 
+        $exchangeRateModel = new ExchangeRateModel();
+        $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
+
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuote = $finalQuoteModel->where($condition)->field('total_exw_price,total_quote_price')->find();
         if ($finalQuote){

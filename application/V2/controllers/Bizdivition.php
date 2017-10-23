@@ -94,7 +94,7 @@ class BizdivitionController extends PublicController{
             ]));
 
             $inquiryItemModel = new InquiryItemModel();
-            $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,sku')->select();
+            $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,sku,qty,unit')->select();
 
             $quoteItemModel = new QuoteItemModel();
             foreach ($inquiryItems as $item=>$value){
@@ -103,6 +103,8 @@ class BizdivitionController extends PublicController{
                     'inquiry_id' => $request['inquiry_id'],
                     'inquiry_item_id' => $value['id'],
                     'sku' => $value['sku'],
+                    'quote_qty' => $value['qty'],
+                    'quote_unit' => $value['unit'],
                     'created_by' => $this->user['id'],
                     'created_at' => date('Y-m-d H:i:s')
                 ]));
