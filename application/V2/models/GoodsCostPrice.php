@@ -122,10 +122,10 @@ class GoodsCostPriceModel extends PublicModel {
             $results['code'] = '-1001';
             $results['message'] = '[sku]缺失!';
         }
-        if (empty($checkout['min_purchase_qty'])) {
-            $results['code'] = '-1001';
-            $results['message'] = '[最小购买量]缺失!';
-        }
+//        if (empty($checkout['min_purchase_qty'])) {
+//            $results['code'] = '-1001';
+//            $results['message'] = '[最小购买量]缺失!';
+//        }
         if (empty($checkout['supplier_id'])) {
             $results['code'] = '-1001';
             $results['message'] = '[supplier_id]缺失!';
@@ -157,10 +157,10 @@ class GoodsCostPriceModel extends PublicModel {
         if (!empty($checkout['price_validity'])) {
             $data['price_validity'] = $checkout['price_validity'];
         }
-        if(!empty($checkout['id'])) {
+        if (!empty($checkout['id'])) {
             $data['id'] = $checkout['id'];
         }
-        if($results){
+        if ($results) {
             return $results;
         }
         return $data;

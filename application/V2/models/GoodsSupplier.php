@@ -110,4 +110,104 @@ class GoodsSupplierModel extends PublicModel {
         }
     }
 
+    /**
+     * sku价格策略新增/编辑 -- 公共
+     * @author klp
+     * @return array
+     */
+    public function editSupplier($input, $sku = '', $admin = '', $spu = '') {
+        if (empty($input) || empty($sku) || empty($spu)) {
+            return false;
+        }
+
+        $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        $results = array();
+        try {
+            foreach ($input as $value) {
+
+
+                $data = $this->checkParam($value, $sku);
+                $data['deleted_flag'] = 'N';
+                $data['sku'] = $sku;
+                $data['status'] = 'VALID';
+                $data['supplier_id'] = $data['supplier_id'];
+                if (isset($data['supplier_id']) && $data['supplier_id']) {
+
+                    $goods_supplier = $this->field('id')->where(['supplier_id' => $data['supplier_id'], 'sku' => $sku])->find();
+                }
+                $product_model = new ProductModel();
+                $product = $product_model->where(['spu' => $spu, 'lang' => 'zh'])->find();
+                if (empty($product)) {
+                    $product = $product_model->where(['spu' => $spu, 'lang' => 'en'])->find();
+                }
+                //存在sku编辑,反之新增,后续扩展性
+                $data['brand'] = isset($product['brand']) ? $product['brand'] : '{"lang": "zh", "name": "", "logo": "", "manufacturer": ""}';
+                if ($goods_supplier) {
+                    $data['updated_by'] = $admin;
+                    $data['updated_at'] = date('Y-m-d H:i:s');
+
+                    $where = [
+                        'id' => $goods_supplier['id'],
+                    ];
+                    $res = $this->where($where)->save($data);
+                    if ($res) {
+                        $results['code'] = '1';
+                        $results['message'] = '成功！';
+                    } else {
+                        $results['code'] = '-101';
+                        $results['message'] = '失败!';
+                    }
+                } else {
+
+                    $data['sku'] = $sku;
+                    $data['created_by'] = $admin;
+                    $data['created_at'] = date('Y-m-d H:i:s');
+                    $res = $this->add($data);
+                    if ($res) {
+                        $results['code'] = '1';
+                        $results['message'] = '成功！';
+                    } else {
+                        $results['code'] = '-101';
+                        $results['message'] = '失败!';
+                    }
+                }
+            }
+
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
+     * 参数校验,目前只测必须项
+     * @author klp
+     * @return array
+     */
+    public function checkParam($checkout, $sku) {
+        if (empty($checkout)) {
+            return false;
+        }
+        $results = $data = array();
+        if (empty($sku)) {
+            $results['code'] = '-1001';
+            $results['message'] = '[sku]缺失!';
+        }
+        unset($checkout['id']);
+        if (empty($checkout['supplier_id'])) {
+            $results['code'] = '-1001';
+            $results['message'] = '[supplier_id]缺失!';
+        }
+        if (!empty($checkout['supplier_id'])) {
+            $data['supplier_id'] = $checkout['supplier_id'];
+        }
+
+        if ($results) {
+            return $results;
+        }
+        return $data;
+    }
+
 }

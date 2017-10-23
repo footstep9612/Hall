@@ -478,7 +478,7 @@ class LogisticsController extends PublicController {
 	public function assignLogiAgentAction() {
 	    $condition = $this->put_data;
 	    
-	    if (!empty($condition['inquiry_id'])) {
+	    if (!empty($condition['inquiry_id']) && !empty($condition['logi_agent_id'])) {
 	        /*$where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $data = [
@@ -521,12 +521,10 @@ class LogisticsController extends PublicController {
 	public function submitLogiCheckAction() {
 	    $condition = $this->put_data;
 	     
-	    if (!empty($condition['inquiry_id']) && !empty($condition['checked_by'])) {
-	        $where['inquiry_id'] = $condition['inquiry_id'];
+	    if (!empty($condition['inquiry_id']) && !empty($condition['logi_check_id'])) {
+	        /*$where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $this->quoteLogiFeeModel->startTrans();
-	        $this->inquiryModel->startTrans();
-	        $this->quoteModel->startTrans();
 	        
 	        $data = [
 	            'status' => 'QUOTED',
@@ -534,21 +532,21 @@ class LogisticsController extends PublicController {
 	            'updated_at' => $this->time
 	        ];
 	         
-	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
+	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
 	        
-	        // 更改询单状态
-	        $res2 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'LOGI_APPROVING']);
+	        $this->inquiryModel->startTrans();
+	        $this->quoteModel->startTrans();
+	        
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_check_id' => $condition['logi_check_id'], 'status' => 'LOGI_APPROVING']);
 	        
 	        // 更改报价单状态
-	        $res3 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);
 	         
-	        if ($res1 && $res2['code'] == 1 && $res3) {
-	            $this->quoteLogiFeeModel->commit();
+	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();
 	            $this->quoteModel->commit();
 	            $res = true;
 	        } else {
-	            $this->quoteLogiFeeModel->rollback();
 	            $this->inquiryModel->rollback();
 	            $this->quoteModel->rollback();
 	            $res = false;
