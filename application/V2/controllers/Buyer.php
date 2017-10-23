@@ -260,7 +260,11 @@ class BuyerController extends PublicController {
         if ($check_uname) {
             jsonReturn('', -102, '用户名已经存在!');
         }
-        
+        //验证公司名称是否存在
+        $checkcompany = $model->where("name='" . $data['name'] . "'")->find();
+        if ($checkcompany) {
+            jsonReturn('', -103, '公司名称已经存在');
+        }
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
