@@ -522,4 +522,36 @@ class InquiryModel extends PublicModel {
         
         return $orgId;
     }
+    
+    /**
+     * @desc 获取指定角色用户ID
+     *
+     * @param array $groupId 当前用户的全部组ID
+     * @param string $roleNo 角色编号
+     * @param string $orgNode 部门节点
+     * @return array
+     * @author liujf
+     * @time 2017-10-23
+     */
+    public function getRoleUserId($groupId = [], $roleNo = '', $orgNode = 'ub') {
+        $orgMemberModel = new OrgMemberModel();
+        $roleModel = new RoleModel();
+        $roleUserModel = new RoleUserModel();
+        
+        $orgId = $this->getDeptOrgId($groupId, $orgNode);
+	        
+        $role = $roleModel->field('id')->where(['role_no' => $roleNo])->find();
+        
+        $roleUserList = $roleUserModel->field('employee_id')->where(['role_id' => $role['id']])->select();
+        
+        $employeeId = [];
+        
+        foreach ($roleUserList as $roleUser) {
+            $employeeId[] = $roleUser['employee_id'];
+        }
+        
+        $orgMember = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->find();
+    
+        return $orgMember['employee_id'];
+    }
 }
