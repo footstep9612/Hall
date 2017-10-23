@@ -9,8 +9,8 @@
 class GoodsModel extends PublicModel {
 
     protected $tableName = 'goods';
-    protected $dbName = 'erui2_goods'; //数据库名称
-    protected $g_table = 'erui2_goods.goods';
+    protected $dbName = 'erui_goods'; //数据库名称
+    protected $g_table = 'erui_goods.goods';
 
     //状态
 
@@ -311,10 +311,9 @@ class GoodsModel extends PublicModel {
     private function checkParam($param = [], $field = [], $supplier_cost = []) {
         if (empty($param) || empty($field))
             return array();
-//
-//        if (empty($supplier_cost)) {
-//            jsonReturn('', '1000', 'Param supplier Not null !');
-//        }
+        if (empty($supplier_cost)) {
+            jsonReturn('', '1000', '请选择供应商!');
+        }
         foreach ($param as $k => $v) {
             if (isset($field[$k])) {
                 $item = $field[$k];
