@@ -109,7 +109,7 @@ class InquiryModel extends PublicModel {
                     $map[] = ['agent_id' => $condition['user_id']];
                     
                     foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == $this->inquiryIssueRole) {
+                        if ($roleNo == self::inquiryIssueRole) {
                             $map[] = ['erui_id' => $condition['user_id']];
                         }
                     }
