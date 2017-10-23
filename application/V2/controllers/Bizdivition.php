@@ -89,7 +89,8 @@ class BizdivitionController extends PublicController{
                 'serial_no' => $request['serial_no'],
                 'quote_no' => $this->getQuoteNo(),
                 'created_by' => $this->user['id'],
-                'created_at' => date('Y-m-d H:i:s')
+                'created_at' => date('Y-m-d H:i:s'),
+                'status' => 'BIZ_QUOTING'
             ]));
 
             $inquiryItemModel = new InquiryItemModel();
