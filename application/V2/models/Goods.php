@@ -1923,11 +1923,15 @@ class GoodsModel extends PublicModel {
             $input_sku = $data['订货号'];    //输入的sku  订货号
             $data_tmp['lang'] = $lang;
             $data_tmp['name'] = $data['名称'];    //名称
-            if(empty($data_tmp['name'])){
-                $spu_name = $productModel->field('name')->where(array("spu"=>$spu , "lang"=>$lang))->find();
-                if($spu_name){
-                    $data_tmp['name'] = $spu_name['name'];
+            $spu_name = $productModel->field('name')->where(array("spu"=>$spu , "lang"=>$lang))->find();
+            if($spu_name){
+                if(empty($data_tmp['name'])) {
+                    $data_tmp[ 'name' ] = $spu_name[ 'name' ];
                 }
+            }else{
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[spu:'.$spu.' 语言:'.$lang.'不存在]');
+                continue;
             }
             $data_tmp['model'] = $data['型号'];    //型号
             $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
