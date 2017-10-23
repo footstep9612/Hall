@@ -20,6 +20,8 @@ class LogisticsController extends PublicController {
 		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
 		$this->marketAreaTeamModel = new MarketAreaTeamModel();
 		$this->orgMemberModel = new OrgMemberModel();
+		$this->roleModel = new RoleModel();
+		$this->roleUserModel = new RoleUserModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -521,7 +523,7 @@ class LogisticsController extends PublicController {
 	public function submitLogiCheckAction() {
 	    $condition = $this->put_data;
 	     
-	    if (!empty($condition['inquiry_id']) && !empty($condition['logi_check_id'])) {
+	    if (!empty($condition['inquiry_id'])) {
 	        /*$where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $this->quoteLogiFeeModel->startTrans();
@@ -534,10 +536,26 @@ class LogisticsController extends PublicController {
 	         
 	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
 	        
+	        $inquiryModel = $this->inquiryModel;
+	        
+	        $orgId = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'lg');
+	        
+	        $role = $this->roleModel->field('id')->where(['role_no' => $inquiryModel::logiCheckRole])->find();
+	        
+	        $roleUserList = $this->roleUserModel->field('employee_id')->where(['role_id' => $role['id']])->select();
+	        
+	        $employeeId = [];
+	        
+	        foreach ($roleUserList as $roleUser) {
+	            $employeeId[] = $roleUser['employee_id'];
+	        }
+	        
+	        $orgMember = $this->orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->find();
+	        
 	        $this->inquiryModel->startTrans();
 	        $this->quoteModel->startTrans();
 	        
-	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_check_id' => $condition['logi_check_id'], 'status' => 'LOGI_APPROVING']);
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_check_id' => $orgMember['employee_id'], 'status' => 'LOGI_APPROVING']);
 	        
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);

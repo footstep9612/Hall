@@ -119,12 +119,12 @@ class InquiryModel extends PublicModel {
                     
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id']);
+                            $orgId = $this->getDeptOrgId($condition['group_id']);
                             
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::quoteCheckRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id']);
+                            $orgId = $this->getDeptOrgId($condition['group_id']);
                             
                             if ($orgId) $map[] = ['check_org_id' => ['in', $orgId]];
                         }
@@ -135,12 +135,12 @@ class InquiryModel extends PublicModel {
                     
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
+                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
                             
                             if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::logiCheckRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
+                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
                             
                             if ($orgId) $map[] = ['logi_check_id' => ['in', $orgId]];
                         }
@@ -509,7 +509,7 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-10-20
      */
-    private function _getDeptOrgId($groupId = [], $orgNode = 'ub') {
+    public function getDeptOrgId($groupId = [], $orgNode = 'ub') {
         $org = new OrgModel();
         
         $where = [
