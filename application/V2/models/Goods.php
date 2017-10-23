@@ -1043,7 +1043,7 @@ class GoodsModel extends PublicModel {
                     'spu'          => $item['spu'],
                     'name'         => $item['name'],
                     'model'        => $item['model'],
-                    'lang'         => $lang,
+                    'lang'         => $item['lang'],
                     'sku'          => array('neq', $sku),
                     'deleted_flag' => self::DELETE_N,
                     'status'       => array('neq', self::STATUS_DRAFT)
