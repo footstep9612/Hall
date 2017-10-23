@@ -542,6 +542,7 @@ class GoodsModel extends PublicModel {
         } else {
             $sku = trim($input['sku']);
         }
+        $spu = '';
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
@@ -575,7 +576,7 @@ class GoodsModel extends PublicModel {
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-
+                    $spu = $checkout['spu'];
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
@@ -740,7 +741,15 @@ class GoodsModel extends PublicModel {
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
                         $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
+
                         if (!$resCost || $resCost['code'] != 1) {
+                            $this->rollback();
+                            return false;
+                        }
+                        $supplier_model = new GoodsSupplierModel();
+                        $res = $supplier_model->editSupplier($value, $input['sku'], $input['user_id'], $spu); //供应商
+
+                        if (!$res || $res['code'] != 1) {
                             $this->rollback();
                             return false;
                         }
@@ -786,10 +795,10 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return
      */
-     private function _checkExit(&$condition,&$attr,$boolen=false){
+    private function _checkExit(&$condition, &$attr, $boolen = false) {
 
         $exist = $this->where($condition)->find();
-        if($exist){
+        if ($exist) {
             $where = array(
                 'lang' => $condition['lang'],
                 'spu' => $condition['spu'],
@@ -801,25 +810,24 @@ class GoodsModel extends PublicModel {
             $attr_model = new GoodsAttrModel();
             $other_attr = $attr_model->where($where)->select();
 
-            if(empty($attr['spec_attrs']) && !$other_attr['spec_attrs']){
-                if($boolen){
+            if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
+                if ($boolen) {
                     return false;
-                }else{
+                } else {
                     jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在');
                 }
-
             } else {
-                foreach($other_attr as $key=>$item){
+                foreach ($other_attr as $key => $item) {
                     $other = json_decode($item['spec_attrs'], true);
                     $otherAttr = $other ? $other : [];
-                    $result1 = array_diff_assoc($otherAttr,$attr['spec_attrs']);
-                    $result2 = array_diff_assoc($attr['spec_attrs'],$otherAttr);
+                    $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
+                    $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
 
-                    if(empty($result1) && empty($result2)){
-                        if($boolen){
+                    if (empty($result1) && empty($result2)) {
+                        if ($boolen) {
                             return false;
-                        }else {
-                            jsonReturn( '' , ErrorMsg::EXIST , '名称：' . $condition[ 'name' ] . '型号：' . $condition[ 'model' ] . '已存在' . '; 扩展属性重复!' );
+                        } else {
+                            jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在' . '; 扩展属性重复!');
                         }
                     } else {
                         continue;
@@ -1262,26 +1270,26 @@ class GoodsModel extends PublicModel {
      * @return string
      */
     public function exportTemp() {
-        if(redisHashExist('sku','skutemplate')){
-            return json_decode(redisHashGet('sku','skutemplate'),true);
-        }else{
+        if (redisHashExist('sku', 'skutemplate')) {
+            return json_decode(redisHashGet('sku', 'skutemplate'), true);
+        } else {
             $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/skuTemplate.xls";
-            if(file_exists($localDir)){
+            if (file_exists($localDir)) {
                 //把导出的文件上传到文件服务器上
                 $server = Yaf_Application::app()->getConfig()->myhost;
                 $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-                $url = $server. '/V2/Uploadfile/upload';
+                $url = $server . '/V2/Uploadfile/upload';
                 $data['tmp_name'] = $localDir;
                 $data['type'] = 'application/excel';
-                $data['name'] = pathinfo($localDir,PATHINFO_BASENAME);
-                $fileId = postfile($data,$url);
-                if($fileId){
+                $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
+                $fileId = postfile($data, $url);
+                if ($fileId) {
                     //unlink($localDir);    //清理本地空间
-                    $data = array('url'=>$fastDFSServer.$fileId['url'],'name'=>$fileId['name']);
-                    redisHashSet('sku','skutemplate',json_encode($data));
+                    $data = array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                    redisHashSet('sku', 'skutemplate', json_encode($data));
                     return $data;
                 }
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:'.$localDir.' 上传到FastDFS失败', Log::INFO);
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
                 return false;
             }
         }
@@ -1729,28 +1737,26 @@ class GoodsModel extends PublicModel {
         return $this->where($where)->order($order)->select();
     }
 
-
-    public function import($spu='',$url='',$lang='',$process=''){
+    public function import($spu = '', $url = '', $lang = '', $process = '') {
         if (empty($spu) || empty($url) || empty($lang)) {
             return false;
         }
 
         /** 返回导入进度start */
-        $progress_key = md5(json_encode(array($spu,$url,$lang)));
-        if(!empty($process)){
-            if(redisExist($progress_key)){
-                $progress_redis = json_decode(redisGet($progress_key),true);
-                return $progress_redis['processed'] < $progress_redis['total'] ? ceil($progress_redis['processed']/$progress_redis['total']*100) : 100;
-            }else{
+        $progress_key = md5(json_encode(array($spu, $url, $lang)));
+        if (!empty($process)) {
+            if (redisExist($progress_key)) {
+                $progress_redis = json_decode(redisGet($progress_key), true);
+                return $progress_redis['processed'] < $progress_redis['total'] ? ceil($progress_redis['processed'] / $progress_redis['total'] * 100) : 100;
+            } else {
                 return 100;
             }
         }
         /** 导入进度end */
-
-        $progress_redis = array('start_time'=>time());    //用来记录导入进度信息
+        $progress_redis = array('start_time' => time());    //用来记录导入进度信息
         //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/skuTemplate1.xls";
         $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
-        if(!file_exists($localFile)){
+        if (!file_exists($localFile)) {
             return false;
         }
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
@@ -1760,89 +1766,89 @@ class GoodsModel extends PublicModel {
         $columns = $objPHPExcel->getSheet(0)->getHighestColumn();    //获取总列
         $rows = $objPHPExcel->getSheet(0)->getHighestRow();    //获取总行
         $columnsIndex = PHPExcel_Cell::columnIndexFromString($columns);
-        if($rows<=4){
+        if ($rows <= 4) {
             return false;
         }
         $progress_redis['total'] = $rows;
         $userInfo = getLoinInfo();
         $productModel = new ProductModel();
         $es_goods_model = new EsGoodsModel();
-        $supplierModel =  new SupplierModel();
+        $supplierModel = new SupplierModel();
         $goodsSupplierModel = new GoodsSupplierModel();
         $goodsCostPriceModel = new GoodsCostPriceModel();
         $goodsAttrModel = new GoodsAttrModel();
         $faild = $success = $ext_goods_start = $ext_goods_end = $ext_hs_start = 0;
         $maxCol = PHPExcel_Cell::stringFromColumnIndex($columnsIndex);
         $itemNo = '';
-        for($i=1; $i<=$rows; $i++){
+        for ($i = 1; $i <= $rows; $i++) {
             $progress_redis['processed'] = $i;    //记录导入进度信息
-            redisSet($progress_key,json_encode($progress_redis));
+            redisSet($progress_key, json_encode($progress_redis));
 
-            $key = $objPHPExcel->getSheet(0)->toArray();//转码
-            if($i==3){    //获取扩展属性起止值
-                for($index=0;$index<$columnsIndex;$index++){
-                    $col_name = PHPExcel_Cell::stringFromColumnIndex($index);//由列数反转列名(0->'A')
-                    $key = $objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue();//转码
-                    if($index==$columnsIndex-1 && $key=='导入结果'){
+            $key = $objPHPExcel->getSheet(0)->toArray(); //转码
+            if ($i == 3) {    //获取扩展属性起止值
+                for ($index = 0; $index < $columnsIndex; $index++) {
+                    $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
+                    $key = $objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue(); //转码
+                    if ($index == $columnsIndex - 1 && $key == '导入结果') {
                         $maxCol = $col_name;
                     }
-                    if($key=='币种'){    //获取币种下标用以取扩展属性
-                        $ext_goods_start = $index+1;
+                    if ($key == '币种') {    //获取币种下标用以取扩展属性
+                        $ext_goods_start = $index + 1;
                     }
-                    if($key=='物流信息'){    //获取物流信息下标用以取扩展属性
-                        $ext_goods_end = $index-1;
+                    if ($key == '物流信息') {    //获取物流信息下标用以取扩展属性
+                        $ext_goods_end = $index - 1;
                     }
-                    if($key=='境内货源地'){    //获取境内货源地下标用以取申报扩展属性
-                        $ext_hs_start = $index+1;
+                    if ($key == '境内货源地') {    //获取境内货源地下标用以取申报扩展属性
+                        $ext_hs_start = $index + 1;
                     }
-                    if($key=='订货号'){        //获取订货号下标用以存储sku编码
+                    if ($key == '订货号') {        //获取订货号下标用以存储sku编码
                         $itemNo = $col_name;
                     }
                 }
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.'3', '导入结果');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . '3', '导入结果');
             }
 
-            if($i<=4){
+            if ($i <= 4) {
                 continue;
             }
             $data = array();
-            for($index=0;$index<$columnsIndex;$index++){
-                $col_name = PHPExcel_Cell::stringFromColumnIndex($index);//由列数反转列名(0->'A')
+            for ($index = 0; $index < $columnsIndex; $index++) {
+                $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
                 //$value    = mb_convert_encoding($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue(), 'gbk', 'utf8');//转码
-                $key = trim($objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue());//转码
-                if(empty($key) || $key == '…' || $key == '导入结果'){
+                $key = trim($objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue()); //转码
+                if (empty($key) || $key == '…' || $key == '导入结果') {
                     continue;
                 }
-                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue());//转码
-                if($index>=$ext_goods_start && $index<=$ext_goods_end){    //扩展属性
-                    if(!empty($value)){
+                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
+                if ($index >= $ext_goods_start && $index <= $ext_goods_end) {    //扩展属性
+                    if (!empty($value)) {
                         $data['spec_attrs'][$key] = $value;
                     }
                     continue;
                 }
-                if($index>=$ext_hs_start){    //申报要素扩展属性
-                    if(!empty($value)){
+                if ($index >= $ext_hs_start) {    //申报要素扩展属性
+                    if (!empty($value)) {
                         $data['ex_hs_attrs'][$key] = $value;
                     }
                     continue;
                 }
                 $data[$key] = $value;
             }
-            if(empty($data)){
+            if (empty($data)) {
                 continue;
             }
 
             //数据组装与校验开始
             $supplie = $data['供应商名称'];    //先处理供应商 必填
-            if(empty($data['供应商名称'])){
+            if (empty($data['供应商名称'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[供应商不能为空]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[供应商不能为空]');
                 continue;
             }
-            $supplierInfo = $supplierModel->field('id,supplier_no,brand')->where(array('deleted_flag'=>'N','name'=>$supplie))->find();
-            if(!$supplierInfo){
+            $supplierInfo = $supplierModel->field('id,supplier_no,brand')->where(array('deleted_flag' => 'N', 'name' => $supplie))->find();
+            if (!$supplierInfo) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[供应商不存在]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[供应商不存在]');
                 continue;
             }
             $data_tmp = [];
@@ -1852,93 +1858,93 @@ class GoodsModel extends PublicModel {
             $data_tmp['name'] = $data['名称'];    //名称
             $data_tmp['model'] = $data['型号'];    //型号
             $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
-            if(empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])){
+            if (empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[出货周期有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[出货周期有误]');
                 continue;
             }
             $data_tmp['min_pack_naked_qty'] = $data['最小包装内裸货商品数量'];    //最小包装内裸货商品数量
-            if(empty($data_tmp['min_pack_naked_qty']) || !is_numeric($data_tmp['min_pack_naked_qty'])){
+            if (empty($data_tmp['min_pack_naked_qty']) || !is_numeric($data_tmp['min_pack_naked_qty'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装内裸货商品数量有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装内裸货商品数量有误]');
                 continue;
             }
             $data_tmp['nude_cargo_unit'] = $data['商品裸货单位'];    //商品裸货单位
-            if(empty($data_tmp['nude_cargo_unit'])){
+            if (empty($data_tmp['nude_cargo_unit'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[商品裸货单位必填]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[商品裸货单位必填]');
                 continue;
             }
             $data_tmp['min_pack_unit'] = $data['最小包装单位'];    //最小包装单位
-            if(empty($data_tmp['min_pack_unit'])){
+            if (empty($data_tmp['min_pack_unit'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装单位必填]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装单位必填]');
                 continue;
             }
             $data_tmp['min_order_qty'] = $data['最小订货数量'];    //最小订货数量
-            if(empty($data_tmp['min_order_qty']) || !is_numeric($data_tmp['min_order_qty'])){
+            if (empty($data_tmp['min_order_qty']) || !is_numeric($data_tmp['min_order_qty'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小订货数量有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小订货数量有误]');
                 continue;
             }
             $data_tmp['purchase_price'] = $data['供应商供货价'];    //进货价格
-            if(!is_numeric($data_tmp['purchase_price'])){
+            if (!is_numeric($data_tmp['purchase_price'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[供应商供货价有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[供应商供货价有误]');
                 continue;
             }
             $data_tmp['purchase_price_cur_bn'] = $data['币种'];    //进货价格币种
-            if(!isset($data['spec_attrs']) || empty($data['spec_attrs'])){
+            if (!isset($data['spec_attrs']) || empty($data['spec_attrs'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[非固定属性必填]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[非固定属性必填]');
                 continue;
             }
             $data_tmp['nude_cargo_l_mm'] = $data['裸货尺寸长(mm)'];    //裸货尺寸长(mm)
-            if(!is_numeric($data_tmp['nude_cargo_l_mm'])){
+            if (!is_numeric($data_tmp['nude_cargo_l_mm'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[裸货尺寸长有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸长有误]');
                 continue;
             }
             $data_tmp['nude_cargo_w_mm'] = $data['裸货尺寸宽(mm)'];    //裸货尺寸宽(mm)
-            if(!is_numeric($data_tmp['nude_cargo_w_mm'])){
+            if (!is_numeric($data_tmp['nude_cargo_w_mm'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[裸货尺寸宽有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸宽有误]');
                 continue;
             }
             $data_tmp['nude_cargo_h_mm'] = $data['裸货尺寸高(mm)'];    //裸货尺寸高(mm)
-            if(!is_numeric($data_tmp['nude_cargo_h_mm'])){
+            if (!is_numeric($data_tmp['nude_cargo_h_mm'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[裸货尺寸高有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸高有误]');
                 continue;
             }
             $data_tmp['min_pack_l_mm'] = $data['最小包装后尺寸长(mm)'];    //最小包装后尺寸长(mm)
-            if(!is_numeric($data_tmp['min_pack_l_mm'])){
+            if (!is_numeric($data_tmp['min_pack_l_mm'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装后尺寸长有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸长有误]');
                 continue;
             }
             $data_tmp['min_pack_w_mm'] = $data['最小包装后尺寸宽(mm)'];    //最小包装后尺寸宽(mm)
-            if(!is_numeric($data_tmp['min_pack_w_mm'])){
+            if (!is_numeric($data_tmp['min_pack_w_mm'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装后尺寸宽有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸宽有误]');
                 continue;
             }
             $data_tmp['min_pack_h_mm'] = $data['最小包装后尺寸高(mm)'];    //最小包装后尺寸高(mm)
-            if(!is_numeric($data_tmp['min_pack_h_mm'])){
+            if (!is_numeric($data_tmp['min_pack_h_mm'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[最小包装后尺寸高有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸高有误]');
                 continue;
             }
             $data_tmp['net_weight_kg'] = $data['净重(kg)'];    //净重(kg)
-            if(!is_numeric($data_tmp['net_weight_kg'])){
+            if (!is_numeric($data_tmp['net_weight_kg'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[净重有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[净重有误]');
                 continue;
             }
             $data_tmp['gross_weight_kg'] = (float) $data['毛重(kg)'];    //毛重(kg)
-            if(!is_numeric($data_tmp['gross_weight_kg'])){
+            if (!is_numeric($data_tmp['gross_weight_kg'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[毛重有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[毛重有误]');
                 continue;
             }
             $data_tmp['compose_require_pack'] = $data['仓储运输包装及其他要求'];    //仓储运输包装及其他要求
@@ -1947,9 +1953,9 @@ class GoodsModel extends PublicModel {
             $data_tmp['hs_code'] = $data['海关编码'];    //海关编码
             $data_tmp['tx_unit'] = $data['成交单位'];    //成交单位
             $data_tmp['tax_rebates_pct'] = $data['退税率(%)'];    //退税率(%)
-            if(!is_numeric($data_tmp['tax_rebates_pct'])){
+            if (!is_numeric($data_tmp['tax_rebates_pct'])) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[退税率有误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[退税率有误]');
                 continue;
             }
             $data_tmp['regulatory_conds'] = $data['监管条件'];    //监管条件
@@ -1975,12 +1981,12 @@ class GoodsModel extends PublicModel {
             $this->startTrans();
             $workType = '';
             $result = 0;
-            try{
-                if($this->_checkExit($condition ,$spec_attrs_array,true) === false){
+            try {
+                if ($this->_checkExit($condition, $spec_attrs_array, true) === false) {
                     if (empty($input_sku)) {    //存在并且未输入sku则报存在
                         $faild++;
                         $this->rollback();
-                        $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[已存在]');
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[已存在]');
                         continue;
                     } else {
                         $workType = '更新';
@@ -1990,14 +1996,14 @@ class GoodsModel extends PublicModel {
                         );
                         $result = $this->where($condition_update)->save($data_tmp);
                     }
-                }else{
+                } else {
                     $workType = '添加';
                     $data_tmp['status'] = $this::STATUS_CHECKING;
                     $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku(array(array('spu' => $spu)));    //生成sku
                     $result = $this->add($this->create($data_tmp));
                 }
             } catch (Exception $e) {
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[内部错误]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[内部错误]');
                 $faild++;
                 $this->rollback();
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e, Log::ERR);
@@ -2005,105 +2011,105 @@ class GoodsModel extends PublicModel {
             }
 
             if ($result) {
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作成功');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作成功');
                 $success1 = 1;
                 if ($workType == '添加') {
                     //更新sku数
-                    try{
+                    try {
                         $productModel->where(['spu' => $spu, 'lang' => $lang])->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
-                    }catch (Exception $e){
-                        $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[更新spu的sku统计失败]');
+                    } catch (Exception $e) {
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[更新spu的sku统计失败]');
                         $faild++;
                         $this->rollback();
-                        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:' . $e, Log::ERR);
                         continue;
                     }
                 }
 
                 try {    //商品供应商关系
                     $data_supplier = array(
-                        'sku' => $input_sku ,
-                        'supplier_id' => $supplierInfo[ 'id' ] ,
-                        'brand' => $supplierInfo[ 'brand' ] ,
-                        'created_by' => isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null ,
-                        'created_at' => date( 'Y-m-d H:i:s' , time() ) ,
+                        'sku' => $input_sku,
+                        'supplier_id' => $supplierInfo['id'],
+                        'brand' => $supplierInfo['brand'],
+                        'created_by' => isset($userInfo['id']) ? $userInfo['id'] : null,
+                        'created_at' => date('Y-m-d H:i:s', time()),
                         'status' => 'VALID'
                     );
-                    $where_supplier = array( 'sku' => $input_sku , 'supplier_id' => $supplierInfo[ 'id' ] );
-                    $select_gs = $goodsSupplierModel->where( $where_supplier )->find();
-                    if ( $select_gs ) {
-                        $goodsSupplierModel->where( $where_supplier )->save( $data_supplier );
+                    $where_supplier = array('sku' => $input_sku, 'supplier_id' => $supplierInfo['id']);
+                    $select_gs = $goodsSupplierModel->where($where_supplier)->find();
+                    if ($select_gs) {
+                        $goodsSupplierModel->where($where_supplier)->save($data_supplier);
                     } else {
-                        $goodsSupplierModel->where( $where_supplier )->add( $goodsSupplierModel->create( $data_supplier ) );
+                        $goodsSupplierModel->where($where_supplier)->add($goodsSupplierModel->create($data_supplier));
                     }
-                }catch (Exception $e){
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[操作商品供应商失败]');
+                } catch (Exception $e) {
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[操作商品供应商失败]');
                     $faild++;
                     $this->rollback();
-                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:' . $e, Log::ERR);
                     continue;
                 }
 
                 try {    //供应商商品价格
                     $data_goods_cost_price = array(
-                        'sku' => $input_sku ,
-                        'supplier_id' => $supplierInfo[ 'id' ] ,
-                        'price' => $data_tmp[ 'purchase_price' ] ,
-                        'price_unit' => $data_tmp[ 'min_pack_unit' ] ,
-                        'price_cur_bn' => $data_tmp[ 'purchase_price_cur_bn' ] ,
-                        'min_purchase_qty' => $data_tmp[ 'min_order_qty' ] ,
-                        'pricing_date' => date( 'Y-m-d H:i:s' , time() ) ,
-                        'created_by' => isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null ,
-                        'created_at' => date( 'Y-m-d H:i:s' , time() ) ,
+                        'sku' => $input_sku,
+                        'supplier_id' => $supplierInfo['id'],
+                        'price' => $data_tmp['purchase_price'],
+                        'price_unit' => $data_tmp['min_pack_unit'],
+                        'price_cur_bn' => $data_tmp['purchase_price_cur_bn'],
+                        'min_purchase_qty' => $data_tmp['min_order_qty'],
+                        'pricing_date' => date('Y-m-d H:i:s', time()),
+                        'created_by' => isset($userInfo['id']) ? $userInfo['id'] : null,
+                        'created_at' => date('Y-m-d H:i:s', time()),
                         'status' => 'VALID'
                     );
-                    $select_gsp = $goodsCostPriceModel->where( $where_supplier )->find();
-                    if ( $select_gsp ) {
-                        $goodsCostPriceModel->where( $where_supplier )->save( $data_goods_cost_price );
+                    $select_gsp = $goodsCostPriceModel->where($where_supplier)->find();
+                    if ($select_gsp) {
+                        $goodsCostPriceModel->where($where_supplier)->save($data_goods_cost_price);
                     } else {
-                        $goodsCostPriceModel->where( $where_supplier )->add( $goodsCostPriceModel->create( $data_goods_cost_price ) );
+                        $goodsCostPriceModel->where($where_supplier)->add($goodsCostPriceModel->create($data_goods_cost_price));
                     }
-                }catch (Exception $e){
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[操作商品供应商价格失败]');
+                } catch (Exception $e) {
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[操作商品供应商价格失败]');
                     $faild++;
                     $this->rollback();
-                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:' . $e, Log::ERR);
                     continue;
                 }
 
                 try {    //商品属性
                     $data_goodsattr = array(
-                        'spu' => $spu ,
-                        'lang' => $lang ,
-                        'sku' => $input_sku ,
-                        'spec_attrs' => empty($data['spec_attrs']) ? null : json_encode($data[ 'spec_attrs' ] , JSON_UNESCAPED_UNICODE) ,
-                        'ex_goods_attrs' => empty( $data[ 'ex_goods_attrs' ] ) ? null : json_encode( $data[ 'ex_goods_attrs' ] , JSON_UNESCAPED_UNICODE ) ,
-                        'ex_hs_attrs' => empty( $data[ 'ex_hs_attrs' ] ) ? null : json_encode( $data[ 'ex_hs_attrs' ] , JSON_UNESCAPED_UNICODE ) ,
-                        'created_by' => isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null ,
-                        'created_at' => date( 'Y-m-d H:i:s' , time() )
+                        'spu' => $spu,
+                        'lang' => $lang,
+                        'sku' => $input_sku,
+                        'spec_attrs' => empty($data['spec_attrs']) ? null : json_encode($data['spec_attrs'], JSON_UNESCAPED_UNICODE),
+                        'ex_goods_attrs' => empty($data['ex_goods_attrs']) ? null : json_encode($data['ex_goods_attrs'], JSON_UNESCAPED_UNICODE),
+                        'ex_hs_attrs' => empty($data['ex_hs_attrs']) ? null : json_encode($data['ex_hs_attrs'], JSON_UNESCAPED_UNICODE),
+                        'created_by' => isset($userInfo['id']) ? $userInfo['id'] : null,
+                        'created_at' => date('Y-m-d H:i:s', time())
                     );
-                    $where_attr = array( 'spu' => $spu , 'lang' => $lang , 'sku' => $input_sku );
-                    $select_attr = $goodsAttrModel->where( $where_attr )->find();
-                    if ( $select_attr ) {
-                        $goodsAttrModel->where( $where_attr )->save( $data_goodsattr );
+                    $where_attr = array('spu' => $spu, 'lang' => $lang, 'sku' => $input_sku);
+                    $select_attr = $goodsAttrModel->where($where_attr)->find();
+                    if ($select_attr) {
+                        $goodsAttrModel->where($where_attr)->save($data_goodsattr);
                     } else {
-                        $goodsAttrModel->where( $where_attr )->add( $goodsAttrModel->create( $data_goodsattr ) );
+                        $goodsAttrModel->where($where_attr)->add($goodsAttrModel->create($data_goodsattr));
                     }
-                }catch (Exception $e){
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败[操作商品属性失败]');
+                } catch (Exception $e) {
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[操作商品属性失败]');
                     $faild++;
                     $this->rollback();
-                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:'.$e, Log::ERR);
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:' . $e, Log::ERR);
                     continue;
                 }
 
-                $objPHPExcel->getSheet(0)->setCellValue($itemNo .$i, ' ' . $input_sku);
+                $objPHPExcel->getSheet(0)->setCellValue($itemNo . $i, ' ' . $input_sku);
                 $success++;
                 $this->commit();
             } else {
                 $faild++;
                 $this->rollback();
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol.$i, '操作失败');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败');
                 continue;
             }
         }
