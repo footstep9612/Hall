@@ -243,13 +243,19 @@ class InquiryController extends PublicController {
     public function getInquiryUserRoleAction() {
         $inquiry = new InquiryModel();
         
-        // 是否是分单员的标识
+        // 是否易瑞客户中心分单员的标识
+        $isErui = 'N';
+        
+        // 是否分单员的标识
         $isIssue = 'N';
         
-        // 是否是审核人的标识
+        // 是否审核人的标识
         $isCheck = 'N';
         
         foreach ($this->user['role_no'] as $roleNo) {
+            if ($roleNo == $inquiry::inquiryIssueRole) {
+                $isErui = 'Y';
+            }
             if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole) {
                 $isIssue = 'Y';
             }
@@ -258,6 +264,8 @@ class InquiryController extends PublicController {
             }
         }
         
+        $data['is_erui'] = $isErui;
+        $data['is_issue'] = $isIssue;
         $data['is_issue'] = $isIssue;
         $data['is_check'] = $isCheck;
         
