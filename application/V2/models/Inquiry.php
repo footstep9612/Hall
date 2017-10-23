@@ -124,9 +124,7 @@ class InquiryModel extends PublicModel {
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::quoteCheckRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id']);
-                            
-                            if ($orgId) $map[] = ['check_org_id' => ['in', $orgId]];
+                            $map[] = ['check_org_id' => $condition['user_id']];
                         }
                     }
                     break;
@@ -140,9 +138,7 @@ class InquiryModel extends PublicModel {
                             if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::logiCheckRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
-                            
-                            if ($orgId) $map[] = ['logi_check_id' => ['in', $orgId]];
+                            $map[] = ['logi_check_id' => $condition['user_id']];
                         }
                     }
             }
