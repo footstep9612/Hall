@@ -54,6 +54,8 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests('inquiry_id');
 
         $request = $this->validateNumeric($request);
+        $request['biz_quote_by'] = $this->user['id'];
+        $request['biz_quote_at'] = date('Y-m-d H:i:s');
 
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         //这个操作设计到计算
