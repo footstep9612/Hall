@@ -256,17 +256,19 @@ class LogisticsController extends PublicController {
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getDetail($where);
 	        $data['premium_rate'] = $quoteLogiFee['premium_rate'];
 	        
-	        $quote = $this->quoteModel->where($where)->select();
+	        $quote = $this->quoteModel->where($where)->find();
 	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
 	        $data['payment_period'] = $quote['payment_period'];
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
 	        $data['bank_interest'] = $quote['bank_interest'];
 	        $data['total_exw_price'] = $quote['total_exw_price'];
 	        
+	        print_r($quote);exit;
 	        $data = $this->calcuTotalLogiFee($data);
+	        print_r($data);exit;
 	        
 	        //if ($quoteLogiFee['logi_agent_id'] == '') {
-	            $data['logi_agent_id'] = $this->user['id'];
+	        //    $data['logi_agent_id'] = $this->user['id'];
 	        //}
 	        
 	        if ($quoteLogiFee['logi_from_port'] != $condition['logi_from_port']) $data['logi_from_port'] = $condition['logi_from_port'];
@@ -702,7 +704,7 @@ class LogisticsController extends PublicController {
 	    $condition = $this->put_data;
 	    
 	    if (!empty($condition['inquiry_id'])) {
-    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->select();
+    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->find();
     	    
     	    $overlandInsuFee = $this->_getOverlandInsuFee($quote['total_exw_price'], $condition['overland_insu_rate']);
     	    $res['overland_insu'] = $overlandInsuFee['CNY'];
@@ -723,7 +725,7 @@ class LogisticsController extends PublicController {
 	   $condition = $this->put_data;
 	    
 	    if (!empty($condition['inquiry_id'])) {
-    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->select();
+    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->find();
     	    
     	    $shippingInsuFee = $this->_getShippingInsuFee($quote['total_exw_price'], $condition['shipping_insu_rate']);
     	    $res['shipping_insu'] = $shippingInsuFee['CNY'];
