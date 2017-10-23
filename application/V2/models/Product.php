@@ -497,7 +497,7 @@ class ProductModel extends PublicModel {
             }
 
             //检测图片
-            $condition_attach = ['spu' => $spu , 'default_flag' => $attachModel::DELETED_N, 'status' => $attachModel::STATUS_VALID ];
+            $condition_attach = ['spu' => $spu , 'deleted_flag' => $attachModel::DELETED_N, 'status' => $attachModel::STATUS_VALID ];
             $find = $attachModel->field('id')->where($condition_attach)->find();
             if(!$find){
                 return ['code' => false,'message' => '无图片'];
