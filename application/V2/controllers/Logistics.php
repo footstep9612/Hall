@@ -577,6 +577,41 @@ class LogisticsController extends PublicController {
 	}
 	
 	/**
+	 * @desc 通过物流审核接口
+	 *
+	 * @author liujf
+	 * @time 2017-10-23
+	 */
+	public function passLogiCheckAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['inquiry_id'])) {
+	        $this->inquiryModel->startTrans();
+	        $this->quoteModel->startTrans();
+	         
+	        // 更改询单状态
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING']);
+	         
+	        // 更改报价单状态
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
+	    
+	        if ($res1['code'] == 1 && $res2) {
+	            $this->inquiryModel->commit();
+	            $this->quoteModel->commit();
+	            $res = true;
+	        } else {
+	            $this->inquiryModel->rollback();
+	            $this->quoteModel->rollback();
+	            $res = false;
+	        }
+	    
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
 	 * @desc 提交项目经理审核接口
 	 *
 	 * @author liujf
