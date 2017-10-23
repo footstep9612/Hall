@@ -800,8 +800,8 @@ class GoodsModel extends PublicModel {
         $exist = $this->where($condition)->find();
         if ($exist) {
             $where = array(
-                'lang' => $condition['lang'],
-                'spu' => $condition['spu'],
+                'lang'         => $condition['lang'],
+                'spu'          => $condition['spu'],
                 'deleted_flag' => 'N'
             );
             if (!empty($condition['sku'])) {
@@ -912,11 +912,14 @@ class GoodsModel extends PublicModel {
                 $skuary = [];
                 foreach ($skuObj as $sku) {
                     if (self::STATUS_CHECKING == $status) {
+                        $this->checkModify($sku, $lang);
+
                         $where = [
-                            'sku' => $sku,
+                            'sku'          => $sku,
+                            'deleted_flag' => 'N'
                         ];
-                        if (!empty($lang)) {
-                            $where['lang'] = $lang;
+                        if(!empty($lang)){
+                            $exit_where['lang'] = $lang;
                         }
                         $result = $this->where($where)
                                 ->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
@@ -939,6 +942,9 @@ class GoodsModel extends PublicModel {
                         if ($result && $sku) {
                             $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
+
+                                $this->checkModify($sku, $lang);
+
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
                                 if ($spuCode) {
@@ -993,6 +999,62 @@ class GoodsModel extends PublicModel {
             }
         }
         return false;
+    }
+
+    //批量报审校验
+    public function checkModify($sku,$lang) {
+
+        $supplierCostModel = new GoodsCostPriceModel();
+        $thisSupplierCost = $supplierCostModel->field('supplier_id')->where([ 'sku'=> $sku,'deleted_flag' => self::DELETE_N])->select();
+        if(!$thisSupplierCost) {
+            jsonReturn('',-1001,'[供应商信息]缺失!');
+        }
+
+        $attrModel = new GoodsAttrModel();
+        $attrTable = $attrModel->getTableName();
+        $thisTable = $this->getTableName();
+
+        $exit_where = [
+            "$thisTable.sku"          => $sku,
+            "$thisTable.deleted_flag" => self::DELETE_N,
+
+            "$attrTable.sku"          => $sku,
+            "$attrTable.deleted_flag" => self::DELETE_N,
+        ];
+
+        if(!empty($lang)){
+            $exit_where["$thisTable.lang"] = $lang;
+            $exit_where["$attrTable.lang"] = $lang;
+        }
+
+        $field = "$thisTable.lang, $thisTable.spu, $thisTable.name, $thisTable.model, $attrTable.spec_attrs";
+        $thisSkuInfo = $this->field($field)
+                            ->join($attrTable . " On $attrTable.sku = $thisTable.sku AND $attrTable.lang = $thisTable.lang", 'LEFT')
+                            ->where($exit_where)
+                            ->select();
+
+        if(!$thisSkuInfo) {
+            jsonReturn('',-1001,'['. $sku .']不存在或已经删除!');
+        }
+
+        foreach ($thisSkuInfo as $item) {
+            if(in_array($item['lang'], ['zh','en','es','ru'])) {
+                $where = [
+                    'spu'          => $item['spu'],
+                    'name'         => $item['name'],
+                    'model'        => $item['model'],
+                    'lang'         => $item['lang'],
+                    'sku'          => array('neq', $sku),
+                    'deleted_flag' => self::DELETE_N,
+                    'status'       => array('neq', self::STATUS_DRAFT)
+                ];
+
+                $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
+                $this->_checkExit($where, $thisSpecAttr);
+            } else{
+                jsonReturn('',-1002,'对应语言错误!');
+            }
+        }
     }
 
     /**
@@ -1976,6 +2038,9 @@ class GoodsModel extends PublicModel {
                 'model' => $data_tmp['model'],
                 'deleted_flag' => 'N',
             );
+            if(!empty($input_sku)){
+                $condition['sku'] = ['neq',$input_sku];
+            }
             $spec_attrs_array = array('spec_attrs' => $data['spec_attrs']);
             //数据导入
             $this->startTrans();
