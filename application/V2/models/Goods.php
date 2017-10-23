@@ -800,8 +800,8 @@ class GoodsModel extends PublicModel {
         $exist = $this->where($condition)->find();
         if ($exist) {
             $where = array(
-                'lang' => $condition['lang'],
-                'spu' => $condition['spu'],
+                'lang'         => $condition['lang'],
+                'spu'          => $condition['spu'],
                 'deleted_flag' => 'N'
             );
             if (!empty($condition['sku'])) {
@@ -940,7 +940,7 @@ class GoodsModel extends PublicModel {
                         if ($result && $sku) {
                             $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
-                                
+
                                 $this->checkModify($sku, $lang);
 
                                 $pModel = new ProductModel();                         //spu审核通过
@@ -1001,19 +1001,25 @@ class GoodsModel extends PublicModel {
 
     //批量报审校验
     public function checkModify($sku,$lang) {
-        $thisSkuInfo = $this->field('lang,spu,name,model')->where(['sku' => $sku, 'deleted_flag' => 'N'])->find();
+        $exit_where = [
+            'lang'         => $lang,
+            'sku'          => $sku,
+            'deleted_flag' => self::DELETE_N
+        ];
+        $thisSkuInfo = $this->field('lang,spu,name,model')->where($exit_where)->find();
         $thisSkuInfo ? $thisSkuInfo : jsonReturn('',-1001,'['. $sku .']不存在或已经删除!');
 
-        $thisSpecAttr = $this->where(['sku' => $sku, 'deleted_flag' => 'N'])->find();
+        $thisSpecAttr = $this->where($exit_where)->find();
         $thisSpecAttr ? $thisSpecAttr : jsonReturn('',-1001,'['. $sku .']属性不存在或已经删除!');
 
         $where = [
-            'spu' => $thisSkuInfo['spu'],
-            'name' => $thisSkuInfo['name'],
-            'model' => $thisSkuInfo['model'],
-            'lang' => $lang,
-            'sku' => array('neq', $sku),
-            'deleted_flag' => 'N',
+            'spu'          => $thisSkuInfo['spu'],
+            'name'         => $thisSkuInfo['name'],
+            'model'        => $thisSkuInfo['model'],
+            'lang'         => $lang,
+            'sku'          => array('neq', $sku),
+            'deleted_flag' => self::DELETE_N,
+            'status'       => array('neq', self::STATUS_DRAFT)
         ];
 
         $this->_checkExit($where, $thisSpecAttr);
