@@ -16,7 +16,7 @@ class EsProductModel extends Model {
 
 //put your code here
     protected $tableName = 'product';
-    protected $dbName = 'erui_goods'; //数据库名称
+    protected $dbName = 'erui2_goods'; //数据库名称
 
     const STATUS_DELETED = 'DELETED';
 
