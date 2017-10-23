@@ -227,6 +227,7 @@ class QuoteModel extends PublicModel {
             $quoteItemLogiModel = new QuoteItemLogiModel();
             foreach ($quoteItemIds as $quoteItemId) {
                 $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                    'inquiry_id' => $request['inquiry_id'],
                     'quote_id' => $quoteInfo['id'],
                     'quote_item_id' => $quoteItemId,
                     'created_at' => date('Y-m-d H:i:s'),
