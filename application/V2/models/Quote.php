@@ -209,30 +209,35 @@ class QuoteModel extends PublicModel {
 
             //给物流表创建一条记录
             $quoteLogiFeeModel = new QuoteLogiFeeModel();
+            //防止重复提交
+            $hasFlag = $quoteLogiFeeModel->where(['inquiry_id' => $request['inquiry_id']])->find();
 
-            $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
+            if (!$hasFlag){
 
-           $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
-                'quote_id' => $quoteInfo['id'],
-                'inquiry_id' => $request['inquiry_id'],
-                'created_at' => date('Y-m-d H:i:s'),
-                'created_by' => $user,
-                'premium_rate' => $quoteInfo['premium_rate']
-            ]));
+                $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
 
-            //给物流报价单项形成记录
-            $quoteItemModel = new QuoteItemModel();
-            $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id']])->getField('id', true);
-
-            $quoteItemLogiModel = new QuoteItemLogiModel();
-            foreach ($quoteItemIds as $quoteItemId) {
-                $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                    'inquiry_id' => $request['inquiry_id'],
+                $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
                     'quote_id' => $quoteInfo['id'],
-                    'quote_item_id' => $quoteItemId,
+                    'inquiry_id' => $request['inquiry_id'],
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $user
+                    'created_by' => $user,
+                    'premium_rate' => $quoteInfo['premium_rate']
                 ]));
+
+                //给物流报价单项形成记录
+                $quoteItemModel = new QuoteItemModel();
+                $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id']])->getField('id', true);
+
+                $quoteItemLogiModel = new QuoteItemLogiModel();
+                foreach ($quoteItemIds as $quoteItemId) {
+                    $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                        'inquiry_id' => $request['inquiry_id'],
+                        'quote_id' => $quoteInfo['id'],
+                        'quote_item_id' => $quoteItemId,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'created_by' => $user
+                    ]));
+                }
             }
 
             $inquiry->commit();
