@@ -228,10 +228,8 @@ class ProductModel extends PublicModel {
                     }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
-                    if ($input['status'] != 'DRAFT') {
-                        //字段校验
-                        $this->checkParam($data, $this->field);
-
+                    $this->checkParam($data, $this->field);     //字段校验
+                    if ($input['status'] == 'VALID') {
                         $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $key,
                             'name' => $data['name'],
@@ -384,7 +382,7 @@ class ProductModel extends PublicModel {
                         $updata = array('status' => $status);
 
                         /** 报审走报审验证*/
-                        if($status == self::STATUS_CHECKING){
+                        if($status == self::STATUS_CHECKING || $status == self::STATUS_VALID){
                             $applyInfo = $this->applyExamine($r,$lang);
                             if($applyInfo['code']===false){
                                 $faild_ary[][$r] = $applyInfo['message'];
@@ -418,7 +416,7 @@ class ProductModel extends PublicModel {
                     $updata = array('status' => $status);
 
                     /** 报审走报审验证*/
-                    if($status == self::STATUS_CHECKING){
+                    if($status == self::STATUS_CHECKING || $status == self::STATUS_VALID){
                         $applyInfo = $this->applyExamine($spu,$lang);
                         if($applyInfo['code']===false){
                             $faild_ary[][$spu] = $applyInfo['message'];
