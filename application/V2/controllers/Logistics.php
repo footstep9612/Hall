@@ -263,9 +263,7 @@ class LogisticsController extends PublicController {
 	        $data['bank_interest'] = $quote['bank_interest'];
 	        $data['total_exw_price'] = $quote['total_exw_price'];
 	        
-	        print_r($quote);exit;
 	        $data = $this->calcuTotalLogiFee($data);
-	        print_r($data);exit;
 	        
 	        //if ($quoteLogiFee['logi_agent_id'] == '') {
 	        //    $data['logi_agent_id'] = $this->user['id'];
