@@ -568,8 +568,16 @@ class ProductModel extends PublicModel {
             if ($result) {
                 $employee = new EmployeeModel();
                 $checklogModel = new ProductCheckLogModel();
+                $bizlineModel = new BizlineModel();
                 $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 foreach ($result as $item) {
+
+                    $bizline = '';    //产品组
+                    if (!empty($item['bizline_id'])) {
+                        $bizlineInfo = $bizlineModel->field('name,name_en')->where(array('id' => $item['bizline_id']))->find();
+                        $bizline = $bizlineInfo ? ($bizlineInfo['name'] ? $bizlineInfo['name'] : $bizlineInfo['name_en']) : '';
+                    }
+                    $item['bizline'] = $bizline;
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                     // $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
 //                    if ($createder && isset($createder[0])) {
