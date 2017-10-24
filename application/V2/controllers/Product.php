@@ -344,31 +344,32 @@ class ProductController extends PublicController {
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->onShelf($spu, $lang, $cat_no);
         if ($result !== false) {
-            if(is_array($this->put_data['spu'])){
-                if($result){
-                    $message  = '成功！[';
-                    foreach($result as $item){
-                        $message.= array_keys($item)[0].array_values($item)[0].';';
+            if (is_array($this->put_data['spu'])) {
+                if ($result) {
+                    $message = '成功！[';
+                    foreach ($result as $item) {
+                        $message .= array_keys($item)[0] . array_values($item)[0] . ';';
                     }
-                    $message = substr($message,0,-1).']';
+                    $message = substr($message, 0, -1) . ']';
+                    if ($lang) {
+                        $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                        $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+                    } else {
+                        $this->updateEsproduct(null, $this->put_data['spu']);
+                        $this->updateEsgoods(null, $this->put_data['spu']);
+                    }
                     jsonReturn(true, ErrorMsg::SUCCESS, $message);
-                }else{
+                } else {
                     jsonReturn(true);
                 }
-            }else{
-                if($result){
-                    jsonReturn('', ErrorMsg::FAILED);
-                }else{
-                    jsonReturn(true);
-                }
-            }
-            if ($lang) {
-                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
-                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
             } else {
-                $this->updateEsproduct(null, $this->put_data['spu']);
-                $this->updateEsgoods(null, $this->put_data['spu']);
+                if ($result) {
+                    jsonReturn('', ErrorMsg::FAILED);
+                } else {
+                    jsonReturn(true);
+                }
             }
+
             jsonReturn(true);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
