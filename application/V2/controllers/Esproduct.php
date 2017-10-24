@@ -374,6 +374,7 @@ class EsproductController extends PublicController {
         }
         $es = new ESClient();
         $state = $es->getstate();
+
         if (!isset($state['metadata']['indices'][$this->index])) {
             $es->create_index($this->index, $body, 5, 1);
         }
@@ -435,11 +436,12 @@ class EsproductController extends PublicController {
             $analyzer = 'english';
         } elseif ($lang == 'es') {
             $analyzer = 'spanish';
-        } elseif ($lang == 'es') {
+        } elseif ($lang == 'ru') {
             $analyzer = 'russian';
         } else {
             $analyzer = 'ik';
         }
+
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
@@ -625,7 +627,7 @@ class EsproductController extends PublicController {
             $analyzer = 'english';
         } elseif ($lang == 'es') {
             $analyzer = 'spanish';
-        } elseif ($lang == 'es') {
+        } elseif ($lang == 'ru') {
             $analyzer = 'russian';
         } else {
             $analyzer = 'ik';
