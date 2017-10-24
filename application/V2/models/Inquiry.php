@@ -109,7 +109,7 @@ class InquiryModel extends PublicModel {
                     $map[] = ['agent_id' => $condition['user_id']];
                     
                     foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == $this->inquiryIssueRole) {
+                        if ($roleNo == self::inquiryIssueRole) {
                             $map[] = ['erui_id' => $condition['user_id']];
                         }
                     }
@@ -119,14 +119,12 @@ class InquiryModel extends PublicModel {
                     
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id']);
+                            $orgId = $this->getDeptOrgId($condition['group_id']);
                             
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::quoteCheckRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id']);
-                            
-                            if ($orgId) $map[] = ['check_org_id' => ['in', $orgId]];
+                            $map[] = ['check_org_id' => $condition['user_id']];
                         }
                     }
                     break;
@@ -135,14 +133,12 @@ class InquiryModel extends PublicModel {
                     
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
+                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
                             
                             if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::logiCheckRole) {
-                            $orgId = $this->_getDeptOrgId($condition['group_id'], 'lg');
-                            
-                            if ($orgId) $map[] = ['logi_check_id' => ['in', $orgId]];
+                            $map[] = ['logi_check_id' => $condition['user_id']];
                         }
                     }
             }
@@ -509,7 +505,7 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-10-20
      */
-    private function _getDeptOrgId($groupId = [], $orgNode = 'ub') {
+    public function getDeptOrgId($groupId = [], $orgNode = 'ub') {
         $org = new OrgModel();
         
         $where = [
@@ -525,5 +521,37 @@ class InquiryModel extends PublicModel {
         }
         
         return $orgId;
+    }
+    
+    /**
+     * @desc 获取指定角色用户ID
+     *
+     * @param array $groupId 当前用户的全部组ID
+     * @param string $roleNo 角色编号
+     * @param string $orgNode 部门节点
+     * @return array
+     * @author liujf
+     * @time 2017-10-23
+     */
+    public function getRoleUserId($groupId = [], $roleNo = '', $orgNode = 'ub') {
+        $orgMemberModel = new OrgMemberModel();
+        $roleModel = new RoleModel();
+        $roleUserModel = new RoleUserModel();
+        
+        $orgId = $this->getDeptOrgId($groupId, $orgNode);
+	        
+        $role = $roleModel->field('id')->where(['role_no' => $roleNo])->find();
+        
+        $roleUserList = $roleUserModel->field('employee_id')->where(['role_id' => $role['id']])->select();
+        
+        $employeeId = [];
+        
+        foreach ($roleUserList as $roleUser) {
+            $employeeId[] = $roleUser['employee_id'];
+        }
+        
+        $orgMember = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->find();
+    
+        return $orgMember['employee_id'];
     }
 }

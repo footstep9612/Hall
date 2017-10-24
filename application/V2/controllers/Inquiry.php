@@ -210,41 +210,6 @@ class InquiryController extends PublicController {
             $agent = $user->where(['name' => $condition['agent_name']])->find();
             $condition['agent_id'] = $agent['id'];
         }
-        
-        // 是否是分单员的标识
-        $isIssue = 'N';
-        
-        // 是否是审核人的标识
-        $isCheck = 'N';
-        
-        switch ($condition['list_type']) {
-            case 'inquiry' :
-                foreach ($this->user['role_no'] as $roleNo) {
-                    if ($roleNo == $inquiry::inquiryIssueRole) {
-                        $isIssue = 'Y';
-                    }
-                }
-                break;
-            case 'quote' :
-                foreach ($this->user['role_no'] as $roleNo) {
-                    if ($roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole) {
-                        $isIssue = 'Y';
-                    }
-                    if ($roleNo == $inquiry::quoteCheckRole) {
-                        $isCheck = 'Y';
-                    }
-                }
-                break;
-            case 'logi' :
-                foreach ($this->user['role_no'] as $roleNo) {
-                    if ($roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
-                        $isIssue = 'Y';
-                    }
-                    if ($roleNo == $inquiry::logiCheckRole ) {
-                        $isCheck = 'Y';
-                    }
-                }
-        }
     
         // 当前用户的所有角色编号
         $condition['role_no'] = $this->user['role_no'];
@@ -260,8 +225,6 @@ class InquiryController extends PublicController {
             $res['code'] = 1;
     		$res['message'] = '成功!';
             $res['data'] = $inquiryList;
-            $res['is_issue'] = $isIssue;
-            $res['is_check'] = $isCheck;
             $res['count'] = $inquiry->getCount_($condition);
             $this->jsonReturn($res);
         } else {
@@ -269,6 +232,95 @@ class InquiryController extends PublicController {
             $this->setMessage('失败!');
             $this->jsonReturn();
         }
+    }
+    
+    /**
+     * @desc 分配事业部
+     *
+     * @author liujf
+     * @time 2017-10-24
+     */
+    public function assignBizUnitAction() {
+        $condition = $this->put_data;
+        
+        if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
+             $inquiryModel = new InquiryModel();
+             $quoteModel = new QuoteModel();
+             
+            $inquiryModel->startTrans();
+            $quoteModel->startTrans();
+             
+            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING']);
+             
+            // 更改报价单状态
+            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
+             
+            if ($res1['code'] == 1 && $res2) {
+                $inquiryModel->commit();
+                $quoteModel->commit();
+                $res = true;
+            } else {
+                $inquiryModel->rollback();
+                $quoteModel->rollback();
+                $res = false;
+            }
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 获取当前用户询报价角色接口
+     *
+     * @author liujf
+     * @time 2017-10-23
+     */
+    public function getInquiryUserRoleAction() {
+        $inquiry = new InquiryModel();
+        
+        // 是否易瑞客户中心分单员的标识
+        $isErui = 'N';
+        
+        // 是否分单员的标识
+        $isIssue = 'N';
+        
+        // 是否审核人的标识
+        $isCheck = 'N';
+        
+        foreach ($this->user['role_no'] as $roleNo) {
+            if ($roleNo == $inquiry::inquiryIssueRole) {
+                $isErui = 'Y';
+            }
+            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole) {
+                $isIssue = 'Y';
+            }
+            if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole ) {
+                $isCheck = 'Y';
+            }
+        }
+        
+        $data['is_erui'] = $isErui;
+        $data['is_issue'] = $isIssue;
+        $data['is_issue'] = $isIssue;
+        $data['is_check'] = $isCheck;
+        
+        $res['code'] = 1;
+		$res['message'] = '成功!';
+        $res['data'] = $data;
+        
+        $this->jsonReturn($res);
     }
 
     /*
@@ -751,4 +803,5 @@ class InquiryController extends PublicController {
         }
         $this->jsonReturn($results);
     }
+    
 }

@@ -88,6 +88,7 @@ class QuoteModel extends PublicModel {
         $gross_profit_rate = $quoteInfo['gross_profit_rate'];//毛利率
 
         $quoteItemIds = $quoteItemModel->where($condition)->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')->select();
+
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
@@ -195,10 +196,17 @@ class QuoteModel extends PublicModel {
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
+
+        $org = new OrgModel();
+        $orgList = $org->field('id')->where(['org_node' => 'lg'])->select();
+        $orgId = [];
+        foreach ($orgList as $org) {
+            $orgId[] = $org['id'];
+        }
+
         $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
             'status' => self::INQUIRY_LOGI_DISPATCHING,
-            //TODO 物流部ID(临时写死)
-            'logi_org_id' => '9733'
+            'logi_org_id' => $orgId[0]
         ]);
 
         $this->startTrans();
@@ -209,29 +217,35 @@ class QuoteModel extends PublicModel {
 
             //给物流表创建一条记录
             $quoteLogiFeeModel = new QuoteLogiFeeModel();
+            //防止重复提交
+            $hasFlag = $quoteLogiFeeModel->where(['inquiry_id' => $request['inquiry_id']])->find();
 
-            $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
+            if (!$hasFlag){
 
-           $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
-                'quote_id' => $quoteInfo['id'],
-                'inquiry_id' => $request['inquiry_id'],
-                'created_at' => date('Y-m-d H:i:s'),
-                'created_by' => $user,
-                'premium_rate' => $quoteInfo['premium_rate']
-            ]));
+                $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
 
-            //给物流报价单项形成记录
-            $quoteItemModel = new QuoteItemModel();
-            $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id']])->getField('id', true);
-
-            $quoteItemLogiModel = new QuoteItemLogiModel();
-            foreach ($quoteItemIds as $quoteItemId) {
-                $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
                     'quote_id' => $quoteInfo['id'],
-                    'quote_item_id' => $quoteItemId,
+                    'inquiry_id' => $request['inquiry_id'],
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $user
+                    'created_by' => $user['id'],
+                    'premium_rate' => $quoteInfo['premium_rate']
                 ]));
+
+                //给物流报价单项形成记录
+                $quoteItemModel = new QuoteItemModel();
+                $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id']])->getField('id', true);
+
+                $quoteItemLogiModel = new QuoteItemLogiModel();
+                foreach ($quoteItemIds as $quoteItemId) {
+                    $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                        'inquiry_id' => $request['inquiry_id'],
+                        'quote_id' => $quoteInfo['id'],
+                        'quote_item_id' => $quoteItemId,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'created_by' => $user['id']
+                    ]));
+                }
             }
 
             $inquiry->commit();

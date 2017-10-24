@@ -153,7 +153,7 @@ class ESClient {
      * @return array     *
      */
 
-    public function create_index($index, $body, $number_of_shards = 16, $number_of_replicas = 1) {
+    public function create_index($index, $body, $number_of_shards = 5, $number_of_replicas = 1) {
         $indexParams['index'] = $index;
         // $indexParams['type'] = $type;
         $indexParams['body'] = $body;
@@ -838,11 +838,13 @@ class ESClient {
      * $field 需要拍下的字段
      */
 
-    public function setsort($field, $sort) {
+    public function setsort($field, $sort = null) {
         if (is_string($sort)) {
             $this->body['sort'][] = [$field => ['order' => $sort]];
         } elseif (is_array($sort)) {
             $this->body['sort'][] = [$field => $sort];
+        } elseif (empty($sort)) {
+            $this->body['sort'][] = $field;
         }
         return $this;
     }

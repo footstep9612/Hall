@@ -219,11 +219,11 @@ class LogisticsController extends PublicController {
     	        $user = $this->getUserInfo();
     	        $quoteLogiFee['current_name'] = $user['name'];
     	        
-    	        $quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id'] ? : $this->user['id']);
+    	        /*$quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id'] ? : $this->user['id']);
     	        
     	        $outField = 'logi_quote_org_id';
     	        $findFields = ['logi_check_org_id', $outField];
-    	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);
+    	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);*/
     	    }
     	
     	    $this->jsonReturn($quoteLogiFee);
@@ -256,7 +256,7 @@ class LogisticsController extends PublicController {
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getDetail($where);
 	        $data['premium_rate'] = $quoteLogiFee['premium_rate'];
 	        
-	        $quote = $this->quoteModel->where($where)->select();
+	        $quote = $this->quoteModel->where($where)->find();
 	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
 	        $data['payment_period'] = $quote['payment_period'];
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
@@ -266,7 +266,7 @@ class LogisticsController extends PublicController {
 	        $data = $this->calcuTotalLogiFee($data);
 	        
 	        //if ($quoteLogiFee['logi_agent_id'] == '') {
-	            $data['logi_agent_id'] = $this->user['id'];
+	        //    $data['logi_agent_id'] = $this->user['id'];
 	        //}
 	        
 	        if ($quoteLogiFee['logi_from_port'] != $condition['logi_from_port']) $data['logi_from_port'] = $condition['logi_from_port'];
@@ -478,7 +478,7 @@ class LogisticsController extends PublicController {
 	public function assignLogiAgentAction() {
 	    $condition = $this->put_data;
 	    
-	    if (!empty($condition['inquiry_id'])) {
+	    if (!empty($condition['inquiry_id']) && !empty($condition['logi_agent_id'])) {
 	        /*$where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $data = [
@@ -521,12 +521,10 @@ class LogisticsController extends PublicController {
 	public function submitLogiCheckAction() {
 	    $condition = $this->put_data;
 	     
-	    if (!empty($condition['inquiry_id']) && !empty($condition['checked_by'])) {
-	        $where['inquiry_id'] = $condition['inquiry_id'];
+	    if (!empty($condition['inquiry_id'])) {
+	        /*$where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $this->quoteLogiFeeModel->startTrans();
-	        $this->inquiryModel->startTrans();
-	        $this->quoteModel->startTrans();
 	        
 	        $data = [
 	            'status' => 'QUOTED',
@@ -534,26 +532,65 @@ class LogisticsController extends PublicController {
 	            'updated_at' => $this->time
 	        ];
 	         
-	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
+	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
 	        
-	        // 更改询单状态
-	        $res2 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'LOGI_APPROVING']);
+	        $inquiryModel = $this->inquiryModel;
+	        
+	        $logiCheckId = $this->inquiryModel->getRoleUserId($this->user['group_id'], $inquiryModel::logiCheckRole, 'lg');
+	        
+	        $this->inquiryModel->startTrans();
+	        $this->quoteModel->startTrans();
+	        
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_check_id' => $logiCheckId, 'status' => 'LOGI_APPROVING']);
 	        
 	        // 更改报价单状态
-	        $res3 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);
 	         
-	        if ($res1 && $res2['code'] == 1 && $res3) {
-	            $this->quoteLogiFeeModel->commit();
+	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();
 	            $this->quoteModel->commit();
 	            $res = true;
 	        } else {
-	            $this->quoteLogiFeeModel->rollback();
 	            $this->inquiryModel->rollback();
 	            $this->quoteModel->rollback();
 	            $res = false;
 	        }
 	         
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
+	 * @desc 通过物流审核接口
+	 *
+	 * @author liujf
+	 * @time 2017-10-23
+	 */
+	public function passLogiCheckAction() {
+	    $condition = $this->put_data;
+	    
+	    if (!empty($condition['inquiry_id'])) {
+	        $this->inquiryModel->startTrans();
+	        $this->quoteModel->startTrans();
+	         
+	        // 更改询单状态
+	        $res1 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING']);
+	         
+	        // 更改报价单状态
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
+	    
+	        if ($res1['code'] == 1 && $res2) {
+	            $this->inquiryModel->commit();
+	            $this->quoteModel->commit();
+	            $res = true;
+	        } else {
+	            $this->inquiryModel->rollback();
+	            $this->quoteModel->rollback();
+	            $res = false;
+	        }
+	    
 	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);
@@ -704,7 +741,7 @@ class LogisticsController extends PublicController {
 	    $condition = $this->put_data;
 	    
 	    if (!empty($condition['inquiry_id'])) {
-    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->select();
+    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->find();
     	    
     	    $overlandInsuFee = $this->_getOverlandInsuFee($quote['total_exw_price'], $condition['overland_insu_rate']);
     	    $res['overland_insu'] = $overlandInsuFee['CNY'];
@@ -725,7 +762,7 @@ class LogisticsController extends PublicController {
 	   $condition = $this->put_data;
 	    
 	    if (!empty($condition['inquiry_id'])) {
-    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->select();
+    	    $quote = $this->quoteModel->where(['inquiry_id' =>$condition['inquiry_id']])->find();
     	    
     	    $shippingInsuFee = $this->_getShippingInsuFee($quote['total_exw_price'], $condition['shipping_insu_rate']);
     	    $res['shipping_insu'] = $shippingInsuFee['CNY'];

@@ -33,18 +33,27 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag';
+        $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
 
         $info = $this->quoteModel->getGeneralInfo($condition,$field);
-        $this->jsonReturn(
-            [
-                'code' => '1',
-                'message' => '成功!',
-                'data' => $info
-            ]
-        );
+
+        $exchangeRateModel = new ExchangeRateModel();
+        $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
+
+        $info['trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
+        $transMode = new TransModeModel();
+        $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
+
+        $finalQuoteModel = new FinalQuoteModel();
+        $finalQuote = $finalQuoteModel->where($condition)->field('total_exw_price,total_quote_price')->find();
+        if ($finalQuote){
+            $info['final_total_exw_price'] = $finalQuote['total_exw_price'];
+            $info['final_total_quote_price'] = $finalQuote['total_quote_price'];
+        }
+        $this->jsonReturn($info);
 
     }
+
 
     /**
      * 更新报价信息
@@ -54,13 +63,15 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests('inquiry_id');
 
         $request = $this->validateNumeric($request);
+        $request['biz_quote_by'] = $this->user['id'];
+        $request['biz_quote_at'] = date('Y-m-d H:i:s');
 
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         //这个操作设计到计算
         $result = $this->quoteModel->updateGeneralInfo($condition,$request);
 
         if (!$result) $this->jsonReturn($result);
-        $this->jsonReturn(['code' => '1', 'message' => '成功!']);
+        $this->jsonReturn();
 
     }
 
@@ -82,7 +93,7 @@ class QuoteController extends PublicController{
     public function sendLogisticsAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $response = $this->quoteModel->sendLogisticsHandler($request, $this->user['id']);
+        $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
         $this->jsonReturn($response);
 
     }
@@ -111,33 +122,18 @@ class QuoteController extends PublicController{
     public function submitQuoteAuditorAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
-        $this->jsonReturn($response);
 
-    }
+        $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
 
-    /**
-     * 退回报价(审核人)
-     */
-    public function rejectAction(){
+        $inquiryModel = new InquiryModel();
+        $check_org_id = $inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
 
-        $request = $this->validateRequests('inquiry_id');
-        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_QUOTING');
-        $this->jsonReturn($response);
+        $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
+            'quote_status' => 'QUOTED',
+            'check_org_id' => $check_org_id //事业部审核人
+        ]);
 
-    }
-
-    /**
-     * 确认报价(审核人)
-     */
-    public function confirmAction(){
-
-        $request = $this->validateRequests('inquiry_id');
-
-        $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
-        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['quote_status' => 'QUOTED']);
-
-        $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
+        $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
 
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuoteModel->add($finalQuoteModel->create([
@@ -165,6 +161,29 @@ class QuoteController extends PublicController{
         }
 
         $this->jsonReturn();
+
+    }
+
+    /**
+     * 退回报价(审核人)
+     */
+    public function rejectAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_QUOTING');
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 确认报价(审核人)
+     */
+    public function confirmAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
+        $this->jsonReturn($response);
+
     }
 
     /**
@@ -202,6 +221,37 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests();
         $this->quoteItemModel->updateSupplier($request['data']);
+        $this->jsonReturn();
+    }
+
+    /**
+     * 报价审核人sku列表
+     */
+    public function finalSkuAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        $list = $finalQuoteItemModel->getFinalSku($request);
+        if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
+
+        foreach ($list as $key=>$value){
+            $list[$key]['quote_exw_unit_price'] = sprintf("%.4f", $list[$key]['quote_exw_unit_price']);
+            $list[$key]['quote_quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_quote_unit_price']);
+            $list[$key]['exw_unit_price'] = sprintf("%.4f", $list[$key]['exw_unit_price']);
+            $list[$key]['quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_unit_price']);
+        }
+
+        $this->jsonReturn($list);
+
+    }
+
+    public function updateFinalSkuAction(){
+
+        $request = $this->validateRequests();
+
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        $finalQuoteItemModel->updateFinalSku($request['data']);
         $this->jsonReturn();
     }
 
