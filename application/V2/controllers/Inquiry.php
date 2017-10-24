@@ -253,7 +253,7 @@ class InquiryController extends PublicController {
             $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING']);
              
             // 更改报价单状态
-            $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
+            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
              
             if ($res1['code'] == 1 && $res2) {
                 $inquiryModel->commit();
