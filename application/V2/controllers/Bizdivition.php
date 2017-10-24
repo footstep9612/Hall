@@ -109,6 +109,8 @@ class BizdivitionController extends PublicController{
                     'created_at' => date('Y-m-d H:i:s')
                 ]));
             }
+        }else{
+            $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status'=>'BIZ_QUOTING']);
         }
 
         $this->jsonReturn($response);
