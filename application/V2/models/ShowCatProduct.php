@@ -75,6 +75,7 @@ class ShowCatProductModel extends PublicModel {
         $data = [];
         try {
             $product = new ProductModel();
+            $faild_ary = [];
             if (is_array($spu)) {
                 foreach ($spu as $item) {
                     /**
@@ -97,6 +98,7 @@ class ShowCatProductModel extends PublicModel {
                     }
 
                     if (empty($cat_no_tmp)) {    //当没有对应的展示分类时退出当前循环执行下一条spu
+                        $faild_ary[][$item] = '没有对应的展示分类';
                         continue;
                     }
 
@@ -143,7 +145,8 @@ class ShowCatProductModel extends PublicModel {
                 }
 
                 if (empty($cat_no_tmp)) {
-                    return false;
+                    $faild_ary[][$spu] = '没有对应的展示分类';
+                    return $faild_ary;
                 }
 
                 foreach ($cat_no_tmp as $r) {
@@ -178,7 +181,7 @@ class ShowCatProductModel extends PublicModel {
                     $showCatGoods = new ShowCatGoodsModel();
                     $showCatGoods->onShelf($data);
                 }
-                return $result ? true : false;
+                return $result ? $faild_ary : false;
             }
         } catch (Exception $e) {
             return false;

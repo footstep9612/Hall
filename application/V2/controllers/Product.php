@@ -343,7 +343,25 @@ class ProductController extends PublicController {
         $cat_no = isset($this->put_data['cat_no']) ? $this->put_data['cat_no'] : '';
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->onShelf($spu, $lang, $cat_no);
-        if ($result) {
+        if ($result !== false) {
+            if(is_array($this->put_data['spu'])){
+                if($result){
+                    $message  = '成功！[';
+                    foreach($result as $item){
+                        $message.= array_keys($item)[0].array_values($item)[0].';';
+                    }
+                    $message = substr($message,0,-1).']';
+                    jsonReturn(true, ErrorMsg::SUCCESS, $message);
+                }else{
+                    jsonReturn(true);
+                }
+            }else{
+                if($result){
+                    jsonReturn('', ErrorMsg::FAILED);
+                }else{
+                    jsonReturn(true);
+                }
+            }
             if ($lang) {
                 $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
                 $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
