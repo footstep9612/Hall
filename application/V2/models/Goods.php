@@ -546,7 +546,7 @@ class GoodsModel extends PublicModel {
         if(!$checkSku) {
             jsonReturn('',ErrorMsg::FAILED,'[sku]编码错误!');
         }
-        if(isset($input['model'])) {
+        if(!isset($input['model'])) {
             jsonReturn('',ErrorMsg::FAILED,'[型号]缺失!');
         }
 
