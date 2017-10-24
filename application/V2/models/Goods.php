@@ -814,7 +814,7 @@ class GoodsModel extends PublicModel {
                 if ($boolen) {
                     return false;
                 } else {
-                    jsonReturn('', ErrorMsg::EXIST, $where['sku'][1] .' 名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
+                    jsonReturn('', ErrorMsg::EXIST, ' 名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
                 }
             } else {
                 foreach ($other_attr as $key => $item) {
@@ -827,7 +827,7 @@ class GoodsModel extends PublicModel {
                         if ($boolen) {
                             return false;
                         } else {
-                            jsonReturn('', ErrorMsg::EXIST, $where['sku'][1] .' 名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
+                            jsonReturn('', ErrorMsg::EXIST, ' 名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
                         }
                     } else {
                         continue;
