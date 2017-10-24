@@ -1037,23 +1037,29 @@ class GoodsModel extends PublicModel {
             jsonReturn('',-1001,'['. $sku .']不存在或已经删除!');
         }
 
+        $error_date = '';
         foreach ($thisSkuInfo as $item) {
-            if(in_array($item['lang'], ['zh','en','es','ru'])) {
+            if (in_array($item['lang'], ['zh', 'en', 'es', 'ru'])) {
                 $where = [
-                    'spu'          => $item['spu'],
-                    'name'         => $item['name'],
-                    'model'        => $item['model'],
-                    'lang'         => $item['lang'],
-                    'sku'          => array('neq', $sku),
+                    'spu' => $item['spu'],
+                    'name' => $item['name'],
+                    'model' => $item['model'],
+                    'lang' => $item['lang'],
+                    'sku' => array('neq', $sku),
                     'deleted_flag' => self::DELETE_N,
-                    'status'       => array('neq', self::STATUS_DRAFT)
+                    'status' => array('neq', self::STATUS_DRAFT)
                 ];
 
                 $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
-                $this->_checkExit($where, $thisSpecAttr);
-            } else{
-                jsonReturn('',-1002,'对应语言错误!');
+                $result = $this->_checkExit($where, $thisSpecAttr, $boolen = true);
+                if (!$result) {
+                    $error_date .= $sku . '已存在!';
+                }
+                continue;
             }
+        }
+        if(!empty($error_date)) {
+            jsonReturn('',ErrorMsg::EXIST,$error_date);
         }
     }
 
