@@ -40,7 +40,7 @@ class EsGoodsModel extends Model {
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
         if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = $name;
                 }
@@ -50,7 +50,7 @@ class EsGoodsModel extends Model {
 
             if (isset($condition[$name]) && $condition[$name]) {
 
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = $name;
                 }
@@ -58,7 +58,7 @@ class EsGoodsModel extends Model {
             }
         } elseif ($qurey_type == ESClient::MULTI_MATCH) {
             if (isset($condition[$name]) && $condition[$name]) {
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = [$name];
                 }
@@ -71,18 +71,18 @@ class EsGoodsModel extends Model {
             }
         } elseif ($qurey_type == ESClient::RANGE) {
             if (!$field) {
-                $field = [$name];
+                $field = $name;
             }
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
-                $created_at_end = $condition[$name . '_end'];
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+                $created_at_start = trim($condition[$name . '_start']);
+                $created_at_end = trim($condition[$name . '_end']);
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
+                $created_at_start = trim($condition[$name . '_start']);
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
-                $created_at_end = $condition[$name . '_end'];
+                $created_at_end = trim($condition[$name . '_end']);
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
             }
         }
@@ -109,7 +109,7 @@ class EsGoodsModel extends Model {
             $field = [$name];
         }
         if (isset($condition[$name]) && $condition[$name]) {
-            $status = $condition[$name];
+            $status = trim($condition[$name]);
             if ($status == 'ALL') {
                 $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
@@ -148,7 +148,7 @@ class EsGoodsModel extends Model {
             $name_arr = $condition[$names];
             $bool = [];
             foreach ($name_arr as $name) {
-                $bool[] = [$qurey_type => [$field => $name]];
+                $bool[] = [$qurey_type => [$field => trim($name)]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
         }
@@ -270,7 +270,7 @@ class EsGoodsModel extends Model {
         }
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['created_by_name']));
 
             foreach ($userids as $created_by) {
                 $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
@@ -280,7 +280,7 @@ class EsGoodsModel extends Model {
             }
         }
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['updated_by_name']));
             foreach ($userids as $updated_by) {
                 $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
             }
@@ -289,7 +289,7 @@ class EsGoodsModel extends Model {
             }
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['checked_by_name']));
             foreach ($userids as $checked_by) {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
