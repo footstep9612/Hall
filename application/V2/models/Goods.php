@@ -485,9 +485,7 @@ class GoodsModel extends PublicModel {
                     }
                     //按语言分组
                     $kData[$item['lang']] = $item;
-                    if($item['model']) {
-                        $kData['model'] = $item['model'] ? $item['model'] : '';
-                    }
+                    $pData['model'] = isset($item['model']) ? $item['model'] : '';
                 }
                 $data = array_merge($kData, $pData);
 //                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
