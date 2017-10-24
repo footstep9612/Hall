@@ -23,10 +23,10 @@ class ProductModel extends PublicModel {
 
     //定义校验规则
     protected $field = array(
-        //'lang' => array('method','checkLang'),
-        'material_cat_no' => array('required'),
-        'name' => array('required'),
-        //  'brand' => array('required'),//暂时先去掉品牌的必填验证
+        //'lang' => array('method','checkLang','语言'),
+        'material_cat_no' => array('required', '', '物料分类不能为空'),
+        'name' => array('required', '', '名称不能为空'),
+        //  'brand' => array('required','','名称不能为空'),//暂时先去掉品牌的必填验证
     );
 
     /**
@@ -847,15 +847,15 @@ class ProductModel extends PublicModel {
             switch ($item[0]) {
                 case 'required':
                     if ($param[$k] == '' || empty($param[$k])) {
-                        jsonReturn('', '1000', 'Param ' . $k . ' Not null !');
+                        jsonReturn('', '1000', $item[2]);
                     }
                     break;
                 case 'method':
                     if (!method_exists($item[1])) {
-                        jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
+                        jsonReturn('', '404', '验证方法：' . $item[1] . '未找到!');
                     }
                     if (!call_user_func($item[1], $param[$k])) {
-                        jsonReturn('', '1000', 'Param ' . $k . ' Validate failed !');
+                        jsonReturn('', '1000', $item[2] . '验证失败!');
                     }
                     break;
             }
