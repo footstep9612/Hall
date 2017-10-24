@@ -23,10 +23,10 @@ class ProductModel extends PublicModel {
 
     //定义校验规则
     protected $field = array(
-        //'lang' => array('method','checkLang'),
-        'material_cat_no' => array('required'),
-        'name' => array('required'),
-        //  'brand' => array('required'),//暂时先去掉品牌的必填验证
+        //'lang' => array('method','checkLang','语言'),
+        'material_cat_no' => array('required', '', '物料分类不能为空'),
+        'name' => array('required', '', '名称不能为空'),
+        //  'brand' => array('required','','名称不能为空'),//暂时先去掉品牌的必填验证
     );
 
     /**
@@ -211,7 +211,7 @@ class ProductModel extends PublicModel {
         }
         $material_cat_no = isset($input['material_cat_no']) ? $input['material_cat_no'] : (isset($input['zh']['material_cat_no']) ? $input['zh']['material_cat_no'] : (isset($input['eh']['material_cat_no']) ? $input['eh']['material_cat_no'] : (isset($input['es']['material_cat_no']) ? $input['es']['material_cat_no'] : (isset($input['ru']['material_cat_no']) ? $input['ru']['material_cat_no'] : ''))));
         $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
-        $bizline_id = isset($input['bizline_id']) ? trim($input['bizline_id']) : 0;
+        $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
         $this->startTrans();
         try {
             $userInfo = getLoinInfo(); //获取当前用户信息
@@ -223,9 +223,6 @@ class ProductModel extends PublicModel {
                         continue;
                     }
                     $data['bizline_id'] = $bizline_id;
-                    if (empty($data['show_name'])) {
-                        $data['show_name'] = $data['name'];
-                    }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     $this->checkParam($data, $this->field);     //字段校验
@@ -847,15 +844,15 @@ class ProductModel extends PublicModel {
             switch ($item[0]) {
                 case 'required':
                     if ($param[$k] == '' || empty($param[$k])) {
-                        jsonReturn('', '1000', 'Param ' . $k . ' Not null !');
+                        jsonReturn('', '1000', $item[2]);
                     }
                     break;
                 case 'method':
                     if (!method_exists($item[1])) {
-                        jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
+                        jsonReturn('', '404', '验证方法：' . $item[1] . '未找到!');
                     }
                     if (!call_user_func($item[1], $param[$k])) {
-                        jsonReturn('', '1000', 'Param ' . $k . ' Validate failed !');
+                        jsonReturn('', '1000', $item[2] . '验证失败!');
                     }
                     break;
             }
@@ -981,6 +978,7 @@ class ProductModel extends PublicModel {
         $userInfo = getLoinInfo();
         $es_product_model = new EsProductModel();
         $mcatModel = new MaterialCatModel();
+        $brandModel = new BrandModel();
         $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
         //$localFile =  $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/impspu.xls";
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
@@ -1044,6 +1042,16 @@ class ProductModel extends PublicModel {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不能为空]');
+                        continue;
+                    }
+                    $condition_brand = array(
+                        'brand' => array('like','%"name":"'.trim($r[7]).'"%')
+                    );
+                    $brand_id = $brandModel->field('id')->where($condition_brand)->find();
+                    if(!$brand_id){
+                        $faild ++;
+                        $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不存在]');
                         continue;
                     }
                     $brand_ary = array('name' => trim($r[7]), 'style' => 'TEXT', 'label' => trim($r[7]), 'logo' => '');

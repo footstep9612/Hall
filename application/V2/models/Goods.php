@@ -309,9 +309,9 @@ class GoodsModel extends PublicModel {
      * )
      */
     private function checkParam($param = [], $field = [], $supplier_cost = []) {
-        if (empty($param) || empty($field))
+        if (empty($param) || empty($field)){
             return array();
-
+		}
         if (empty($supplier_cost)) {
             jsonReturn('', '1000', '请选择供应商!');
         }
@@ -800,8 +800,8 @@ class GoodsModel extends PublicModel {
         $exist = $this->where($condition)->find();
         if ($exist) {
             $where = array(
-                'lang'         => $condition['lang'],
-                'spu'          => $condition['spu'],
+                'lang' => $condition['lang'],
+                'spu' => $condition['spu'],
                 'deleted_flag' => 'N'
             );
             if (!empty($condition['sku'])) {
@@ -1881,17 +1881,22 @@ class GoodsModel extends PublicModel {
                 if (empty($key) || $key == '…' || $key == '导入结果') {
                     continue;
                 }
-                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
-                if ($index >= $ext_goods_start && $index <= $ext_goods_end) {    //扩展属性
-                    if (!empty($value)) {
-                        $data['spec_attrs'][$key] = $value;
+                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue());//转码
+                if($index>=$ext_goods_start && $index<=$ext_goods_end){    //扩展属性
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue());//转码
+                    if(!empty($key_attr) && !empty($value)){
+                        $data['spec_attrs'][$key_attr] = $value;
                     }
+                    unset($key_attr);
                     continue;
                 }
-                if ($index >= $ext_hs_start) {    //申报要素扩展属性
-                    if (!empty($value)) {
-                        $data['ex_hs_attrs'][$key] = $value;
+
+                if($index>=$ext_hs_start){    //申报要素扩展属性
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue());//转码
+                    if(!empty($key_attr) && !empty($value)){
+                        $data['ex_hs_attrs'][$key_attr] = $value;
                     }
+                    unset($key_attr);
                     continue;
                 }
                 $data[$key] = $value;
@@ -1918,6 +1923,16 @@ class GoodsModel extends PublicModel {
             $input_sku = $data['订货号'];    //输入的sku  订货号
             $data_tmp['lang'] = $lang;
             $data_tmp['name'] = $data['名称'];    //名称
+            $spu_name = $productModel->field('name')->where(array("spu"=>$spu , "lang"=>$lang))->find();
+            if($spu_name){
+                if(empty($data_tmp['name'])) {
+                    $data_tmp[ 'name' ] = $spu_name[ 'name' ];
+                }
+            }else{
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[spu:'.$spu.' 语言:'.$lang.'不存在]');
+                continue;
+            }
             $data_tmp['model'] = $data['型号'];    //型号
             $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
             if (empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])) {
@@ -2168,7 +2183,10 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
 
-                $objPHPExcel->getSheet(0)->setCellValue($itemNo . $i, ' ' . $input_sku);
+                //更新es
+                $es_goods_model->create_data($input_sku, $lang);
+
+                $objPHPExcel->getSheet(0)->setCellValue($itemNo .$i, ' ' . $input_sku);
                 $success++;
                 $this->commit();
             } else {
