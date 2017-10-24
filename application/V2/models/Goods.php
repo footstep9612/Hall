@@ -544,8 +544,12 @@ class GoodsModel extends PublicModel {
         }
         $checkSku = isNum($sku);
         if(!$checkSku) {
-            return false;
+            jsonReturn('',ErrorMsg::FAILED,'[sku]编码错误!');
         }
+        if(isset($input['model'])) {
+            jsonReturn('',ErrorMsg::FAILED,'[型号]缺失!');
+        }
+
         $spu = '';
         //获取当前用户信息
         $userInfo = getLoinInfo();
@@ -571,6 +575,7 @@ class GoodsModel extends PublicModel {
                     if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }
+                    $value['model'] = $input['model'];
 //                    if (empty($input[$key]['name']) && empty($input[$key]['model']) && empty($input[$key]['attrs']['spec_attrs'])) {
 //                        jsonReturn('', ErrorMsg::EXIST, '名称、型号、扩展属性不能同时为空!');
 //                    }
