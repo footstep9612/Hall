@@ -122,10 +122,10 @@ class GoodsCostPriceModel extends PublicModel {
             $results['code'] = '-1001';
             $results['message'] = '[sku]缺失!';
         }
-        if (empty($checkout['min_purchase_qty'])) {
-            $results['code'] = '-1001';
-            $results['message'] = '[最小购买量]缺失!';
-        }
+//        if (empty($checkout['min_purchase_qty'])) {
+//            $results['code'] = '-1001';
+//            $results['message'] = '[最小购买量]缺失!';
+//        }
         if (empty($checkout['supplier_id'])) {
             $results['code'] = '-1001';
             $results['message'] = '[supplier_id]缺失!';
@@ -163,13 +163,64 @@ class GoodsCostPriceModel extends PublicModel {
         if (!empty($checkout['price_validity'])) {
             $data['price_validity'] = $checkout['price_validity'];
         }
-        if(!empty($checkout['id'])) {
+        if (!empty($checkout['id'])) {
             $data['id'] = $checkout['id'];
         }
         if($results){
-            return $results;
+            jsonReturn($results);
         }
         return $data;
+    }
+
+    protected function _checkCostPrice($data,$field='min_purchase_qty,max_purchase_qty'){
+        if (isset($data['price']) && isset($data['max_price'])) {
+            if ($data['price'] >= $data['max_price']) {
+                jsonReturn('',-1006,'价格区间错误!');
+            }
+        }
+
+        $where = array(
+            'supplier_id' => $data['supplier_id'],
+            'deleted_flag'=> 'N'
+        );
+        $result = $this->field($field)->where($where)->select();
+        if ($result) {
+            foreach ($result as $item) {
+                if (!empty($item['min_purchase_qty']) && !empty($item['max_purchase_qty'])) {
+                    $arrNumO = range($item['min_purchase_qty'],$item['max_purchase_qty']);
+                } else {
+                    $numO = $item['min_purchase_qty'];
+                }
+
+                if (!empty($data['min_purchase_qty']) && !empty($data['max_purchase_qty'])) {
+                    $arrNumT = range($data['min_purchase_qty'],$data['max_purchase_qty']);
+                } else {
+                    $numT = $data['min_purchase_qty'];
+                }
+
+                if ($arrNumO) {
+                    if($arrNumT) {
+                        $res = array_diff($arrNumO,$arrNumT);
+                        if (!empty($res)) {
+                            $code = -1006;
+                        }
+                    } else {
+                        if ($numT <= $item['max_purchase_qty']) {
+                            $code = -1006;
+                        }
+                    }
+                } else {
+                    if($arrNumT) {
+                        if (in_array($numO,$arrNumT)) {
+                            $code = -1006;
+                        }
+                    }
+                }
+                if ($code) {
+                    jsonReturn('',$code,'数量区间错误或冲突!');
+                }
+            }
+        }
     }
 
 }

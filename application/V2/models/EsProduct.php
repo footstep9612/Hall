@@ -212,8 +212,10 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
         $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
-
-
+        if (isset($condition['image_count']) && $condition['image_count'] === '0') {
+            $value = trim($condition['image_count']);
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['image_count' => $value]];
+        }
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers.supplier_id');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
@@ -246,7 +248,7 @@ class EsProductModel extends Model {
         }
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['created_by_name']));
 
             foreach ($userids as $created_by) {
                 $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
@@ -254,14 +256,14 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $created_by_bool]];
         }
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['updated_by_name']));
             foreach ($userids as $updated_by) {
                 $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['checked_by_name']));
             foreach ($userids as $checked_by) {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
