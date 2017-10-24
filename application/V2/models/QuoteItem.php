@@ -137,4 +137,31 @@ class QuoteItemModel extends PublicModel {
 
     }
 
+    public function syncSku($request,$user){
+
+        $quoteModel = new QuoteModel();
+        $inquiryItemModel = new InquiryItemModel();
+        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->select();
+
+        foreach ($inquiryItems as $inquiry=>$item){
+
+            $hasFlag = $this->where(['inquiry_item_id'=>$item['id']])->find();
+            if (!$hasFlag){
+                $this->add($this->create([
+                    'quote_id' => $quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'inquiry_id' => $item['inquiry_id'],
+                    'inquiry_item_id' => $item['id'],
+                    'sku' => $item['sku'],
+                    'quote_qty' => $item['qty'],
+                    'quote_unit' => $item['unit'],
+                    'created_by' => $user,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]));
+
+            }
+
+        }
+
+    }
+
 }
