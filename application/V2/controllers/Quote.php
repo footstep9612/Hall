@@ -41,8 +41,17 @@ class QuoteController extends PublicController{
         $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
 
         $info['trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
+
         $transMode = new TransModeModel();
         $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
+
+        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('from_port,to_port')->find();
+
+        //$port = new PortModel();
+        //$info['inquiry_from_port'] = $port->where(['lang'=>'zh','bn'=>$logiInfo['from_port']])->getField('name');
+        //$info['inquiry_to_port'] = $port->where(['lang'=>'zh','bn'=>$logiInfo['from_port']])->getField('name');
+        $info['inquiry_from_port'] = $logiInfo['from_port'];
+        $info['inquiry_to_port'] = $logiInfo['to_port'];
 
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuote = $finalQuoteModel->where($condition)->field('total_exw_price,total_quote_price')->find();
