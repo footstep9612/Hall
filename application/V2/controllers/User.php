@@ -357,7 +357,7 @@ class UserController extends PublicController {
            // $body = $this->getView()->render('login/email.html', $email_arr);
             send_Mail($arr['email'], '帐号创建成功', "密码：".$password, $arr['name']);
         }
-        if(!empty($res)){
+        if($res){
             $datajson['code'] = 1;
             $datajson['data'] = [ 'id'=>$res ];
             $datajson['message'] ='成功';
