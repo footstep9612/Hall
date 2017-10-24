@@ -732,6 +732,36 @@ class InquiryController extends PublicController {
         $results = $checklog->addData($data);
         $this->jsonReturn($results);
     }
+    
+    /**
+     * @desc 获取日志详情
+     *
+     * @author liujf
+     * @time 2017-10-24
+     */
+    public function getCheckLogDetailAction() {
+        $condition = $this->put_data;
+    
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryModel = new InquiryModel();
+            
+            $res = $inquiryModel->getLogInfo($condition);
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
 
     /*
     * 根据条件返回所有组ID

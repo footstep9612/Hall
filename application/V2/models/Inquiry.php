@@ -150,7 +150,37 @@ class InquiryModel extends PublicModel {
         $where['deleted_flag'] = 'N';
          
         return $where;
+    }
     
+    /**
+     * @desc 获取日志查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-10-24
+     */
+    public function getLogWhere($condition = []) {
+         
+        $where = [];
+    
+        if (!empty($condition['inquiry_id'])) {
+            $where['inquiry_id'] = $condition['inquiry_id'];
+        }
+    
+        if (!empty($condition['action'])) {
+            $where['action'] = $condition['action']; 
+        }
+    
+        if (!empty($condition['in_node'])) {
+            $where['in_node'] = $condition['in_node'];
+        }
+    
+        if (!empty($condition['out_node'])) {
+            $where['out_node'] = $condition['out_node'];
+        }
+    
+        return $where;
     }
 
     /**
@@ -278,6 +308,20 @@ class InquiryModel extends PublicModel {
                             ->order('id DESC')
                             ->select();
     }
+    
+    /**
+     * @desc 获取日志详情
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-10-24
+     */
+    public function getLogInfo($condition = []) {
+       $where = $this->getLogWhere($condition);
+         
+        return $this->where($where)->find();
+    }
 
     /**
      * 获取详情信息
@@ -369,7 +413,12 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有ID!';
             return $results;
         }
-        $data['updated_at'] = $this->getTime();
+        
+        $time = $this->getTime();
+        
+        if (!empty($condition['status'])) $data['inflow_time'] = $time;
+        
+        $data['updated_at'] = $time;
 
         try {
             $id = $this->where($where)->save($data);
@@ -402,10 +451,15 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有ID!';
             return $results;
         }
+        
+        $time = $this->getTime();
+        
         if(!empty($condition['status'])){
+            $data['inflow_time'] = $time;
             $data['status'] = $condition['status'];
         }
-        $data['updated_at'] = $this->getTime();
+        
+        $data['updated_at'] = $time;
 
         try {
             $id = $this->where($where)->save($data);
