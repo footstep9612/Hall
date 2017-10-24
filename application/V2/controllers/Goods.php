@@ -160,7 +160,12 @@ class GoodsController extends PublicController {
                 $this->updateEsproduct([$lang => $lang], $this->put_data[$lang]['spu']);
             }
         }
-        $this->returnInfo($result);
+        if($result === false){
+            jsonReturn('',ErrorMsg::FAILED);
+        }else{
+            jsonReturn($result);
+        }
+
     }
 
     /*
