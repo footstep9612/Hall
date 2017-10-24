@@ -223,9 +223,6 @@ class ProductModel extends PublicModel {
                         continue;
                     }
                     $data['bizline_id'] = $bizline_id;
-                    if (empty($data['show_name'])) {
-                        $data['show_name'] = $data['name'];
-                    }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     $this->checkParam($data, $this->field);     //字段校验
