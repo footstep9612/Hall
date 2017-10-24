@@ -45,13 +45,13 @@ class QuoteController extends PublicController{
         $transMode = new TransModeModel();
         $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
 
-        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('from_port,to_port')->find();
+        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination')->find();
 
         //$port = new PortModel();
         //$info['inquiry_from_port'] = $port->where(['lang'=>'zh','bn'=>$logiInfo['from_port']])->getField('name');
         //$info['inquiry_to_port'] = $port->where(['lang'=>'zh','bn'=>$logiInfo['from_port']])->getField('name');
-        $info['inquiry_from_port'] = $logiInfo['from_port'];
-        $info['inquiry_to_port'] = $logiInfo['to_port'];
+        $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
+        $info['inquiry_delivery_addr'] = $logiInfo['destination'];
 
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuote = $finalQuoteModel->where($condition)->field('total_exw_price,total_quote_price')->find();
