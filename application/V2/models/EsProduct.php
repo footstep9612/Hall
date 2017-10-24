@@ -212,8 +212,10 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
         $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
-
-
+        if (isset($condition['image_count']) && $condition['image_count'] === '0') {
+            $value = trim($condition['image_count']);
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['image_count' => $value]];
+        }
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers.supplier_id');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
