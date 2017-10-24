@@ -196,10 +196,17 @@ class QuoteModel extends PublicModel {
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
+
+        $org = new OrgModel();
+        $orgList = $org->field('id')->where(['org_node' => 'lg'])->select();
+        $orgId = [];
+        foreach ($orgList as $org) {
+            $orgId[] = $org['id'];
+        }
+
         $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
             'status' => self::INQUIRY_LOGI_DISPATCHING,
-            //TODO 物流部ID(临时写死)
-            'logi_org_id' => '9733'
+            'logi_org_id' => $orgId[0]
         ]);
 
         $this->startTrans();
@@ -221,7 +228,7 @@ class QuoteModel extends PublicModel {
                     'quote_id' => $quoteInfo['id'],
                     'inquiry_id' => $request['inquiry_id'],
                     'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $user,
+                    'created_by' => $user['id'],
                     'premium_rate' => $quoteInfo['premium_rate']
                 ]));
 
@@ -236,7 +243,7 @@ class QuoteModel extends PublicModel {
                         'quote_id' => $quoteInfo['id'],
                         'quote_item_id' => $quoteItemId,
                         'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $user
+                        'created_by' => $user['id']
                     ]));
                 }
             }
