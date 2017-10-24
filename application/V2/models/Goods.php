@@ -485,6 +485,7 @@ class GoodsModel extends PublicModel {
                     }
                     //按语言分组
                     $kData[$item['lang']] = $item;
+                    $pData['model'] = isset($item['model']) ? $item['model'] : '';
                 }
                 $data = array_merge($kData, $pData);
 //                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
@@ -544,8 +545,12 @@ class GoodsModel extends PublicModel {
         }
         $checkSku = isNum($sku);
         if(!$checkSku) {
-            return false;
+            jsonReturn('',ErrorMsg::FAILED,'[sku]编码错误!');
         }
+        if(!isset($input['model'])) {
+            jsonReturn('',ErrorMsg::FAILED,'[型号]缺失!');
+        }
+
         $spu = '';
         //获取当前用户信息
         $userInfo = getLoinInfo();
@@ -571,6 +576,7 @@ class GoodsModel extends PublicModel {
                     if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }
+                    $value['model'] = $input['model'];
 //                    if (empty($input[$key]['name']) && empty($input[$key]['model']) && empty($input[$key]['attrs']['spec_attrs'])) {
 //                        jsonReturn('', ErrorMsg::EXIST, '名称、型号、扩展属性不能同时为空!');
 //                    }
@@ -914,9 +920,13 @@ class GoodsModel extends PublicModel {
         if ($skuObj && is_array($skuObj)) {
             try {
                 $skuary = [];
+                $error_date = '';
                 foreach ($skuObj as $sku) {
                     if (self::STATUS_CHECKING == $status) {
-                        $this->checkModify($sku, $lang);
+                        $error = $this->checkModify($sku, $lang);
+                        if($error) {
+                            $error_date .= $error;
+                        }
 
                         $where = [
                             'sku' => $sku,
@@ -946,8 +956,10 @@ class GoodsModel extends PublicModel {
                         if ($result && $sku) {
                             $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
-
-                                $this->checkModify($sku, $lang);
+                                $error = $this->checkModify($sku, $lang);
+                                if($error) {
+                                    $error_date .= $error;
+                                }
 
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
@@ -980,6 +992,10 @@ class GoodsModel extends PublicModel {
                         }
                     }
                 }
+
+                if(!empty($error_date)) {
+                    jsonReturn('',1000,$error_date);
+                }
                 if ($result) {
                     if (!empty($skuary)) {
                         $checkLogModel = new ProductCheckLogModel();          //审核记录
@@ -1007,11 +1023,11 @@ class GoodsModel extends PublicModel {
 
     //批量报审校验
     public function checkModify($sku, $lang) {
-
+        $error_date = '';
         $supplierCostModel = new GoodsCostPriceModel();
         $thisSupplierCost = $supplierCostModel->field('supplier_id')->where(['sku' => $sku, 'deleted_flag' => self::DELETE_N])->select();
         if (!$thisSupplierCost) {
-            jsonReturn('', -1001, '[供应商信息]缺失!');
+            return  '[供应商信息]缺失!';
         }
 
         $attrModel = new GoodsAttrModel();
@@ -1037,10 +1053,9 @@ class GoodsModel extends PublicModel {
                 ->select();
 
         if (!$thisSkuInfo) {
-            jsonReturn('', -1001, '[' . $sku . ']不存在或已经删除!');
+            return '[' . $sku . ']不存在或已经删除!';
         }
 
-        $error_date = '';
         foreach ($thisSkuInfo as $item) {
             if (in_array($item['lang'], ['zh', 'en', 'es', 'ru'])) {
                 $where = [
@@ -1061,8 +1076,8 @@ class GoodsModel extends PublicModel {
                 continue;
             }
         }
-        if (!empty($error_date)) {
-            jsonReturn('', ErrorMsg::EXIST, $error_date);
+        if(!empty($error_date)) {
+            return $error_date;
         }
     }
 
