@@ -430,7 +430,15 @@ class EsproductController extends PublicController {
 //            $analyzer = 'ik_max_word';
 //            $type = 'text';
 //        }
-        $analyzer = 'ik';
+        if ($lang == 'en') {
+            $analyzer = 'english';
+        } elseif ($lang == 'es') {
+            $analyzer = 'spanish';
+        } elseif ($lang == 'es') {
+            $analyzer = 'russian';
+        } else {
+            $analyzer = 'ik';
+        }
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
@@ -611,7 +619,16 @@ class EsproductController extends PublicController {
 //            $analyzer = 'ik_max_word';
 //            $type = 'text';
 //        }
-        $analyzer = 'ik';
+
+        if ($lang == 'en') {
+            $analyzer = 'english';
+        } elseif ($lang == 'es') {
+            $analyzer = 'spanish';
+        } elseif ($lang == 'es') {
+            $analyzer = 'russian';
+        } else {
+            $analyzer = 'ik';
+        }
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
