@@ -47,9 +47,6 @@ class QuoteController extends PublicController{
 
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination')->find();
 
-        //$port = new PortModel();
-        //$info['inquiry_from_port'] = $port->where(['lang'=>'zh','bn'=>$logiInfo['from_port']])->getField('name');
-        //$info['inquiry_to_port'] = $port->where(['lang'=>'zh','bn'=>$logiInfo['from_port']])->getField('name');
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
         $info['inquiry_delivery_addr'] = $logiInfo['destination'];
 
@@ -283,6 +280,17 @@ class QuoteController extends PublicController{
         */
 
         $response = $this->quoteItemModel->delItem($quoteItemIds);
+        $this->jsonReturn($response);
+
+    }
+
+    /**
+     * 同步询单和报价SKU
+     */
+    public function syncSkuAction(){
+
+        $request = $this->validateRequests('inquiry_id');
+        $response = $this->quoteItemModel->syncSku($request,$this->user['id']);
         $this->jsonReturn($response);
 
     }

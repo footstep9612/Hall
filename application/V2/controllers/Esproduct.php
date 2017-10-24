@@ -363,9 +363,10 @@ class EsproductController extends PublicController {
      */
     public function indexAction() {
         $body['mappings'] = [];
-        $product_properties = $this->productAction('en');
-        $goods_properties = $this->goodsAction('en');
+
         foreach ($this->langs as $lang) {
+            $product_properties = $this->productAction($lang);
+            $goods_properties = $this->goodsAction($lang);
             $body['mappings']['goods_' . $lang]['properties'] = $goods_properties;
             $body['mappings']['goods_' . $lang]['_all'] = ['enabled' => false];
             $body['mappings']['product_' . $lang]['properties'] = $product_properties;
@@ -373,6 +374,7 @@ class EsproductController extends PublicController {
         }
         $es = new ESClient();
         $state = $es->getstate();
+
         if (!isset($state['metadata']['indices'][$this->index])) {
             $es->create_index($this->index, $body, 5, 1);
         }
@@ -420,8 +422,8 @@ class EsproductController extends PublicController {
      * @version V2.0
      * @desc   ES 产品
      */
-    public function goodsAction() {
-        $es = new ESClient();
+    public function goodsAction($lang) {
+
 //        $info = $es->getversion();
 //        if (substr($info['version']['number'], 0, 1) == 1) {
 //            $analyzer = 'ik';
@@ -430,7 +432,16 @@ class EsproductController extends PublicController {
 //            $analyzer = 'ik_max_word';
 //            $type = 'text';
 //        }
-        $analyzer = 'ik';
+        if ($lang == 'en') {
+            $analyzer = 'english';
+        } elseif ($lang == 'es') {
+            $analyzer = 'spanish';
+        } elseif ($lang == 'ru') {
+            $analyzer = 'russian';
+        } else {
+            $analyzer = 'ik';
+        }
+
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
@@ -602,7 +613,7 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function productAction($lang = 'en') {
-        $es = new ESClient();
+
 //        $info = $es->getversion();
 //        if (substr($info['version']['number'], 0, 1) == 1) {
 //            $analyzer = 'ik';
@@ -611,7 +622,16 @@ class EsproductController extends PublicController {
 //            $analyzer = 'ik_max_word';
 //            $type = 'text';
 //        }
-        $analyzer = 'ik';
+
+        if ($lang == 'en') {
+            $analyzer = 'english';
+        } elseif ($lang == 'es') {
+            $analyzer = 'spanish';
+        } elseif ($lang == 'ru') {
+            $analyzer = 'russian';
+        } else {
+            $analyzer = 'ik';
+        }
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
