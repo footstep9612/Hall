@@ -536,7 +536,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        if (!isset($input['sku']) || empty($input['sku'])) {
+        if (!isset($input['sku']) || empty($input['sku']) || $input['sku'] === 'false') {
             $sku = $this->setRealSku($input);
         } else {
             $sku = trim($input['sku']);
@@ -588,7 +588,7 @@ class GoodsModel extends PublicModel {
                             'deleted_flag' => 'N',
                             'status' => array('neq', 'DRAFT')
                         );
-                        if (!empty($input['sku'])) {
+                        if (!empty($input['sku']) && $input['sku'] !== 'false') {
                             $exist_condition['sku'] = array('neq', $input['sku']);
                         }
                         $this->_checkExit($exist_condition, $attr);
