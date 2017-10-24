@@ -349,6 +349,22 @@ class InquiryController extends PublicController {
         } else {
             $results['data']['agent_list'] = '';
         }*/
+        
+        $status = [
+            'DRAFT' => '草稿',
+            'BIZ_DISPATCHING' => '事业部分单员',
+            'CC_DISPATCHING' => '易瑞客户中心分单员',
+            'BIZ_QUOTING' => '事业部报价',
+            'LOGI_DISPATCHING' => '物流分单员',
+            'LOGI_QUOTING' => '物流报价',
+            'LOGI_APPROVING' => '物流审核',
+            'BIZ_APPROVING' => '事业部核算',
+            'MARKET_APPROVING' => '市场主管审核',
+            'MARKET_CONFIRMING' => '市场确认',
+            'QUOTE_SENT' => '报价单已发出',
+            'INQUIRY_CLOSED' => '报价关闭'
+        ];
+        
         //经办人
         if (!empty($results['data']['agent_id'])) {
             $rs1 = $employee->field('name')->where('id=' . $results['data']['agent_id'])->find();
@@ -397,6 +413,8 @@ class InquiryController extends PublicController {
         //当前办理人
         $rs9 = $employee->field('name')->where('id=' . $this->user['id'])->find();
         $results['data']['current_name'] = $rs9['name'];
+        
+        $results['data']['status'] = $status[$results['data']['status']];
 
         //权限
         //$results['auth'] = $auth['code'];
