@@ -910,9 +910,13 @@ class GoodsModel extends PublicModel {
         if ($skuObj && is_array($skuObj)) {
             try {
                 $skuary = [];
+                $error_date = '';
                 foreach ($skuObj as $sku) {
                     if (self::STATUS_CHECKING == $status) {
-                        $this->checkModify($sku, $lang);
+                        $error = $this->checkModify($sku, $lang);
+                        if($error) {
+                            $error_date .= $error;
+                        }
 
                         $where = [
                             'sku'          => $sku,
@@ -942,8 +946,10 @@ class GoodsModel extends PublicModel {
                         if ($result && $sku) {
                             $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
-
-                                $this->checkModify($sku, $lang);
+                                $error = $this->checkModify($sku, $lang);
+                                if($error) {
+                                    $error_date .= $error;
+                                }
 
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
@@ -975,6 +981,10 @@ class GoodsModel extends PublicModel {
                             return false;
                         }
                     }
+                }
+
+                if (!empty($error_date)) {
+                    jsonReturn('',ErrorMsg::EXIST,$error_date);
                 }
                 if ($result) {
                     if (!empty($skuary)) {
@@ -1037,7 +1047,6 @@ class GoodsModel extends PublicModel {
             jsonReturn('',-1001,'['. $sku .']不存在或已经删除!');
         }
 
-        $error_date = '';
         foreach ($thisSkuInfo as $item) {
             if (in_array($item['lang'], ['zh', 'en', 'es', 'ru'])) {
                 $where = [
@@ -1053,13 +1062,13 @@ class GoodsModel extends PublicModel {
                 $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
                 $result = $this->_checkExit($where, $thisSpecAttr, $boolen = true);
                 if (!$result) {
-                    $error_date .= $sku . '已存在!';
+                    $error_date = $sku . '已存在! ';
                 }
                 continue;
             }
         }
         if(!empty($error_date)) {
-            jsonReturn('',ErrorMsg::EXIST,$error_date);
+            return $error_date;
         }
     }
 
