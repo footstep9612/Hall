@@ -359,24 +359,19 @@ class ProductController extends PublicController {
                         $this->updateEsgoods(null, $this->put_data['spu']);
                     }
                     jsonReturn(true, ErrorMsg::SUCCESS, $message);
-                } else {
-                    if ($lang) {
-                        $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
-                        $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
-                    } else {
-                        $this->updateEsproduct(null, $this->put_data['spu']);
-                        $this->updateEsgoods(null, $this->put_data['spu']);
-                    }
-                    jsonReturn(true);
                 }
             } else {
                 if ($result) {
                     jsonReturn('', ErrorMsg::FAILED);
-                } else {
-                    jsonReturn(true);
                 }
             }
-
+            if ($lang) {
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
+                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+            } else {
+                $this->updateEsproduct(null, $this->put_data['spu']);
+                $this->updateEsgoods(null, $this->put_data['spu']);
+            }
             jsonReturn(true);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
