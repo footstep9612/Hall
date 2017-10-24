@@ -433,7 +433,7 @@ class EsproductController extends PublicController {
             $analyzer = 'english';
         } elseif ($lang == 'es') {
             $analyzer = 'spanish';
-        } elseif ($lang == 'es') {
+        } elseif ($lang == 'ru') {
             $analyzer = 'russian';
         } else {
             $analyzer = 'ik';
@@ -622,7 +622,7 @@ class EsproductController extends PublicController {
             $analyzer = 'english';
         } elseif ($lang == 'es') {
             $analyzer = 'spanish';
-        } elseif ($lang == 'es') {
+        } elseif ($lang == 'ru') {
             $analyzer = 'russian';
         } else {
             $analyzer = 'ik';
