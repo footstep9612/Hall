@@ -18,7 +18,7 @@ class QuoteItemModel extends PublicModel {
      * @return bool True|False
      */
     public function delItem($where){
-        return $this->where('id IN('.$where.')')->save(['deleted_flag'=>'Y']);
+        return $this->where('inquiry_item_id IN('.$where.')')->save(['deleted_flag'=>'Y']);
     }
 
     /**
