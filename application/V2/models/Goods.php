@@ -542,6 +542,10 @@ class GoodsModel extends PublicModel {
         } else {
             $sku = trim($input['sku']);
         }
+        $checkSku = isNum($sku);
+        if(!$checkSku) {
+            return false;
+        }
         $spu = '';
         //获取当前用户信息
         $userInfo = getLoinInfo();
