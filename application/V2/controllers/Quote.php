@@ -124,7 +124,14 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests('inquiry_id');
 
         $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
-        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['quote_status' => 'QUOTED']);
+
+        $inquiryModel = new InquiryModel();
+        $check_org_id = $inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
+
+        $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
+            'quote_status' => 'QUOTED',
+            'check_org_id' => $check_org_id //事业部审核人
+        ]);
 
         $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
 
