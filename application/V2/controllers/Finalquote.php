@@ -32,13 +32,13 @@ class FinalquoteController extends PublicController {
 
             //获取询单基本信息
             $inquirywhere['id'] = $where['id'];
-            $inquiryinfo = $inquiry->field('serial_no,pm_id')->where($inquirywhere)->find();
+            $inquiryinfo = $inquiry->field('serial_no')->where($inquirywhere)->find();
 
             if(isset($inquiryinfo)){
 
                 //查询项目经理名称
-                $rs = $employee->field('name')->where('id='.$inquiryinfo['pm_id'])->find();
-                $inquiryinfo['pm_name'] = $rs['name'];
+                //$rs = $employee->field('name')->where('id='.$inquiryinfo['pm_id'])->find();
+                //$inquiryinfo['pm_name'] = $rs['name'];
 
                 //当前用户姓名
                 $inquiryinfo['user_name'] = $this->user['name'];
