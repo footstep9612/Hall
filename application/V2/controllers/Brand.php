@@ -56,11 +56,11 @@ class BrandController extends PublicController {
         $condition = $this->getPut();
         $lang = $this->getPut('lang', '');
         $id = $this->getPut('id', '');
-        if (empty($id)) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入ID!');
-            $this->jsonReturn();
-        }
+//        if (empty($id)) {
+//            $this->setCode(MSG::ERROR_PARAM);
+//            $this->setMessage('请输入ID!');
+//            $this->jsonReturn();
+//        }
         if (empty($lang)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请输入语言!');
@@ -69,21 +69,22 @@ class BrandController extends PublicController {
         $brand_model = new BrandModel();
         unset($condition['id']);
         $arr = $brand_model->getlist($condition, $lang);
-        $ret['similar'] = '';
+
+        $ret = [];
         foreach ($arr as $item) {
             $brands = json_decode($item['brand'], true);
 
             foreach ($brands as $val) {
                 if ($val['lang'] === $lang && $item['id'] != $id) {
-                    $ret['similar'] .= $val['name'] . ',';
+                    $ret[] = ['name' => $val['name']];
                 }
             }
         }
-        $ret['similar'] = trim($ret['similar'], ',');
+
         if (!empty($ret)) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($ret);
-        } elseif ($arr === null || ($arr && $ret == '')) {
+        } elseif ($arr === null || ($arr && $ret == [])) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn();
         } else {

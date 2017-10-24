@@ -1786,3 +1786,16 @@ function toGbk($data=[]){
     }
     return $return;
 }
+
+/**
+ * 判断sku编码
+ * @param $bool
+ */
+function isNum($str) {
+    $mode = '/^[0-9]{16}$/';
+    if (preg_match($mode, $str)) {
+        return true;
+    } else {
+        return false;
+    }
+}
