@@ -245,7 +245,7 @@ class InquiryController extends PublicController {
         
         if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
              $inquiryModel = new InquiryModel();
-             $quoteModel = new quoteModel();
+             $quoteModel = new QuoteModel();
              
             $inquiryModel->startTrans();
             $quoteModel->startTrans();
