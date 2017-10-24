@@ -235,6 +235,53 @@ class InquiryController extends PublicController {
     }
     
     /**
+     * @desc 分配事业部
+     *
+     * @author liujf
+     * @time 2017-10-24
+     */
+    public function assignBizUnitAction() {
+        $condition = $this->put_data;
+        
+        if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
+             $inquiryModel = new InquiryModel();
+             $quoteModel = new quoteModel();
+             
+            $inquiryModel->startTrans();
+            $quoteModel->startTrans();
+             
+            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING']);
+             
+            // 更改报价单状态
+            $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
+             
+            if ($res1['code'] == 1 && $res2) {
+                $inquiryModel->commit();
+                $quoteModel->commit();
+                $res = true;
+            } else {
+                $inquiryModel->rollback();
+                $quoteModel->rollback();
+                $res = false;
+            }
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
      * @desc 获取当前用户询报价角色接口
      *
      * @author liujf
