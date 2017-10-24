@@ -824,7 +824,7 @@ class GoodsModel extends PublicModel {
                 if ($boolen) {
                     return false;
                 } else {
-                    jsonReturn('', ErrorMsg::EXIST, $where['sku'][1] . ' 名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
+                    jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
                 }
             } else {
                 foreach ($other_attr as $key => $item) {
@@ -837,7 +837,7 @@ class GoodsModel extends PublicModel {
                         if ($boolen) {
                             return false;
                         } else {
-                            jsonReturn('', ErrorMsg::EXIST, $where['sku'][1] . ' 名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
+                            jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
                         }
                     } else {
                         continue;
@@ -1027,7 +1027,7 @@ class GoodsModel extends PublicModel {
         $supplierCostModel = new GoodsCostPriceModel();
         $thisSupplierCost = $supplierCostModel->field('supplier_id')->where(['sku' => $sku, 'deleted_flag' => self::DELETE_N])->select();
         if (!$thisSupplierCost) {
-            return  '[供应商信息]缺失!';
+            $error_date .= '[' . $sku . ']供应商信息缺失!';
         }
 
         $attrModel = new GoodsAttrModel();
@@ -1053,27 +1053,28 @@ class GoodsModel extends PublicModel {
                 ->select();
 
         if (!$thisSkuInfo) {
-            return '[' . $sku . ']不存在或已经删除!';
+             $error_date .= '[' . $sku . ']不存在或已经删除!';
         }
+        if($thisSupplierCost && $thisSkuInfo) {
+            foreach ($thisSkuInfo as $item) {
+                if (in_array($item['lang'], ['zh', 'en', 'es', 'ru'])) {
+                    $where = [
+                        'spu' => $item['spu'],
+                        'name' => $item['name'],
+                        'model' => $item['model'],
+                        'lang' => $item['lang'],
+                        'sku' => array('neq', $sku),
+                        'deleted_flag' => self::DELETE_N,
+                        'status' => array('neq', self::STATUS_DRAFT)
+                    ];
 
-        foreach ($thisSkuInfo as $item) {
-            if (in_array($item['lang'], ['zh', 'en', 'es', 'ru'])) {
-                $where = [
-                    'spu' => $item['spu'],
-                    'name' => $item['name'],
-                    'model' => $item['model'],
-                    'lang' => $item['lang'],
-                    'sku' => array('neq', $sku),
-                    'deleted_flag' => self::DELETE_N,
-                    'status' => array('neq', self::STATUS_DRAFT)
-                ];
-
-                $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
-                $result = $this->_checkExit($where, $thisSpecAttr, $boolen = true);
-                if (!$result) {
-                    $error_date .= $sku . '已存在!';
+                    $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
+                    $result = $this->_checkExit($where, $thisSpecAttr, $boolen = true);
+                    if ($result === false) {
+                        $error_date .= $sku . '参数重复或已存在!';
+                    }
+                    continue;
                 }
-                continue;
             }
         }
         if(!empty($error_date)) {
