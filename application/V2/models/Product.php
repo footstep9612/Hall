@@ -211,7 +211,7 @@ class ProductModel extends PublicModel {
         }
         $material_cat_no = isset($input['material_cat_no']) ? $input['material_cat_no'] : (isset($input['zh']['material_cat_no']) ? $input['zh']['material_cat_no'] : (isset($input['eh']['material_cat_no']) ? $input['eh']['material_cat_no'] : (isset($input['es']['material_cat_no']) ? $input['es']['material_cat_no'] : (isset($input['ru']['material_cat_no']) ? $input['ru']['material_cat_no'] : ''))));
         $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
-        $bizline_id = isset($input['bizline_id']) ? trim($input['bizline_id']) : 0;
+        $bizline_id = isset($input['bizline_id']) ? trim($input['bizline_id']) : null;
         $this->startTrans();
         try {
             $userInfo = getLoinInfo(); //获取当前用户信息
