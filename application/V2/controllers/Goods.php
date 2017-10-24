@@ -165,7 +165,6 @@ class GoodsController extends PublicController {
         }else{
             jsonReturn($result);
         }
-
     }
 
     /*

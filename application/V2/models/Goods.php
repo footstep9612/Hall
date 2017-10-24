@@ -309,9 +309,9 @@ class GoodsModel extends PublicModel {
      * )
      */
     private function checkParam($param = [], $field = [], $supplier_cost = []) {
-        if (empty($param) || empty($field)){
+        if (empty($param) || empty($field)) {
             return array();
-		}
+        }
         if (empty($supplier_cost)) {
             jsonReturn('', '1000', '请选择供应商!');
         }
@@ -537,7 +537,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         //不存在生成sku
-        if (!isset($input['sku']) || empty($input['sku'])) {
+        if (!isset($input['sku']) || empty($input['sku']) || $input['sku'] === 'false') {
             $sku = $this->setRealSku($input);
         } else {
             $sku = trim($input['sku']);
@@ -593,7 +593,7 @@ class GoodsModel extends PublicModel {
                             'deleted_flag' => 'N',
                             'status' => array('neq', 'DRAFT')
                         );
-                        if (!empty($input['sku'])) {
+                        if (!empty($input['sku']) && $input['sku'] !== 'false') {
                             $exist_condition['sku'] = array('neq', $input['sku']);
                         }
                         $this->_checkExit($exist_condition, $attr);
@@ -637,7 +637,7 @@ class GoodsModel extends PublicModel {
                     ];
 
                     //判断是新增还是编辑,如果有sku就是编辑,反之为新增
-                    if (isset($input['sku']) && !empty($input['sku'])) {             //------编辑
+                    if (isset($input['sku']) && !empty($input['sku']) && $input['sku'] !== 'false') {             //------编辑
                         $where = [
                             'lang' => $key,
                             'sku' => trim($input['sku'])
@@ -716,7 +716,7 @@ class GoodsModel extends PublicModel {
                         'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs'], JSON_UNESCAPED_UNICODE) : null,
                         'status' => $gattr::STATUS_VALID
                     );
-                    if (isset($input['sku']) && !empty($input['sku'])) {
+                    if (isset($input['sku']) && !empty($input['sku']) && $input['sku'] !== 'false') {
                         $attr_obj['sku'] = trim($input['sku']);
                         $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     } else {
@@ -730,7 +730,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) ? $input['sku'] : $sku;
+                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) && $input['sku'] !== 'false' ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gattach = new GoodsAttachModel();
                         $resAttach = $gattach->editSkuAttach($value, $input['sku'], $input['user_id']);  //附件新增
@@ -741,7 +741,7 @@ class GoodsModel extends PublicModel {
                     }
                 } elseif ($key == 'supplier_cost') {
                     if (is_array($value) && !empty($value)) {
-                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) ? $input['sku'] : $sku;
+                        $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) && $input['sku'] !== 'false' ? $input['sku'] : $sku;
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
                         $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
@@ -818,7 +818,7 @@ class GoodsModel extends PublicModel {
                 if ($boolen) {
                     return false;
                 } else {
-                    jsonReturn('', ErrorMsg::EXIST, ' 名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
+                    jsonReturn('', ErrorMsg::EXIST, $where['sku'][1] . ' 名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
                 }
             } else {
                 foreach ($other_attr as $key => $item) {
@@ -831,7 +831,7 @@ class GoodsModel extends PublicModel {
                         if ($boolen) {
                             return false;
                         } else {
-                            jsonReturn('', ErrorMsg::EXIST, ' 名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
+                            jsonReturn('', ErrorMsg::EXIST, $where['sku'][1] . ' 名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
                         }
                     } else {
                         continue;
@@ -914,19 +914,15 @@ class GoodsModel extends PublicModel {
         if ($skuObj && is_array($skuObj)) {
             try {
                 $skuary = [];
-                $error_date = '';
                 foreach ($skuObj as $sku) {
                     if (self::STATUS_CHECKING == $status) {
-                        $error = $this->checkModify($sku, $lang);
-                        if($error) {
-                            $error_date .= $error;
-                        }
+                        $this->checkModify($sku, $lang);
 
                         $where = [
-                            'sku'          => $sku,
+                            'sku' => $sku,
                             'deleted_flag' => 'N'
                         ];
-                        if(!empty($lang)){
+                        if (!empty($lang)) {
                             $exit_where['lang'] = $lang;
                         }
                         $result = $this->where($where)
@@ -950,10 +946,8 @@ class GoodsModel extends PublicModel {
                         if ($result && $sku) {
                             $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
-                                $error = $this->checkModify($sku, $lang);
-                                if($error) {
-                                    $error_date .= $error;
-                                }
+
+                                $this->checkModify($sku, $lang);
 
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
@@ -986,10 +980,6 @@ class GoodsModel extends PublicModel {
                         }
                     }
                 }
-
-                if (!empty($error_date)) {
-                    jsonReturn('',ErrorMsg::EXIST,$error_date);
-                }
                 if ($result) {
                     if (!empty($skuary)) {
                         $checkLogModel = new ProductCheckLogModel();          //审核记录
@@ -1016,12 +1006,12 @@ class GoodsModel extends PublicModel {
     }
 
     //批量报审校验
-    public function checkModify($sku,$lang) {
+    public function checkModify($sku, $lang) {
 
         $supplierCostModel = new GoodsCostPriceModel();
-        $thisSupplierCost = $supplierCostModel->field('supplier_id')->where([ 'sku'=> $sku,'deleted_flag' => self::DELETE_N])->select();
-        if(!$thisSupplierCost) {
-            jsonReturn('',-1001,'[供应商信息]缺失!');
+        $thisSupplierCost = $supplierCostModel->field('supplier_id')->where(['sku' => $sku, 'deleted_flag' => self::DELETE_N])->select();
+        if (!$thisSupplierCost) {
+            jsonReturn('', -1001, '[供应商信息]缺失!');
         }
 
         $attrModel = new GoodsAttrModel();
@@ -1029,28 +1019,28 @@ class GoodsModel extends PublicModel {
         $thisTable = $this->getTableName();
 
         $exit_where = [
-            "$thisTable.sku"          => $sku,
+            "$thisTable.sku" => $sku,
             "$thisTable.deleted_flag" => self::DELETE_N,
-
-            "$attrTable.sku"          => $sku,
+            "$attrTable.sku" => $sku,
             "$attrTable.deleted_flag" => self::DELETE_N,
         ];
 
-        if(!empty($lang)){
+        if (!empty($lang)) {
             $exit_where["$thisTable.lang"] = $lang;
             $exit_where["$attrTable.lang"] = $lang;
         }
 
         $field = "$thisTable.lang, $thisTable.spu, $thisTable.name, $thisTable.model, $attrTable.spec_attrs";
         $thisSkuInfo = $this->field($field)
-                            ->join($attrTable . " On $attrTable.sku = $thisTable.sku AND $attrTable.lang = $thisTable.lang", 'LEFT')
-                            ->where($exit_where)
-                            ->select();
+                ->join($attrTable . " On $attrTable.sku = $thisTable.sku AND $attrTable.lang = $thisTable.lang", 'LEFT')
+                ->where($exit_where)
+                ->select();
 
-        if(!$thisSkuInfo) {
-            jsonReturn('',-1001,'['. $sku .']不存在或已经删除!');
+        if (!$thisSkuInfo) {
+            jsonReturn('', -1001, '[' . $sku . ']不存在或已经删除!');
         }
 
+        $error_date = '';
         foreach ($thisSkuInfo as $item) {
             if (in_array($item['lang'], ['zh', 'en', 'es', 'ru'])) {
                 $where = [
@@ -1066,13 +1056,13 @@ class GoodsModel extends PublicModel {
                 $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
                 $result = $this->_checkExit($where, $thisSpecAttr, $boolen = true);
                 if (!$result) {
-                    $error_date = $sku . '已存在! ';
+                    $error_date .= $sku . '已存在!';
                 }
                 continue;
             }
         }
-        if(!empty($error_date)) {
-            return $error_date;
+        if (!empty($error_date)) {
+            jsonReturn('', ErrorMsg::EXIST, $error_date);
         }
     }
 
@@ -1900,19 +1890,19 @@ class GoodsModel extends PublicModel {
                 if (empty($key) || $key == '…' || $key == '导入结果') {
                     continue;
                 }
-                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue());//转码
-                if($index>=$ext_goods_start && $index<=$ext_goods_end){    //扩展属性
-                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue());//转码
-                    if(!empty($key_attr) && !empty($value)){
+                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
+                if ($index >= $ext_goods_start && $index <= $ext_goods_end) {    //扩展属性
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue()); //转码
+                    if (!empty($key_attr) && !empty($value)) {
                         $data['spec_attrs'][$key_attr] = $value;
                     }
                     unset($key_attr);
                     continue;
                 }
 
-                if($index>=$ext_hs_start){    //申报要素扩展属性
-                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue());//转码
-                    if(!empty($key_attr) && !empty($value)){
+                if ($index >= $ext_hs_start) {    //申报要素扩展属性
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue()); //转码
+                    if (!empty($key_attr) && !empty($value)) {
                         $data['ex_hs_attrs'][$key_attr] = $value;
                     }
                     unset($key_attr);
@@ -1942,14 +1932,14 @@ class GoodsModel extends PublicModel {
             $input_sku = $data['订货号'];    //输入的sku  订货号
             $data_tmp['lang'] = $lang;
             $data_tmp['name'] = $data['名称'];    //名称
-            $spu_name = $productModel->field('name')->where(array("spu"=>$spu , "lang"=>$lang))->find();
-            if($spu_name){
-                if(empty($data_tmp['name'])) {
-                    $data_tmp[ 'name' ] = $spu_name[ 'name' ];
+            $spu_name = $productModel->field('name')->where(array("spu" => $spu, "lang" => $lang))->find();
+            if ($spu_name) {
+                if (empty($data_tmp['name'])) {
+                    $data_tmp['name'] = $spu_name['name'];
                 }
-            }else{
+            } else {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[spu:'.$spu.' 语言:'.$lang.'不存在]');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[spu:' . $spu . ' 语言:' . $lang . '不存在]');
                 continue;
             }
             $data_tmp['model'] = $data['型号'];    //型号
@@ -2072,8 +2062,8 @@ class GoodsModel extends PublicModel {
                 'model' => $data_tmp['model'],
                 'deleted_flag' => 'N',
             );
-            if(!empty($input_sku)){
-                $condition['sku'] = ['neq',$input_sku];
+            if (!empty($input_sku)) {
+                $condition['sku'] = ['neq', $input_sku];
             }
             $spec_attrs_array = array('spec_attrs' => $data['spec_attrs']);
             //数据导入
@@ -2205,7 +2195,7 @@ class GoodsModel extends PublicModel {
                 //更新es
                 $es_goods_model->create_data($input_sku, $lang);
 
-                $objPHPExcel->getSheet(0)->setCellValue($itemNo .$i, ' ' . $input_sku);
+                $objPHPExcel->getSheet(0)->setCellValue($itemNo . $i, ' ' . $input_sku);
                 $success++;
                 $this->commit();
             } else {
