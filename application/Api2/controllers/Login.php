@@ -86,7 +86,7 @@ class LoginController extends PublicController {
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
-            jsonReturn('', -101, '用户名不能为空!');
+            jsonReturn('', -101, '公司名不能为空!');
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
