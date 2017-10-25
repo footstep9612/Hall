@@ -303,7 +303,7 @@ class InquiryController extends PublicController {
             if ($roleNo == $inquiry::inquiryIssueRole) {
                 $isErui = 'Y';
             }
-            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole) {
+            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
                 $isIssue = 'Y';
             }
             if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole ) {
