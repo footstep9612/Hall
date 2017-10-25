@@ -74,6 +74,7 @@ class BizdivitionController extends PublicController{
         $inquiry = new InquiryModel();
         $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
             'status'=>'BIZ_QUOTING', //事业部报价
+            'quote_status'=>'ONGOING', //报价中
             'quote_id' => $request['quote_id'],
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s')
