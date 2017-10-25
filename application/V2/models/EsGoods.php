@@ -1263,18 +1263,18 @@ class EsGoodsModel extends Model {
         }
         $index = $this->dbName;
         $type_goods = 'goods_' . $lang;
-        $count_goods = $this->setbody(['query' => [
-                        ESClient::MATCH_PHRASE => [
-                            "show_cats" => $old_cat_no
-                        ]
-            ]])->count($index, $type_goods);
+        $count_goods = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+                                [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
+                                [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
+                                [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
+                    ]]]])->count($index, $type_goods);
 
         for ($i = 0; $i < $count_goods['count']; $i += 100) {
-            $ret = $this->setbody(['query' => [
-                            ESClient::MATCH_PHRASE => [
-                                "show_cats" => $old_cat_no
-                            ]
-                ]])->search($index, $type_goods, $i, 100);
+            $ret = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+                                    [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
+                                    [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
+                                    [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
+                        ]]]])->search($index, $type_goods, $i, 100);
             $updateParams = array();
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = $type_goods;
