@@ -1242,9 +1242,10 @@ class EsGoodsModel extends Model {
             return false;
         }
         $show_cat_goods_model = new ShowCatGoodsModel();
-        $scats = $show_cat_goods_model->getshow_catsbyskus($sku, $lang);
+        $scats = $show_cat_goods_model->getshow_catsbyskus([$sku], $lang);
 
-        $show_cats = json_encode($scats[$sku], 256);
+        $show_cats = $scats[$sku];
+
         return $show_cats;
     }
 
@@ -1261,16 +1262,17 @@ class EsGoodsModel extends Model {
         if (empty($old_cat_no)) {
             return false;
         }
+        $es = new ESClient();
         $index = $this->dbName;
         $type_goods = 'goods_' . $lang;
-        $count_goods = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+        $count_goods = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                 [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
                                 [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
                                 [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
                     ]]]])->count($index, $type_goods);
 
         for ($i = 0; $i < $count_goods['count']; $i += 100) {
-            $ret = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+            $ret = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                     [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
                                     [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
                                     [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
@@ -1280,11 +1282,11 @@ class EsGoodsModel extends Model {
             $updateParams['type'] = $type_goods;
             if ($ret) {
                 foreach ($ret['hits']['hits'] as $item) {
-                    $spu = $item['_source']['spu'];
+                    $sku = $item['_source']['sku'];
                     $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
-                    $updateParams['body'][] = ['doc' => $this->getshowcats($spu, $lang)];
+                    $updateParams['body'][] = ['doc' => ['show_cats' => $this->getshowcats($sku, $lang)]];
                 }
-                $this->bulk($updateParams);
+                $es->bulk($updateParams);
             }
         }
 
