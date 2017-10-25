@@ -202,12 +202,14 @@ class InquiryController extends PublicController {
     public function getListAction() {
         $condition = $this->put_data;
         
-        $inquiry = new InquiryModel();
-        $user = new UserModel();
+        $inquiryModel = new InquiryModel();
+        $userModel = new UserModel();
+        $countryModel = new CountryModel();
+        $employeeModel = new EmployeeModel();
         
         // 市场经办人
         if (!empty($condition['agent_name'])) {
-            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $agent = $userModel->where(['name' => $condition['agent_name']])->find();
             $condition['agent_id'] = $agent['id'];
         }
     
@@ -219,7 +221,18 @@ class InquiryController extends PublicController {
         
         $condition['user_id'] = $this->user['id'];
         
-        $inquiryList = $inquiry->getList_($condition);
+        $inquiryList = $inquiryModel->getList_($condition);
+        
+        foreach ($inquiryList as &$inquiry) {
+            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn']])->find();
+            $inquiry['country_name'] = $country['name'];
+            $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
+            $inquiry['agent_name'] = $agent['name'];
+            $quote = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
+            $inquiry['quote_name'] = $quote['name'];
+            $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
+            $inquiry['now_agent_name'] = $nowAgent['name'];
+        }
         
         if ($inquiryList) {
             $res['code'] = 1;
