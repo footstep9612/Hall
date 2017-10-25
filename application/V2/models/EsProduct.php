@@ -1392,11 +1392,12 @@ class EsProductModel extends Model {
     public function getshowcats($spu = null, $lang = 'en') {
 
         if (empty($spu)) {
-            return false;
+            return [];
         }
-        $showcatproduct_model = new ShowCatProductModel();
-        $scats = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
+        $show_cat_product_model = new ShowCatProductModel();
+        $scats = $show_cat_product_model->getshow_catsbyspus([$spu], $lang);
         $show_cats = isset($scats[$spu]) ? $scats[$spu] : [];
+
         return $show_cats;
     }
 
@@ -1410,18 +1411,21 @@ class EsProductModel extends Model {
      */
 
     public function update_showcats($old_cat_no, $lang = 'en') {
+        $es = new ESClient();
         if (empty($old_cat_no)) {
             return false;
         }
         $index = $this->dbName;
         $type = 'product_' . $lang;
-        $count = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+        $count = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                 [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
                                 [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
                                 [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
                     ]]]])->count($index, $type);
+
+
         for ($i = 0; $i < $count['count']; $i += 100) {
-            $ret = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+            $ret = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                     [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
                                     [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
                                     [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
@@ -1429,11 +1433,14 @@ class EsProductModel extends Model {
             $updateParams = array();
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'product_' . $lang;
+
+
             if ($ret) {
                 foreach ($ret['hits']['hits'] as $item) {
                     $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
-                    $updateParams['body'][] = ['doc' => $this->getshowcats($item['_source']['spu'], $lang)];
+                    $updateParams['body'][] = ['doc' => ['show_cats' => $this->getshowcats($item['_source']['spu'], $lang)]];
                 }
+
                 $es = new ESClient();
                 $es->bulk($updateParams);
             }
@@ -1477,8 +1484,7 @@ class EsProductModel extends Model {
                     "material_cat_zh" => $data['material_cat_zh'],
                     'material_cat_no' => $new_cat_no,
                 ],
-                "query" => ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ["material_cat_zh.cat_no3" => $material_cat_no]],
+                "query" => ['bool' => [ESClient::SHOULD => [[ESClient::TERM => ["material_cat_zh.cat_no3" => $material_cat_no]],
                             [ESClient::TERM => ["material_cat_zh.cat_no2" => $material_cat_no]],
                             [ESClient::TERM => ["material_cat_zh.cat_no1" => $material_cat_no]]
             ]]]];
