@@ -547,32 +547,27 @@ class GoodsModel extends PublicModel {
         if(!$checkSku) {
             jsonReturn('',ErrorMsg::FAILED,'[sku]编码错误!');
         }
-
         $spu = '';
         //获取当前用户信息
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
-
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-
-
                     if (empty($value['name'])) {
                         $spuModel = new ProductModel();
                         $spuName = $spuModel->field('name')->where(['spu' => $value['spu'], 'lang' => $key,
                                     'deleted_flag' => 'N'])->find();
-
 
                         $value['name'] = $spuName['name'];
                     }
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
-                    if (empty($value['show_name'])) {
+                   /* if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
-                    }
+                    }*/
                     if(isset($input['model'])) {
                         $value['model'] = $input['model'];
                     }
