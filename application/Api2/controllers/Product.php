@@ -25,6 +25,7 @@ class ProductController extends PublicController {
         } else {
             jsonReturn('', '1000', '参数[spu]有误');
         }
+        $user_token = $this->getPut('user_token');
         $lang = !empty($this->input['lang']) ? $this->input['lang'] : '';
         if ($lang != '' && !in_array($lang, array('zh', 'en', 'es', 'ru'))) {
             jsonReturn('', '1000', '参数[语言]有误');
@@ -33,7 +34,9 @@ class ProductController extends PublicController {
         if ($status != '' && !in_array($status, array('NORMAL', 'CLOSED', 'VALID', 'TEST', 'CHECKING', 'INVALID', 'DELETED'))) {
             jsonReturn('', '1000', '参数[状态]有误');
         }
-
+        if ($this->_getSysUser($user_token)) {
+            $status = null;
+        }
         $productModel = new ProductModel();
         $result = $productModel->getInfo($spu, $lang, $status);
 
@@ -52,6 +55,26 @@ class ProductController extends PublicController {
             jsonReturn('', '-1002', '失败');
         }
         exit;
+    }
+
+    function _getSysUser($user_token) {
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 2;
+        if (!empty($user_token)) {
+            try {
+                $redis2 = new phpredis($rconfig);
+                $tokeninfo = JwtInfo($user_token); //解析token
+                $userinfo = json_decode($redis2->get('user_info_' . $tokeninfo['id']), true);
+                if (empty($userinfo)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            } catch (Exception $ex) {
+                return false;
+            }
+        }
     }
 
     /**

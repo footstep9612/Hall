@@ -124,6 +124,30 @@ class VatariffController extends PublicController {
      */
     public function createAction() {
         $data = $this->getPut();
+
+        if (empty($data['country_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        if (empty($data['value_added_tax'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入增值税税率!');
+            $this->jsonReturn();
+        } elseif (empty(floatval($data['value_added_tax']))) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('增值税税率必须是浮点数字!');
+            $this->jsonReturn();
+        }
+        if (empty($data['tariff'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入目的地关税税率!');
+            $this->jsonReturn();
+        } elseif (empty(floatval($data['tariff']))) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('目的地关税税率必须是浮点数字!');
+            $this->jsonReturn();
+        }
         $va_tariff_model = new VaTariffModel();
 
 
@@ -157,6 +181,29 @@ class VatariffController extends PublicController {
      */
     public function updateAction() {
         $data = $this->getPut();
+        if (empty($data['country_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        if (empty($data['value_added_tax'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入增值税税率!');
+            $this->jsonReturn();
+        } elseif (empty(floatval($data['value_added_tax']))) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('增值税税率必须是浮点数字!');
+            $this->jsonReturn();
+        }
+        if (empty($data['tariff'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入目的地关税税率!');
+            $this->jsonReturn();
+        } elseif (empty(floatval($data['tariff']))) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('目的地关税税率必须是浮点数字!');
+            $this->jsonReturn();
+        }
         $va_tariff_model = new VaTariffModel();
         if (isset($data['country_bn']) && $data['country_bn']) {
             $country_bn = $data['country_bn'];

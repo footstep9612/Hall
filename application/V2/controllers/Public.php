@@ -71,6 +71,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "token" => $token, //token
                             "group_id" => $userinfo["group_id"],
                             "group_org" => $userinfo["group_org"],
+                            "country_bn" => $userinfo['country_bn'],
+                            "role_id" => $userinfo['role_id'],
+                            "role_no" => $userinfo['role_no'],
                         );
                         $this->_setUid($userinfo);
                     }

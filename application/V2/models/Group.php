@@ -49,7 +49,6 @@ class GroupModel extends PublicModel {
                 ->group('org.id')
                 ->order($order)
                 ->select();
-
             return $res;
         }
     }
@@ -116,6 +115,7 @@ class GroupModel extends PublicModel {
         if(!isset($create['parent_id'])){
             $create['parent_id'] = 0;
         }
+        $create['created_at'] = date("Y-m-d H:i:s");
         $data = $this->create($create);
         return $this->add($data);
     }

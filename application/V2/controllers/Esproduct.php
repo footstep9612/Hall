@@ -58,6 +58,35 @@ class EsproductController extends PublicController {
         $lang = $this->getPut('lang', 'zh');
 
         $condition = $this->getPut();
+        switch ($condition['user_type']) {
+            case 'create':
+                $condition['create_by_name'] = $condition['user_name'];
+                break;
+            case 'updated':
+                $condition['updated_by_name'] = $condition['user_name'];
+                break;
+            case 'checked':
+                $condition['checked_by_name'] = $condition['user_name'];
+                break;
+        }
+        switch ($condition['date_type']) {
+            case 'create':
+                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'updated':
+                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+            case 'checked':
+                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+
+                break;
+        }
+
+
         $ret = $model->getProducts($condition, null, $lang);
 
         if ($ret) {
@@ -77,12 +106,18 @@ class EsproductController extends PublicController {
             } else {
                 $send['sku_count'] = 0;
             }
-
+            if (isset($this->put_data['image_count']) && $this->put_data['image_count'] == 'Y') {
+                $send['image_count'] = $data['aggregations']['image_count']['value'];
+            } else {
+                $send['image_count'] = 0;
+            }
             if (isset($data['aggregations']['brands']['buckets']) && $data['aggregations']['brands']['buckets']) {
                 $send['brand_count'] = count($data['aggregations']['brands']['buckets']);
             } else {
                 $send['brand_count'] = 0;
             }
+
+
             if (isset($data['aggregations']['suppliers']['buckets']) && $data['aggregations']['suppliers']['buckets']) {
                 $send['supplier_count'] = count($data['aggregations']['suppliers']['buckets']);
             } else {
@@ -91,6 +126,7 @@ class EsproductController extends PublicController {
             if (isset($this->put_data['onshelf_count']) && $this->put_data['onshelf_count'] == 'Y') {
                 $condition['onshelf_flag'] = 'N';
                 $condition['sku_count'] = 'Y';
+                $condition['pagesize'] = 0;
                 $ret_N = $model->getProducts($condition, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
                 $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
@@ -327,9 +363,10 @@ class EsproductController extends PublicController {
      */
     public function indexAction() {
         $body['mappings'] = [];
-        $product_properties = $this->productAction('en');
-        $goods_properties = $this->goodsAction('en');
+
         foreach ($this->langs as $lang) {
+            $product_properties = $this->productAction($lang);
+            $goods_properties = $this->goodsAction($lang);
             $body['mappings']['goods_' . $lang]['properties'] = $goods_properties;
             $body['mappings']['goods_' . $lang]['_all'] = ['enabled' => false];
             $body['mappings']['product_' . $lang]['properties'] = $product_properties;
@@ -337,8 +374,9 @@ class EsproductController extends PublicController {
         }
         $es = new ESClient();
         $state = $es->getstate();
+
         if (!isset($state['metadata']['indices'][$this->index])) {
-            $es->create_index($this->index, $body, 16, 0);
+            $es->create_index($this->index, $body, 5, 1);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
@@ -384,8 +422,8 @@ class EsproductController extends PublicController {
      * @version V2.0
      * @desc   ES 产品
      */
-    public function goodsAction() {
-        $es = new ESClient();
+    public function goodsAction($lang) {
+
 //        $info = $es->getversion();
 //        if (substr($info['version']['number'], 0, 1) == 1) {
 //            $analyzer = 'ik';
@@ -394,7 +432,16 @@ class EsproductController extends PublicController {
 //            $analyzer = 'ik_max_word';
 //            $type = 'text';
 //        }
-        $analyzer = 'ik';
+        if ($lang == 'en') {
+            $analyzer = 'english';
+        } elseif ($lang == 'es') {
+            $analyzer = 'spanish';
+        } elseif ($lang == 'ru') {
+            $analyzer = 'russian';
+        } else {
+            $analyzer = 'ik';
+        }
+
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
@@ -502,6 +549,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'supplier_count' => $not_analyzed,
+            'image_count' => $int_analyzed,
             //   'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => ['properties' => [
@@ -565,7 +613,7 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function productAction($lang = 'en') {
-        $es = new ESClient();
+
 //        $info = $es->getversion();
 //        if (substr($info['version']['number'], 0, 1) == 1) {
 //            $analyzer = 'ik';
@@ -574,7 +622,16 @@ class EsproductController extends PublicController {
 //            $analyzer = 'ik_max_word';
 //            $type = 'text';
 //        }
-        $analyzer = 'ik';
+
+        if ($lang == 'en') {
+            $analyzer = 'english';
+        } elseif ($lang == 'es') {
+            $analyzer = 'spanish';
+        } elseif ($lang == 'ru') {
+            $analyzer = 'russian';
+        } else {
+            $analyzer = 'ik';
+        }
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
@@ -714,6 +771,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'supplier_count' => $not_analyzed,
+            'image_count' => $int_analyzed,
             'material_cat' => ['properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,

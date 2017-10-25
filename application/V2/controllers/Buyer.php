@@ -29,7 +29,12 @@ class BuyerController extends PublicController {
             $where['name'] = $data['name'];
         }
         if (!empty($data['country_bn'])) {
-            $where['country_bn'] = $data['country_bn'];
+            $pieces = explode(",",$data['country_bn']);
+            for($i=0;$i<count($pieces);$i++){
+                $where['country_bn']=$where['country_bn']."'".$pieces[$i]."',";
+
+            }
+            $where['country_bn'] =rtrim($where['country_bn'], ",");
         }
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
@@ -179,7 +184,9 @@ class BuyerController extends PublicController {
         } else {
             jsonReturn('', -101, '邮箱不可以都为空!');
         }
-
+        if (!empty($data['area_bn'])) {
+            $arr['area_bn'] = $data['area_bn'];
+        }
         if (!empty($data['first_name'])) {
             $buyer_account_data['first_name'] = $data['first_name'];
         }
@@ -258,7 +265,11 @@ class BuyerController extends PublicController {
         if ($check_uname) {
             jsonReturn('', -102, '用户名已经存在!');
         }
-        
+        //验证公司名称是否存在
+        $checkcompany = $model->where("name='" . $data['name'] . "'")->find();
+        if ($checkcompany) {
+            jsonReturn('', -103, '公司名称已经存在');
+        }
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
@@ -267,7 +278,7 @@ class BuyerController extends PublicController {
 
         //var_dump($data_t_buyer);die;
         if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
-            $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
+            $no = substr($data_t_buyer['data'][0]['buyer_no'], 9, 6);
             $no++;
         } else {
             $no = 1;
@@ -369,6 +380,7 @@ class BuyerController extends PublicController {
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
+            $where_address['buyer_id'] = $data['id'];
             $where_attach['buyer_id'] = $data['id'];
         } else {
             $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
@@ -435,13 +447,20 @@ class BuyerController extends PublicController {
         $res = $model->update_data($arr, $where);
         
         if (!empty($data['password'])) {
-            $arr_account['password_hash'] = $data['password'];
-            $buyer_account_model->update_data($arr_account, $where_account);
+            $account['password_hash'] = $data['password'];
+           // $buyer_account_model->update_data($arr_account, $where_account);
         }
         $buyer_attach_model = new BuyerattachModel();
         if (!empty($data['attach_url'])) {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
+        }
+        if (!empty($data['address'])) {
+            $buyer_address_data['address'] = $data['address'];
+        }
+        if (!empty($buyer_address_data)) {
+            $buyer_address_model = new BuyerAddressModel();
+            $buyer_address_model->update_data($buyer_address_data,$where_address);
         }
         //$model = new UserModel();
         if(!empty($account)){

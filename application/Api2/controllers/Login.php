@@ -86,7 +86,7 @@ class LoginController extends PublicController {
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
-            jsonReturn('', -101, '用户名不能为空!');
+            jsonReturn('', -101, '公司名称不能为空!');
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
@@ -99,6 +99,7 @@ class LoginController extends PublicController {
             if (!isEmail($buyer_account_data['email'])) {
                 jsonReturn('', -101, '邮箱格式不正确!');
             }
+            $arr['official_email'] = $data['email'];
         } else {
             jsonReturn('', -101, '邮箱不可以都为空!');
         }
@@ -115,6 +116,7 @@ class LoginController extends PublicController {
         }
         if (!empty($data['mobile'])) {
             $buyer_account_data['mobile'] = $data['mobile'];
+            $arr['official_phone'] = $data['mobile'];
         }
         if (!empty($data['country'])) {
             $arr['country_bn'] = $data['country'];
@@ -146,7 +148,7 @@ class LoginController extends PublicController {
         $condition['countPerPage'] = 1;
         $data_t_buyer = $model->getlist($condition); //($this->put_data);
         if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
-            $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
+            $no = substr($data_t_buyer['data'][0]['buyer_no'], 9, 6);
             $no++;
         } else {
             $no = 1;

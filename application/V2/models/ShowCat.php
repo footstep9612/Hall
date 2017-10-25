@@ -679,9 +679,11 @@ class ShowCatModel extends PublicModel {
         $condition = $upcondition;
         if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
             $where['market_area_bn'] = $condition['market_area_bn'];
+            $data['market_area_bn'] = $condition['market_area_bn'];
         }
         if (isset($condition['country_bn']) && $condition['country_bn']) {
             $where['country_bn'] = $condition['country_bn'];
+            $data['country_bn'] = $condition['country_bn'];
         }
 
         if ($condition['cat_no']) {
@@ -766,7 +768,7 @@ class ShowCatModel extends PublicModel {
         }
 
         foreach ($this->langs as $lan) {
-            $es_product_model->Updatemeterialcatno($old_cat_no, null, $lan, $new_cat_no);
+            $es_product_model->update_showcats($old_cat_no, $lan);
         }
 
         return true;

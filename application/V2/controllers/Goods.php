@@ -48,8 +48,8 @@ class GoodsController extends PublicController {
     public function getFirstSkuAction() {
         $goodsModel = new GoodsModel();
         $arr = [];
-        $result = $goodsModel->getSku($this->user,$this->put_data);
-        if($result){
+        $result = $goodsModel->getSku($this->user, $this->put_data);
+        if ($result) {
             $data['sku'] = $result[0]['sku'];
             $res = $goodsModel->getSkuInfo($data);
 
@@ -57,8 +57,8 @@ class GoodsController extends PublicController {
             $attach = $goodsModel->getSkuAttachsInfo($data);
 
             $GoodsCostPriceModel = new GoodsCostPriceModel();
-            $supplierCost= $GoodsCostPriceModel->getInfo($data);
-            if($res){
+            $supplierCost = $GoodsCostPriceModel->getInfo($data);
+            if ($res) {
                 $res['attachs'] = $attach ? $attach : [];
                 $res['supplier_cost'] = $supplierCost ? $supplierCost : [];
                 $arr = $res;
@@ -537,13 +537,13 @@ class GoodsController extends PublicController {
     /**
      * 导出模板
      */
-    public function exportTempAction(){
+    public function exportTempAction() {
         $goodsModel = new GoodsModel();
-        $localDir =$goodsModel ->exportTemp();
-        if($localDir){
+        $localDir = $goodsModel->exportTemp();
+        if ($localDir) {
             jsonReturn($localDir);
-        }else{
-            jsonReturn('',ErrorMsg::FAILED);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
         }
     }
 
@@ -563,7 +563,7 @@ class GoodsController extends PublicController {
     /**
      * 产品导出csv
      */
-    public function exportCsvAction(){
+    public function exportCsvAction() {
         $goodsModel = new GoodsModel();
         $localDir = $goodsModel->exportCsv($this->put_data);
         if ($localDir) {
@@ -576,17 +576,18 @@ class GoodsController extends PublicController {
     /**
      * 导入
      */
-    public function importAction(){
-        if (empty($this->put_data['spu']) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'],array('zh','en','es','ru'))) {
+    public function importAction() {
+        if (empty($this->put_data['spu']) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
+        $process = isset($this->put_data['process']) ? 1 : '';
 
         $goodsModel = new GoodsModel();
-        $localDir =$goodsModel ->import($this->put_data['spu'],$this->put_data['xls'],$this->put_data['lang']);
-        if($localDir){
+        $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process);
+        if ($localDir) {
             jsonReturn($localDir);
-        }else{
-            jsonReturn('',ErrorMsg::FAILED);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
         }
     }
 
@@ -594,7 +595,7 @@ class GoodsController extends PublicController {
      * zip导入
      * @param xls zip文件fastdfs地址
      */
-    public function zipImportAction(){
+    public function zipImportAction() {
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }

@@ -6,8 +6,12 @@
  * Time: 9:25
  */
 class BuyerLevelModel extends PublicModel{
-    protected $dbName = 'erui_config';
+    protected $dbName = 'erui2_config';
     protected $tableName = 'buyer_level';
+
+    const STATUS_VALID = 'VALID';
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     public function __construct(){
         parent::__construct();
@@ -18,9 +22,9 @@ class BuyerLevelModel extends PublicModel{
      */
     public function getLevelService(){
         /* $sql =  "select b.id, c.category, t.term, i.item, m.buyer_level_id
-  from erui_config.service_cat c, erui_config.service_term t, erui_config.service_item i
-  left join erui_config.member_service m on i.id = m.service_item_id and m.deleted_flag = 'N' and m.status = 'VALID'
-  left join erui_config.buyer_level b on b.id = m.buyer_level_id and b.deleted_flag = 'N' and b.status = 'VALID'
+  from erui2_config.service_cat c, erui2_config.service_term t, erui2_config.service_item i
+  left join erui2_config.member_service m on i.id = m.service_item_id and m.deleted_flag = 'N' and m.status = 'VALID'
+  left join erui2_config.buyer_level b on b.id = m.buyer_level_id and b.deleted_flag = 'N' and b.status = 'VALID'
   where c.id = t.service_cat_id and t.id = i.service_term_id and c.status = 'VALID' and t.status = 'VALID' and i.status = 'VALID'
   order by c.id, t.id, i.id";
   $row = $this->query( $sql );
@@ -138,5 +142,30 @@ class BuyerLevelModel extends PublicModel{
         } else {
             return false;
         }
+    }
+
+
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     */
+    public function getlist($order=" id desc") {
+        $where = [
+            'status'=> self::STATUS_VALID,
+            'deleted_flag'=> self::DELETE_N
+        ];
+         $result = $this->where($where)->order($order)->select();
+        $buyerLevel = $list = [];
+        if($result) {
+            foreach ($result as $item) {
+                $item['buyer_level'] = json_decode($item['buyer_level'], true);
+                foreach($item['buyer_level'] as $value) {
+                    $buyerLevel['buyer_level'][$value['lang']] = $value;
+                }
+                $list[] = $buyerLevel['buyer_level'];
+            }
+        }
+        return $list;
     }
 }

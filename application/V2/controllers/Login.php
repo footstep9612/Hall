@@ -60,6 +60,14 @@ class LoginController extends Yaf_Controller_Abstract {
                     $info['role_no'][] =$list_role[$i]['role_no'] ;
                 }
             }
+            $info['country_bn'] = array();
+            $country_model = new CountryUserModel();
+            $list_country = $country_model->userCountry($info['id']);
+            if($list_country){
+                for($i=0;$i<count($list_country);$i++){
+                    $info['country_bn'][] =$list_country[$i]['bn'] ;
+                }
+            }
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['ext'] = time();
@@ -69,6 +77,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $datajson['id'] = $info['id'];
             $datajson['group_id'] = $info['group_id'];
             $datajson['group_org'] = $info['group_org'];
+            $datajson['country_bn'] = $info['country_bn'];
             $datajson['role_id'] = $info['role_id'];
             $datajson['role_no'] = $info['role_no'];
             $datajson['email'] = $info['email'];

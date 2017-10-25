@@ -398,17 +398,17 @@ class OrderLogModel extends PublicModel {
                     }else{
                         $results['code'] = '-101';
                         $results['message'] = '没有获取采购商信息，无法授信!';
-                        $this->jsonReturn($results);
+                        return $results;
                     }
                 }else{
                     $results['code'] = '-101';
                     $results['message'] = '订单没有采购商，无法授信!';
-                    $this->jsonReturn($results);
+                    return $results;
                 }
             }else{
                 $results['code'] = '-101';
                 $results['message'] = '修改失败,请输入正确的订单号!';
-                $this->jsonReturn($results);
+                return $results;
             }
         }
         try {
@@ -468,27 +468,32 @@ class OrderLogModel extends PublicModel {
                             }else{
                                 $buyer_info['credit_available']=$buyer_info['credit_available'] + $info['amount'];
                             }
+                            if($buyer_info['credit_available']<0){
+                                $results['code'] = '-101';
+                                $results['message'] = '可用金额小于0请认真核对，无法删除!';
+                                return $results;
+                            }
                             if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
                                 $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
                             }else{
                                 $results['code'] = '-101';
                                 $results['message'] = '可用金额大于授信总额，无法授信!';
-                                $this->jsonReturn($results);
+                                return $results;
                             }
                         }else{
                             $results['code'] = '-101';
                             $results['message'] = '没有获取采购商信息，无法授信!';
-                            $this->jsonReturn($results);
+                            return $results;
                         }
                     }else{
                         $results['code'] = '-101';
                         $results['message'] = '订单没有采购商，无法授信!';
-                        $this->jsonReturn($results);
+                        return $results;
                     }
                 }else{
                     $results['code'] = '-101';
                     $results['message'] = '修改失败,请输入正确的订单号!';
-                    $this->jsonReturn($results);
+                    return $results;
                 }
             }
             if ($id) {

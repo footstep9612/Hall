@@ -365,6 +365,17 @@ class MaterialcatController extends PublicController {
 
     public function createAction() {
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
+
         $result = $this->_model->create_data($data);
         if ($result) {
             $this->_delCache();
@@ -383,6 +394,16 @@ class MaterialcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
+        if (empty($data['zh']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        }
+        if (empty($data['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        }
         $result = $this->_model->update_data($data);
 
         if ($result) {
@@ -456,6 +477,20 @@ class MaterialcatController extends PublicController {
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
+        }
+    }
+
+    /**
+     * 导出分类
+     */
+    public function exportAction() {
+        $data = $this->getPut();
+        $materialcat_model = new MaterialCatModel();
+        $localDir = $materialcat_model->export($data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
         }
     }
 

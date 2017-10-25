@@ -13,7 +13,7 @@
  */
 class BrandModel extends PublicModel {
 
-    //put your code here
+//put your code here
 
     protected $tableName = 'brand';
     protected $dbName = 'erui_dict'; //数据库名称
@@ -63,11 +63,17 @@ class BrandModel extends PublicModel {
 
         $where = [];
         $this->_getValue($where, $condition, 'id', 'string');
-        $this->_getValue($where, $condition, 'name', 'like', 'brand');
+
+
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
-        // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
-        if ($lang) {
-            $where['brand'] = ['like', '%' . $lang . '%'];
+// $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
+        if (!empty($condition['name']) && $lang) {
+            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"' . trim($condition['name']) . '%\'';
+        } elseif ($lang) {
+
+            $where['brand'] = ['like', '%"lang":"' . $lang . '"%'];
+        } elseif (!empty($condition['name'])) {
+            $where['brand'] = ['like', '%"name":"' . trim($condition['name']) . '%'];
         }
         return $where;
     }
@@ -115,9 +121,9 @@ class BrandModel extends PublicModel {
         }
         try {
             $item = $this->where($where)
-                    ->field('id,brand,status,created_by,'
-                            . 'created_at,updated_by,updated_at')
-                    ->order('created_at desc')
+                    ->field('id, brand, status, created_by, '
+                            . 'created_at, updated_by, updated_at')
+                    ->order('id desc')
                     ->limit($row_start, $pagesize)
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
@@ -135,17 +141,17 @@ class BrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function listall($condition, $lang = '') {
+    public function listall($condition, $lang = '', $field = 'id,brand') {
         $where = $this->_getcondition($condition, $lang);
 
-        $redis_key = md5(json_encode($where) . $lang);
+        $redis_key = md5(json_encode($where) . $field) . $lang;
         if (redisHashExist('Brand', $redis_key)) {
             return json_decode(redisHashGet('Brand', $redis_key), true);
         }
         try {
             $item = $this->where($where)
-                    ->field('id,brand')
-                    ->order('created_at desc')
+                    ->field($field)
+                    ->order('id desc')
                     ->select();
             redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;
@@ -323,6 +329,144 @@ class BrandModel extends PublicModel {
             Log::write($ex->getMessage(), Log::ERR);
 
             return false;
+        }
+    }
+
+    /**
+     * 导出品牌
+     * @param  mix $input 导出条件
+     * @return bool
+     * @author zyg
+     */
+    public function export($input) {
+        set_time_limit(0);  # 设置执行时间最大值
+        @ini_set("memory_limit", "1024M"); // 设置php可使用内存
+        $userInfo = getLoinInfo();
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+        $objPHPExcel = new PHPExcel();
+        $objPHPExcel->getProperties()->setCreator($userInfo['name']);
+        $objPHPExcel->getProperties()->setTitle("Brand List");
+        $objPHPExcel->getProperties()->setLastModifiedBy($userInfo['name']);
+        $objPHPExcel->createSheet();    //创建工作表
+        $objPHPExcel->setActiveSheetIndex(0);    //设置工作表
+        $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        $objSheet->getStyle("A1:M1")
+                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objSheet->getStyle("A1:M1")->getFont()->setSize(11)->setBold(true);    //粗体
+        $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+        foreach ($column_width_25 as $column) {
+            $objSheet->getColumnDimension($column)->setWidth(25);
+        }
+        $objPHPExcel->getActiveSheet(0)->getStyle('B')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
+
+        $objSheet->setTitle('品牌');
+        $objSheet->setCellValue("A1", "序号");
+        $objSheet->setCellValue("B1", "品牌编码");
+        $objSheet->setCellValue("C1", "中文品牌名称");
+        $objSheet->setCellValue("D1", "中文品牌LOGO");
+        $objSheet->setCellValue("E1", "英文品牌名称");
+        $objSheet->setCellValue("F1", "英语品牌LOGO");
+        $objSheet->setCellValue("G1", "西语品牌名称");
+        $objSheet->setCellValue("H1", "西语品牌LOGO");
+        $objSheet->setCellValue("I1", "俄语品牌名称");
+        $objSheet->setCellValue("J1", "俄语品牌LOGO");
+        $objSheet->setCellValue("K1", "状态");
+        $objSheet->setCellValue("L1", "创建人");
+        $objSheet->setCellValue("M1", "创建时间");
+
+
+        $i = 0;    //用来控制分页查询
+        $j = 2;    //excel控制输出
+        $length = 20;
+
+
+        $result = $this->listall($input, null, 'id,brand,status,created_by,created_at');
+        $this->_setUserName($result);
+        if ($result) {
+            foreach ($result as $r) {
+                $brand_ary = json_decode($r['brand'], true);
+
+                $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("B" . $j, ' ' . $r['id'], PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("C" . $j, isset($brand_ary['zh']['name']) ? $brand_ary['zh']['name'] : '');
+                $objSheet->setCellValue("D" . $j, isset($brand_ary['zh']['logo']) ? $brand_ary['zh']['logo'] : '');
+                $objSheet->setCellValue("E" . $j, isset($brand_ary['en']['name']) ? $brand_ary['en']['name'] : '');
+                $objSheet->setCellValue("F" . $j, isset($brand_ary['en']['logo']) ? $brand_ary['en']['logo'] : '');
+                $objSheet->setCellValue("G" . $j, isset($brand_ary['es']['name']) ? $brand_ary['es']['name'] : '');
+                $objSheet->setCellValue("H" . $j, isset($brand_ary['es']['logo']) ? $brand_ary['es']['logo'] : '');
+                $objSheet->setCellValue("I" . $j, isset($brand_ary['ru']['name']) ? $brand_ary['ru']['name'] : '');
+                $objSheet->setCellValue("J" . $j, isset($brand_ary['ru']['logo']) ? $brand_ary['ru']['logo'] : '');
+                $status = '';
+                switch ($r['status']) {
+                    case self::STATUS_APPROVING:
+                        $status = '审核中';
+                        break;
+                    case self::STATUS_DRAFT:
+                        $status = '草稿';
+                        break;
+                    case self::STATUS_VALID:
+                        $status = '通过';
+                        break;
+                    case self::STATUS_DELETED:
+                        $status = '已删除';
+                        break;
+                    default:
+                        $status = $r['status'];
+                        break;
+                }
+                $objSheet->setCellValue("K" . $j, $status);
+                $objSheet->setCellValue("L" . $j, isset($r['created_by_name']) ? $r['created_by_name'] : '');
+                $objSheet->setCellValue("M" . $j, isset($r['created_at']) ? $r['created_at'] : '');
+                $j++;
+            }
+        }
+//保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Brand_' . time() . '.xls');
+
+//把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $data['tmp_name'] = $localDir;
+        $data['type'] = 'application/xls';
+        $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
+        $fileId = postfile($data, $url);
+        if ($fileId) {
+            unlink($localDir);
+            return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+        }
+        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
+        return false;
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   物流费率
+     */
+
+    private function _setUserName(&$arr) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                $userids[] = $val['created_by'];
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_by_name'] = $usernames[$val['created_by']];
+                } else {
+                    $val['created_by_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 

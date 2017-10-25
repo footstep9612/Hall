@@ -293,4 +293,24 @@ class MembercenterController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    /**
+     * 会员等级列表
+     * @time 2017-10-25
+     * @author klp
+     */
+    public function listLevelAction() {
+
+        $model = new BuyerLevelModel();
+        $res = $model->getlist();
+        if (!empty($res)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+            $datajson['message'] = '成功';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
 }

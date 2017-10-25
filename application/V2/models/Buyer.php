@@ -53,10 +53,10 @@ class BuyerModel extends PublicModel {
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
         if (!empty($condition['country_bn'])) {
-            $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
+            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
         }
         if (!empty($condition['area_bn'])) {
-            $where .= ' And area_bn ="' . $condition['area_bn'] . '"';
+            $where .= ' And `buyer`.area_bn ="' . $condition['area_bn'] . '"';
         }
         if (!empty($condition['name'])) {
             $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
@@ -126,16 +126,17 @@ class BuyerModel extends PublicModel {
         }
         if ($where) {
             $sql .= $where;
-            $sql_count .= $where;
+           // $sql_count .= $where;
         }
         $sql .= ' Group By `erui_buyer`.`buyer`.`id`';
-        $sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
+        //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
-        $count = $this->query($sql_count);
+
+        //$count = $this->query($sql_count);
 
         $res['data'] = $this->query($sql);
         return $res;

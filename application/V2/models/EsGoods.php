@@ -40,7 +40,7 @@ class EsGoodsModel extends Model {
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
         if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = $name;
                 }
@@ -50,7 +50,7 @@ class EsGoodsModel extends Model {
 
             if (isset($condition[$name]) && $condition[$name]) {
 
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = $name;
                 }
@@ -58,7 +58,7 @@ class EsGoodsModel extends Model {
             }
         } elseif ($qurey_type == ESClient::MULTI_MATCH) {
             if (isset($condition[$name]) && $condition[$name]) {
-                $value = $condition[$name];
+                $value = trim($condition[$name]);
                 if (!$field) {
                     $field = [$name];
                 }
@@ -71,18 +71,18 @@ class EsGoodsModel extends Model {
             }
         } elseif ($qurey_type == ESClient::RANGE) {
             if (!$field) {
-                $field = [$name];
+                $field = $name;
             }
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
-                $created_at_end = $condition[$name . '_end'];
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+                $created_at_start = trim($condition[$name . '_start']);
+                $created_at_end = trim($condition[$name . '_end']);
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
+                $created_at_start = trim($condition[$name . '_start']);
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
-                $created_at_end = $condition[$name . '_end'];
+                $created_at_end = trim($condition[$name . '_end']);
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
             }
         }
@@ -109,7 +109,7 @@ class EsGoodsModel extends Model {
             $field = [$name];
         }
         if (isset($condition[$name]) && $condition[$name]) {
-            $status = $condition[$name];
+            $status = trim($condition[$name]);
             if ($status == 'ALL') {
                 $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
@@ -148,7 +148,7 @@ class EsGoodsModel extends Model {
             $name_arr = $condition[$names];
             $bool = [];
             foreach ($name_arr as $name) {
-                $bool[] = [$qurey_type => [$field => $name]];
+                $bool[] = [$qurey_type => [$field => trim($name)]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
         }
@@ -211,12 +211,12 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
 
-
+        $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.ik');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
@@ -270,7 +270,7 @@ class EsGoodsModel extends Model {
         }
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['created_by_name']));
 
             foreach ($userids as $created_by) {
                 $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
@@ -280,7 +280,7 @@ class EsGoodsModel extends Model {
             }
         }
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['updated_by_name']));
             foreach ($userids as $updated_by) {
                 $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
             }
@@ -289,7 +289,7 @@ class EsGoodsModel extends Model {
             }
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
-            $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
+            $userids = $employee_model->getUseridsByUserName(trim($condition['checked_by_name']));
             foreach ($userids as $checked_by) {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
@@ -496,7 +496,7 @@ class EsGoodsModel extends Model {
                     $goods = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]])
                                     ->limit(0, 100)->order('id DESC')->select();
                 }
-                echo microtime(true) - $time1, "|r\n";
+
                 $spus = $skus = [];
 
                 if ($goods) {
@@ -533,6 +533,9 @@ class EsGoodsModel extends Model {
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 echo '<pre>';
+//                $updateParams = [];
+//                $updateParams['index'] = $this->dbName;
+//                $updateParams['type'] = 'goods_' . $lang;
                 foreach ($goods as $key => $item) {
                     $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
                     if ($key === 99) {
@@ -542,6 +545,10 @@ class EsGoodsModel extends Model {
                     ob_flush();
                     flush();
                 }
+                echo microtime(true) - $time1, "\r\n";
+                sleep(1);
+//                $flag = $es->bulk($updateParams);
+//                var_dump($flag);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -607,7 +614,15 @@ class EsGoodsModel extends Model {
         } else {
             $body['name_loc'] = '';
         }
-        $body['attachs'] = $this->_getValue($attachs, $sku, [], 'json');
+
+        if (isset($attachs[$sku])) {
+            $body['attachs'] = json_encode($attachs[$sku], 256);
+            $body['image_count'] = isset($attachs[$sku]['BIG_IMAGE']) ? count($attachs[$sku]['BIG_IMAGE']) : 0;
+        } else {
+            $body['attachs'] = '[]';
+            $body['image_count'] = 0;
+        }
+
         if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
             $attrs = $goods_attrs[$sku];
             $attrs = $this->_setattrs($attrs);
@@ -660,13 +675,22 @@ class EsGoodsModel extends Model {
 
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
+
         if ($es_goods) {
+
+//            $updateParams['body'][] = ['update' => ['_id' => $sku]];
+//            $updateParams['body'][] = ['doc' => $body];
+            // return $updateParams;
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
             if (!isset($flag['_version'])) {
                 LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
                 LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
             }
         } else {
+
+//            $updateParams['body'][] = ['create' => ['_id' => $sku]];
+//            $updateParams['body'][] = [$body];
+            // return $updateParams;
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
             if (!isset($flag['created'])) {
                 LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
@@ -1117,9 +1141,11 @@ class EsGoodsModel extends Model {
             $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
 
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
+
             foreach ($goods as $item) {
                 $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
             }
+
             $es->refresh($this->dbName);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1237,18 +1263,18 @@ class EsGoodsModel extends Model {
         }
         $index = $this->dbName;
         $type_goods = 'goods_' . $lang;
-        $count_goods = $this->setbody(['query' => [
-                        ESClient::MATCH_PHRASE => [
-                            "show_cats" => $old_cat_no
-                        ]
-            ]])->count($index, $type_goods);
+        $count_goods = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+                                [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
+                                [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
+                                [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
+                    ]]]])->count($index, $type_goods);
 
         for ($i = 0; $i < $count_goods['count']; $i += 100) {
-            $ret = $this->setbody(['query' => [
-                            ESClient::MATCH_PHRASE => [
-                                "show_cats" => $old_cat_no
-                            ]
-                ]])->search($index, $type_goods, $i, 100);
+            $ret = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+                                    [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
+                                    [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
+                                    [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
+                        ]]]])->search($index, $type_goods, $i, 100);
             $updateParams = array();
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = $type_goods;

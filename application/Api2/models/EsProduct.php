@@ -39,7 +39,7 @@ class EsProductModel extends Model {
      */
 
     private function _getQurey(&$condition, &$body, $qurey_type = ESClient::MATCH, $name = '', $field = null) {
-        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE) {
+        if ($qurey_type == ESClient::MATCH || $qurey_type == ESClient::MATCH_PHRASE || $qurey_type == ESClient::TERM) {
             if (isset($condition[$name]) && $condition[$name]) {
                 $value = $condition[$name];
                 if (!$field) {
@@ -308,14 +308,14 @@ class EsProductModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.ik' => $keyword]],
-                        [ESClient::MATCH => ['show_name.ik' => $keyword]],
-                        [ESClient::MATCH => ['keywords.ik' => $keyword]],
-                        [ESClient::WILDCARD => ['brand.name.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => '*' . $keyword . '*']],
+                        [ESClient::MATCH => ['name.ik' => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['show_name.ik' => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['keywords.ik' => ['query' => $keyword, 'boost' => 2]]],
+                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }
@@ -357,7 +357,7 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('sku_count', 'desc')->setsort('id', 'desc');
+            $es->setbody($body)->setsort('_score')->setsort('sku_count', 'desc')->setsort('id', 'desc');
 
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');

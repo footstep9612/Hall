@@ -111,7 +111,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
 
-    public function getListAction() {
+    /*public function getListAction() {
         $auth = $this->checkAuthAction();
         //判断是否有权限访问
         if ($auth['code'] == '-101') {
@@ -191,6 +191,183 @@ class InquiryController extends PublicController {
         }
 
         $this->jsonReturn($results);
+    }*/
+    
+    /**
+	 * @desc 询价单列表
+	 *
+	 * @author liujf
+	 * @time 2017-10-18
+	 */
+    public function getListAction() {
+        $condition = $this->put_data;
+        
+        $inquiry = new InquiryModel();
+        $user = new UserModel();
+        
+        // 市场经办人
+        if (!empty($condition['agent_name'])) {
+            $agent = $user->where(['name' => $condition['agent_name']])->find();
+            $condition['agent_id'] = $agent['id'];
+        }
+    
+        // 当前用户的所有角色编号
+        $condition['role_no'] = $this->user['role_no'];
+        
+        // 当前用户的所有组织ID
+        $condition['group_id'] = $this->user['group_id'];
+        
+        $condition['user_id'] = $this->user['id'];
+        
+        $inquiryList = $inquiry->getList_($condition);
+        
+        if ($inquiryList) {
+            $res['code'] = 1;
+    		$res['message'] = '成功!';
+            $res['data'] = $inquiryList;
+            $res['count'] = $inquiry->getCount_($condition);
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('失败!');
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 分配事业部
+     *
+     * @author liujf
+     * @time 2017-10-24
+     */
+    public function assignBizUnitAction() {
+        $condition = $this->put_data;
+        
+        if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
+             $inquiryModel = new InquiryModel();
+             $quoteModel = new QuoteModel();
+             
+            $inquiryModel->startTrans();
+            $quoteModel->startTrans();
+             
+            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING']);
+             
+            // 更改报价单状态
+            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
+             
+            if ($res1['code'] == 1 && $res2) {
+                $inquiryModel->commit();
+                $quoteModel->commit();
+                $res = true;
+            } else {
+                $inquiryModel->rollback();
+                $quoteModel->rollback();
+                $res = false;
+            }
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 获取当前用户询报价角色接口
+     *
+     * @author liujf
+     * @time 2017-10-23
+     */
+    public function getInquiryUserRoleAction() {
+        $inquiry = new InquiryModel();
+        
+        // 是否易瑞客户中心分单员的标识
+        $isErui = 'N';
+        
+        // 是否分单员的标识
+        $isIssue = 'N';
+        
+        // 是否审核人的标识
+        $isCheck = 'N';
+        
+        foreach ($this->user['role_no'] as $roleNo) {
+            if ($roleNo == $inquiry::inquiryIssueRole) {
+                $isErui = 'Y';
+            }
+            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
+                $isIssue = 'Y';
+            }
+            if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole ) {
+                $isCheck = 'Y';
+            }
+        }
+        
+        $data['is_erui'] = $isErui;
+        $data['is_issue'] = $isIssue;
+        $data['is_issue'] = $isIssue;
+        $data['is_check'] = $isCheck;
+        
+        $res['code'] = 1;
+		$res['message'] = '成功!';
+        $res['data'] = $data;
+        
+        $this->jsonReturn($res);
+    }
+    
+    /**
+     * @desc 关闭询单
+     *
+     * @author liujf
+     * @time 2017-10-25
+     */
+    public function closeInquiryAction() {
+        $condition = $this->put_data;
+    
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryModel = new InquiryModel();
+            $quoteModel = new QuoteModel();
+             
+            $inquiryModel->startTrans();
+            $quoteModel->startTrans();
+             
+            $res1 = $inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED']);
+             
+            // 更改报价单状态
+            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'INQUIRY_CLOSED']);
+             
+            if ($res1['code'] == 1 && $res2) {
+                $inquiryModel->commit();
+                $quoteModel->commit();
+                $res = true;
+            } else {
+                $inquiryModel->rollback();
+                $quoteModel->rollback();
+                $res = false;
+            }
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
     }
 
     /*
@@ -199,16 +376,17 @@ class InquiryController extends PublicController {
      */
 
     public function getInfoAction() {
-        $auth = $this->checkAuthAction();
+        //$auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
-        $area = new MarketAreaCountryModel();
+        //$area = new MarketAreaCountryModel();
+        $org = new OrgModel();
         
         $where = $this->put_data;
 
         $results = $inquiry->getInfo($where);
 
-        if ( $auth['code'] == 1 ) {
+        /*if ( $auth['code'] == 1 ) {
 			foreach($auth['data'] as $val) {
 				$agent[] = $val['employee_id'];
 			}
@@ -217,30 +395,76 @@ class InquiryController extends PublicController {
             $results['data']['agent_list'] = $this->user['id']; //如果是市场人员，返回自己
         } else {
             $results['data']['agent_list'] = '';
-        }
+        }*/
+        
+        $status = [
+            'DRAFT' => '草稿',
+            'BIZ_DISPATCHING' => '事业部分单员',
+            'CC_DISPATCHING' => '易瑞客户中心分单员',
+            'BIZ_QUOTING' => '事业部报价',
+            'LOGI_DISPATCHING' => '物流分单员',
+            'LOGI_QUOTING' => '物流报价',
+            'LOGI_APPROVING' => '物流审核',
+            'BIZ_APPROVING' => '事业部核算',
+            'MARKET_APPROVING' => '市场主管审核',
+            'MARKET_CONFIRMING' => '市场确认',
+            'QUOTE_SENT' => '报价单已发出',
+            'INQUIRY_CLOSED' => '报价关闭'
+        ];
+        
         //经办人
         if (!empty($results['data']['agent_id'])) {
             $rs1 = $employee->field('name')->where('id=' . $results['data']['agent_id'])->find();
             $results['data']['agent_name'] = $rs1['name'];
         }
-        //项目经理
-        if (!empty($results['data']['pm_id'])) {
-            $rs2 = $employee->field('name')->where('id=' . $results['data']['pm_id'])->find();
-            $results['data']['pm_name'] = $rs2['name'];
+        //客户中心分单员
+        if (!empty($results['data']['erui_id'])) {
+            $rs2 = $employee->field('name')->where('id=' . $results['data']['erui_id'])->find();
+            $results['data']['erui_name'] = $rs2['name'];
         }
         //询单创建人
         if (!empty($results['data']['created_by'])) {
             $rs3 = $employee->field('name')->where('id=' . $results['data']['created_by'])->find();
             $results['data']['created_name'] = $rs3['name'];
         }
+        //事业部报价人
+        if (!empty($results['data']['quote_id'])) {
+            $rs4 = $employee->field('name')->where('id=' . $results['data']['quote_id'])->find();
+            $results['data']['quote_name'] = $rs4['name'];
+        }
         //询单所在区域
-        if (!empty($results['data']['country_bn'])) {
+        /*if (!empty($results['data']['country_bn'])) {
             $rs4 = $area->field('market_area_bn')->where(['country_bn' => $results['data']['country_bn']])->find();
             $results['data']['market_area_bn'] = $rs4['market_area_bn'];
+        }*/
+        //事业部
+        if (!empty($results['data']['org_id'])) {
+            $rs5 = $org->field('name')->where('id=' . $results['data']['org_id'])->find();
+            $results['data']['org_name'] = $rs5['name'];
         }
+        //事业部审核人
+        if (!empty($results['data']['check_org_id'])) {
+            $rs6 = $employee->field('name')->where('id=' . $results['data']['check_org_id'])->find();
+            $results['data']['check_org_name'] = $rs6['name'];
+        }
+        //物流报价人
+        if (!empty($results['data']['logi_agent_id'])) {
+            $rs7 = $employee->field('name')->where('id=' . $results['data']['logi_agent_id'])->find();
+            $results['data']['logi_agent_name'] = $rs7['name'];
+        }
+        //物流审核人
+        if (!empty($results['data']['logi_check_id'])) {
+            $rs8 = $employee->field('name')->where('id=' . $results['data']['logi_check_id'])->find();
+            $results['data']['logi_check_name'] = $rs8['name'];
+        }
+        //当前办理人
+        $rs9 = $employee->field('name')->where('id=' . $this->user['id'])->find();
+        $results['data']['current_name'] = $rs9['name'];
+        
+        $results['data']['status_name'] = $status[$results['data']['status']];
 
         //权限
-        $results['auth'] = $auth['code'];
+        //$results['auth'] = $auth['code'];
 
         $this->jsonReturn($results);
     }
@@ -590,11 +814,41 @@ class InquiryController extends PublicController {
     public function addCheckLogAction() {
         $checklog = new CheckLogModel();
         $data = $this->put_data;
-        $data['op_id'] = $this->user['id'];
+        $data['agent_id'] = $this->user['id'];
         $data['created_by'] = $this->user['id'];
 
         $results = $checklog->addData($data);
         $this->jsonReturn($results);
+    }
+    
+    /**
+     * @desc 获取日志详情
+     *
+     * @author liujf
+     * @time 2017-10-24
+     */
+    public function getCheckLogDetailAction() {
+        $condition = $this->put_data;
+    
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryModel = new InquiryModel();
+            
+            $res = $inquiryModel->getLogInfo($condition);
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
     }
 
     /*
@@ -667,4 +921,5 @@ class InquiryController extends PublicController {
         }
         $this->jsonReturn($results);
     }
+    
 }
