@@ -170,9 +170,7 @@ class ShowCatProductModel extends PublicModel {
                 }
             }
 
-            if (empty($data)) {
-                return false;
-            } else {
+            if (!empty($data)) {
                 $result = $this->addAll($data);
                 /**
                  * spu上架成功，上架spu所对应的sku
@@ -183,6 +181,7 @@ class ShowCatProductModel extends PublicModel {
                 }
                 return $result ? $faild_ary : false;
             }
+            return $faild_ary;
         } catch (Exception $e) {
             return false;
         }
