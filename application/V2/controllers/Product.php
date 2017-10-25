@@ -441,8 +441,14 @@ class ProductController extends PublicController {
      *
      */
     public function importAction() {
-        if (empty($this->put_data) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
+        if (empty($this->put_data)) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+        if (empty($this->put_data['xls'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '请上传导入数据');
+        }
+        if (!in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM , '语言错误');
         }
         $process = isset($this->put_data['process']) ? 1 : '';
 
