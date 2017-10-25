@@ -217,7 +217,7 @@ class ShowCatProductModel extends PublicModel {
         }
 
         try {
-            $find = $this->where($where)->select();
+            $find = $this->field('id')->where($where)->select();
             if ($find && !empty($find)) {
                 $result = $this->where($where)->delete();
                 if ($result) {

@@ -104,8 +104,8 @@ class ShowCatGoodsModel extends PublicModel {
         }
 
         try {
-            $find = $this->where($where)->select();
-            if ($find && !empty($findg)) {
+            $find = $this->field('id')->where($where)->select();
+            if ($find && !empty($find)) {
                 $result = $this->where($where)->delete();
                 return $result ? true : false;
             } else {
