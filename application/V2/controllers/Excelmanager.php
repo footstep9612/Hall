@@ -329,14 +329,14 @@ class ExcelmanagerController extends PublicController {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
         $inquiryModel = new InquiryModel();
-        $info = $inquiryModel->where(['id' => $inquiry_id])->field('buyer_name,serial_no,pm_id,agent_id')->find();
+        $info = $inquiryModel->where(['id' => $inquiry_id])->field('serial_no,buyer_name,quote_notes')->find();
 
         //报价综合信息 (报价人，电话，邮箱，报价时间)
         $finalQuoteModel = new FinalQuoteModel();
-        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('created_by,checked_at,checked_by')->find();
+        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('checked_at,checked_by')->find();
 
         $employee = new EmployeeModel();
-        $employeeInfo = $employee->where(['id' => intval($info['pm_id'])])->field('email,mobile,name')->find();
+        $employeeInfo = $employee->where(['id' => intval($finalQuoteInfo['checked_by'])])->field('email,mobile,name')->find();
 
         //报价人信息
         $info['quoter_email'] = $employeeInfo['email'];
@@ -345,14 +345,10 @@ class ExcelmanagerController extends PublicController {
 		//由于此文件仅生成一次，所以记录日期跟当前日期一致
         $info['quote_time'] = date('Y-m-d');//$finalQuoteInfo['checked_at']; 
 
-        //市场经办人
-        $info['agenter'] = $employee->where(['id' => $info['agent_id']])->getField('name');
-		$departsments = $this->getDepartmentByUid($info['agent_id']);
-		$info['buyer_name'] = implode('-',$departsments);
 
         //报价单项(final_quote)
         $finalQuoteItemModel = new FinalQuoteItemModel();
-        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks_zh,b.remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.net_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.remarks quote_remarks';
+        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
         $finalQuoteItems = $finalQuoteItemModel->alias('a')
                 ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
                 ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
@@ -363,7 +359,7 @@ class ExcelmanagerController extends PublicController {
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
-        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,origin_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no,quote_cur_bn')->find();
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,dispatch_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no,quote_cur_bn')->find();
         $quoteLogiFee = $quoteLogiFeeModel->where(['inquiry_id' => $inquiry_id])->field('est_transport_cycle,logi_remarks')->find();
         $quoteInfo['logi_remarks'] =$quoteLogiFee['logi_remarks'];
         $quoteInfo['est_transport_cycle'] =$quoteLogiFee['est_transport_cycle'];
@@ -424,7 +420,7 @@ class ExcelmanagerController extends PublicController {
 
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet(); //当前sheet
-        $objSheet->setTitle('市场报价单'); //设置报价单标题
+        $objSheet->setTitle('商务报价单'); //设置报价单标题
         //设置边框
         $styleArray = [
             'borders' => [
@@ -481,13 +477,13 @@ class ExcelmanagerController extends PublicController {
             $objSheet->getColumnDimension($big_col)->setWidth('18');
         endforeach;
 
-        $objSheet->setCellValue("A3", "报价单号 : " . $quote['quote_info']['quote_no'])->mergeCells("A3:R3");
+        $objSheet->setCellValue("A3", "询单编号 : " . $quote['quoter_info']['serial_no'])->mergeCells("A3:R3");
         $objSheet->setCellValue("A4", "报价人 : " . $quote['quoter_info']['quoter_name'])->mergeCells("A4:E4");
         $objSheet->setCellValue("A5", "电话 : " . $quote['quoter_info']['quoter_mobile'])->mergeCells("A5:E5");
         $objSheet->setCellValue("A6", "邮箱 : " . $quote['quoter_info']['quoter_email'])->mergeCells("A6:E6");
 
         $objSheet->setCellValue("F4", "询价单位 : " . $quote['quoter_info']['buyer_name'])->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "业务对接人 : " . $quote['quoter_info']['agenter'])->mergeCells("F5:R5");
+        $objSheet->setCellValue("F5", "业务对接人 : ")->mergeCells("F5:R5");
         $objSheet->setCellValue("F6", "报价时间 : " . $quote['quoter_info']['quote_time'])->mergeCells("F6:R6");
 
 
@@ -539,14 +535,14 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->setCellValue("B" . $row_num, $item['name_zh']);
                 $objSheet->setCellValue("C" . $row_num, $item['name']);
                 $objSheet->setCellValue("D" . $row_num, $item['model']);
-                $objSheet->setCellValue("E" . $row_num, $item['remarks_zh']);
-                $objSheet->setCellValue("F" . $row_num, $item['remarks']);
+                $objSheet->setCellValue("E" . $row_num, $item['remarks']);
+                $objSheet->setCellValue("F" . $row_num, $item['quote_remarks']);
                 $objSheet->setCellValue("G" . $row_num, $item['qty']);
                 $objSheet->setCellValue("H" . $row_num, $item['unit']);
                 $objSheet->setCellValue("I" . $row_num, $item['brand']);
                 $objSheet->setCellValue("J" . $row_num, $item['exw_unit_price']);
                 $objSheet->setCellValue("K" . $row_num, $item['quote_unit_price']);
-                $objSheet->setCellValue("L" . $row_num, $item['net_weight_kg']);
+                $objSheet->setCellValue("L" . $row_num, $item['gross_weight_kg']);
                 $objSheet->setCellValue("M" . $row_num, $item['package_size']);
                 $objSheet->setCellValue("N" . $row_num, $item['package_mode']);
                 $objSheet->setCellValue("O" . $row_num, $item['delivery_days']);
@@ -589,7 +585,7 @@ class ExcelmanagerController extends PublicController {
             $objSheet->setCellValue("D" . $num12, "运输方式");
             $objSheet->setCellValue("E" . $num12, $quote['quote_info']['trans_mode_bn']);
             $objSheet->setCellValue("F" . $num12, "存放地");
-            $objSheet->setCellValue("G" . $num12, $quote['quote_info']['origin_place']);
+            $objSheet->setCellValue("G" . $num12, $quote['quote_info']['dispatch_place']);
             $objSheet->setCellValue("H" . $num12, "目的地");
             $objSheet->setCellValue("I" . $num12, $quote['quote_info']['delivery_addr']);
             $objSheet->setCellValue("J" . $num12, "运输周期(天)");
@@ -651,7 +647,7 @@ class ExcelmanagerController extends PublicController {
 
             $num16 = $row_num + 7;
             $num17 = $row_num + 8;
-            $objSheet->setCellValue("A" . $num16, '报价备注 : ' . $quote['quote_info']['quote_remarks'])->mergeCells("A" . $num16 . ":K" . $num17);
+            $objSheet->setCellValue("A" . $num16, '报价备注 : ' . $quote['quoter_info']['quote_notes'])->mergeCells("A" . $num16 . ":K" . $num17);
             $objSheet->getStyle("A" . $num16 . ":K" . $num17)->applyFromArray($styleArray);
             $objSheet->getCell("A" . $num16)
                     ->getStyle()
