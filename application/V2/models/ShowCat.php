@@ -584,8 +584,6 @@ class ShowCatModel extends PublicModel {
             }
         }
         $flag = $this->_updateOther($upcondition, $where, $data, $cat_no, $old_info);
-
-
         if (!$flag) {
             $this->rollback();
             return false;
@@ -688,6 +686,7 @@ class ShowCatModel extends PublicModel {
                 $info = $old_info[$lang];
 
                 if (isset($upcondition[$lang]['name']) && isset($info['name']) && $info['name'] != $upcondition[$lang]['name']) {
+
                     $es_product_model->update_showcats($where['cat_no'], $lang);
                 }
             }

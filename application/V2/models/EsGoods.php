@@ -1245,7 +1245,7 @@ class EsGoodsModel extends Model {
         $scats = $show_cat_goods_model->getshow_catsbyskus([$sku], $lang);
 
         $show_cats = $scats[$sku];
-
+        rsort($show_cats);
         return $show_cats;
     }
 

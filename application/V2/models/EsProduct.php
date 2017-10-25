@@ -1398,6 +1398,7 @@ class EsProductModel extends Model {
         $scats = $show_cat_product_model->getshow_catsbyspus([$spu], $lang);
         $show_cats = isset($scats[$spu]) ? $scats[$spu] : [];
 
+        rsort($show_cats);
         return $show_cats;
     }
 
