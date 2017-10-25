@@ -322,6 +322,53 @@ class InquiryController extends PublicController {
         
         $this->jsonReturn($res);
     }
+    
+    /**
+     * @desc 关闭询单
+     *
+     * @author liujf
+     * @time 2017-10-25
+     */
+    public function closeInquiryAction() {
+        $condition = $this->put_data;
+    
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryModel = new InquiryModel();
+            $quoteModel = new QuoteModel();
+             
+            $inquiryModel->startTrans();
+            $quoteModel->startTrans();
+             
+            $res1 = $inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED']);
+             
+            // 更改报价单状态
+            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'INQUIRY_CLOSED']);
+             
+            if ($res1['code'] == 1 && $res2) {
+                $inquiryModel->commit();
+                $quoteModel->commit();
+                $res = true;
+            } else {
+                $inquiryModel->rollback();
+                $quoteModel->rollback();
+                $res = false;
+            }
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
 
     /*
      * 询价单详情
