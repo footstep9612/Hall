@@ -573,7 +573,7 @@ class GoodsModel extends PublicModel {
                     if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }
-                    if(isset($input['model']) && !empty($input['model'])) {
+                    if(isset($input['model'])) {
                         $value['model'] = $input['model'];
                     }
 //                    if (empty($input[$key]['name']) && empty($input[$key]['model']) && empty($input[$key]['attrs']['spec_attrs'])) {
