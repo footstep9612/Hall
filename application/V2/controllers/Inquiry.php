@@ -844,9 +844,13 @@ class InquiryController extends PublicController {
         $condition = $this->put_data;
     
         if (!empty($condition['inquiry_id'])) {
-            $inquiryModel = new InquiryModel();
+            $inquiryCheckLogModel = new InquiryCheckLogModel();
+            $employeeModel = new EmployeeModel();
             
-            $res = $inquiryModel->getLogInfo($condition);
+            $res = $inquiryCheckLogModel->getDetail($condition);
+            
+            $employee = $employeeModel->field('name')->where(['id' => $res['created_by']])->find();
+            $res['created_name'] = $employee['name'];
              
             if ($res) {
                 $this->setCode('1');

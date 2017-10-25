@@ -20,18 +20,28 @@ class InquiryCheckLogModel extends PublicModel {
      * @param array $condition
      * @return array
      * @author liujf 
-     * @time 2017-08-08
+     * @time 2017-10-25
      */
      public function getWhere($condition = []) {
+         $where = [];
          
-     	$where = [];
-     	
-     	if(!empty($condition['quote_id'])) {
-     	    $where['quote_id'] = $condition['quote_id'];
-     	}
-    	
-    	return $where;
-    	
+         if (!empty($condition['inquiry_id'])) {
+             $where['inquiry_id'] = $condition['inquiry_id'];
+         }
+         
+         if (!empty($condition['action'])) {
+             $where['action'] = $condition['action'];
+         }
+         
+         if (!empty($condition['in_node'])) {
+             $where['in_node'] = $condition['in_node'];
+         }
+         
+         if (!empty($condition['out_node'])) {
+             $where['out_node'] = $condition['out_node'];
+         }
+         
+         return $where;
      }
      
 	/**
@@ -83,7 +93,7 @@ class InquiryCheckLogModel extends PublicModel {
     	
     	$where = $this->getWhere($condition);
     	
-        return $this->field($field)->where($where)->find();
+        return $this->field($field)->where($where)->order('id DESC')->find();
     }
     
     /**

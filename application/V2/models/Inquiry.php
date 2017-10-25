@@ -151,37 +151,6 @@ class InquiryModel extends PublicModel {
          
         return $where;
     }
-    
-    /**
-     * @desc 获取日志查询条件
-     *
-     * @param array $condition
-     * @return array
-     * @author liujf
-     * @time 2017-10-24
-     */
-    public function getLogWhere($condition = []) {
-         
-        $where = [];
-    
-        if (!empty($condition['inquiry_id'])) {
-            $where['inquiry_id'] = $condition['inquiry_id'];
-        }
-    
-        if (!empty($condition['action'])) {
-            $where['action'] = $condition['action']; 
-        }
-    
-        if (!empty($condition['in_node'])) {
-            $where['in_node'] = $condition['in_node'];
-        }
-    
-        if (!empty($condition['out_node'])) {
-            $where['out_node'] = $condition['out_node'];
-        }
-    
-        return $where;
-    }
 
     /**
      * 获取数据条数
@@ -307,20 +276,6 @@ class InquiryModel extends PublicModel {
                             ->page($currentPage, $pageSize)
                             ->order('id DESC')
                             ->select();
-    }
-    
-    /**
-     * @desc 获取日志详情
-     *
-     * @param array $condition
-     * @return array
-     * @author liujf
-     * @time 2017-10-24
-     */
-    public function getLogInfo($condition = []) {
-       $where = $this->getLogWhere($condition);
-         
-        return $this->where($where)->find();
     }
 
     /**
