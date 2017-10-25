@@ -491,7 +491,7 @@ class LogisticsController extends PublicController {
 	        $this->inquiryModel->startTrans();
 	        $this->quoteModel->startTrans();
 	        
-	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_agent_id' => $condition['logi_agent_id'], 'status' => 'LOGI_QUOTING']);
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_agent_id' => $condition['logi_agent_id'], 'status' => 'LOGI_QUOTING', 'updated_by' => $this->user['id']]);
 	        
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_QUOTING']);
@@ -541,7 +541,7 @@ class LogisticsController extends PublicController {
 	        $this->inquiryModel->startTrans();
 	        $this->quoteModel->startTrans();
 	        
-	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_check_id' => $logiCheckId, 'status' => 'LOGI_APPROVING']);
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_check_id' => $logiCheckId, 'status' => 'LOGI_APPROVING', 'updated_by' => $this->user['id']]);
 	        
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);
@@ -576,7 +576,7 @@ class LogisticsController extends PublicController {
 	        $this->quoteModel->startTrans();
 	         
 	        // 更改询单状态
-	        $res1 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING']);
+	        $res1 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING', 'updated_by' => $this->user['id']]);
 	         
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
@@ -626,7 +626,7 @@ class LogisticsController extends PublicController {
 	        
 	        $res2 = $this->quoteModel->where(['id' => $condition['quote_id']])->save(['status' => 'QUOTED_BY_LOGI']);
 	        
-	        $res3 = $this->inquiryModel->updateStatus(['id' => $quoteLogiFee['inquiry_id'], 'status' => 'QUOTED_BY_LOGI']);
+	        $res3 = $this->inquiryModel->updateStatus(['id' => $quoteLogiFee['inquiry_id'], 'status' => 'QUOTED_BY_LOGI', 'updated_by' => $this->user['id']]);
 	         
 	        $checkLog= [
 	            'inquiry_id' => $quoteLogiFee['inquiry_id'],
@@ -706,7 +706,7 @@ class LogisticsController extends PublicController {
 	        $res2 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);*/
 	        
 	        // 更改询单状态
-	        $res2 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => $status]);
+	        $res2 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => $status, 'updated_by' => $this->user['id']]);
 	        
 	        // 更改报价单状态
 	        $res3 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => $status]);

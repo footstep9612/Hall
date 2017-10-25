@@ -263,7 +263,7 @@ class InquiryController extends PublicController {
             $inquiryModel->startTrans();
             $quoteModel->startTrans();
              
-            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING']);
+            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING', 'updated_by' => $this->user['id']]);
              
             // 更改报价单状态
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
@@ -352,7 +352,7 @@ class InquiryController extends PublicController {
             $inquiryModel->startTrans();
             $quoteModel->startTrans();
              
-            $res1 = $inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED']);
+            $res1 = $inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'updated_by' => $this->user['id']]);
              
             // 更改报价单状态
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'INQUIRY_CLOSED']);
@@ -385,7 +385,7 @@ class InquiryController extends PublicController {
 
     /*
      * 询价单详情
-     * Author:张玉良
+     * Author:张玉良、刘俊飞
      */
 
     public function getInfoAction() {

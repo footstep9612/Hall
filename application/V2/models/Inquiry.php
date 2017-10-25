@@ -376,6 +376,7 @@ class InquiryModel extends PublicModel {
 
         $time = $this->getTime();
         
+        $data['quote_status'] = 'NOT_QUOTED';
         $data['inflow_time'] = $time;
         $data['created_at'] = $time;
 
