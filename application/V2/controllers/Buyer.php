@@ -278,7 +278,7 @@ class BuyerController extends PublicController {
 
         //var_dump($data_t_buyer);die;
         if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
-            $no = substr($data_t_buyer['data'][0]['buyer_no'], -1, 6);
+            $no = substr($data_t_buyer['data'][0]['buyer_no'], 9, 6);
             $no++;
         } else {
             $no = 1;
