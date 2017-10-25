@@ -91,10 +91,14 @@ class EsproductController extends PublicController {
         $keyword = $this->getPut('keyword');
         foreach ($data['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
-            if (isset($item['highlight']['show_name.ik'][0])) {
+            if (isset($item['highlight']['show_name.ik'][0]) && $item['highlight']['show_name.ik'][0]) {
                 $list[$key]['highlight_show_name'] = $item['highlight']['show_name.ik'][0];
-            } else {
+            } elseif (!$list[$key]['show_name'] && isset($item['highlight']['name.ik'][0]) && $item['highlight']['name.ik'][0]) {
+                $list[$key]['highlight_show_name'] = $item['highlight']['name.ik'][0];
+            } elseif ($list[$key]['show_name']) {
                 $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
+            } else {
+                $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['name']);
             }
             $attachs = json_decode($item["_source"]['attachs'], true);
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {

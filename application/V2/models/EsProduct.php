@@ -1396,7 +1396,7 @@ class EsProductModel extends Model {
         }
         $showcatproduct_model = new ShowCatProductModel();
         $scats = $showcatproduct_model->getShowCatnosBySpu($spu, $lang);
-        $show_cats = $this->_getValue($scats, $spu, [], 'json');
+        $show_cats = isset($scats[$spu]) ? $scats[$spu] : [];
         return $show_cats;
     }
 
@@ -1415,17 +1415,17 @@ class EsProductModel extends Model {
         }
         $index = $this->dbName;
         $type = 'product_' . $lang;
-        $count = $this->setbody(['query' => [
-                        ESClient::MATCH => [
-                            "show_cats.all" => $old_cat_no
-                        ]
-            ]])->count($index, $type);
+        $count = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+                                [ESClient::TERM => ["material_cat_zh.cat_no3" => $old_cat_no]],
+                                [ESClient::TERM => ["material_cat_zh.cat_no2" => $old_cat_no]],
+                                [ESClient::TERM => ["material_cat_zh.cat_no1" => $old_cat_no]]
+                    ]]]])->count($index, $type);
         for ($i = 0; $i < $count['count']; $i += 100) {
-            $ret = $this->setbody(['query' => [
-                            ESClient::MATCH => [
-                                "show_cats.ik" => $old_cat_no
-                            ]
-                ]])->search($index, $type, $i, 100);
+            $ret = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+                                    [ESClient::TERM => ["material_cat_zh.cat_no3" => $old_cat_no]],
+                                    [ESClient::TERM => ["material_cat_zh.cat_no2" => $old_cat_no]],
+                                    [ESClient::TERM => ["material_cat_zh.cat_no1" => $old_cat_no]]
+                        ]]]])->search($index, $type, $i, 100);
             $updateParams = array();
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'product_' . $lang;
@@ -1464,7 +1464,8 @@ class EsProductModel extends Model {
         }
         $type = $this->tableName . '_' . $lang;
         $mcatmodel = new MaterialcatModel();
-        $data['material_cat'] = json_encode($mcatmodel->getinfo($new_cat_no, $lang), 256);
+        $data['material_cat'] = $mcatmodel->getinfo($new_cat_no, 'zh');
+        $data['material_cat_zh'] = $mcatmodel->getinfo($new_cat_no, 'zh');
         $data['material_cat_no'] = $new_cat_no;
         if ($spu) {
             $id = $spu;
@@ -1473,20 +1474,22 @@ class EsProductModel extends Model {
             $es_product_data = [
                 "doc" => [
                     "material_cat" => $data['material_cat'],
+                    "material_cat_zh" => $data['material_cat_zh'],
                     'material_cat_no' => $new_cat_no,
                 ],
-                "query" => [
-                    ESClient::WILDCARD => [
-                        "material_cat" => '*' . $material_cat_no . '*'
-                    ]
-                ]
-            ];
+                "query" => ['bool' => [ESClient::SHOULD => [
+                            [ESClient::TERM => ["material_cat_zh.cat_no3" => $material_cat_no]],
+                            [ESClient::TERM => ["material_cat_zh.cat_no2" => $material_cat_no]],
+                            [ESClient::TERM => ["material_cat_zh.cat_no1" => $material_cat_no]]
+            ]]]];
             $es->UpdateByQuery($this->dbName, 'product_' . $lang, $es_product_data);
         }
         if ($spu) {
             $esgoodsdata = [
                 "doc" => [
                     "material_cat" => $data['material_cat'],
+                    "material_cat_zh" => $data['material_cat_zh'],
+                    'material_cat_no' => $new_cat_no,
                 ],
                 "query" => [
                     ESClient::MATCH_PHRASE => [
@@ -1498,13 +1501,14 @@ class EsProductModel extends Model {
             $esgoodsdata = [
                 "doc" => [
                     "material_cat" => $data['material_cat'],
+                    "material_cat_zh" => $data['material_cat_zh'],
+                    'material_cat_no' => $new_cat_no,
                 ],
-                "query" => [
-                    ESClient::WILDCARD => [
-                        "material_cat" => '*' . $material_cat_no . '*'
-                    ]
-                ]
-            ];
+                "query" => ['bool' => [ESClient::SHOULD => [
+                            [ESClient::TERM => ["material_cat_zh.cat_no3" => $material_cat_no]],
+                            [ESClient::TERM => ["material_cat_zh.cat_no2" => $material_cat_no]],
+                            [ESClient::TERM => ["material_cat_zh.cat_no1" => $material_cat_no]]
+            ]]]];
         }
         $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
         return true;

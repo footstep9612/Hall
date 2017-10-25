@@ -679,9 +679,11 @@ class ShowCatModel extends PublicModel {
         $condition = $upcondition;
         if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
             $where['market_area_bn'] = $condition['market_area_bn'];
+            $data['market_area_bn'] = $condition['market_area_bn'];
         }
         if (isset($condition['country_bn']) && $condition['country_bn']) {
             $where['country_bn'] = $condition['country_bn'];
+            $data['country_bn'] = $condition['country_bn'];
         }
 
         if ($condition['cat_no']) {
