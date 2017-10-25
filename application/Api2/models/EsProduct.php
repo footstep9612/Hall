@@ -369,8 +369,6 @@ class EsProductModel extends Model {
             $es->sethighlight(['show_name.ik' => new stdClass()]);
             $es->sethighlight(['name.ik' => new stdClass()]);
 
-            echo json_encode($es->body, 256);
-            die;
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;
         } catch (Exception $ex) {
