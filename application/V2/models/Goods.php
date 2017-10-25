@@ -26,8 +26,8 @@ class GoodsModel extends PublicModel {
     //定义校验规则
 
     protected $field = array(
-        'spu' => array('required'),
-        'supplier_cost' => array('required'),
+        'spu' => array('required','','spu编码不能为空'),
+        'supplier_cost' => array('required','','供应商不能为空'),
 //        'name' => array('required'),
 //        'model' => array('required'),
     );
@@ -321,15 +321,15 @@ class GoodsModel extends PublicModel {
                 switch ($item[0]) {
                     case 'required':
                         if ($v == '' || empty($v)) {
-                            jsonReturn('', '1000', 'Param ' . $k . ' Not null !');
+                            jsonReturn('', '1000', !empty($item[2]) ? $item[2] : $k.' 不能为空');
                         }
                         break;
                     case 'method':
                         if (!method_exists($item[1])) {
-                            jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
+                            jsonReturn('', '404', '方法：' . $item[1] . '不存在!');
                         }
                         if (!call_user_func($item[1], $v)) {
-                            jsonReturn('', '1001', 'Param ' . $k . ' Validate failed !');
+                            jsonReturn('', '1001', !empty($item[2]) ? $item[2] : $k.'验证失败');
                         }
                         break;
                 }
@@ -582,6 +582,9 @@ class GoodsModel extends PublicModel {
                     $input['status'] = $status;
                     $spu = $checkout['spu'];
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+                    if(empty($attr['spec_attrs'])){
+                        jsonReturn('', ErrorMsg::FAILED, '扩展属性不能为空');
+                    }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
