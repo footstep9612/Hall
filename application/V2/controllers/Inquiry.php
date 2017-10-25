@@ -414,7 +414,7 @@ class InquiryController extends PublicController {
         $rs9 = $employee->field('name')->where('id=' . $this->user['id'])->find();
         $results['data']['current_name'] = $rs9['name'];
         
-        $results['data']['status'] = $status[$results['data']['status']];
+        $results['data']['status_name'] = $status[$results['data']['status']];
 
         //权限
         //$results['auth'] = $auth['code'];
