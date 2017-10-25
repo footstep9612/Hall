@@ -27,22 +27,20 @@ class CheckLogModel extends PublicModel {
         if(!empty($condition['inquiry_id'])) {
             $where['inquiry_id'] = $condition['inquiry_id'];
         }
-        if(!empty($condition['quote_id'])) {
-            $where['quote_id'] = $condition['quote_id'];
-        }
-        if(!empty($condition['category'])) {
-            $where['op_result'] = $condition['op_result'];
-        }
         if(!empty($condition['action'])) {
             $where['action'] = $condition['action'];
         }
-        if(!empty($condition['op_result'])) {
-            $where['op_result'] = $condition['op_result'];
+        if(!empty($condition['in_node'])) {
+            $where['in_node'] = $condition['in_node'];
         }
-
-
-        if(!empty($condition['status'])) {
-            $where['status'] = $condition['status'];
+        if(!empty($condition['out_node'])) {
+            $where['out_node'] = $condition['out_node'];
+        }
+        if(!empty($condition['into_at'])) {
+            $where['into_at'] = $condition['into_at'];
+        }
+        if(!empty($condition['op_note'])) {
+            $where['op_note'] = $condition['op_note'];
         }
 
         return $where;
