@@ -501,7 +501,7 @@ class EsProductModel extends Model {
     public function getproductattrsbyspus($spus, $lang = 'en') {
         try {
             rsort($spus);
-            $key = json_encode($spus) . '_' . $lang;
+            $key = md5(json_encode($spus)) . '_' . $lang;
             $data = redisGet($key);
             if ($data && json_decode($data)) {
                 return json_decode($data, true);
