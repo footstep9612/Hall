@@ -42,7 +42,7 @@ class ShowCatGoodsModel extends PublicModel {
              * 根据spu lang获取sku
              */
             if (!isset($sku_temp[$item['lang'] . '_' . $item['spu']])) {
-                $result = $goodsModel->field('sku')->where(array('spu' => $item['spu'], 'lang' => $item['lang']))->select();
+                $result = $goodsModel->field('sku')->where(array('spu' => $item['spu'], 'lang' => $item['lang'], 'deleted_flag' => $goodsModel::DELETE_N, 'status' => $goodsModel::STATUS_VALID ))->select();
                 if (empty($result)) {
                     continue;
                 } else {
@@ -59,6 +59,11 @@ class ShowCatGoodsModel extends PublicModel {
                 $data_temp['status'] = self::STATUS_VALID;
                 $data_temp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                 $data_temp['created_at'] = date('Y-m-d H:i:s', time());
+                //检查上架
+                $exist = $this->field('id')->where(array('spu'=>$data_temp['spu'],'sku'=>$data_temp['sku'],'cat_no'=>$data_temp['cat_no'],'lang'=> $data_temp['lang'],'onshelf_flag'=>self::STATUS_ONSHELF))->find();
+                if($exist){
+                    continue;
+                }
                 $data[] = $data_temp;
             }
         }
