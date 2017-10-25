@@ -223,9 +223,6 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
-
-
-
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
@@ -308,11 +305,12 @@ class EsProductModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        //  [ESClient::MATCH => ['name.ik' => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['name.ik' => ['query' => $keyword, 'boost' => 7]]],
                         [ESClient::MATCH => ['show_name.ik' => ['query' => $keyword, 'boost' => 7]]],
                         [ESClient::MATCH => ['keywords.ik' => ['query' => $keyword, 'boost' => 2]]],
                         [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $keyword]],
@@ -369,6 +367,7 @@ class EsProductModel extends Model {
 //                $es->setaggs('show_cats.cat_no1', 'show_cat_no1');
             }
             $es->sethighlight(['show_name.ik' => new stdClass()]);
+            $es->sethighlight(['name.ik' => new stdClass()]);
 
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;

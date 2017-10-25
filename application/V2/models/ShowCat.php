@@ -567,17 +567,13 @@ class ShowCatModel extends PublicModel {
             if (isset($condition[$lang]) && $condition[$lang]['name']) {
                 $data['lang'] = $lang;
                 $data['name'] = $condition[$lang]['name'];
-
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;
                 $add['status'] = self::STATUS_VALID;
-
                 $add['created_by'] = defined('UID') ? UID : 0;
                 $add['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($add);
-
-
                 if (!$flag) {
                     $this->rollback();
                     return false;
@@ -648,7 +644,6 @@ class ShowCatModel extends PublicModel {
                     ->delete();
             $dataList = [];
             $condition['material_cat_nos'] = array_unique($condition['material_cat_nos']);
-
             foreach ($condition['material_cat_nos'] as $key => $material_cat_no) {
                 $dataList[] = ['show_cat_no' => $cat_no,
                     'material_cat_no' => $material_cat_no,
@@ -679,9 +674,11 @@ class ShowCatModel extends PublicModel {
         $condition = $upcondition;
         if (isset($condition['market_area_bn']) && $condition['market_area_bn']) {
             $where['market_area_bn'] = $condition['market_area_bn'];
+            $data['market_area_bn'] = $condition['market_area_bn'];
         }
         if (isset($condition['country_bn']) && $condition['country_bn']) {
             $where['country_bn'] = $condition['country_bn'];
+            $data['country_bn'] = $condition['country_bn'];
         }
 
         if ($condition['cat_no']) {
@@ -766,9 +763,8 @@ class ShowCatModel extends PublicModel {
         }
 
         foreach ($this->langs as $lan) {
-            $es_product_model->Updatemeterialcatno($old_cat_no, null, $lan, $new_cat_no);
+            $es_product_model->update_showcats($old_cat_no, $lan);
         }
-
         return true;
     }
 
