@@ -1414,15 +1414,15 @@ class EsProductModel extends Model {
         $index = $this->dbName;
         $type = 'product_' . $lang;
         $count = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
-                                [ESClient::TERM => ["material_cat_zh.cat_no3" => $old_cat_no]],
-                                [ESClient::TERM => ["material_cat_zh.cat_no2" => $old_cat_no]],
-                                [ESClient::TERM => ["material_cat_zh.cat_no1" => $old_cat_no]]
+                                [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
+                                [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
+                                [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
                     ]]]])->count($index, $type);
         for ($i = 0; $i < $count['count']; $i += 100) {
             $ret = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
-                                    [ESClient::TERM => ["material_cat_zh.cat_no3" => $old_cat_no]],
-                                    [ESClient::TERM => ["material_cat_zh.cat_no2" => $old_cat_no]],
-                                    [ESClient::TERM => ["material_cat_zh.cat_no1" => $old_cat_no]]
+                                    [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
+                                    [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
+                                    [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
                         ]]]])->search($index, $type, $i, 100);
             $updateParams = array();
             $updateParams['index'] = $this->dbName;
@@ -1433,6 +1433,8 @@ class EsProductModel extends Model {
                     $updateParams['body'][] = ['doc' => $this->getshowcats($item['_source']['spu'], $lang)];
                 }
                 $es = new ESClient();
+                echo json_encode($updateParams, 256);
+                die;
                 $es->bulk($updateParams);
             }
         }
