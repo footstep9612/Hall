@@ -576,10 +576,10 @@ class LogisticsController extends PublicController {
 	        $this->quoteModel->startTrans();
 	         
 	        // 更改询单状态
-	        $res1 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING']);
+	        $res1 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING']);
 	         
 	        // 更改报价单状态
-	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_QUOTING']);
 	    
 	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();
