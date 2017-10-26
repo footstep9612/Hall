@@ -98,7 +98,7 @@ class ProductModel extends PublicModel {
                 if (is_array($input['brand'])) {
                     ksort($input['brand']);
                     $data['brand'] = json_encode($input['brand'], JSON_UNESCAPED_UNICODE);
-                } else {
+                } elseif(!empty($input['brand'])) {
                     $brand_ary = array(
                         'name' => $input['brand'],
                         'style' => 'TEXT',
@@ -107,6 +107,8 @@ class ProductModel extends PublicModel {
                     );
                     ksort($brand_ary);
                     $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                }else{
+                    $data['brand'] = '';
                 }
             }
         } elseif ($type == 'INSERT') {
@@ -209,7 +211,7 @@ class ProductModel extends PublicModel {
         if (empty($input)) {
             return false;
         }
-        $material_cat_no = isset($input['material_cat_no']) ? $input['material_cat_no'] : (isset($input['zh']['material_cat_no']) ? $input['zh']['material_cat_no'] : (isset($input['en']['material_cat_no']) ? $input['en']['material_cat_no'] : (isset($input['es']['material_cat_no']) ? $input['es']['material_cat_no'] : (isset($input['ru']['material_cat_no']) ? $input['ru']['material_cat_no'] : ''))));
+        $material_cat_no = (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) ? $input['material_cat_no'] : ((isset($input['zh']['material_cat_no']) && !empty($input['zh']['material_cat_no'])) ? $input['zh']['material_cat_no'] : ((isset($input['en']['material_cat_no']) && !empty($input['en']['material_cat_no'])) ? $input['en']['material_cat_no'] : ((isset($input['es']['material_cat_no']) && !empty($input['es']['material_cat_no'])) ? $input['es']['material_cat_no'] : ((isset($input['ru']['material_cat_no']) && !empty($input['ru']['material_cat_no'])) ? $input['ru']['material_cat_no'] : ''))));
         if(empty($material_cat_no)){
             jsonReturn('', ErrorMsg::FAILED ,'物料分类不能为空');
         }
@@ -221,9 +223,12 @@ class ProductModel extends PublicModel {
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
                     $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
-                    $data['lang'] = $key;
                     if (empty($data) || empty($data['name'])) {
                         continue;
+                    }
+                    $data['lang'] = $key;
+                    if(empty($data['material_cat_no'])){
+                        $data['material_cat_no'] = $material_cat_no;
                     }
                     $data['bizline_id'] = $bizline_id;
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
