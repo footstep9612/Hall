@@ -546,7 +546,7 @@ class ProductModel extends PublicModel {
                             $where['lang'] = $lang;
                         }
                         $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
-                        if ($result !== null) {
+                        if ($result) {
                             /**
                              * 删除ｓｋｕ
                              * 优化意见：这块最好放入队列，以确保成功删除掉。
@@ -557,7 +557,6 @@ class ProductModel extends PublicModel {
                                 $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                             }
                         } else {
-                            echo 1;
                             $this->rollback();
                             return false;
                         }
@@ -571,7 +570,7 @@ class ProductModel extends PublicModel {
                     }
 
                     $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
-                    if ($result !== null) {
+                    if ($result) {
                         /**
                          * 删除ｓｋｕ
                          * 优化意见：这块最好放入队列，以确保成功删除掉。
@@ -582,7 +581,6 @@ class ProductModel extends PublicModel {
                             $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                         }
                     } else {
-
                         $this->rollback();
                         return false;
                     }
@@ -591,7 +589,6 @@ class ProductModel extends PublicModel {
                 $this->commit();
                 return true;
             } catch (Exception $e) {
-                Log::write($e->getMessage(), LOG::INFO);
                 $this->rollback();
                 return false;
             }
