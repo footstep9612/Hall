@@ -26,7 +26,7 @@ class ProductModel extends PublicModel {
         //'lang' => array('method','checkLang','语言'),
         'material_cat_no' => array('required', '', '物料分类不能为空'),
         'name' => array('required', '', '名称不能为空'),
-        'brand' => array('required','','名称不能为空'),
+        'brand' => array('required','','品牌不能为空'),
     );
 
     /**
