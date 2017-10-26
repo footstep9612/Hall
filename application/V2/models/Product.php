@@ -231,7 +231,7 @@ class ProductModel extends PublicModel {
                     if (empty($data) || empty($data['name'])) {
                         continue;
                     }
-                    $mexist = $mcatModel->info($material_cat_no['material_cat_no'], $key);
+                    $mexist = $mcatModel->info($material_cat_no, $key);
                     if (!$mexist) {
                         jsonReturn('', ErrorMsg::FAILED, '物料分类编码不存在');
                     }
