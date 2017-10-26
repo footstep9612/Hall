@@ -235,7 +235,7 @@ class ProductModel extends PublicModel {
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     $this->checkParam($data, $this->field);     //字段校验
                     print_r($data);
-                    print_r($t                  his->field);die;
+                    print_r($this->field);die;
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $key,
