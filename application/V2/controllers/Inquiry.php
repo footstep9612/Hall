@@ -852,8 +852,10 @@ class InquiryController extends PublicController {
             
             $res = $inquiryCheckLogModel->getDetail($condition);
             
-            $employee = $employeeModel->field('name')->where(['id' => $res['created_by']])->find();
-            $res['created_name'] = $employee['name'];
+            if (!empty($res['created_by'])) {
+                $employee = $employeeModel->field('name')->where(['id' => $res['created_by']])->find();
+                $res['created_name'] = $employee['name'];
+            }
              
             if ($res) {
                 $this->setCode('1');
