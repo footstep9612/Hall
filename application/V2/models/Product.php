@@ -224,7 +224,7 @@ class ProductModel extends PublicModel {
         $this->startTrans();
         try {
             $userInfo = getLoinInfo(); //获取当前用户信息
-            $mcatModel = new MaterialcatModel();
+            $mcatModel = new MaterialCatModel();
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
                     $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
