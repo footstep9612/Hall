@@ -1648,27 +1648,53 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function delete_data($spu, $lang = 'en') {
+    public function delete_data($spus, $lang = 'en') {
         $es = new ESClient();
-        if (empty($spu)) {
+        if (empty($spus)) {
             return false;
         }
-        $data['status'] = self::STATUS_DELETED;
-        $data['deleted_flag'] = 'Y';
-        $id = $spu;
-        if ($lang) {
+
+        $type = 'product_' . $lang;
+        if (is_string($spus)) {
+            $spu = $spus;
+
+            $data = [];
+            $data['onshelf_flag'] = 'N';
+            $data['deleted_flag'] = 'Y';
+            $data['status'] = self::STATUS_DELETED;
+
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $id);
-        } else {
-            $type = $this->tableName . '_en';
-            $es->update_document($this->dbName, $type, $data, $id);
-            $type = $this->tableName . '_es';
-            $es->update_document($this->dbName, $type, $data, $id);
-            $type = $this->tableName . '_ru';
-            $es->update_document($this->dbName, $type, $data, $id);
-            $type = $this->tableName . '_es';
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->dbName, $type, $data, $spu);
+            $esgoodsdata = [
+                "doc" => $data,
+                "query" => ['bool' => [ESClient::MUST => [
+                            [ESClient::TERM => ["spu" => $spu]],
+            ]]]];
+            $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+        } elseif (is_array($spus)) {
+
+            $updateParams = [];
+            $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'product_' . $lang;
+            foreach ($spus as $spu) {
+                $data = [];
+                $data['onshelf_flag'] = 'N';
+                $data['deleted_flag'] = 'Y';
+                $data['status'] = self::STATUS_DELETED;
+
+                $type = $this->tableName . '_' . $lang;
+                $es->update_document($this->dbName, $type, $data, $spu);
+                $esgoodsdata = [
+                    "doc" => $data,
+                    "query" => ['bool' => [ESClient::MUST => [
+                                [ESClient::TERM => ["spu" => $spu]],
+                ]]]];
+
+                $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+            }
+            $es->bulk($updateParams);
         }
+
         return true;
     }
 
@@ -1738,6 +1764,71 @@ class EsProductModel extends Model {
             }
             $es->bulk($updateParams);
         }
+        return true;
+    }
+
+    /* 更新物料分类
+     * @param string $material_cat_no  物料分类
+     * @param string $spu  SPU
+     * @param string $lang 语言
+     * @param string $new_cat_no  新的物料分类
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function Updateshelf($spus, $lang, $onshelf_flag = 'Y', $onshelf_by = 0) {
+        $es = new ESClient();
+        if (empty($spus)) {
+            return false;
+        }
+
+        $type = 'product_' . $lang;
+        if (is_string($spus)) {
+            $spu = $spus;
+
+            $data = [];
+            $data['onshelf_flag'] = $onshelf_flag;
+            $data['onshelf_by'] = $onshelf_by;
+            $data['show_cats'] = $this->getshowcats($spu, $lang);
+            $data['onshelf_at'] = date('Y-m-d H:i:s');
+            $type = $this->tableName . '_' . $lang;
+            $es->update_document($this->dbName, $type, $data, $spu);
+            $esgoodsdata = [
+                "doc" => $data,
+                "query" => ['bool' => [ESClient::MUST => [
+                            [ESClient::TERM => ["spu" => $spu]],
+            ]]]];
+            $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+        } elseif (is_array($spus)) {
+            $show_cat_product_model = new ShowCatProductModel();
+            $scats = $show_cat_product_model->getshow_catsbyspus([$spu], $lang);
+            $updateParams = [];
+            $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'product_' . $lang;
+            foreach ($spus as $spu) {
+                $data['onshelf_flag'] = $onshelf_flag;
+                $data['onshelf_by'] = $onshelf_by;
+                if (isset($scats[$spu])) {
+                    $data['show_cats'] = $scats[$spu];
+                } else {
+                    $data['show_cats'] = [];
+                }
+                $data = [];
+                $data['onshelf_at'] = date('Y-m-d H:i:s');
+                $updateParams['body'][] = ['update' => ['_id' => $spu]];
+                $updateParams['body'][] = ['doc' => $data];
+                $esgoodsdata = [
+                    "doc" => $data,
+                    "query" => ['bool' => [ESClient::MUST => [
+                                [ESClient::TERM => ["spu" => $spu]],
+                ]]]];
+                $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+            }
+            $es->bulk($updateParams);
+        }
+
         return true;
     }
 
