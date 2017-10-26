@@ -1808,6 +1808,7 @@ class EsProductModel extends Model {
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'product_' . $lang;
             foreach ($spus as $spu) {
+                $data = [];
                 $data['onshelf_flag'] = $onshelf_flag;
                 $data['onshelf_by'] = $onshelf_by;
                 if (isset($scats[$spu])) {
@@ -1815,7 +1816,7 @@ class EsProductModel extends Model {
                 } else {
                     $data['show_cats'] = [];
                 }
-                $data = [];
+
                 $data['onshelf_at'] = date('Y-m-d H:i:s');
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
@@ -1826,7 +1827,7 @@ class EsProductModel extends Model {
                 ]]]];
                 $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
             }
-            $es->bulk($updateParams);
+            $ret = $es->bulk($updateParams);
         }
 
         return true;
