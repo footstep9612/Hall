@@ -1013,6 +1013,7 @@ class ProductModel extends PublicModel {
                     $mexist = $mcatModel->info($data_tmp['material_cat_no'], $lang);
                     if (!$mexist) {
                         $faild ++;
+                        $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('N' . ($key + 1), '操作失败[物料分类编码不存在]');
                         continue;
                     }
