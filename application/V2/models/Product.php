@@ -1158,6 +1158,8 @@ class ProductModel extends PublicModel {
                                 ->setCellValue('N' . ($key + 1), $workText . '操作失败');
                         $faild ++;
                     }
+                    $input_spu = null;
+                    unset($input_spu);
                 } catch (Exception $e) {
                     $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('N' . ($key + 1), '操作失败-请检查数据');
