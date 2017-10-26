@@ -403,12 +403,13 @@ class ProductController extends PublicController {
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->downShelf($this->put_data['spu'], $lang, $cat_no);
         if ($result) {
+            $es_product_model = new EsProductModel();
             if ($lang) {
                 $es_product_model->Updateshelf($this->put_data['spu'], $lang, 'N', $this->user['id']);
             } else {
                 $langs = ['en', 'zh', 'es', 'ru'];
                 foreach ($langs as $lang) {
-                    $es_product_model->Updateshelf($spu, $lang, 'N', $this->user['id']);
+                    $es_product_model->Updateshelf($this->put_data['spu'], $lang, 'N', $this->user['id']);
                 }
             }
             jsonReturn(true);
