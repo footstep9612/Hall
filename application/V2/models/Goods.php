@@ -537,12 +537,12 @@ class GoodsModel extends PublicModel {
         if (!isset($input)) {
             return false;
         }
-        //不存在生成sku
-        if (!isset($input['sku']) || empty($input['sku']) || $input['sku'] === 'false') {
-            $sku = $this->setRealSku($input);
-        } else {
-            $sku = trim($input['sku']);
+        if(empty($input['supplier_cost'])){
+            jsonReturn('', ErrorMsg::FAILED, '供应商不能为空');
         }
+
+        //不存在生成sku
+        $sku = (!isset($input['sku']) || empty($input['sku']) || $input['sku'] === 'false') ? $this->setRealSku($input) : trim($input['sku']);
         $checkSku = isNum($sku);
         if(!$checkSku) {
             jsonReturn('',ErrorMsg::FAILED,'[sku]编码错误!');
@@ -552,10 +552,8 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
-
             foreach ($input as $key => $value) {
-                $arr = ['zh', 'en', 'ru', 'es'];
-                if (in_array($key, $arr)) {
+                if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
                     if(empty($value['name'])) {
                         $spuModel = new ProductModel();
                         $spuName = $spuModel->field('name')->where(['spu'=>$input['spu'],'lang'=>$key, 'deleted_flag' => 'N'])->find();
@@ -565,15 +563,6 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
 
-                    /* if (empty($value['show_name'])) {
-                        $value['show_name'] = $value['name'];
-                    }*/
-                    if(isset($input['model'])) {
-                        $value['model'] = $input['model'];
-                    }
-//                    if (empty($input[$key]['name']) && empty($input[$key]['model']) && empty($input[$key]['attrs']['spec_attrs'])) {
-//                        jsonReturn('', ErrorMsg::EXIST, '名称、型号、扩展属性不能同时为空!');
-//                    }
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
                     $spu = $checkout['spu'];
@@ -678,9 +667,9 @@ class GoodsModel extends PublicModel {
                             $this->rollback();
                             return false;
                         }
-                    } else {             //------新增
+                    } else {    //------新增
                         $data['sku'] = $sku;
-                        //               $data['qrcode'] = setupQrcode();                  //二维码字段
+                        //$data['qrcode'] = setupQrcode();                  //二维码字段
                         $data['created_by'] = $userInfo['id'];
                         $data['created_at'] = date('Y-m-d H:i:s', time());
                         $data['status'] = isset($input['status']) ? strtoupper($input['status']) : self::STATUS_DRAFT;
