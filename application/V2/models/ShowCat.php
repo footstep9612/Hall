@@ -568,12 +568,10 @@ class ShowCatModel extends PublicModel {
                 $old_info[$lang] = $this->where(['cat_no' => $where['cat_no'], 'lang' => $lang])->field('id,cat_no,name')->find();
                 $data['lang'] = $lang;
                 $data['name'] = $condition[$lang]['name'];
-
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;
                 $add['status'] = self::STATUS_VALID;
-
                 $add['created_by'] = defined('UID') ? UID : 0;
                 $add['created_at'] = date('Y-m-d H:i:s');
                 $flag = $this->Exist($where) ? $this->where($where)->save($data) : $this->add($add);
@@ -809,7 +807,6 @@ class ShowCatModel extends PublicModel {
         foreach ($this->langs as $lan) {
             $es_product_model->update_showcats($old_cat_no, $lan);
         }
-
         return true;
     }
 

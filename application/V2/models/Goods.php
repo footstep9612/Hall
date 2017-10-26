@@ -26,8 +26,8 @@ class GoodsModel extends PublicModel {
     //定义校验规则
 
     protected $field = array(
-        'spu' => array('required'),
-        'supplier_cost' => array('required'),
+        'spu' => array('required','','spu编码不能为空'),
+        'supplier_cost' => array('required','','供应商不能为空'),
 //        'name' => array('required'),
 //        'model' => array('required'),
     );
@@ -309,8 +309,9 @@ class GoodsModel extends PublicModel {
      * )
      */
     private function checkParam($param = [], $field = [], $supplier_cost = []) {
-        if (empty($param) || empty($field))
+        if (empty($param) || empty($field)) {
             return array();
+        }
         if (empty($supplier_cost)) {
             jsonReturn('', '1000', '请选择供应商!');
         }
@@ -320,15 +321,15 @@ class GoodsModel extends PublicModel {
                 switch ($item[0]) {
                     case 'required':
                         if ($v == '' || empty($v)) {
-                            jsonReturn('', '1000', 'Param ' . $k . ' Not null !');
+                            jsonReturn('', '1000', !empty($item[2]) ? $item[2] : $k.' 不能为空');
                         }
                         break;
                     case 'method':
                         if (!method_exists($item[1])) {
-                            jsonReturn('', '404', 'Method ' . $item[1] . ' nont find !');
+                            jsonReturn('', '404', '方法：' . $item[1] . '不存在!');
                         }
                         if (!call_user_func($item[1], $v)) {
-                            jsonReturn('', '1001', 'Param ' . $k . ' Validate failed !');
+                            jsonReturn('', '1001', !empty($item[2]) ? $item[2] : $k.'验证失败');
                         }
                         break;
                 }
@@ -484,6 +485,7 @@ class GoodsModel extends PublicModel {
                     }
                     //按语言分组
                     $kData[$item['lang']] = $item;
+                    $pData['model'] = isset($item['model']) ? $item['model'] : '';
                 }
                 $data = array_merge($kData, $pData);
 //                redisHashSet('Sku', md5(json_encode($where)), json_encode($data));
@@ -541,6 +543,10 @@ class GoodsModel extends PublicModel {
         } else {
             $sku = trim($input['sku']);
         }
+        $checkSku = isNum($sku);
+        if(!$checkSku) {
+            jsonReturn('',ErrorMsg::FAILED,'[sku]编码错误!');
+        }
         $spu = '';
         //获取当前用户信息
         $userInfo = getLoinInfo();
@@ -553,14 +559,17 @@ class GoodsModel extends PublicModel {
                     if(empty($value['name'])) {
                         $spuModel = new ProductModel();
                         $spuName = $spuModel->field('name')->where(['spu'=>$input['spu'],'lang'=>$key, 'deleted_flag' => 'N'])->find();
-
                         $value['name'] = $spuName['name'];
                     }
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
-                    if (empty($value['show_name'])) {
+
+                    /* if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
+                    }*/
+                    if(isset($input['model'])) {
+                        $value['model'] = $input['model'];
                     }
 //                    if (empty($input[$key]['name']) && empty($input[$key]['model']) && empty($input[$key]['attrs']['spec_attrs'])) {
 //                        jsonReturn('', ErrorMsg::EXIST, '名称、型号、扩展属性不能同时为空!');
@@ -571,8 +580,10 @@ class GoodsModel extends PublicModel {
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+                    if(empty($attr['spec_attrs'])){
+                        jsonReturn('', ErrorMsg::FAILED, '扩展属性不能为空');
+                    }
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
@@ -808,7 +819,7 @@ class GoodsModel extends PublicModel {
                 if ($boolen) {
                     return false;
                 } else {
-                    jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在');
+                    jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
                 }
             } else {
                 foreach ($other_attr as $key => $item) {
@@ -821,7 +832,7 @@ class GoodsModel extends PublicModel {
                         if ($boolen) {
                             return false;
                         } else {
-                            jsonReturn('', ErrorMsg::EXIST, '名称：' . $condition['name'] . '型号：' . $condition['model'] . '已存在' . '; 扩展属性重复!');
+                            jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
                         }
                     } else {
                         continue;
@@ -904,13 +915,20 @@ class GoodsModel extends PublicModel {
         if ($skuObj && is_array($skuObj)) {
             try {
                 $skuary = [];
+                $error_date = '';
                 foreach ($skuObj as $sku) {
                     if (self::STATUS_CHECKING == $status) {
+                        $error = $this->checkModify($sku, $lang);
+                        if($error) {
+                            $error_date .= $error;
+                        }
+
                         $where = [
                             'sku' => $sku,
+                            'deleted_flag' => 'N'
                         ];
                         if (!empty($lang)) {
-                            $where['lang'] = $lang;
+                            $exit_where['lang'] = $lang;
                         }
                         $result = $this->where($where)
                                 ->save(['status' => $status, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
@@ -933,6 +951,11 @@ class GoodsModel extends PublicModel {
                         if ($result && $sku) {
                             $skuary[] = array('sku' => $sku, 'lang' => $lang, 'remarks' => $remark);
                             if ('VALID' == $status) {
+                                $error = $this->checkModify($sku, $lang);
+                                if($error) {
+                                    $error_date .= $error;
+                                }
+
                                 $pModel = new ProductModel();                         //spu审核通过
                                 $spuCode = $this->field('spu')->where($where)->find();
                                 if ($spuCode) {
@@ -964,6 +987,10 @@ class GoodsModel extends PublicModel {
                         }
                     }
                 }
+
+                if(!empty($error_date)) {
+                    jsonReturn('',1000,$error_date);
+                }
                 if ($result) {
                     if (!empty($skuary)) {
                         $checkLogModel = new ProductCheckLogModel();          //审核记录
@@ -987,6 +1014,65 @@ class GoodsModel extends PublicModel {
             }
         }
         return false;
+    }
+
+    //批量报审校验
+    public function checkModify($sku, $lang) {
+        $error_date = '';
+        $supplierCostModel = new GoodsCostPriceModel();
+        $thisSupplierCost = $supplierCostModel->field('supplier_id')->where(['sku' => $sku, 'deleted_flag' => self::DELETE_N])->select();
+        if (!$thisSupplierCost) {
+            $error_date .= '[' . $sku . ']供应商信息缺失!';
+        }
+
+        $attrModel = new GoodsAttrModel();
+        $attrTable = $attrModel->getTableName();
+        $thisTable = $this->getTableName();
+
+        $exit_where = [
+            "$thisTable.sku" => $sku,
+            "$thisTable.deleted_flag" => self::DELETE_N,
+
+            "$attrTable.deleted_flag" => self::DELETE_N,
+        ];
+
+        if (!empty($lang)) {
+            $exit_where["$thisTable.lang"] = $lang;
+            $exit_where["$attrTable.lang"] = $lang;
+        }
+
+        $field = "$thisTable.lang, $thisTable.spu, $thisTable.name, $thisTable.model, $attrTable.spec_attrs";
+        $thisSkuInfo = $this->field($field)
+                ->join($attrTable . " On $attrTable.sku = $thisTable.sku AND $attrTable.lang = $thisTable.lang", 'LEFT')
+                ->where($exit_where)
+                ->select();
+
+        if (!$thisSkuInfo) {
+             $error_date .= '[' . $sku . ']不存在或已经删除!';
+        }
+        if($thisSupplierCost && $thisSkuInfo) {
+            foreach ($thisSkuInfo as $item) {
+                $where = [
+                    'spu' => $item['spu'],
+                    'name' => $item['name'],
+                    'model' => $item['model'],
+                    'lang' => $item['lang'],
+                    'sku' => array('neq', $sku),
+                    'deleted_flag' => self::DELETE_N,
+                    'status' => array('neq', self::STATUS_DRAFT)
+                ];
+
+                $thisSpecAttr['spec_attrs'] = $item['spec_attrs'] ? json_decode($item['spec_attrs'], true) : [];
+                $result = $this->_checkExit($where, $thisSpecAttr, $boolen = true);
+                if ($result === false) {
+                    $error_date .=  '[' . $item['lang']. ']' .$sku . '已存在!';
+                }
+                continue;
+            }
+        }
+        if(!empty($error_date)) {
+            return $error_date;
+        }
     }
 
     /**
@@ -1724,8 +1810,8 @@ class GoodsModel extends PublicModel {
             return false;
         }
         $where['spu'] = $spu['spu'];
-        $where['status'] = array('neq', self::STATUS_DELETED);
-//        $where['status'] = self::STATUS_VALID;
+//        $where['status'] = array('neq', self::STATUS_DELETED);
+        $where['status'] = self::STATUS_VALID;
         $where['deleted_flag'] = self::DELETE_N;
         $where['created_by'] = $userInfo['id'];
         return $this->where($where)->order($order)->select();
@@ -1815,15 +1901,20 @@ class GoodsModel extends PublicModel {
                 }
                 $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
                 if ($index >= $ext_goods_start && $index <= $ext_goods_end) {    //扩展属性
-                    if (!empty($value)) {
-                        $data['spec_attrs'][$key] = $value;
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue()); //转码
+                    if (!empty($key_attr) && !empty($value)) {
+                        $data['spec_attrs'][$key_attr] = $value;
                     }
+                    unset($key_attr);
                     continue;
                 }
+
                 if ($index >= $ext_hs_start) {    //申报要素扩展属性
-                    if (!empty($value)) {
-                        $data['ex_hs_attrs'][$key] = $value;
+                    $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue()); //转码
+                    if (!empty($key_attr) && !empty($value)) {
+                        $data['ex_hs_attrs'][$key_attr] = $value;
                     }
+                    unset($key_attr);
                     continue;
                 }
                 $data[$key] = $value;
@@ -1850,6 +1941,16 @@ class GoodsModel extends PublicModel {
             $input_sku = $data['订货号'];    //输入的sku  订货号
             $data_tmp['lang'] = $lang;
             $data_tmp['name'] = $data['名称'];    //名称
+            $spu_name = $productModel->field('name')->where(array("spu" => $spu, "lang" => $lang))->find();
+            if ($spu_name) {
+                if (empty($data_tmp['name'])) {
+                    $data_tmp['name'] = $spu_name['name'];
+                }
+            } else {
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[spu:' . $spu . ' 语言:' . $lang . '不存在]');
+                continue;
+            }
             $data_tmp['model'] = $data['型号'];    //型号
             $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
             if (empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])) {
@@ -1958,7 +2059,6 @@ class GoodsModel extends PublicModel {
             $data_tmp['source_detail'] = 'Excel批量导入';
             $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
             $data_tmp['created_at'] = date('Y-m-d H:i:s');
-            $data_tmp['status'] = $this::STATUS_VALID;
             // 数据组装与校验结束
 
             /**
@@ -1971,6 +2071,9 @@ class GoodsModel extends PublicModel {
                 'model' => $data_tmp['model'],
                 'deleted_flag' => 'N',
             );
+            if (!empty($input_sku)) {
+                $condition['sku'] = ['neq', $input_sku];
+            }
             $spec_attrs_array = array('spec_attrs' => $data['spec_attrs']);
             //数据导入
             $this->startTrans();
@@ -1993,7 +2096,7 @@ class GoodsModel extends PublicModel {
                     }
                 } else {
                     $workType = '添加';
-
+                    $data_tmp['status'] = $this::STATUS_CHECKING;
                     $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku(array(array('spu' => $spu)));    //生成sku
                     $result = $this->add($this->create($data_tmp));
                 }
@@ -2097,6 +2200,9 @@ class GoodsModel extends PublicModel {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:' . $e, Log::ERR);
                     continue;
                 }
+
+                //更新es
+                $es_goods_model->create_data($input_sku, $lang);
 
                 $objPHPExcel->getSheet(0)->setCellValue($itemNo . $i, ' ' . $input_sku);
                 $success++;
