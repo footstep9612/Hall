@@ -32,7 +32,7 @@ class FinalquoteController extends PublicController {
 
             //获取询单基本信息
             $inquirywhere['id'] = $where['id'];
-            $inquiryinfo = $inquiry->field('serial_no')->where($inquirywhere)->find();
+            $inquiryinfo = $inquiry->field('serial_no,agent_id')->where($inquirywhere)->find();
 
             if(isset($inquiryinfo)){
 
