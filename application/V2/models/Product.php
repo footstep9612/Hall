@@ -224,11 +224,16 @@ class ProductModel extends PublicModel {
         $this->startTrans();
         try {
             $userInfo = getLoinInfo(); //获取当前用户信息
+            $mcatModel = new MaterialcatModel();
             foreach ($input as $key => $item) {
                 if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
                     $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
                     if (empty($data) || empty($data['name'])) {
                         continue;
+                    }
+                    $mexist = $mcatModel->info($material_cat_no['material_cat_no'], $key);
+                    if (!$mexist) {
+                        jsonReturn('', ErrorMsg::FAILED, '物料分类编码不存在');
                     }
                     $data['lang'] = $key;
                     if(empty($data['material_cat_no'])){
