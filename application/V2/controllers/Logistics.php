@@ -117,7 +117,7 @@ class LogisticsController extends PublicController {
 	 * @author liujf
 	 * @time 2017-08-07
 	 */
-	public function getQuoteLogiListAction() {
+	/*public function getQuoteLogiListAction() {
 	    $condition = $this->put_data;
 	    
 	    if (!empty($condition['agent_name'])) {
@@ -182,7 +182,7 @@ class LogisticsController extends PublicController {
 	    } else {
 	        $this->jsonReturn(false);
 	    }
-	}
+	}*/
 	
 	/**
 	 * @desc 获取报价单物流费用详情接口
@@ -491,7 +491,15 @@ class LogisticsController extends PublicController {
 	        $this->inquiryModel->startTrans();
 	        $this->quoteModel->startTrans();
 	        
-	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_agent_id' => $condition['logi_agent_id'], 'status' => 'LOGI_QUOTING', 'updated_by' => $this->user['id']]);
+	        $data = [
+	            'id' => $condition['inquiry_id'], 
+	            'now_agent_id' => $condition['logi_agent_id'],
+	            'logi_agent_id' => $condition['logi_agent_id'], 
+	            'status' => 'LOGI_QUOTING',
+	            'updated_by' => $this->user['id']
+	        ];
+	        
+	        $res1 = $this->inquiryModel->updateData($data);
 	        
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_QUOTING']);
@@ -541,7 +549,15 @@ class LogisticsController extends PublicController {
 	        $this->inquiryModel->startTrans();
 	        $this->quoteModel->startTrans();
 	        
-	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'logi_check_id' => $logiCheckId, 'status' => 'LOGI_APPROVING', 'updated_by' => $this->user['id']]);
+	        $data = [
+	            'id' => $condition['inquiry_id'],
+	            'now_agent_id' => $logiCheckId,
+	            'logi_check_id' => $logiCheckId,
+	            'status' => 'LOGI_APPROVING',
+	            'updated_by' => $this->user['id']
+	        ];
+	        
+	        $res1 = $this->inquiryModel->updateData($data);
 	        
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);
@@ -603,7 +619,7 @@ class LogisticsController extends PublicController {
 	 * @author liujf
 	 * @time 2017-08-08
 	 */
-	public function submitProjectCheckAction() {
+	/*public function submitProjectCheckAction() {
 	    $condition = $this->put_data;
 	
 	    if (!empty($condition['inquiry_id'])) {
@@ -656,7 +672,7 @@ class LogisticsController extends PublicController {
 	    } else {
 	        $this->jsonReturn(false);
 	    }
-	}
+	}*/
 	
 	/**
 	 * @desc 物流退回接口
