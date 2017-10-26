@@ -1661,6 +1661,8 @@ class EsProductModel extends Model {
             $data = [];
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
+            $data['show_cats'] = [];
+            $data['sku_count'] = 0;
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
@@ -1680,10 +1682,11 @@ class EsProductModel extends Model {
                 $data = [];
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
+                $data['show_cats'] = [];
+                $data['sku_count'] = 0;
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
-
                 $esgoodsdata = [
                     "doc" => $data,
                     "query" => ['bool' => [ESClient::MUST => [

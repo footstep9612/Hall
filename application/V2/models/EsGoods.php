@@ -1200,30 +1200,40 @@ class EsGoodsModel extends Model {
      * @desc   ES 商品
      */
 
-    public function changestatus($sku, $status = 'VALID', $lang = 'en') {
-        try {
-            $es = new ESClient();
-            if (empty($sku)) {
-                return false;
-            }
-            if (in_array(strtoupper($status), ['VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED'])) {
-                $data['status'] = strtoupper($status);
-            } else {
-                $data['status'] = 'CHECKING';
-            }
-            $id = $sku;
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if ($flag['_shards']['successful'] !== 1) {
-                LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+    public function changestatus($skus, $status = 'VALID', $lang = 'en', $checked_by = '') {
+        $es = new ESClient();
+        if (empty($skus)) {
             return false;
         }
+
+        $type = 'goods_' . $lang;
+        if (is_string($skus)) {
+
+            $sku = $skus;
+            $data = [];
+            $data['deleted_flag'] = 'N';
+            $data['checked_by'] = $checked_by;
+            $data['checked_at'] = date('Y-m-d H:i:s');
+            $data['status'] = $status;
+            $type = $this->tableName . '_' . $lang;
+            $es->update_document($this->dbName, $type, $data, $sku);
+        } elseif (is_array($skus)) {
+            $updateParams = [];
+            $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'goods_' . $lang;
+            foreach ($skus as $sku) {
+                $data = [];
+                $data['deleted_flag'] = 'N';
+                $data['checked_by'] = $checked_by;
+                $data['checked_at'] = date('Y-m-d H:i:s');
+                $data['status'] = $status;
+                $updateParams['body'][] = ['update' => ['_id' => $sku]];
+                $updateParams['body'][] = ['doc' => $data];
+            }
+            $es->bulk($updateParams);
+        }
+
+        return true;
     }
 
     /* 新增ES
@@ -1375,27 +1385,63 @@ class EsGoodsModel extends Model {
      * @desc   ES 商品
      */
 
-    public function delete_data($sku, $lang = 'en') {
+    public function delete_data($skus, $lang = 'en') {
         $es = new ESClient();
-        if (empty($sku)) {
+        if (empty($skus)) {
             return false;
         }
-        $data['status'] = self::STATUS_DELETED;
-        $data['deleted_flag'] = 'Y';
-        $id = $sku;
-        if ($lang) {
+        $type = 'goods_' . $lang;
+
+        if (is_string($skus)) {
+            $goods = $this->field('spu')->where(['sku' => $skus, 'lang' => $lang])->find();
+            $sku = $skus;
+            $data = [];
+            $data['onshelf_flag'] = 'N';
+            $data['deleted_flag'] = 'Y';
+            $data['show_cats'] = [];
+
+            $data['status'] = self::STATUS_DELETED;
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $id);
-        } else {
-            $type = $this->tableName . '_en';
-            $es->update_document($this->dbName, $type, $data, $id);
-            $type = $this->tableName . '_es';
-            $es->update_document($this->dbName, $type, $data, $id);
-            $type = $this->tableName . '_ru';
-            $es->update_document($this->dbName, $type, $data, $id);
-            $type = $this->tableName . '_es';
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->dbName, $type, $data, $sku);
+            if (isset($goods['spu']) && $goods['spu']) {
+                $product_model = new ProductModel();
+                $product = $product_model->field('sku_count')->where(['spu' => $goods['spu'], 'lang' => $lang])->find();
+                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => isset($product['sku_count']) && $product['sku_count'] ? $product['sku_count'] : 0], $goods['spu']);
+            }
+        } elseif (is_array($skus)) {
+            $product_updateParams = $updateParams = [];
+            $product_updateParams['index'] = $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'goods_' . $lang;
+            $product_updateParams['type'] = 'product_' . $lang;
+            $goodses = $this->field('spu')->where(['sku' => ['in', $skus], 'lang' => $lang])->group('spu')->select();
+            $spus = [];
+            if ($goodses) {
+                foreach ($goodses as $goods) {
+                    $spus[] = $goods['spu'];
+                }
+                $product_model = new ProductModel();
+                $products = $product_model->field('spu,sku_count')->where(['spu' => ['in', $spus], 'lang' => $lang])->select();
+            }
+            foreach ($skus as $sku) {
+                $data = [];
+                $data['onshelf_flag'] = 'N';
+                $data['deleted_flag'] = 'Y';
+                $data['show_cats'] = [];
+                $data['status'] = self::STATUS_DELETED;
+                $updateParams['body'][] = ['update' => ['_id' => $sku]];
+                $updateParams['body'][] = ['doc' => $data];
+            }
+            $es->bulk($updateParams);
+
+            foreach ($products as $product) {
+                $data = [];
+                $data['sku_count'] = $product['sku_count'];
+                $product_updateParams['body'][] = ['update' => ['_id' => $product['spu']]];
+                $product_updateParams['body'][] = ['doc' => $data];
+            }
+            $es->bulk($product_updateParams);
         }
+
         return true;
     }
 
