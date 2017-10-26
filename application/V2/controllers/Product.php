@@ -133,12 +133,14 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $result = $productModel->deleteInfo($this->put_data['spu'], $lang);
         if ($result) {
+            $es_product_model = new EsProductModel();
             if ($lang) {
-                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
-                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+                $es_product_model->delete_data($this->put_data['spu'], $lang);
             } else {
-                $this->updateEsproduct(null, $this->put_data['spu']);
-                $this->updateEsgoods(null, $this->put_data['spu']);
+                $langs = ['en', 'zh', 'es', 'ru'];
+                foreach ($langs as $lang) {
+                    $es_product_model->delete_data($this->put_data['spu'], $lang);
+                }
             }
             jsonReturn($result);
         } else {
@@ -344,6 +346,7 @@ class ProductController extends PublicController {
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->onShelf($spu, $lang, $cat_no);
         if ($result !== false) {
+            $es_product_model = new EsProductModel();
             if (is_array($this->put_data['spu'])) {
                 if ($result) {
                     $message = '成功！[';
@@ -352,11 +355,12 @@ class ProductController extends PublicController {
                     }
                     $message = substr($message, 0, -1) . ']';
                     if ($lang) {
-                        $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
-                        $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+                        $es_product_model->Updateshelf($spu, $lang, 'Y', $this->user['id']);
                     } else {
-                        $this->updateEsproduct(null, $this->put_data['spu']);
-                        $this->updateEsgoods(null, $this->put_data['spu']);
+                        $langs = ['en', 'zh', 'es', 'ru'];
+                        foreach ($langs as $lang) {
+                            $es_product_model->Updateshelf($spu, $lang, 'Y', $this->user['id']);
+                        }
                     }
                     jsonReturn(true, ErrorMsg::SUCCESS, $message);
                 }
@@ -366,11 +370,12 @@ class ProductController extends PublicController {
                 }
             }
             if ($lang) {
-                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
-                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+                $es_product_model->Updateshelf($spu, $lang, 'Y', $this->user['id']);
             } else {
-                $this->updateEsproduct(null, $this->put_data['spu']);
-                $this->updateEsgoods(null, $this->put_data['spu']);
+                $langs = ['en', 'zh', 'es', 'ru'];
+                foreach ($langs as $lang) {
+                    $es_product_model->Updateshelf($spu, $lang, 'Y', $this->user['id']);
+                }
             }
             jsonReturn(true);
         } else {
@@ -398,12 +403,14 @@ class ProductController extends PublicController {
         $showCatProduct = new ShowCatProductModel();
         $result = $showCatProduct->downShelf($this->put_data['spu'], $lang, $cat_no);
         if ($result) {
+            $es_product_model = new EsProductModel();
             if ($lang) {
-                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
-                $this->updateEsgoods([$lang => $lang], $this->put_data['spu']);
+                $es_product_model->Updateshelf($this->put_data['spu'], $lang, 'N', $this->user['id']);
             } else {
-                $this->updateEsproduct(null, $this->put_data['spu']);
-                $this->updateEsgoods(null, $this->put_data['spu']);
+                $langs = ['en', 'zh', 'es', 'ru'];
+                foreach ($langs as $lang) {
+                    $es_product_model->Updateshelf($this->put_data['spu'], $lang, 'N', $this->user['id']);
+                }
             }
             jsonReturn(true);
         } else {
@@ -448,7 +455,7 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '请上传导入数据');
         }
         if (!in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
-            jsonReturn('', ErrorMsg::ERROR_PARAM , '语言错误');
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '语言错误');
         }
         $process = isset($this->put_data['process']) ? 1 : '';
 

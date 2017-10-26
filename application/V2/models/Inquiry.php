@@ -18,6 +18,21 @@ class InquiryModel extends PublicModel {
     const logiIssueMainRole = 'A005'; //物流报价主分单员角色编号
     const logiIssueAuxiliaryRole = 'A006'; //物流报价辅分单员角色编号
     const logiCheckRole = 'A007'; //物流报价审核人角色编号
+    
+    public $inquiryStatus = [
+        'DRAFT' => '草稿',
+        'BIZ_DISPATCHING' => '事业部分单员',
+        'CC_DISPATCHING' => '易瑞客户中心分单员',
+        'BIZ_QUOTING' => '事业部报价',
+        'LOGI_DISPATCHING' => '物流分单员',
+        'LOGI_QUOTING' => '物流报价',
+        'LOGI_APPROVING' => '物流审核',
+        'BIZ_APPROVING' => '事业部核算',
+        'MARKET_APPROVING' => '市场主管审核',
+        'MARKET_CONFIRMING' => '市场确认',
+        'QUOTE_SENT' => '报价单已发出',
+        'INQUIRY_CLOSED' => '报价关闭'
+    ];
 
     public function __construct() {
         parent::__construct();

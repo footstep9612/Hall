@@ -288,7 +288,7 @@ class InquiryController extends PublicController {
                 $this->jsonReturn();
             }
         } else {
-            $this->setCode('-101');
+            $this->setCode('-103');
             $this->setMessage('缺少参数!');
             $this->jsonReturn();
         }
@@ -377,7 +377,7 @@ class InquiryController extends PublicController {
                 $this->jsonReturn();
             }
         } else {
-            $this->setCode('-101');
+            $this->setCode('-103');
             $this->setMessage('缺少参数!');
             $this->jsonReturn();
         }
@@ -409,21 +409,6 @@ class InquiryController extends PublicController {
         } else {
             $results['data']['agent_list'] = '';
         }*/
-        
-        $status = [
-            'DRAFT' => '草稿',
-            'BIZ_DISPATCHING' => '事业部分单员',
-            'CC_DISPATCHING' => '易瑞客户中心分单员',
-            'BIZ_QUOTING' => '事业部报价',
-            'LOGI_DISPATCHING' => '物流分单员',
-            'LOGI_QUOTING' => '物流报价',
-            'LOGI_APPROVING' => '物流审核',
-            'BIZ_APPROVING' => '事业部核算',
-            'MARKET_APPROVING' => '市场主管审核',
-            'MARKET_CONFIRMING' => '市场确认',
-            'QUOTE_SENT' => '报价单已发出',
-            'INQUIRY_CLOSED' => '报价关闭'
-        ];
         
         //经办人
         if (!empty($results['data']['agent_id'])) {
@@ -471,10 +456,12 @@ class InquiryController extends PublicController {
             $results['data']['logi_check_name'] = $rs8['name'];
         }
         //当前办理人
-        $rs9 = $employee->field('name')->where('id=' . $this->user['id'])->find();
-        $results['data']['current_name'] = $rs9['name'];
+        if (!empty($results['data']['now_agent_id'])) {
+            $rs9 = $employee->field('name')->where('id=' . $results['data']['now_agent_id'])->find();
+            $results['data']['current_name'] = $rs9['name'];
+        }
         
-        $results['data']['status_name'] = $status[$results['data']['status']];
+        $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
 
         //权限
         //$results['auth'] = $auth['code'];
@@ -508,17 +495,16 @@ class InquiryController extends PublicController {
      */
 
     public function updateAction() {
-        $auth = $this->checkAuthAction();
+        //$auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
-        if(empty($data['status'])){
+        /*if(empty($data['status'])){
             if ($auth['code'] == 1) {
                 $data['status'] = 'APPROVING_BY_SC';
             }
-        }
-
+        }*/
 
         $results = $inquiry->updateData($data);
         $this->jsonReturn($results);
@@ -787,36 +773,53 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    /*
-     * 审核日志列表
-     * Author:张玉良
+   /**
+     * @desc 获取日志列表
+     *
+     * @author liujf
+     * @time 2017-10-26
      */
-
     public function getCheckLogListAction() {
-        $checklog = new CheckLogModel();
-        $employee = new EmployeeModel();
-        $roleuser = new RoleUserModel();
-        $data = $this->put_data;
-        if (!empty($data['inquiry_id'])) {
-            $results = $checklog->getList($data);
-
-            foreach ($results['data'] as $key => $val) {
-                $employeedata = $employee->field('id,name')->where('id=' . $val['op_id'])->find();
-                $results['data'][$key]['op_name'] = $employeedata['name'];
-
-                $roledata = $roleuser->alias('a')
-                        ->join('erui_sys.role b ON a.role_id = b.id', 'LEFT')
-                        ->where('a.employee_id=' . $val['op_id'])
-                        ->field('b.name,b.name_en,b.remarks')
-                        ->find();
-                $results['data'][$key]['op_role'] = $roledata['name'];
+        $condition = $this->put_data;
+    
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryModel = new InquiryModel();
+            $inquiryCheckLogModel = new InquiryCheckLogModel();
+            $employeeModel = new EmployeeModel();
+            
+            $inquiryCheckLogList = $inquiryCheckLogModel->getList($condition);
+            
+            $action = [
+                'CREATE' => '流转',
+                'REJECT' => '驳回',
+                'APPROVE' => '审核',
+                'REMIND' => '催办'
+            ];
+            
+            foreach ($inquiryCheckLogList as &$inquiryCheckLog) {
+                $inquiryCheckLog['action_name'] = $action[$inquiryCheckLog['action']];
+                $inquiryCheckLog['in_node_name'] = $inquiryModel->inquiryStatus[$inquiryCheckLog['in_node']];
+                $inquiryCheckLog['out_node_name'] = $inquiryModel->inquiryStatus[$inquiryCheckLog['out_node']];
+                $employee = $employeeModel->field('name')->where(['id' => $inquiryCheckLog['created_by']])->find();
+                $inquiryCheckLog['created_name'] = $employee['name'];
+            }
+             
+            if ($inquiryCheckLogList) {
+                $res['code'] = 1;
+        		$res['message'] = '成功!';
+                $res['data'] = $inquiryCheckLogList;
+                $res['count'] = $inquiryCheckLogModel->getCount($condition);
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
             }
         } else {
-            $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $this->setCode('-103');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
         }
-
-        $this->jsonReturn($results);
     }
 
     /*
