@@ -15,7 +15,7 @@ class SupplierAccountModel extends PublicModel
 {
 
     protected $tableName = 'supplier_account';
-    protected $dbName = 'erui2_supplier'; //数据库名称
+    protected $dbName = 'erui_supplier'; //数据库名称
 
     public function __construct($str = '')
     {

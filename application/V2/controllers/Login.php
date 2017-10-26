@@ -38,6 +38,8 @@ class LoginController extends Yaf_Controller_Abstract {
         $model = new UserModel();
         $info = $model->login($arr);
         if ($info) {
+            $info['group_id'] = array();
+            $info['group_org'] = array() ;
             $group_model = new GroupModel();
             $group_where['em.id']=$info['id'];
             $list = $group_model->getlist($group_where,"");
@@ -47,14 +49,25 @@ class LoginController extends Yaf_Controller_Abstract {
                     $info['group_org'][] =$list[$i]['org'] ;
                 }
             }
-//            $role_model = new RoleModel();
-//            $role_where['em.id']=$info['id'];
-//            $list_role = $role_model->getlist($group_where,"");
-//            if($list_role){
-//                for($i=0;$i<count($list_role);$i++){
-//                    $info['role_id'][] =$list_role[$i]['id'] ;
-//                }
-//            }
+            $info['role_id'] = array();;
+            $info['role_no'] = array(); ;
+            $role_model = new RoleModel();
+            $role_where['em.id']=$info['id'];
+            $list_role = $role_model->getlist($group_where,"");
+            if($list_role){
+                for($i=0;$i<count($list_role);$i++){
+                    $info['role_id'][] =$list_role[$i]['id'] ;
+                    $info['role_no'][] =$list_role[$i]['role_no'] ;
+                }
+            }
+            $info['country_bn'] = array();
+            $country_model = new CountryUserModel();
+            $list_country = $country_model->userCountry($info['id']);
+            if($list_country){
+                for($i=0;$i<count($list_country);$i++){
+                    $info['country_bn'][] =$list_country[$i]['bn'] ;
+                }
+            }
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['ext'] = time();
@@ -62,6 +75,11 @@ class LoginController extends Yaf_Controller_Abstract {
             $jwt['name'] = $info['name'];
             $datajson['mobile'] = $info['mobile'];
             $datajson['id'] = $info['id'];
+            $datajson['group_id'] = $info['group_id'];
+            $datajson['group_org'] = $info['group_org'];
+            $datajson['country_bn'] = $info['country_bn'];
+            $datajson['role_id'] = $info['role_id'];
+            $datajson['role_no'] = $info['role_no'];
             $datajson['email'] = $info['email'];
             $datajson['name'] = $info['name'];
             $datajson['password_status'] = $info['password_status'];

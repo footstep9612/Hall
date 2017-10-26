@@ -9,7 +9,7 @@
  */
 class OrderLogModel extends PublicModel {
 
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
     protected $tableName = 'order_log'; //数据表表名
 
     /**
@@ -202,12 +202,12 @@ class OrderLogModel extends PublicModel {
 
         try {
             $count = $this->alias('a')
-                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
                     ->where($where)
                     ->count('a.id');
 
             $list = $this->alias('a')
-                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
                     ->field($field)
                     ->where($where)
                     ->page($page, $pagesize)
@@ -254,7 +254,7 @@ class OrderLogModel extends PublicModel {
         try {
             $count = $this->getCount($condition);
             $list = $this->alias('a')
-                    ->join('erui2_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
                     ->field($field)
                     ->where($where)
                     ->page($page, $pagesize)
@@ -398,17 +398,17 @@ class OrderLogModel extends PublicModel {
                     }else{
                         $results['code'] = '-101';
                         $results['message'] = '没有获取采购商信息，无法授信!';
-                        $this->jsonReturn($results);
+                        return $results;
                     }
                 }else{
                     $results['code'] = '-101';
                     $results['message'] = '订单没有采购商，无法授信!';
-                    $this->jsonReturn($results);
+                    return $results;
                 }
             }else{
                 $results['code'] = '-101';
                 $results['message'] = '修改失败,请输入正确的订单号!';
-                $this->jsonReturn($results);
+                return $results;
             }
         }
         try {
@@ -442,7 +442,9 @@ class OrderLogModel extends PublicModel {
             $results['message'] = '没有流程ID!';
             return $results;
         }
+
         try {
+
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
             //如果收款全部删除订单状态变成未支付
             $info = $this->where($where)->find();
@@ -469,29 +471,29 @@ class OrderLogModel extends PublicModel {
                             if($buyer_info['credit_available']<0){
                                 $results['code'] = '-101';
                                 $results['message'] = '可用金额小于0请认真核对，无法删除!';
-                                $this->jsonReturn($results);
+                                return $results;
                             }
                             if($buyer_info['line_of_credit']>$buyer_info['credit_available']){
                                 $buyer_model->where(['id'=>$order_info['buyer_id']])->setField(['credit_available'=>$buyer_info['credit_available']]);
                             }else{
                                 $results['code'] = '-101';
                                 $results['message'] = '可用金额大于授信总额，无法授信!';
-                                $this->jsonReturn($results);
+                                return $results;
                             }
                         }else{
                             $results['code'] = '-101';
                             $results['message'] = '没有获取采购商信息，无法授信!';
-                            $this->jsonReturn($results);
+                            return $results;
                         }
                     }else{
                         $results['code'] = '-101';
                         $results['message'] = '订单没有采购商，无法授信!';
-                        $this->jsonReturn($results);
+                        return $results;
                     }
                 }else{
                     $results['code'] = '-101';
                     $results['message'] = '修改失败,请输入正确的订单号!';
-                    $this->jsonReturn($results);
+                    return $results;
                 }
             }
             if ($id) {

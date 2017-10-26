@@ -222,7 +222,7 @@ class PortController extends PublicController {
         $rconfig = $config->redis->config->toArray();
         $rconfig['dbname'] = 3;
         $redis3 = new phpredis($rconfig);
-        $keys3 = $redis3->getKeys('Tradeterms*');
+        $keys3 = $redis3->getKeys('Port');
         $redis3->delete($keys3);
         unset($redis3);
     }

@@ -7,7 +7,7 @@
 class GoodsAttrTplModel extends PublicModel
 {
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'goods_attr_tpl'; //数据表表名
 
     //状态

@@ -9,7 +9,7 @@
  */
 class EmployeeModel extends PublicModel {
 
-    protected $dbName = 'erui2_sys'; //数据库名称
+    protected $dbName = 'erui_sys'; //数据库名称
     protected $tableName = 'employee'; //数据表表名
 
     const DELETE_Y = 'Y';   //删除

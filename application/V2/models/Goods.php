@@ -9,8 +9,8 @@
 class GoodsModel extends PublicModel {
 
     protected $tableName = 'goods';
-    protected $dbName = 'erui2_goods'; //数据库名称
-    protected $g_table = 'erui2_goods.goods';
+    protected $dbName = 'erui_goods'; //数据库名称
+    protected $g_table = 'erui_goods.goods';
 
     //状态
 
@@ -552,20 +552,20 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
+
             foreach ($input as $key => $value) {
                 $arr = ['zh', 'en', 'ru', 'es'];
                 if (in_array($key, $arr)) {
-                    if (empty($value['name'])) {
+                    if(empty($value['name'])) {
                         $spuModel = new ProductModel();
-                        $spuName = $spuModel->field('name')->where(['spu' => $value['spu'], 'lang' => $key,
-                                    'deleted_flag' => 'N'])->find();
-
+                        $spuName = $spuModel->field('name')->where(['spu'=>$input['spu'],'lang'=>$key, 'deleted_flag' => 'N'])->find();
                         $value['name'] = $spuName['name'];
                     }
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
-                   /* if (empty($value['show_name'])) {
+
+                    /* if (empty($value['show_name'])) {
                         $value['show_name'] = $value['name'];
                     }*/
                     if(isset($input['model'])) {
@@ -576,11 +576,10 @@ class GoodsModel extends PublicModel {
 //                    }
                     //字段校验
                     $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
-
+                    $spu = $checkout['spu'];
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-                    $spu = $checkout['spu'];
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
                     if(empty($attr['spec_attrs'])){
                         jsonReturn('', ErrorMsg::FAILED, '扩展属性不能为空');
@@ -748,7 +747,6 @@ class GoodsModel extends PublicModel {
                         $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $gcostprice = new GoodsCostPriceModel();
                         $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
-
                         if (!$resCost || $resCost['code'] != 1) {
                             $this->rollback();
                             return false;

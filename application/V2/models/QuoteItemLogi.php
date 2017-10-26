@@ -7,12 +7,13 @@
  */
 class QuoteItemLogiModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'quote_item_logi';
-    protected $joinTable1 = 'erui2_rfq.quote_item b ON a.quote_item_id = b.id';
-    protected $joinTable2 = 'erui2_goods.goods c ON b.sku = c.sku AND c.lang = \'zh\'';
-    protected $joinTable3 = 'erui2_sys.employee d ON b.bizline_agent_id = d.id';
-    protected $joinField = 'a.id, a.tax_no, a.rebate_rate, a.export_tariff_rate, a.supervised_criteria, b.sku, b.quote_qty, b.quote_unit, b.net_weight_kg, b.gross_weight_kg, b.package_size, c.name AS name_zh, c.show_name_loc, d.name AS quoter';
+    protected $joinTable1 = 'erui_rfq.quote_item b ON a.quote_item_id = b.id';
+    protected $joinTable2 = 'erui_goods.goods c ON b.sku = c.sku AND c.lang = \'zh\'';
+    protected $joinTable3 = 'erui_rfq.quote d ON a.inquiry_id = d.inquiry_id';
+    protected $joinTable4 = 'erui_sys.employee e ON d.biz_quote_by = e.id';
+    protected $joinField = 'a.id, a.tax_no, a.rebate_rate, a.export_tariff_rate, a.supervised_criteria, b.sku, b.quote_qty, b.quote_unit, b.net_weight_kg, b.gross_weight_kg, b.package_size, c.name AS name_zh, c.show_name_loc, e.name AS quoter';
 			    
     public function __construct() {
         parent::__construct();
@@ -34,8 +35,8 @@ class QuoteItemLogiModel extends PublicModel {
             $where['a.id'] = $condition['id'];
         }
          
-        if(!empty($condition['quote_id'])) {
-            $where['a.quote_id'] = $condition['quote_id'];
+        if(!empty($condition['inquiry_id'])) {
+            $where['a.inquiry_id'] = $condition['inquiry_id'];
         }
          
         $where['a.deleted_flag'] = 'N';
@@ -60,6 +61,7 @@ class QuoteItemLogiModel extends PublicModel {
                                  ->join($this->joinTable1, 'LEFT')
                                  ->join($this->joinTable2, 'LEFT')
                                  ->join($this->joinTable3, 'LEFT')
+                                 ->join($this->joinTable4, 'LEFT')
                                  ->where($where)
                                  ->count('a.id');
          
@@ -85,6 +87,7 @@ class QuoteItemLogiModel extends PublicModel {
                             ->join($this->joinTable1, 'LEFT')
                             ->join($this->joinTable2, 'LEFT')
                             ->join($this->joinTable3, 'LEFT')
+                            ->join($this->joinTable4, 'LEFT')
                             ->field($this->joinField)
                             ->where($where)
                             //->page($currentPage, $pageSize)

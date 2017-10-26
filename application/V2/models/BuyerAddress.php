@@ -15,7 +15,7 @@ class BuyerAddressModel extends PublicModel
 {
 
     //put your code here
-    protected $dbName = 'erui2_buyer';
+    protected $dbName = 'erui_buyer';
     protected $tableName = 'buyer_address';
 
     public function __construct($str = '')
@@ -156,6 +156,7 @@ class BuyerAddressModel extends PublicModel
             $data['official_email'] = $condition['official_email'];
         }
         $data['created_at'] =date("Y-m-d H:i:s");
+
         if($this->where($where)->find()){
             return $this->where($where)->save($data);
         }else{
@@ -163,5 +164,6 @@ class BuyerAddressModel extends PublicModel
             $data = $this->create($data);
             return $this->add($data);
         }
+
     }
 }

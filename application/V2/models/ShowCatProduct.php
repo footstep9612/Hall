@@ -15,7 +15,7 @@ class ShowCatProductModel extends PublicModel {
     const STATUS_ONSHELF = 'Y';    //上架
     const STATUS_UNSHELF = 'N';    //未上架
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'show_cat_product';
 
     public function __construct() {
@@ -117,8 +117,8 @@ class ShowCatProductModel extends PublicModel {
                         }
 
                         //检查上架
-                        $exist = $this->field('id')->where(array('spu'=>$data_tmp['spu'],'cat_no'=>$data_tmp['cat_no'],'lang'=> $data_tmp['lang'],'onshelf_flag'=>self::STATUS_ONSHELF))->find();
-                        if($exist){
+                        $exist = $this->field('id')->where(array('spu' => $data_tmp['spu'], 'cat_no' => $data_tmp['cat_no'], 'lang' => $data_tmp['lang'], 'onshelf_flag' => self::STATUS_ONSHELF))->find();
+                        if ($exist) {
                             continue;
                         }
                         $data[] = $data_tmp;
@@ -162,8 +162,8 @@ class ShowCatProductModel extends PublicModel {
                     } else {
                         $data_tmp['cat_no'] = $r;
                     }
-                    $exist = $this->field('id')->where(array('spu'=>$data_tmp['spu'],'cat_no'=>$data_tmp['cat_no'],'lang'=> $data_tmp['lang'],'onshelf_flag'=>self::STATUS_ONSHELF))->find();
-                    if($exist){
+                    $exist = $this->field('id')->where(array('spu' => $data_tmp['spu'], 'cat_no' => $data_tmp['cat_no'], 'lang' => $data_tmp['lang'], 'onshelf_flag' => self::STATUS_ONSHELF))->find();
+                    if ($exist) {
                         continue;
                     }
                     $data[] = $data_tmp;
@@ -248,7 +248,7 @@ class ShowCatProductModel extends PublicModel {
         try {
             if ($spus && is_array($spus)) {
                 $show_cat_products = $this->alias('scp')
-                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->join('erui_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no,scp.spu,scp.onshelf_flag')
                         ->where(['scp.spu' => ['in', $spus],
                             'scp.status' => 'VALID',
@@ -299,9 +299,9 @@ class ShowCatProductModel extends PublicModel {
 
     public function getShowcatnosByspu($spu, $lang = 'en') {
         try {
-            if ($spus && is_array($spus)) {
+            if ($spu && is_string($spu)) {
                 $show_cat_products = $this->alias('scp')
-                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->join('erui_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no')
                         ->where(['scp.spu' => $spu,
                             'scp.status' => 'VALID',

@@ -9,7 +9,7 @@
 class GoodsCostPriceModel extends PublicModel {
 
     protected $tableName = 'goods_cost_price'; //数据表名称
-    protected $dbName = 'erui2_goods';         //数据库名称
+    protected $dbName = 'erui_goods';         //数据库名称
 
     public function __construct($str = '') {
 
@@ -122,14 +122,20 @@ class GoodsCostPriceModel extends PublicModel {
             $results['code'] = '-1001';
             $results['message'] = '[sku]缺失!';
         }
-//        if (empty($checkout['min_purchase_qty'])) {
-//            $results['code'] = '-1001';
-//            $results['message'] = '[最小购买量]缺失!';
-//        }
+       /* if (empty($checkout['min_purchase_qty'])) {
+            $results['code'] = '-1001';
+            $results['message'] = '[最小购买量]缺失!';
+        }
+        if (empty($checkout['price']) || !is_numeric($checkout['price'])) {
+            $results['code'] = '-1001';
+            $results['message'] = '[价格]缺失或非数字!';
+        }*/
+
         if (empty($checkout['supplier_id'])) {
             $results['code'] = '-1001';
-            $results['message'] = '[supplier_id]缺失!';
+            $results['message'] = '[供应商]缺失!';
         }
+
         if (!empty($checkout['supplier_id'])) {
             $data['supplier_id'] = $checkout['supplier_id'];
         }
@@ -139,7 +145,7 @@ class GoodsCostPriceModel extends PublicModel {
         if (!empty($checkout['contact_last_name'])) {
             $data['contact_last_name'] = $checkout['contact_last_name'];
         }
-        if (!empty($checkout['price'])) {
+        if (!empty($checkout['price']) && is_numeric($checkout['price'])) {
             $data['price'] = $checkout['price'];
         }
         if (!empty($checkout['max_price'])) {
@@ -166,6 +172,7 @@ class GoodsCostPriceModel extends PublicModel {
         if (!empty($checkout['id'])) {
             $data['id'] = $checkout['id'];
         }
+
         if($results){
             jsonReturn($results);
         }

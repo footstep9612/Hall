@@ -124,6 +124,9 @@ class UrlpermController extends PublicController {
             $datajson['message'] = '地址不可为空!';
             $this->jsonReturn($datajson);
         }
+        if(!isset($data['parent_id'])||!$data['parent_id']){
+            $data['parent_id'] = 0;
+        }
         if(!isset($data['fn'])){
             $datajson['code'] = -101;
             $datajson['message'] = '方法名不可为空!';

@@ -14,7 +14,7 @@ class ShowCatModel extends PublicModel {
     const STATUS_VALID = 'VALID'; //生效；
     const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
-    protected $dbName = 'erui2_goods';
+    protected $dbName = 'erui_goods';
     protected $tableName = 'show_cat';
 
     public function __construct() {
@@ -410,18 +410,18 @@ class ShowCatModel extends PublicModel {
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
 
-            $this->Table('erui2_goods.show_material_cat')->where([
+            $this->Table('erui_goods.show_material_cat')->where([
                         'show_cat_no' => $cat_no])
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_goods')->where($where)
+            $this->Table('erui_goods.show_cat_goods')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_product')->where($where)
+            $this->Table('erui_goods.show_cat_product')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
@@ -441,17 +441,17 @@ class ShowCatModel extends PublicModel {
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
 
-            $this->Table('erui2_goods.show_material_cat')->where($pwhere)
+            $this->Table('erui_goods.show_material_cat')->where($pwhere)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_goods')->where($where)
+            $this->Table('erui_goods.show_cat_goods')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui2_goods.show_cat_product')->where($where)
+            $this->Table('erui_goods.show_cat_product')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
@@ -562,9 +562,10 @@ class ShowCatModel extends PublicModel {
         $langs = ['en', 'es', 'zh', 'ru'];
         $data['updated_by'] = defined('UID') ? UID : 0;
         $data['updated_at'] = date('Y-m-d H:i:s');
-
+        $old_info = [];
         foreach ($langs as $lang) {
             if (isset($condition[$lang]) && $condition[$lang]['name']) {
+                $old_info[$lang] = $this->where(['cat_no' => $where['cat_no'], 'lang' => $lang])->field('id,cat_no,name')->find();
                 $data['lang'] = $lang;
                 $data['name'] = $condition[$lang]['name'];
                 $where['lang'] = $lang;
@@ -580,19 +581,38 @@ class ShowCatModel extends PublicModel {
                 }
             }
         }
+        $flag = $this->_updateOther($upcondition, $where, $data, $cat_no, $old_info);
+        if (!$flag) {
+            $this->rollback();
+            return false;
+        }
+        $this->commit();
+        return $flag;
+    }
+
+    /**
+     * 更新子分类数据和 产品商品展示分类信息
+     * @param  mix $upcondition 更新条件
+     * @return mix
+     * @author zyg
+     */
+    private function _updateOther(&$upcondition, &$where, &$data, &$cat_no, &$old_info) {
+        $condition = $upcondition;
+        $langs = ['en', 'es', 'zh', 'ru'];
+
         if ($upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
+
             $childs = $this->get_list($cat_no);
             foreach ($childs as $key => $val) {
                 $child_cat_no = $this->getCatNo($data['cat_no'], 3);
                 $flag = $this->where(['cat_no' => $val['cat_no']])
                         ->save(['cat_no' => $child_cat_no, 'parent_cat_no' => $data['cat_no']]);
                 if ($flag === false) {
-                    $this->rollback();
+
                     return false;
                 }
                 $flag = $this->updateothercat($val['cat_no'], $child_cat_no);
                 if ($flag === false) {
-                    $this->rollback();
                     return false;
                 }
                 if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
@@ -615,6 +635,7 @@ class ShowCatModel extends PublicModel {
                 }
             }
         } elseif ($upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
+
             $flag = $this->updateothercat($where['cat_no'], !empty($cat_no) ? $cat_no : $where['cat_no']);
             if (isset($condition['material_cat_nos']) && $condition['material_cat_nos']) {
                 $show_material_cat_model = new ShowMaterialCatModel();
@@ -635,10 +656,11 @@ class ShowCatModel extends PublicModel {
                 $falg = $show_material_cat_model->addAll($dataList);
             }
             if (!$flag) {
-                $this->rollback();
+
                 return false;
             }
         } elseif ($upcondition['level_no'] == 3) {
+
             $show_material_cat_model = new ShowMaterialCatModel();
             $show_material_cat_model->where(['show_cat_no' => $where['cat_no']])
                     ->delete();
@@ -654,10 +676,29 @@ class ShowCatModel extends PublicModel {
                     'updated_by' => defined('UID') ? UID : 0
                 ];
             }
-            $falg = $show_material_cat_model->addAll($dataList);
+
+            $flag = $show_material_cat_model->addAll($dataList);
+
+            $es_product_model = new EsProductModel();
+            foreach ($langs as $lang) {
+                $info = $old_info[$lang];
+
+                if (isset($upcondition[$lang]['name']) && isset($info['name']) && $info['name'] != $upcondition[$lang]['name']) {
+
+                    $es_product_model->update_showcats($where['cat_no'], $lang);
+                }
+            }
+        } else {
+
+            $es_product_model = new EsProductModel();
+            foreach ($langs as $lang) {
+                $info = $old_info[$lang];
+                if (isset($upcondition[$lang]['name']) && isset($info['name']) && $info['name'] != $upcondition[$lang]['name']) {
+                    $es_product_model->update_showcats($where['cat_no'], $lang);
+                }
+            }
         }
-        $this->commit();
-        return $flag;
+        return true;
     }
 
     /**
@@ -712,6 +753,7 @@ class ShowCatModel extends PublicModel {
             }
         } else {
             $cat_no = $where['cat_no'];
+            $data['cat_no'] = $cat_no;
         }
         switch ($condition['status']) {
 

@@ -5,7 +5,7 @@
  */
 class ServiceCatModel extends PublicModel {
 
-    protected $dbName = 'erui2_config';
+    protected $dbName = 'erui_config';
     protected $tableName = 'service_cat';
     
     public function __construct() {
@@ -120,11 +120,11 @@ class ServiceCatModel extends PublicModel {
             $info = $this->where($condition)->select();
             if($info){
                 for($i=0;$i<count($info);$i++){
-                    $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui2_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info[$i]['cat_no']."'";
+                    $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info[$i]['cat_no']."'";
                     $row = $this->query( $sql );
                 }
             }
-            $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui2_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info['cat_no']."'";
+            $sql ="SELECT `id`,`lang`,`service_cat_no`,`service_code`,`service_name`,`remarks`,`status`,`created_by`,`created_at`,`updated_by`,`updated_at`,`checked_by`,`checked_at` FROM `erui_config`.`service_item` where deleted_flag ='N' and service_cat_no = '".$info['cat_no']."'";
             $row = $this->query( $sql );
             $info['service_item'] = $row;
 		return $info;

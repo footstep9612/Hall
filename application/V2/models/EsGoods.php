@@ -15,7 +15,7 @@ class EsGoodsModel extends Model {
 
     //put your code here
     protected $tableName = 'goods';
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
 
     const STATUS_DELETED = 'DELETED';
 
@@ -71,12 +71,12 @@ class EsGoodsModel extends Model {
             }
         } elseif ($qurey_type == ESClient::RANGE) {
             if (!$field) {
-                $field = [$name];
+                $field = $name;
             }
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
 
@@ -174,7 +174,7 @@ class EsGoodsModel extends Model {
             $field = $name;
         }
         if (isset($condition[$name]) && $condition[$name]) {
-            $recommend_flag = trim($condition[$name]) == 'Y' ? 'Y' : $default;
+            $recommend_flag = $condition[$name] == 'Y' ? 'Y' : $default;
             $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $recommend_flag]];
         }
     }
@@ -210,7 +210,7 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
+
         $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
@@ -257,7 +257,7 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'onshelf_by');
         $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
-            $onshelf_flag = trim($condition['onshelf_flag']) == 'N' ? 'N' : 'Y';
+            $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
             if ($condition['onshelf_flag'] === 'A') {
 
             } elseif ($onshelf_flag === 'N') {
@@ -299,7 +299,7 @@ class EsGoodsModel extends Model {
             }
         }
         if (isset($condition['keyword']) && $condition['keyword']) {
-            $show_name = trim($condition['keyword']);
+            $show_name = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::MATCH => ['name.ik' => $show_name]],
                         [ESClient::TERM => ['sku' => $show_name]],
@@ -366,7 +366,7 @@ class EsGoodsModel extends Model {
 
     public function getonshelf_flag($skus, $lang = 'en') {
         try {
-            $onshelf_flags = $this->table('erui2_goods.show_cat_goods')
+            $onshelf_flags = $this->table('erui_goods.show_cat_goods')
                             ->field('sku,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
                                     . ',max(updated_by) as min_updated_by'
@@ -1242,9 +1242,10 @@ class EsGoodsModel extends Model {
             return false;
         }
         $show_cat_goods_model = new ShowCatGoodsModel();
-        $scats = $show_cat_goods_model->getshow_catsbyskus($sku, $lang);
+        $scats = $show_cat_goods_model->getshow_catsbyskus([$sku], $lang);
 
         $show_cats = $scats[$sku];
+        rsort($show_cats);
         return $show_cats;
     }
 
@@ -1261,16 +1262,17 @@ class EsGoodsModel extends Model {
         if (empty($old_cat_no)) {
             return false;
         }
+        $es = new ESClient();
         $index = $this->dbName;
         $type_goods = 'goods_' . $lang;
-        $count_goods = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+        $count_goods = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                 [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
                                 [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
                                 [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
                     ]]]])->count($index, $type_goods);
 
         for ($i = 0; $i < $count_goods['count']; $i += 100) {
-            $ret = $this->setbody(["query" => ['bool' => [ESClient::SHOULD => [
+            $ret = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                     [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
                                     [ESClient::TERM => ["show_cats.cat_no2" => $old_cat_no]],
                                     [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
@@ -1280,11 +1282,11 @@ class EsGoodsModel extends Model {
             $updateParams['type'] = $type_goods;
             if ($ret) {
                 foreach ($ret['hits']['hits'] as $item) {
-                    $spu = $item['_source']['spu'];
+                    $sku = $item['_source']['sku'];
                     $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
-                    $updateParams['body'][] = ['doc' => $this->getshowcats($spu, $lang)];
+                    $updateParams['body'][] = ['doc' => ['show_cats' => $this->getshowcats($sku, $lang)]];
                 }
-                $this->bulk($updateParams);
+                $es->bulk($updateParams);
             }
         }
 

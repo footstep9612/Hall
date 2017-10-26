@@ -9,7 +9,7 @@
  */
 class LogiPeriodModel extends PublicModel {
 
-    protected $dbName = 'erui2_config'; //数据库名称
+    protected $dbName = 'erui_config'; //数据库名称
     protected $tableName = 'logi_period';
 
     const STATUS_VALID = 'VALID';

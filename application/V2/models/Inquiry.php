@@ -8,8 +8,16 @@
  */
 class InquiryModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq'; //数据库名称
+    protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry'; //数据表表名
+    
+    const  inquiryIssueRole = 'A001'; //客户中心分单员角色编号
+    const quoteIssueMainRole = 'A002'; //报价主分单员角色编号
+    const quoteIssueAuxiliaryRole = 'A003'; //报价辅分单员角色编号
+    const quoteCheckRole = 'A004'; //报价审核人角色编号
+    const logiIssueMainRole = 'A005'; //物流报价主分单员角色编号
+    const logiIssueAuxiliaryRole = 'A006'; //物流报价辅分单员角色编号
+    const logiCheckRole = 'A007'; //物流报价审核人角色编号
 
     public function __construct() {
         parent::__construct();
@@ -54,6 +62,95 @@ class InquiryModel extends PublicModel {
 
         return $where;
     }
+    
+    /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-10-18
+     */
+    public function getWhere($condition = []) {
+         
+        $where = [];
+        
+        if (!empty($condition['status'])) {
+            $where['status'] = $condition['status'];    //项目状态
+        }
+        
+        if (!empty($condition['country_bn'])) {
+            $where['country_bn'] = $condition['country_bn'];    //国家
+        }
+        
+        if (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];  //流程编码
+        }
+        
+        if (!empty($condition['buyer_name'])) {
+            $where['buyer_name'] = $condition['buyer_name'];  //客户名称
+        }
+        
+        if (!empty($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        }
+
+        if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
+            $where['created_at'] = [
+                ['egt', $condition['start_time']],
+                ['elt', $condition['end_time'] . ' 23:59:59']
+            ];
+        }
+        
+        if (!empty($condition['list_type'])) {
+            switch ($condition['list_type']) {
+                case 'inquiry' :
+                    $map[] = ['created_by' => $condition['user_id']];
+                    $map[] = ['agent_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == self::inquiryIssueRole) {
+                            $map[] = ['erui_id' => $condition['user_id']];
+                        }
+                    }
+                    break;
+                case 'quote' :
+                    $map[] = ['quote_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
+                            $orgId = $this->getDeptOrgId($condition['group_id']);
+                            
+                            if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
+                        }
+                        if ($roleNo == self::quoteCheckRole) {
+                            $map[] = ['check_org_id' => $condition['user_id']];
+                        }
+                    }
+                    break;
+                case 'logi' :
+                    $map[] = ['logi_agent_id' => $condition['user_id']];
+                    
+                    foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
+                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
+                            
+                            if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
+                        }
+                        if ($roleNo == self::logiCheckRole) {
+                            $map[] = ['logi_check_id' => $condition['user_id']];
+                        }
+                    }
+            }
+            
+            $map['_logic'] = 'or';
+            $where[] = $map;
+        }
+    
+        $where['deleted_flag'] = 'N';
+         
+        return $where;
+    }
 
     /**
      * 获取数据条数
@@ -66,6 +163,23 @@ class InquiryModel extends PublicModel {
 
         $count = $this->where($where)->count('id');
 
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-10-19
+     */
+    public function getCount_($condition = []) {
+         
+        $where = $this->getWhere($condition);
+         
+        $count = $this->where($where)->count('id');
+         
         return $count > 0 ? $count : 0;
     }
 
@@ -140,6 +254,29 @@ class InquiryModel extends PublicModel {
         }
 
     }
+    
+    /**
+     * @desc 获取列表
+     *
+     * @param array $condition
+     * @param string $field
+     * @return array
+     * @author liujf
+     * @time 2017-10-18
+     */
+    public function getList_($condition = [], $field = '*') {
+    
+        $where = $this->getWhere($condition);
+         
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+         
+        return $this->field($field)
+                            ->where($where)
+                            ->page($currentPage, $pageSize)
+                            ->order('id DESC')
+                            ->select();
+    }
 
     /**
      * 获取详情信息
@@ -191,8 +328,12 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有流程编码!';
             return $results;
         }
-        $data['status'] = 'DRAFT';
-        $data['created_at'] = $this->getTime();
+
+        $time = $this->getTime();
+        
+        $data['quote_status'] = 'NOT_QUOTED';
+        $data['inflow_time'] = $time;
+        $data['created_at'] = $time;
 
         try {
             $id = $this->add($data);
@@ -228,7 +369,12 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有ID!';
             return $results;
         }
-        $data['updated_at'] = $this->getTime();
+        
+        $time = $this->getTime();
+        
+        if (!empty($condition['status'])) $data['inflow_time'] = $time;
+        
+        $data['updated_at'] = $time;
 
         try {
             $id = $this->where($where)->save($data);
@@ -261,10 +407,15 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有ID!';
             return $results;
         }
+        
+        $time = $this->getTime();
+        
         if(!empty($condition['status'])){
+            $data['inflow_time'] = $time;
             $data['status'] = $condition['status'];
         }
-        $data['updated_at'] = $this->getTime();
+        
+        $data['updated_at'] = $time;
 
         try {
             $id = $this->where($where)->save($data);
@@ -353,5 +504,64 @@ class InquiryModel extends PublicModel {
      */
     public function getTime() {
         return date('Y-m-d H:i:s',time());
+    }
+    
+    /**
+     * @desc 获取询单办理部门组ID
+     *
+     * @param array $groupId 当前用户的全部组ID
+     * @param string $orgNode 部门节点
+     * @return array
+     * @author liujf
+     * @time 2017-10-20
+     */
+    public function getDeptOrgId($groupId = [], $orgNode = 'ub') {
+        $org = new OrgModel();
+        
+        $where = [
+             'id' => ['in', $groupId ? : ['-1']],
+             'org_node' => $orgNode
+        ];
+        $orgList = $org->field('id')->where($where)->select();
+        
+        // 用户所在部门的组ID
+        $orgId = [];
+        foreach ($orgList as $org) {
+            $orgId[] = $org['id'];
+        }
+        
+        return $orgId;
+    }
+    
+    /**
+     * @desc 获取指定角色用户ID
+     *
+     * @param array $groupId 当前用户的全部组ID
+     * @param string $roleNo 角色编号
+     * @param string $orgNode 部门节点
+     * @return array
+     * @author liujf
+     * @time 2017-10-23
+     */
+    public function getRoleUserId($groupId = [], $roleNo = '', $orgNode = 'ub') {
+        $orgMemberModel = new OrgMemberModel();
+        $roleModel = new RoleModel();
+        $roleUserModel = new RoleUserModel();
+        
+        $orgId = $this->getDeptOrgId($groupId, $orgNode);
+	        
+        $role = $roleModel->field('id')->where(['role_no' => $roleNo])->find();
+        
+        $roleUserList = $roleUserModel->field('employee_id')->where(['role_id' => $role['id']])->select();
+        
+        $employeeId = [];
+        
+        foreach ($roleUserList as $roleUser) {
+            $employeeId[] = $roleUser['employee_id'];
+        }
+        
+        $orgMember = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->find();
+    
+        return $orgMember['employee_id'];
     }
 }

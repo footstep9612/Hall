@@ -647,6 +647,7 @@ class ProductModel extends PublicModel {
             if ($result) {
                 $employee = new EmployeeModel();
                 $checklogModel = new ProductCheckLogModel();
+                $bizlineModel = new BizlineModel();
                 $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 $bizlineModel = new BizlineModel();
                 foreach ($result as $item) {
@@ -657,7 +658,6 @@ class ProductModel extends PublicModel {
                     }
 
                     $item['bizline'] = $bizline;
-
                     //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
                     // $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
 //                    if ($createder && isset($createder[0])) {
@@ -985,11 +985,10 @@ class ProductModel extends PublicModel {
         $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
         $objPHPExcel = $objReader->load($localFile);    //加载文件
         $data = $objPHPExcel->getSheet(0)->toArray();
-
         if (is_array($data)) {
             $success = $faild = 0;
             $objPHPExcel->setActiveSheetIndex(0)
-                ->setCellValue('N1', '导入结果');
+                    ->setCellValue('N1', '导入结果');
             $progress_redis['total'] = count($data);
             foreach ($data as $key => $r) {
                 $progress_redis['processed'] = $key + 1;    //记录导入进度信息
@@ -1014,7 +1013,6 @@ class ProductModel extends PublicModel {
                     $mexist = $mcatModel->info($data_tmp['material_cat_no'], $lang);
                     if (!$mexist) {
                         $faild ++;
-                        $objPHPExcel->setActiveSheetIndex(0)
                             ->setCellValue('N' . ($key + 1), '操作失败[物料分类编码不存在]');
                         continue;
                     }

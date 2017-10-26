@@ -13,10 +13,10 @@
  */
 class BrandModel extends PublicModel {
 
-    //put your code here
+//put your code here
 
     protected $tableName = 'brand';
-    protected $dbName = 'erui2_dict'; //数据库名称
+    protected $dbName = 'erui_dict'; //数据库名称
 
     const STATUS_DRAFT = 'DRAFT'; //草稿
     const STATUS_APPROVING = 'APPROVING'; //审核；
@@ -64,8 +64,9 @@ class BrandModel extends PublicModel {
         $where = [];
         $this->_getValue($where, $condition, 'id', 'string');
 
+
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
-        // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
+// $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if (!empty($condition['name']) && $lang) {
             $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"' . trim($condition['name']) . '%\'';
         } elseif ($lang) {
@@ -120,8 +121,8 @@ class BrandModel extends PublicModel {
         }
         try {
             $item = $this->where($where)
-                    ->field('id,brand,status,created_by,'
-                            . 'created_at,updated_by,updated_at')
+                    ->field('id, brand, status, created_by, '
+                            . 'created_at, updated_by, updated_at')
                     ->order('id desc')
                     ->limit($row_start, $pagesize)
                     ->select();
@@ -152,12 +153,9 @@ class BrandModel extends PublicModel {
                     ->field($field)
                     ->order('id desc')
                     ->select();
-
             redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;
         } catch (Exception $ex) {
-
-            print_r($ex->getMessage());
             Log::write($ex->getMessage(), Log::ERR);
             return false;
         }
@@ -356,7 +354,7 @@ class BrandModel extends PublicModel {
         $objSheet->getStyle("A1:M1")
                 ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:M1")->getFont()->setSize(12)->setBold(true);    //粗体
+        $objSheet->getStyle("A1:M1")->getFont()->setSize(11)->setBold(true);    //粗体
         $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
         foreach ($column_width_25 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(25);
@@ -388,20 +386,19 @@ class BrandModel extends PublicModel {
         $this->_setUserName($result);
         if ($result) {
             foreach ($result as $r) {
-
+                $brand_ary = json_decode($r['brand'], true);
 
                 $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
                 $objSheet->setCellValue("B" . $j, ' ' . $r['id'], PHPExcel_Cell_DataType::TYPE_STRING);
-                $objSheet->setCellValue("C" . $j, isset($r['zh']['name']) ? $r['zh']['name'] : '');
-                $objSheet->setCellValue("D" . $j, isset($r['zh']['logo']) ? $r['zh']['logo'] : '');
-                $objSheet->setCellValue("E" . $j, isset($r['en']['name']) ? $r['en']['name'] : '');
-                $objSheet->setCellValue("F" . $j, isset($r['en']['logo']) ? $r['en']['logo'] : '');
-                $objSheet->setCellValue("G" . $j, isset($r['es']['name']) ? $r['es']['name'] : '');
-                $objSheet->setCellValue("H" . $j, isset($r['es']['logo']) ? $r['es']['logo'] : '');
-                $objSheet->setCellValue("I" . $j, isset($r['ru']['name']) ? $r['ru']['name'] : '');
-                $objSheet->setCellValue("J" . $j, isset($r['ru']['logo']) ? $r['ru']['logo'] : '');
+                $objSheet->setCellValue("C" . $j, isset($brand_ary['zh']['name']) ? $brand_ary['zh']['name'] : '');
+                $objSheet->setCellValue("D" . $j, isset($brand_ary['zh']['logo']) ? $brand_ary['zh']['logo'] : '');
+                $objSheet->setCellValue("E" . $j, isset($brand_ary['en']['name']) ? $brand_ary['en']['name'] : '');
+                $objSheet->setCellValue("F" . $j, isset($brand_ary['en']['logo']) ? $brand_ary['en']['logo'] : '');
+                $objSheet->setCellValue("G" . $j, isset($brand_ary['es']['name']) ? $brand_ary['es']['name'] : '');
+                $objSheet->setCellValue("H" . $j, isset($brand_ary['es']['logo']) ? $brand_ary['es']['logo'] : '');
+                $objSheet->setCellValue("I" . $j, isset($brand_ary['ru']['name']) ? $brand_ary['ru']['name'] : '');
+                $objSheet->setCellValue("J" . $j, isset($brand_ary['ru']['logo']) ? $brand_ary['ru']['logo'] : '');
                 $status = '';
-
                 switch ($r['status']) {
                     case self::STATUS_APPROVING:
                         $status = '审核中';
@@ -425,11 +422,11 @@ class BrandModel extends PublicModel {
                 $j++;
             }
         }
-        //保存文件
+//保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Brand_' . time() . '.xls');
 
-        //把导出的文件上传到文件服务器上
+//把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
         $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server . '/V2/Uploadfile/upload';
@@ -468,17 +465,6 @@ class BrandModel extends PublicModel {
                 } else {
                     $val['created_by_name'] = '';
                 }
-                $brand_ary = json_decode($val['brand'], true);
-                if ($brand_ary) {
-                    foreach ($brand_ary as $item) {
-
-                        if ($item && isset($item['lang'])) {
-                            $val[$item['lang']]['name'] = $item['name'];
-                            $val[$item['lang']]['logo'] = $item['logo'];
-                        }
-                    }
-                }
-
                 $arr[$key] = $val;
             }
         }

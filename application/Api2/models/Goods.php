@@ -9,7 +9,7 @@
 class GoodsModel extends PublicModel {
 
     protected $tableName = 'goods';
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
 
     //状态
 

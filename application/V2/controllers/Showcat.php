@@ -260,7 +260,7 @@ class ShowcatController extends PublicController {
     private function _getmaterials(&$data) {
 
         if ($data['level_no'] == 3) {
-            $show_material_catnos = $this->_model->Table('erui2_goods.show_material_cat')
+            $show_material_catnos = $this->_model->Table('erui_goods.show_material_cat')
                     ->where(['show_cat_no' => $data['cat_no']])
                     ->field('material_cat_no')
                     ->select();
@@ -310,6 +310,7 @@ class ShowcatController extends PublicController {
     }
 
     private function delcache() {
+
         $redis = new phpredis();
         $treekeys = $redis->getKeys('show_cat*');
         $redis->delete($treekeys);

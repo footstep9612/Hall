@@ -14,8 +14,8 @@
 class SupplierModel extends PublicModel {
     //put your code here
     protected $tableName = 'supplier';
-    protected $dbName = 'erui2_supplier'; //数据库名称
-    protected $g_table = 'erui2_supplier.supplier';
+    protected $dbName = 'erui_supplier'; //数据库名称
+    protected $g_table = 'erui_supplier.supplier';
 //    protected $autoCheckFields = false;
     public function __construct($str = '') {
         parent::__construct($str = '');
@@ -40,7 +40,7 @@ class SupplierModel extends PublicModel {
         $sql .=  '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`supplier`.`status`,`supplier`.`remarks`,`apply_at`,`supplier`.`created_by`,`supplier`.`created_at`,`checked_by`,`em`.`name` as `checked_name`,`checked_at`';
         $sql_count =  'SELECT count(`supplier`.`id`) as num ';
         $str = ' FROM '.$this->g_table;
-        $str .= ' left join `erui2_sys`.`employee` as `em` on `em`.`id` = `erui2_supplier`.`supplier`.`checked_by` ';
+        $str .= ' left join `erui_sys`.`employee` as `em` on `em`.`id` = `erui_supplier`.`supplier`.`checked_by` ';
         $sql .= $str;
         $sql_count .= $str;
         $where =" WHERE 1 = 1";
@@ -212,8 +212,8 @@ class SupplierModel extends PublicModel {
     {
         if($data['id']) {
             $buyerInfo = $this->where(array("supplier.id" => $data['id']))->field('supplier.*,em.name as checked_name,ma.name as country_name ')
-                                ->join('erui2_sys.employee em on em.id=supplier.checked_by', 'left')
-                ->join('erui2_dict.country ma on ma.`bn`=supplier.country_bn and  ma.`lang`=supplier.lang', 'left')
+                                ->join('erui_sys.employee em on em.id=supplier.checked_by', 'left')
+                ->join('erui_dict.country ma on ma.`bn`=supplier.country_bn and  ma.`lang`=supplier.lang', 'left')
                               ->find();
             return $buyerInfo;
         } else{

@@ -15,7 +15,7 @@
 class TransModeModel extends PublicModel {
 
   //put your code here
-  protected $dbName = 'erui2_dict';
+  protected $dbName = 'erui_dict';
   protected $tableName = 'trans_mode';
 
   public function __construct($str = '') {

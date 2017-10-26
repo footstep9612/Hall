@@ -73,7 +73,6 @@ class LoginController extends PublicController {
      */
     public function registerAction() {
         $data = $this->getPut();
-
         if (!empty($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
         } else {
@@ -87,7 +86,7 @@ class LoginController extends PublicController {
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
-            jsonReturn('', -101, '公司名不能为空!');
+            jsonReturn('', -101, '公司名称不能为空!');
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
@@ -113,6 +112,7 @@ class LoginController extends PublicController {
         if (!empty($data['last_name'])) {
             $buyer_account_data['last_name'] = $data['last_name'];
             $arr['last_name'] = $data['last_name'];
+
         }
         if (!empty($data['mobile'])) {
             $buyer_account_data['mobile'] = $data['mobile'];
@@ -175,14 +175,14 @@ class LoginController extends PublicController {
             //生成邮件验证码
             $data_key['key'] = md5(uniqid());
             $data_key['email'] = $data['email'];
-            $data_key['name'] = $data['first_name'] . $data['last_name'];
+            $data_key['name'] = $data['first_name'].$data['last_name'];
             redisHashSet('login_reg_key', $data_key['key'], $account_id);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
             $email_arr['url'] = $config_shop['url'];
             $email_arr['key'] = $data_key['key'];
             $body = $this->getView()->render('login/email.html', $email_arr);
-            send_Mail($data_key['email'], 'Activation email for your registration on ERUI platform', $body, $data['first_name'] . $data['last_name']);
+            send_Mail($data_key['email'], 'Activation email for your registration on ERUI platform', $body, $data['first_name'].$data['last_name']);
             jsonReturn($data_key, 1, '提交成功');
         } else {
             jsonReturn('', -105, 'Failed to register your account.');
@@ -294,15 +294,15 @@ class LoginController extends PublicController {
             //生成邮件验证码
             $data_key['key'] = md5(uniqid());
             $data_key['email'] = $login_arr['email'];
-            $data_key['name'] = $check[0]['first_name'] . $check[0]['last_name'];
+            $data_key['name'] = $check[0]['first_name'].$check[0]['last_name'];
             redisHashSet('rest_password_key', $data_key['key'], $check[0]['id']);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
             $email_arr['url'] = $config_shop['url'];
             $email_arr['key'] = $data_key['key'];
-            $email_arr['first_name'] = $check[0]['first_name'] . $check[0]['last_name'];
+            $email_arr['first_name'] = $check[0]['first_name'].$check[0]['last_name'];
             $body = $this->getView()->render('login/forgetemail.html', $email_arr);
-            send_Mail($data_key['email'], 'Password retrieval on ERUI platform', $body, $check[0]['first_name'] . $check[0]['last_name']);
+            send_Mail($data_key['email'], 'Password retrieval on ERUI platform', $body, $check[0]['first_name'].$check[0]['last_name']);
             jsonReturn($data_key, 1, '发送成功');
         } else {
             jsonReturn('', -103, ' The email does not exist.');
@@ -334,8 +334,8 @@ class LoginController extends PublicController {
         $id = redisHashGet('rest_password_key', $data['key']);
         if ($id) {
             $buyer_account_model = new BuyerAccountModel();
-            $info = $buyer_account_model->info(['id' => $id]);
-            if ($info && $info['status'] == 'DRAFT') {
+            $info = $buyer_account_model ->info(['id' => $id]);
+            if($info&&$info['status'] == 'DRAFT'){
                 $user_arr['status'] = "VALID";
             }
             $check = $buyer_account_model->update_data($user_arr, ['id' => $id]);
@@ -392,7 +392,7 @@ class LoginController extends PublicController {
 
         $model = new BuyerModel();
         //对于修改个人认为逻辑不符
-        if (isset($data['buyer_id']) && !empty($data['buyer_id'])) {
+        if(isset($data['buyer_id']) && !empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
             $result = $model->upUserInfo($data, $where);
             if ($result) {
@@ -438,7 +438,7 @@ class LoginController extends PublicController {
                 $buyer_address_model = new BuyerAddressModel();
                 $buyer_address_model->create_data($buyer_address_data);
             }
-            if ($account_id) {
+            if($account_id){
                 jsonReturn('', 1, 'Success!');
             }
             $where['id'] = $id;
@@ -501,20 +501,20 @@ class LoginController extends PublicController {
             $buyer_address_data['address'] = $data['address'];
         }
         $buyerModel = new BuyerModel();
-        $res = $buyerModel->update_data($buyer_data, $where);
-        if ($res) {
+        $res = $buyerModel->update_data($buyer_data,$where);
+        if($res) {
             if (!empty($buyer_address_data)) {
                 $buyer_address_model = new BuyerAddressModel();
-                $buyer_address_model->update_data($buyer_address_data, $where);
+                $buyer_address_model->update_data($buyer_address_data,$where);
             }
             $buyer_reg_model = new BuyerreginfoModel();
             $regId = $buyer_reg_model->create_data($buyer_reg_data);
-            if ($regId) {
+            if($regId){
                 jsonReturn('', 1, 'Success!');
             }
-            jsonReturn('', -1002, 'Failed to register your buyerreginfo!');
-        } else {
-            jsonReturn('', -1002, 'Failed to update your buyerinfo!');
+            jsonReturn('',-1002,'Failed to register your buyerreginfo!');
+        } else{
+            jsonReturn('',-1002,'Failed to update your buyerinfo!');
         }
     }
 
@@ -542,7 +542,7 @@ class LoginController extends PublicController {
 
         //生成邮件验证码
         $data_key['key'] = md5(uniqid());
-        $verify['code'] = rand(100000, 999999);
+        $verify['code'] = rand(100000,999999);
         $verify['email'] = $data['email'];
         redisHashSet('rest_password_key', $data_key['key'], $verify, 1800);
 

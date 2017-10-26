@@ -8,7 +8,7 @@
  */
 class OrderBuyerContactModel extends PublicModel {
 
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
     protected $tableName = 'order_buyer_contact'; //数据表表名
     
 	/**

@@ -9,7 +9,7 @@
  */
 class ShowCatGoodsModel extends PublicModel {
 
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'show_cat_goods'; //数据表表名
 
     const STATUS_DRAFT = 'DRAFT';    //草稿
@@ -240,7 +240,7 @@ class ShowCatGoodsModel extends PublicModel {
         try {
             if ($skus && is_array($skus)) {
                 $show_cat_goods = $this->alias('scp')
-                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->join('erui_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no,scp.spu,scp.sku,scp.onshelf_flag')
                         ->where(['scp.sku' => ['in', $skus],
                             'scp.status' => 'VALID',
@@ -294,7 +294,7 @@ class ShowCatGoodsModel extends PublicModel {
         try {
             if ($spus && is_array($spus)) {
                 $show_cat_products = $this->alias('scp')
-                        ->join('erui2_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
+                        ->join('erui_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no')
                         ->where(['scp.sku' => $sku,
                             'scp.status' => 'VALID',

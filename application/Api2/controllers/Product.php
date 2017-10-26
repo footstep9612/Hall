@@ -34,7 +34,6 @@ class ProductController extends PublicController {
         if ($status != '' && !in_array($status, array('NORMAL', 'CLOSED', 'VALID', 'TEST', 'CHECKING', 'INVALID', 'DELETED'))) {
             jsonReturn('', '1000', '参数[状态]有误');
         }
-
         if ($this->_getSysUser($user_token)) {
             $status = null;
         }

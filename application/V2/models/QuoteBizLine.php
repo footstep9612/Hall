@@ -11,7 +11,7 @@ class QuoteBizLineModel extends PublicModel {
      * 数据库名称
      * @var string
      */
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
 
     /**
      * 数据表名称
@@ -161,8 +161,8 @@ class QuoteBizLineModel extends PublicModel {
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         return $this->alias('a')
-                        ->join('erui2_rfq.quote b ON a.quote_id = b.id', 'LEFT')
-                        ->join('erui2_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
+                        ->join('erui_rfq.quote b ON a.quote_id = b.id', 'LEFT')
+                        ->join('erui_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
                         ->field('a.id, c.serial_no, c.country_bn, c.buyer_name, c.agent_id, c.pm_id, c.inquiry_time, c.status, b.period_of_validity')
                         ->where($where)
                         ->page($currentPage, $pageSize)
@@ -215,8 +215,8 @@ class QuoteBizLineModel extends PublicModel {
         $where = $this->getQuoteListCondition($condition);
 
         $count = $this->alias('a')
-                ->join('erui2_rfq.quote b ON a.quote_id = b.id', 'LEFT')
-                ->join('erui2_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
+                ->join('erui_rfq.quote b ON a.quote_id = b.id', 'LEFT')
+                ->join('erui_rfq.inquiry c ON a.inquiry_id = c.id', 'LEFT')
                 ->field('a.id, c.serial_no, c.country_bn, c.buyer_name, c.agent_id, c.pm_id, c.inquiry_time, c.status, b.period_of_validity')
                 ->where($where)
                 ->page($currentPage, $pageSize)
@@ -683,7 +683,7 @@ class QuoteBizLineModel extends PublicModel {
 
         $quoteModel = new QuoteModel();
         return $quoteModel->alias('a')
-                        ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
+                        ->join('erui_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
                         ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
                         ->where($where)
                         ->page($currentPage, $pageSize)
@@ -758,7 +758,7 @@ class QuoteBizLineModel extends PublicModel {
         $quoteModel = new QuoteModel();
 
         $count = $quoteModel->alias('a')
-                ->join('erui2_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
+                ->join('erui_rfq.inquiry b ON a.inquiry_id = b.id', 'LEFT')
                 ->field('a.id, b.serial_no, b.country_bn, b.buyer_name, b.agent_id, b.pm_id, b.inquiry_time, b.status, a.period_of_validity')
                 ->where($where)
                 ->order('a.id DESC')
@@ -777,8 +777,8 @@ class QuoteBizLineModel extends PublicModel {
         $quoteItemModel = new QuoteItemModel();
 
         return  $quoteItemModel->alias('a')
-                        ->join('erui2_rfq.inquiry_item b ON b.id = a.inquiry_item_id','LEFT')
-                        //->join('erui2_rfq.final_quote_item c ON a.inquiry_id = c.inquiry_id','LEFT')
+                        ->join('erui_rfq.inquiry_item b ON b.id = a.inquiry_item_id','LEFT')
+                        //->join('erui_rfq.final_quote_item c ON a.inquiry_id = c.inquiry_id','LEFT')
                         ->field('a.id,a.bizline_id,a.bizline_agent_id,b.inquiry_id,a.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.exw_unit_price,a.quote_unit_price,a.supplier_id,a.remarks quote_remarks,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote')
                         ->where($where)
                         ->page($currentPage, $pageSize)
@@ -793,7 +793,7 @@ class QuoteBizLineModel extends PublicModel {
         $quoteItemModel = new QuoteItemModel();
 
         $count = $quoteItemModel->alias('a')
-            ->join('erui2_rfq.inquiry_item b ON b.id = a.inquiry_item_id')
+            ->join('erui_rfq.inquiry_item b ON b.id = a.inquiry_item_id')
             ->field('a.id,a.bizline_id,a.bizline_agent_id,a.sku,b.buyer_goods_no,b.model,b.name,b.name_zh,b.remarks,b.remarks_zh,b.qty,b.unit,b.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.exw_unit_price,a.quote_unit_price,a.supplier_id,a.remarks quote_remarks,a.net_weight_kg,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote')
             ->where($where)
             ->count('a.id');

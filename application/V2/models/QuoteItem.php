@@ -1,206 +1,167 @@
 <?php
 /**
  * @desc 报价单明细模型
- * @author liujf 2017-06-17
+ * @author 买买提
  */
 class QuoteItemModel extends PublicModel {
 
-    protected $dbName = 'erui2_rfq';
+    protected $dbName = 'erui_rfq';
     protected $tableName = 'quote_item';
-    protected $joinFinal = 'erui_rfq.t_final_quote_item b ON a.id = b.id';
-    protected $fieldJoin = 'a.*, b.quote_unit_price AS final_quote_unit_price';
-    
+
     public function __construct() {
         parent::__construct();
     }
-    
-	/**
-     * @desc 获取查询条件
- 	 * @author liujf 2017-06-27
-     * @param $condition array
-     * @return $where array
-     */
-    public function getWhere($condition) {
-    	$where = array();
 
-		if (!empty($condition['id'])) {
-			$where['id'] = $condition['id'];
-		}
-    	
-    	if (!empty($condition['quote_id'])) {
-            $where['quote_id'] = $condition['quote_id'];
+    /**
+     * 删除报价单项(一个或多个)
+     * @param $where 条件
+     * @return bool True|False
+     */
+    public function delItem($where){
+        return $this->where('inquiry_item_id IN('.$where.')')->save(['deleted_flag'=>'Y']);
+    }
+
+    /**
+     * 获取sku列表
+     * @param $request 条件
+     * @return mixed 数据
+     */
+    public function getList($request){
+
+        $where['a.inquiry_id'] = $request['inquiry_id'];
+        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote';
+        return $this->alias('a')
+            ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->field($fields)
+            ->where($where)
+            ->order('a.id DESC')
+            ->select();
+
+    }
+
+    public function updateSupplier($data){
+        foreach ($data as $key=>$value){
+            $value['updated_at'] = date('Y-m-d H:i:s');
+            $this->save($this->create($value));
         }
-    	
-    	return $where;
-    }
-    
-	/**
-     * @desc 获取关联查询条件
- 	 * @author liujf 2017-06-30
-     * @param array $condition
-     * @return array
-     */
-     public function getJoinWhere($condition) {
-     	$where = array();
-     	
-     	if(!empty($condition['quote_id'])) {
-    		$where['a.quote_id'] = $condition['quote_id'];
-    	}
-    	
-    	return $where;
-    	
-     }
-    
-	/**
-     * @desc 获取记录总数
- 	 * @author liujf 2017-06-27
-     * @param array $condition 
-     * @return int $count
-     */
-    public function getCount($condition) {
-    	$where = $this->getWhere($condition);
-
-    	$count = $this->where($where)->count('id');
-
-    	return $count > 0 ? $count : 0;
-    }
-    
-	/**
-     * @desc 获取关联记录总数
- 	 * @author liujf 2017-06-30
-     * @param array $condition 
-     * @return int $count
-     */
-    public function getJoinCount($condition) {
-    	
-    	$where = $this->getJoinWhere($condition);
-    	
-    	$count = $this->alias('a')
-    				  ->join($this->joinFinal, 'LEFT')
-    				  ->field($this->fieldJoin)
-    				  ->where($where)
-    				  ->count('a.id');
-    	
-    	return $count > 0 ? $count : 0;
+        return true;
     }
 
-	/**
-     * @desc 获取报价单项目列表
- 	 * @author liujf 2017-06-17
-     * @param array $condition
-     * @return array
+    /**
+     * 更新SKU信息
+     * @param $data 数据对象
+     * @param $user 当前用户
+     *
+     * @return array|bool
      */
-    public function getItemList($condition) {
-    	$where = $this->getWhere($condition);
-    	
-    	//$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-    	//$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-    	
-    	return $this->where($where)
-                        	//->page($currentPage, $pageSize)
-                        	->order('id DESC')
-                        	->select();
+    public function updateItem($data,$user){
+
+        foreach ($data as $key=>$value){
+
+            $value['updated_at'] = date('Y-m-d H:i:s');
+            $value['updated_by'] = $user;
+
+            //如果输填写了未报价分析原因
+            if (!empty($value['reason_for_no_quote'])){
+                try{
+                    $this->save($this->create($value));
+                }catch (Exception $exception){
+                    return [
+                        'code' => $exception->getCode(),
+                        'message' => $exception->getMessage()
+                    ];
+                }
+            }
+
+            //if(!empty($value['supplier_id']) && empty($value['reason_for_no_quote'])){
+            if(empty($value['reason_for_no_quote'])){
+                /**
+                 * 如果是选择了供应商，一下信息是必填字段
+                 * 报价产品描述，采购单价，采购币种，毛重，包装体积，包装方式，产品来源，存放地，交货期(天)，报价有效期
+                 */
+
+                //采购单价
+                if (empty($value['purchase_unit_price'])){
+                    return ['code'=>'-104','message'=>'采购单价必填'];
+                }
+                if (!is_numeric($value['purchase_unit_price'])){
+                    return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                }
+                //采购币种
+                if (empty($value['purchase_price_cur_bn'])){
+                    return ['code'=>'-104','message'=>'采购币种必选'];
+                }
+                //毛重
+                if (empty($value['gross_weight_kg'])){
+                    return ['code'=>'-104','message'=>'毛重必填'];
+                }
+                if (!is_numeric($value['gross_weight_kg'])){
+                    return ['code'=>'-104','message'=>'毛重必须是数字'];
+                }
+                //包装体积
+                if (empty($value['package_size'])){
+                    return ['code'=>'-104','message'=>'包装体积必填'];
+                }
+                if (!is_numeric($value['package_size'])){
+                    return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                }
+                //包装方式
+                if (empty($value['package_mode'])){
+                    return ['code'=>'-104','message'=>'包装方式必填'];
+                }
+                //产品来源
+                if (empty($value['goods_source'])){
+                    return ['code'=>'-104','message'=>'产品来源必填'];
+                }
+                //存放地
+                if (empty($value['stock_loc'])){
+                    return ['code'=>'-104','message'=>'存放地必填'];
+                }
+                //交货期(天)，报价有效期
+                if (empty($value['delivery_days'])){
+                    return ['code'=>'-104','message'=>'交货期必填'];
+                }
+                if (!is_numeric($value['delivery_days'])){
+                    return ['code'=>'-104','message'=>'交货期必须是数字'];
+                }
+                //报价有效期
+                if (empty($value['period_of_validity'])){
+                    return ['code'=>'-104','message'=>'报价有效期必填'];
+                }
+
+                $this->save($this->create($value));
+
+            }
+        }
+        return true;
+
     }
-    
-	/**
-     * @desc 获取关联询价SKU列表
- 	 * @author liujf 2017-06-30
-     * @param array $condition
-     * @return array
-     */
-    public function getJoinList($condition) {
-    	
-    	$where = $this->getJoinWhere($condition);
-    	
-    	//$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-    	//$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-    	
-    	return $this->alias('a')
-                        	->join($this->joinFinal, 'LEFT')
-                        	->field($this->fieldJoin)
-                        	->where($where)
-                        	//->page($currentPage, $pageSize)
-                        	->order('a.id DESC')
-                        	->select();
+
+    public function syncSku($request,$user){
+
+        $quoteModel = new QuoteModel();
+        $inquiryItemModel = new InquiryItemModel();
+        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->select();
+
+        foreach ($inquiryItems as $inquiry=>$item){
+
+            $hasFlag = $this->where(['inquiry_item_id'=>$item['id']])->find();
+            if (!$hasFlag){
+                $this->add($this->create([
+                    'quote_id' => $quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'inquiry_id' => $item['inquiry_id'],
+                    'inquiry_item_id' => $item['id'],
+                    'sku' => $item['sku'],
+                    'quote_qty' => $item['qty'],
+                    'quote_unit' => $item['unit'],
+                    'created_by' => $user,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]));
+
+            }
+
+        }
+
     }
 
-	/**
-	 * @desc 添加报价单SKU详情
-	 * @author zhangyuliang 2017-06-29
-	 * @param array $condition
-	 * @return array
-	 */
-	public function addItem($condition) {
-		$data = $this->create($condition);
-		$data['status'] = !empty($condition['status'])?$condition['status']:'ONGOING';
-		$data['created_at'] = date('Y-m-d H:i:s');
-
-		return $this->add($data);
-	}
-
-	/**
-	 * @desc 获取报价单SKU详情
-	 * @author zhangyuliang 2017-06-29
-	 * @param array $condition
-	 * @return array
-	 */
-	public function getDetail($condition) {
-
-		$where = $this->getWhere($condition);
-
-		return $this->where($where)->find();
-	}
-	
-	/**
-     * @desc 获取关联询价SKU详情
- 	 * @author liujf 2017-06-30
-     * @param array $condition
-     * @return array
-     */
-    public function getJoinDetail($condition) {
-    	
-    	$where = $this->getJoinWhere($condition);
-    	
-    	if (empty($where)) return false;
-    	
-    	return $this->alias('a')
-    				->join($this->joinFinal, 'LEFT')
-    				->field($this->fieldJoin)
-    				->where($where)
-    				->find();
-    }
-
-	/**
-	 * @desc 修改报价单SKU
-	 * @author zhangyuliang 2017-06-29
-	 * @param array $where , $condition
-	 * @return array
-	 */
-	public function updateItem($where = [], $condition = []) {
-
-		if(empty($where['id'])){
-			return false;
-		}
-
-		$data = $this->create($condition);
-
-		return $this->where($where)->save($data);
-	}
-
-	/**
-	 * @desc 删除报价单SKU
-	 * @author zhangyuliang 2017-06-29
-	 * @param array $condition
-	 * @return array
-	 */
-	public function delItem($condition = []) {
-
-		if(!empty($condition['id'])) {
-			$where['id'] = $condition['id'];
-		}else{
-			return false;
-		}
-
-		return $this->where($where)->save(['status' => 'DELETED']);
-	}
 }

@@ -14,7 +14,7 @@
 class GroupModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_sys'; //数据库名称
+    protected $dbName = 'erui_sys'; //数据库名称
     protected $tableName = 'org';
     Protected $autoCheckFields = true;
 
@@ -32,18 +32,19 @@ class GroupModel extends PublicModel {
     public function getlist($data,$limit,$order='sort desc') {
         $data["org.deleted_flag"] = 'N';
         if(!empty($limit)){
-            return    $this->field('org.id,org.sort,org.membership,rg.show_name,org_node,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
-                            ->join('`erui2_sys`.`org_member` om on om.org_id=org.id', 'left')
-                            ->join('`erui2_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
+              $res=  $this->field('org.id,org.sort,org.membership,rg.show_name,org_node,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
+                            ->join('`erui_sys`.`org_member` om on om.org_id=org.id', 'left')
+                            ->join('`erui_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->group('org.id')
                             ->order($order)
                             ->select();
+            return $res;
         }else{
            $res = $this->field('org.id,org.sort,org.show_name,org_node,org.membership,org.parent_id,org.org,org.name,org.remarks,org.created_by,org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
-                ->join('`erui2_sys`.`org_member` om on om.org_id=org.id', 'left')
-                ->join('`erui2_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
+                ->join('`erui_sys`.`org_member` om on om.org_id=org.id', 'left')
+                ->join('`erui_sys`.`employee` em on em.id=`om`.`employee_id`', 'left')
                 ->where($data)
                 ->group('org.id')
                 ->order($order)
@@ -114,6 +115,7 @@ class GroupModel extends PublicModel {
         if(!isset($create['parent_id'])){
             $create['parent_id'] = 0;
         }
+        $create['created_at'] = date("Y-m-d H:i:s");
         $data = $this->create($create);
         return $this->add($data);
     }

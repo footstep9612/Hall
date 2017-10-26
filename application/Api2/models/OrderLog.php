@@ -17,7 +17,7 @@ class OrderLogModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'order_log';
-    protected $dbName = 'erui2_order'; //数据库名称
+    protected $dbName = 'erui_order'; //数据库名称
 
     //状态
 //pay_status status show_status
@@ -78,14 +78,14 @@ class OrderLogModel extends PublicModel {
         $orderModel = new OrderModel();
         try {
             $orders = $orderModel->alias('od')
-                    ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
+                    ->join('erui_order.order_log ol on ol.order_id=od.id', 'left')
                     ->where($where)
                     ->limit($start_no, $pagesize)
                     ->order('ol.log_at desc')
                     ->select();
 
             $count = $orderModel->alias('od')
-                    ->join('erui2_order.order_log ol on ol.order_id=od.id', 'left')
+                    ->join('erui_order.order_log ol on ol.order_id=od.id', 'left')
                     ->where($where)
                     ->count('od.id');
             if ($orders) {

@@ -14,7 +14,7 @@
 class SupplierBankInfoModel extends PublicModel {
 
   protected $tableName = 'supplier_bank_info';
-  protected $dbName = 'erui2_supplier'; //数据库名称
+  protected $dbName = 'erui_supplier'; //数据库名称
 
   public function __construct($str = '') {
     parent::__construct();

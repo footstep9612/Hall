@@ -151,6 +151,7 @@ class ExchangerateController extends PublicController {
 
     public function createAction() {
         $condition = $this->getPut();
+
         if (empty($condition['cur_bn1'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('币种不能为空!');
@@ -180,7 +181,6 @@ class ExchangerateController extends PublicController {
             $this->setMessage('汇率必须是浮点数字!');
             $this->jsonReturn();
         }
-
         $result = $this->_model->create_data($condition);
 
         if ($this->_model->error) {
@@ -199,6 +199,7 @@ class ExchangerateController extends PublicController {
     }
 
     function isDateTime($dateTime) {
+        echo $dateTime;
         $ret = strtotime($dateTime . '-01');
         return $ret !== FALSE && $ret != -1;
     }
@@ -206,6 +207,11 @@ class ExchangerateController extends PublicController {
     public function updateAction() {
 
         $condition = $this->getPut();
+        if (empty($condition['id'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('更新ID不能为空!');
+            $this->jsonReturn();
+        }
         if (empty($condition['cur_bn1'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('币种不能为空!');
@@ -251,8 +257,9 @@ class ExchangerateController extends PublicController {
     public function deleteAction() {
 
         $id = $this->getPut('id');
-        if (!$id) {
-            $this->setCode(MSG::MSG_FAILED);
+        if (empty($id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('要删除的汇率ID不能为空!');
             $this->jsonReturn();
         }
         $result = $this->_model->delete_data($id);

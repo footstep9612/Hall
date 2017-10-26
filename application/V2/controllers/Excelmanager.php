@@ -216,6 +216,56 @@ class ExcelmanagerController extends PublicController {
         ]);
     }
 
+    public function finalQuotationAction() {
+    
+        $request = $this->validateRequests('inquiry_id');
+
+        $data = $this->getFinalQuoteData($request['inquiry_id']);
+
+        $excelFile = $this->createFinalExcelAndInsertData($data);
+
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server. '/V2/Uploadfile/upload';
+        $data['tmp_name']=$excelFile;
+        $data['type']='application/excel';
+        $data['name']='excelFile';
+        $remoteUrl = $this->postfile($data,$url);
+
+        if (!$remoteUrl) {
+            $this->jsonReturn(['code' => '1', 'message' => '失败']);
+        }
+        //构建打包文件数组
+        $fileName = date('YmdHis');
+        $files = [
+            ['url'=>$excelFile,'name'=>$fileName.'.xls']
+        ];
+
+
+        //上传至FastDFS
+        $zipFile = $fileName.'.zip';
+        $fileId = $this->packAndUpload($url,$zipFile,$files);
+        //上传失败
+        if(empty($fileId) || empty($fileId['url'])){
+            $this->jsonReturn([
+                'code' => '-1',
+                'message' => '导出失败!',
+            ]);
+            return;
+        }
+
+        //删除本地的临时文件
+        @unlink($excelFile);
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '导出成功!',
+            'data' => [
+                'url' => $fileId['url']
+            ]
+        ]);
+    }
+
     /**
      * 上传文件至FastDFS
      * @param     $data 本地文件信息
@@ -329,14 +379,14 @@ class ExcelmanagerController extends PublicController {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
         $inquiryModel = new InquiryModel();
-        $info = $inquiryModel->where(['id' => $inquiry_id])->field('buyer_name,serial_no,pm_id,agent_id')->find();
+        $info = $inquiryModel->where(['id' => $inquiry_id])->field('serial_no,buyer_name,quote_notes')->find();
 
         //报价综合信息 (报价人，电话，邮箱，报价时间)
         $finalQuoteModel = new FinalQuoteModel();
-        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('created_by,checked_at,checked_by')->find();
+        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('checked_at,checked_by')->find();
 
         $employee = new EmployeeModel();
-        $employeeInfo = $employee->where(['id' => intval($info['pm_id'])])->field('email,mobile,name')->find();
+        $employeeInfo = $employee->where(['id' => intval($finalQuoteInfo['checked_by'])])->field('email,mobile,name')->find();
 
         //报价人信息
         $info['quoter_email'] = $employeeInfo['email'];
@@ -345,17 +395,13 @@ class ExcelmanagerController extends PublicController {
 		//由于此文件仅生成一次，所以记录日期跟当前日期一致
         $info['quote_time'] = date('Y-m-d');//$finalQuoteInfo['checked_at']; 
 
-        //市场经办人
-        $info['agenter'] = $employee->where(['id' => $info['agent_id']])->getField('name');
-		$departsments = $this->getDepartmentByUid($info['agent_id']);
-		$info['buyer_name'] = implode('-',$departsments);
 
         //报价单项(final_quote)
         $finalQuoteItemModel = new FinalQuoteItemModel();
-        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks_zh,b.remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.net_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity,c.remarks quote_remarks';
+        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
         $finalQuoteItems = $finalQuoteItemModel->alias('a')
-                ->join('erui2_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-                ->join('erui2_rfq.quote_item c ON a.quote_item_id = c.id')
+                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
                 ->field($fields)
                 ->where(['a.inquiry_id' => $inquiry_id])
                 ->order('a.id DESC')
@@ -363,7 +409,7 @@ class ExcelmanagerController extends PublicController {
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
-        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,origin_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no,quote_cur_bn')->find();
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,dispatch_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no,quote_cur_bn')->find();
         $quoteLogiFee = $quoteLogiFeeModel->where(['inquiry_id' => $inquiry_id])->field('est_transport_cycle,logi_remarks')->find();
         $quoteInfo['logi_remarks'] =$quoteLogiFee['logi_remarks'];
         $quoteInfo['est_transport_cycle'] =$quoteLogiFee['est_transport_cycle'];
@@ -415,6 +461,107 @@ class ExcelmanagerController extends PublicController {
 		}
 	}
 
+
+    private function createFinalExcelAndInsertData($quote) {
+
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();
+        $objSheet->setTitle('commercial offer');
+
+        $styleArray = ['borders' => ['outline' => ['style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => ['rgb' => '333333']]]];
+
+        /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
+        $objSheet->setCellValue("A1", 'Erui International Electronic Commerce Co.,Ltd')->mergeCells("A1:H1")->getRowDimension(1)->setRowHeight(45);
+        $objSheet->setCellValue("B2", '        Tel:+86-400-820-9199             E-mail: eruixsgl@keruigroup.com')->mergeCells("B2:G2");
+        $objSheet->setCellValue("B3", '        Fax: +86-0546-8375185           http://www.erui.com')->mergeCells("B3:G3");
+        //$objSheet->getStyle("A4:G5")->applyFromArray($styleArray);
+
+
+        $objSheet->getStyle("A1:H1")->getFont()->setSize(16)->setBold(true);
+        $objSheet->mergeCells("A4:H4");
+
+        /* 设置A1~R1的文字属性 */
+        $objSheet->getCell("A1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        //设置全局文字居中
+        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
+
+        $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        $objSheet->getColumnDimension("A")->setWidth('9');
+
+        $normal_cols = ["B", "C", "D", "E", "F"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('18');
+        endforeach;
+
+        //设置最大列宽度
+
+
+        $objSheet->setCellValue("A5", "Our Offer : " );
+        $objSheet->setCellValue("A6", "Date : " );
+        $objSheet->setCellValue("A7", "Contact : " );
+        $objSheet->setCellValue("A8", "E-mail : " );
+        $objSheet->setCellValue("A9", "Tel : " );
+
+        $objSheet->setCellValue("B5", "INQ_20171024_00004" )->mergeCells("B5:C5");
+        $objSheet->setCellValue("B6", "2017-10-25 " )->mergeCells("B6:C6");
+        $objSheet->setCellValue("B7", "IMAMJAN MAMAT" )->mergeCells("B7:C7");
+        $objSheet->setCellValue("B8", "maimt@keruigroup.com" )->mergeCells("B8:C8");
+        $objSheet->setCellValue("B9", "17326916890" )->mergeCells("B9:C9");
+
+        $objSheet->setCellValue("D5", "To : " );
+        $objSheet->setCellValue("D6", "业务对接人 : ");
+        $objSheet->setCellValue("D7", "项目名称 : " );
+        $objSheet->setCellValue("D8", "报价要求 : " );
+
+        $objSheet->setCellValue("E5", "OYGHAN" )->mergeCells("E5:H5");
+        $objSheet->setCellValue("E6", "IMAM MAMAT ")->mergeCells("E6:H6");
+        $objSheet->setCellValue("E7", "NEW YORK" )->mergeCells("E7:H7");
+        $objSheet->setCellValue("E8", "BIG BIG PRICE" )->mergeCells("E8:H8");
+
+        $objSheet->getStyle('A5:H9')->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+        $objSheet->getStyle("A5:H9")->applyFromArray($styleArray);
+
+        $objSheet->mergeCells("D9:H9");
+        $objSheet->mergeCells("A10:H10");
+
+        $objSheet->setCellValue("A11", "Item" );
+        $objSheet->setCellValue("B11", "Description" );
+        $objSheet->setCellValue("C11", "Reference picture" );
+        $objSheet->setCellValue("D11", "Qty." );
+        $objSheet->setCellValue("E11", "Unit Price(USD)" );
+        $objSheet->setCellValue("F11", "Total Price(USD)" );
+
+        $objSheet->getRowDimension(12)->setRowHeight(35);
+
+        $objSheet->setCellValue("A12", "1" );
+        $objSheet->setCellValue("B12", "Description" );
+        $objSheet->setCellValue("C12", "Reference picture" );
+        $objSheet->setCellValue("D12", "12" );
+        $objSheet->setCellValue("E12", "1200" );
+        $objSheet->setCellValue("F12", "24000" );
+
+        $R_N = ["A11","B11","C11","D11","E11","F11","A12","B12","C12","D12","E12","F12"];
+        foreach ($R_N as $RN):
+            $objSheet->getCell($RN)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        endforeach;
+
+
+        $objSheet->setCellValue("A14", '1. Validity:')->mergeCells("A14:H14");
+        $objSheet->setCellValue("A15", '2. The above offer is based on the Incoterm XXX;')->mergeCells("A15:H15");
+        $objSheet->setCellValue("A16", '3. The delivery time: ')->mergeCells("A16:H16");
+        $objSheet->setCellValue("A17", '4. Any deviation about the quantity or specification from our offer may affect the price and the delivery time.')->mergeCells("A17:H17");
+        $objSheet->setCellValue("A18", '5. Payment Terms: ')->mergeCells("A18:H18");
+        $objSheet->setCellValue("A19", '6. The above qutation price does not include the third party inspection cost or other costs.')->mergeCells("A19:H19");
+
+
+        //4.保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, "FINAL_" . date('Ymd-His') . '.xls');
+
+    }
+
     /**
      * 创建excel文件对象
      * @param $quote
@@ -424,7 +571,7 @@ class ExcelmanagerController extends PublicController {
 
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet(); //当前sheet
-        $objSheet->setTitle('市场报价单'); //设置报价单标题
+        $objSheet->setTitle('商务报价单'); //设置报价单标题
         //设置边框
         $styleArray = [
             'borders' => [
@@ -481,13 +628,13 @@ class ExcelmanagerController extends PublicController {
             $objSheet->getColumnDimension($big_col)->setWidth('18');
         endforeach;
 
-        $objSheet->setCellValue("A3", "报价单号 : " . $quote['quote_info']['quote_no'])->mergeCells("A3:R3");
+        $objSheet->setCellValue("A3", "询单编号 : " . $quote['quoter_info']['serial_no'])->mergeCells("A3:R3");
         $objSheet->setCellValue("A4", "报价人 : " . $quote['quoter_info']['quoter_name'])->mergeCells("A4:E4");
         $objSheet->setCellValue("A5", "电话 : " . $quote['quoter_info']['quoter_mobile'])->mergeCells("A5:E5");
         $objSheet->setCellValue("A6", "邮箱 : " . $quote['quoter_info']['quoter_email'])->mergeCells("A6:E6");
 
         $objSheet->setCellValue("F4", "询价单位 : " . $quote['quoter_info']['buyer_name'])->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "业务对接人 : " . $quote['quoter_info']['agenter'])->mergeCells("F5:R5");
+        $objSheet->setCellValue("F5", "业务对接人 : ")->mergeCells("F5:R5");
         $objSheet->setCellValue("F6", "报价时间 : " . $quote['quoter_info']['quote_time'])->mergeCells("F6:R6");
 
 
@@ -539,14 +686,14 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->setCellValue("B" . $row_num, $item['name_zh']);
                 $objSheet->setCellValue("C" . $row_num, $item['name']);
                 $objSheet->setCellValue("D" . $row_num, $item['model']);
-                $objSheet->setCellValue("E" . $row_num, $item['remarks_zh']);
-                $objSheet->setCellValue("F" . $row_num, $item['remarks']);
+                $objSheet->setCellValue("E" . $row_num, $item['remarks']);
+                $objSheet->setCellValue("F" . $row_num, $item['quote_remarks']);
                 $objSheet->setCellValue("G" . $row_num, $item['qty']);
                 $objSheet->setCellValue("H" . $row_num, $item['unit']);
                 $objSheet->setCellValue("I" . $row_num, $item['brand']);
                 $objSheet->setCellValue("J" . $row_num, $item['exw_unit_price']);
                 $objSheet->setCellValue("K" . $row_num, $item['quote_unit_price']);
-                $objSheet->setCellValue("L" . $row_num, $item['net_weight_kg']);
+                $objSheet->setCellValue("L" . $row_num, $item['gross_weight_kg']);
                 $objSheet->setCellValue("M" . $row_num, $item['package_size']);
                 $objSheet->setCellValue("N" . $row_num, $item['package_mode']);
                 $objSheet->setCellValue("O" . $row_num, $item['delivery_days']);
@@ -589,7 +736,7 @@ class ExcelmanagerController extends PublicController {
             $objSheet->setCellValue("D" . $num12, "运输方式");
             $objSheet->setCellValue("E" . $num12, $quote['quote_info']['trans_mode_bn']);
             $objSheet->setCellValue("F" . $num12, "存放地");
-            $objSheet->setCellValue("G" . $num12, $quote['quote_info']['origin_place']);
+            $objSheet->setCellValue("G" . $num12, $quote['quote_info']['dispatch_place']);
             $objSheet->setCellValue("H" . $num12, "目的地");
             $objSheet->setCellValue("I" . $num12, $quote['quote_info']['delivery_addr']);
             $objSheet->setCellValue("J" . $num12, "运输周期(天)");
@@ -651,7 +798,7 @@ class ExcelmanagerController extends PublicController {
 
             $num16 = $row_num + 7;
             $num17 = $row_num + 8;
-            $objSheet->setCellValue("A" . $num16, '报价备注 : ' . $quote['quote_info']['quote_remarks'])->mergeCells("A" . $num16 . ":K" . $num17);
+            $objSheet->setCellValue("A" . $num16, '报价备注 : ' . $quote['quoter_info']['quote_notes'])->mergeCells("A" . $num16 . ":K" . $num17);
             $objSheet->getStyle("A" . $num16 . ":K" . $num17)->applyFromArray($styleArray);
             $objSheet->getCell("A" . $num16)
                     ->getStyle()

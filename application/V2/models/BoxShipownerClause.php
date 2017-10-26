@@ -16,7 +16,7 @@
 class BoxShipownerClauseModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_dict';
+    protected $dbName = 'erui_dict';
     protected $tableName = 'box_shipowner_clause';
 
     public function __construct($str = '') {
@@ -65,8 +65,8 @@ class BoxShipownerClauseModel extends PublicModel {
                 return json_decode(redisHashGet('BoxShipownerClause', $redis_key), true);
             }
             $result = $this->alias('tbt')
-                            ->join('erui2_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
-                            ->join('erui2_dict.shipowner_clause sc on sc.bn=tbt.shipowner_clause_bn and sc.lang=\'zh\'', 'left')
+                            ->join('erui_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
+                            ->join('erui_dict.shipowner_clause sc on sc.bn=tbt.shipowner_clause_bn and sc.lang=\'zh\'', 'left')
                             ->field('tbt.id,bt.box_type_name,sc.clause ')
                             ->where($where)->order($order)->select();
 

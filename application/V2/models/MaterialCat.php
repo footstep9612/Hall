@@ -14,7 +14,7 @@
 class MaterialCatModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_goods'; //数据库名称
+    protected $dbName = 'erui_goods'; //数据库名称
     protected $tableName = 'material_cat'; //数据表表名
     protected $langs = ['en', 'es', 'zh', 'ru'];
 
@@ -392,6 +392,9 @@ class MaterialCatModel extends PublicModel {
      * @author zyg
      */
     public function update_data($upcondition = []) {
+
+
+
         $data = $this->getUpdateCondition($upcondition, defined('UID') ? UID : 0);
         //   $data['created_by'] = defined('UID') ? UID : 0;
         try {
@@ -415,8 +418,10 @@ class MaterialCatModel extends PublicModel {
             $this->startTrans();
             $data['updated_by'] = defined('UID') ? UID : 0;
             $data['updated_at'] = date('Y-m-d H:i:s');
+            $old_info = [];
             foreach ($this->langs as $lang) {
                 if (isset($upcondition[$lang]) && $upcondition[$lang]['name']) {
+                    $old_info[$lang] = $this->where(['cat_no' => $where['cat_no'], 'lang' => $lang])->field('id,cat_no,name')->find();
                     $data['lang'] = $lang;
                     $data['name'] = $upcondition[$lang]['name'];
 
@@ -431,7 +436,6 @@ class MaterialCatModel extends PublicModel {
                     $data = $this->create($data);
                     $add = $this->create($add);
                     $flag = $exist_flag ? $this->where($where)->save($data) : $this->add($add);
-
                     if (!$flag) {
                         $this->rollback();
                         return false;
@@ -439,35 +443,11 @@ class MaterialCatModel extends PublicModel {
                 }
             }
 
-            if (isset($upcondition['level_no']) && $upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
-
-                $childs = $this->get_list($cat_no);
-                foreach ($childs as $val) {
-                    $child_cat_no = $this->getCatNo($data['cat_no'], 3);
-                    $flag = $this->where(['cat_no' => $val['cat_no']])
-                            ->save(['cat_no' => $child_cat_no, 'parent_cat_no' => $data['cat_no']]);
-                    if (!$flag) {
-
-                        $this->rollback();
-                        return false;
-                    }
-                    $flag = $this->updateothercat($val['cat_no'], $child_cat_no);
-                    if (!$flag) {
-
-                        $this->rollback();
-                        return false;
-                    }
-                }
-            } elseif (isset($upcondition['level_no']) && $upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
-                $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
-                if (!$flag) {
-
-                    $this->rollback();
-                    return false;
-                }
+            $flag = $this->_updateOther($upcondition, $where, $data, $cat_no, $old_info);
+            if (!$flag) {
+                $this->rollback();
+                return false;
             }
-
-
             $this->commit();
             return $flag;
         } catch (Exception $ex) {
@@ -477,6 +457,52 @@ class MaterialCatModel extends PublicModel {
 
             return false;
         }
+    }
+
+    /**
+     * 更新子分类数据和 产品商品物料分类信息
+     * @param  mix $upcondition 更新条件
+     * @return mix
+     * @author zyg
+     */
+    private function _updateOther(&$upcondition, &$where, &$data, &$cat_no, &$old_info) {
+
+        if (isset($upcondition['level_no']) && $upcondition['level_no'] == 2 && $where['cat_no'] != $data['cat_no']) {
+
+            $childs = $this->get_list($cat_no);
+            foreach ($childs as $val) {
+                $child_cat_no = $this->getCatNo($data['cat_no'], 3);
+                $flag = $this->where(['cat_no' => $val['cat_no']])
+                        ->save(['cat_no' => $child_cat_no, 'parent_cat_no' => $data['cat_no']]);
+                if (!$flag) {
+
+                    return false;
+                }
+                $flag = $this->updateothercat($val['cat_no'], $child_cat_no);
+                if (!$flag) {
+
+
+                    return false;
+                }
+            }
+        } elseif (isset($upcondition['level_no']) && $upcondition['level_no'] == 3 && $where['cat_no'] != $data['cat_no']) {
+            $flag = $this->updateothercat($where['cat_no'], $data['cat_no']);
+            if (!$flag) {
+
+                return false;
+            }
+        } else {
+            $es_product_model = new EsProductModel();
+            foreach ($this->langs as $lang) {
+                $info = $old_info[$lang];
+                if (isset($upcondition[$lang]['name']) && isset($info['name']) && $info['name'] != $upcondition[$lang]['name']) {
+                    $es_product_model->Updatemeterialcatno($where['cat_no'], null, $lang, $where['cat_no']);
+                } elseif ($old_info['zh']['name'] != $upcondition['zh']['name']) {
+                    $es_product_model->Updatemeterialcatno($where['cat_no'], null, $lang, $where['cat_no']);
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -554,11 +580,6 @@ class MaterialCatModel extends PublicModel {
                 return false;
             }
 
-            if ($flag === false) {
-                $this->rollback();
-
-                return false;
-            }
             $show_material_cat_model = new Model($this->dbName . '.show_material_cat');
             $flag = $show_material_cat_model
                     ->where(['material_cat_no' => $old_cat_no])
@@ -572,7 +593,7 @@ class MaterialCatModel extends PublicModel {
 
             $es_product_model = new EsProductModel();
             foreach ($this->langs as $lang) {
-                $es_product_model->Updatemeterialcatno($where['cat_no'], null, $lang, $data['cat_no']);
+                $es_product_model->Updatemeterialcatno($old_cat_no, null, $lang, $new_cat_no);
             }
             return true;
         } catch (Exception $ex) {
@@ -1079,6 +1100,8 @@ class MaterialCatModel extends PublicModel {
                 } else {
                     $val['created_by_name'] = '';
                 }
+
+
                 $arr[$key] = $val;
             }
         }

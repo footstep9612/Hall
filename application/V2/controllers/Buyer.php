@@ -29,7 +29,12 @@ class BuyerController extends PublicController {
             $where['name'] = $data['name'];
         }
         if (!empty($data['country_bn'])) {
-            $where['country_bn'] = $data['country_bn'];
+            $pieces = explode(",",$data['country_bn']);
+            for($i=0;$i<count($pieces);$i++){
+                $where['country_bn']=$where['country_bn']."'".$pieces[$i]."',";
+
+            }
+            $where['country_bn'] =rtrim($where['country_bn'], ",");
         }
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
@@ -442,18 +447,20 @@ class BuyerController extends PublicController {
         $res = $model->update_data($arr, $where);
         
         if (!empty($data['password'])) {
-            $arr_account['password_hash'] = $data['password'];
-            $buyer_account_model->update_data($arr_account, $where_account);
+            $account['password_hash'] = $data['password'];
+           // $buyer_account_model->update_data($arr_account, $where_account);
         }
         $buyer_attach_model = new BuyerattachModel();
         if (!empty($data['attach_url'])) {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
         }
-        $buyer_address_model = new BuyerAddressModel();
         if (!empty($data['address'])) {
-            $arr_address['address'] = $data['address'];
-            $buyer_address_model->update_data($arr_address,$where_address);
+            $buyer_address_data['address'] = $data['address'];
+        }
+        if (!empty($buyer_address_data)) {
+            $buyer_address_model = new BuyerAddressModel();
+            $buyer_address_model->update_data($buyer_address_data,$where_address);
         }
         //$model = new UserModel();
         if(!empty($account)){

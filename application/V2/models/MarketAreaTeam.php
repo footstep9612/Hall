@@ -16,7 +16,7 @@
 class MarketAreaTeamModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui2_operation';
+    protected $dbName = 'erui_operation';
     protected $tableName = 'market_area_team';
 
     public function __construct() {

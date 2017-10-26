@@ -27,7 +27,7 @@ class ProductModel extends PublicModel {
         'name' => array('required'),
         'brand' => array('required'),
     );
-//    protected $dbName = 'erui2_goods'; //数据库名称
+//    protected $dbName = 'erui_goods'; //数据库名称
 //    protected $tableName = 'product'; //数据表表名
 
     /**

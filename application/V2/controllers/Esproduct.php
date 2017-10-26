@@ -15,7 +15,7 @@
  */
 class EsproductController extends PublicController {
 
-    protected $index = 'erui2_goods';
+    protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
     protected $version = '1';
@@ -85,6 +85,8 @@ class EsproductController extends PublicController {
 
                 break;
         }
+
+
         $ret = $model->getProducts($condition, null, $lang);
 
         if ($ret) {
@@ -104,7 +106,7 @@ class EsproductController extends PublicController {
             } else {
                 $send['sku_count'] = 0;
             }
-            if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
+            if (isset($this->put_data['image_count']) && $this->put_data['image_count'] == 'Y') {
                 $send['image_count'] = $data['aggregations']['image_count']['value'];
             } else {
                 $send['image_count'] = 0;
@@ -372,8 +374,9 @@ class EsproductController extends PublicController {
         }
         $es = new ESClient();
         $state = $es->getstate();
+
         if (!isset($state['metadata']['indices'][$this->index])) {
-            $es->create_index($this->index, $body, 16, 0);
+            $es->create_index($this->index, $body, 5, 1);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
@@ -438,6 +441,7 @@ class EsproductController extends PublicController {
         } else {
             $analyzer = 'ik';
         }
+
         $type = 'string';
         $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
@@ -609,7 +613,7 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function productAction($lang = 'en') {
-        $es = new ESClient();
+
 //        $info = $es->getversion();
 //        if (substr($info['version']['number'], 0, 1) == 1) {
 //            $analyzer = 'ik';
@@ -618,6 +622,7 @@ class EsproductController extends PublicController {
 //            $analyzer = 'ik_max_word';
 //            $type = 'text';
 //        }
+
         if ($lang == 'en') {
             $analyzer = 'english';
         } elseif ($lang == 'es') {

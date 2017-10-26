@@ -186,7 +186,6 @@ class BrandController extends PublicController {
         } elseif (isset($data['en']['name'])) {
             $this->_verifyName($data['en']['name']);
         }
-        $this->_verifyLog($data);
         $result = $brand_model->create_data($data);
         if ($result !== false) {
             $this->delcache();
@@ -211,10 +210,9 @@ class BrandController extends PublicController {
             $this->setMessage('请输入英文');
             $this->jsonReturn();
         } elseif (isset($data['en']['name'])) {
-            $this->_verifyName($data['en']['name']);
+            $data['en']['name'] = $this->_verifyName($data['en']['name']);
         }
         $this->_verifyLog($data);
-
         $result = $brand_model->update_data($data);
         if ($result !== false) {
             $this->delcache();
@@ -226,11 +224,8 @@ class BrandController extends PublicController {
         }
     }
 
-    /*
-     * 判断英文中是否含有中文
-     */
-
     private function _verifyName($name) {
+
         $name = $this->SBC_DBC($name);
         $p = '[\x{4e00}-\x{9fa5}'
                 . '\。\，\、\；\：\？\！\…\—\·\ˉ\¨\‘\’'
@@ -239,13 +234,14 @@ class BrandController extends PublicController {
                 . '\】\（\）\［\］\｛\｝]';
         if (preg_match('/^' . $p . '+$/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('该输入英文品牌中全是中文，请您查证后重新输入！');
+            $this->setMessage('该输入英文语言中全是中文ｈｕｏ　，请您查证后重新输入！');
             $this->jsonReturn();
         } elseif (preg_match('/' . $p . '/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('该输入英文品牌中含有中文，请您查证后重新输入！');
+            $this->setMessage('该输入英文语言中含有中文，请您查证后重新输入！');
             $this->jsonReturn();
         }
+        return $name;
     }
 
     /*
@@ -304,6 +300,20 @@ class BrandController extends PublicController {
         }
     }
 
+    /**
+     * 导出品牌
+     */
+    public function exportAction() {
+        $data = $this->getPut();
+        $brand_model = new BrandModel();
+        $localDir = $brand_model->export($data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
     public function deleteAction() {
         $brand_model = new BrandModel();
         $id = $this->getPut('id');
@@ -332,20 +342,6 @@ class BrandController extends PublicController {
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
-        }
-    }
-
-    /**
-     * 导出品牌
-     */
-    public function exportAction() {
-        $data = $this->getPut();
-        $brand_model = new BrandModel();
-        $localDir = $brand_model->export($data);
-        if ($localDir) {
-            jsonReturn($localDir);
-        } else {
-            jsonReturn('', ErrorMsg::FAILED);
         }
     }
 
