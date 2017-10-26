@@ -228,8 +228,8 @@ class ProductModel extends PublicModel {
                     $data['bizline_id'] = $bizline_id;
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                    $this->checkParam($data, $this->field);     //字段校验
                     if ($input['status'] != 'DRAFT') {
-                        $this->checkParam($data, $this->field);     //字段校验
                         $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $key,
                             'name' => $data['name'],
