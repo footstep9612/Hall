@@ -129,7 +129,7 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
 
-        $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
+        $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
 
         $inquiryModel = new InquiryModel();
         $check_org_id = $inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
