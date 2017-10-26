@@ -187,7 +187,7 @@ class QuoteController extends PublicController{
     public function confirmAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $response = $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'MARKET_CONFIRMING');
         $this->jsonReturn($response);
 
     }
