@@ -347,25 +347,8 @@ class InquiryController extends PublicController {
     
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
-            $quoteModel = new QuoteModel();
              
-            $inquiryModel->startTrans();
-            $quoteModel->startTrans();
-             
-            $res1 = $inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'updated_by' => $this->user['id']]);
-             
-            // 更改报价单状态
-            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'INQUIRY_CLOSED']);
-             
-            if ($res1['code'] == 1 && $res2) {
-                $inquiryModel->commit();
-                $quoteModel->commit();
-                $res = true;
-            } else {
-                $inquiryModel->rollback();
-                $quoteModel->rollback();
-                $res = false;
-            }
+            $res = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'updated_by' => $this->user['id']]);
              
             if ($res) {
                 $this->setCode('1');
