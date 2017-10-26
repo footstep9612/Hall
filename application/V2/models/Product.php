@@ -1121,7 +1121,7 @@ class ProductModel extends PublicModel {
                             $result = $this->where($condition_update)->save($data_tmp);
                         }
                     } else {
-                        $data_tmp['status'] = $this::STATUS_CHECKING;
+                        $data_tmp['status'] = $this::STATUS_DRAFT;
                         $workText = '新增';
                         $input_spu = $input_spu ? $input_spu : $this->createSpu($r[3]);    //生成spu
                         $data_tmp['spu'] = $input_spu;

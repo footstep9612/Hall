@@ -2085,7 +2085,7 @@ class GoodsModel extends PublicModel {
                     }
                 } else {
                     $workType = '添加';
-                    $data_tmp['status'] = $this::STATUS_CHECKING;
+                    $data_tmp['status'] = $this::STATUS_DRAFT;
                     $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku(array(array('spu' => $spu)));    //生成sku
                     $result = $this->add($this->create($data_tmp));
                 }
