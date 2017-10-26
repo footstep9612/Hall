@@ -2202,6 +2202,8 @@ class GoodsModel extends PublicModel {
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败');
                 continue;
             }
+            $input_sku = null;
+            unset($input_sku);
         }
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         $objWriter->save($localFile);    //文件保存
