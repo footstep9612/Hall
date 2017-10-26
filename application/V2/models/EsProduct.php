@@ -1681,9 +1681,9 @@ class EsProductModel extends Model {
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['status'] = self::STATUS_DELETED;
+                $updateParams['body'][] = ['update' => ['_id' => $spu]];
+                $updateParams['body'][] = ['doc' => $data];
 
-                $type = $this->tableName . '_' . $lang;
-                $es->update_document($this->dbName, $type, $data, $spu);
                 $esgoodsdata = [
                     "doc" => $data,
                     "query" => ['bool' => [ESClient::MUST => [
@@ -1692,6 +1692,7 @@ class EsProductModel extends Model {
 
                 $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
             }
+
             $es->bulk($updateParams);
         }
 

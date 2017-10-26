@@ -26,7 +26,7 @@ class ProductModel extends PublicModel {
         //'lang' => array('method','checkLang','语言'),
         'material_cat_no' => array('required', '', '物料分类不能为空'),
         'name' => array('required', '', '名称不能为空'),
-        //  'brand' => array('required','','名称不能为空'),//暂时先去掉品牌的必填验证
+            //  'brand' => array('required','','名称不能为空'),//暂时先去掉品牌的必填验证
     );
 
     /**
@@ -233,7 +233,7 @@ class ProductModel extends PublicModel {
                             'material_cat_no' => $data['material_cat_no'],
                             'brand' => $data['brand'],
                             'deleted_flag' => 'N',
-                            //'status' => array('neq', 'DRAFT')
+                                //'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {
                             $exist_condition['spu'] = array('neq', $spu);
@@ -328,10 +328,10 @@ class ProductModel extends PublicModel {
                               $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
                              */
                         }
-                    }else{
+                    } else {
                         if ($input['status'] != 'DRAFT') {
                             jsonReturn('', '1000', '产品图不能为空');
-                        }else{
+                        } else {
                             if (isset($input['spu'])) {
                                 $pattach = new ProductAttachModel();
                                 $update_condition = array(
@@ -496,14 +496,14 @@ class ProductModel extends PublicModel {
                 if (empty(trim($item['brand']))) {    //检测品牌
                     return ['code' => false, 'message' => $item['lang'] . '品牌不能为空'];
                 }
-                $condition_new = [ 'lang' => $item['lang'], 'name' => $item['name'] , 'deleted_flag'=>self::DELETE_N, 'status'=>['neq',self::STATUS_DRAFT], 'spu'=>['neq',$item['spu']]];
+                $condition_new = ['lang' => $item['lang'], 'name' => $item['name'], 'deleted_flag' => self::DELETE_N, 'status' => ['neq', self::STATUS_DRAFT], 'spu' => ['neq', $item['spu']]];
                 $exist = $this->field('id,brand')->where($condition_new)->select();
-                if($exist){
-                    $brand_ary = json_decode($item['brand'],true);
-                    foreach($exist as $r){
-                        $brand_exist = json_decode($r['brand'],true);
-                        if($brand_ary['name'] == $brand_exist['name']){
-                            return ['code' => false,'message' => $item['lang'].'已存在'];
+                if ($exist) {
+                    $brand_ary = json_decode($item['brand'], true);
+                    foreach ($exist as $r) {
+                        $brand_exist = json_decode($r['brand'], true);
+                        if ($brand_ary['name'] == $brand_exist['name']) {
+                            return ['code' => false, 'message' => $item['lang'] . '已存在'];
                         }
                     }
                 }
@@ -546,7 +546,7 @@ class ProductModel extends PublicModel {
                             $where['lang'] = $lang;
                         }
                         $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
-                        if ($result) {
+                        if ($result !== null) {
                             /**
                              * 删除ｓｋｕ
                              * 优化意见：这块最好放入队列，以确保成功删除掉。
@@ -557,6 +557,7 @@ class ProductModel extends PublicModel {
                                 $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                             }
                         } else {
+                            echo 1;
                             $this->rollback();
                             return false;
                         }
@@ -570,7 +571,7 @@ class ProductModel extends PublicModel {
                     }
 
                     $result = $this->where($where)->save(array('deleted_flag' => self::DELETE_Y, 'sku_count' => 0));
-                    if ($result) {
+                    if ($result !== null) {
                         /**
                          * 删除ｓｋｕ
                          * 优化意见：这块最好放入队列，以确保成功删除掉。
@@ -581,6 +582,7 @@ class ProductModel extends PublicModel {
                             $goodsModel->where($where)->save(array('deleted_flag' => self::DELETE_Y));
                         }
                     } else {
+
                         $this->rollback();
                         return false;
                     }
@@ -589,6 +591,7 @@ class ProductModel extends PublicModel {
                 $this->commit();
                 return true;
             } catch (Exception $e) {
+                Log::write($e->getMessage(), LOG::INFO);
                 $this->rollback();
                 return false;
             }
@@ -639,9 +642,9 @@ class ProductModel extends PublicModel {
         //数据读取
         try {
             $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,'
-                . 'tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,'
-                . 'supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,'
-                . 'created_at,updated_by,updated_at,checked_by,checked_at,bizline_id';
+                    . 'tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,'
+                    . 'supply_ability,source,source_detail,sku_count,recommend_flag,status,created_by,'
+                    . 'created_at,updated_by,updated_at,checked_by,checked_at,bizline_id';
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
@@ -808,16 +811,16 @@ class ProductModel extends PublicModel {
 
         /**
          * 6位随机数
-        $spu = randNumber(6);
-        $spu = $material_cat_no.'00'.$code.'0000';
-        $condition = array(
-        'spu' => $spu
-        );
-        $exit = $this->where($condition)->find();
-        if ($exit) {
-        $this->createSpu();
-        }
-        return $spu;
+          $spu = randNumber(6);
+          $spu = $material_cat_no.'00'.$code.'0000';
+          $condition = array(
+          'spu' => $spu
+          );
+          $exit = $this->where($condition)->find();
+          if ($exit) {
+          $this->createSpu();
+          }
+          return $spu;
          */
     }
 
@@ -1006,7 +1009,7 @@ class ProductModel extends PublicModel {
                     if (empty($data_tmp['material_cat_no'])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[物料分类编码不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[物料分类编码不能为空]');
                         continue;
                     }
                     //检查物料分类
@@ -1014,14 +1017,14 @@ class ProductModel extends PublicModel {
                     if (!$mexist) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[物料分类编码不存在]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[物料分类编码不存在]');
                         continue;
                     }
                     $data_tmp['name'] = trim($r[4]);    //名称
                     if (empty($data_tmp['name'])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[产品名称不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[产品名称不能为空]');
                         continue;
                     }
                     $data_tmp['show_name'] = trim($r[5]);    //展示名称
@@ -1029,7 +1032,7 @@ class ProductModel extends PublicModel {
                     if (empty($r[6])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[产品组不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[产品组不能为空]');
                         continue;
                     } else {
                         $bizline_model = new BizlineModel();
@@ -1040,17 +1043,17 @@ class ProductModel extends PublicModel {
                     if (empty($r[7])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不能为空]');
                         continue;
                     }
                     $condition_brand = array(
-                        'brand' => array('like','%"name":"'.trim($r[7]).'"%')
+                        'brand' => array('like', '%"name":"' . trim($r[7]) . '"%')
                     );
                     $brand_id = $brandModel->field('id')->where($condition_brand)->find();
-                    if(!$brand_id){
+                    if (!$brand_id) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不存在]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[产品品牌不存在]');
                         continue;
                     }
                     $brand_ary = array('name' => trim($r[7]), 'style' => 'TEXT', 'label' => trim($r[7]), 'logo' => '');
@@ -1060,7 +1063,7 @@ class ProductModel extends PublicModel {
                     if (empty($data_tmp['description'])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[产品介绍不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[产品介绍不能为空]');
                         continue;
                     }
                     // $data_tmp['advantages'] = $r[6];
@@ -1068,28 +1071,28 @@ class ProductModel extends PublicModel {
                     if (empty($data_tmp['tech_paras'])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[技术参数不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[技术参数不能为空]');
                         continue;
                     }
                     $data_tmp['exe_standard'] = trim($r[10]);   //执行标准
                     if (empty($data_tmp['exe_standard'])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[执行标准不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[执行标准不能为空]');
                         continue;
                     }
                     $data_tmp['warranty'] = trim($r[11]);    //质保期
                     if (empty($data_tmp['warranty'])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[质保期不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[质保期不能为空]');
                         continue;
                     }
                     $data_tmp['keywords'] = trim($r[12]);    //关键字
                     if (empty($data_tmp['keywords'])) {
                         $faild ++;
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), '操作失败[关键字不能为空]');
+                                ->setCellValue('N' . ($key + 1), '操作失败[关键字不能为空]');
                         continue;
                     }
                     $data_tmp['source'] = 'ERUI';
@@ -1110,7 +1113,7 @@ class ProductModel extends PublicModel {
                         if (empty($input_spu)) {    //存在且没有传递spu 提示错误
                             $faild ++;
                             $objPHPExcel->setActiveSheetIndex(0)
-                                ->setCellValue('N' . ($key + 1), '操作失败[已存在]');
+                                    ->setCellValue('N' . ($key + 1), '操作失败[已存在]');
                             continue;
                         } else {    //存在且传递了spu 则按修改操作
                             $workText = '修改';
@@ -1134,21 +1137,21 @@ class ProductModel extends PublicModel {
 
                     if ($result) {
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('C' . ($key + 1), ' ' . $input_spu);
+                                ->setCellValue('C' . ($key + 1), ' ' . $input_spu);
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), $workText . '操作成功');
+                                ->setCellValue('N' . ($key + 1), $workText . '操作成功');
                         $success ++;
 
                         //更新es
                         $es_product_model->create_data($input_spu, $lang);
                     } else {
                         $objPHPExcel->setActiveSheetIndex(0)
-                            ->setCellValue('N' . ($key + 1), $workText . '操作失败');
+                                ->setCellValue('N' . ($key + 1), $workText . '操作失败');
                         $faild ++;
                     }
                 } catch (Exception $e) {
                     $objPHPExcel->setActiveSheetIndex(0)
-                        ->setCellValue('N' . ($key + 1), '操作失败-请检查数据');
+                            ->setCellValue('N' . ($key + 1), '操作失败-请检查数据');
                     $faild ++;
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
                 }
@@ -1407,8 +1410,8 @@ class ProductModel extends PublicModel {
                             //$objSheet = $objPHPExcel->getActiveSheet(0);    //当前sheet
                             $objPHPExcel->getActiveSheet(0)->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
                             $objPHPExcel->getActiveSheet(0)->getStyle("A1:M1")
-                                ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                                    ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                             $objPHPExcel->getActiveSheet()->getStyle("A1:M1")->getFont()->setSize(11)->setBold(true);    //粗体
                             $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
                             foreach ($column_width_25 as $column) {
