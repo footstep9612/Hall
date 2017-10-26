@@ -211,10 +211,14 @@ class ProductModel extends PublicModel {
         if (empty($input)) {
             return false;
         }
+        if(empty($input['zh']['name']) && empty($input['en']['name']) && empty($input['es']['name']) && empty($input['ru']['name']) ){
+            jsonReturn('', ErrorMsg::FAILED ,'名称不能为空');
+        }
         $material_cat_no = (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) ? $input['material_cat_no'] : ((isset($input['zh']['material_cat_no']) && !empty($input['zh']['material_cat_no'])) ? $input['zh']['material_cat_no'] : ((isset($input['en']['material_cat_no']) && !empty($input['en']['material_cat_no'])) ? $input['en']['material_cat_no'] : ((isset($input['es']['material_cat_no']) && !empty($input['es']['material_cat_no'])) ? $input['es']['material_cat_no'] : ((isset($input['ru']['material_cat_no']) && !empty($input['ru']['material_cat_no'])) ? $input['ru']['material_cat_no'] : ''))));
         if(empty($material_cat_no)){
             jsonReturn('', ErrorMsg::FAILED ,'物料分类不能为空');
         }
+
         $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
         $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
         $this->startTrans();
@@ -234,8 +238,6 @@ class ProductModel extends PublicModel {
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     $this->checkParam($data, $this->field);     //字段校验
-                    print_r($data);
-                    print_r($this->field);die;
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $key,
