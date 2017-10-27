@@ -1406,7 +1406,13 @@ class EsGoodsModel extends Model {
             if (isset($goods['spu']) && $goods['spu']) {
                 $product_model = new ProductModel();
                 $product = $product_model->field('sku_count')->where(['spu' => $goods['spu'], 'lang' => $lang])->find();
-                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => isset($product['sku_count']) && $product['sku_count'] ? $product['sku_count'] : 0], $goods['spu']);
+                if (isset($product['sku_count']) && intval($product['sku_count']) > 0) {
+                    $sku_count = intval($product['sku_count']);
+                } else {
+                    $sku_count = 0;
+                }
+
+                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => $sku_count], $goods['spu']);
             }
         } elseif (is_array($skus)) {
             $product_updateParams = $updateParams = [];
@@ -1435,7 +1441,12 @@ class EsGoodsModel extends Model {
 
             foreach ($products as $product) {
                 $data = [];
-                $data['sku_count'] = $product['sku_count'];
+                if (isset($product['sku_count']) && intval($product['sku_count']) > 0) {
+                    $sku_count = intval($product['sku_count']);
+                } else {
+                    $sku_count = 0;
+                }
+                $data['sku_count'] = $sku_count;
                 $product_updateParams['body'][] = ['update' => ['_id' => $product['spu']]];
                 $product_updateParams['body'][] = ['doc' => $data];
             }
