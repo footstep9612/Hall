@@ -348,7 +348,61 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
              
-            $res = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'updated_by' => $this->user['id']]);
+            $res = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'quote_status' => 'COMPLETED', 'updated_by' => $this->user['id']]);
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-103');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 退回重新报价
+     *
+     * @author liujf
+     * @time 2017-10-27
+     */
+    public function returnRequoteAction() {
+        $condition = $this->put_data;
+        
+        if (!empty($condition['inquiry_id'])) {
+             $inquiryModel = new InquiryModel();
+             $quoteModel = new QuoteModel();
+             $finalQuoteModel = new FinalQuoteModel();
+             
+            $inquiryModel->startTrans();
+            $quoteModel->startTrans();
+            $finalQuoteModel->startTrans();
+             
+            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'quote_status' => 'ONGOING', 'updated_by' => $this->user['id']]);
+             
+            // 更改报价单状态
+            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_QUOTING']);
+            
+            // 更改市场报价单状态
+            $res3 = $finalQuoteModel->updateFinal(['inquiry_id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'updated_by' => $this->user['id']]);
+             
+            if ($res1['code'] == 1 && $res2 && $res3['code'] == 1) {
+                $inquiryModel->commit();
+                $quoteModel->commit();
+                $finalQuoteModel->commit();
+                $res = true;
+            } else {
+                $inquiryModel->rollback();
+                $quoteModel->rollback();
+                $finalQuoteModel->rollback();
+                $res = false;
+            }
              
             if ($res) {
                 $this->setCode('1');
