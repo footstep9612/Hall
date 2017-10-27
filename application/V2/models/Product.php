@@ -218,123 +218,133 @@ class ProductModel extends PublicModel {
         if(empty($material_cat_no)){
             jsonReturn('', ErrorMsg::FAILED ,'物料分类不能为空');
         }
+        $fp = fopen(MYPATH . '/public/tmp/spuedit.lock','r');
+        if(flock($fp,LOCK_EX | LOCK_NB)){
+            $spu = (isset($input['spu']) && !empty($input['spu'])) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
+            if(empty($spu) || $spu === false ){
+                flock($fp,LOCK_UN);
+                fclose($fp);
+                jsonReturn('', ErrorMsg::FAILED ,'生成SPU编码失败');
+            }
+            //解锁
+            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
+            }
 
-        $spu = (isset($input['spu']) && !empty($input['spu'])) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
-        if(empty($spu) || $spu === false ){
-            jsonReturn('', ErrorMsg::FAILED ,'生成SPU编码失败');
-        }
-
-        $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
-        $this->startTrans();
-        try {
-            $userInfo = getLoinInfo(); //获取当前用户信息
-            $mcatModel = new MaterialCatModel();
-            foreach ($input as $key => $item) {
-                if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
-                    if (empty($data) || empty($data['name'])) {
-                        continue;
-                    }
-                    $mexist = $mcatModel->info($material_cat_no, $key);
-                    if (!$mexist) {
-                        jsonReturn('', ErrorMsg::FAILED, '物料分类编码不存在');
-                    }
-                    $data['lang'] = $key;
-                    if(empty($data['material_cat_no'])){
-                        $data['material_cat_no'] = $material_cat_no;
-                    }
-                    $data['bizline_id'] = $bizline_id;
-                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
-                    $this->checkParam($data, $this->field);     //字段校验
-                    if ($input['status'] != 'DRAFT') {
-                        $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
-                            'lang' => $key,
-                            'name' => $data['name'],
-                            'material_cat_no' => $data['material_cat_no'],
-                            'brand' => $data['brand'],
-                            'deleted_flag' => 'N',
+            $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
+            $this->startTrans();
+            try {
+                $userInfo = getLoinInfo(); //获取当前用户信息
+                $mcatModel = new MaterialCatModel();
+                foreach ($input as $key => $item) {
+                    if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
+                        $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
+                        if (empty($data) || empty($data['name'])) {
+                            continue;
+                        }
+                        $mexist = $mcatModel->info($material_cat_no, $key);
+                        if (!$mexist) {
+                            flock($fp,LOCK_UN);
+                            fclose($fp);
+                            jsonReturn('', ErrorMsg::FAILED, '物料分类编码不存在');
+                        }
+                        $data['lang'] = $key;
+                        if(empty($data['material_cat_no'])){
+                            $data['material_cat_no'] = $material_cat_no;
+                        }
+                        $data['bizline_id'] = $bizline_id;
+                        //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
+                        //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                        $this->checkParam($data, $this->field);     //字段校验
+                        if ($input['status'] != 'DRAFT') {
+                            $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
+                                'lang' => $key,
+                                'name' => $data['name'],
+                                'material_cat_no' => $data['material_cat_no'],
+                                'brand' => $data['brand'],
+                                'deleted_flag' => 'N',
                                 //'status' => array('neq', 'DRAFT')
-                        );
-                        if (isset($input['spu'])) {
-                            $exist_condition['spu'] = array('neq', $spu);
-                        }
-                        $exist = $this->field('spu')->where($exist_condition)->find();
-                        if ($exist) {
-                            jsonReturn('', ErrorMsg::EXIST);
-                        }
-                    }
-                    $data['status'] = $input['status'];
-
-                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
-                    if (isset($input['spu'])) {
-                        $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());
-                    }
-                    if ($exist_check) {    //修改
-                        $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());
-                        $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
-                        if (!$result) {
-                            $this->rollback();
-                            return false;
-                        }
-                    } else {    //添加
-                        $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
-                        $data['spu'] = $spu;
-                        $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
-                        $data['created_at'] = date('Y-m-d H:i:s', time());
-                        $result = $this->add($data);
-                        if (!$result) {
-                            $this->rollback();
-                            //解锁 由于后期可能存在读写分离的情况，可能高并发时数据库不能同步，所以锁文件后期通过计划任务清理
-                            /* if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
-                                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-                            }*/
-                            return false;
-                        }
-                    }
-                } elseif ($key == 'attachs') {
-                    if ($item) {
-                        //if (!isset($input['spu'])) {
-                        if (!$this->checkAttachImage($item)) {
-                            jsonReturn('', '1000', '产品图不能为空');
-                        }
-                        //}
-
-                        $pattach = new ProductAttachModel();
-
-                        $update_condition = array(
-                            'spu' => $spu
-                        );
-                        $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
-
-                        //$ids = [];
-
-                        foreach ($item as $atta) {
-                            $data = array(
-                                'spu' => $spu,
-                                'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
-                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : $atta['attach_url'],
-                                'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
-                                'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
                             );
-                            if (isset($input['spu'])) {    //修改
-                                $data['id'] = isset($atta['id']) ? $atta['id'] : '';
+                            if (isset($input['spu'])) {
+                                $exist_condition['spu'] = array('neq', $spu);
                             }
-                            if (empty($data['attach_url'])) {
-                                continue;
+                            $exist = $this->field('spu')->where($exist_condition)->find();
+                            if ($exist) {
+                                flock($fp,LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', ErrorMsg::EXIST);
                             }
-                            $attach = $pattach->addAttach($data);
-                            if (!$attach) {
-                                $this->rollback();
-                                //解锁
-                                if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
-                                    unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-                                }
+                        }
+                        $data['status'] = $input['status'];
 
+                        $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
+                        if (isset($input['spu'])) {
+                            $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+                            $data['updated_at'] = date('Y-m-d H:i:s', time());
+                        }
+                        if ($exist_check) {    //修改
+                            $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+                            $data['updated_at'] = date('Y-m-d H:i:s', time());
+                            $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
+                            if (!$result) {
+                                flock($fp,LOCK_UN);
+                                fclose($fp);
+                                $this->rollback();
                                 return false;
-                            }/* else{
+                            }
+                        } else {    //添加
+                            $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
+                            $data['spu'] = $spu;
+                            $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
+                            $data['created_at'] = date('Y-m-d H:i:s', time());
+                            $result = $this->add($data);
+                            if (!$result) {
+                                $this->rollback();
+                                flock($fp,LOCK_UN);
+                                fclose($fp);
+                                return false;
+                            }
+                        }
+                    } elseif ($key == 'attachs') {
+                        if ($item) {
+                            //if (!isset($input['spu'])) {
+                            if (!$this->checkAttachImage($item)) {
+                                flock($fp,LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', '1000', '产品图不能为空');
+                            }
+                            //}
+
+                            $pattach = new ProductAttachModel();
+
+                            $update_condition = array(
+                                'spu' => $spu
+                            );
+                            $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
+
+                            //$ids = [];
+
+                            foreach ($item as $atta) {
+                                $data = array(
+                                    'spu' => $spu,
+                                    'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
+                                    'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : $atta['attach_url'],
+                                    'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
+                                    'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
+                                );
+                                if (isset($input['spu'])) {    //修改
+                                    $data['id'] = isset($atta['id']) ? $atta['id'] : '';
+                                }
+                                if (empty($data['attach_url'])) {
+                                    continue;
+                                }
+                                $attach = $pattach->addAttach($data);
+                                if (!$attach) {
+                                    $this->rollback();
+                                    flock($fp,LOCK_UN);
+                                    fclose($fp);
+                                    return false;
+                                }/* else{
                               $ids[] = $attach;
                               }
                               //删除其他附件
@@ -344,39 +354,39 @@ class ProductModel extends PublicModel {
                               );
                               $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
                              */
-                        }
-                    } else {
-                        if ($input['status'] != 'DRAFT') {
-                            jsonReturn('', '1000', '产品图不能为空');
+                            }
                         } else {
-                            if (isset($input['spu'])) {
-                                $pattach = new ProductAttachModel();
-                                $update_condition = array(
-                                    'spu' => trim($input['spu'])
-                                );
-                                $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
+                            if ($input['status'] != 'DRAFT') {
+                                flock($fp,LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', '1000', 'SPU图片不能为空');
+                            } else {
+                                if (isset($input['spu'])) {
+                                    $pattach = new ProductAttachModel();
+                                    $update_condition = array(
+                                        'spu' => trim($input['spu'])
+                                    );
+                                    $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
+                                }
                             }
                         }
+                    } else {
+                        continue;
                     }
-                } else {
-                    continue;
                 }
+                $this->commit();
+                flock($fp,LOCK_UN);
+                fclose($fp);
+                return $spu;
+            } catch (Exception $e) {
+                $this->rollback();
+                flock($fp,LOCK_UN);
+                fclose($fp);
             }
-            $this->commit();
-            //解锁
-            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
-                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-            }
-
-            return $spu;
-        } catch (Exception $e) {
-            //解锁
-            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
-                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-            }
-
-            $this->rollback();
+        }else{
+            jsonReturn('',ErrorMsg::FAILED , '系统繁忙');
         }
+        fclose($fp);
     }
 
     /**
@@ -649,10 +659,10 @@ class ProductModel extends PublicModel {
             $condition['status'] = $status;
         }
 
-//        //读取redis缓存
-//        if (redisHashExist('spu', md5(json_encode($condition)))) {
-////            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
-//        }
+        //读取redis缓存
+        /*if (redisHashExist('spu', md5(json_encode($condition)))) {
+            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
+        }*/
         //数据读取
         try {
             $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,'
@@ -662,9 +672,7 @@ class ProductModel extends PublicModel {
             $result = $this->field($field)->where($condition)->select();
             $data = array();
             if ($result) {
-                $employee = new EmployeeModel();
                 $checklogModel = new ProductCheckLogModel();
-                $bizlineModel = new BizlineModel();
                 $this->_setUserName($result, ['created_by', 'updated_by', 'checked_by']);
                 $bizlineModel = new BizlineModel();
                 foreach ($result as $item) {
@@ -675,32 +683,16 @@ class ProductModel extends PublicModel {
                     }
 
                     $item['bizline'] = $bizline;
-                    //根据created_by，updated_by，checked_by获取名称   个人认为：为了名称查询多次库欠妥
-                    // $createder = $employee->getInfoByCondition(array('id' => $item['created_by']), 'id,name,name_en');
-//                    if ($createder && isset($createder[0])) {
-//                        $item['created_by'] = $createder[0]['name'];
-//                    }
-//
-//                    $updateder = $employee->getInfoByCondition(array('id' => $item['updated_by']), 'id,name,name_en');
-//                    if ($updateder && isset($updateder[0])) {
-//                        $item['updated_by'] = $updateder[0]['name'];
-//                    }
-//
-//                    $checkeder = $employee->getInfoByCondition(array('id' => $item['checked_by']), 'id,name,name_en');
-//                    if ($checkeder && isset($checkeder[0])) {
-//                        $item['checked_by'] = $checkeder[0]['name'];
-//                    }
                     if (!is_null(json_decode($item['brand'], true))) {
                         $brand = json_decode($item['brand'], true);
                         $item['brand'] = $brand;
                     }
 
-
                     $item['remark'] = $checklogModel->getlastRecord($item['spu'], $item['lang']);
                     //语言分组
                     $data[$item['lang']] = $item;
                 }
-//                redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
+                //redisHashSet('spu', md5(json_encode($condition)), json_encode($data));
             }
             return $data;
         } catch (Exception $e) {
@@ -806,9 +798,9 @@ class ProductModel extends PublicModel {
                 return $this->createSpu($material_cat_no ,$spu );
             }else{
                 //上锁
-                $handle = fopen($lockFile, "w");
+                $handle = fopen($lockFile , "w");
                 if (!$handle) {
-                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . $lockFile . '] create faild.', Log::ERR);
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . MYPATH . '/public/tmp/' . $spu . '.lock' . '] create faild.', Log::ERR);
                 } else {
                     fclose($handle);
                 }
