@@ -260,19 +260,25 @@ class ProductModel extends PublicModel {
                             $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                                 'lang' => $key,
                                 'name' => $data['name'],
-                                'material_cat_no' => $data['material_cat_no'],
+                                //'material_cat_no' => $data['material_cat_no'],
                                 'brand' => $data['brand'],
                                 'deleted_flag' => 'N',
-                                //'status' => array('neq', 'DRAFT')
+                                'status' => array('neq', 'DRAFT')
                             );
                             if (isset($input['spu'])) {
                                 $exist_condition['spu'] = array('neq', $spu);
                             }
-                            $exist = $this->field('spu')->where($exist_condition)->find();
+                            $exist = $this->field('id,brand')->where($exist_condition)->select();
                             if ($exist) {
-                                flock($fp,LOCK_UN);
-                                fclose($fp);
-                                jsonReturn('', ErrorMsg::EXIST);
+                                $brand_ary = json_decode($data['brand'], true);
+                                foreach ($exist as $r) {
+                                    $brand_exist = json_decode($r['brand'], true);
+                                    if ($brand_ary['name'] == $brand_exist['name']) {
+                                        flock($fp,LOCK_UN);
+                                        fclose($fp);
+                                        jsonReturn('', ErrorMsg::EXIST);
+                                    }
+                                }
                             }
                         }
                         $data['status'] = $input['status'];
