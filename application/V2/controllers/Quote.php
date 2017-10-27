@@ -226,8 +226,8 @@ class QuoteController extends PublicController{
     public function updateSupplierAction(){
 
         $request = $this->validateRequests();
-        $this->quoteItemModel->updateSupplier($request['data']);
-        $this->jsonReturn();
+        $return = $this->quoteItemModel->updateSupplier($request['data']);
+        $this->jsonReturn($return);
     }
 
     /**
