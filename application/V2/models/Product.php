@@ -219,7 +219,10 @@ class ProductModel extends PublicModel {
             jsonReturn('', ErrorMsg::FAILED ,'物料分类不能为空');
         }
 
-        $spu = isset($input['spu']) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
+        $spu = (isset($input['spu']) && !empty($input['spu'])) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
+        if(empty($spu) || $spu === false ){
+            jsonReturn('', ErrorMsg::FAILED ,'生成SPU编码失败');
+        }
         $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
         $this->startTrans();
         try {
@@ -272,10 +275,6 @@ class ProductModel extends PublicModel {
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
                         if (!$result) {
-                            //解锁
-                            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
-                                unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-                            }
                             $this->rollback();
                             return false;
                         }
@@ -287,10 +286,10 @@ class ProductModel extends PublicModel {
                         $result = $this->add($data);
                         if (!$result) {
                             $this->rollback();
-                            //解锁
-                            if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+                            //解锁 由于后期可能存在读写分离的情况，可能高并发时数据库不能同步，所以锁文件后期通过计划任务清理
+                            /* if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
                                 unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-                            }
+                            }*/
                             return false;
                         }
                     }
@@ -790,52 +789,44 @@ class ProductModel extends PublicModel {
      * SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
      * @return string
      */
-    public function createSpu($material_cat_no = '', $step = 1) {
+    public function createSpu($material_cat_no = '' , $spu = '') {
         if (empty($material_cat_no)) {
             return false;
         }
 
-        $condition = array(
-            'material_cat_no' => $material_cat_no
-        );
-        $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
-        if ($result) {
-            $code = substr($result['spu'], (strlen($material_cat_no) + 2), 4);
-            $code = intval($code) + $step;
-        } else {
-            $code = $step;
-        }
-        $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
-
-        //上锁
-        $lockFile = MYPATH . '/public/tmp/' . $spu . '.lock';
-        if (file_exists($lockFile)) {
-            $step = $step + 1;
-            $this->createSpu($material_cat_no, $step);
-        } else {
-            $handle = fopen($lockFile, "w");
-            if (!$handle) {
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . $lockFile . '] create faild.', Log::ERR);
-            } else {
-                fclose($handle);
+        if(!empty($spu)){
+            $condition = array('spu' => $spu);
+            $result2 = $this->field('spu')->where($condition)->find();
+            $lockFile = MYPATH . '/public/tmp/' . $spu . '.lock';
+            if($result2 || file_exists($lockFile)){
+                $code = substr($spu, (strlen($material_cat_no) + 2), 4);
+                $code = intval($code) + 1;
+                $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
+                $this->createSpu($material_cat_no ,$spu );
+            }else{
+                //上锁
+                $handle = fopen($lockFile, "w");
+                if (!$handle) {
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . $lockFile . '] create faild.', Log::ERR);
+                } else {
+                    fclose($handle);
+                }
+                return $spu;
             }
+        }else{
+            $condition = array(
+                'material_cat_no' => $material_cat_no
+            );
+            $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
+            if ($result) {
+                $code = substr($result['spu'], (strlen($material_cat_no) + 2), 4);
+                $code = intval($code) + 1;
+            } else {
+                $code = 1;
+            }
+            $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
+            $this->createSpu($material_cat_no ,$spu);
         }
-
-        return $spu;
-
-        /**
-         * 6位随机数
-          $spu = randNumber(6);
-          $spu = $material_cat_no.'00'.$code.'0000';
-          $condition = array(
-          'spu' => $spu
-          );
-          $exit = $this->where($condition)->find();
-          if ($exit) {
-          $this->createSpu();
-          }
-          return $spu;
-         */
     }
 
     /**
@@ -1141,6 +1132,12 @@ class ProductModel extends PublicModel {
                         $data_tmp['status'] = $this::STATUS_DRAFT;
                         $workText = '新增';
                         $input_spu = $input_spu ? $input_spu : $this->createSpu($r[3]);    //生成spu
+                        if($input_spu === false){
+                            $faild ++;
+                            $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ($key + 1), '操作失败[生成spu编码失败]');
+                            continue;
+                        }
                         $data_tmp['spu'] = $input_spu;
                         $result = $this->add($this->create($data_tmp));
                         //解锁
