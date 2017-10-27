@@ -120,6 +120,8 @@ class BrandController extends PublicController {
 
 
         if ($arr) {
+            $count = $brand_model->getCount($condition, $lang);
+            $this->setvalue('count', $count);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($arr);
         } elseif ($arr === null) {

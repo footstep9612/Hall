@@ -485,7 +485,7 @@ class EsGoodsModel extends Model {
                 }
 
                 echo $i, PHP_EOL, '<BR>';
-                usleep(100);
+                usleep(300);
                 ob_flush();
                 flush();
 
