@@ -261,7 +261,7 @@ class ProductModel extends PublicModel {
                                 'lang' => $key,
                                 'name' => $data['name'],
                                 //'material_cat_no' => $data['material_cat_no'],
-                                'brand' => $data['brand'],
+                                //'brand' => $data['brand'],
                                 'deleted_flag' => 'N',
                                 'status' => array('neq', 'DRAFT')
                             );
