@@ -485,6 +485,7 @@ class EsGoodsModel extends Model {
                 }
 
                 echo $i, PHP_EOL, '<BR>';
+                usleep(100);
                 ob_flush();
                 flush();
 
@@ -546,7 +547,7 @@ class EsGoodsModel extends Model {
                     flush();
                 }
                 echo microtime(true) - $time1, "\r\n";
-                sleep(1);
+
 //                $flag = $es->bulk($updateParams);
 //                var_dump($flag);
             }
