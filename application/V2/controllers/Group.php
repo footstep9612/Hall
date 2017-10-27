@@ -101,7 +101,12 @@ class GroupController extends PublicController {
             $where['org.name'] = array('like',"%".$data['name']."%");
         }
         if(!empty($data['org_node'])){
-            $where['org.org_node'] = $data['org_node'];
+            $pieces = explode(",",$data['org_node']);
+            for($i=0;$i<count($pieces);$i++){
+                $where['org.org_node']=$where['org.org_node']."'".$pieces[$i]."',";
+            }
+            $where['org.org_node'] =rtrim($where['org.org_node'], ",");
+            $where['org.org_node'] = ['exp', 'IN ('.$where['org.org_node'].') '];
         }
         if(!empty($data['parent_id'])){
             $where['org.parent_id'] = $data['parent_id'];
@@ -183,7 +188,12 @@ class GroupController extends PublicController {
             $where['org.name'] = array('like',"%".$data['name']."%");
         }
         if(!empty($data['org_node'])){
-            $where['org.org_node'] = $data['org_node'];
+            $pieces = explode(",",$data['org_node']);
+            for($i=0;$i<count($pieces);$i++){
+                $where['org.org_node']=$where['org.org_node']."'".$pieces[$i]."',";
+            }
+            $where['org.org_node'] =rtrim($where['org.org_node'], ",");
+            $where['org.org_node'] = ['exp', 'IN ('.$where['org.org_node'].') '];
         }
         $model_group = new GroupModel();
         $data = $model_group->getlist($where,$limit); //($this->put_data);
@@ -276,6 +286,18 @@ class GroupController extends PublicController {
         }
         $data['created_by'] = $this->user['id'];
         $model_group = new GroupModel();
+        if($data['org']){
+            $check = $model_group->where("org='" . $data['org'] . "'")->find();
+            if ($check) {
+                jsonReturn('', -103, '公司编号已经存在');
+            }
+        }
+        if($data['show_name']){
+            $check = $model_group->where("show_name='" . $data['show_name'] . "'")->find();
+            if ($check) {
+                jsonReturn('', -103, '公司显示名称已经存在');
+            }
+        }
         $id = $model_group->create_data($data);
         if(!empty($id)){
             $datajson['code'] = 1;
@@ -294,9 +316,21 @@ class GroupController extends PublicController {
             $datajson['message'] = '数据不可为空!';
             $this->jsonReturn($datajson);
         }
+        $model_group = new GroupModel();
+        if($data['org']){
+            $check = $model_group->where("org='" . $data['org'] . "'")->find();
+            if ($check&&$check['id']!=$data['id']) {
+                jsonReturn('', -103, '公司编号已经存在');
+            }
+        }
+        if($data['show_name']){
+            $check = $model_group->where("show_name='" . $data['show_name'] . "'")->find();
+            if ($check&&$check['id']!=$data['id']) {
+                jsonReturn('', -103, '公司显示名称已经存在');
+            }
+        }
         if($data['id']){
             $where['id'] =$data['id'];
-            $model_group = new GroupModel();
             $id = $model_group->update_data($data,$where);
             if(!empty($id)){
                 $datajson['code'] = 1;

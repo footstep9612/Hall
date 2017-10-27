@@ -62,6 +62,11 @@ class SupplierController extends PublicController {
         }
         $model = new SupplierModel();
         $data =$model->getlist($where);
+        for($i=0;$i<count($data['data']);$i++){
+            if($data['data'][$i]['brand']){
+                $data['data'][$i]['brand'] = json_decode($data['data'][$i]['brand'],true);
+            }
+        }
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
