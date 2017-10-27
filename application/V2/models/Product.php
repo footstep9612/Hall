@@ -223,6 +223,7 @@ class ProductModel extends PublicModel {
         if(empty($spu) || $spu === false ){
             jsonReturn('', ErrorMsg::FAILED ,'生成SPU编码失败');
         }
+
         $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
         $this->startTrans();
         try {
@@ -802,7 +803,7 @@ class ProductModel extends PublicModel {
                 $code = substr($spu, (strlen($material_cat_no) + 2), 4);
                 $code = intval($code) + 1;
                 $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
-                $this->createSpu($material_cat_no ,$spu );
+                return $this->createSpu($material_cat_no ,$spu );
             }else{
                 //上锁
                 $handle = fopen($lockFile, "w");
@@ -825,7 +826,7 @@ class ProductModel extends PublicModel {
                 $code = 1;
             }
             $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
-            $this->createSpu($material_cat_no ,$spu);
+            return $this->createSpu($material_cat_no ,$spu);
         }
     }
 
