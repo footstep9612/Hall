@@ -101,12 +101,12 @@ class EsproductController extends PublicController {
             } else {
                 $send['allcount'] = $send['count'];
             }
-            if (isset($this->put_data['sku_count']) && $this->put_data['sku_count'] == 'Y') {
+            if (isset($data['aggregations']['sku_count']['value']) && $data['aggregations']['sku_count']['value']) {
                 $send['sku_count'] = $data['aggregations']['sku_count']['value'];
             } else {
                 $send['sku_count'] = 0;
             }
-            if (isset($this->put_data['image_count']) && $this->put_data['image_count'] == 'Y') {
+            if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
                 $send['image_count'] = $data['aggregations']['image_count']['value'];
             } else {
                 $send['image_count'] = 0;

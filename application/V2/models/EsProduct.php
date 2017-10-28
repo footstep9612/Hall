@@ -369,18 +369,9 @@ class EsProductModel extends Model {
             $es->setbody($body)->setsort('created_at', 'desc')->setsort('sku_count', 'desc')
                     ->setsort('_id', 'desc');
 
-            if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
-                $es->setaggs('sku_count', 'sku_count', 'sum');
-            }
-            if (isset($condition['image_count']) && $condition['image_count'] == 'Y') {
+            $es->setaggs('sku_count', 'sku_count', 'sum');
+            $es->setaggs('image_count', 'image_count', 'sum');
 
-                $es->setaggs('image_count', 'image_count', 'sum');
-            }
-//            else {
-//                $es->setaggs('show_cats.cat_no3', 'show_cat_no3');
-//                $es->setaggs('show_cats.cat_no2', 'show_cat_no2');
-//                $es->setaggs('show_cats.cat_no1', 'show_cat_no1');
-//            }
             $es->setaggs('brand.name.all', 'brands', 'terms', 0);
             $es->setaggs('suppliers.supplier_id', 'suppliers', 'terms', 0);
 
