@@ -303,30 +303,43 @@ class InquiryController extends PublicController {
     public function getInquiryUserRoleAction() {
         $inquiry = new InquiryModel();
         
-        // 是否易瑞客户中心分单员的标识
+        // 是否市场经办人的标识
+        $isAgent = 'N';
+        
+        // 是否易瑞分单员的标识
         $isErui = 'N';
         
         // 是否分单员的标识
         $isIssue = 'N';
         
+        // 是否报价人的标识
+        $isQuote = 'N';
+        
         // 是否审核人的标识
         $isCheck = 'N';
         
         foreach ($this->user['role_no'] as $roleNo) {
+            if ($roleNo == $inquiry::marketAgentRole ) {
+                $isAgent = 'Y';
+            }
             if ($roleNo == $inquiry::inquiryIssueRole) {
                 $isErui = 'Y';
             }
             if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
                 $isIssue = 'Y';
             }
+            if ($roleNo == $inquiry::quoterRole|| $roleNo == $inquiry::logiQuoterRole) {
+                $isQuote = 'Y';
+            }
             if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole ) {
                 $isCheck = 'Y';
             }
         }
         
+        $data['is_agent'] = $isAgent;
         $data['is_erui'] = $isErui;
         $data['is_issue'] = $isIssue;
-        $data['is_issue'] = $isIssue;
+        $data['is_quote'] = $isQuote;
         $data['is_check'] = $isCheck;
         
         $res['code'] = 1;
