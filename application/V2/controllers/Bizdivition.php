@@ -104,6 +104,8 @@ class BizdivitionController extends PublicController{
                 'to_country' => $inquiryInfo['to_country'],
                 'to_port' => $inquiryInfo['to_port'],
                 'delivery_addr' => $inquiryInfo['delivery_addr'],
+                'payment_period' => $inquiryInfo['payment_period'],
+                'delivery_addr' => $inquiryInfo['destination']
             ]));
 
             $inquiryItemModel = new InquiryItemModel();
