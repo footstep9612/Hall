@@ -193,6 +193,7 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'skus', 'sku');
+        $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
 //        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
 //            $show_cat_no = trim($condition['show_cat_no']);
 //            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
@@ -357,6 +358,34 @@ class EsGoodsModel extends Model {
                         ->setsort('created_at', 'desc')
                         ->setsort('sku', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /* 通过搜索条件获取数据列表
+     * @param mix $condition // 搜索条件
+     * @param string $lang // 语言
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 商品
+     */
+
+    public function getskucountBySpus($spus, $lang = 'en') {
+        try {
+            $condition['spus'] = $spus;
+            $body = $this->getCondition($condition, $lang);
+            if (!$body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
+            }
+
+            $es = new ESClient();
+            $es->setaggs('brand.name.all', 'spu', 'terms', 0);
+            return $es->setbody($body)->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

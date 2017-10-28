@@ -22,10 +22,8 @@ class EsproductController extends PublicController {
 
     //put your code here
     public function init() {
-
         $username = $this->get('username');
         $password = $this->get('password');
-
         if ($this->getRequest()->isCli()) {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
@@ -56,7 +54,6 @@ class EsproductController extends PublicController {
     public function listAction() {
         $model = new EsProductModel();
         $lang = $this->getPut('lang', 'zh');
-
         $condition = $this->getPut();
         switch ($condition['user_type']) {
             case 'create':
@@ -77,23 +74,19 @@ class EsproductController extends PublicController {
             case 'updated':
                 $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
                 $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-
                 break;
             case 'checked':
                 $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
                 $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-
                 break;
         }
-
-
         $ret = $model->getProducts($condition, null, $lang);
 
         if ($ret) {
             $data = $ret[0];
 
-            $list = $this->_getdata($data);
-            $send['count'] = intval($data['hits']['total']);
+            $list = $this->_getdata($data, $lang);
+            $send['count'] = isset($data['hits']['total']) ? intval($data['hits']['total']) : 0;
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
             if (isset($ret[3]) && $ret[3] > 0) {
@@ -190,20 +183,12 @@ class EsproductController extends PublicController {
         $condition['deleted_flag'] = 'Y';
         $condition['onshelf_flag'] = 'A';
         $ret = $model->getProducts($condition, null, $lang);
-
         if ($ret) {
             $data = $ret[0];
-
-            $list = $this->_getdata($data);
-            $send['count'] = intval($data['hits']['total']);
+            $list = $this->_getdata($data, $lang, true);
+            $send['count'] = isset($data['hits']['total']) ? intval($data['hits']['total']) : 0;
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
-
-//            if (isset($data['aggregations']['sku_count']['value']) && $data['aggregations']['sku_count']['value']) {
-//                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
-//            } else {
-//                $send['sku_count'] = 0;
-//            }
             if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
                 $send['image_count'] = $data['aggregations']['image_count']['value'];
             } else {
@@ -214,8 +199,6 @@ class EsproductController extends PublicController {
             } else {
                 $send['brand_count'] = 0;
             }
-
-
             if (isset($data['aggregations']['suppliers']['buckets']) && $data['aggregations']['suppliers']['buckets']) {
                 $send['supplier_count'] = count($data['aggregations']['suppliers']['buckets']);
             } else {
@@ -242,9 +225,10 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
 
-    private function _getdata($data) {
+    private function _getdata($data = [], $lang = 'en', $is_recycled = false) {
 
         $user_ids = [];
+        $spus = [];
         foreach ($data['hits']['hits'] as $key => $item) {
             $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
@@ -267,13 +251,22 @@ class EsproductController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-
-
+            if ($is_recycled && !empty($product['spu'])) {
+                $spus = $product['spu'];
+            }
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
-
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
-
+        if ($is_recycled && !empty($spus)) {
+            $esgoods_model = new EsGoodsModel();
+            $skucount = $esgoods_model->getskucountBySpus($spus, $lang);
+            $skucounts = [];
+            if (isset($skucount['aggregations']['spu']['buckets']) && $skucount['aggregations']['spu']['buckets']) {
+                foreach ($skucount['aggregations']['spu']['buckets'] as $sku_count) {
+                    $skucounts[$sku_count['key']] = $sku_count['value'];
+                }
+            }
+        }
         $employee_model = new EmployeeModel();
         $usernames = $employee_model->getUserNamesByUserids($user_ids);
         foreach ($list as $key => $val) {
@@ -297,6 +290,9 @@ class EsproductController extends PublicController {
                 $val['onshelf_by_name'] = $usernames[$val['onshelf_by']];
             } else {
                 $val['onshelf_by_name'] = '';
+            }
+            if ($is_recycled && isset($skucounts[$val['spu']])) {
+                $val['sku_count'] = intval($skucounts[$val['spu']]);
             }
             $list[$key] = $val;
         }

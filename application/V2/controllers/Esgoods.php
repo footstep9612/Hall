@@ -89,7 +89,6 @@ class EsgoodsController extends PublicController {
         $data['deleted_flag'] = 'Y';
         $data['onshelf_flag'] = 'A';
         $ret = $model->getgoods($data, null, $lang);
-
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
