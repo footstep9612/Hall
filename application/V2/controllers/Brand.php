@@ -236,11 +236,11 @@ class BrandController extends PublicController {
                 . '\】\（\）\［\］\｛\｝]';
         if (preg_match('/^' . $p . '+$/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('该输入英文语言中全是中文ｈｕｏ　，请您查证后重新输入！');
+            $this->setMessage('该输入英文语言中全是中文和中文符号，请您查证后重新输入！');
             $this->jsonReturn();
         } elseif (preg_match('/' . $p . '/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('该输入英文语言中含有中文，请您查证后重新输入！');
+            $this->setMessage('该输入英文语言中含有中文或者中文符号，请您查证后重新输入！');
             $this->jsonReturn();
         }
         return $name;
