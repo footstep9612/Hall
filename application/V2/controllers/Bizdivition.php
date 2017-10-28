@@ -72,6 +72,7 @@ class BizdivitionController extends PublicController{
         $request = $this->validateRequests('inquiry_id,quote_id,serial_no');
 
         $inquiry = new InquiryModel();
+
         $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
             'status'=>'BIZ_QUOTING', //事业部报价
             'quote_status'=>'ONGOING', //报价中
@@ -85,13 +86,24 @@ class BizdivitionController extends PublicController{
         $flag = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->find();
 
         if (!$flag){
+            $inquiryInfo = $inquiry->where(['id'=>$request['inquiry_id']])->find();
             $quote_id = $quoteModel->add($quoteModel->create([
                 'inquiry_id' => $request['inquiry_id'],
                 'serial_no' => $request['serial_no'],
                 'quote_no' => $this->getQuoteNo(),
                 'created_by' => $this->user['id'],
                 'created_at' => date('Y-m-d H:i:s'),
-                'status' => 'BIZ_QUOTING'
+                'status' => 'BIZ_QUOTING',
+                'trade_terms_bn' => $inquiryInfo['trade_terms_bn'],
+                'payment_mode' => $inquiryInfo['payment_mode'],
+                'trans_mode_bn' => $inquiryInfo['trans_mode_bn'],
+                'quote_cur_bn' => $inquiryInfo['cur_bn'],
+                'from_country' => $inquiryInfo['from_country'],
+                'from_port' => $inquiryInfo['from_port'],
+                'dispatch_place' => $inquiryInfo['dispatch_place'],
+                'to_country' => $inquiryInfo['to_country'],
+                'to_port' => $inquiryInfo['to_port'],
+                'delivery_addr' => $inquiryInfo['delivery_addr'],
             ]));
 
             $inquiryItemModel = new InquiryItemModel();
