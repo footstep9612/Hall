@@ -336,6 +336,16 @@ class InquiryController extends PublicController {
             }
         }
         
+        if ($isAgent == 'Y') {
+            $orgModel = new OrgModel();
+            
+            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ? : ['-1']], 'org_node' => 'ub'])->order('id DESC')->find();
+            
+            // 事业部id和名称
+            $data['ub_id'] = $org['id'];
+            $data['ub_name'] = $org['name'];
+        }
+        
         $data['is_agent'] = $isAgent;
         $data['is_erui'] = $isErui;
         $data['is_issue'] = $isIssue;
