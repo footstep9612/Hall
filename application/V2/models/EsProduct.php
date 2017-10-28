@@ -322,15 +322,15 @@ class EsProductModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = trim($condition['keyword']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.ik' => $keyword]],
-                        [ESClient::MATCH => ['show_name.ik' => $keyword]],
+                        [ESClient::MATCH => ['name.ik' => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['show_name.ik' => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['keywords.ik' => ['query' => $keyword, 'boost' => 2]]],
+                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $keyword]],
-                        [ESClient::MATCH => ['keywords.ik' => $keyword]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['brand.name.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
             ]]];
         }
         return $body;

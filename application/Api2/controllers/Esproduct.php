@@ -139,8 +139,7 @@ class EsproductController extends PublicController {
         return $new_showcats3;
     }
 
-    private
-            function update_keywords() {
+    private function update_keywords() {
         if ($this->getPut('keyword')) {
             $search = [];
             $search['keywords'] = $this->getPut('keyword');

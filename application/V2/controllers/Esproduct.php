@@ -139,7 +139,91 @@ class EsproductController extends PublicController {
             $condition['onshelf_flag'] = 'A';
             $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
             $send['data'] = $list;
-            $this->_update_keywords();
+
+            $this->setCode(MSG::MSG_SUCCESS);
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
+            $this->jsonReturn($send);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 获取回收站列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function recycledAction() {
+        $model = new EsProductModel();
+        $lang = $this->getPut('lang', 'zh');
+        $condition = $this->getPut();
+        switch ($condition['user_type']) {
+            case 'create':
+                $condition['create_by_name'] = $condition['user_name'];
+                break;
+            case 'updated':
+                $condition['updated_by_name'] = $condition['user_name'];
+                break;
+            case 'checked':
+                $condition['checked_by_name'] = $condition['user_name'];
+                break;
+        }
+        switch ($condition['date_type']) {
+            case 'create':
+                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'updated':
+                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'checked':
+                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+        }
+        $condition['deleted_flag'] = 'Y';
+        $condition['onshelf_flag'] = 'A';
+        $ret = $model->getProducts($condition, null, $lang);
+
+        if ($ret) {
+            $data = $ret[0];
+
+            $list = $this->_getdata($data);
+            $send['count'] = intval($data['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
+
+//            if (isset($data['aggregations']['sku_count']['value']) && $data['aggregations']['sku_count']['value']) {
+//                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
+//            } else {
+//                $send['sku_count'] = 0;
+//            }
+            if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
+                $send['image_count'] = $data['aggregations']['image_count']['value'];
+            } else {
+                $send['image_count'] = 0;
+            }
+            if (isset($data['aggregations']['brands']['buckets']) && $data['aggregations']['brands']['buckets']) {
+                $send['brand_count'] = count($data['aggregations']['brands']['buckets']);
+            } else {
+                $send['brand_count'] = 0;
+            }
+
+
+            if (isset($data['aggregations']['suppliers']['buckets']) && $data['aggregations']['suppliers']['buckets']) {
+                $send['supplier_count'] = count($data['aggregations']['suppliers']['buckets']);
+            } else {
+                $send['supplier_count'] = 0;
+            }
+
+            $send['data'] = $list;
+
             $this->setCode(MSG::MSG_SUCCESS);
             $send['code'] = $this->getCode();
             $send['message'] = $this->getMessage();
