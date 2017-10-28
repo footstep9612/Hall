@@ -207,7 +207,7 @@ class ProductModel extends PublicModel {
      * 添加/编辑
      * @param object $input 操作集
      */
-    public function wweditInfo($input = []) {
+    public function editInfo($input = []) {
         if (empty($input)) {
             return false;
         }
