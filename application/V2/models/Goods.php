@@ -1860,15 +1860,15 @@ class GoodsModel extends PublicModel {
             $progress_redis['processed'] = $i;    //记录导入进度信息
             redisSet($progress_key, json_encode($progress_redis));
 
-            $key = $objPHPExcel->getSheet(0)->toArray(); //转码
-            if ($i == 3) {    //获取扩展属性起止值
+            //$key = $objPHPExcel->getSheet(0)->toArray(); //转码
+            if ($i == 1) {    //获取扩展属性起止值
                 for ($index = 0; $index < $columnsIndex; $index++) {
                     $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
                     $key = $objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue(); //转码
                     if ($index == $columnsIndex - 1 && $key == '导入结果') {
                         $maxCol = $col_name;
                     }
-                    if ($key == '币种') {    //获取币种下标用以取扩展属性
+                    if ($key == '进货价格币种') {    //获取币种下标用以取扩展属性
                         $ext_goods_start = $index + 1;
                     }
                     if ($key == '物流信息') {    //获取物流信息下标用以取扩展属性
@@ -1884,7 +1884,7 @@ class GoodsModel extends PublicModel {
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . '1', '导入结果');
             }
 
-            if ($i <= 4) {
+            if ($i <= 2) {
                 continue;
             }
             $data = array();
@@ -1926,7 +1926,6 @@ class GoodsModel extends PublicModel {
             if (empty($data)) {
                 continue;
             }
-
             //数据组装与校验开始
             $supplie = $data['供应商名称'];    //先处理供应商 必填
             if (empty($data['供应商名称'])) {
@@ -1956,7 +1955,7 @@ class GoodsModel extends PublicModel {
                 continue;
             }
             $data_tmp['model'] = $data['型号'];    //型号
-            $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
+            $data_tmp['exw_days'] = $data['出货周期（天）'];    //出货周期
             if (empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[出货周期有误]');
@@ -1992,7 +1991,7 @@ class GoodsModel extends PublicModel {
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[供应商供货价有误]');
                 continue;
             }
-            $data_tmp['purchase_price_cur_bn'] = $data['币种'];    //进货价格币种
+            $data_tmp['purchase_price_cur_bn'] = $data['进货价格币种'];    //进货价格币种
             if (!isset($data['spec_attrs']) || empty($data['spec_attrs'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[非固定属性必填]');
