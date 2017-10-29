@@ -203,6 +203,7 @@ class InquiryController extends PublicController {
         $condition = $this->put_data;
         
         $inquiryModel = new InquiryModel();
+        $quoteModel = new QuoteModel();
         $userModel = new UserModel();
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
@@ -228,10 +229,12 @@ class InquiryController extends PublicController {
             $inquiry['country_name'] = $country['name'];
             $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
             $inquiry['agent_name'] = $agent['name'];
-            $quote = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
-            $inquiry['quote_name'] = $quote['name'];
+            $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
+            $inquiry['quote_name'] = $quoter['name'];
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
             $inquiry['now_agent_name'] = $nowAgent['name'];
+            $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
+            $inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
         }
         
         if ($inquiryList) {

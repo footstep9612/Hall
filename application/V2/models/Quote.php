@@ -234,7 +234,7 @@ class QuoteModel extends PublicModel {
 
                 //给物流报价单项形成记录
                 $quoteItemModel = new QuoteItemModel();
-                $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id']])->getField('id', true);
+                $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
 
                 $quoteItemLogiModel = new QuoteItemLogiModel();
                 foreach ($quoteItemIds as $quoteItemId) {
