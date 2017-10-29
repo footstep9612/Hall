@@ -1842,7 +1842,7 @@ class GoodsModel extends PublicModel {
         $columns = $objPHPExcel->getSheet(0)->getHighestColumn();    //获取总列
         $rows = $objPHPExcel->getSheet(0)->getHighestRow();    //获取总行
         $columnsIndex = PHPExcel_Cell::columnIndexFromString($columns);
-        if ($rows <= 4) {
+        if ($rows <= 2) {
             return false;
         }
         $progress_redis['total'] = $rows;
@@ -1864,7 +1864,7 @@ class GoodsModel extends PublicModel {
             if ($i == 3) {    //获取扩展属性起止值
                 for ($index = 0; $index < $columnsIndex; $index++) {
                     $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
-                    $key = $objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue(); //转码
+                    $key = $objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue(); //转码
                     if ($index == $columnsIndex - 1 && $key == '导入结果') {
                         $maxCol = $col_name;
                     }
@@ -1881,7 +1881,7 @@ class GoodsModel extends PublicModel {
                         $itemNo = $col_name;
                     }
                 }
-                $objPHPExcel->getSheet(0)->setCellValue($maxCol . '3', '导入结果');
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . '1', '导入结果');
             }
 
             if ($i <= 4) {
@@ -1891,16 +1891,16 @@ class GoodsModel extends PublicModel {
             for ($index = 0; $index < $columnsIndex; $index++) {
                 $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
                 //$value    = mb_convert_encoding($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue(), 'gbk', 'utf8');//转码
-                $key = trim($objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue()); //转码
+                $key = trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue()); //转码
                 if (empty($key) || $key == '…' || $key == '导入结果') {
                     continue;
                 }
                 $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
                 if ($index >= $ext_goods_start && $index <= $ext_goods_end) {    //扩展属性
                     if($lang == 'zh'){
-                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue()); //转码
+                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue()); //转码
                     }else{
-                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue()); //转码
+                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue()); //转码
                     }
                     if (!empty($key_attr) && !empty($value)) {
                         $data['spec_attrs'][$key_attr] = $value;
@@ -1911,9 +1911,9 @@ class GoodsModel extends PublicModel {
 
                 if ($index >= $ext_hs_start) {    //申报要素扩展属性
                     if($lang == 'zh'){
-                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 3)->getValue()); //转码
+                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue()); //转码
                     }else{
-                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 4)->getValue()); //转码
+                        $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue()); //转码
                     }
                     if (!empty($key_attr) && !empty($value)) {
                         $data['ex_hs_attrs'][$key_attr] = $value;
