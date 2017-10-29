@@ -38,7 +38,7 @@ class UploadfileController extends PublicController {
             $file_size = $file['upFile']['size'];
             if ($file_size > intval($max_size) * 1048576) {
                 $this->setCode(MSG::FILE_SIZE_ERR_5);
-                $this->setMessage('您上传的文件大于' . intval($max_size) . 'M');
+                $this->setMessage('您上传的文件大于 ' . intval($max_size) . ' M!');
                 $this->jsonReturn();
             }
         }

@@ -151,8 +151,8 @@ class MSG {
             self::ERROR_EMPTY => '数据为空',
             self::MSG_EXIST => '记录已经存在',
             self::DELETE_MATERIAL_CAT_ERR => '该分类下存在产品,不能删除',
-            self::FILE_SIZE_ERR_1 => '您上传的文件大于1M',
-            self::FILE_SIZE_ERR_5 => '您上传的文件大于5M',
+            self::FILE_SIZE_ERR_1 => '您上传的文件大于 1 M',
+            self::FILE_SIZE_ERR_5 => '您上传的文件大于 5 M',
         ];
         return isset($map[$code]) ? $map[$code] : $map[self::MSG_OTHER_ERR];
     }
