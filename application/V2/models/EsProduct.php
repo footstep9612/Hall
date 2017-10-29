@@ -384,6 +384,40 @@ class EsProductModel extends Model {
         }
     }
 
+    /* 通过搜索条件获取数据列表
+     * @param mix $condition // 搜索条件
+     * @param string $lang // 语言
+     * @param mix  $_source //要搜索的字段
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getList($condition, $_source, $lang = 'en', $from = 0, $pagesize = 1000) {
+
+        try {
+            $body = $this->getCondition($condition);
+            $es = new ESClient();
+            if (!$body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
+            }
+            $es->setfields($_source);
+            $data = $es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
+            if (isset($data['hits']['hits']['_source'])) {
+
+                return $data['hits']['hits']['_source'];
+            } else {
+                return [];
+            }
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
     /*
      * 获取产品总数
      * @param array $condition //搜索条件
@@ -1833,6 +1867,145 @@ class EsProductModel extends Model {
         }
 
         return true;
+    }
+
+    /**
+     * 产品导出
+     * @return string
+     */
+    public function export($condition = [], $process = '', $lang) {
+        /** 返回导出进度start */
+        $progress_key = md5(json_encode($input));
+        if (!empty($process)) {
+            if (redisExist($progress_key)) {
+                $progress_redis = json_decode(redisGet($progress_key), true);
+                return $progress_redis['processed'] < $progress_redis['total'] ?
+                        ceil($progress_redis['processed'] / $progress_redis['total'] * 100) : 100;
+            } else {
+                return 100;
+            }
+        }
+        $progress_redis = array('start_time' => time());    //用来记录导入进度信息
+        /** 导入进度end */
+        set_time_limit(0);  # 设置执行时间最大值
+
+
+        $count = $this->getCount($condition, $lang);
+
+        $progress_redis['total'] = $count;
+        if ($count <= 0) {
+            jsonReturn('', ErrorMsg::FAILED, '无数据可导出');
+        }
+        //存储目录
+        $tmpDir = MYPATH . '/public/tmp/';
+        rmdir($tmpDir);
+        $dirName = $tmpDir . date('YmdH', time());
+        if (!is_dir($dirName)) {
+            if (!mkdir($dirName, 0777, true)) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+                jsonReturn('', ErrorMsg::FAILED, '操作失败，请联系管理员');
+            }
+        }
+        $xlsSize = 2000;    //单excel显示条数
+        $pageSize = 1000;    //分页查询，每页多少条
+        $current = 0;    //当前页
+        $xlsNum = $i = $p = 0;
+        $j = 4;    //excel输出的起始行
+        $localFile = MYPATH . "/public/file/spuTemplate.xls";    //模板
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+        $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
+        $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
+        $objPHPExcel = $objReader->load($localFile);    //加载文件
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle("N3")->getFont()->setBold(true);    //粗体
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue("N3", '审核状态');
+        try {
+            do {
+                $result = $this->getList($condition, 'spu,material_cat_no,name,show_name,brand,keywords,exe_standard,tech_paras,description,warranty,status', $lang, $current * $pageSize, $pageSize);
+                foreach ($result as $item) {
+                    $i++;
+                    $p++;
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("C" . $j, ' ' . $item['spu']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("D" . $j, ' ' . $item['material_cat_no']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("E" . $j, ' ' . $item['name']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("F" . $j, ' ' . $item['show_name']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("G" . $j, ' ' . $item['']);    //产品组
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("H" . $j, ' ' . $item['brand']['name']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("I" . $j, ' ' . $item['description']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("J" . $j, ' ' . $item['tech_paras']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("K" . $j, ' ' . $item['exe_standard']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("L" . $j, ' ' . $item['warranty']);
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("M" . $j, ' ' . $item['keywords']);
+                    $status = '';
+                    switch ($item['status']) {
+                        case 'VALID':
+                            $status = '通过';
+                            break;
+                        case 'INVALID':
+                            $status = '驳回';
+                            break;
+                        case 'CHECKING':
+                            $status = '待审核';
+                            break;
+                        case 'DRAFT':
+                            $status = '草稿';
+                            break;
+                        default:
+                            $status = $item['status'];
+                            break;
+                    }
+                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("N" . $j, ' ' . $status);
+
+                    if ($i >= $xlsSize) {    //保存文件
+                        $xlsNum = $xlsNum + 1;
+                        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+                        $objWriter->save($dirName . '/' . $xlsNum . '.xls');
+                        $i = 0;
+                        unset($objPHPExcel);
+                        if (($xlsNum * $xlsSize + $i) < $count) {    //判断如果还有数据则重开个excel
+                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+                            $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
+                            $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
+                            $objPHPExcel = $objReader->load($localFile);    //加载文件
+                            $objPHPExcel->setActiveSheetIndex(0)->getStyle("N3")->getFont()->setBold(true);    //粗体
+                            $objPHPExcel->setActiveSheetIndex(0)->setCellValue("N3", '审核状态');
+                            $j = 3;
+                        }
+                    } elseif (($xlsNum * $xlsSize + $i) >= $count) {
+                        $xlsNum = $xlsNum + 1;
+                        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+                        $objWriter->save($dirName . '/' . $xlsNum . '.xls');
+                        $i = 0;
+                        unset($objPHPExcel);
+                    }
+                    $j++;
+                    $progress_redis['processed'] = $p;    //记录导入进度信息
+                    redisSet($progress_key, json_encode($progress_redis));
+                }
+
+                $current++;
+            } while (count($result) >= $pageSize);
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Export failed:' . $e, Log::ERR);
+            return false;
+        }
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
+        ZipHelper::removeDir($dirName);    //清除目录
+        if (file_exists($dirName . '.zip')) {
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server . '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $dirName . '.zip';
+            $data['type'] = 'application/zip';
+            $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
+            $fileId = postfile($data, $url);
+            if ($fileId) {
+                unlink($dirName . '.zip');
+                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::ERR);
+            return false;
+        }
     }
 
 }

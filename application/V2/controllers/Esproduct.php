@@ -28,14 +28,12 @@ class EsproductController extends PublicController {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
         } elseif ($username == '016417' && $password) {
-            //$arr = ['user_no' => $username, 'password' => $password];
             $model = new EmployeeModel();
             $info = $model->field('password_hash')->where(['user_no' => $username])->find();
             if ($info && $info['password_hash'] == $password) {
                 ini_set("display_errors", "On");
                 error_reporting(E_ERROR | E_STRICT);
             } else {
-
                 parent::init();
             }
         } else {
@@ -874,6 +872,52 @@ class EsproductController extends PublicController {
             'min_pack_unit' => $ik_analyzed, //成交单位
         ];
         return $body;
+    }
+
+    /**
+     * 产品导出
+     */
+    public function exportAction() {
+        $esproduct_model = new EsProductModel();
+        $condition = $this->getPut();
+        $process = $this->getPut('process', 1);
+        $lang = $this->getPut('lang');
+        switch ($condition['user_type']) {
+            case 'create':
+                $condition['create_by_name'] = $condition['user_name'];
+                break;
+            case 'updated':
+                $condition['updated_by_name'] = $condition['user_name'];
+                break;
+            case 'checked':
+                $condition['checked_by_name'] = $condition['user_name'];
+                break;
+        }
+        switch ($condition['date_type']) {
+            case 'create':
+                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'updated':
+                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'checked':
+                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+        }
+
+        if (empty($lang)) {
+            jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
+        }
+        $localDir = $esproduct_model->export($condition, $process, $lang);
+
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
     }
 
 }
