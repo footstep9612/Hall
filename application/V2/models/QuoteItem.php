@@ -41,6 +41,9 @@ class QuoteItemModel extends PublicModel {
 
     public function updateSupplier($data){
         foreach ($data as $key=>$value){
+            if(empty($value['period_of_validity'])){
+                $value['period_of_validity'] = null;
+            }
             $value['updated_at'] = date('Y-m-d H:i:s');
             try{
                 $this->save($this->create($value));
