@@ -1894,7 +1894,7 @@ class EsProductModel extends Model {
         ];
     }
 
-    private static $xlsSize = 2000;
+    private static $xlsSize = 5000;
 
     /**
      * 产品导出
