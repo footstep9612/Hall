@@ -573,13 +573,18 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
+            $spuModel = new ProductModel();
             foreach ($input as $key => $value) {
                 if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
-                    if (empty($value['name'])) {
-                        $spuModel = new ProductModel();
-                        $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
-                        $value['name'] = $spuName['name'];
+                    $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
+                    if($spuName){
+                        if (empty($value['name'])) {
+                            $value['name'] = $spuName['name'];
+                        }
+                    }elseif(!empty($value['name'])){
+                        jsonReturn('', ErrorMsg::FAILED, '语言：'.$key.'SPU不存在');
                     }
+
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
