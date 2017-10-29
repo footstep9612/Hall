@@ -42,7 +42,14 @@ class QuoteItemModel extends PublicModel {
     public function updateSupplier($data){
         foreach ($data as $key=>$value){
             $value['updated_at'] = date('Y-m-d H:i:s');
-            $this->save($this->create($value));
+            try{
+                $this->save($this->create($value));
+            }catch (Exception $exception){
+                return [
+                    'code' => $exception->getCode(),
+                    'message' => $exception->getMessage()
+                ];
+            }
         }
         return true;
     }

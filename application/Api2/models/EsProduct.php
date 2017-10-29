@@ -359,15 +359,11 @@ class EsProductModel extends Model {
             if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
                 $es->setaggs('sku_count', 'sku_count', 'sum');
                 $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
-//                $es->setaggs('show_cats.cat_no2', 'show_cat_no2');
-//                $es->setaggs('show_cats.cat_no1', 'show_cat_no1');
             } else {
                 $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
-//                $es->setaggs('show_cats.cat_no2', 'show_cat_no2');
-//                $es->setaggs('show_cats.cat_no1', 'show_cat_no1');
             }
-            $es->sethighlight(['show_name.ik' => new stdClass()]);
-            $es->sethighlight(['name.ik' => new stdClass()]);
+            $es->sethighlight(['show_name.ik' => new stdClass(), 'name.ik' => new stdClass()]);
+
 
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;

@@ -176,7 +176,7 @@ class QuoteController extends PublicController{
     public function rejectAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_QUOTING');
+        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
         $this->jsonReturn($response);
 
     }
@@ -226,8 +226,8 @@ class QuoteController extends PublicController{
     public function updateSupplierAction(){
 
         $request = $this->validateRequests();
-        $this->quoteItemModel->updateSupplier($request['data']);
-        $this->jsonReturn();
+        $return = $this->quoteItemModel->updateSupplier($request['data']);
+        $this->jsonReturn($return);
     }
 
     /**

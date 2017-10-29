@@ -160,9 +160,9 @@ class GoodsController extends PublicController {
                 $this->updateEsproduct([$lang => $lang], $this->put_data[$lang]['spu']);
             }
         }
-        if(!$result || $result === false){
-            jsonReturn('',ErrorMsg::FAILED,'失败!');
-        }else{
+        if (!$result || $result === false) {
+            jsonReturn('', ErrorMsg::FAILED, '失败!');
+        } else {
             jsonReturn($result);
         }
     }
@@ -238,11 +238,27 @@ class GoodsController extends PublicController {
         $result = $goodsModel->modifySkuStatus($this->put_data);
 
         if ($result) {
+            $esgoods_model = new EsGoodsModel();
+            //新状态可以补充
+            switch ($this->put_data['status_type']) {
+                case 'check':    //报审
+                    $status = GoodsModel::STATUS_CHECKING;
+                    break;
+                case 'valid':    //审核通过
+                    $status = GoodsModel::STATUS_VALID;
+                    break;
+                case 'invalid':    //驳回
+                    $status = GoodsModel::STATUS_INVALID;
+                    break;
+            }
             if ($this->put_data['lang']) {
                 $lang = $this->put_data['lang'];
-                $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);
+                $esgoods_model->changestatus($this->put_data['sku'], $status, $lang, defined('UID') ? UID : 0);
             } else {
-                $this->updateEsgoods(null, $this->put_data['sku']);
+                $langs = ['en', 'zh', 'es', 'ru'];
+                foreach ($langs as $lang) {
+                    $esgoods_model->changestatus($this->put_data['sku'], $status, $lang, defined('UID') ? UID : 0);
+                }
             }
         }
 
@@ -270,11 +286,16 @@ class GoodsController extends PublicController {
         $result = $goodsModel->deleteSkuReal($this->put_data);
 
         if ($result === true) {
+            $esgoods_model = new EsGoodsModel();
+
             if ($this->put_data['lang']) {
                 $lang = $this->put_data['lang'];
-                $this->updateEsgoods([$lang => $lang], $this->put_data['sku']);
+                $esgoods_model->delete_data($this->put_data['sku'], $lang);
             } else {
-                $this->updateEsgoods(null, $this->put_data['sku']);
+                $langs = ['en', 'zh', 'es', 'ru'];
+                foreach ($langs as $lang) {
+                    $esgoods_model->delete_data($this->put_data['sku'], $lang);
+                }
             }
         }
         $this->returnInfo($result);

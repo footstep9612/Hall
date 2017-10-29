@@ -592,7 +592,7 @@ class LogisticsController extends PublicController {
 	        $this->quoteModel->startTrans();
 	         
 	        // 更改询单状态
-	        $res1 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING', 'updated_by' => $this->user['id']]);
+	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING', 'updated_by' => $this->user['id']]);
 	         
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
@@ -722,7 +722,7 @@ class LogisticsController extends PublicController {
 	        $res2 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);*/
 	        
 	        // 更改询单状态
-	        $res2 = $this->inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => $status, 'updated_by' => $this->user['id']]);
+	        $res2 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => $status, 'updated_by' => $this->user['id']]);
 	        
 	        // 更改报价单状态
 	        $res3 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => $status]);

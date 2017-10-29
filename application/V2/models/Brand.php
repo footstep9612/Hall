@@ -375,11 +375,7 @@ class BrandModel extends PublicModel {
         $objSheet->setCellValue("K1", "状态");
         $objSheet->setCellValue("L1", "创建人");
         $objSheet->setCellValue("M1", "创建时间");
-
-
-        $i = 0;    //用来控制分页查询
         $j = 2;    //excel控制输出
-        $length = 20;
 
 
         $result = $this->listall($input, null, 'id,brand,status,created_by,created_at');
@@ -387,17 +383,24 @@ class BrandModel extends PublicModel {
         if ($result) {
             foreach ($result as $r) {
                 $brand_ary = json_decode($r['brand'], true);
-
                 $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
                 $objSheet->setCellValue("B" . $j, ' ' . $r['id'], PHPExcel_Cell_DataType::TYPE_STRING);
-                $objSheet->setCellValue("C" . $j, isset($brand_ary['zh']['name']) ? $brand_ary['zh']['name'] : '');
-                $objSheet->setCellValue("D" . $j, isset($brand_ary['zh']['logo']) ? $brand_ary['zh']['logo'] : '');
-                $objSheet->setCellValue("E" . $j, isset($brand_ary['en']['name']) ? $brand_ary['en']['name'] : '');
-                $objSheet->setCellValue("F" . $j, isset($brand_ary['en']['logo']) ? $brand_ary['en']['logo'] : '');
-                $objSheet->setCellValue("G" . $j, isset($brand_ary['es']['name']) ? $brand_ary['es']['name'] : '');
-                $objSheet->setCellValue("H" . $j, isset($brand_ary['es']['logo']) ? $brand_ary['es']['logo'] : '');
-                $objSheet->setCellValue("I" . $j, isset($brand_ary['ru']['name']) ? $brand_ary['ru']['name'] : '');
-                $objSheet->setCellValue("J" . $j, isset($brand_ary['ru']['logo']) ? $brand_ary['ru']['logo'] : '');
+                foreach ($brand_ary as $val) {
+                    if ($val['lang'] == 'zh') {
+                        $objSheet->setCellValue("C" . $j, isset($val['name']) ? $val['name'] : '');
+                        $objSheet->setCellValue("D" . $j, isset($val['logo']) ? $val['logo'] : '');
+                    } elseif ($val['lang'] == 'en') {
+                        $objSheet->setCellValue("E" . $j, isset($val['name']) ? $val['name'] : '');
+                        $objSheet->setCellValue("F" . $j, isset($val['logo']) ? $val['logo'] : '');
+                    } elseif ($val['lang'] == 'es') {
+                        $objSheet->setCellValue("G" . $j, isset($val['name']) ? $val['name'] : '');
+                        $objSheet->setCellValue("H" . $j, isset($val['logo']) ? $val['logo'] : '');
+                    } elseif ($val['lang'] == 'ru') {
+                        $objSheet->setCellValue("I" . $j, isset($val['name']) ? $val['name'] : '');
+                        $objSheet->setCellValue("J" . $j, isset($val['logo']) ? $val['logo'] : '');
+                    }
+                }
+
                 $status = '';
                 switch ($r['status']) {
                     case self::STATUS_APPROVING:
@@ -422,6 +425,8 @@ class BrandModel extends PublicModel {
                 $j++;
             }
         }
+        $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
+        $objSheet->getStyle('A1:M' . $j)->applyFromArray($styleArray);
 //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Brand_' . time() . '.xls');

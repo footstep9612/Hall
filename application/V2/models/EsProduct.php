@@ -193,7 +193,7 @@ class EsProductModel extends Model {
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
-        //   $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
+//   $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
             $show_cat_no = trim($condition['show_cat_no']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
@@ -293,7 +293,7 @@ class EsProductModel extends Model {
         if (isset($condition['name']) && $condition['name']) {
             $name = trim($condition['name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        // [ESClient::MATCH => ['name.ik' => $name]],
+// [ESClient::MATCH => ['name.ik' => $name]],
                         [ESClient::WILDCARD => ['name.all' => '*' . $name . '*']],
             ]]];
         }
@@ -322,15 +322,15 @@ class EsProductModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = trim($condition['keyword']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.ik' => $keyword]],
-                        [ESClient::MATCH => ['show_name.ik' => $keyword]],
+                        [ESClient::MATCH => ['name.ik' => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['show_name.ik' => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['keywords.ik' => ['query' => $keyword, 'boost' => 2]]],
+                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $keyword]],
-                        [ESClient::MATCH => ['keywords.ik' => $keyword]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['brand.name.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['source.all' => '*' . $keyword . '*']],
-                        [ESClient::WILDCARD => ['name.all' => '*' . $keyword . '*']],
             ]]];
         }
         return $body;
@@ -369,18 +369,9 @@ class EsProductModel extends Model {
             $es->setbody($body)->setsort('created_at', 'desc')->setsort('sku_count', 'desc')
                     ->setsort('_id', 'desc');
 
-            if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
-                $es->setaggs('sku_count', 'sku_count', 'sum');
-            }
-            if (isset($condition['image_count']) && $condition['image_count'] == 'Y') {
+            $es->setaggs('sku_count', 'sku_count', 'sum');
+            $es->setaggs('image_count', 'image_count', 'sum');
 
-                $es->setaggs('image_count', 'image_count', 'sum');
-            }
-//            else {
-//                $es->setaggs('show_cats.cat_no3', 'show_cat_no3');
-//                $es->setaggs('show_cats.cat_no2', 'show_cat_no2');
-//                $es->setaggs('show_cats.cat_no1', 'show_cat_no1');
-//            }
             $es->setaggs('brand.name.all', 'brands', 'terms', 0);
             $es->setaggs('suppliers.supplier_id', 'suppliers', 'terms', 0);
 
@@ -668,7 +659,7 @@ class EsProductModel extends Model {
 
 
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
-            // die;
+// die;
             ob_flush();
 
             flush();
@@ -768,6 +759,13 @@ class EsProductModel extends Model {
             $body['image_count'] = 0;
         }
 
+        if (isset($body['sku_count']) && intval($body['sku_count']) > 0) {
+
+            $body['sku_count'] = intval($body['sku_count']);
+        } else {
+            $body['sku_count'] = 0;
+        }
+
         $material_cat_no = $item['material_cat_no'];
         if (isset($mcats[$material_cat_no])) {
             $body['material_cat'] = $mcats[$item['material_cat_no']];
@@ -845,11 +843,11 @@ class EsProductModel extends Model {
 
         if (isset($suppliers[$id]) && $suppliers[$id]) {
             $body['suppliers'] = $suppliers[$id];
-            //  $body['suppliers'] = json_encode($suppliers[$id], 256);
+//  $body['suppliers'] = json_encode($suppliers[$id], 256);
             $body['supplier_count'] = count($suppliers[$id]);
         } else {
             $body['suppliers'] = [];
-            //  $body['suppliers'] = json_encode([], 256);
+//  $body['suppliers'] = json_encode([], 256);
             $body['supplier_count'] = 0;
         }
         $this->_findnulltoempty($body);
@@ -1661,6 +1659,8 @@ class EsProductModel extends Model {
             $data = [];
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
+            $data['show_cats'] = [];
+            $data['sku_count'] = 0;
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
@@ -1680,10 +1680,11 @@ class EsProductModel extends Model {
                 $data = [];
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
+                $data['show_cats'] = [];
+                $data['sku_count'] = 0;
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
-
                 $esgoodsdata = [
                     "doc" => $data,
                     "query" => ['bool' => [ESClient::MUST => [

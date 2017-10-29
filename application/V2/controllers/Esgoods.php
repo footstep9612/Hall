@@ -64,7 +64,38 @@ class EsgoodsController extends PublicController {
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
 
-            $this->_update_keywords();
+            $send['data'] = $list;
+            $this->setCode(MSG::MSG_SUCCESS);
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
+            $this->jsonReturn($send);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 回收站列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 商品
+     */
+    public function recycledAction() {
+        $lang = $this->getPut('lang', 'zh');
+        $data = $this->getPut();
+        $model = new EsGoodsModel();
+        $data['deleted_flag'] = 'Y';
+        $data['onshelf_flag'] = 'A';
+        $ret = $model->getgoods($data, null, $lang);
+        if ($ret) {
+            $data = $ret[0];
+            $list = $this->_getdata($data);
+            $send['count'] = intval($data['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
+
             $send['data'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             $send['code'] = $this->getCode();

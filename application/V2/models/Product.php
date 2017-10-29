@@ -26,7 +26,7 @@ class ProductModel extends PublicModel {
         //'lang' => array('method','checkLang','语言'),
         'material_cat_no' => array('required', '', '物料分类不能为空'),
         'name' => array('required', '', '名称不能为空'),
-        'brand' => array('required','','品牌不能为空'),
+        'brand' => array('required', '', '品牌不能为空'),
     );
 
     /**
@@ -98,7 +98,7 @@ class ProductModel extends PublicModel {
                 if (is_array($input['brand'])) {
                     ksort($input['brand']);
                     $data['brand'] = json_encode($input['brand'], JSON_UNESCAPED_UNICODE);
-                } elseif(!empty($input['brand'])) {
+                } elseif (!empty($input['brand'])) {
                     $brand_ary = array(
                         'name' => $input['brand'],
                         'style' => 'TEXT',
@@ -107,7 +107,7 @@ class ProductModel extends PublicModel {
                     );
                     ksort($brand_ary);
                     $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
-                }else{
+                } else {
                     $data['brand'] = '';
                 }
             }
@@ -207,7 +207,7 @@ class ProductModel extends PublicModel {
      * 添加/编辑
      * @param object $input 操作集
      */
-    public function editInfo($input = []) {
+   public function editInfo($input = []) {
         if (empty($input)) {
             return false;
         }
@@ -507,9 +507,12 @@ class ProductModel extends PublicModel {
                 if (empty(trim($item['name']))) {    //检测名称
                     return ['code' => false, 'message' => $item['lang'] . '名称不能为空'];
                 }
+
                 if (empty(trim($item['brand']))) {    //检测品牌
                     return ['code' => false, 'message' => $item['lang'] . '品牌不能为空'];
                 }
+
+
                 $condition_new = ['lang' => $item['lang'], 'name' => $item['name'], 'deleted_flag' => self::DELETE_N, 'status' => ['neq', self::STATUS_DRAFT], 'spu' => ['neq', $item['spu']]];
                 $exist = $this->field('id,brand')->where($condition_new)->select();
                 if ($exist) {
@@ -647,9 +650,9 @@ class ProductModel extends PublicModel {
         }
 
         //读取redis缓存
-        /*if (redisHashExist('spu', md5(json_encode($condition)))) {
-            return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
-        }*/
+        /* if (redisHashExist('spu', md5(json_encode($condition)))) {
+          return json_decode(redisHashGet('spu', md5(json_encode($condition))), true);
+          } */
         //数据读取
         try {
             $field = 'spu,lang,material_cat_no,qrcode,name,show_name,brand,keywords,exe_standard,'
@@ -769,23 +772,23 @@ class ProductModel extends PublicModel {
      * SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
      * @return string
      */
-    public function createSpu($material_cat_no = '' , $spu = '') {
+    public function createSpu($material_cat_no = '', $spu = '') {
         if (empty($material_cat_no)) {
             return false;
         }
 
-        if(!empty($spu)){
+        if (!empty($spu)) {
             $condition = array('spu' => $spu);
             $result2 = $this->field('spu')->where($condition)->find();
             $lockFile = MYPATH . '/public/tmp/' . $spu . '.lock';
-            if($result2 || file_exists($lockFile)){
+            if ($result2 || file_exists($lockFile)) {
                 $code = substr($spu, (strlen($material_cat_no) + 2), 4);
                 $code = intval($code) + 1;
                 $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
-                return $this->createSpu($material_cat_no ,$spu );
-            }else{
+                return $this->createSpu($material_cat_no, $spu);
+            } else {
                 //上锁
-                $handle = fopen($lockFile , "w");
+                $handle = fopen($lockFile, "w");
                 if (!$handle) {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . MYPATH . '/public/tmp/' . $spu . '.lock' . '] create faild.', Log::ERR);
                 } else {
@@ -793,7 +796,7 @@ class ProductModel extends PublicModel {
                 }
                 return $spu;
             }
-        }else{
+        } else {
             $condition = array(
                 'material_cat_no' => $material_cat_no
             );
@@ -805,7 +808,7 @@ class ProductModel extends PublicModel {
                 $code = 1;
             }
             $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
-            return $this->createSpu($material_cat_no ,$spu);
+            return $this->createSpu($material_cat_no, $spu);
         }
     }
 
@@ -945,7 +948,7 @@ class ProductModel extends PublicModel {
      * @param $data   注意这是excel模板数据
      * @param $lang
      */
-    public function import($url = '', $lang = '', $process = '') {
+   public function import($url = '', $lang = '', $process = '') {
         if (empty($url) || empty($lang)) {
             return false;
         }

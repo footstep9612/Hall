@@ -303,30 +303,53 @@ class InquiryController extends PublicController {
     public function getInquiryUserRoleAction() {
         $inquiry = new InquiryModel();
         
-        // 是否易瑞客户中心分单员的标识
+        // 是否市场经办人的标识
+        $isAgent = 'N';
+        
+        // 是否易瑞分单员的标识
         $isErui = 'N';
         
         // 是否分单员的标识
         $isIssue = 'N';
         
+        // 是否报价人的标识
+        $isQuote = 'N';
+        
         // 是否审核人的标识
         $isCheck = 'N';
         
         foreach ($this->user['role_no'] as $roleNo) {
+            if ($roleNo == $inquiry::marketAgentRole ) {
+                $isAgent = 'Y';
+            }
             if ($roleNo == $inquiry::inquiryIssueRole) {
                 $isErui = 'Y';
             }
             if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
                 $isIssue = 'Y';
             }
+            if ($roleNo == $inquiry::quoterRole|| $roleNo == $inquiry::logiQuoterRole) {
+                $isQuote = 'Y';
+            }
             if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole ) {
                 $isCheck = 'Y';
             }
         }
         
+        if ($isAgent == 'Y') {
+            $orgModel = new OrgModel();
+            
+            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ? : ['-1']], 'org_node' => 'ub'])->order('id DESC')->find();
+            
+            // 事业部id和名称
+            $data['ub_id'] = $org['id'];
+            $data['ub_name'] = $org['name'];
+        }
+        
+        $data['is_agent'] = $isAgent;
         $data['is_erui'] = $isErui;
         $data['is_issue'] = $isIssue;
-        $data['is_issue'] = $isIssue;
+        $data['is_quote'] = $isQuote;
         $data['is_check'] = $isCheck;
         
         $res['code'] = 1;
@@ -347,23 +370,60 @@ class InquiryController extends PublicController {
     
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
-            $quoteModel = new QuoteModel();
+             
+            $res = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'quote_status' => 'COMPLETED', 'updated_by' => $this->user['id']]);
+             
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage('成功!');
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode('-103');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 退回重新报价
+     *
+     * @author liujf
+     * @time 2017-10-27
+     */
+    public function returnRequoteAction() {
+        $condition = $this->put_data;
+        
+        if (!empty($condition['inquiry_id'])) {
+             $inquiryModel = new InquiryModel();
+             $quoteModel = new QuoteModel();
+             $finalQuoteModel = new FinalQuoteModel();
              
             $inquiryModel->startTrans();
             $quoteModel->startTrans();
+            $finalQuoteModel->startTrans();
              
-            $res1 = $inquiryModel->updateStatus(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'updated_by' => $this->user['id']]);
+            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'quote_status' => 'ONGOING', 'updated_by' => $this->user['id']]);
              
             // 更改报价单状态
-            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'INQUIRY_CLOSED']);
+            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_QUOTING']);
+            
+            // 更改市场报价单状态
+            $res3 = $finalQuoteModel->updateFinal(['inquiry_id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'updated_by' => $this->user['id']]);
              
-            if ($res1['code'] == 1 && $res2) {
+            if ($res1['code'] == 1 && $res2 && $res3['code'] == 1) {
                 $inquiryModel->commit();
                 $quoteModel->commit();
+                $finalQuoteModel->commit();
                 $res = true;
             } else {
                 $inquiryModel->rollback();
                 $quoteModel->rollback();
+                $finalQuoteModel->rollback();
                 $res = false;
             }
              
@@ -852,8 +912,10 @@ class InquiryController extends PublicController {
             
             $res = $inquiryCheckLogModel->getDetail($condition);
             
-            $employee = $employeeModel->field('name')->where(['id' => $res['created_by']])->find();
-            $res['created_name'] = $employee['name'];
+            if (!empty($res['created_by'])) {
+                $employee = $employeeModel->field('name')->where(['id' => $res['created_by']])->find();
+                $res['created_name'] = $employee['name'];
+            }
              
             if ($res) {
                 $this->setCode('1');

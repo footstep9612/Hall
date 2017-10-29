@@ -1023,6 +1023,9 @@ class MaterialCatModel extends PublicModel {
                 $j++;
             }
         }
+        $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
+
+        $objSheet->getStyle('A1:M' . $j)->applyFromArray($styleArray);
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'MaterialCat_' . time() . '.xls');
