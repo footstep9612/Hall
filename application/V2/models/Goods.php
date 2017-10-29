@@ -22,6 +22,12 @@ class GoodsModel extends PublicModel {
     const STATUS_DRAFT = 'DRAFT';          //草稿
     const DELETE_Y = 'Y';
     const DELETE_N = 'N';
+    protected $lang_ary = array(
+        'zh' => "中文",
+        'en' => "英文",
+        'ru' => "俄语",
+        'es' => "西语"
+    );
 
     //定义校验规则
 
@@ -582,7 +588,7 @@ class GoodsModel extends PublicModel {
                             $value['name'] = $spuName['name'];
                         }
                     }elseif(!empty($value['name'])){
-                        jsonReturn('', ErrorMsg::FAILED, '语言：'.$key.'SPU不存在');
+                        jsonReturn('', ErrorMsg::FAILED, '语言：'.$this->lang_ary[$key].'SPU不存在');
                     }
 
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
