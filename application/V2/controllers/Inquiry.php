@@ -262,8 +262,16 @@ class InquiryController extends PublicController {
              
             $inquiryModel->startTrans();
             $quoteModel->startTrans();
+            
+            $data = [
+                'id' => $condition['inquiry_id'],
+                'org_id' => $condition['org_id'],
+                'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole),
+                'status' => 'BIZ_DISPATCHING',
+                'updated_by' => $this->user['id']
+            ];
              
-            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING', 'updated_by' => $this->user['id']]);
+            $res1 = $inquiryModel->updateData($data);
              
             // 更改报价单状态
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
@@ -370,8 +378,18 @@ class InquiryController extends PublicController {
     
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
+            
+            $inquiry = $inquiryModel->field('agent_id')->where(['id' => $condition['inquiry_id']])->find();
+            
+            $data = [
+                'id' => $condition['inquiry_id'],
+                'now_agent_id' => $inquiry['agent_id'],
+                'status' => 'INQUIRY_CLOSED',
+                'quote_status' => 'COMPLETED',
+                'updated_by' => $this->user['id']
+            ];
              
-            $res = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'quote_status' => 'COMPLETED', 'updated_by' => $this->user['id']]);
+            $res = $inquiryModel->updateData($data);
              
             if ($res) {
                 $this->setCode('1');
@@ -406,8 +424,18 @@ class InquiryController extends PublicController {
             $inquiryModel->startTrans();
             $quoteModel->startTrans();
             $finalQuoteModel->startTrans();
+            
+            $inquiry = $inquiryModel->field('quote_id')->where(['id' => $condition['inquiry_id']])->find();
+            
+            $data = [
+                'id' => $condition['inquiry_id'],
+                'now_agent_id' => $inquiry['quote_id'],
+                'status' => 'BIZ_QUOTING',
+                'quote_status' => 'ONGOING',
+                'updated_by' => $this->user['id']
+            ];
              
-            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'quote_status' => 'ONGOING', 'updated_by' => $this->user['id']]);
+            $res1 = $inquiryModel->updateData($data);
              
             // 更改报价单状态
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_QUOTING']);

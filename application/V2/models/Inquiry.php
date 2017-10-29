@@ -129,13 +129,13 @@ class InquiryModel extends PublicModel {
                         if ($roleNo == self::marketAgentRole) {
                             $map[] = ['agent_id' => $condition['user_id']];
                         }
-                        if ($roleNo == self::inquiryIssueRole) {
-                            $map[] = ['erui_id' => $condition['user_id']];
-                        }
                     }
                     break;
                 case 'quote' :
                     foreach ($condition['role_no'] as $roleNo) {
+                        if ($roleNo == self::inquiryIssueRole) {
+                            $map[] = ['erui_id' => $condition['user_id']];
+                        }
                         if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id']);
                             
