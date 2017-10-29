@@ -1976,6 +1976,7 @@ class EsProductModel extends Model {
                 jsonReturn('', ErrorMsg::FAILED, '操作失败，请联系管理员');
             }
         }
+
         $localFile = MYPATH . "/public/file/spuTemplate.xls";    //模板
         PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
         $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
@@ -1983,6 +1984,8 @@ class EsProductModel extends Model {
         $objPHPExcel = $objReader->load($localFile);    //加载文件
 
         $objSheet = $objPHPExcel->setActiveSheetIndex(0);    //当前sheet
+
+        $objSheet->setTitle(($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
         $objSheet->getStyle("N3")->getFont()->setBold(true);    //粗体
         $objSheet->setCellValue("N3", '审核状态');
@@ -2029,7 +2032,7 @@ class EsProductModel extends Model {
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
         $objSheet->getStyle('A1:N' . ($j + 4))->applyFromArray($styleArray);
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $objWriter->save($dirName . '/' . $xlsNum . '.xls');
+        $objWriter->save($dirName . '/' . ($xlsNum + 1) . '_' . $lang . '.xls');
         unset($objPHPExcel, $objSheet);
         return true;
     }
