@@ -41,6 +41,33 @@ class EsproductController extends PublicController {
         }
     }
 
+    public function clearCacheAction() {
+        $redis = new phpredis();
+        $keys = $redis->getKeys('*');
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $key3s = $redis3->getKeys('*');
+        $delkeys = [];
+        foreach ($keys as $key) {
+            if (strpos($key, 'user_info_') === false) {
+                $delkeys[] = $key;
+            }
+        }
+        $redis->delete($delkeys);
+        $delkeys = [];
+        foreach ($key3s as $key) {
+            if (strpos($key, 'shopmall_user_info') === false) {
+                $delkeys[] = $key;
+            }
+        }
+        $redis3->delete($delkeys);
+
+        unset($redis, $redis3, $keys, $delkeys);
+        $this->jsonReturn();
+    }
+
     /*
      * 获取列表
      * @author  zhongyg
@@ -907,12 +934,10 @@ class EsproductController extends PublicController {
                 $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
                 break;
         }
-
-
         if (empty($lang)) {
             jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
         }
-
+        set_time_limit(0);
         $localDir = $esproduct_model->export($condition, $process, $lang);
 
         if ($localDir) {

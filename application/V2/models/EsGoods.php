@@ -110,6 +110,7 @@ class EsGoodsModel extends Model {
         }
         if (isset($condition[$name]) && $condition[$name]) {
             $status = trim($condition[$name]);
+
             if ($status == 'ALL') {
                 $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],

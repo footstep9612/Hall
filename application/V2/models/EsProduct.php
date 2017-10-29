@@ -110,14 +110,13 @@ class EsProductModel extends Model {
         }
         if (isset($condition[$name]) && $condition[$name]) {
             $status = trim($condition[$name]);
-            if ($status == 'ALL') {
 
+            if ($status == 'ALL') {
                 $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
                             [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]]
                 ]];
             } elseif (in_array($status, $array)) {
-
                 $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
             } else {
                 $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
@@ -403,7 +402,7 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setfields($_source);
+            $es->setbody($body)->setfields($_source);
             $data = $es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
 
             if (isset($data['hits']['hits'])) {
@@ -442,6 +441,7 @@ class EsProductModel extends Model {
             $ret = $es->setbody($body)
                     ->count($this->dbName, $this->tableName . '_' . $lang, '');
 
+            unset($es);
             if (isset($ret['count'])) {
                 return $ret['count'];
             } else {
@@ -1874,13 +1874,35 @@ class EsProductModel extends Model {
         return true;
     }
 
+    /*
+     * 对应表
+     *
+     */
+
+    private function _getKeys() {
+        return ['C' => 'spu',
+            'D' => 'material_cat_no',
+            'E' => 'name',
+            'F' => 'show_name',
+            'G' => 'bizline',
+            'H' => 'brand',
+            'I' => 'description',
+            'J' => 'tech_paras',
+            'K' => 'exe_standard',
+            'L' => 'warranty',
+            'M' => 'keywords',
+        ];
+    }
+
+    private static $xlsSize = 2000;
+
     /**
      * 产品导出
      * @return string
      */
     public function export($condition = [], $process = '', $lang = '') {
         /** 返回导出进度start */
-        $progress_key = md5(json_encode($condition));
+        $progress_key = 'processed_' . md5(json_encode($condition));
         if (!empty($process)) {
             if (redisExist($progress_key)) {
                 $progress_redis = json_decode(redisGet($progress_key), true);
@@ -1896,104 +1918,28 @@ class EsProductModel extends Model {
 
 
         $count = $this->getCount($condition, $lang);
+
         $progress_redis['total'] = $count;
         if ($count <= 0) {
             jsonReturn('', ErrorMsg::FAILED, '无数据可导出');
         }
-        //存储目录
-        $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
 
-        rmdir($tmpDir);
-        $dirName = $tmpDir . date('YmdH', time());
-        if (!is_dir($dirName)) {
-            if (!mkdir($dirName, 0777, true)) {
-                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
-                jsonReturn('', ErrorMsg::FAILED, '操作失败，请联系管理员');
-            }
-        }
-        $xlsSize = 2000;    //单excel显示条数
-        $pageSize = 1000;    //分页查询，每页多少条
-        $current = 0;    //当前页
-        $xlsNum = $i = $p = 0;
-        $j = 4;    //excel输出的起始行
-        $localFile = MYPATH . "/public/file/spuTemplate.xls";    //模板
-        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
-        $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
-        $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
-        $objPHPExcel = $objReader->load($localFile);    //加载文件
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle("N3")->getFont()->setBold(true);    //粗体
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue("N3", '审核状态');
+        //单excel显示条数
+        //excel输出的起始行
         try {
-            do {
-                $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status'], $lang, $current * $pageSize, $pageSize);
 
-                foreach ($result as $item) {
-                    $i++;
-                    $p++;
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("C" . $j, ' ' . $item['spu']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("D" . $j, ' ' . $item['material_cat_no']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("E" . $j, ' ' . $item['name']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("F" . $j, ' ' . $item['show_name']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("G" . $j, ' ' . $item['']);    //产品组
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("H" . $j, ' ' . $item['brand']['name']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("I" . $j, ' ' . $item['description']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("J" . $j, ' ' . $item['tech_paras']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("K" . $j, ' ' . $item['exe_standard']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("L" . $j, ' ' . $item['warranty']);
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("M" . $j, ' ' . $item['keywords']);
-                    $status = '';
-                    switch ($item['status']) {
-                        case 'VALID':
-                            $status = '通过';
-                            break;
-                        case 'INVALID':
-                            $status = '驳回';
-                            break;
-                        case 'CHECKING':
-                            $status = '待审核';
-                            break;
-                        case 'DRAFT':
-                            $status = '草稿';
-                            break;
-                        default:
-                            $status = $item['status'];
-                            break;
-                    }
-                    $objPHPExcel->setActiveSheetIndex(0)->setCellValue("N" . $j, ' ' . $status);
-
-                    if ($i >= $xlsSize) {    //保存文件
-                        $xlsNum = $xlsNum + 1;
-                        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-                        $objWriter->save($dirName . '/' . $xlsNum . '.xls');
-                        $i = 0;
-                        unset($objPHPExcel);
-                        if (($xlsNum * $xlsSize + $i) < $count) {    //判断如果还有数据则重开个excel
-                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
-                            $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
-                            $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
-                            $objPHPExcel = $objReader->load($localFile);    //加载文件
-                            $objPHPExcel->setActiveSheetIndex(0)->getStyle("N3")->getFont()->setBold(true);    //粗体
-                            $objPHPExcel->setActiveSheetIndex(0)->setCellValue("N3", '审核状态');
-                            $j = 3;
-                        }
-                    } elseif (($xlsNum * $xlsSize + $i) >= $count) {
-                        $xlsNum = $xlsNum + 1;
-                        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-                        $objWriter->save($dirName . '/' . $xlsNum . '.xls');
-                        $i = 0;
-                        unset($objPHPExcel);
-                    }
-                    $j++;
-                    $progress_redis['processed'] = $p;    //记录导入进度信息
-                    redisSet($progress_key, json_encode($progress_redis));
-                }
-
-                $current++;
-            } while (count($result) >= $pageSize);
+            for ($p = 0; $p < $count / self::$xlsSize; $p++) {
+                $this->Createxls($condition, $lang, $p);
+                $progress_redis['processed'] = $p;    //记录导入进度信息
+                redisSet($progress_key, json_encode($progress_redis));
+            }
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Export failed:' . $e, Log::ERR);
             return false;
         }
+        $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
+        rmdir($tmpDir);
+        $dirName = $tmpDir . date('YmdH', time());
         ZipHelper::zipDir($dirName, $dirName . '.zip');
         ZipHelper::removeDir($dirName);    //清除目录
         if (file_exists($dirName . '.zip')) {
@@ -2012,6 +1958,80 @@ class EsProductModel extends Model {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::ERR);
             return false;
         }
+    }
+
+    /*
+     * 生成excel
+     */
+
+    public function Createxls($condition = [], $lang = '', $xlsNum = 1) {
+        //存储目录
+
+        $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
+        rmdir($tmpDir);
+        $dirName = $tmpDir . date('YmdH', time());
+        if (!is_dir($dirName)) {
+            if (!mkdir($dirName, 0777, true)) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+                jsonReturn('', ErrorMsg::FAILED, '操作失败，请联系管理员');
+            }
+        }
+        $localFile = MYPATH . "/public/file/spuTemplate.xls";    //模板
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+        $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
+        $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
+        $objPHPExcel = $objReader->load($localFile);    //加载文件
+
+        $objSheet = $objPHPExcel->setActiveSheetIndex(0);    //当前sheet
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        $objSheet->getStyle("N3")->getFont()->setBold(true);    //粗体
+        $objSheet->setCellValue("N3", '审核状态');
+
+        $keys = $this->_getKeys();
+        $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status', 'bizline'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
+
+        foreach ($result as $j => $item) {
+            foreach ($keys as $letter => $key) {
+
+                if ($key === 'brand' && isset($item['brand']['name']) && $item['brand']['name']) {
+
+                    $objSheet->setCellValue($letter . ($j + 4), ' ' . $item['brand']['name']);
+                } elseif ($key === 'bizline' && isset($item['bizline']['name']) && $item['bizline']['name']) {
+
+                    $objSheet->setCellValue($letter . ($j + 4), ' ' . $item['bizline']['name']);
+                } elseif (isset($item[$key]) && $item[$key]) {
+
+                    $objSheet->setCellValue($letter . ($j + 4), ' ' . $item[$key]);
+                } else {
+                    $objSheet->setCellValue($letter . ($j + 4), ' ');
+                }
+            }
+            $status = '';
+            switch ($item['status']) {
+                case 'VALID':
+                    $status = '通过';
+                    break;
+                case 'INVALID':
+                    $status = '驳回';
+                    break;
+                case 'CHECKING':
+                    $status = '待审核';
+                    break;
+                case 'DRAFT':
+                    $status = '草稿';
+                    break;
+                default:
+                    $status = $item['status'];
+                    break;
+            }
+            $objSheet->setCellValue("N" . ($j + 4), ' ' . $status);
+        }
+        $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
+        $objSheet->getStyle('A1:N' . ($j + 4))->applyFromArray($styleArray);
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        $objWriter->save($dirName . '/' . $xlsNum . '.xls');
+        unset($objPHPExcel, $objSheet);
+        return true;
     }
 
 }
