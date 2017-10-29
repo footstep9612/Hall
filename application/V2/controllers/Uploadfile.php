@@ -23,9 +23,11 @@ class UploadfileController extends PublicController {
         if (empty($file)) {
             return false;
         }
+
         $max_size = 1048576;
         if ($upload_type && in_array($upload_type, ['spu', 'sku'])) {
-            $file_size = $file['imgFile']['size'];
+            $file_size = $file['upFile']['size'];
+
             if ($file_size > $max_size) {
                 $this->setCode(MSG::FILE_SIZE_ERR);
                 $this->jsonReturn();
