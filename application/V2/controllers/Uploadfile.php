@@ -23,7 +23,7 @@ class UploadfileController extends PublicController {
         if (empty($file)) {
             return false;
         } else {
-            Log::write(json_encode($this->getPut()), Log::INFO);
+            Log::write(json_encode($this->getPost()), Log::INFO);
         }
         $max_size = 1048576;
         if ($type && in_array($type, ['spu', 'sku'])) {
