@@ -558,7 +558,7 @@ class GoodsModel extends PublicModel {
 
         $spu = $input['spu'];
         //不存在生成sku
-        $fp = fopen(MYPATH . '/public/tmp/skuedit.lock','r');
+        $fp = fopen(MYPATH . '/public/file/skuedit.lock','r');
         if(flock($fp,LOCK_EX )) {
             $sku = ( !isset( $input[ 'sku' ] ) || empty( $input[ 'sku' ] ) || $input[ 'sku' ] === 'false' ) ? $this->setRealSku( $spu ) : trim( $input[ 'sku' ] );
             flock($fp,LOCK_UN);
@@ -573,13 +573,18 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
+            $spuModel = new ProductModel();
             foreach ($input as $key => $value) {
                 if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
-                    if (empty($value['name'])) {
-                        $spuModel = new ProductModel();
-                        $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
-                        $value['name'] = $spuName['name'];
+                    $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
+                    if($spuName){
+                        if (empty($value['name'])) {
+                            $value['name'] = $spuName['name'];
+                        }
+                    }elseif(!empty($value['name'])){
+                        jsonReturn('', ErrorMsg::FAILED, '语言：'.$key.'SPU不存在');
                     }
+
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
                         continue;
                     }
@@ -2100,7 +2105,7 @@ class GoodsModel extends PublicModel {
                 } else {
                     $workType = '添加';
                     $data_tmp['status'] = $this::STATUS_DRAFT;
-                    $fp = fopen(MYPATH . '/public/tmp/skuedit.lock','r');
+                    $fp = fopen(MYPATH . '/public/file/skuedit.lock','r');
                     if(flock($fp,LOCK_EX )) {
                         $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku($spu);    //生成sku
                         flock($fp,LOCK_UN);

@@ -218,7 +218,7 @@ class ProductModel extends PublicModel {
         if(empty($material_cat_no)){
             jsonReturn('', ErrorMsg::FAILED ,'物料分类不能为空');
         }
-        $fp = fopen(MYPATH . '/public/tmp/spuedit.lock','r');
+        $fp = fopen(MYPATH . '/public/file/spuedit.lock','r');
         if(flock($fp,LOCK_EX | LOCK_NB)) {
             $spu = ( isset( $input[ 'spu' ] ) && !empty( $input[ 'spu' ] ) ) ? trim( $input[ 'spu' ] ) : $this->createSpu( $material_cat_no ); //不存在生产spu
             flock( $fp , LOCK_UN );
@@ -1115,7 +1115,7 @@ class ProductModel extends PublicModel {
                         $data_tmp[ 'status' ] = $this::STATUS_DRAFT;
                         $workText = '新增';
 
-                        $fp = fopen(MYPATH . '/public/tmp/spuedit.lock','r');
+                        $fp = fopen(MYPATH . '/public/file/spuedit.lock','r');
                         if(flock($fp,LOCK_EX )) {
                             $input_spu = $input_spu ? $input_spu : $this->createSpu( $r[ 3 ] );    //生成spu
                             flock($fp,LOCK_UN);
