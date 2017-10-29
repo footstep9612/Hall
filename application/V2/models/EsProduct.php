@@ -405,9 +405,14 @@ class EsProductModel extends Model {
             }
             $es->setfields($_source);
             $data = $es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
-            if (isset($data['hits']['hits']['_source'])) {
 
-                return $data['hits']['hits']['_source'];
+            if (isset($data['hits']['hits'])) {
+                $ret = [];
+                foreach ($data['hits']['hits'] as $item) {
+
+                    $ret[] = $item['_source'];
+                }
+                return $ret;
             } else {
                 return [];
             }
@@ -1873,9 +1878,9 @@ class EsProductModel extends Model {
      * 产品导出
      * @return string
      */
-    public function export($condition = [], $process = '', $lang) {
+    public function export($condition = [], $process = '', $lang = '') {
         /** 返回导出进度start */
-        $progress_key = md5(json_encode($input));
+        $progress_key = md5(json_encode($condition));
         if (!empty($process)) {
             if (redisExist($progress_key)) {
                 $progress_redis = json_decode(redisGet($progress_key), true);
@@ -1891,13 +1896,13 @@ class EsProductModel extends Model {
 
 
         $count = $this->getCount($condition, $lang);
-
         $progress_redis['total'] = $count;
         if ($count <= 0) {
             jsonReturn('', ErrorMsg::FAILED, '无数据可导出');
         }
         //存储目录
-        $tmpDir = MYPATH . '/public/tmp/';
+        $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
+
         rmdir($tmpDir);
         $dirName = $tmpDir . date('YmdH', time());
         if (!is_dir($dirName)) {
@@ -1920,7 +1925,8 @@ class EsProductModel extends Model {
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue("N3", '审核状态');
         try {
             do {
-                $result = $this->getList($condition, 'spu,material_cat_no,name,show_name,brand,keywords,exe_standard,tech_paras,description,warranty,status', $lang, $current * $pageSize, $pageSize);
+                $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status'], $lang, $current * $pageSize, $pageSize);
+
                 foreach ($result as $item) {
                     $i++;
                     $p++;
