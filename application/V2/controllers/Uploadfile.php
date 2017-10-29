@@ -19,7 +19,7 @@ class UploadfileController extends PublicController {
 
     public function UploadAction() {
         $file = $this->getRequest()->getFiles();
-        $type = $this->getPut('upload_type', '');
+        $type = $this->getPost('upload_type', '');
         if (empty($file)) {
             return false;
         } else {
