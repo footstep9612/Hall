@@ -558,7 +558,7 @@ class GoodsModel extends PublicModel {
 
         $spu = $input['spu'];
         //不存在生成sku
-        $fp = fopen(MYPATH . '/public/tmp/skuedit.lock','r');
+        $fp = fopen(MYPATH . '/public/file/skuedit.lock','r');
         if(flock($fp,LOCK_EX )) {
             $sku = ( !isset( $input[ 'sku' ] ) || empty( $input[ 'sku' ] ) || $input[ 'sku' ] === 'false' ) ? $this->setRealSku( $spu ) : trim( $input[ 'sku' ] );
             flock($fp,LOCK_UN);
@@ -2105,7 +2105,7 @@ class GoodsModel extends PublicModel {
                 } else {
                     $workType = '添加';
                     $data_tmp['status'] = $this::STATUS_DRAFT;
-                    $fp = fopen(MYPATH . '/public/tmp/skuedit.lock','r');
+                    $fp = fopen(MYPATH . '/public/file/skuedit.lock','r');
                     if(flock($fp,LOCK_EX )) {
                         $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku($spu);    //生成sku
                         flock($fp,LOCK_UN);
