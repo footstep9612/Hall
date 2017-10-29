@@ -20,16 +20,25 @@ class UploadfileController extends PublicController {
     public function UploadAction() {
         $file = $this->getRequest()->getFiles();
         $upload_type = $this->getPost('upload_type', '');
+        $max_size = $this->getPost('max_size', '');
+
         if (empty($file)) {
             return false;
         }
 
-        $max_size = 1048576;
-        if ($upload_type && in_array($upload_type, ['spu', 'sku'])) {
-            $file_size = $file['upFile']['size'];
 
+        if ($upload_type && in_array($upload_type, ['spu', 'sku'])) {
+            $max_size = 1048576;
+            $file_size = $file['upFile']['size'];
             if ($file_size > $max_size) {
-                $this->setCode(MSG::FILE_SIZE_ERR);
+                $this->setCode(MSG::FILE_SIZE_ERR_1);
+                $this->jsonReturn();
+            }
+        } elseif (intval($max_size)) {
+            $file_size = $file['upFile']['size'];
+            if ($file_size > intval($max_size) * 1048576) {
+                $this->setCode(MSG::FILE_SIZE_ERR_5);
+                $this->setMessage('您上传的文件大于' . intval($max_size) . 'M');
                 $this->jsonReturn();
             }
         }
