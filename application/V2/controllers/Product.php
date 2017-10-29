@@ -462,6 +462,9 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $result = $productModel->import($this->put_data['xls'], $this->put_data['lang'], $process);
         if ($result) {
+            if(is_array($result) && isset($result['success']) && $result['success'] == 0 ){
+                jsonReturn($result, ErrorMsg::SUCCESS , '导入失败');
+            }
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
