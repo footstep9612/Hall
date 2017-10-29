@@ -19,8 +19,22 @@ class UploadfileController extends PublicController {
 
     public function UploadAction() {
         $file = $this->getRequest()->getFiles();
+        $type = $this->getRequest()->isPost('upload_type', '');
         if (empty($file)) {
             return false;
+        }
+        $max_size = 1048576;
+        if ($type && in_array($type, ['spu', 'sku'])) {
+            $file_size = $file['imgFile']['size'];
+            if ($file_size > $max_size) {
+
+                $result = array(
+                    "code" => '-105',
+                    "message" => "您上传的文件大于1M。"
+                );
+                echo json_encode($result);
+                exit;
+            }
         }
         //上传到fastDFS
         $fastdfs = new FastDFSclient();
@@ -47,12 +61,10 @@ class UploadfileController extends PublicController {
         header('P3P:CP=\'IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT\'');
         header('X-Frame-Options:*');
 
-        echo json_encode(array('error' => 0, 'url' => '/images/130201/1302010000050000/IMAGES/1.jpg'));
 
-        exit;
         $file = $this->getRequest()->getFiles();
-
         $max_size = 1048576;
+
 
         //检查文件大小
 
