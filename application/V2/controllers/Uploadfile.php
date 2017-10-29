@@ -19,23 +19,16 @@ class UploadfileController extends PublicController {
 
     public function UploadAction() {
         $file = $this->getRequest()->getFiles();
-        $type = $this->getPost('upload_type', '');
+        $upload_type = $this->getPost('upload_type', '');
         if (empty($file)) {
             return false;
-        } else {
-            Log::write(json_encode($this->getPost()), Log::INFO);
         }
         $max_size = 1048576;
-        if ($type && in_array($type, ['spu', 'sku'])) {
+        if ($upload_type && in_array($upload_type, ['spu', 'sku'])) {
             $file_size = $file['imgFile']['size'];
             if ($file_size > $max_size) {
-
-                $result = array(
-                    "code" => '-105',
-                    "message" => "您上传的文件大于1M。"
-                );
-                echo json_encode($result);
-                exit;
+                $this->setCode(MSG::FILE_SIZE_ERR);
+                $this->jsonReturn();
             }
         }
         //上传到fastDFS
