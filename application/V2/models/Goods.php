@@ -1998,49 +1998,49 @@ class GoodsModel extends PublicModel {
                 continue;
             }
             $data_tmp['nude_cargo_l_mm'] = $data['裸货尺寸长(mm)'];    //裸货尺寸长(mm)
-            if (!is_numeric($data_tmp['nude_cargo_l_mm'])) {
+            if (!empty($data_tmp['nude_cargo_l_mm']) && !is_numeric($data_tmp['nude_cargo_l_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸长有误]');
                 continue;
             }
             $data_tmp['nude_cargo_w_mm'] = $data['裸货尺寸宽(mm)'];    //裸货尺寸宽(mm)
-            if (!is_numeric($data_tmp['nude_cargo_w_mm'])) {
+            if (!empty($data_tmp['nude_cargo_w_mm']) && !is_numeric($data_tmp['nude_cargo_w_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸宽有误]');
                 continue;
             }
             $data_tmp['nude_cargo_h_mm'] = $data['裸货尺寸高(mm)'];    //裸货尺寸高(mm)
-            if (!is_numeric($data_tmp['nude_cargo_h_mm'])) {
+            if (!empty($data_tmp['nude_cargo_h_mm']) && !is_numeric($data_tmp['nude_cargo_h_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸高有误]');
                 continue;
             }
             $data_tmp['min_pack_l_mm'] = $data['最小包装后尺寸长(mm)'];    //最小包装后尺寸长(mm)
-            if (!is_numeric($data_tmp['min_pack_l_mm'])) {
+            if (!empty($data_tmp['min_pack_l_mm']) && !is_numeric($data_tmp['min_pack_l_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸长有误]');
                 continue;
             }
             $data_tmp['min_pack_w_mm'] = $data['最小包装后尺寸宽(mm)'];    //最小包装后尺寸宽(mm)
-            if (!is_numeric($data_tmp['min_pack_w_mm'])) {
+            if (!empty($data_tmp['min_pack_w_mm']) && !is_numeric($data_tmp['min_pack_w_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸宽有误]');
                 continue;
             }
             $data_tmp['min_pack_h_mm'] = $data['最小包装后尺寸高(mm)'];    //最小包装后尺寸高(mm)
-            if (!is_numeric($data_tmp['min_pack_h_mm'])) {
+            if (!empty($data_tmp['min_pack_h_mm']) && !is_numeric($data_tmp['min_pack_h_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸高有误]');
                 continue;
             }
             $data_tmp['net_weight_kg'] = $data['净重(kg)'];    //净重(kg)
-            if (!is_numeric($data_tmp['net_weight_kg'])) {
+            if (!empty($data_tmp['net_weight_kg']) && !is_numeric($data_tmp['net_weight_kg'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[净重有误]');
                 continue;
             }
             $data_tmp['gross_weight_kg'] = (float) $data['毛重(kg)'];    //毛重(kg)
-            if (!is_numeric($data_tmp['gross_weight_kg'])) {
+            if (!empty($data_tmp['gross_weight_kg']) && !is_numeric($data_tmp['gross_weight_kg'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[毛重有误]');
                 continue;
