@@ -582,4 +582,31 @@ class CountryModel extends PublicModel {
         }
     }
 
+    /**
+     * 根据bn获取国家新，并通过语言分组
+     * @author link 2017-10-31
+     * @param string $bn
+     * @return array|bool
+     */
+    public function getInforByBn($bn=''){
+        if(empty($bn)){
+            return false;
+        }
+
+        try{
+            $where = ['bn'=>$bn , 'deleted_flag' => 'N' , 'status' =>'VALID'];
+            $result = $this->field('lang,bn,name')->where($where)->select();
+            if($result){
+                $country = [];
+                foreach($result as $item){
+                    $country[$item['lang']] = $item;
+                }
+                return $country;
+            }
+            return [];
+        }catch (Exception $e){
+            return [];
+        }
+    }
+
 }

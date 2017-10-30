@@ -316,8 +316,24 @@ class BuyerController extends PublicController {
                 $buyer_address_model = new BuyerAddressModel();
                 $buyer_address_model->create_data($buyer_address_data);
             }
+            //获取营销区域信息 -- link 2017-10-31
+            $mareaModel = new MarketAreaModel();
+            $areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
+
+            //获取营销国家信息 -- link 2017-10-31
+            $countryModel = new CountryModel();
+            $countryInfo = $countryModel->getInforByBn($arr['country_bn']);
+
+            //获取市场经办人信息 -- link 2017-10-31
+            $userInfo = new UserModel();
+            $agentInfo = $userInfo->info($data['agent_id'], ['deleted_flag'=>'N', 'status'=>'NORMAL'], 'name');
+
             $datajson['code'] = 1;
             $datajson['id'] = $id;
+            $datajson['name'] = $arr['name'];    //-- link 2017-10-31
+            $datajson['area'] = $areaInfo;    //-- link 2017-10-31
+            $datajson['agent'] = $agentInfo ? $agentInfo['name'] : '';    //-- link 2017-10-31
+            $datajson['country'] = $countryInfo;    //-- link 2017-10-31
             $datajson['message'] = '成功';
         } else {
             $datajson['code'] = -104;

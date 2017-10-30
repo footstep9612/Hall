@@ -304,4 +304,30 @@ class MarketAreaModel extends PublicModel {
         }
     }
 
+    /**
+     * 根据bn获取信息，通过语言分组显示
+     * @author link 2017-10-31
+     * @param string $bn
+     * @return array|bool
+     */
+    public function getInfoByBn($bn=''){
+        if(empty($bn)){
+            return false;
+        }
+
+        try {
+            $where = ['bn'=>$bn, 'deleted_flag'=>'N'];
+            $areas = $this->field('lang,bn,name')->where($where)->select();
+            $area_names = [];
+            foreach ($areas as $area) {
+                $area_names[$area['lang']] = $area;
+            }
+            return $area_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }

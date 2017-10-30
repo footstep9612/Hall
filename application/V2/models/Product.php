@@ -616,7 +616,7 @@ class ProductModel extends PublicModel {
     /**
      * 列表查询
      */
-    public function getList($condition = [], $field = '', $offset = 0, $length = 20) {
+    public function etList($condition = [], $field = '', $offset = 0, $length = 20) {
         $field = empty($field) ? 'lang,material_cat_no,spu,name,show_name,brand,keywords,exe_standard,tech_paras,advantages,description,profile,principle,app_scope,properties,warranty,status' : $field;
         try {
             $result = $this->field($field)->where($condition)->limit($offset, $length)->select();
@@ -1207,7 +1207,7 @@ class ProductModel extends PublicModel {
             }
         }
         $progress_redis = array('start_time' => time());    //用来记录导入进度信息
-        /** 导入进度end */
+        /** 导出进度end */
         set_time_limit(0);  # 设置执行时间最大值
         $condition = array('lang' => $input['lang']);
         if (isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核spu下不去草稿状态。

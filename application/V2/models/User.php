@@ -108,9 +108,10 @@ class UserModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function info($id = '') {
+    public function info($id = '' ,$where='', $field = '' ) {
         $where['id'] = $id;
-        return $this->where($where)->find();
+        $field = empty($field) ? '*' : $field;
+        return $this->field($field)->where($where)->find();
     }
 
     /**
