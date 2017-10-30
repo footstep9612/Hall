@@ -992,6 +992,12 @@ class ProductModel extends PublicModel {
 
                     $data_tmp = [ ];
                     $input_spu = trim( $r[ 2 ] );    //excel输入的spu
+                    if(!empty($input_spu) && strlen($input_spu) != 16){
+                        $faild++;
+                        $objPHPExcel->setActiveSheetIndex( 0 )
+                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[产品编码有误]' );
+                        continue;
+                    }
                     $data_tmp[ 'lang' ] = $lang;
                     $data_tmp[ 'material_cat_no' ] = trim( $r[ 3 ] );    //物料分类
                     if ( empty( $data_tmp[ 'material_cat_no' ] ) ) {
@@ -1096,20 +1102,28 @@ class ProductModel extends PublicModel {
                         'brand' => $data_tmp[ 'brand' ] ,
                         'deleted_flag' => 'N' ,
                     );
-                    $exist = $this->field( 'spu' )->where( $condition )->find();
+                    $exist = $this->field( 'spu' )->where( $condition )->select();
                     if ( $exist ) {
-                        if ( empty( $input_spu ) ) {    //存在且没有传递spu 提示错误
+                        if ( empty( $input_spu )) {    //存在且没有传递spu 提示错误
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex( 0 )
                                 ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[已存在]' );
                             continue;
                         } else {    //存在且传递了spu 则按修改操作
-                            $workText = '修改';
-                            $condition_update = array(
-                                'spu' => $input_spu ,
-                                'lang' => $lang
-                            );
-                            $result = $this->where( $condition_update )->save( $data_tmp );
+                            $newspu = array('spu'=>$input_spu);
+                            if(in_array($newspu,$exist)){
+                                $workText = '修改';
+                                $condition_update = array(
+                                    'spu' => $input_spu ,
+                                    'lang' => $lang
+                                );
+                                $result = $this->where( $condition_update )->save( $data_tmp );
+                            }else{
+                                $faild++;
+                                $objPHPExcel->setActiveSheetIndex( 0 )
+                                    ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[已存在]' );
+                                continue;
+                            }
                         }
                     } else {
                         $data_tmp[ 'status' ] = $this::STATUS_DRAFT;
@@ -1131,10 +1145,6 @@ class ProductModel extends PublicModel {
 
                         $data_tmp[ 'spu' ] = $input_spu;
                         $result = $this->add( $this->create( $data_tmp ) );
-                        //解锁
-                        if ( file_exists( MYPATH . '/public/tmp/' . $data_tmp[ 'spu' ] . '.lock' ) ) {
-                            unlink( MYPATH . '/public/tmp/' . $data_tmp[ 'spu' ] . '.lock' );
-                        }
                     }
 
                     if ( $result ) {
