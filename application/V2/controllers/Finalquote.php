@@ -48,7 +48,7 @@ class FinalquoteController extends PublicController {
 
             //获取综合报价信息
 
-            $fields = 'total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr';
+            $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr';
 
             $quotedata = $quoteModel->field($fields)->where('inquiry_id='.$quotewhere['inquiry_id'])->find();
 
@@ -56,8 +56,10 @@ class FinalquoteController extends PublicController {
                 //追加结果
                 $quoteinfo['total_weight'] = round($quotedata['total_weight'],4);    //总重
                 $quoteinfo['package_volumn'] = round($quotedata['package_volumn'],4);    //包装总体积
+                $quoteinfo['total_purchase'] = round($quotedata['total_purchase'],4);    //采购总价
                 $quoteinfo['package_mode'] = $quotedata['package_mode'];    //包装方式
                 $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
+                $quoteinfo['quote_remarks'] = $quotedata['quote_remarks'];    //报价备注
                 $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
                 $quoteinfo['payment_period'] = $results['data']['payment_period'];    //回款周期
                 $quoteinfo['from_country'] = $quotedata['dispatch_place'];    //起始发运地
@@ -74,6 +76,9 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['total_exw_price'] = round($quotedata['total_exw_price'],4);    //商务报出EXW价格
                 $quoteinfo['final_total_quote_price'] = $results['data']['total_quote_price'];    //市场报出贸易价格合计
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
+                $quoteinfo['gross_profit_rate'] = $quoteModel->where($quotewhere)->getField('gross_profit_rate');    //毛利率
+                $quoteinfo['premium_rate'] = $quoteModel->where($quotewhere)->getField('premium_rate');    //保险税率
+
 
                 $results['quotedata'] = $quoteinfo;
             }
