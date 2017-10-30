@@ -29,10 +29,10 @@ class BrandController extends PublicController {
             $brand = [];
             foreach ($this->langs as $lang) {
                 $brand[$lang] = [];
-                $brand[$lang]['id'] = $item['id'];
             }
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
+                $brand[$lang]['id'] = $item['id'];
             }
             $arr[$key] = $brand;
         }
@@ -112,10 +112,10 @@ class BrandController extends PublicController {
             $brand = [];
             foreach ($this->langs as $lang) {
                 $brand[$lang] = [];
-                $brand[$lang]['id'] = $item['id'];
             }
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
+                $brand[$lang]['id'] = $item['id'];
             }
             $arr[$key] = $brand;
         }
