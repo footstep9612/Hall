@@ -22,13 +22,13 @@ class GoodsModel extends PublicModel {
     const STATUS_DRAFT = 'DRAFT';          //草稿
     const DELETE_Y = 'Y';
     const DELETE_N = 'N';
+
     protected $lang_ary = array(
         'zh' => "中文",
         'en' => "英文",
         'ru' => "俄语",
         'es' => "西语"
     );
-
     //定义校验规则
 
     protected $field = array(
@@ -249,8 +249,8 @@ class GoodsModel extends PublicModel {
      * 规则:SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
       SKU的编码规则为: 产品的12位编码 + 4位商品编码
      */
-    public function setRealSku($spu , $sku='') {
-        if(empty($sku)){
+    public function setRealSku($spu, $sku = '') {
+        if (empty($sku)) {
             if (empty($spu)) {
                 jsonReturn('', ErrorMsg::FAILED, 'spu编码缺少!');
             }
@@ -264,18 +264,18 @@ class GoodsModel extends PublicModel {
                 $num = str_pad('1', 4, "0", STR_PAD_LEFT);
             }
             $real_num = $temp_num . $num;
-            return $this->setRealSku($spu,$real_num);
-        }else{
+            return $this->setRealSku($spu, $real_num);
+        } else {
             $lockFile = MYPATH . '/public/tmp/' . $sku . '.lock';
-            if(file_exists($lockFile)){
-                $spu = substr($sku, 0 , 12);
-                $num = substr($sku ,12 ,4);
+            if (file_exists($lockFile)) {
+                $spu = substr($sku, 0, 12);
+                $num = substr($sku, 12, 4);
                 $num++;
-                $sku = $spu.str_pad($num, 4 ,'0',STR_PAD_LEFT);
-                return $this->setRealSku($spu,$sku);
-            }else{
+                $sku = $spu . str_pad($num, 4, '0', STR_PAD_LEFT);
+                return $this->setRealSku($spu, $sku);
+            } else {
                 //上锁
-                $handle = fopen($lockFile , "w");
+                $handle = fopen($lockFile, "w");
                 if (!$handle) {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . MYPATH . '/public/tmp/' . $sku . '.lock' . '] create faild.', Log::ERR);
                 } else {
@@ -554,7 +554,7 @@ class GoodsModel extends PublicModel {
         if (!isset($input)) {
             return false;
         }
-        if(!isset($input['spu']) || empty($input['spu'])){
+        if (!isset($input['spu']) || empty($input['spu'])) {
             jsonReturn('', ErrorMsg::FAILED, 'SPU不能为空');
         }
 
@@ -564,10 +564,10 @@ class GoodsModel extends PublicModel {
 
         $spu = $input['spu'];
         //不存在生成sku
-        $fp = fopen(MYPATH . '/public/file/skuedit.lock','r');
-        if(flock($fp,LOCK_EX )) {
-            $sku = ( !isset( $input[ 'sku' ] ) || empty( $input[ 'sku' ] ) || $input[ 'sku' ] === 'false' ) ? $this->setRealSku( $spu ) : trim( $input[ 'sku' ] );
-            flock($fp,LOCK_UN);
+        $fp = fopen(MYPATH . '/public/file/skuedit.lock', 'r');
+        if (flock($fp, LOCK_EX)) {
+            $sku = (!isset($input['sku']) || empty($input['sku']) || $input['sku'] === 'false' ) ? $this->setRealSku($spu) : trim($input['sku']);
+            flock($fp, LOCK_UN);
         }
         fclose($fp);
         $checkSku = isNum($sku);
@@ -583,12 +583,12 @@ class GoodsModel extends PublicModel {
             foreach ($input as $key => $value) {
                 if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
                     $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
-                    if($spuName){
+                    if ($spuName) {
                         if (empty($value['name'])) {
                             $value['name'] = $spuName['name'];
                         }
-                    }elseif(!empty($value['name'])){
-                        jsonReturn('', ErrorMsg::FAILED, '语言：'.$this->lang_ary[$key].'SPU不存在');
+                    } elseif (!empty($value['name'])) {
+                        jsonReturn('', ErrorMsg::FAILED, '语言：' . $this->lang_ary[$key] . 'SPU不存在');
                     }
 
                     if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
@@ -600,7 +600,6 @@ class GoodsModel extends PublicModel {
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
                     $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
-
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
@@ -687,7 +686,7 @@ class GoodsModel extends PublicModel {
                             $res = $this->add($data);
                             if ($res) {
                                 $pModel = new ProductModel();                                 //sku_count加一
-                                $presult = $pModel->where(['spu' =>$spu, 'lang' => $key])
+                                $presult = $pModel->where(['spu' => $spu, 'lang' => $key])
                                         ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
                                 if (!$presult) {
                                     $this->rollback();
@@ -1125,6 +1124,7 @@ class GoodsModel extends PublicModel {
             }
             $res = $this->deleteSku($input['sku'], $lang);                 //sku删除
             if (!$res || $res['code'] != 1) {
+
                 $this->rollback();
                 return false;
             }
@@ -1146,9 +1146,11 @@ class GoodsModel extends PublicModel {
               } */
             $gattr = new GoodsAttrModel();
             $resAttr = $gattr->deleteSkuAttr($input['sku'], $lang);        //属性删除
+
             if (!$resAttr || $resAttr['code'] != 1) {
+
                 $this->rollback();
-                return false;
+                jsonReturn('', -101, '上架商品不能删除!');
             }
 
             /**
@@ -1164,6 +1166,7 @@ class GoodsModel extends PublicModel {
 
             return true;
         } catch (Exception $e) {
+            Log::write($e->getMessage());
             $this->rollback();
             return false;
         }
@@ -1908,9 +1911,9 @@ class GoodsModel extends PublicModel {
                 }
                 $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
                 if ($index >= $ext_goods_start && $index <= $ext_goods_end) {    //扩展属性
-                    if($lang == 'zh'){
+                    if ($lang == 'zh') {
                         $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue()); //转码
-                    }else{
+                    } else {
                         $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue()); //转码
                     }
                     if (!empty($key_attr) && !empty($value)) {
@@ -1921,9 +1924,9 @@ class GoodsModel extends PublicModel {
                 }
 
                 if ($index >= $ext_hs_start) {    //申报要素扩展属性
-                    if($lang == 'zh'){
+                    if ($lang == 'zh') {
                         $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue()); //转码
-                    }else{
+                    } else {
                         $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue()); //转码
                     }
                     if (!empty($key_attr) && !empty($value)) {
@@ -2111,10 +2114,10 @@ class GoodsModel extends PublicModel {
                 } else {
                     $workType = '添加';
                     $data_tmp['status'] = $this::STATUS_DRAFT;
-                    $fp = fopen(MYPATH . '/public/file/skuedit.lock','r');
-                    if(flock($fp,LOCK_EX )) {
+                    $fp = fopen(MYPATH . '/public/file/skuedit.lock', 'r');
+                    if (flock($fp, LOCK_EX)) {
                         $input_sku = $data_tmp['sku'] = !empty($input_sku) ? $input_sku : $this->setRealSku($spu);    //生成sku
-                        flock($fp,LOCK_UN);
+                        flock($fp, LOCK_UN);
                     }
                     fclose($fp);
 
