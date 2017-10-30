@@ -233,7 +233,7 @@ class BrandController extends PublicController {
         $data = $this->getPut();
         if (empty($data['zh']['name'])) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入中文');
+            $this->setMessage('请输入中文!');
             $this->jsonReturn();
         } elseif ($data['zh']['name']) {
             $flag = $brand_model->brandExist($data['zh']['name'], 'zh', $data['id']);
@@ -245,7 +245,7 @@ class BrandController extends PublicController {
         }
         if (empty($data['en']['name'])) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入英文');
+            $this->setMessage('请输入英文!');
             $this->jsonReturn();
         } elseif (isset($data['en']['name'])) {
             $data['en']['name'] = $this->_verifyName($data['en']['name']);
@@ -294,11 +294,11 @@ class BrandController extends PublicController {
                 . '\】\（\）\［\］\｛\｝]';
         if (preg_match('/^' . $p . '+$/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('该输入英文语言中全是中文和中文符号，请您查证后重新输入！');
+            $this->setMessage('英文品牌中含有中文和中文符号，请您查证后重新输入！');
             $this->jsonReturn();
         } elseif (preg_match('/' . $p . '/u', $name) > 0) {
             $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('该输入英文语言中含有中文或者中文符号，请您查证后重新输入！');
+            $this->setMessage('英文品牌中含有中文或者中文符号，请您查证后重新输入！');
             $this->jsonReturn();
         }
         return $name;
