@@ -23,9 +23,6 @@ class BrandController extends PublicController {
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
 
-            if ($item['id'] == 130) {
-
-            }
             $brand = [];
             foreach ($this->langs as $lang) {
                 $brand[$lang] = [];
