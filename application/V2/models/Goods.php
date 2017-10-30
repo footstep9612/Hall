@@ -685,10 +685,12 @@ class GoodsModel extends PublicModel {
                             }
                             $res = $this->add($data);
                             if ($res) {
-                                $pModel = new ProductModel();                                 //sku_count加一
+                                $pModel = new ProductModel();
+                                $spu = $pModel->field('spu,sku_count,lang')->where(['spu' => $spu, 'lang' => $key])->find();
+                                $sku_count = intval($spu['sku_count']) > 0 ? intval($spu['sku_count']) + 1 : 1; //sku_count加一
                                 $presult = $pModel->where(['spu' => $spu, 'lang' => $key])
-                                        ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
-                                if (!$presult) {
+                                        ->save(array('sku_count' => array('exp', $sku_count)));
+                                if ($presult === false) {
                                     $this->rollback();
                                     return false;
                                 }
@@ -715,9 +717,11 @@ class GoodsModel extends PublicModel {
 
                             return false;
                         }
-                        $pModel = new ProductModel();                                 //sku_count加一
+                        $pModel = new ProductModel();
+                        $spu = $pModel->field('spu,sku_count,lang')->where(['spu' => $spu, 'lang' => $key])->find();
+                        $sku_count = intval($spu['sku_count']) > 0 ? intval($spu['sku_count']) + 1 : 1; //sku_count加一
                         $presult = $pModel->where(['spu' => $spu, 'lang' => $key])
-                                ->save(array('sku_count' => array('exp', 'sku_count' . '+' . 1)));
+                                ->save(array('sku_count' => array('exp', $sku_count)));
                         if ($presult === false) {
                             $this->rollback();
                             return false;
@@ -1126,6 +1130,7 @@ class GoodsModel extends PublicModel {
             if (!$res || $res['code'] != 1) {
 
                 $this->rollback();
+                Log::write($input['sku'] . ' 删除失败');
                 return false;
             }
             /**
@@ -1150,7 +1155,8 @@ class GoodsModel extends PublicModel {
             if (!$resAttr || $resAttr['code'] != 1) {
 
                 $this->rollback();
-                jsonReturn('', -101, '上架商品不能删除!');
+                Log::write($input['sku'] . '属性删除失败');
+                return false;
             }
 
             /**
@@ -1202,9 +1208,12 @@ class GoodsModel extends PublicModel {
                             if (!empty($lang)) {
                                 $where_spu["lang"] = $lang;
                             }
-                            $presult = $pModel->where($where_spu)
-                                    ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
-
+                            $spus = $pModel->field('spu,sku_count,lang')->where($where_spu)->select();
+                            foreach ($spus as $spu) {
+                                $sku_count = intval($spu['sku_count']) > 0 ? intval($spu['sku_count']) - 1 : 0;
+                                $presult = $pModel->where(['spu' => $spu['spu'], 'lang' => $spu['lang']])
+                                        ->save(array('sku_count' => array('exp', $sku_count)));
+                            }
                             /* if (!$presult) {
                               return false;
                               } */
@@ -1231,10 +1240,14 @@ class GoodsModel extends PublicModel {
                         if (!empty($lang)) {
                             $where_spu["lang"] = $lang;
                         }
-                        $presult = $pModel->where($where_spu)
-                                ->save(array('sku_count' => array('exp', 'sku_count' . '-' . 1)));
-                        if (!$presult) {
-                            return false;
+                        $spus = $pModel->field('spu,sku_count,lang')->where($where_spu)->select();
+                        foreach ($spus as $spu) {
+                            $sku_count = intval($spu['sku_count']) > 0 ? intval($spu['sku_count']) - 1 : 0;
+                            $presult = $pModel->where(['spu' => $spu['spu'], 'lang' => $spu['lang']])
+                                    ->save(array('sku_count' => array('exp', $sku_count)));
+                            if (!$presult) {
+                                return false;
+                            }
                         }
                     } else {
                         return false;
