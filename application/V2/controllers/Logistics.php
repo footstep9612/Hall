@@ -590,9 +590,17 @@ class LogisticsController extends PublicController {
 	    if (!empty($condition['inquiry_id'])) {
 	        $this->inquiryModel->startTrans();
 	        $this->quoteModel->startTrans();
+	        
+	        $inquiry = $this->inquiryModel->field('quote_id')->where(['id' => $condition['inquiry_id']])->find();
+	        
+	        $data = [
+	            'id' => $condition['inquiry_id'],
+	            'now_agent_id' => $inquiry['quote_id'],
+	            'status' => 'BIZ_APPROVING',
+	            'updated_by' => $this->user['id']
+	        ];
 	         
-	        // 更改询单状态
-	        $res1 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'BIZ_APPROVING', 'updated_by' => $this->user['id']]);
+	        $res1 = $this->inquiryModel->updateData($data);
 	         
 	        // 更改报价单状态
 	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
@@ -684,60 +692,46 @@ class LogisticsController extends PublicController {
 	    $condition = $this->put_data;
 	
 	    if (!empty($condition['inquiry_id']) && !empty($condition['current_node'])) {
-	        $where['inquiry_id'] = $condition['inquiry_id'];
+	        $this->inquiryModel->startTrans();
+	        $this->quoteModel->startTrans();
+	        
+	        $inquiry = $this->inquiryModel->field('quote_id, logi_agent_id')->where(['id' => $condition['inquiry_id']])->find();
+	        
+	        $data = [
+	            'id' => $condition['inquiry_id'],
+	            'updated_by' => $this->user['id']
+	        ];
 	        
 	        switch ($condition['current_node']) {
 	            case 'issue' :
 	                $status = 'BIZ_QUOTING'; 
+	                $data['now_agent_id'] = $inquiry['quote_id'];
 	                break;
                 case 'quote' :
                     $status = 'LOGI_DISPATCHING'; 
+                    $inquiryModel = $this->inquiryModel;
+                    $data['now_agent_id'] = $this->inquiryModel->getRoleUserId($this->user['group_id'], $inquiryModel::logiIssueMainRole, 'lg');
                     break;
                 case 'check' :
                     $status = 'LOGI_QUOTING'; 
+                    $data['now_agent_id'] = $inquiry['logi_agent_id'];
 	        }
 	        
-	        $quoteLogiFee = $this->quoteLogiFeeModel->where($where)->find();
-	        
-	        $this->quoteLogiFeeModel->startTrans();
-	        //$this->inquiryCheckLogModel->startTrans();
-	        
-	        $quoteLogiFeeData = [
-	            'status' => 'REJECTED',
-	            'updated_at' => $this->time,
-	            'checked_at' => $this->time
-	        ];
-	        
-	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $quoteLogiFeeData);
-	        
-	        /*$checkLog= [
-	            'inquiry_id' => $quoteLogiFee['inquiry_id'],
-	            'quote_id' => $condition['quote_id'],
-	            'category' => 'LOGI',
-	            'action' => 'APPROVING',
-	            'op_note' => $condition['op_note'],
-	            'op_result' => 'REJECTED'
-	        ];
-	        
-	        $res2 = $this->addCheckLog($checkLog, $this->inquiryCheckLogModel);*/
+	        $data['status'] = $status;
 	        
 	        // 更改询单状态
-	        $res2 = $this->inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => $status, 'updated_by' => $this->user['id']]);
+	        $res1 = $this->inquiryModel->updateData($data);
 	        
 	        // 更改报价单状态
-	        $res3 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => $status]);
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => $status]);
 	        
-	        if ($res1 && $res2['code'] == 1 && $res3) {
-	            $this->quoteLogiFeeModel->commit();
+	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();
 	            $this->quoteModel->commit();
-	            //$this->inquiryCheckLogModel->commit();
 	            $res = true;
 	        } else {
-	            $this->quoteLogiFeeModel->rollback();
 	            $this->inquiryModel->rollback();
 	            $this->quoteModel->rollback();
-	            //$this->inquiryCheckLogModel->rollback();
 	            $res = false;
 	        }
 	

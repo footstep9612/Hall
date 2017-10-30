@@ -110,6 +110,7 @@ class EsGoodsModel extends Model {
         }
         if (isset($condition[$name]) && $condition[$name]) {
             $status = trim($condition[$name]);
+
             if ($status == 'ALL') {
                 $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
@@ -659,7 +660,7 @@ class EsGoodsModel extends Model {
             $body['attachs'] = '[]';
             $body['image_count'] = 0;
         }
-
+        $body['image_count'] = strval($body['image_count']);
         if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
             $attrs = $goods_attrs[$sku];
             $attrs = $this->_setattrs($attrs);
@@ -678,7 +679,7 @@ class EsGoodsModel extends Model {
 
             $body['supplier_count'] = 0;
         }
-
+        $body['supplier_count'] = strval($body['supplier_count']);
         if ($es_goods && ($es_goods['suppliers'] !== $body['suppliers'] || $es_goods['min_order_qty'] !== $body['min_order_qty'] || $es_goods['exw_days'] !== $body['exw_days'] || $es_goods['min_pack_unit'] !== $body['min_pack_unit'] )) {
             $this->UpdateSPU($spu, $lang);
         }
@@ -713,29 +714,12 @@ class EsGoodsModel extends Model {
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
 
-        if ($es_goods) {
 
-//            $updateParams['body'][] = ['update' => ['_id' => $sku]];
-//            $updateParams['body'][] = ['doc' => $body];
-            // return $updateParams;
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (!isset($flag['_version'])) {
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
-            }
-        } else {
-
-//            $updateParams['body'][] = ['create' => ['_id' => $sku]];
-//            $updateParams['body'][] = [$body];
-            // return $updateParams;
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (!isset($flag['created'])) {
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
-            }
+        $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        if (!isset($flag['_version'])) {
+            LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
+            LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
         }
-
-
 
         return $flag;
     }
@@ -810,7 +794,7 @@ class EsGoodsModel extends Model {
     public function UpdateSPU($spu, $lang) {
         try {
 
-            $es_product_model = new EsproductModel();
+            $es_product_model = new EsProductModel();
             $es_product_model->create_data($spu, $lang);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1269,7 +1253,7 @@ class EsGoodsModel extends Model {
             }
             $es->bulk($updateParams);
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1336,7 +1320,7 @@ class EsGoodsModel extends Model {
                 $es->bulk($updateParams);
             }
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1449,7 +1433,7 @@ class EsGoodsModel extends Model {
                     $sku_count = 0;
                 }
 
-                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => $sku_count], $goods['spu']);
+                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => strval($sku_count)], $goods['spu']);
             }
         } elseif (is_array($skus)) {
             $product_updateParams = $updateParams = [];
@@ -1483,13 +1467,13 @@ class EsGoodsModel extends Model {
                 } else {
                     $sku_count = 0;
                 }
-                $data['sku_count'] = $sku_count;
+                $data['sku_count'] = strval($sku_count);
                 $product_updateParams['body'][] = ['update' => ['_id' => $product['spu']]];
                 $product_updateParams['body'][] = ['doc' => $data];
             }
             $es->bulk($product_updateParams);
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 

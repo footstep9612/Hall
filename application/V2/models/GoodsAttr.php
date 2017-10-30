@@ -518,6 +518,7 @@ class GoodsAttrModel extends PublicModel {
      */
     public function deleteSkuAttr($skus, $lang) {
         if (empty($skus)) {
+            echo 4;
             return false;
         }
         $results = array();
@@ -533,7 +534,9 @@ class GoodsAttrModel extends PublicModel {
                     $find = $this->where($where)->select();
                     if ($find) {
                         $res = $this->where($where)->save(['deleted_flag' => 'Y']);
-                        if (!$res) {
+
+                        if ($res === false) {
+
                             return false;
                         }
                     }
@@ -548,7 +551,8 @@ class GoodsAttrModel extends PublicModel {
                 $find = $this->where($where)->select();
                 if ($find) {
                     $res = $this->where($where)->save(['deleted_flag' => 'Y']);
-                    if (!$res) {
+                    if ($res === false) {
+
                         return false;
                     }
                 }

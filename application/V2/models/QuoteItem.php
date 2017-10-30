@@ -29,6 +29,8 @@ class QuoteItemModel extends PublicModel {
     public function getList($request){
 
         $where['a.inquiry_id'] = $request['inquiry_id'];
+        $where['a.deleted_flag'] = 'N';
+
         $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote';
         return $this->alias('a')
             ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
@@ -81,10 +83,7 @@ class QuoteItemModel extends PublicModel {
                         'message' => $exception->getMessage()
                     ];
                 }
-            }
-
-            //if(!empty($value['supplier_id']) && empty($value['reason_for_no_quote'])){
-            if(empty($value['reason_for_no_quote'])){
+            } else {
                 /**
                  * 如果是选择了供应商，一下信息是必填字段
                  * 报价产品描述，采购单价，采购币种，毛重，包装体积，包装方式，产品来源，存放地，交货期(天)，报价有效期

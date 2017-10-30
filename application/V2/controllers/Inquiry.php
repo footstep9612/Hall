@@ -18,7 +18,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      * @return string
      */
-    public function checkAuthAction() {
+    /*public function checkAuthAction() {
         $groupid = $this->user['group_id'];
         if (isset($groupid)) {
             $maketareateam = new MarketAreaTeamModel();
@@ -64,7 +64,7 @@ class InquiryController extends PublicController {
         }
 
         return $results;
-    }
+    }*/
 
     /*
      * 返回询价单流程编码
@@ -203,6 +203,7 @@ class InquiryController extends PublicController {
         $condition = $this->put_data;
         
         $inquiryModel = new InquiryModel();
+        $quoteModel = new QuoteModel();
         $userModel = new UserModel();
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
@@ -228,10 +229,12 @@ class InquiryController extends PublicController {
             $inquiry['country_name'] = $country['name'];
             $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
             $inquiry['agent_name'] = $agent['name'];
-            $quote = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
-            $inquiry['quote_name'] = $quote['name'];
+            $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
+            $inquiry['quote_name'] = $quoter['name'];
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
             $inquiry['now_agent_name'] = $nowAgent['name'];
+            $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
+            $inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
         }
         
         if ($inquiryList) {
@@ -258,35 +261,18 @@ class InquiryController extends PublicController {
         
         if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
              $inquiryModel = new InquiryModel();
-             $quoteModel = new QuoteModel();
+            
+            $data = [
+                'id' => $condition['inquiry_id'],
+                'org_id' => $condition['org_id'],
+                'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole),
+                'status' => 'BIZ_DISPATCHING',
+                'updated_by' => $this->user['id']
+            ];
              
-            $inquiryModel->startTrans();
-            $quoteModel->startTrans();
+            $res = $inquiryModel->updateData($data);
              
-            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'org_id' => $condition['org_id'], 'status' => 'BIZ_DISPATCHING', 'updated_by' => $this->user['id']]);
-             
-            // 更改报价单状态
-            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
-             
-            if ($res1['code'] == 1 && $res2) {
-                $inquiryModel->commit();
-                $quoteModel->commit();
-                $res = true;
-            } else {
-                $inquiryModel->rollback();
-                $quoteModel->rollback();
-                $res = false;
-            }
-             
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage('成功!');
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage('失败!');
-                $this->jsonReturn();
-            }
+            $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
             $this->setMessage('缺少参数!');
@@ -370,18 +356,20 @@ class InquiryController extends PublicController {
     
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
+            
+            $inquiry = $inquiryModel->field('agent_id')->where(['id' => $condition['inquiry_id']])->find();
+            
+            $data = [
+                'id' => $condition['inquiry_id'],
+                'now_agent_id' => $inquiry['agent_id'],
+                'status' => 'INQUIRY_CLOSED',
+                'quote_status' => 'COMPLETED',
+                'updated_by' => $this->user['id']
+            ];
              
-            $res = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'INQUIRY_CLOSED', 'quote_status' => 'COMPLETED', 'updated_by' => $this->user['id']]);
+            $res = $inquiryModel->updateData($data);
              
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage('成功!');
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage('失败!');
-                $this->jsonReturn();
-            }
+           $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
             $this->setMessage('缺少参数!');
@@ -406,8 +394,18 @@ class InquiryController extends PublicController {
             $inquiryModel->startTrans();
             $quoteModel->startTrans();
             $finalQuoteModel->startTrans();
+            
+            $inquiry = $inquiryModel->field('quote_id')->where(['id' => $condition['inquiry_id']])->find();
+            
+            $data = [
+                'id' => $condition['inquiry_id'],
+                'now_agent_id' => $inquiry['quote_id'],
+                'status' => 'BIZ_QUOTING',
+                'quote_status' => 'ONGOING',
+                'updated_by' => $this->user['id']
+            ];
              
-            $res1 = $inquiryModel->updateData(['id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'quote_status' => 'ONGOING', 'updated_by' => $this->user['id']]);
+            $res1 = $inquiryModel->updateData($data);
              
             // 更改报价单状态
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_QUOTING']);
@@ -560,11 +558,9 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
-        /*if(empty($data['status'])){
-            if ($auth['code'] == 1) {
-                $data['status'] = 'APPROVING_BY_SC';
-            }
-        }*/
+        if($data['status'] == 'BIZ_DISPATCHING'){
+            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], $inquiry::quoteIssueMainRole);
+        }
 
         $results = $inquiry->updateData($data);
         $this->jsonReturn($results);

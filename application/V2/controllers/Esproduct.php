@@ -28,19 +28,44 @@ class EsproductController extends PublicController {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
         } elseif ($username == '016417' && $password) {
-            //$arr = ['user_no' => $username, 'password' => $password];
             $model = new EmployeeModel();
             $info = $model->field('password_hash')->where(['user_no' => $username])->find();
             if ($info && $info['password_hash'] == $password) {
                 ini_set("display_errors", "On");
                 error_reporting(E_ERROR | E_STRICT);
             } else {
-
                 parent::init();
             }
         } else {
             parent::init();
         }
+    }
+
+    public function clearCacheAction() {
+        $redis = new phpredis();
+        $keys = $redis->getKeys('*');
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $key3s = $redis3->getKeys('*');
+        $delkeys = [];
+        foreach ($keys as $key) {
+            if (strpos($key, 'user_info_') === false) {
+                $delkeys[] = $key;
+            }
+        }
+        $redis->delete($delkeys);
+        $delkeys = [];
+        foreach ($key3s as $key) {
+            if (strpos($key, 'shopmall_user_info') === false) {
+                $delkeys[] = $key;
+            }
+        }
+        $redis3->delete($delkeys);
+
+        unset($redis, $redis3, $keys, $delkeys);
+        $this->jsonReturn();
     }
 
     /*
@@ -84,7 +109,6 @@ class EsproductController extends PublicController {
 
         if ($ret) {
             $data = $ret[0];
-
             $list = $this->_getdata($data, $lang);
             $send['count'] = isset($data['hits']['total']) ? intval($data['hits']['total']) : 0;
             $send['current_no'] = intval($ret[1]);
@@ -94,11 +118,7 @@ class EsproductController extends PublicController {
             } else {
                 $send['allcount'] = $send['count'];
             }
-            if (isset($data['aggregations']['sku_count']['value']) && $data['aggregations']['sku_count']['value']) {
-                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
-            } else {
-                $send['sku_count'] = 0;
-            }
+            $send['sku_count'] = $model->getSkuCountByCondition($condition, $lang);
             if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
                 $send['image_count'] = $data['aggregations']['image_count']['value'];
             } else {
@@ -122,11 +142,11 @@ class EsproductController extends PublicController {
                 $condition['pagesize'] = 0;
                 $ret_N = $model->getProducts($condition, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
-                $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
+                //    $send['onshelf_sku_count_N'] =$model->getSkuCountByCondition($condition, $lang);
                 $condition['onshelf_flag'] = 'Y';
                 $ret_y = $model->getProducts($condition, $lang);
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
-                $send['onshelf_sku_count_Y'] = intval($ret_y[0]['aggregations']['sku_count']['value']);
+                //  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
             }
             $condition['deleted_flag'] = 'Y';
             $condition['onshelf_flag'] = 'A';
@@ -874,6 +894,52 @@ class EsproductController extends PublicController {
             'min_pack_unit' => $ik_analyzed, //成交单位
         ];
         return $body;
+    }
+
+    /**
+     * 产品导出
+     */
+    public function exportAction() {
+        $esproduct_model = new EsProductModel();
+        $condition = $this->getPut();
+        $process = $this->getPut('process', '');
+        $lang = $this->getPut('lang');
+        switch ($condition['user_type']) {
+            case 'create':
+                $condition['create_by_name'] = $condition['user_name'];
+                break;
+            case 'updated':
+                $condition['updated_by_name'] = $condition['user_name'];
+                break;
+            case 'checked':
+                $condition['checked_by_name'] = $condition['user_name'];
+                break;
+        }
+        switch ($condition['date_type']) {
+            case 'create':
+                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'updated':
+                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+            case 'checked':
+                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
+                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
+                break;
+        }
+        if (empty($lang)) {
+            jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
+        }
+        set_time_limit(0);
+        $localDir = $esproduct_model->export($condition, $process, $lang);
+
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
     }
 
 }

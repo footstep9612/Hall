@@ -436,12 +436,13 @@ class ESClient {
      * 更改文档
      */
 
-    public function update_document($index, $type, $body, $id) {
+    public function update_document($index, $type, $body, $id, $doc_as_upsert = true) {
         $updateParams = array();
         $updateParams['index'] = $index;
         $updateParams['type'] = $type;
         $updateParams['id'] = $id;
         $updateParams['body']['doc'] = $body; //['doc']['testField'] = 'xxxx';
+        $updateParams['body']['doc_as_upsert'] = $doc_as_upsert;
         try {
             return $this->server->update($updateParams);
         } catch (Exception $ex) {
@@ -882,6 +883,29 @@ class ESClient {
     public function setbody($body = []) {
         $this->body = $body;
         return $this;
+    }
+
+    /*
+     * 查询
+     *
+     */
+
+    public function search_nosize($index, $type) {
+
+
+        $this->body['size'] = 1;
+        $searchParams = array(
+            'index' => $index,
+            'type' => $type,
+            'body' => $this->body,
+        );
+        try {
+            return $this->server->search($searchParams);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+        //   var_dump($retDoc);
     }
 
     /*

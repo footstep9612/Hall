@@ -27,7 +27,7 @@ class FinalQuoteItemModel extends PublicModel {
 
     public function getFinalSku($request){
 
-	    $where = ['a.inquiry_id'=>$request['inquiry_id']];
+	    $where = ['a.inquiry_id'=>$request['inquiry_id'],'c.deleted_flag'=>'N'];
 	    return $this->alias('a')
                         ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id=b.id','LEFT')
                         ->join('erui_rfq.quote_item c ON a.quote_item_id=c.id','LEFT')

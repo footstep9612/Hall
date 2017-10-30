@@ -246,7 +246,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function getParam($name, $default = null) {
+    public function getParam($name = null, $default = null) {
 
         return $this->getRequest()->getParam($name, $default);
     }
@@ -263,7 +263,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
     public function get($name = null, $default = null) {
         if ($name) {
-            return $this->getRequest()->get($name, $default);
+            return isset($_GET[$name]) && $_GET[$name] ? $_GET[$name] : $default;
         } else {
             return $_GET;
         }
@@ -279,7 +279,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function getQuery($name, $default = null) {
+    public function getQuery($name = null, $default = null) {
 
         return $this->getRequest()->getQuery($name, $default);
     }
@@ -294,9 +294,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function getPost($name, $default = null) {
+    public function getPost($name = null, $default = null) {
 
-        return $this->getRequest()->getPost($name, $default);
+        if ($name) {
+            return isset($_POST[$name]) && $_POST[$name] ? $_POST[$name] : $default;
+        } else {
+            return $_POST;
+        }
     }
 
     /**

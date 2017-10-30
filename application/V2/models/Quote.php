@@ -206,7 +206,8 @@ class QuoteModel extends PublicModel {
 
         $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
             'status' => self::INQUIRY_LOGI_DISPATCHING,
-            'logi_org_id' => $orgId[0]
+            'logi_org_id' => $orgId[0],
+            'now_agent_id' => $orgId[0]
         ]);
 
         $this->startTrans();
@@ -234,7 +235,7 @@ class QuoteModel extends PublicModel {
 
                 //给物流报价单项形成记录
                 $quoteItemModel = new QuoteItemModel();
-                $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id']])->getField('id', true);
+                $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
 
                 $quoteItemLogiModel = new QuoteItemLogiModel();
                 foreach ($quoteItemIds as $quoteItemId) {

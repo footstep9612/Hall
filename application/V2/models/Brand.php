@@ -68,12 +68,12 @@ class BrandModel extends PublicModel {
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
 // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if (!empty($condition['name']) && $lang) {
-            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"' . trim($condition['name']) . '%\'';
+            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"%' . trim($condition['name']) . '%\'';
         } elseif ($lang) {
 
             $where['brand'] = ['like', '%"lang":"' . $lang . '"%'];
         } elseif (!empty($condition['name'])) {
-            $where['brand'] = ['like', '%"name":"' . trim($condition['name']) . '%'];
+            $where['brand'] = ['like', '%"name":"%' . trim($condition['name']) . '%'];
         }
         return $where;
     }
@@ -252,6 +252,27 @@ class BrandModel extends PublicModel {
         }
     }
 
+    /*
+     * 判断品牌名称是否重复
+     */
+
+    public function brandExist($name, $lang, $id = null) {
+        try {
+            $where = [];
+            if ($id) {
+                $where['id'] = ['neq', $id];
+            }
+            $where['deleted_flag'] = 'N';
+            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"' . $name . '"%\'';
+            $flag = $this->field('id')->where($where)
+                    ->find();
+            return $flag;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), $level);
+            return false;
+        }
+    }
+
     /**
      * 更新数据
      * @param  mix $upcondition 更新条件
@@ -270,7 +291,6 @@ class BrandModel extends PublicModel {
         $data['updated_at'] = date('Y-m-d H:i:s');
         try {
             $flag = $this->where($where)->save($data);
-
             return $flag;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);

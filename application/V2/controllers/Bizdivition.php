@@ -56,6 +56,7 @@ class BizdivitionController extends PublicController{
         $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
             'status' => 'CC_DISPATCHING', //易瑞客户中心
             'erui_id' => $roleUser,
+            'now_agent_id' => $roleUser,
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s')
         ]);
@@ -77,6 +78,7 @@ class BizdivitionController extends PublicController{
             'status'=>'BIZ_QUOTING', //事业部报价
             'quote_status'=>'ONGOING', //报价中
             'quote_id' => $request['quote_id'],
+            'now_agent_id' => $request['quote_id'],
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s')
         ]);

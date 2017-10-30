@@ -80,6 +80,8 @@ class MSG {
     const ERROR_PARAM = 1000;    //参数错误
     const DELETE_MATERIAL_CAT_ERR = 1003;    //该分类下存在产品,不能删除
     const PARAM_LANG_ERROR = 1001;    //参数语言有误
+    const FILE_SIZE_ERR_1 = -1005;    //您上传的文件大于1M!
+    const FILE_SIZE_ERR_5 = -1006;    //您上传的文件大于5M!
 
     public static function getMessage($code, $lang = 'en') {
         $map = [
@@ -149,6 +151,8 @@ class MSG {
             self::ERROR_EMPTY => '数据为空',
             self::MSG_EXIST => '记录已经存在',
             self::DELETE_MATERIAL_CAT_ERR => '该分类下存在产品,不能删除',
+            self::FILE_SIZE_ERR_1 => '您上传的文件大于 1 M',
+            self::FILE_SIZE_ERR_5 => '您上传的文件大于 5 M',
         ];
         return isset($map[$code]) ? $map[$code] : $map[self::MSG_OTHER_ERR];
     }

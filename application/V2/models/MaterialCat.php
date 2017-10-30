@@ -202,6 +202,29 @@ class MaterialCatModel extends PublicModel {
     }
 
     /*
+     * 判断物料分类名称是否重复
+     */
+
+    public function MaterialcatExist($name, $lang, $level_no = 1, $cat_no = null) {
+        try {
+            $where = [];
+            if ($id) {
+                $where['cat_no'] = ['neq', $cat_no];
+            }
+            $where['level_no'] = ['eq', $level_no];
+            $where['deleted_flag'] = 'N';
+            $where['lang'] = $lang;
+            $where['name'] = $name;
+            $flag = $this->field('id')->where($where)
+                    ->find();
+            return $flag;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), $level);
+            return false;
+        }
+    }
+
+    /*
      * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
      * @param mix $cat_nos // 物料分类编码数组3f
      * @param string $lang // 语言 zh en ru es

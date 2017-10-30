@@ -136,34 +136,48 @@ class QuoteController extends PublicController{
 
         $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
             'quote_status' => 'QUOTED',
+            'now_agent_id' => $check_org_id,
             'check_org_id' => $check_org_id //事业部审核人
         ]);
 
         $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
 
         $finalQuoteModel = new FinalQuoteModel();
-        $finalQuoteModel->add($finalQuoteModel->create([
-            'inquiry_id' => $request['inquiry_id'],
-            'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
-            'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
-            'created_by' => $this->user['id'],
-            'created_at' => date('Y-m-d H:i:s')
-        ]));
+        //判断是否存在数据，如果是退回报价，在此提交，就不在新插入报价单
+        $final = $finalQuoteModel->field('id')->where('inquiry_id='.$request['inquiry_id'])->find();
 
-        $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
-
-        $finalQuoteItemModel = new FinalQuoteItemModel();
-        foreach ($quoteItems as $quote=>$item){
-            $finalQuoteItemModel->add($finalQuoteItemModel->create([
-                'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+        if(empty($final)){
+            $quoteModel = new QuoteModel();
+            $quoteInfo = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee')->find();
+            $finalQuoteModel->add($finalQuoteModel->create([
                 'inquiry_id' => $request['inquiry_id'],
-                'inquiry_item_id' => $item['inquiry_item_id'],
-                'quote_item_id' => $item['id'],
-                'sku' => $item['sku'],
-                'supplier_id' => $item['supplier_id'],
+                'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
+                'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                'payment_period' => $quoteInfo['payment_period'],
+                'fund_occupation_rate' => $quoteInfo['fund_occupation_rate'],
+                'delivery_period' => $quoteInfo['delivery_period'],
+                'total_purchase' => $quoteInfo['total_purchase'],
+                'total_logi_fee' => $quoteInfo['total_logi_fee'],
+                'total_bank_fee' => $quoteInfo['total_bank_fee'],
                 'created_by' => $this->user['id'],
-                'created_at' => date('Y-m-d H:i:s'),
+                'created_at' => date('Y-m-d H:i:s')
             ]));
+
+            $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
+
+            $finalQuoteItemModel = new FinalQuoteItemModel();
+            foreach ($quoteItems as $quote=>$item){
+                $finalQuoteItemModel->add($finalQuoteItemModel->create([
+                    'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'inquiry_id' => $request['inquiry_id'],
+                    'inquiry_item_id' => $item['inquiry_item_id'],
+                    'quote_item_id' => $item['id'],
+                    'sku' => $item['sku'],
+                    'supplier_id' => $item['supplier_id'],
+                    'created_by' => $this->user['id'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]));
+            }
         }
 
         $this->jsonReturn();
