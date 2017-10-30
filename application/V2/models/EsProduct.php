@@ -1341,7 +1341,6 @@ class EsProductModel extends Model {
                 $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                 $k = 0;
                 foreach ($products as $item) {
-
                     $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr);
                 }
             }
