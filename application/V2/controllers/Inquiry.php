@@ -261,10 +261,6 @@ class InquiryController extends PublicController {
         
         if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
              $inquiryModel = new InquiryModel();
-             $quoteModel = new QuoteModel();
-             
-            $inquiryModel->startTrans();
-            $quoteModel->startTrans();
             
             $data = [
                 'id' => $condition['inquiry_id'],
@@ -274,30 +270,9 @@ class InquiryController extends PublicController {
                 'updated_by' => $this->user['id']
             ];
              
-            $res1 = $inquiryModel->updateData($data);
+            $res = $inquiryModel->updateData($data);
              
-            // 更改报价单状态
-            $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_DISPATCHING']);
-             
-            if ($res1['code'] == 1 && $res2) {
-                $inquiryModel->commit();
-                $quoteModel->commit();
-                $res = true;
-            } else {
-                $inquiryModel->rollback();
-                $quoteModel->rollback();
-                $res = false;
-            }
-             
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage('成功!');
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage('失败!');
-                $this->jsonReturn();
-            }
+            $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
             $this->setMessage('缺少参数!');
@@ -394,15 +369,7 @@ class InquiryController extends PublicController {
              
             $res = $inquiryModel->updateData($data);
              
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage('成功!');
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage('失败!');
-                $this->jsonReturn();
-            }
+           $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
             $this->setMessage('缺少参数!');
