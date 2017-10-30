@@ -986,7 +986,7 @@ class ProductModel extends PublicModel {
                 redisSet($progress_key, json_encode($progress_redis));
                 try {
                     $workText = '';
-                    if ( $key <= 2 ) {
+                    if ( $key < 1 ) {
                         continue;
                     }
 
