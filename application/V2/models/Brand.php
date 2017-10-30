@@ -252,6 +252,10 @@ class BrandModel extends PublicModel {
         }
     }
 
+    /*
+     * 判断品牌名称是否重复
+     */
+
     public function brandExist($name, $lang, $id = null) {
         try {
             $where = [];
@@ -264,6 +268,7 @@ class BrandModel extends PublicModel {
                     ->find();
             return $flag;
         } catch (Exception $ex) {
+            Log::write($ex->getMessage(), $level);
             return false;
         }
     }
