@@ -903,18 +903,11 @@ class EsProductModel extends Model {
         }
         $this->_findnulltoempty($body);
         $body['sku_count'] = intval($body['sku_count']);
-        if ($es_product) {
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (!isset($flag['_version'])) {
-                LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
-            }
-        } else {
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (!isset($flag['created'])) {
-                LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
-            }
-        }
 
+        $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        if (!isset($flag['_version'])) {
+            LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
+        }
         $k++;
         return $flag;
     }

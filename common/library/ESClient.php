@@ -436,12 +436,13 @@ class ESClient {
      * 更改文档
      */
 
-    public function update_document($index, $type, $body, $id) {
+    public function update_document($index, $type, $body, $id, $doc_as_upsert = true) {
         $updateParams = array();
         $updateParams['index'] = $index;
         $updateParams['type'] = $type;
         $updateParams['id'] = $id;
         $updateParams['body']['doc'] = $body; //['doc']['testField'] = 'xxxx';
+        $updateParams['body']['doc_as_upsert'] = $doc_as_upsert;
         try {
             return $this->server->update($updateParams);
         } catch (Exception $ex) {

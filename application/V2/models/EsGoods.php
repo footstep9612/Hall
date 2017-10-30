@@ -714,29 +714,12 @@ class EsGoodsModel extends Model {
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
 
-        if ($es_goods) {
 
-//            $updateParams['body'][] = ['update' => ['_id' => $sku]];
-//            $updateParams['body'][] = ['doc' => $body];
-            // return $updateParams;
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (!isset($flag['_version'])) {
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
-            }
-        } else {
-
-//            $updateParams['body'][] = ['create' => ['_id' => $sku]];
-//            $updateParams['body'][] = [$body];
-            // return $updateParams;
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-            if (!isset($flag['created'])) {
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
-                LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
-            }
+        $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        if (!isset($flag['_version'])) {
+            LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
+            LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
         }
-
-
 
         return $flag;
     }
@@ -811,7 +794,7 @@ class EsGoodsModel extends Model {
     public function UpdateSPU($spu, $lang) {
         try {
 
-            $es_product_model = new EsproductModel();
+            $es_product_model = new EsProductModel();
             $es_product_model->create_data($spu, $lang);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
