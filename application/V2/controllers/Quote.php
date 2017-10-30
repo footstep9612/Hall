@@ -147,10 +147,17 @@ class QuoteController extends PublicController{
         $final = $finalQuoteModel->field('id')->where('inquiry_id='.$request['inquiry_id'])->find();
 
         if(empty($final)){
+            $quoteModel = new QuoteModel();
+            $quoteInfo = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee')->find();
             $finalQuoteModel->add($finalQuoteModel->create([
                 'inquiry_id' => $request['inquiry_id'],
                 'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
                 'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                'payment_period' => $quoteInfo['payment_period'],
+                'fund_occupation_rate' => $quoteInfo['fund_occupation_rate'],
+                'delivery_period' => $quoteInfo['delivery_period'],
+                'total_purchase' => $quoteInfo['total_purchase'],
+                'total_logi_fee' => $quoteInfo['total_logi_fee'],
                 'created_by' => $this->user['id'],
                 'created_at' => date('Y-m-d H:i:s')
             ]));
