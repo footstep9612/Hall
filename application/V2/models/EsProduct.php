@@ -386,9 +386,10 @@ class EsProductModel extends Model {
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
         $es = new ESClient();
-        $es->setbody($body)->setfields('sku_count');
+        $es->setbody($body);
         $es->setaggs('sku_count', 'sku_count', 'sum');
-        $ret = $es->search_nosize($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $ret = $es->search_nosize($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
 
         if (isset($ret['aggregations']['sku_count']['value'])) {
             return $ret['aggregations']['sku_count']['value'];
@@ -803,22 +804,22 @@ class EsProductModel extends Model {
             $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
         }
 
-        $body['sort_order'] = $body['source'] == 'ERUI' ? 100 : 1;
+        $body['sort_order'] = $body['source'] == 'ERUI' ? '100' : '1';
         if (isset($attachs[$spu])) {
             $body['attachs'] = json_encode($attachs[$spu], 256);
-            $body['image_count'] = isset($attachs[$spu]['BIG_IMAGE']) ? count($attachs[$spu]['BIG_IMAGE']) : 0;
+            $body['image_count'] = isset($attachs[$spu]['BIG_IMAGE']) ? count($attachs[$spu]['BIG_IMAGE']) : '0';
         } else {
             $body['attachs'] = '[]';
-            $body['image_count'] = 0;
+            $body['image_count'] = '0';
         }
-
+        $body['image_count'] = strval($body['image_count']);
         if (isset($body['sku_count']) && intval($body['sku_count']) > 0) {
 
-            $body['sku_count'] = intval($body['sku_count']);
+            $body['sku_count'] = strval(intval($body['sku_count']));
         } else {
-            $body['sku_count'] = 0;
+            $body['sku_count'] = '0';
         }
-
+        $body['sku_count'] = strval($body['sku_count']);
         $material_cat_no = $item['material_cat_no'];
         if (isset($mcats[$material_cat_no])) {
             $body['material_cat'] = $mcats[$item['material_cat_no']];
@@ -899,10 +900,11 @@ class EsProductModel extends Model {
             $body['supplier_count'] = count($suppliers[$id]);
         } else {
             $body['suppliers'] = [];
-            $body['supplier_count'] = 0;
+            $body['supplier_count'] = '0';
         }
+        $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
-        $body['sku_count'] = intval($body['sku_count']);
+
 
         $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         if (!isset($flag['_version'])) {
@@ -1076,9 +1078,9 @@ class EsProductModel extends Model {
                         $body = $item;
 
                         if ($body['source'] == 'ERUI') {
-                            $body['sort_order'] = 100;
+                            $body['sort_order'] = '100';
                         } else {
-                            $body['sort_order'] = 1;
+                            $body['sort_order'] = '1';
                         }
 
                         if (isset($attachs[$spu])) {
@@ -1701,7 +1703,7 @@ class EsProductModel extends Model {
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
             $data['show_cats'] = [];
-            $data['sku_count'] = 0;
+            $data['sku_count'] = '0';
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
@@ -1722,7 +1724,7 @@ class EsProductModel extends Model {
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['show_cats'] = [];
-                $data['sku_count'] = 0;
+                $data['sku_count'] = '0';
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
@@ -1897,13 +1899,10 @@ class EsProductModel extends Model {
         $gModel = new GoodsModel();
         if (is_string($spus)) {
             $spu = $spus;
-
             $data = [];
-
             $skucount = $gModel->where(['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->count('id');
-            $sku_count = intval($skucount) ? intval($skucount) : 0;
-
-            $data['sku_count'] = $sku_count;
+            $sku_count = intval($skucount) ? intval($skucount) : '0';
+            $data['sku_count'] = strval($sku_count);
             $type = $this->tableName . '_' . $lang;
             $es->update_document($this->dbName, $type, $data, $spu);
         } elseif (is_array($spus)) {
@@ -1915,8 +1914,7 @@ class EsProductModel extends Model {
                 $data = [];
                 $skucount = $gModel->where(['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->count('id');
                 $sku_count = intval($skucount) ? intval($skucount) : 0;
-
-                $data['sku_count'] = $sku_count;
+                $data['sku_count'] = strval($sku_count);
                 $updateParams[] = $data;
             }
             $ret = $es->bulk($updateParams);

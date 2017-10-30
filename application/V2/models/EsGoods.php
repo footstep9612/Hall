@@ -660,7 +660,7 @@ class EsGoodsModel extends Model {
             $body['attachs'] = '[]';
             $body['image_count'] = 0;
         }
-
+        $body['image_count'] = strval($body['image_count']);
         if (isset($goods_attrs[$sku]) && $goods_attrs[$sku]) {
             $attrs = $goods_attrs[$sku];
             $attrs = $this->_setattrs($attrs);
@@ -679,7 +679,7 @@ class EsGoodsModel extends Model {
 
             $body['supplier_count'] = 0;
         }
-
+        $body['supplier_count'] = strval($body['supplier_count']);
         if ($es_goods && ($es_goods['suppliers'] !== $body['suppliers'] || $es_goods['min_order_qty'] !== $body['min_order_qty'] || $es_goods['exw_days'] !== $body['exw_days'] || $es_goods['min_pack_unit'] !== $body['min_pack_unit'] )) {
             $this->UpdateSPU($spu, $lang);
         }
@@ -1433,7 +1433,7 @@ class EsGoodsModel extends Model {
                     $sku_count = 0;
                 }
 
-                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => $sku_count], $goods['spu']);
+                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => strval($sku_count)], $goods['spu']);
             }
         } elseif (is_array($skus)) {
             $product_updateParams = $updateParams = [];
@@ -1467,7 +1467,7 @@ class EsGoodsModel extends Model {
                 } else {
                     $sku_count = 0;
                 }
-                $data['sku_count'] = $sku_count;
+                $data['sku_count'] = strval($sku_count);
                 $product_updateParams['body'][] = ['update' => ['_id' => $product['spu']]];
                 $product_updateParams['body'][] = ['doc' => $data];
             }

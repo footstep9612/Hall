@@ -891,13 +891,14 @@ class ESClient {
      */
 
     public function search_nosize($index, $type) {
+
+
+        $this->body['size'] = 1;
         $searchParams = array(
             'index' => $index,
             'type' => $type,
             'body' => $this->body,
         );
-        $searchParams['body']['size'] = 0;
-
         try {
             return $this->server->search($searchParams);
         } catch (Exception $ex) {
