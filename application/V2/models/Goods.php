@@ -687,8 +687,9 @@ class GoodsModel extends PublicModel {
                             if ($res) {
                                 $pModel = new ProductModel();
                                 $skucount = $this->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->count('id');
+                                $sku_count = intval($skucount) ? intval($skucount) : 0;
                                 $presult = $pModel->where(['spu' => $spu, 'lang' => $key])
-                                        ->save(['sku_count' => $skucount]);
+                                        ->save(['sku_count' => $sku_count]);
                                 if ($presult === false) {
                                     $this->rollback();
                                     return false;
@@ -1875,6 +1876,7 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $productModel = new ProductModel();
         $es_goods_model = new EsGoodsModel();
+        $es_product_model = new EsProductModel();
         $supplierModel = new SupplierModel();
         $goodsSupplierModel = new GoodsSupplierModel();
         $goodsCostPriceModel = new GoodsCostPriceModel();
@@ -2248,6 +2250,7 @@ class GoodsModel extends PublicModel {
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败');
                 continue;
             }
+            $es_product_model->UpdateSkuCount($input_sku, $lang);
             $input_sku = null;
             unset($input_sku);
         }

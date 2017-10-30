@@ -68,12 +68,12 @@ class BrandModel extends PublicModel {
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
 // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if (!empty($condition['name']) && $lang) {
-            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"' . trim($condition['name']) . '%\'';
+            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"%' . trim($condition['name']) . '%\'';
         } elseif ($lang) {
 
             $where['brand'] = ['like', '%"lang":"' . $lang . '"%'];
         } elseif (!empty($condition['name'])) {
-            $where['brand'] = ['like', '%"name":"' . trim($condition['name']) . '%'];
+            $where['brand'] = ['like', '%"name":"%' . trim($condition['name']) . '%'];
         }
         return $where;
     }

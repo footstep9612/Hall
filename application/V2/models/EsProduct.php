@@ -1876,6 +1876,55 @@ class EsProductModel extends Model {
         return true;
     }
 
+    /* 更新物料分类
+     * @param string $material_cat_no  物料分类
+     * @param string $spu  SPU
+     * @param string $lang 语言
+     * @param string $new_cat_no  新的物料分类
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function UpdateSkuCount($spus, $lang) {
+        $es = new ESClient();
+        if (empty($spus)) {
+            return false;
+        }
+
+        $type = 'product_' . $lang;
+        $gModel = new GoodsModel();
+        if (is_string($spus)) {
+            $spu = $spus;
+
+            $data = [];
+
+            $skucount = $gModel->where(['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->count('id');
+            $sku_count = intval($skucount) ? intval($skucount) : 0;
+
+            $data['sku_count'] = $sku_count;
+            $type = $this->tableName . '_' . $lang;
+            $es->update_document($this->dbName, $type, $data, $spu);
+        } elseif (is_array($spus)) {
+
+            $updateParams = [];
+            $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'product_' . $lang;
+            foreach ($spus as $spu) {
+                $data = [];
+                $skucount = $gModel->where(['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->count('id');
+                $sku_count = intval($skucount) ? intval($skucount) : 0;
+
+                $data['sku_count'] = $sku_count;
+                $updateParams[] = $data;
+            }
+            $ret = $es->bulk($updateParams);
+        }
+
+        return true;
+    }
+
     /*
      * 对应表
      *
