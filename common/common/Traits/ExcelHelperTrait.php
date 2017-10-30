@@ -75,8 +75,8 @@ trait ExcelHelperTrait {
      */
     static public function createExcelToLocalDir($PHPExcelWriterObj, $fileName) {
         $excel_tmp_dir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
+        RecursiveMkdir($excel_tmp_dir);
         $fullFileName = $excel_tmp_dir . $fileName;
-        RecursiveMkdir($fullFileName);
         $PHPExcelWriterObj->save($fullFileName);
         return $fullFileName;
     }
