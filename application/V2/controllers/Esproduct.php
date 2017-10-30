@@ -109,7 +109,6 @@ class EsproductController extends PublicController {
 
         if ($ret) {
             $data = $ret[0];
-
             $list = $this->_getdata($data, $lang);
             $send['count'] = isset($data['hits']['total']) ? intval($data['hits']['total']) : 0;
             $send['current_no'] = intval($ret[1]);

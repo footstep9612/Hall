@@ -368,7 +368,7 @@ class EsProductModel extends Model {
             $es->setbody($body)->setsort('created_at', 'desc')
                     ->setsort('_id', 'desc');
 
-            $es->setaggs('sku_count', 'sku_count', 'sum');
+            //   $es->setaggs('sku_count', 'sku_count', 'sum');
             $es->setaggs('image_count', 'image_count', 'sum');
 
             $es->setaggs('brand.name.all', 'brands', 'terms', 0);
