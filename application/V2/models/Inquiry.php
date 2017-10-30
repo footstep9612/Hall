@@ -115,8 +115,8 @@ class InquiryModel extends PublicModel {
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
-                ['egt', $condition['start_time']],
-                ['elt', $condition['end_time'] . ' 23:59:59']
+                ['egt', date('Y-m-d H:i:s', $condition['start_time'])],
+                ['elt', date('Y-m-d H:i:s', $condition['end_time'] + 24 * 3600 - 1)]
             ];
         }
         
