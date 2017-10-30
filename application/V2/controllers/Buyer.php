@@ -330,8 +330,11 @@ class BuyerController extends PublicController {
 
             $datajson['code'] = 1;
             $datajson['id'] = $id;
+            $datajson['buyer_code'] = $data['buyer_code'];
+            $datajson['buyer_no'] = $arr['buyer_no'];
             $datajson['name'] = $arr['name'];    //-- link 2017-10-31
             $datajson['area'] = $areaInfo;    //-- link 2017-10-31
+            $datajson['agent_id'] = $data['agent_id'];
             $datajson['agent'] = $agentInfo ? $agentInfo['name'] : '';    //-- link 2017-10-31
             $datajson['country'] = $countryInfo;    //-- link 2017-10-31
             $datajson['message'] = '成功';
