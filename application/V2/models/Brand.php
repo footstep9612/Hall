@@ -397,7 +397,8 @@ class BrandModel extends PublicModel {
         $objSheet->setCellValue("M1", "创建时间");
         $j = 2;    //excel控制输出
 
-
+        $config_obj = Yaf_Registry::get("config");
+        $fastDFSUrl = $config_obj->fastDFSUrl;
         $result = $this->listall($input, null, 'id,brand,status,created_by,created_at');
         $this->_setUserName($result);
         if ($result) {
@@ -408,16 +409,33 @@ class BrandModel extends PublicModel {
                 foreach ($brand_ary as $val) {
                     if ($val['lang'] == 'zh') {
                         $objSheet->setCellValue("C" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("D" . $j, isset($val['logo']) ? $val['logo'] : '');
+
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
+                            $objSheet->setCellValue("D" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        } else {
+                            $objSheet->setCellValue("D" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        }
                     } elseif ($val['lang'] == 'en') {
                         $objSheet->setCellValue("E" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("F" . $j, isset($val['logo']) ? $val['logo'] : '');
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
+                            $objSheet->setCellValue("F" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        } else {
+                            $objSheet->setCellValue("F" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        }
                     } elseif ($val['lang'] == 'es') {
                         $objSheet->setCellValue("G" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("H" . $j, isset($val['logo']) ? $val['logo'] : '');
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
+                            $objSheet->setCellValue("H" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        } else {
+                            $objSheet->setCellValue("H" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        }
                     } elseif ($val['lang'] == 'ru') {
                         $objSheet->setCellValue("I" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("J" . $j, isset($val['logo']) ? $val['logo'] : '');
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
+                            $objSheet->setCellValue("J" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        } else {
+                            $objSheet->setCellValue("J" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        }
                     }
                 }
 
@@ -445,6 +463,7 @@ class BrandModel extends PublicModel {
                 $j++;
             }
         }
+
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
         $objSheet->getStyle('A1:M' . $j)->applyFromArray($styleArray);
 //保存文件
