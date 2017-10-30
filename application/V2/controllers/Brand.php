@@ -319,8 +319,6 @@ class BrandController extends PublicController {
                     $this->jsonReturn();
                 }
                 $headers = get_headers($data[$lang]['logo'], 1);
-                echo $headers['Content-Length'];
-                die;
                 if (isset($headers['Content-Length']) && $headers['Content-Length'] > $maxsize) {
                     $this->setCode(MSG::ERROR_PARAM);
                     $this->setMessage('您上传的文件大于1M！');
