@@ -2250,10 +2250,11 @@ class GoodsModel extends PublicModel {
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败');
                 continue;
             }
-            $es_product_model->UpdateSkuCount($input_sku, $lang);
+
             $input_sku = null;
             unset($input_sku);
         }
+        $es_product_model->UpdateSkuCount($spu, $lang);
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         $objWriter->save($localFile);    //文件保存
         //把导出的文件上传到文件服务器上
