@@ -410,29 +410,29 @@ class BrandModel extends PublicModel {
                     if ($val['lang'] == 'zh') {
                         $objSheet->setCellValue("C" . $j, isset($val['name']) ? $val['name'] : '');
 
-                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
-                            $objSheet->setCellValue("D" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') !== false) {
+                            $objSheet->setCellValue("D" . $j, isset($val['logo']) && $val['logo'] ? $val['logo'] : '');
                         } else {
                             $objSheet->setCellValue("D" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
                         }
                     } elseif ($val['lang'] == 'en') {
                         $objSheet->setCellValue("E" . $j, isset($val['name']) ? $val['name'] : '');
-                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
-                            $objSheet->setCellValue("F" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') !== false) {
+                            $objSheet->setCellValue("F" . $j, isset($val['logo']) && $val['logo'] ? $val['logo'] : '');
                         } else {
                             $objSheet->setCellValue("F" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
                         }
                     } elseif ($val['lang'] == 'es') {
                         $objSheet->setCellValue("G" . $j, isset($val['name']) ? $val['name'] : '');
-                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
-                            $objSheet->setCellValue("H" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') !== false) {
+                            $objSheet->setCellValue("H" . $j, isset($val['logo']) && $val['logo'] ? $val['logo'] : '');
                         } else {
                             $objSheet->setCellValue("H" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
                         }
                     } elseif ($val['lang'] == 'ru') {
                         $objSheet->setCellValue("I" . $j, isset($val['name']) ? $val['name'] : '');
-                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') === 0) {
-                            $objSheet->setCellValue("J" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
+                        if (isset($val['logo']) && $val['logo'] && strpos($val['logo'], 'http://') !== false) {
+                            $objSheet->setCellValue("J" . $j, isset($val['logo']) && $val['logo'] ? $val['logo'] : '');
                         } else {
                             $objSheet->setCellValue("J" . $j, isset($val['logo']) && $val['logo'] ? $fastDFSUrl . $val['logo'] : '');
                         }
