@@ -207,7 +207,7 @@ class ProductModel extends PublicModel {
      * 添加/编辑
      * @param object $input 操作集
      */
-   public function editInfo($input = []) {
+    public function editInfo($input = []) {
         if (empty($input)) {
             return false;
         }
@@ -948,7 +948,7 @@ class ProductModel extends PublicModel {
      * @param $data   注意这是excel模板数据
      * @param $lang
      */
-   public function import($url = '', $lang = '', $process = '') {
+    public function import($url = '', $lang = '', $process = '') {
         if (empty($url) || empty($lang)) {
             return false;
         }
@@ -986,7 +986,7 @@ class ProductModel extends PublicModel {
                 redisSet($progress_key, json_encode($progress_redis));
                 try {
                     $workText = '';
-                    if ( $key <= 2 ) {
+                    if ( $key < 1 ) {
                         continue;
                     }
 

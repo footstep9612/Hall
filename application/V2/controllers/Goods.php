@@ -611,7 +611,7 @@ class GoodsController extends PublicController {
         $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process);
         if ($localDir) {
             if(is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0){
-                jsonReturn('', ErrorMsg::SUCCESS , '导入失败');
+                jsonReturn($localDir, ErrorMsg::SUCCESS , '导入失败');
             }
             jsonReturn($localDir);
         } else {
