@@ -552,6 +552,19 @@ function mkFolders($folders, $cache_path) {
 }
 
 /**
+ * RecursiveMkdir 递归创建目录
+ * @param  [type] $path    目录地址
+ * @param  [type] $cache_path [description]
+ * @return [type]             [description]
+ */
+function RecursiveMkdir($path) {
+    if (!file_exists($path)) {
+        RecursiveMkdir(dirname($path));
+        @mkdir($path, 0777);
+    }
+}
+
+/**
  * 得到PHP错误，并报告一个系统错误
  *
  * @param integer   $errorNo
@@ -1751,7 +1764,7 @@ function C($name = null, $value = null, $default = null) {
  * 上传文件至FastDFS
  * @param string $file 本地文件信息
  * @param string $url  上传接口地址
- **/
+ * */
 function postfile($data, $url, $timeout = 30) {
     $cfile = new \CURLFile($data['tmp_name'], $data['type'], $data['name']);
     $ch = curl_init($url);
@@ -1779,9 +1792,9 @@ function postfile($data, $url, $timeout = 30) {
  * 编码转换成gbk
  * @param $data 数据数组
  */
-function toGbk($data=[]){
+function toGbk($data = []) {
     $return = [];
-    foreach($data as $k=>$r){
+    foreach ($data as $k => $r) {
         $return[$k] = iconv('UTF-8', 'GBK', $r);
     }
     return $return;
