@@ -1253,7 +1253,7 @@ class EsGoodsModel extends Model {
             }
             $es->bulk($updateParams);
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1320,7 +1320,7 @@ class EsGoodsModel extends Model {
                 $es->bulk($updateParams);
             }
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1473,7 +1473,7 @@ class EsGoodsModel extends Model {
             }
             $es->bulk($product_updateParams);
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 

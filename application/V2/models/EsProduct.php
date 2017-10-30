@@ -1412,6 +1412,7 @@ class EsProductModel extends Model {
             $data['status'] = $status;
             $id = $spu;
             $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
+            $es->refresh($this->dbName);
             return true;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1489,6 +1490,7 @@ class EsProductModel extends Model {
         }
         $esgoods = new EsGoodsModel();
         $esgoods->update_showcats($old_cat_no, $lang);
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1559,6 +1561,7 @@ class EsProductModel extends Model {
             ]]]];
         }
         $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1651,6 +1654,7 @@ class EsProductModel extends Model {
             ]
         ];
         $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1739,7 +1743,7 @@ class EsProductModel extends Model {
 
             $es->bulk($updateParams);
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1874,7 +1878,7 @@ class EsProductModel extends Model {
             }
             $ret = $es->bulk($updateParams);
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 
@@ -1919,7 +1923,7 @@ class EsProductModel extends Model {
             }
             $ret = $es->bulk($updateParams);
         }
-
+        $es->refresh($this->dbName);
         return true;
     }
 
