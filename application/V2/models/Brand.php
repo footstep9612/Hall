@@ -252,6 +252,22 @@ class BrandModel extends PublicModel {
         }
     }
 
+    public function brandExist($name, $lang, $id = null) {
+        try {
+            $where = [];
+            if ($id) {
+                $where['id'] = ['neq', $id];
+            }
+            $where['deleted_flag'] = 'N';
+            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"' . $name . '"%\'';
+            $flag = $this->field('id')->where($where)
+                    ->find();
+            return $flag;
+        } catch (Exception $ex) {
+            return false;
+        }
+    }
+
     /**
      * 更新数据
      * @param  mix $upcondition 更新条件
@@ -270,7 +286,6 @@ class BrandModel extends PublicModel {
         $data['updated_at'] = date('Y-m-d H:i:s');
         try {
             $flag = $this->where($where)->save($data);
-
             return $flag;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
