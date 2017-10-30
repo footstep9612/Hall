@@ -18,7 +18,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      * @return string
      */
-    public function checkAuthAction() {
+    /*public function checkAuthAction() {
         $groupid = $this->user['group_id'];
         if (isset($groupid)) {
             $maketareateam = new MarketAreaTeamModel();
@@ -64,7 +64,7 @@ class InquiryController extends PublicController {
         }
 
         return $results;
-    }
+    }*/
 
     /*
      * 返回询价单流程编码
@@ -558,11 +558,9 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
-        /*if(empty($data['status'])){
-            if ($auth['code'] == 1) {
-                $data['status'] = 'APPROVING_BY_SC';
-            }
-        }*/
+        if($data['status'] == 'BIZ_DISPATCHING'){
+            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], $inquiry::quoteIssueMainRole);
+        }
 
         $results = $inquiry->updateData($data);
         $this->jsonReturn($results);
