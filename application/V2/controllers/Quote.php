@@ -136,6 +136,7 @@ class QuoteController extends PublicController{
 
         $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
             'quote_status' => 'QUOTED',
+            'now_agent_id' => $check_org_id,
             'check_org_id' => $check_org_id //事业部审核人
         ]);
 
