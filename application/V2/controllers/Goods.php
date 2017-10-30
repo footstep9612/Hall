@@ -613,7 +613,11 @@ class GoodsController extends PublicController {
             if(is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0){
                 jsonReturn($localDir, ErrorMsg::SUCCESS , '导入失败');
             }
-            jsonReturn($localDir);
+            $message = '成功'.$localDir['success'].'条';
+            if(isset($localDir['faild']) && $localDir['faild']>0){
+                $message = $message.',失败'.$localDir['faild'].'条。';
+            }
+            jsonReturn($localDir , ErrorMsg::SUCCESS , $message);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
