@@ -465,7 +465,11 @@ class ProductController extends PublicController {
             if(is_array($result) && isset($result['success']) && $result['success'] == 0 ){
                 jsonReturn($result, ErrorMsg::SUCCESS , '导入失败');
             }
-            jsonReturn($result);
+            $message = '成功'.$result['success'].'条';
+            if(isset($result['faild']) && $result['faild']>0){
+                $message = $message.',失败'.$result['faild'].'条。';
+            }
+            jsonReturn($result , ErrorMsg::SUCCESS , $message);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
