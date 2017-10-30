@@ -351,7 +351,7 @@ class EsProductModel extends Model {
         try {
             $body = $this->getCondition($condition);
 
-            $pagesize = 10;
+            $pagesize = 5000;
             $current_no = 1;
             if (isset($condition['current_no'])) {
                 $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
@@ -365,7 +365,7 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('created_at', 'desc')->setsort('sku_count', 'desc')
+            $es->setbody($body)->setsort('created_at', 'desc')
                     ->setsort('_id', 'desc');
 
             $es->setaggs('sku_count', 'sku_count', 'sum');
