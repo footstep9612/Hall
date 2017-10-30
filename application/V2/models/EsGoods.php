@@ -191,8 +191,8 @@ class EsGoodsModel extends Model {
     private function getCondition($condition, $lang = 'en') {
         $body = [];
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'sku');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'skus', 'sku');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
 //        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
