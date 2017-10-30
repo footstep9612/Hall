@@ -882,19 +882,15 @@ class EsProductModel extends Model {
 
         if (isset($suppliers[$id]) && $suppliers[$id]) {
             $body['suppliers'] = $suppliers[$id];
-//  $body['suppliers'] = json_encode($suppliers[$id], 256);
             $body['supplier_count'] = count($suppliers[$id]);
         } else {
             $body['suppliers'] = [];
-//  $body['suppliers'] = json_encode([], 256);
             $body['supplier_count'] = 0;
         }
         $this->_findnulltoempty($body);
+        $body['sku_count'] = intval($body['sku_count']);
         if ($es_product) {
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
-
-
-
             if (!isset($flag['_version'])) {
                 LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
             }
