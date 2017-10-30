@@ -1879,7 +1879,7 @@ class GoodsModel extends PublicModel {
                     if ($index == $columnsIndex - 1 && $key == '导入结果') {
                         $maxCol = $col_name;
                     }
-                    if ($key == '进货价格币种') {    //获取币种下标用以取扩展属性
+                    if ($key == '币种') {    //获取币种下标用以取扩展属性
                         $ext_goods_start = $index + 1;
                     }
                     if ($key == '物流信息') {    //获取物流信息下标用以取扩展属性
@@ -1966,7 +1966,7 @@ class GoodsModel extends PublicModel {
                 continue;
             }
             $data_tmp['model'] = $data['型号'];    //型号
-            $data_tmp['exw_days'] = $data['出货周期（天）'];    //出货周期
+            $data_tmp['exw_days'] = $data['出货周期(天)'];    //出货周期
             if (empty($data_tmp['exw_days']) || !is_numeric($data_tmp['exw_days'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[出货周期有误]');
@@ -2002,7 +2002,7 @@ class GoodsModel extends PublicModel {
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[供应商供货价有误]');
                 continue;
             }
-            $data_tmp['purchase_price_cur_bn'] = $data['进货价格币种'];    //进货价格币种
+            $data_tmp['purchase_price_cur_bn'] = $data['币种'];    //进货价格币种
             if (!isset($data['spec_attrs']) || empty($data['spec_attrs'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[非固定属性必填]');
