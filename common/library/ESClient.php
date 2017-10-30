@@ -889,6 +889,28 @@ class ESClient {
      *
      */
 
+    public function search_nosize($index, $type) {
+        $searchParams = array(
+            'index' => $index,
+            'type' => $type,
+            'body' => $this->body,
+        );
+        $searchParams['body']['size'] = 0;
+
+        try {
+            return $this->server->search($searchParams);
+        } catch (Exception $ex) {
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+        //   var_dump($retDoc);
+    }
+
+    /*
+     * 查询
+     *
+     */
+
     public function search($index, $type, $from = 0, $size = 10) {
         $searchParams = array(
             'index' => $index,

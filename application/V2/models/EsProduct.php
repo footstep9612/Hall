@@ -351,7 +351,7 @@ class EsProductModel extends Model {
         try {
             $body = $this->getCondition($condition);
 
-            $pagesize = 5000;
+            $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
                 $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
@@ -380,6 +380,20 @@ class EsProductModel extends Model {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
+        }
+    }
+
+    public function getSkuCountByCondition($condition, $lang) {
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body)->setfields('sku_count');
+        $es->setaggs('sku_count', 'sku_count', 'sum');
+        $ret = $es->search_nosize($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+
+        if (isset($ret['aggregations']['sku_count']['value'])) {
+            return $ret['aggregations']['sku_count']['value'];
+        } else {
+            return 0;
         }
     }
 

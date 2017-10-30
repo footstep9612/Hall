@@ -118,11 +118,7 @@ class EsproductController extends PublicController {
             } else {
                 $send['allcount'] = $send['count'];
             }
-            if (isset($data['aggregations']['sku_count']['value']) && $data['aggregations']['sku_count']['value']) {
-                $send['sku_count'] = $data['aggregations']['sku_count']['value'];
-            } else {
-                $send['sku_count'] = 0;
-            }
+            $send['sku_count'] = $model->getSkuCountByCondition($condition, $lang);
             if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
                 $send['image_count'] = $data['aggregations']['image_count']['value'];
             } else {
@@ -146,11 +142,11 @@ class EsproductController extends PublicController {
                 $condition['pagesize'] = 0;
                 $ret_N = $model->getProducts($condition, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
-                $send['onshelf_sku_count_N'] = intval($ret_N[0]['aggregations']['sku_count']['value']);
+                //    $send['onshelf_sku_count_N'] =$model->getSkuCountByCondition($condition, $lang);
                 $condition['onshelf_flag'] = 'Y';
                 $ret_y = $model->getProducts($condition, $lang);
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
-                $send['onshelf_sku_count_Y'] = intval($ret_y[0]['aggregations']['sku_count']['value']);
+                //  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
             }
             $condition['deleted_flag'] = 'Y';
             $condition['onshelf_flag'] = 'A';
