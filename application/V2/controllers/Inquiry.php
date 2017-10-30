@@ -558,10 +558,6 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
-        if($data['status'] == 'BIZ_DISPATCHING'){
-            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], $inquiry::quoteIssueMainRole);
-        }
-
         $results = $inquiry->updateData($data);
         $this->jsonReturn($results);
     }
@@ -575,6 +571,10 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
+
+        if($data['status'] == 'BIZ_DISPATCHING'){
+            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], $inquiry::quoteIssueMainRole);
+        }
 
         $results = $inquiry->updateStatus($data);
         $this->jsonReturn($results);
