@@ -22,13 +22,17 @@ class BrandController extends PublicController {
 
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
-            foreach ($this->langs as $blang) {
-                $brand[$blang] = null;
+
+            if ($item['id'] == 130) {
+
             }
             $brand = [];
+            foreach ($this->langs as $lang) {
+                $brand[$lang] = [];
+                $brand[$lang]['id'] = $item['id'];
+            }
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
-                $brand[$val['lang']]['id'] = $item['id'];
             }
             $arr[$key] = $brand;
         }
@@ -73,7 +77,6 @@ class BrandController extends PublicController {
         $ret = [];
         foreach ($arr as $item) {
             $brands = json_decode($item['brand'], true);
-
             foreach ($brands as $val) {
                 if ($val['lang'] === $lang && $item['id'] != $id) {
                     $ret[] = ['name' => $val['name']];
@@ -108,13 +111,12 @@ class BrandController extends PublicController {
             $brands = json_decode($item['brand'], true);
             $brand = [];
             foreach ($this->langs as $lang) {
-                $brand[$lang] = array();
+                $brand[$lang] = [];
+                $brand[$lang]['id'] = $item['id'];
             }
             foreach ($brands as $val) {
                 $brand[$val['lang']] = $val;
-                $brand[$val['lang']]['id'] = $item['id'];
             }
-
             $arr[$key] = $brand;
         }
 
