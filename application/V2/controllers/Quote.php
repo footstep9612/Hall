@@ -110,14 +110,12 @@ class QuoteController extends PublicController{
     public function rejectLogisticAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $condition = ['id'=>$request['inquiry_id']];
 
         $inquiryModel = new InquiryModel();
-        $result = $inquiryModel->where($condition)->save([
-            'status' => 'LOGI_QUOTING', //物流报价
-            'updated_by' => $this->user['id'],
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
+        $now_agent_id = $inquiryModel->where(['id'=>$request['inquiry_id']])->getField('logi_agent_id');
+        $inquiryModel->where($condition)->save(['now_agent_id'=>$now_agent_id]);
+
+        $this->changeInquiryStatus($request['inquiry_id'],'LOGI_QUOTING');
 
         $this->jsonReturn($result);
     }
