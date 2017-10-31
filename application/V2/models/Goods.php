@@ -579,6 +579,7 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
+            $success = 0;
             $spuModel = new ProductModel();
             foreach ($input as $key => $value) {
                 if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
@@ -755,6 +756,7 @@ class GoodsModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
+                    $success++;
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
                         $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) && $input['sku'] !== 'false' ? $input['sku'] : $sku;
@@ -787,8 +789,13 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
             }
-            $this->commit();
-            return $sku;
+            if($success){
+                $this->commit();
+                return $sku;
+            }else{
+                $this->rollback();
+                return false;
+            }
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
             $this->rollback();
