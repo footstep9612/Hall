@@ -317,12 +317,12 @@ class BuyerController extends PublicController {
                 $buyer_address_model->create_data($buyer_address_data);
             }
             //获取营销区域信息 -- link 2017-10-31
-            $mareaModel = new MarketAreaModel();
-            $areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
+            //$mareaModel = new MarketAreaModel();
+            //$areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
 
             //获取营销国家信息 -- link 2017-10-31
-            $countryModel = new CountryModel();
-            $countryInfo = $countryModel->getInforByBn($arr['country_bn']);
+            //$countryModel = new CountryModel();
+            //$countryInfo = $countryModel->getInforByBn($arr['country_bn']);
 
             //获取市场经办人信息 -- link 2017-10-31
             $userInfo = new UserModel();
@@ -333,10 +333,10 @@ class BuyerController extends PublicController {
             $datajson['buyer_code'] = $data['buyer_code'];
             $datajson['buyer_no'] = $arr['buyer_no'];
             $datajson['name'] = $arr['name'];    //-- link 2017-10-31
-            $datajson['area'] = $areaInfo;    //-- link 2017-10-31
+            $datajson['area'] = $arr['area_bn'];//$areaInfo;    //-- link 2017-10-31
             $datajson['agent_id'] = $data['agent_id'];
             $datajson['agent'] = $agentInfo ? $agentInfo['name'] : '';    //-- link 2017-10-31
-            $datajson['country'] = $countryInfo;    //-- link 2017-10-31
+            $datajson['country'] = $arr['country_bn'];//$countryInfo;    //-- link 2017-10-31
             $datajson['message'] = '成功';
         } else {
             $datajson['code'] = -104;
