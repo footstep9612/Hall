@@ -442,19 +442,21 @@ class ShowCatModel extends PublicModel {
                 'deleted_flag' => 'Y',
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
-
-            $this->Table('erui_goods.show_material_cat')->where($pwhere)
+            $show_material_cat_model = new ShowMaterialCatModel();
+            $show_material_cat_model->where($pwhere)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui_goods.show_cat_goods')->where($where)
+            $show_cat_goods_model = new ShowCatGoodsModel();
+            $show_cat_goods_model->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'onshelf_flag' => 'N',
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui_goods.show_cat_product')->where($where)
+            $show_cat_product_model = new ShowCatProductModel();
+            $show_cat_product_model->where($where)
                     ->save(['status' => self::STATUS_DELETED,
                         'onshelf_flag' => 'N',
                         'updated_at' => date('Y-m-d H:i:s'),
