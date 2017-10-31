@@ -582,6 +582,13 @@ class GoodsModel extends PublicModel {
             $spuModel = new ProductModel();
             foreach ($input as $key => $value) {
                 if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
+                    //字段校验
+                    $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
+                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+                    if (empty($value['name']) && empty($attr['spec_attrs'])) {    //这里主要以名称为主判断
+                        continue;
+                    }
+
                     $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
                     if ($spuName) {
                         if (empty($value['name'])) {
@@ -591,15 +598,10 @@ class GoodsModel extends PublicModel {
                         jsonReturn('', ErrorMsg::FAILED, '语言：' . $this->lang_ary[$key] . 'SPU不存在');
                     }
 
-                    if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
-                        continue;
-                    }
-                    //字段校验
-                    $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+                    
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
