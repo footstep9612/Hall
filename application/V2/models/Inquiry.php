@@ -436,6 +436,10 @@ class InquiryModel extends PublicModel {
             $data['inflow_time'] = $time;
             $data['status'] = $condition['status'];
         }
+
+        if(!empty($condition['now_agent_id'])){
+            $data['now_agent_id'] = $condition['now_agent_id'];
+        }
         
         $data['updated_at'] = $time;
 
