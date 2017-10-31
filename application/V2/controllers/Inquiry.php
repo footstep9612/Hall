@@ -308,7 +308,7 @@ class InquiryController extends PublicController {
             if ($roleNo == $inquiry::marketAgentRole ) {
                 $isAgent = 'Y';
             }
-            if ($roleNo == $inquiry::inquiryIssueRole) {
+            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::inquiryIssueAuxiliaryRole) {
                 $isErui = 'Y';
             }
             if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
