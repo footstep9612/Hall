@@ -336,7 +336,7 @@ class ShowcatController extends PublicController {
         $redis->delete($keys);
     }
 
-    function _exist($data, $lang, $market_area_bn, $country_bn, $level_no, $cat_no = null, $is_empty = true) {
+    function _exist($data, $lang, $level_no, $market_area_bn, $country_bn, $cat_no = null, $is_empty = true) {
         $langs = [
             'zh' => '中文',
             'es' => '西文',
@@ -360,6 +360,7 @@ class ShowcatController extends PublicController {
         } elseif ($data[$lang]['name']) {
 
             $flag = $this->_model->showCatExist($data[$lang]['name'], $lang, $market_area_bn, $country_bn, $level_no, $cat_no);
+
             if ($flag) {
                 $this->setCode(MSG::MSG_EXIST);
                 $this->setMessage($langs[$lang] . '展示分类名称【' . $data[$lang]['name'] . '】 在同国家同等级展示分类中已存在!');
