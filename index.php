@@ -33,7 +33,7 @@ $environments = ['pro', 'beta', 'dev'];
 $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application.ini';
 foreach ($environments as $environment) {
     if (file_exists('/var/conf/' . $environment)) {
-        $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application_' . $con . '.ini';
+        $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application_' . $environment . '.ini';
         break;
     }
 }
