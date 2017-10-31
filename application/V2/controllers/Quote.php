@@ -190,6 +190,12 @@ class QuoteController extends PublicController{
     public function rejectAction(){
 
         $request = $this->validateRequests('inquiry_id');
+
+        //更新当前办理人
+        $inquiry = new InquiryModel();
+        $now_agent_id = $inquiry->getRoleUserId($this->user['group_id'],$inquiry::quoterRole);
+        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['now_agent_id'=>$now_agent_id]);
+
         $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
         $this->jsonReturn($response);
 
