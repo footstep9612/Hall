@@ -420,21 +420,22 @@ class ExcelmanagerController extends PublicController {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
         $inquiryModel = new InquiryModel();
-        $info = $inquiryModel->where(['id' => $inquiry_id])->field('serial_no,buyer_name,quote_notes')->find();
+        $info = $inquiryModel->where(['id' => $inquiry_id])->field('serial_no,buyer_name,quote_notes,agent_id')->find();
 
         //报价综合信息 (报价人，电话，邮箱，报价时间)
-        $finalQuoteModel = new FinalQuoteModel();
-        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('checked_at,checked_by')->find();
+        $quoteModel = new QuoteModel();
+        $finalQuoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('biz_quote_by,biz_quote_at')->find();
 
         $employee = new EmployeeModel();
-        $employeeInfo = $employee->where(['id' => intval($finalQuoteInfo['checked_by'])])->field('email,mobile,name')->find();
+        $employeeInfo = $employee->where(['id' => intval($finalQuoteInfo['biz_quote_by'])])->field('email,mobile,name')->find();
+        $info['agenter'] = $employee->where(['id' => intval($info['agent_id'])])->getField('name');
 
         //报价人信息
         $info['quoter_email'] = $employeeInfo['email'];
         $info['quoter_mobile'] = $employeeInfo['mobile'];
         $info['quoter_name'] = $employeeInfo['name'];
 		//由于此文件仅生成一次，所以记录日期跟当前日期一致
-        $info['quote_time'] = date('Y-m-d');//$finalQuoteInfo['checked_at']; 
+        $info['quote_time'] = $finalQuoteInfo['biz_quote_at'];
 
 
         //报价单项(final_quote)
@@ -694,7 +695,7 @@ class ExcelmanagerController extends PublicController {
         $objSheet->setCellValue("A6", "邮箱 : " . $quote['quoter_info']['quoter_email'])->mergeCells("A6:E6");
 
         $objSheet->setCellValue("F4", "询价单位 : " . $quote['quoter_info']['buyer_name'])->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "业务对接人 : ")->mergeCells("F5:R5");
+        $objSheet->setCellValue("F5", "业务对接人 : " . $quote['quoter_info']['agenter'])->mergeCells("F5:R5");
         $objSheet->setCellValue("F6", "报价时间 : " . $quote['quoter_info']['quote_time'])->mergeCells("F6:R6");
 
 
