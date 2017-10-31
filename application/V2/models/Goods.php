@@ -2079,10 +2079,12 @@ class GoodsModel extends PublicModel {
             $data_tmp['hs_code'] = $data['海关编码'];    //海关编码
             $data_tmp['tx_unit'] = $data['成交单位'];    //成交单位
             $data_tmp['tax_rebates_pct'] = $data['退税率(%)'];    //退税率(%)
-            if (!is_numeric($data_tmp['tax_rebates_pct'])) {
+            if (!empty($data_tmp['tax_rebates_pct']) && !is_numeric($data_tmp['tax_rebates_pct'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[退税率有误]');
                 continue;
+            }elseif($data_tmp['tax_rebates_pct'] == ''){
+                $data_tmp['tax_rebates_pct'] = null;
             }
             $data_tmp['regulatory_conds'] = $data['监管条件'];    //监管条件
             $data_tmp['commodity_ori_place'] = $data['境内货源地'];    //境内货源地
