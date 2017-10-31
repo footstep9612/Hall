@@ -391,7 +391,7 @@ class MaterialcatController extends PublicController {
         if (empty($data['parent_cat_no'])) {
             $level_no = 1;
         } else {
-            $info = $this->where(['cat_no' => $data['parent_cat_no']])->find();
+            $info = $this->_model->where(['cat_no' => $data['parent_cat_no']])->find();
             if (intval($info['level_no'])) {
                 $level_no = intval($info['level_no']) + 1;
             } else {
@@ -429,7 +429,7 @@ class MaterialcatController extends PublicController {
             $this->setMessage('父类分类编码不能为空!');
             $this->jsonReturn();
         } else {
-            $info = $this->where(['cat_no' => $cat_no])->find();
+            $info = $this->_model->where(['cat_no' => $cat_no])->find();
             if (intval($info['level_no'])) {
                 $level_no = intval($info['level_no']);
             } else {
