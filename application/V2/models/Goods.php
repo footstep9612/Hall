@@ -252,7 +252,7 @@ class GoodsModel extends PublicModel {
     public function setRealSku($spu, $sku = '') {
         if (empty($sku)) {
             if (empty($spu)) {
-                jsonReturn('', ErrorMsg::FAILED, 'spu编码缺少!');
+                return false;
             }
             $temp_num = substr($spu, 0, 12);
             $data = $this->getSkus($temp_num);
@@ -280,8 +280,9 @@ class GoodsModel extends PublicModel {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . MYPATH . '/public/tmp/' . $sku . '.lock' . '] create faild.', Log::ERR);
                 } else {
                     fclose($handle);
+                    return $sku;
                 }
-                return $sku;
+                return false;
             }
         }
     }
@@ -579,9 +580,17 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         $this->startTrans();
         try {
+            $success = 0;
             $spuModel = new ProductModel();
             foreach ($input as $key => $value) {
                 if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
+                    //字段校验
+                    $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
+                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+                    if (empty($value['name']) && empty($attr['spec_attrs'])) {    //这里主要以名称为主判断
+                        continue;
+                    }
+
                     $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
                     if ($spuName) {
                         if (empty($value['name'])) {
@@ -591,15 +600,10 @@ class GoodsModel extends PublicModel {
                         jsonReturn('', ErrorMsg::FAILED, '语言：' . $this->lang_ary[$key] . 'SPU不存在');
                     }
 
-                    if (empty($value) || empty($value['name'])) {    //这里主要以名称为主判断
-                        continue;
-                    }
-                    //字段校验
-                    $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+                    
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
@@ -753,6 +757,7 @@ class GoodsModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
+                    $success++;
                 } elseif ($key == 'attachs') {
                     if (is_array($value) && !empty($value)) {
                         $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) && $input['sku'] !== 'false' ? $input['sku'] : $sku;
@@ -785,8 +790,13 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
             }
-            $this->commit();
-            return $sku;
+            if($success){
+                $this->commit();
+                return $sku;
+            }else{
+                $this->rollback();
+                return false;
+            }
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
             $this->rollback();
@@ -2187,6 +2197,12 @@ class GoodsModel extends PublicModel {
                         flock($fp, LOCK_UN);
                     }
                     fclose($fp);
+                    if(!$input_sku){
+                        $faild++;
+                        $this->rollback();
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[生成SKU编码失败]');
+                        continue;
+                    }
 
                     $result = $this->add($this->create($data_tmp));
                 }
