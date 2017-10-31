@@ -822,9 +822,37 @@ class GoodsModel extends PublicModel {
      * @author klp
      * @return
      */
-    private function _checkExit(&$condition, &$attr, $boolen = false) {
+    private function _checkExit($condition, $attr, $boolen = false) {
+        $exist = $this->field('spu,sku,lang')->where($condition)->select();
+        if($exist){
+            $attr_model = new GoodsAttrModel();
+            foreach ($exist as $item){
+                $condition_attr = ['spu'=>$item['spu'], 'sku'=>$item['sku'],'lang'=>$item['lang']];
+                $spesc = $attr_model->field('spec_attrs')->where($condition_attr)->find();
+                if(empty($attr['spec_attrs']) && empty($spesc)){
+                    if ($boolen) {
+                        return false;
+                    } else {
+                        jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
+                    }
+                }else{
+                    $fspesc = json_decode($spesc, true);
+                    $result1 = array_diff_assoc($fspesc, $attr['spec_attrs']);
+                    $result2 = array_diff_assoc($attr['spec_attrs'], $fspesc);
+                    if (empty($result1) && empty($result2)) {
+                        if ($boolen) {
+                            return false;
+                        } else {
+                            jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
+                        }
+                    } else {
+                        continue;
+                    }
+                }
+            }
+        }
 
-        $exist = $this->where($condition)->find();
+        /*$exist = $this->field('id')->where($condition)->find();
         if ($exist) {
             $where = array(
                 'lang' => $condition['lang'],
@@ -861,7 +889,7 @@ class GoodsModel extends PublicModel {
                     }
                 }
             }
-        }
+        }*/
     }
 
     /**
@@ -2123,7 +2151,7 @@ class GoodsModel extends PublicModel {
             $condition = array(
                 'name' => $data_tmp['name'],
                 'lang' => $lang,
-                'spu' => $spu,
+                //'spu' => $spu,
                 'model' => $data_tmp['model'],
                 'deleted_flag' => 'N',
             );
