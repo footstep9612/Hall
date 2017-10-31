@@ -237,6 +237,13 @@ class EsproductController extends PublicController {
         }
     }
 
+    public function deleteAction() {
+        $es = new ESClient();
+        $ret = $es->delete_index($this->index);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
     /*
      * 处理ES 数据
      * @author  zhongyg
