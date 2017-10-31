@@ -355,6 +355,29 @@ class MaterialcatController extends PublicController {
         $redis->delete($keys);
     }
 
+    function _exist($data, $lang, $level_no, $cat_no = null, $is_empty = true) {
+        $langs = [
+            'zh' => '中文',
+            'es' => '西文',
+            'ru' => '俄文',
+            'en' => '英文',
+        ];
+
+        if (empty($data[$lang]['name']) && $is_empty) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入' . $langs[$lang]);
+            $this->jsonReturn();
+        } elseif ($data[$lang]['name']) {
+
+            $flag = $this->_model->MaterialcatExist($data[$lang]['name'], $lang, $level_no, $cat_no);
+            if ($flag) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage($langs[$lang] . '物料分类名称已存在!');
+                $this->jsonReturn();
+            }
+        }
+    }
+
     /*
      * 新建分类
      * @author  zhongyg
@@ -365,17 +388,23 @@ class MaterialcatController extends PublicController {
 
     public function createAction() {
         $data = $this->getPut();
-        if (empty($data['zh']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入中文');
-            $this->jsonReturn();
-        }
-        if (empty($data['en']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入英文');
-            $this->jsonReturn();
+        if (empty($data['parent_cat_no'])) {
+            $level_no = 1;
+        } else {
+            $info = $this->where(['cat_no' => $data['parent_cat_no']])->find();
+            if (intval($info['level_no'])) {
+                $level_no = intval($info['level_no']) + 1;
+            } else {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('父类分类编码对应的父类分类不存在!');
+                $this->jsonReturn();
+            }
         }
 
+        $this->_exist($data, 'zh', $level_no);
+        $this->_exist($data, 'en', $level_no);
+        $this->_exist($data, 'es', $level_no, null, false);
+        $this->_exist($data, 'ru', $level_no, null, false);
         $result = $this->_model->create_data($data);
         if ($result) {
             $this->_delCache();
@@ -394,16 +423,25 @@ class MaterialcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
-        if (empty($data['zh']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入中文');
+        $cat_no = $this->getPut('cat_no');
+        if (empty($cat_no)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('父类分类编码不能为空!');
             $this->jsonReturn();
+        } else {
+            $info = $this->where(['cat_no' => $cat_no])->find();
+            if (intval($info['level_no'])) {
+                $level_no = intval($info['level_no']);
+            } else {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('分类编码对应的分类不存在!');
+                $this->jsonReturn();
+            }
         }
-        if (empty($data['en']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入英文');
-            $this->jsonReturn();
-        }
+        $this->_exist($data, 'zh', $level_no, $cat_no);
+        $this->_exist($data, 'en', $level_no, $cat_no);
+        $this->_exist($data, 'es', $level_no, $cat_no, false);
+        $this->_exist($data, 'ru', $level_no, $cat_no, false);
         $result = $this->_model->update_data($data);
 
         if ($result) {

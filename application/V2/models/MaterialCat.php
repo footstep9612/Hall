@@ -205,10 +205,11 @@ class MaterialCatModel extends PublicModel {
      * 判断物料分类名称是否重复
      */
 
-    public function MaterialcatExist($name, $lang, $level_no = 1, $cat_no = null) {
+    public function MaterialcatExist($name, $lang, $level_no = null, $cat_no = null) {
         try {
             $where = [];
-            if ($id) {
+
+            if ($cat_no) {
                 $where['cat_no'] = ['neq', $cat_no];
             }
             $where['level_no'] = ['eq', $level_no];
@@ -219,7 +220,7 @@ class MaterialCatModel extends PublicModel {
                     ->find();
             return $flag;
         } catch (Exception $ex) {
-            Log::write($ex->getMessage(), $level);
+            Log::write($ex->getMessage(), Log::ERR);
             return false;
         }
     }
