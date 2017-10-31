@@ -2018,7 +2018,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[供应商供货价有误]');
                 continue;
-            }elseif($data_tmp['purchase_price'] == ''){
+            } elseif ($data_tmp['purchase_price'] == '') {
                 $data_tmp['purchase_price'] = null;
             }
             $data_tmp['purchase_price_cur_bn'] = $data['币种'];    //进货价格币种
@@ -2032,7 +2032,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸长有误]');
                 continue;
-            }elseif($data_tmp['nude_cargo_l_mm'] == ''){
+            } elseif ($data_tmp['nude_cargo_l_mm'] == '') {
                 $data_tmp['nude_cargo_l_mm'] = null;
             }
             $data_tmp['nude_cargo_w_mm'] = $data['裸货尺寸宽(mm)'];    //裸货尺寸宽(mm)
@@ -2040,7 +2040,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸宽有误]');
                 continue;
-            }elseif($data_tmp['nude_cargo_w_mm'] == ''){
+            } elseif ($data_tmp['nude_cargo_w_mm'] == '') {
                 $data_tmp['nude_cargo_w_mm'] = null;
             }
             $data_tmp['nude_cargo_h_mm'] = $data['裸货尺寸高(mm)'];    //裸货尺寸高(mm)
@@ -2048,7 +2048,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸高有误]');
                 continue;
-            }elseif($data_tmp['nude_cargo_h_mm'] == ''){
+            } elseif ($data_tmp['nude_cargo_h_mm'] == '') {
                 $data_tmp['nude_cargo_h_mm'] = null;
             }
             $data_tmp['min_pack_l_mm'] = $data['最小包装后尺寸长(mm)'];    //最小包装后尺寸长(mm)
@@ -2056,7 +2056,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸长有误]');
                 continue;
-            }elseif($data_tmp['min_pack_l_mm'] == ''){
+            } elseif ($data_tmp['min_pack_l_mm'] == '') {
                 $data_tmp['min_pack_l_mm'] = null;
             }
             $data_tmp['min_pack_w_mm'] = $data['最小包装后尺寸宽(mm)'];    //最小包装后尺寸宽(mm)
@@ -2064,7 +2064,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸宽有误]');
                 continue;
-            }elseif($data_tmp['min_pack_w_mm'] == ''){
+            } elseif ($data_tmp['min_pack_w_mm'] == '') {
                 $data_tmp['min_pack_w_mm'] = null;
             }
             $data_tmp['min_pack_h_mm'] = $data['最小包装后尺寸高(mm)'];    //最小包装后尺寸高(mm)
@@ -2072,7 +2072,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸高有误]');
                 continue;
-            }elseif($data_tmp['min_pack_h_mm'] == ''){
+            } elseif ($data_tmp['min_pack_h_mm'] == '') {
                 $data_tmp['min_pack_h_mm'] = null;
             }
             $data_tmp['net_weight_kg'] = $data['净重(kg)'];    //净重(kg)
@@ -2080,7 +2080,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[净重有误]');
                 continue;
-            }elseif($data_tmp['net_weight_kg'] == ''){
+            } elseif ($data_tmp['net_weight_kg'] == '') {
                 $data_tmp['net_weight_kg'] = null;
             }
             $data_tmp['gross_weight_kg'] = (float) $data['毛重(kg)'];    //毛重(kg)
@@ -2088,7 +2088,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[毛重有误]');
                 continue;
-            }elseif($data_tmp['gross_weight_kg'] == ''){
+            } elseif ($data_tmp['gross_weight_kg'] == '') {
                 $data_tmp['gross_weight_kg'] = null;
             }
             $data_tmp['compose_require_pack'] = $data['仓储运输包装及其他要求'];    //仓储运输包装及其他要求
@@ -2101,7 +2101,7 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[退税率有误]');
                 continue;
-            }elseif($data_tmp['tax_rebates_pct'] == ''){
+            } elseif ($data_tmp['tax_rebates_pct'] == '') {
                 $data_tmp['tax_rebates_pct'] = null;
             }
             $data_tmp['regulatory_conds'] = $data['监管条件'];    //监管条件
@@ -2287,7 +2287,7 @@ class GoodsModel extends PublicModel {
         $fileId = postfile($data_fastDFS, $url);
         if ($fileId) {
             unlink($localFile);
-            return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+            return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
         }
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
         return false;
