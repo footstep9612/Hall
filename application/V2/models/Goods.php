@@ -1857,7 +1857,7 @@ class GoodsModel extends PublicModel {
         }
         /** 导入进度end */
         $progress_redis = array('start_time' => time());    //用来记录导入进度信息
-        //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/skuTemplate1.xls";
+        //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/123.xls";
         $localFile = ExcelHelperTrait::download2local($url);    //下载到本地临时文件
         if (!file_exists($localFile)) {
             return false;
@@ -2018,6 +2018,8 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[供应商供货价有误]');
                 continue;
+            }elseif($data_tmp['purchase_price'] == ''){
+                $data_tmp['purchase_price'] = null;
             }
             $data_tmp['purchase_price_cur_bn'] = $data['币种'];    //进货价格币种
             if (!isset($data['spec_attrs']) || empty($data['spec_attrs'])) {
@@ -2030,48 +2032,64 @@ class GoodsModel extends PublicModel {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸长有误]');
                 continue;
+            }elseif($data_tmp['nude_cargo_l_mm'] == ''){
+                $data_tmp['nude_cargo_l_mm'] = null;
             }
             $data_tmp['nude_cargo_w_mm'] = $data['裸货尺寸宽(mm)'];    //裸货尺寸宽(mm)
             if (!empty($data_tmp['nude_cargo_w_mm']) && !is_numeric($data_tmp['nude_cargo_w_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸宽有误]');
                 continue;
+            }elseif($data_tmp['nude_cargo_w_mm'] == ''){
+                $data_tmp['nude_cargo_w_mm'] = null;
             }
             $data_tmp['nude_cargo_h_mm'] = $data['裸货尺寸高(mm)'];    //裸货尺寸高(mm)
             if (!empty($data_tmp['nude_cargo_h_mm']) && !is_numeric($data_tmp['nude_cargo_h_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[裸货尺寸高有误]');
                 continue;
+            }elseif($data_tmp['nude_cargo_h_mm'] == ''){
+                $data_tmp['nude_cargo_h_mm'] = null;
             }
             $data_tmp['min_pack_l_mm'] = $data['最小包装后尺寸长(mm)'];    //最小包装后尺寸长(mm)
             if (!empty($data_tmp['min_pack_l_mm']) && !is_numeric($data_tmp['min_pack_l_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸长有误]');
                 continue;
+            }elseif($data_tmp['min_pack_l_mm'] == ''){
+                $data_tmp['min_pack_l_mm'] = null;
             }
             $data_tmp['min_pack_w_mm'] = $data['最小包装后尺寸宽(mm)'];    //最小包装后尺寸宽(mm)
             if (!empty($data_tmp['min_pack_w_mm']) && !is_numeric($data_tmp['min_pack_w_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸宽有误]');
                 continue;
+            }elseif($data_tmp['min_pack_w_mm'] == ''){
+                $data_tmp['min_pack_w_mm'] = null;
             }
             $data_tmp['min_pack_h_mm'] = $data['最小包装后尺寸高(mm)'];    //最小包装后尺寸高(mm)
             if (!empty($data_tmp['min_pack_h_mm']) && !is_numeric($data_tmp['min_pack_h_mm'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[最小包装后尺寸高有误]');
                 continue;
+            }elseif($data_tmp['min_pack_h_mm'] == ''){
+                $data_tmp['min_pack_h_mm'] = null;
             }
             $data_tmp['net_weight_kg'] = $data['净重(kg)'];    //净重(kg)
             if (!empty($data_tmp['net_weight_kg']) && !is_numeric($data_tmp['net_weight_kg'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[净重有误]');
                 continue;
+            }elseif($data_tmp['net_weight_kg'] == ''){
+                $data_tmp['net_weight_kg'] = null;
             }
             $data_tmp['gross_weight_kg'] = (float) $data['毛重(kg)'];    //毛重(kg)
             if (!empty($data_tmp['gross_weight_kg']) && !is_numeric($data_tmp['gross_weight_kg'])) {
                 $faild++;
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[毛重有误]');
                 continue;
+            }elseif($data_tmp['gross_weight_kg'] == ''){
+                $data_tmp['gross_weight_kg'] = null;
             }
             $data_tmp['compose_require_pack'] = $data['仓储运输包装及其他要求'];    //仓储运输包装及其他要求
             $data_tmp['pack_type'] = $data['包装类型'];    //包装类型
