@@ -271,7 +271,7 @@ class BrandController extends PublicController {
                 $this->jsonReturn();
             }
         }
-        $this->_verifyLog($data);
+        //    $this->_verifyLog($data);
         $result = $brand_model->update_data($data);
         if ($result !== false) {
             $this->delcache();
