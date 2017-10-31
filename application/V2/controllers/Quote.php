@@ -201,6 +201,11 @@ class QuoteController extends PublicController{
     public function confirmAction(){
 
         $request = $this->validateRequests('inquiry_id');
+
+        //更新当前办理人
+        $now_agent_id = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('agent_id');
+        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['now_agent_id'=>$now_agent_id]);
+
         $response = $this->changeInquiryStatus($request['inquiry_id'],'MARKET_CONFIRMING');
         $this->jsonReturn($response);
 
