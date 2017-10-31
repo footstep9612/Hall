@@ -2051,15 +2051,15 @@ class EsProductModel extends Model {
 
                 if ($key === 'brand' && isset($item['brand']['name']) && $item['brand']['name']) {
 
-                    $objSheet->setCellValue($letter . ($j + 4), ' ' . $item['brand']['name']);
+                    $objSheet->setCellValue($letter . ($j + 2), ' ' . $item['brand']['name']);
                 } elseif ($key === 'bizline' && isset($item['bizline']['name']) && $item['bizline']['name']) {
 
-                    $objSheet->setCellValue($letter . ($j + 4), ' ' . $item['bizline']['name']);
+                    $objSheet->setCellValue($letter . ($j + 2), ' ' . $item['bizline']['name']);
                 } elseif (isset($item[$key]) && $item[$key]) {
 
-                    $objSheet->setCellValue($letter . ($j + 4), ' ' . $item[$key]);
+                    $objSheet->setCellValue($letter . ($j + 2), ' ' . $item[$key]);
                 } else {
-                    $objSheet->setCellValue($letter . ($j + 4), ' ');
+                    $objSheet->setCellValue($letter . ($j + 2), ' ');
                 }
             }
             $status = '';
@@ -2080,12 +2080,12 @@ class EsProductModel extends Model {
                     $status = $item['status'];
                     break;
             }
-            $objSheet->setCellValue("N" . ($j + 4), ' ' . $status);
+            $objSheet->setCellValue("N" . ($j + 2), ' ' . $status);
         }
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:N' . ($j + 4))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:N' . ($j + 2))->applyFromArray($styleArray);
 
-        $objSheet->freezePaneByColumnAndRow(3, 4);
+        $objSheet->freezePaneByColumnAndRow(3, 2);
 //
 //        for ($i = 65; $i <= 78; $i++) {
 //            $objSheet->freezePane(chr($i) . '4');
