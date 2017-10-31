@@ -372,7 +372,7 @@ class MaterialcatController extends PublicController {
             $flag = $this->_model->MaterialcatExist($data[$lang]['name'], $lang, $level_no, $cat_no);
             if ($flag) {
                 $this->setCode(MSG::MSG_EXIST);
-                $this->setMessage($langs[$lang] . '物料分类名称 在' . $level_no . '级物料分类中已存在!');
+                $this->setMessage($langs[$lang] . '物料分类名称【' . $data[$lang]['name'] . '】 在' . $level_no . '级物料分类中已存在!');
                 $this->jsonReturn();
             }
         }
