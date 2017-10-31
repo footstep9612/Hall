@@ -546,13 +546,13 @@ class InquiryModel extends PublicModel {
      * @time 2017-10-20
      */
     public function getDeptOrgId($groupId = [], $orgNode = 'ub') {
-        $org = new OrgModel();
+        $orgModel = new OrgModel();
         
         $where = [
              'id' => ['in', $groupId ? : ['-1']],
              'org_node' => $orgNode
         ];
-        $orgList = $org->field('id')->where($where)->select();
+        $orgList = $orgModel->field('id')->where($where)->select();
         
         // 用户所在部门的组ID
         $orgId = [];
