@@ -50,14 +50,16 @@ class BizdivitionController extends PublicController{
         $request = $this->validateRequests('inquiry_id');
 
         $inquiry = new InquiryModel();
+        $orgModel = new OrgModel();
         $roleModel = new RoleModel();
         $roleUserModel = new RoleUserModel();
+        $erui_id = $orgModel->where(['org_node'=>'erui'])->getField('id');
         $role_id = $roleModel->where(['role_no'=>$inquiry::inquiryIssueRole])->getField('id');
         $roleUser = $roleUserModel->where(['role_id'=>$role_id])->getField('employee_id');
 
         $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
             'status'       => 'CC_DISPATCHING', //易瑞客户中心
-            'erui_id'      => $roleUser,
+            'erui_id'      => $erui_id,
             'now_agent_id' => $roleUser,
             'updated_by'   => $this->user['id'],
             'updated_at'   => date('Y-m-d H:i:s')

@@ -12,7 +12,7 @@ class InquiryModel extends PublicModel {
     protected $tableName = 'inquiry'; //数据表表名
     
     const  marketAgentRole = 'A001'; //市场经办人角色编号
-    const  inquiryIssueRole = 'A002'; //易瑞分单员角色编号
+    const  inquiryIssueRole = 'A002'; //易瑞主分单员角色编号
     const quoteIssueMainRole = 'A003'; //报价主分单员角色编号
     const quoteIssueAuxiliaryRole = 'A004'; //报价辅分单员角色编号
     const quoterRole = 'A005'; //报价人角色编号
@@ -21,6 +21,7 @@ class InquiryModel extends PublicModel {
     const logiIssueAuxiliaryRole = 'A008'; //物流报价辅分单员角色编号
     const logiQuoterRole = 'A009'; //物流报价人角色编号
     const logiCheckRole = 'A010'; //物流报价审核人角色编号
+    const inquiryIssueAuxiliaryRole = 'A011'; //易瑞辅分单员角色编号
     
     public $inquiryStatus = [
         'DRAFT' => '草稿',
@@ -135,8 +136,10 @@ class InquiryModel extends PublicModel {
                     break;
                 case 'quote' :
                     foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == self::inquiryIssueRole) {
-                            $map[] = ['erui_id' => $condition['user_id']];
+                        if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
+                            $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
+                            
+                            if ($orgId) $map[] = ['erui_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id']);
@@ -546,13 +549,13 @@ class InquiryModel extends PublicModel {
      * @time 2017-10-20
      */
     public function getDeptOrgId($groupId = [], $orgNode = 'ub') {
-        $org = new OrgModel();
+        $orgModel = new OrgModel();
         
         $where = [
              'id' => ['in', $groupId ? : ['-1']],
              'org_node' => $orgNode
         ];
-        $orgList = $org->field('id')->where($where)->select();
+        $orgList = $orgModel->field('id')->where($where)->select();
         
         // 用户所在部门的组ID
         $orgId = [];

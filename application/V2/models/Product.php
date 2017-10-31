@@ -787,14 +787,23 @@ class ProductModel extends PublicModel {
                 $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
                 return $this->createSpu($material_cat_no, $spu);
             } else {
+                //目录
+                $dirName = MYPATH . '/public/tmp';
+                if (!is_dir($dirName)) {
+                    if (!mkdir($dirName, 0777, true)) {
+                        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+                    }
+                }
+
                 //上锁
                 $handle = fopen($lockFile, "w");
                 if (!$handle) {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . MYPATH . '/public/tmp/' . $spu . '.lock' . '] create faild.', Log::ERR);
                 } else {
                     fclose($handle);
+                    return $spu;
                 }
-                return $spu;
+                return false;
             }
         } else {
             $condition = array(
