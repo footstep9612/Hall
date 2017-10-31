@@ -121,6 +121,8 @@ class InquiryModel extends PublicModel {
         }
         
         if (!empty($condition['list_type'])) {
+            $map = [];
+            
             switch ($condition['list_type']) {
                 case 'inquiry' :
                     $map[] = ['created_by' => $condition['user_id']];
@@ -165,8 +167,10 @@ class InquiryModel extends PublicModel {
                     }
             }
             
-            $map['_logic'] = 'or';
-            $where[] = $map;
+            if ($map) {
+                $map['_logic'] = 'or';
+                $where[] = $map;
+            }
         }
     
         $where['deleted_flag'] = 'N';
