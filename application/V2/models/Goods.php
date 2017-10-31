@@ -252,7 +252,7 @@ class GoodsModel extends PublicModel {
     public function setRealSku($spu, $sku = '') {
         if (empty($sku)) {
             if (empty($spu)) {
-                jsonReturn('', ErrorMsg::FAILED, 'spu编码缺少!');
+                return false;
             }
             $temp_num = substr($spu, 0, 12);
             $data = $this->getSkus($temp_num);
@@ -280,8 +280,9 @@ class GoodsModel extends PublicModel {
                     Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . MYPATH . '/public/tmp/' . $sku . '.lock' . '] create faild.', Log::ERR);
                 } else {
                     fclose($handle);
+                    return $sku;
                 }
-                return $sku;
+                return false;
             }
         }
     }
@@ -2196,6 +2197,12 @@ class GoodsModel extends PublicModel {
                         flock($fp, LOCK_UN);
                     }
                     fclose($fp);
+                    if(!$input_sku){
+                        $faild++;
+                        $this->rollback();
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[生成SKU编码失败]');
+                        continue;
+                    }
 
                     $result = $this->add($this->create($data_tmp));
                 }
