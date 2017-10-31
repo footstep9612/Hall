@@ -256,10 +256,10 @@ class QuoteController extends PublicController{
         if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
 
         foreach ($list as $key=>$value){
-            $list[$key]['quote_exw_unit_price'] = sprintf("%.4f", $list[$key]['quote_exw_unit_price']);
-            $list[$key]['quote_quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_quote_unit_price']);
             $list[$key]['exw_unit_price'] = sprintf("%.4f", $list[$key]['exw_unit_price']);
             $list[$key]['quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_unit_price']);
+            $list[$key]['final_exw_unit_price'] = sprintf("%.4f", $list[$key]['final_exw_unit_price']);
+            $list[$key]['final_quote_unit_price'] = sprintf("%.4f", $list[$key]['final_quote_unit_price']);
         }
 
         $this->jsonReturn($list);
