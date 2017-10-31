@@ -417,7 +417,7 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setfields($_source);
+            $es->setbody($body)->setfields($_source)->setsort('id', 'desc');
             $data = $es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
 
             if (isset($data['hits']['hits'])) {
@@ -2084,6 +2084,13 @@ class EsProductModel extends Model {
         }
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
         $objSheet->getStyle('A1:N' . ($j + 4))->applyFromArray($styleArray);
+
+        $objSheet->freezePaneByColumnAndRow(3, 4);
+//
+//        for ($i = 65; $i <= 78; $i++) {
+//            $objSheet->freezePane(chr($i) . '4');
+//        }
+
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $objWriter->save($dirName . '/' . ($xlsNum + 1) . '_' . $lang . '.xls');
         unset($objPHPExcel, $objSheet);
