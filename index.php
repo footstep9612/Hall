@@ -19,6 +19,9 @@ if (!in_array(strtolower($module), ['v1', 'v2', 'api', 'api2'])) {
     die('{"code":"-1","message":"模块不存在!"}');
 }
 
+
+
+
 if (file_exists(MYPATH . DS . 'application' . DS . $module) && $module) {
     define('APPLICATION_PATH', MYPATH . DS . 'application' . DS . $module);
     define('CONF_PATH', MYPATH . DS . 'application' . DS . $module . DS . 'conf');
@@ -26,15 +29,13 @@ if (file_exists(MYPATH . DS . 'application' . DS . $module) && $module) {
     die('{"code":"-1","message":"系统错误!"}');
 }
 define('COMMON_PATH', MYPATH . DS . 'common');
-if (file_exists('/var/conf/application.txt')) {
-    $con = file_get_contents('/var/conf/application.txt');
-} else {
-    $con = null;
-}
-if (in_array($con, ['dev', 'beta', 'pro'])) {
-    $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application_' . $con . '.ini';
-} else {
-    $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application.ini';
+$environments = ['pro', 'beta', 'dev'];
+$application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application.ini';
+foreach ($environments as $environment) {
+    if (file_exists('/var/conf/' . $environment)) {
+        $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application_' . $con . '.ini';
+        break;
+    }
 }
 /**
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节
