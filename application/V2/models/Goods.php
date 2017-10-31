@@ -1970,6 +1970,11 @@ class GoodsModel extends PublicModel {
             $data_tmp = [];
             $data_tmp['spu'] = $spu;
             $input_sku = $data['订货号'];    //输入的sku  订货号
+            if(!empty($input_sku) && strlen($input_sku) != 16){
+                $faild++;
+                $objPHPExcel->getSheet(0)->setCellValue( $maxCol . $i , '操作失败[商品编码有误]' );
+                continue;
+            }
             $data_tmp['lang'] = $lang;
             $data_tmp['name'] = $data['名称'];    //名称
             $spu_name = $productModel->field('name')->where(array("spu" => $spu, "lang" => $lang))->find();
