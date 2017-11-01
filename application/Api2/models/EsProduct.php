@@ -367,7 +367,7 @@ class EsProductModel extends Model {
 
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
-        $redis_key = 'spu_' . md5(json_encode($body));
+        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
         if (redisExist($redis_key)) {
 
             return redisGet($redis_key);
