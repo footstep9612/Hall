@@ -371,24 +371,15 @@ class EsProductModel extends Model {
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
         $es = new ESClient();
-
-
-        //$es->setaggs('sku_count', 'sku_count', 'terms');
-        $body['query']['bool']['must'][] = [ESClient::RANGE => ['sku_count' => ['gte' => 1,]]];
-
         $es->setbody($body);
-        $es->setfields('sku_count');
-        $sku_count = 0;
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 10000);
-        $body = $es = null;
-        unset($es, $body);
-        if (isset($ret['hits']['hits'])) {
-            foreach ($ret['hits']['hits'] as $item) {
-                $sku_count += $item['_source']['sku_count'];
-            }
-            return $sku_count;
+        $es->setaggs('sku_count', 'sku_count', 'sum');
+        $ret = $es->search_nosize($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
+
+        if (isset($ret['aggregations']['sku_count']['value'])) {
+            return $ret['aggregations']['sku_count']['value'];
         } else {
-            return $sku_count;
+            return 0;
         }
     }
 
