@@ -368,8 +368,7 @@ class EsProductModel extends Model {
             $es->setbody($body)->setsort('created_at', 'desc')
                     ->setsort('_id', 'desc');
 
-            //   $es->setaggs('sku_count', 'sku_count', 'sum');
-            $es->setaggs('image_count', 'image_count', 'sum');
+
 
             $es->setaggs('brand.name.all', 'brands', 'terms', 0);
             $es->setaggs('suppliers.supplier_id', 'suppliers', 'terms', 0);
@@ -382,6 +381,34 @@ class EsProductModel extends Model {
             return [];
         }
     }
+
+    /*
+     * 获取产品图片总数量
+     */
+
+    public function getImageCountByCondition($condition, $lang) {
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body);
+
+        $es->setaggs('image_count', 'image_count', 'terms', 0);
+        $es->setfields(['image_count']);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $image_count = 0;
+        if (isset($ret['aggregations']['image_count']['buckets'])) {
+            foreach ($ret['aggregations']['image_count']['buckets'] as $item) {
+                $image_count += intval($item['key']) * intval($item['doc_count']);
+            }
+        }
+        $ret1 = $ret = $es = null;
+        unset($ret1, $ret, $es);
+
+        return $image_count;
+    }
+
+    /*
+     * 获取商品总数量
+     */
 
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);

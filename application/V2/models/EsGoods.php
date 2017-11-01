@@ -350,7 +350,6 @@ class EsGoodsModel extends Model {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
 
-
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 

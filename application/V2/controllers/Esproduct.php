@@ -119,18 +119,12 @@ class EsproductController extends PublicController {
                 $send['allcount'] = $send['count'];
             }
             $send['sku_count'] = $model->getSkuCountByCondition($condition, $lang);
-            if (isset($data['aggregations']['image_count']['value']) && $data['aggregations']['image_count']['value']) {
-                $send['image_count'] = $data['aggregations']['image_count']['value'];
-            } else {
-                $send['image_count'] = 0;
-            }
+            $send['image_count'] = $model->getImageCountByCondition($condition, $lang);
             if (isset($data['aggregations']['brands']['buckets']) && $data['aggregations']['brands']['buckets']) {
                 $send['brand_count'] = count($data['aggregations']['brands']['buckets']);
             } else {
                 $send['brand_count'] = 0;
             }
-
-
             if (isset($data['aggregations']['suppliers']['buckets']) && $data['aggregations']['suppliers']['buckets']) {
                 $send['supplier_count'] = count($data['aggregations']['suppliers']['buckets']);
             } else {
