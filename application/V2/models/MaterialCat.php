@@ -980,11 +980,11 @@ class MaterialCatModel extends PublicModel {
         $objPHPExcel->setActiveSheetIndex(0);    //设置工作表
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        $objSheet->getStyle("A1:K1")
+        $objSheet->getStyle("A1:G1")
                 ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:K1")->getFont()->setSize(12)->setBold(true);    //粗体
-        $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+        $objSheet->getStyle("A1:G1")->getFont()->setSize(12)->setBold(true);    //粗体
+        $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
         foreach ($column_width_25 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(25);
         }
@@ -993,18 +993,12 @@ class MaterialCatModel extends PublicModel {
         $objSheet->setTitle('物料分类');
         $objSheet->setCellValue("A1", "序号");
         $objSheet->setCellValue("B1", "分类编码");
-        $objSheet->setCellValue("C1", "父类分类编码");
-        $objSheet->setCellValue("D1", "分类中文名称");
-        $objSheet->setCellValue("E1", "分类英文名称");
-        $objSheet->setCellValue("F1", "分类西语名称");
-        $objSheet->setCellValue("G1", "分类俄语名称");
-        $objSheet->setCellValue("H1", "分类状态");
-        $objSheet->setCellValue("I1", "分类等级");
-        $objSheet->setCellValue("J1", "创建人");
-        $objSheet->setCellValue("K1", "创建时间");
-
+        $objSheet->setCellValue("C1", "父类编码");
+        $objSheet->setCellValue("D1", "分类名称(中)");
+        $objSheet->setCellValue("E1", "分类名称(英)");
+        $objSheet->setCellValue("F1", "分类名称(西)");
+        $objSheet->setCellValue("G1", "分类名称(俄)");
         $j = 2;    //excel控制输出
-
         $result = $this->listall($input);
 
         if ($result) {
@@ -1012,7 +1006,7 @@ class MaterialCatModel extends PublicModel {
 
                 $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
                 $objSheet->setCellValue("B" . $j, ' ' . $cat_no, PHPExcel_Cell_DataType::TYPE_STRING);
-                $objSheet->setCellValue("C" . $j, ' ' . $item['parent_cat_no'], PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("C" . $j, ' ' . $item['parent_cat_no'] ? $item['parent_cat_no'] : '', PHPExcel_Cell_DataType::TYPE_STRING);
                 $objSheet->setCellValue("D" . $j, isset($item['zh']['name']) ? $item['zh']['name'] : '');
 
                 $objSheet->setCellValue("E" . $j, isset($item['en']['name']) ? $item['en']['name'] : '');
@@ -1021,38 +1015,16 @@ class MaterialCatModel extends PublicModel {
 
                 $objSheet->setCellValue("G" . $j, isset($item['ru']['name']) ? $item['ru']['name'] : '');
 
-                $status = '';
-
-                switch ($item['status']) {
-                    case self::STATUS_APPROVING:
-                        $status = '审核中';
-                        break;
-                    case self::STATUS_DRAFT:
-                        $status = '草稿';
-                        break;
-                    case self::STATUS_VALID:
-                        $status = '通过';
-                        break;
-                    case self::STATUS_DELETED:
-                        $status = '已删除';
-                        break;
-                    default:
-                        $status = $r['status'];
-                        break;
-                }
-                $objSheet->setCellValue("H" . $j, $status);
-                $objSheet->setCellValue("I" . $j, isset($item['level_no']) ? $item['level_no'] : '');
-                $objSheet->setCellValue("J" . $j, isset($item['created_by_name']) ? $item['created_by_name'] : '');
-                $objSheet->setCellValue("K" . $j, isset($item['created_at']) ? $item['created_at'] : '');
                 $j++;
             }
         }
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
 
-        $objSheet->getStyle('A1:M' . $j)->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:G' . $j)->applyFromArray($styleArray);
+        $objSheet->freezePaneByColumnAndRow(2, 2);
         //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'MaterialCat_' . time() . '.xls');
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'MaterialCat_' . date('YmdHis') . '.xls');
 
         //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
