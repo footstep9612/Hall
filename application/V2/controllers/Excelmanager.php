@@ -138,9 +138,9 @@ class ExcelmanagerController extends PublicController {
 		$ret = $inquiryAttach->getList($condition);
 		if($ret['code']  == 1 && !empty($ret['data']) && !empty($ret['data'][0]['attach_url'])){
 			$this->jsonReturn([
-				'code' => '1',
+				'code'    => '1',
 				'message' => '导出成功!',
-				'data' => [
+				'data'    => [
 					'url' => $ret['data'][0]['attach_url']
 				]
 			]);
@@ -155,9 +155,10 @@ class ExcelmanagerController extends PublicController {
         $server = Yaf_Application::app()->getConfig()->myhost;
 		$fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server. '/V2/Uploadfile/upload';
-        $data['tmp_name']=$excelFile;
-        $data['type']='application/excel';
-        $data['name']='excelFile';
+
+        $data['tmp_name'] = $excelFile;
+        $data['type']     = 'application/excel';
+        $data['name']     = 'excelFile';
         $remoteUrl = $this->postfile($data,$url);    
     
         if (!$remoteUrl) {
@@ -187,7 +188,7 @@ class ExcelmanagerController extends PublicController {
         //上传失败
         if(empty($fileId) || empty($fileId['url'])){
             $this->jsonReturn([
-                'code' => '-1',
+                'code'    => '-1',
                 'message' => '导出失败!',
             ]);
             return;
@@ -208,9 +209,9 @@ class ExcelmanagerController extends PublicController {
         //删除本地的临时文件
         @unlink($excelFile);
         $this->jsonReturn([
-            'code' => '1',
+            'code'    => '1',
             'message' => '导出成功!',
-            'data' => [
+            'data'    => [
                 'url' => $fileId['url']
             ]
         ]);
@@ -463,7 +464,7 @@ class ExcelmanagerController extends PublicController {
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
-        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,dispatch_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no,quote_cur_bn')->find();
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,dispatch_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,total_insu_fee,quote_remarks,quote_no,quote_cur_bn')->find();
         $quoteLogiFee = $quoteLogiFeeModel->where(['inquiry_id' => $inquiry_id])->field('est_transport_cycle,logi_remarks')->find();
         $quoteInfo['logi_remarks'] =$quoteLogiFee['logi_remarks'];
         $quoteInfo['est_transport_cycle'] =$quoteLogiFee['est_transport_cycle'];

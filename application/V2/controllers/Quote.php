@@ -146,7 +146,7 @@ class QuoteController extends PublicController{
 
         if(empty($final)){
             $quoteModel = new QuoteModel();
-            $quoteInfo  = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee')->find();
+            $quoteInfo  = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee,total_exw_price,total_quote_price,total_insu_fee')->find();
             $finalQuoteModel->add($finalQuoteModel->create([
                 'inquiry_id'           => $request['inquiry_id'],
                 'buyer_id'             => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
@@ -157,23 +157,28 @@ class QuoteController extends PublicController{
                 'total_purchase'       => $quoteInfo['total_purchase'],
                 'total_logi_fee'       => $quoteInfo['total_logi_fee'],
                 'total_bank_fee'       => $quoteInfo['total_bank_fee'],
+                'total_exw_price'      => $quoteInfo['total_exw_price'],
+                'total_quote_price'    => $quoteInfo['total_quote_price'],
+                'total_insu_fee'       => $quoteInfo['total_insu_fee'],
                 'created_by'           => $this->user['id'],
                 'created_at'           => date('Y-m-d H:i:s')
             ]));
 
-            $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
+            $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
 
             $finalQuoteItemModel = new FinalQuoteItemModel();
             foreach ($quoteItems as $quote=>$item){
                 $finalQuoteItemModel->add($finalQuoteItemModel->create([
-                    'quote_id'        => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
-                    'inquiry_id'      => $request['inquiry_id'],
-                    'inquiry_item_id' => $item['inquiry_item_id'],
-                    'quote_item_id'   => $item['id'],
-                    'sku'             => $item['sku'],
-                    'supplier_id'     => $item['supplier_id'],
-                    'created_by'      => $this->user['id'],
-                    'created_at'      => date('Y-m-d H:i:s'),
+                    'quote_id'         => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'inquiry_id'       => $request['inquiry_id'],
+                    'inquiry_item_id'  => $item['inquiry_item_id'],
+                    'quote_item_id'    => $item['id'],
+                    'sku'              => $item['sku'],
+                    'supplier_id'      => $item['supplier_id'],
+                    'quote_unit_price' => $item['quote_unit_price'],
+                    'exw_unit_price'   => $item['exw_unit_price'],
+                    'created_by'       => $this->user['id'],
+                    'created_at'       => date('Y-m-d H:i:s'),
                 ]));
             }
         }
