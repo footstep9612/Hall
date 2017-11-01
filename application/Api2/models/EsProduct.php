@@ -367,35 +367,21 @@ class EsProductModel extends Model {
 
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
-        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
-        if (redisExist($redis_key)) {
-
-            return redisGet($redis_key);
-        }
         $es = new ESClient();
         $es->setbody($body);
-        $es->setfields(['sku_count']);
 
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
+        $es->setaggs('sku_count', 'sku_count', 'terms', 0);
+        $es->setfields(['sku_count']);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $sku_count = 0;
-        if (isset($ret['hits']['hits'])) {
-            foreach ($ret['hits']['hits'] as $item) {
-                $sku_count += $item['_source']['sku_count'];
-            }
-        }
-        if (isset($ret['hits']['total']) && $ret['hits']['total'] > 1000) {
-            for ($i = 1000; $i <= $ret['hits']['total']; $i += 1000) {
-                $ret1 = $es->search($this->dbName, $this->tableName . '_' . $lang, $i, 1000);
-                if (isset($ret1['hits']['hits'])) {
-                    foreach ($ret1['hits']['hits'] as $item) {
-                        $sku_count += $item['_source']['sku_count'];
-                    }
-                }
+        if (isset($ret['aggregations']['sku_count']['buckets'])) {
+            foreach ($ret['aggregations']['sku_count']['buckets'] as $item) {
+                $sku_count += $item['key'] * $item['doc_count'];
             }
         }
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
-        redisSet($redis_key, $sku_count, 3600);
+
         return $sku_count;
     }
 
