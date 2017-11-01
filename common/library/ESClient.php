@@ -436,7 +436,7 @@ class ESClient {
      * 更改文档
      */
 
-    public function update_document($index, $type, $body, $id, $doc_as_upsert = true) {
+    public function update_document($index, $type, $body, $id, $doc_as_upsert = false) {
         $updateParams = array();
         $updateParams['index'] = $index;
         $updateParams['type'] = $type;

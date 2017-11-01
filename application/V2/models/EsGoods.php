@@ -713,8 +713,11 @@ class EsGoodsModel extends Model {
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
 
-
-        $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        if ($es_goods) {
+            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        } else {
+            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        }
         if (!isset($flag['_version'])) {
             LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
             LOG::write("FAIL:" . $item['id'] . "\r\n" . json_encode($body, 256), LOG::ERR);
