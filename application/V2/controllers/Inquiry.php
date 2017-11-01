@@ -225,7 +225,7 @@ class InquiryController extends PublicController {
         $inquiryList = $inquiryModel->getList_($condition);
         
         foreach ($inquiryList as &$inquiry) {
-            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn']])->find();
+            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh'])->find();
             $inquiry['country_name'] = $country['name'];
             $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
             $inquiry['agent_name'] = $agent['name'];
