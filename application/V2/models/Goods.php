@@ -803,7 +803,8 @@ class GoodsModel extends PublicModel {
                 return $sku;
             }else{
                 $this->rollback();
-                return false;
+                jsonReturn('', ErrorMsg::FAILED , '亲，不留下点东西？');
+                //return false;
             }
         } catch (Exception $ex) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
