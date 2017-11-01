@@ -904,8 +904,9 @@ class EsProductModel extends Model {
         }
         $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
-
-
+        if ($es_product) {
+            $es->delete_document($this->dbName, $this->tableName . '_' . $lang, $id);
+        }
         $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         if (!isset($flag['_version'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);

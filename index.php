@@ -19,9 +19,6 @@ if (!in_array(strtolower($module), ['v1', 'v2', 'api', 'api2'])) {
     die('{"code":"-1","message":"模块不存在!"}');
 }
 
-
-
-
 if (file_exists(MYPATH . DS . 'application' . DS . $module) && $module) {
     define('APPLICATION_PATH', MYPATH . DS . 'application' . DS . $module);
     define('CONF_PATH', MYPATH . DS . 'application' . DS . $module . DS . 'conf');

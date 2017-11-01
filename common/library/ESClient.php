@@ -922,6 +922,8 @@ class ESClient {
         if ($from >= 0 && $size > 0) {
             $searchParams['body']['from'] = $from;
             $searchParams['body']['size'] = $size;
+        } elseif ($size > 0) {
+            $searchParams['body']['size'] = $size;
         }
         try {
 

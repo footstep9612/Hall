@@ -354,23 +354,41 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('_score')->setsort('sku_count', 'desc')->setsort('id', 'desc');
-
-            if (isset($condition['sku_count']) && $condition['sku_count'] == 'Y') {
-                $es->setaggs('sku_count', 'sku_count', 'sum');
-                $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
-            } else {
-                $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
-            }
+            $es->setbody($body)->setsort('_score');
+            $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
             $es->sethighlight(['show_name.ik' => new stdClass(), 'name.ik' => new stdClass()]);
-
-
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+            $es->body = $body = $es = null;
+            unset($es, $body);
             return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
+        }
+    }
+
+    public function getSkuCountByCondition($condition, $lang) {
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+
+
+        //$es->setaggs('sku_count', 'sku_count', 'terms');
+        $body['query']['bool']['must'][] = [ESClient::RANGE => ['sku_count' => ['gte' => 1,]]];
+
+        $es->setbody($body);
+        $es->setfields('sku_count');
+        $sku_count = 0;
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 10000);
+        $body = $es = null;
+        unset($es, $body);
+        if (isset($ret['hits']['hits'])) {
+            foreach ($ret['hits']['hits'] as $item) {
+                $sku_count += $item['_source']['sku_count'];
+            }
+            return $sku_count;
+        } else {
+            return $sku_count;
         }
     }
 
