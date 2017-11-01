@@ -2073,8 +2073,8 @@ class EsProductModel extends Model {
 
         $objSheet->setTitle(($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        $objSheet->getStyle("N3")->getFont()->setBold(true);    //粗体
-        $objSheet->setCellValue("N3", '审核状态');
+        $objSheet->getStyle("N1")->getFont()->setBold(true);    //粗体
+        $objSheet->setCellValue("N1", '审核状态');
 
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status', 'bizline'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
