@@ -41,7 +41,7 @@ class EsproductController extends PublicController {
             } else {
                 $send['allcount'] = $send['count'];
             }
-            $send['sku_count'] = $model->getSkuCountByCondition($condition, $lang);
+            $send['sku_count'] = $model->getSkuCountByCondition($condition, $this->getLang());
             if (isset($condition['is_catlist']) && $condition['is_catlist'] === 'N') {
 
             } else {
