@@ -394,7 +394,7 @@ class EsProductModel extends Model {
         $sku_count = 0;
         if (isset($ret['aggregations']['sku_count']['buckets'])) {
             foreach ($ret['aggregations']['sku_count']['buckets'] as $item) {
-                $sku_count += $item['key'] * $item['doc_count'];
+                $sku_count += intval($item['key']) * intval($item['doc_count']);
             }
         }
         $ret1 = $ret = $es = null;
