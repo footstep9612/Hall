@@ -55,7 +55,7 @@ class FinalquoteController extends PublicController {
             if(!empty($quotedata)){
                 //追加结果
                 $quoteinfo['total_weight'] = $quotedata['total_weight'];    //总重
-                $quoteinfo['package_volumn'] = quotedata['package_volumn'];    //包装总体积
+                $quoteinfo['package_volumn'] = $quotedata['package_volumn'];    //包装总体积
                 $quoteinfo['total_purchase'] = $quotedata['total_purchase'];    //采购总价
                 $quoteinfo['package_mode'] = $quotedata['package_mode'];    //包装方式
                 $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
