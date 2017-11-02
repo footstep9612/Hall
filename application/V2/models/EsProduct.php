@@ -391,7 +391,7 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
 
-        $es->setaggs('image_count', 'image_count', 'terms', 0);
+        $es->setaggs('image_count.no', 'image_count', 'terms', 0);
         $es->setfields(['image_count']);
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $image_count = 0;
@@ -415,15 +415,18 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
 
-        $es->setaggs('sku_count', 'sku_count', 'terms', 0);
+        $es->setaggs('sku_count.no', 'sku_count', 'terms', 0);
         $es->setfields(['sku_count']);
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $sku_count = 0;
+
         if (isset($ret['aggregations']['sku_count']['buckets'])) {
             foreach ($ret['aggregations']['sku_count']['buckets'] as $item) {
                 $sku_count += intval($item['key']) * intval($item['doc_count']);
             }
         }
+
+
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
 

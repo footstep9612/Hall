@@ -544,7 +544,17 @@ class EsproductController extends PublicController {
         }
 
         $type = 'string';
-        $int_analyzed = ['type' => 'integer'];
+        $int_analyzed = ['type' => 'integer',
+            'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
+                'all' => [
+                    'index' => 'not_analyzed',
+                    'type' => $type
+                ]]
+        ];
         $ik_analyzed = [
             'index' => 'no',
             'type' => $type,
@@ -734,7 +744,16 @@ class EsproductController extends PublicController {
             $analyzer = 'ik';
         }
         $type = 'string';
-        $int_analyzed = ['type' => 'integer'];
+        $int_analyzed = ['type' => 'integer',
+            'fields' => [
+                'no' => [
+                    'index' => 'no',
+                    'type' => $type,
+                ],
+                'all' => [
+                    'index' => 'not_analyzed',
+                    'type' => $type
+        ]]];
         $ik_analyzed = [
             'index' => 'no',
             'type' => $type,
