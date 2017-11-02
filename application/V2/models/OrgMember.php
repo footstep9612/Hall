@@ -155,7 +155,7 @@ class OrgMemberModel extends PublicModel {
 		}else{
 			$where['a.org_id'] = $condition['org_id'];
 		}
-		if(!empty($condition['role_no'])){
+		if(empty($condition['role_no'])){
 			return ['code'=>'-104','message'=>'角色编码必填'];
 		}else{
 			$where['c.role_no'] = $condition['role_no'];

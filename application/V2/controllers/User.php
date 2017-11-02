@@ -506,13 +506,13 @@ class UserController extends PublicController {
      * 张玉良
      * 2017-11-02
      */
-    public function OrgUserListAction() {
+    public function getOrgUserListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $user_modle =new UserModel();
-        $results =$user_modle->getOrguserlist($data);
+        $org_modle =new OrgMemberModel();
+        $results =$org_modle->getOrguserlist($data);
 
-        return $results;
+        $this->jsonReturn($results);
     }
 
 }
