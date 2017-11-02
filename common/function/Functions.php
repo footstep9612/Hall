@@ -1005,6 +1005,7 @@ function redisSet($name, $value, $second = 0) {
     if ($reids->exists($name)) {
         $reids->delete($name);
     }
+    $second = intval($second);
     if (is_int($second) && $second > 0) {
         $result = $reids->set($name, $value, 0, 0, $second);
     } else {
