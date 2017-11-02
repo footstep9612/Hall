@@ -390,27 +390,41 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['sku_count']);
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
+        /*         * ******************sku_count 报错 可以注释这段************************** */
+        $es->setaggs('sku_count', 'sku_count');
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $sku_count = 0;
-        if (isset($ret['hits']['hits'])) {
-            foreach ($ret['hits']['hits'] as $item) {
-                $sku_count += $item['_source']['sku_count'];
-            }
+        if (isset($ret['aggregations']['sku_count']['value'])) {
+
+            $sku_count = $ret['aggregations']['sku_count']['value'];
         }
-        if (isset($ret['hits']['total']) && $ret['hits']['total'] > 1000) {
-            for ($i = 1000; $i <= $ret['hits']['total']; $i += 1000) {
-                $ret1 = $es->search($this->dbName, $this->tableName . '_' . $lang, $i, 1000);
-                if (isset($ret1['hits']['hits'])) {
-                    foreach ($ret1['hits']['hits'] as $item) {
-                        $sku_count += $item['_source']['sku_count'];
-                    }
-                }
-            }
-        }
+
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
-        redisSet($redis_key, $sku_count, 3600);
+        redisSet($redis_key, $sku_count, 180);
         return $sku_count;
+        /*         * **************************sku_count 报错 可以恢复这段************************** */
+        /* $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
+          $sku_count = 0;
+          if (isset($ret['hits']['hits'])) {
+          foreach ($ret['hits']['hits'] as $item) {
+          $sku_count += $item['_source']['sku_count'];
+          }
+          }
+          if (isset($ret['hits']['total']) && $ret['hits']['total'] > 1000) {
+          for ($i = 1000; $i <= $ret['hits']['total']; $i += 1000) {
+          $ret1 = $es->search($this->dbName, $this->tableName . '_' . $lang, $i, 1000);
+          if (isset($ret1['hits']['hits'])) {
+          foreach ($ret1['hits']['hits'] as $item) {
+          $sku_count += $item['_source']['sku_count'];
+          }
+          }
+          }
+          }
+          $ret1 = $ret = $es = null;
+          unset($ret1, $ret, $es);
+          redisSet($redis_key, $sku_count, 3600);
+          return $sku_count; */
     }
 
     /*
