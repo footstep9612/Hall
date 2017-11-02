@@ -1429,7 +1429,7 @@ class GoodsModel extends PublicModel {
                 $fileId = postfile($data, $url);
                 if ($fileId) {
                     //unlink($localDir);    //清理本地空间
-                    $data = array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                    $data = array('url' => $fastDFSServer . $fileId['url'].'?filename=' . $fileId['name'], 'name' => $fileId['name']);
                     redisHashSet('sku', 'skutemplate', json_encode($data));
                     return $data;
                 }
