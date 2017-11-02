@@ -147,7 +147,7 @@ class ExcelmanagerController extends PublicController {
 		}
 
         $data = $this->getFinalQuoteData($request['inquiry_id']);
-
+        //p($data);
         //创建excel表格并填充数据
         $excelFile = $this->createExcelAndInsertData($data);
 
@@ -452,15 +452,25 @@ class ExcelmanagerController extends PublicController {
 
 
         //报价单项(final_quote)
-        $finalQuoteItemModel = new FinalQuoteItemModel();
-        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
-        $finalQuoteItems = $finalQuoteItemModel->alias('a')
-                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
-                ->field($fields)
-                ->where(['a.inquiry_id' => $inquiry_id])
-                ->order('a.id DESC')
-                ->select();
+//        $finalQuoteItemModel = new FinalQuoteItemModel();
+//        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
+//        $finalQuoteItems = $finalQuoteItemModel->alias('a')
+//                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+//                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
+//                ->field($fields)
+//                ->where(['a.inquiry_id' => $inquiry_id])
+//                ->order('a.id DESC')
+//                ->select();
+
+
+        $quoteItemModel = new QuoteItemModel();
+        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,a.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity';
+        $quoteItems = $quoteItemModel->alias('a')
+            ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->field($fields)
+            ->where(['a.inquiry_id' => $inquiry_id])
+            ->order('a.id DESC')
+            ->select();
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
@@ -472,7 +482,7 @@ class ExcelmanagerController extends PublicController {
         //综合报价信息
         return $finalQuoteData = [
             'quoter_info' => $info,
-            'quote_items' => $finalQuoteItems,
+            'quote_items' => $quoteItems,
             'quote_info' => $quoteInfo
         ];
 
