@@ -396,9 +396,10 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
 
-        $es->setaggs('image_count', 'image_count', 'sum', 0);
+        $es->setaggs('image_count', 'image_count', 'sum');
         $es->setfields(['image_count']);
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+
         $image_count = 0;
         if (isset($ret['aggregations']['image_count']['value'])) {
             $image_count = $ret['aggregations']['image_count']['value'];
