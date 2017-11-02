@@ -134,17 +134,17 @@ class EsproductController extends PublicController {
                 $condition['onshelf_flag'] = 'N';
                 $condition['sku_count'] = 'Y';
                 $condition['pagesize'] = 0;
-                $ret_N = $model->getProducts($condition, $lang);
+                $ret_N = $model->getProducts($condition, null, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
                 //    $send['onshelf_sku_count_N'] =$model->getSkuCountByCondition($condition, $lang);
                 $condition['onshelf_flag'] = 'Y';
-                $ret_y = $model->getProducts($condition, $lang);
+                $ret_y = $model->getProducts($condition, null, $lang);
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
                 //  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
             }
             $condition['deleted_flag'] = 'Y';
             $condition['onshelf_flag'] = 'A';
-            $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
+            //  $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
             $send['data'] = $list;
 
             $this->setCode(MSG::MSG_SUCCESS);
