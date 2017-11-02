@@ -57,6 +57,7 @@ class BrandController extends PublicController {
         $condition = $this->getPut();
         $lang = $this->getPut('lang', '');
         $id = $this->getPut('id', '');
+        $name = $this->getPut('name', '');
 //        if (empty($id)) {
 //            $this->setCode(MSG::ERROR_PARAM);
 //            $this->setMessage('请输入ID!');
@@ -66,6 +67,12 @@ class BrandController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请输入语言!');
             $this->jsonReturn();
+        }
+        if (empty($name)) {
+
+            $this->setCode(MSG::MSG_SUCCESS);
+
+            $this->jsonReturn(null);
         }
         $brand_model = new BrandModel();
         unset($condition['id']);

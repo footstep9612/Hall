@@ -611,7 +611,7 @@ class GoodsModel extends PublicModel {
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-                    
+
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
@@ -798,12 +798,12 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
             }
-            if($success){
+            if ($success) {
                 $this->commit();
                 return $sku;
-            }else{
+            } else {
                 $this->rollback();
-                jsonReturn('', ErrorMsg::FAILED , '亲，不留下点东西？');
+                jsonReturn('', ErrorMsg::FAILED, '亲，不留下点东西？');
                 //return false;
             }
         } catch (Exception $ex) {
@@ -843,18 +843,18 @@ class GoodsModel extends PublicModel {
      */
     private function _checkExit($condition, $attr, $boolen = false) {
         $exist = $this->field('spu,sku,lang')->where($condition)->select();
-        if($exist){
+        if ($exist) {
             $attr_model = new GoodsAttrModel();
-            foreach ($exist as $item){
-                $condition_attr = ['spu'=>$item['spu'], 'sku'=>$item['sku'],'lang'=>$item['lang']];
+            foreach ($exist as $item) {
+                $condition_attr = ['spu' => $item['spu'], 'sku' => $item['sku'], 'lang' => $item['lang']];
                 $spesc = $attr_model->field('spec_attrs')->where($condition_attr)->find();
-                if(empty($attr['spec_attrs']) && empty($spesc)){
+                if (empty($attr['spec_attrs']) && empty($spesc)) {
                     if ($boolen) {
                         return false;
                     } else {
                         jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
                     }
-                }else{
+                } else {
                     $fspesc = json_decode($spesc, true);
                     $result1 = array_diff_assoc($fspesc, $attr['spec_attrs']);
                     $result2 = array_diff_assoc($attr['spec_attrs'], $fspesc);
@@ -871,44 +871,44 @@ class GoodsModel extends PublicModel {
             }
         }
 
-        /*$exist = $this->field('id')->where($condition)->find();
-        if ($exist) {
-            $where = array(
-                'lang' => $condition['lang'],
-                'spu' => $condition['spu'],
-                'deleted_flag' => 'N'
-            );
-            if (!empty($condition['sku'])) {
-                $where['sku'] = $condition['sku'];
-            }
-            $attr_model = new GoodsAttrModel();
-            $other_attr = $attr_model->where($where)->select();
+        /* $exist = $this->field('id')->where($condition)->find();
+          if ($exist) {
+          $where = array(
+          'lang' => $condition['lang'],
+          'spu' => $condition['spu'],
+          'deleted_flag' => 'N'
+          );
+          if (!empty($condition['sku'])) {
+          $where['sku'] = $condition['sku'];
+          }
+          $attr_model = new GoodsAttrModel();
+          $other_attr = $attr_model->where($where)->select();
 
-            if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
-                if ($boolen) {
-                    return false;
-                } else {
-                    jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
-                }
-            } else {
-                foreach ($other_attr as $key => $item) {
-                    $other = json_decode($item['spec_attrs'], true);
-                    $otherAttr = $other ? $other : [];
-                    $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
-                    $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
+          if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
+          if ($boolen) {
+          return false;
+          } else {
+          jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
+          }
+          } else {
+          foreach ($other_attr as $key => $item) {
+          $other = json_decode($item['spec_attrs'], true);
+          $otherAttr = $other ? $other : [];
+          $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
+          $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
 
-                    if (empty($result1) && empty($result2)) {
-                        if ($boolen) {
-                            return false;
-                        } else {
-                            jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
-                        }
-                    } else {
-                        continue;
-                    }
-                }
-            }
-        }*/
+          if (empty($result1) && empty($result2)) {
+          if ($boolen) {
+          return false;
+          } else {
+          jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
+          }
+          } else {
+          continue;
+          }
+          }
+          }
+          } */
     }
 
     /**
@@ -2017,9 +2017,9 @@ class GoodsModel extends PublicModel {
             $data_tmp = [];
             $data_tmp['spu'] = $spu;
             $input_sku = $data['订货号'];    //输入的sku  订货号
-            if(!empty($input_sku) && strlen($input_sku) != 16){
+            if (!empty($input_sku) && strlen($input_sku) != 16) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue( $maxCol . $i , '操作失败[商品编码有误]' );
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[商品编码有误]');
                 continue;
             }
             $data_tmp['lang'] = $lang;
@@ -2206,7 +2206,7 @@ class GoodsModel extends PublicModel {
                         flock($fp, LOCK_UN);
                     }
                     fclose($fp);
-                    if(!$input_sku){
+                    if (!$input_sku) {
                         $faild++;
                         $this->rollback();
                         $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[生成SKU编码失败]');
@@ -2332,7 +2332,7 @@ class GoodsModel extends PublicModel {
             $input_sku = null;
             unset($input_sku);
         }
-        $es_product_model->UpdateSkuCount($spu, $lang);
+        $es_product_model->create_data($spu, $lang);
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         $objWriter->save($localFile);    //文件保存
         //把导出的文件上传到文件服务器上

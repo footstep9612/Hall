@@ -863,11 +863,11 @@ class EsProductModel extends Model {
         $body['image_count'] = strval($body['image_count']);
         if (isset($body['sku_count']) && intval($body['sku_count']) > 0) {
 
-            $body['sku_count'] = strval(intval($body['sku_count']));
+            $body['sku_count'] = $body['sku_count'];
         } else {
             $body['sku_count'] = '0';
         }
-        $body['sku_count'] = strval($body['sku_count']);
+        $body['sku_count'] = intval($body['sku_count']);
         $material_cat_no = $item['material_cat_no'];
         if (isset($mcats[$material_cat_no])) {
             $body['material_cat'] = $mcats[$item['material_cat_no']];
@@ -1756,7 +1756,7 @@ class EsProductModel extends Model {
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
             $data['show_cats'] = [];
-            $data['sku_count'] = '0';
+
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
@@ -1777,7 +1777,7 @@ class EsProductModel extends Model {
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['show_cats'] = [];
-                $data['sku_count'] = '0';
+
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
