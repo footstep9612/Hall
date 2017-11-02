@@ -1414,8 +1414,8 @@ class GoodsModel extends PublicModel {
      * @return string
      */
     public function exportTemp() {
-        if (redisHashExist('sku', 'skutemplate')) {
-            return json_decode(redisHashGet('sku', 'skutemplate'), true);
+        if (redisHashExist('sku', 'skuTemplate')) {
+            return json_decode(redisHashGet('sku', 'skuTemplate'), true);
         } else {
             $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/skuTemplate.xls";
             if (file_exists($localDir)) {
@@ -1430,7 +1430,7 @@ class GoodsModel extends PublicModel {
                 if ($fileId) {
                     //unlink($localDir);    //清理本地空间
                     $data = array('url' => $fastDFSServer . $fileId['url'].'?filename=' . $fileId['name'], 'name' => $fileId['name']);
-                    redisHashSet('sku', 'skutemplate', json_encode($data));
+                    redisHashSet('sku', 'skuTemplate', json_encode($data));
                     return $data;
                 }
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
