@@ -937,7 +937,7 @@ class EsProductModel extends Model {
         $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
         if ($es_product) {
-            $es->add_document($this->dbName, $this->tableName . '_' . $lang, $id);
+            $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         } if (!isset($flag['_version'])) {
