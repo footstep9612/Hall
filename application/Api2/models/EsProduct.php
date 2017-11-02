@@ -391,7 +391,7 @@ class EsProductModel extends Model {
         $es->setbody($body);
         $es->setfields(['sku_count']);
         /*         * ******************sku_count 报错 可以注释这段************************** */
-        $es->setaggs('sku_count', 'sku_count');
+        $es->setaggs('sku_count', 'sku_count', 'sum');
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $sku_count = 0;
         if (isset($ret['aggregations']['sku_count']['value'])) {
