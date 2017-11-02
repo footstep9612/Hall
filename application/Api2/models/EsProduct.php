@@ -186,11 +186,13 @@ class EsProductModel extends Model {
 
     private function getCondition($condition, $lang = 'en') {
         $body = [];
-        //if ($lang == 'zh') {
-        $analyzer = 'ik';
-        // } else {
-        //    $analyzer = $lang;
-        //}
+        if ($lang == 'zh') {
+            $analyzer = 'ik';
+        } elseif (in_array($analyzer, ['zh', 'en', 'es', 'ru'])) {
+            $analyzer = $lang;
+        } else {
+            $analyzer = 'ik';
+        }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
