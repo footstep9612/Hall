@@ -54,9 +54,9 @@ class FinalquoteController extends PublicController {
 
             if(!empty($quotedata)){
                 //追加结果
-                $quoteinfo['total_weight'] = round($quotedata['total_weight'],4);    //总重
-                $quoteinfo['package_volumn'] = round($quotedata['package_volumn'],4);    //包装总体积
-                $quoteinfo['total_purchase'] = round($quotedata['total_purchase'],4);    //采购总价
+                $quoteinfo['total_weight'] = $quotedata['total_weight'];    //总重
+                $quoteinfo['package_volumn'] = $quotedata['package_volumn'];    //包装总体积
+                $quoteinfo['total_purchase'] = $quotedata['total_purchase'];    //采购总价
                 $quoteinfo['package_mode'] = $quotedata['package_mode'];    //包装方式
                 $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
                 $quoteinfo['quote_remarks'] = $quotedata['quote_remarks'];    //报价备注
@@ -66,14 +66,14 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['to_country'] = $quotedata['delivery_addr'];    //目的地
                 $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
-                $quoteinfo['fund_occupation_rate'] = round($results['data']['fund_occupation_rate'],4);    //占用资金比例
-                $quoteinfo['bank_interest'] = round($quotedata['bank_interest'],4);    //银行利息
+                $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
+                $quoteinfo['bank_interest'] = $quotedata['bank_interest'];    //银行利息
                 $quoteinfo['total_bank_fee'] = $results['data']['total_bank_fee'];    //银行费用
                 $quoteinfo['period_of_validity'] = $quotedata['period_of_validity'];    //报价有效期
-                $quoteinfo['exchange_rate'] = round($quotedata['exchange_rate'],4);    //汇率
+                $quoteinfo['exchange_rate'] = $quotedata['exchange_rate'];    //汇率
                 $quoteinfo['total_logi_fee'] = $results['data']['total_logi_fee'];    //物流合计
-                $quoteinfo['total_quote_price'] = round($quotedata['total_quote_price'],4);    //商务报出贸易价格合计
-                $quoteinfo['total_exw_price'] = round($quotedata['total_exw_price'],4);    //商务报出EXW价格
+                $quoteinfo['total_quote_price'] = $quotedata['total_quote_price'];    //商务报出贸易价格合计
+                $quoteinfo['total_exw_price'] = $quotedata['total_exw_price'];    //商务报出EXW价格
                 $quoteinfo['final_total_quote_price'] = $results['data']['total_quote_price'];    //市场报出贸易价格合计
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
                 $quoteinfo['gross_profit_rate'] = $quoteModel->where($quotewhere)->getField('gross_profit_rate');    //毛利率
@@ -89,35 +89,23 @@ class FinalquoteController extends PublicController {
 
             if (!empty($quoteLogiFee)) {
 
-                $landFreightUSD = $quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']);
-                $portSurchargeUSD = $quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']);
-                $inspectionFeeUSD = $quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']);
-                $interShippingUSD = $quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']);
-
-                $quoteLogiFee['land_freight_usd'] = round($landFreightUSD, 4);
-                $quoteLogiFee['port_surcharge_usd'] = round($portSurchargeUSD, 4);
-                $quoteLogiFee['inspection_fee_usd'] = round($inspectionFeeUSD, 4);
-                $quoteLogiFee['inter_shipping_usd'] = round($interShippingUSD, 4);
-
-                $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 4);
-                $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 4);
-
-                $overlandInsu = $quoteLogiFee['total_exw_price'] * 1.1 * $quoteLogiFee['overland_insu_rate'] / 100;
-
-                $quoteLogiFee['overland_insu'] = round($overlandInsu, 4);
-                $quoteLogiFee['shipping_insu'] = round($quoteLogiFee['total_quote_price'] * 1.1 * $quoteLogiFee['shipping_insu_rate'] / 100, 4);
-
-                $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $landFreightUSD + $overlandInsu + $portSurchargeUSD + $inspectionFeeUSD + $interShippingUSD;
-
-                $quoteLogiFee['dest_tariff_fee'] = round($tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100, 4);
-                $quoteLogiFee['dest_va_tax_fee'] = round($tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100, 4);
-
-                $quoteLogiFee['premium_rate'] = round($quoteLogiFee['premium_rate'],4); //保险税率
-                $quoteLogiFee['overland_insu_rate'] = round($quoteLogiFee['overland_insu_rate'],4); //陆运险率
-                $quoteLogiFee['shipping_insu_rate'] = round($quoteLogiFee['shipping_insu_rate'],4); //货物运输险率
-                $quoteLogiFee['dest_tariff_rate'] = round($quoteLogiFee['dest_tariff_rate'],4); //目的地关税税率
-                $quoteLogiFee['total_insu_fee'] = round($quoteLogiFee['total_insu_fee'],4); //出口信用保险
-                $quoteLogiFee['dest_va_tax_rate'] = round($quoteLogiFee[''],4); //目的地增值税率
+                $quoteLogiFee['land_freight_usd'] = round($quoteLogiFee['land_freight'] / $this->_getRateUSD($quoteLogiFee['land_freight_cur']), 8);
+    	        $quoteLogiFee['port_surcharge_usd'] = round($quoteLogiFee['port_surcharge'] / $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']), 8);
+    	        $quoteLogiFee['inspection_fee_usd'] = round($quoteLogiFee['inspection_fee'] / $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']), 8);
+    	        $quoteLogiFee['inter_shipping_usd'] = round($quoteLogiFee['inter_shipping'] / $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']), 8);
+    	        
+    	        $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] / $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 8);
+    	        $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] / $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
+    	        	
+    	        $overlandInsuFee = $this->_getOverlandInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['overland_insu_rate']);
+    	        $quoteLogiFee['overland_insu'] = $overlandInsuFee['CNY'];
+    	        $shippingInsuFee = $this->_getShippingInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['shipping_insu_rate']);
+    	        $quoteLogiFee['shipping_insu'] = $shippingInsuFee['CNY'];
+    	        
+    	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $overlandInsuFee['USD'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
+    	        
+    	        $quoteLogiFee['dest_tariff_fee'] = round($tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100, 8);
+    	        $quoteLogiFee['dest_va_tax_fee'] = round($tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100, 8);
 
                 $results['logidata'] = $quoteLogiFee;
             }
@@ -189,8 +177,8 @@ class FinalquoteController extends PublicController {
                     $quote_unit_price = $total_quote_price*$val['final_exw_unit_price']/$total_exw_price;//报出贸易单价
 
                     $itemdata['id'] = $val['id'];
-                    $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],4);
-                    $itemdata['quote_unit_price'] = round($quote_unit_price,4);
+                    $itemdata['exw_unit_price'] = round($val['final_exw_unit_price'],8);
+                    $itemdata['quote_unit_price'] = round($quote_unit_price,8);
 
                     $itemrs = $this->updateItemAction($itemdata);
 
@@ -297,30 +285,116 @@ class FinalquoteController extends PublicController {
     }
 
     /**
-     * 获取币种兑换美元汇率
-     * Author:张玉良
-     */
-    private function _getRateUSD($cur) {
-
-        return $this->_getRate($cur,'USD');
-    }
-
-    /**
-     * 获取币种兑换汇率
-     * Author:张玉良
-     */
-    private function _getRate($cur, $exchangeCur = 'CNY') {
-
-        if (!empty($cur)) {
-            if ($cur == $exchangeCur) return 1;
-
-            $exchangeRateModel = new ExchangeRateModel();
-            $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $cur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
-
-            return $exchangeRate['rate'];
-        } else {
-            return false;
-        }
-
-    }
+	 * @desc 获取陆运险费用
+	 *
+	 * @param float $totalExwPrice exw价格合计
+	 * @param float $overlandInsuRate 陆运险率
+	 * @return float
+	 * @author liujf
+	 * @time 2017-09-20
+	 */
+	private function _getOverlandInsuFee($totalExwPrice = 0, $overlandInsuRate = 0) {
+	    
+	    // 美元兑人民币汇率
+	   $rate = $this->_getRateUSD('CNY');
+	    
+	   $tmpPrice = $totalExwPrice * $overlandInsuRate / 100;
+	   
+	   $overlandInsuCNY = round($tmpPrice * $rate, 8);
+	   
+	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
+	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
+	       $overlandInsuCNY = 50;
+	   } else {
+	       $overlandInsuUSD = round($tmpPrice, 8); 
+	   }
+	   
+	   return ['USD' => $overlandInsuUSD, 'CNY' => $overlandInsuCNY];
+	}
+	
+	/**
+	 * @desc 获取国际运输险费用
+	 *
+	 * @param float $totalExwPrice exw价格合计
+	 * @param float $shippingInsuRate 国际运输险率
+	 * @return float
+	 * @author liujf
+	 * @time 2017-09-20
+	 */
+	private function _getShippingInsuFee($totalExwPrice = 0, $shippingInsuRate = 0) {
+	
+	    // 美元兑人民币汇率
+	    $rate = $this->_getRateUSD('CNY');
+	    
+	    $tmpPrice = $totalExwPrice * 1.1 * $shippingInsuRate / 100;
+	    
+	    $shippingInsuCNY = round($tmpPrice * $rate, 8);
+	    
+	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
+	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
+	        $shippingInsuCNY = 50;
+	    } else {
+	        $shippingInsuUSD = round($tmpPrice, 8);
+	    }
+	    
+	    return ['USD' => $shippingInsuUSD, 'CNY' => $shippingInsuCNY];
+	}
+	
+	/**
+	 * @desc 获取人民币兑换汇率
+	 *
+	 * @param string $cur 币种
+	 * @return float
+	 * @author liujf
+	 * @time 2017-08-03
+	 */
+	private function _getRateCNY($cur) {
+	
+	    if (empty($cur)) {
+	        return 1;
+	    } else {
+	        return $this->_getRate('CNY', $cur);
+	    }
+	}
+	
+	/**
+	 * @desc 获取美元兑换汇率
+	 *
+	 * @param string $cur 币种
+	 * @return float
+	 * @author liujf
+	 * @time 2017-08-03
+	 */
+	private function _getRateUSD($cur) {
+	
+	    if (empty($cur)) {
+	        return 1;
+	    } else {
+	        return $this->_getRate('USD', $cur);
+	    }
+	}
+	
+	/**
+	 * @desc 获取币种兑换汇率
+	 *
+	 * @param string $holdCur 持有币种
+	 * @param string $exchangeCur 兑换币种
+	 * @return float
+	 * @author liujf
+	 * @time 2017-08-03
+	 */
+	private function _getRate($holdCur, $exchangeCur = 'CNY') {
+	    
+	    if (!empty($holdCur)) {
+	        if ($holdCur == $exchangeCur) return 1;
+	        
+	        $exchangeRateModel = new ExchangeRateModel();
+	        $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
+	        
+	        return $exchangeRate['rate'];
+	    } else {
+	        return false;
+	    }
+	    
+	}
 }

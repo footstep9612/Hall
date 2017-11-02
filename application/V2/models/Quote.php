@@ -207,7 +207,7 @@ class QuoteModel extends PublicModel {
         $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
             'status' => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id' => $orgId[0],
-            'now_agent_id' => $orgId[0]
+            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg')
         ]);
 
         $this->startTrans();

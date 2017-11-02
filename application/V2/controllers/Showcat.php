@@ -324,32 +324,71 @@ class ShowcatController extends PublicController {
         unset($redis3);
     }
 
-    public function createAction() {
-        $data = $this->getPut();
-        if (empty($data['zh']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入中文');
-            $this->jsonReturn();
-        }
-        if (empty($data['en']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入英文');
-            $this->jsonReturn();
-        }
-        if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
+    /*
+     * 删除缓存
+     * @author zyg
+     */
 
+    private function _delCache() {
+        $redis = new phpredis();
+        $keys = $redis->getKeys('ShowCat*');
 
+        $redis->delete($keys);
+    }
+
+    function _exist($data, $lang, $level_no, $market_area_bn, $country_bn, $cat_no = null, $is_empty = true) {
+        $langs = [
+            'zh' => '中文',
+            'es' => '西文',
+            'ru' => '俄文',
+            'en' => '英文',
+        ];
+        if (empty($market_area_bn)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('营销区域不能为空');
             $this->jsonReturn(false);
         }
-        if (!isset($data['country_bn']) || empty($data['country_bn'])) {
-
-
+        if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('国家不能为空');
             $this->jsonReturn();
         }
+        if (empty($data[$lang]['name']) && $is_empty) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入' . $langs[$lang]);
+            $this->jsonReturn();
+        } elseif ($data[$lang]['name']) {
+
+            $flag = $this->_model->showCatExist($data[$lang]['name'], $lang, $market_area_bn, $country_bn, $level_no, $cat_no);
+
+            if ($flag) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage($langs[$lang] . '展示分类名称【' . $data[$lang]['name'] . '】 在同国家同等级展示分类中已存在!');
+                $this->jsonReturn();
+            }
+        }
+    }
+
+    public function createAction() {
+        $data = $this->getPut();
+        if (empty($data['parent_cat_no'])) {
+            $level_no = 1;
+        } else {
+            $info = $this->_model->where(['cat_no' => $data['parent_cat_no']])->find();
+            if (intval($info['level_no'])) {
+                $level_no = intval($info['level_no']) + 1;
+            } else {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('父类分类编码对应的父类分类不存在!');
+                $this->jsonReturn();
+            }
+        }
+        $market_area_bn = $this->getPut('market_area_bn');
+        $country_bn = $this->getPut('country_bn');
+        $this->_exist($data, 'zh', $level_no, $market_area_bn, $country_bn);
+        $this->_exist($data, 'en', $level_no, $market_area_bn, $country_bn);
+        $this->_exist($data, 'es', $level_no, $market_area_bn, $country_bn, null, false);
+        $this->_exist($data, 'ru', $level_no, $market_area_bn, $country_bn, null, false);
         $result = $this->_model->create_data($data);
         if ($result) {
             $this->delcache();
@@ -363,26 +402,27 @@ class ShowcatController extends PublicController {
 
     public function updateAction() {
         $data = $this->getPut();
-        if (empty($data['zh']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入中文');
+        $cat_no = $this->getPut('cat_no');
+        if (empty($cat_no)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('物料分类编码不能为空!');
             $this->jsonReturn();
+        } else {
+            $info = $this->_model->where(['cat_no' => $cat_no])->find();
+            if (intval($info['level_no'])) {
+                $level_no = intval($info['level_no']);
+            } else {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('分类编码对应的分类不存在!');
+                $this->jsonReturn();
+            }
         }
-        if (empty($data['en']['name'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请输入英文');
-            $this->jsonReturn();
-        }
-        if (!isset($data['market_area_bn']) || empty($data['market_area_bn'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('营销区域不能为空');
-            $this->jsonReturn(false);
-        }
-        if (!isset($data['country_bn']) || empty($data['country_bn'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('国家不能为空');
-            $this->jsonReturn();
-        }
+        $market_area_bn = $this->getPut('market_area_bn');
+        $country_bn = $this->getPut('country_bn');
+        $this->_exist($data, 'zh', $level_no, $market_area_bn, $country_bn, $cat_no);
+        $this->_exist($data, 'en', $level_no, $market_area_bn, $country_bn, $cat_no);
+        $this->_exist($data, 'es', $level_no, $market_area_bn, $country_bn, $cat_no, false);
+        $this->_exist($data, 'ru', $level_no, $market_area_bn, $country_bn, $cat_no, false);
         $result = $this->_model->update_data($data);
         if ($result) {
             $this->delcache();

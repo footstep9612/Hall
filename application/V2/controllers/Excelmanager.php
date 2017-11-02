@@ -56,7 +56,7 @@ class ExcelmanagerController extends PublicController {
             'message' => '成功',
             'data' => [
                 //'url' => 'http://file01.erui.com/group1/M00/00/03/rBFgyFmegqKAIt1pAAAm7A4b9LA55.xlsx'
-                'url' => 'http://file01.erui.com/group1/M00/00/06/rBFgyFnJzoeASARRAAAnAJ_tM4k52.xlsx'
+                'url' => 'http://172.18.18.196:85/group1/M00/00/42/rBISxFn6wlyAejHWAAAm5shBeOo87.xlsx'
             ]
         ]);
     }
@@ -138,16 +138,16 @@ class ExcelmanagerController extends PublicController {
 		$ret = $inquiryAttach->getList($condition);
 		if($ret['code']  == 1 && !empty($ret['data']) && !empty($ret['data'][0]['attach_url'])){
 			$this->jsonReturn([
-				'code' => '1',
+				'code'    => '1',
 				'message' => '导出成功!',
-				'data' => [
+				'data'    => [
 					'url' => $ret['data'][0]['attach_url']
 				]
 			]);
 		}
 
         $data = $this->getFinalQuoteData($request['inquiry_id']);
-
+        //p($data);
         //创建excel表格并填充数据
         $excelFile = $this->createExcelAndInsertData($data);
 
@@ -155,9 +155,10 @@ class ExcelmanagerController extends PublicController {
         $server = Yaf_Application::app()->getConfig()->myhost;
 		$fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server. '/V2/Uploadfile/upload';
-        $data['tmp_name']=$excelFile;
-        $data['type']='application/excel';
-        $data['name']='excelFile';
+
+        $data['tmp_name'] = $excelFile;
+        $data['type']     = 'application/excel';
+        $data['name']     = 'excelFile';
         $remoteUrl = $this->postfile($data,$url);    
     
         if (!$remoteUrl) {
@@ -187,7 +188,7 @@ class ExcelmanagerController extends PublicController {
         //上传失败
         if(empty($fileId) || empty($fileId['url'])){
             $this->jsonReturn([
-                'code' => '-1',
+                'code'    => '-1',
                 'message' => '导出失败!',
             ]);
             return;
@@ -208,9 +209,9 @@ class ExcelmanagerController extends PublicController {
         //删除本地的临时文件
         @unlink($excelFile);
         $this->jsonReturn([
-            'code' => '1',
+            'code'    => '1',
             'message' => '导出成功!',
-            'data' => [
+            'data'    => [
                 'url' => $fileId['url']
             ]
         ]);
@@ -219,6 +220,18 @@ class ExcelmanagerController extends PublicController {
     public function finalQuotationAction() {
     
         $request = $this->validateRequests('inquiry_id');
+
+        //更改报价的状态
+        $quoteModel = new QuoteModel();
+        $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status'=>'QUOTE_SENT']);
+        //更改询单的状态
+        $inquiryModel = new InquiryModel();
+        $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
+            'status'=>'QUOTE_SENT',
+            'quote_status'=>'COMPLETED',
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
 
         $data = $this->getCommercialQuoteData($request['inquiry_id']);
 
@@ -420,37 +433,48 @@ class ExcelmanagerController extends PublicController {
 
         //询单综合信息 (询价单位 流程编码 项目代码)
         $inquiryModel = new InquiryModel();
-        $info = $inquiryModel->where(['id' => $inquiry_id])->field('serial_no,buyer_name,quote_notes')->find();
+        $info = $inquiryModel->where(['id' => $inquiry_id])->field('serial_no,buyer_name,quote_notes,agent_id')->find();
 
         //报价综合信息 (报价人，电话，邮箱，报价时间)
-        $finalQuoteModel = new FinalQuoteModel();
-        $finalQuoteInfo = $finalQuoteModel->where(['inquiry_id' => $inquiry_id])->field('checked_at,checked_by')->find();
+        $quoteModel = new QuoteModel();
+        $finalQuoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('biz_quote_by,biz_quote_at')->find();
 
         $employee = new EmployeeModel();
-        $employeeInfo = $employee->where(['id' => intval($finalQuoteInfo['checked_by'])])->field('email,mobile,name')->find();
+        $employeeInfo = $employee->where(['id' => intval($finalQuoteInfo['biz_quote_by'])])->field('email,mobile,name')->find();
+        $info['agenter'] = $employee->where(['id' => intval($info['agent_id'])])->getField('name');
 
         //报价人信息
         $info['quoter_email'] = $employeeInfo['email'];
         $info['quoter_mobile'] = $employeeInfo['mobile'];
         $info['quoter_name'] = $employeeInfo['name'];
 		//由于此文件仅生成一次，所以记录日期跟当前日期一致
-        $info['quote_time'] = date('Y-m-d');//$finalQuoteInfo['checked_at']; 
+        $info['quote_time'] = $finalQuoteInfo['biz_quote_at'];
 
 
         //报价单项(final_quote)
-        $finalQuoteItemModel = new FinalQuoteItemModel();
-        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
-        $finalQuoteItems = $finalQuoteItemModel->alias('a')
-                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
-                ->field($fields)
-                ->where(['a.inquiry_id' => $inquiry_id])
-                ->order('a.id DESC')
-                ->select();
+//        $finalQuoteItemModel = new FinalQuoteItemModel();
+//        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
+//        $finalQuoteItems = $finalQuoteItemModel->alias('a')
+//                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+//                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
+//                ->field($fields)
+//                ->where(['a.inquiry_id' => $inquiry_id])
+//                ->order('a.id DESC')
+//                ->select();
+
+
+        $quoteItemModel = new QuoteItemModel();
+        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,a.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity';
+        $quoteItems = $quoteItemModel->alias('a')
+            ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
+            ->field($fields)
+            ->where(['a.inquiry_id' => $inquiry_id])
+            ->order('a.id DESC')
+            ->select();
 
         $quoteModel = new QuoteModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
-        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,dispatch_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,quote_remarks,quote_no,quote_cur_bn')->find();
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('total_weight,package_volumn,payment_mode,delivery_period,trade_terms_bn,trans_mode_bn,dispatch_place,delivery_addr,total_logi_fee,total_bank_fee,total_exw_price,total_insu_fee,total_quote_price,total_insu_fee,quote_remarks,quote_no,quote_cur_bn')->find();
         $quoteLogiFee = $quoteLogiFeeModel->where(['inquiry_id' => $inquiry_id])->field('est_transport_cycle,logi_remarks')->find();
         $quoteInfo['logi_remarks'] =$quoteLogiFee['logi_remarks'];
         $quoteInfo['est_transport_cycle'] =$quoteLogiFee['est_transport_cycle'];
@@ -458,7 +482,7 @@ class ExcelmanagerController extends PublicController {
         //综合报价信息
         return $finalQuoteData = [
             'quoter_info' => $info,
-            'quote_items' => $finalQuoteItems,
+            'quote_items' => $quoteItems,
             'quote_info' => $quoteInfo
         ];
 
@@ -694,7 +718,7 @@ class ExcelmanagerController extends PublicController {
         $objSheet->setCellValue("A6", "邮箱 : " . $quote['quoter_info']['quoter_email'])->mergeCells("A6:E6");
 
         $objSheet->setCellValue("F4", "询价单位 : " . $quote['quoter_info']['buyer_name'])->mergeCells("F4:R4");
-        $objSheet->setCellValue("F5", "业务对接人 : ")->mergeCells("F5:R5");
+        $objSheet->setCellValue("F5", "业务对接人 : " . $quote['quoter_info']['agenter'])->mergeCells("F5:R5");
         $objSheet->setCellValue("F6", "报价时间 : " . $quote['quoter_info']['quote_time'])->mergeCells("F6:R6");
 
 

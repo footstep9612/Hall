@@ -17,9 +17,9 @@ class QuoteController extends PublicController{
 
         parent::init();
 
-        $this->quoteModel = new QuoteModel();
+        $this->quoteModel     = new QuoteModel();
         $this->quoteItemModel = new QuoteItemModel();
-        $this->inquiryModel = new InquiryModel();
+        $this->inquiryModel   = new InquiryModel();
 
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
@@ -48,12 +48,12 @@ class QuoteController extends PublicController{
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination')->find();
 
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
-        $info['inquiry_delivery_addr'] = $logiInfo['destination'];
+        $info['inquiry_delivery_addr']  = $logiInfo['destination'];
 
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuote = $finalQuoteModel->where($condition)->field('total_exw_price,total_quote_price')->find();
         if ($finalQuote){
-            $info['final_total_exw_price'] = $finalQuote['total_exw_price'];
+            $info['final_total_exw_price']   = $finalQuote['total_exw_price'];
             $info['final_total_quote_price'] = $finalQuote['total_quote_price'];
         }
         $this->jsonReturn($info);
@@ -86,9 +86,9 @@ class QuoteController extends PublicController{
      */
     public function rejectToBizAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request   = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $response =  $result = $this->quoteModel->rejectToBiz($condition);
+        $response  = $result = $this->quoteModel->rejectToBiz($condition);
         $this->jsonReturn($response);
 
     }
@@ -98,7 +98,7 @@ class QuoteController extends PublicController{
      */
     public function sendLogisticsAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request  = $this->validateRequests('inquiry_id');
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
         $this->jsonReturn($response);
 
@@ -110,14 +110,12 @@ class QuoteController extends PublicController{
     public function rejectLogisticAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $condition = ['id'=>$request['inquiry_id']];
 
         $inquiryModel = new InquiryModel();
-        $result = $inquiryModel->where($condition)->save([
-            'status' => 'LOGI_QUOTING', //物流报价
-            'updated_by' => $this->user['id'],
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
+        $now_agent_id = $inquiryModel->where(['id'=>$request['inquiry_id']])->getField('logi_agent_id');
+        $inquiryModel->where($condition)->save(['now_agent_id'=>$now_agent_id]);
+
+        $this->changeInquiryStatus($request['inquiry_id'],'LOGI_QUOTING');
 
         $this->jsonReturn($result);
     }
@@ -148,34 +146,39 @@ class QuoteController extends PublicController{
 
         if(empty($final)){
             $quoteModel = new QuoteModel();
-            $quoteInfo = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee')->find();
+            $quoteInfo  = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee,total_exw_price,total_quote_price,total_insu_fee')->find();
             $finalQuoteModel->add($finalQuoteModel->create([
-                'inquiry_id' => $request['inquiry_id'],
-                'buyer_id' => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
-                'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
-                'payment_period' => $quoteInfo['payment_period'],
+                'inquiry_id'           => $request['inquiry_id'],
+                'buyer_id'             => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
+                'quote_id'             => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                'payment_period'       => $quoteInfo['payment_period'],
                 'fund_occupation_rate' => $quoteInfo['fund_occupation_rate'],
-                'delivery_period' => $quoteInfo['delivery_period'],
-                'total_purchase' => $quoteInfo['total_purchase'],
-                'total_logi_fee' => $quoteInfo['total_logi_fee'],
-                'total_bank_fee' => $quoteInfo['total_bank_fee'],
-                'created_by' => $this->user['id'],
-                'created_at' => date('Y-m-d H:i:s')
+                'delivery_period'      => $quoteInfo['delivery_period'],
+                'total_purchase'       => $quoteInfo['total_purchase'],
+                'total_logi_fee'       => $quoteInfo['total_logi_fee'],
+                'total_bank_fee'       => $quoteInfo['total_bank_fee'],
+                'total_exw_price'      => $quoteInfo['total_exw_price'],
+                'total_quote_price'    => $quoteInfo['total_quote_price'],
+                'total_insu_fee'       => $quoteInfo['total_insu_fee'],
+                'created_by'           => $this->user['id'],
+                'created_at'           => date('Y-m-d H:i:s')
             ]));
 
-            $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id')->select();
+            $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
 
             $finalQuoteItemModel = new FinalQuoteItemModel();
             foreach ($quoteItems as $quote=>$item){
                 $finalQuoteItemModel->add($finalQuoteItemModel->create([
-                    'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
-                    'inquiry_id' => $request['inquiry_id'],
-                    'inquiry_item_id' => $item['inquiry_item_id'],
-                    'quote_item_id' => $item['id'],
-                    'sku' => $item['sku'],
-                    'supplier_id' => $item['supplier_id'],
-                    'created_by' => $this->user['id'],
-                    'created_at' => date('Y-m-d H:i:s'),
+                    'quote_id'         => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'inquiry_id'       => $request['inquiry_id'],
+                    'inquiry_item_id'  => $item['inquiry_item_id'],
+                    'quote_item_id'    => $item['id'],
+                    'sku'              => $item['sku'],
+                    'supplier_id'      => $item['supplier_id'],
+                    'quote_unit_price' => $item['quote_unit_price'],
+                    'exw_unit_price'   => $item['exw_unit_price'],
+                    'created_by'       => $this->user['id'],
+                    'created_at'       => date('Y-m-d H:i:s'),
                 ]));
             }
         }
@@ -190,6 +193,12 @@ class QuoteController extends PublicController{
     public function rejectAction(){
 
         $request = $this->validateRequests('inquiry_id');
+
+        //更新当前办理人
+        $inquiry = new InquiryModel();
+        $now_agent_id = $inquiry->getRoleUserId($this->user['group_id'],$inquiry::quoterRole);
+        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['now_agent_id'=>$now_agent_id]);
+
         $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
         $this->jsonReturn($response);
 
@@ -201,6 +210,11 @@ class QuoteController extends PublicController{
     public function confirmAction(){
 
         $request = $this->validateRequests('inquiry_id');
+
+        //更新当前办理人
+        $now_agent_id = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('agent_id');
+        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['now_agent_id'=>$now_agent_id]);
+
         $response = $this->changeInquiryStatus($request['inquiry_id'],'MARKET_CONFIRMING');
         $this->jsonReturn($response);
 
@@ -220,7 +234,7 @@ class QuoteController extends PublicController{
 
         foreach ($list as $key=>$value){
             $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
-            $list[$key]['supplier_name'] = $supplier->where(['id' => $value['supplier_id']])->getField('name');
+            $list[$key]['supplier_name']       = $supplier->where(['id' => $value['supplier_id']])->getField('name');
         }
 
         $this->jsonReturn($list);
@@ -256,10 +270,10 @@ class QuoteController extends PublicController{
         if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
 
         foreach ($list as $key=>$value){
-            $list[$key]['quote_exw_unit_price'] = sprintf("%.4f", $list[$key]['quote_exw_unit_price']);
-            $list[$key]['quote_quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_quote_unit_price']);
             $list[$key]['exw_unit_price'] = sprintf("%.4f", $list[$key]['exw_unit_price']);
             $list[$key]['quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_unit_price']);
+            $list[$key]['final_exw_unit_price'] = sprintf("%.4f", $list[$key]['final_exw_unit_price']);
+            $list[$key]['final_quote_unit_price'] = sprintf("%.4f", $list[$key]['final_quote_unit_price']);
         }
 
         $this->jsonReturn($list);
@@ -312,7 +326,7 @@ class QuoteController extends PublicController{
     private function changeInquiryStatus($id,$status){
 
         return $this->inquiryModel->where(['id'=>$id])->save([
-            'status'=>$status,
+            'status'     => $status,
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s')
         ]);

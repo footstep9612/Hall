@@ -418,11 +418,13 @@ class ShowCatModel extends PublicModel {
             ]);
             $this->Table('erui_goods.show_cat_goods')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
+                        'onshelf_flag' => 'N',
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
             $this->Table('erui_goods.show_cat_product')->where($where)
                     ->save(['status' => self::STATUS_DELETED,
+                        'onshelf_flag' => 'N',
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
@@ -440,19 +442,23 @@ class ShowCatModel extends PublicModel {
                 'deleted_flag' => 'Y',
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
-
-            $this->Table('erui_goods.show_material_cat')->where($pwhere)
+            $show_material_cat_model = new ShowMaterialCatModel();
+            $show_material_cat_model->where($pwhere)
                     ->save(['status' => self::STATUS_DELETED,
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui_goods.show_cat_goods')->where($where)
+            $show_cat_goods_model = new ShowCatGoodsModel();
+            $show_cat_goods_model->where($where)
                     ->save(['status' => self::STATUS_DELETED,
+                        'onshelf_flag' => 'N',
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
-            $this->Table('erui_goods.show_cat_product')->where($where)
+            $show_cat_product_model = new ShowCatProductModel();
+            $show_cat_product_model->where($where)
                     ->save(['status' => self::STATUS_DELETED,
+                        'onshelf_flag' => 'N',
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
             ]);
@@ -1116,6 +1122,32 @@ class ShowCatModel extends PublicModel {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
+        }
+    }
+
+    /*
+     * 判断展示分类名称是否重复
+     */
+
+    public function showCatExist($name, $lang, $market_area_bn, $country_bn, $level_no = null, $cat_no = null) {
+        try {
+            $where = [];
+
+            if ($cat_no) {
+                $where['cat_no'] = ['neq', $cat_no];
+            }
+            $where['level_no'] = ['eq', $level_no];
+            $where['deleted_flag'] = 'N';
+            $where['lang'] = $lang;
+            $where['name'] = $name;
+            $where['market_area_bn'] = $market_area_bn;
+            $where['country_bn'] = $country_bn;
+            $flag = $this->field('id')->where($where)
+                    ->find();
+            return $flag;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
         }
     }
 

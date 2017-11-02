@@ -32,7 +32,7 @@ class EsproductController extends PublicController {
 
         if ($ret) {
             $data = $ret[0];
-            $list = $this->getdata($data);
+            $list = $this->getdata($data, $this->getLang());
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
@@ -41,11 +41,7 @@ class EsproductController extends PublicController {
             } else {
                 $send['allcount'] = $send['count'];
             }
-            if ($this->getPut('sku_count') == 'Y') {
-                if (isset($data['aggregations']['sku_count']['value'])) {
-                    $send['sku_count'] = $data['aggregations']['sku_count']['value'];
-                }
-            }
+            $send['sku_count'] = $model->getSkuCountByCondition($condition, $this->getLang());
             if (isset($condition['is_catlist']) && $condition['is_catlist'] === 'N') {
 
             } else {
@@ -87,14 +83,19 @@ class EsproductController extends PublicController {
         }
     }
 
-    private function getdata($data) {
+    private function getdata($data, $lang = 'en') {
         $keyword = $this->getPut('keyword');
+        //if ($lang == 'zh') {
+        $analyzer = 'ik';
+        // } else {
+        //    $analyzer = $lang;
+        //}
         foreach ($data['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
-            if (isset($item['highlight']['show_name.ik'][0]) && $item['highlight']['show_name.ik'][0]) {
-                $list[$key]['highlight_show_name'] = $item['highlight']['show_name.ik'][0];
-            } elseif (!$list[$key]['show_name'] && isset($item['highlight']['name.ik'][0]) && $item['highlight']['name.ik'][0]) {
-                $list[$key]['highlight_show_name'] = $item['highlight']['name.ik'][0];
+            if (isset($item['highlight']['show_name.' . $analyzer][0]) && $item['highlight']['show_name.' . $analyzer][0]) {
+                $list[$key]['highlight_show_name'] = $item['highlight']['show_name.' . $analyzer][0];
+            } elseif (!$list[$key]['show_name'] && isset($item['highlight']['name.' . $analyzer][0]) && $item['highlight']['name.' . $analyzer][0]) {
+                $list[$key]['highlight_show_name'] = $item['highlight']['name.' . $analyzer][0];
             } elseif ($list[$key]['show_name']) {
                 $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
             } else {

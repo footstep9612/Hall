@@ -17,8 +17,8 @@ class FinalQuoteItemModel extends PublicModel {
 
     protected $finalSkuFields = 'a.id,a.sku,'.
                                 'b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,b.model,b.remarks,'.
-                                'c.exw_unit_price quote_exw_unit_price,c.quote_unit_price quote_quote_unit_price,'.
-                                'a.exw_unit_price,a.quote_unit_price,'.
+                                'c.exw_unit_price,c.quote_unit_price,'.
+                                'a.exw_unit_price final_exw_unit_price,a.quote_unit_price final_quote_unit_price,'.
                                 'c.gross_weight_kg,c.package_mode,c.package_size,c.delivery_days,c.period_of_validity,c.goods_source,c.stock_loc,c.reason_for_no_quote';
 
 	public function __construct() {

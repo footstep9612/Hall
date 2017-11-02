@@ -436,7 +436,7 @@ class ESClient {
      * 更改文档
      */
 
-    public function update_document($index, $type, $body, $id, $doc_as_upsert = true) {
+    public function update_document($index, $type, $body, $id, $doc_as_upsert = false) {
         $updateParams = array();
         $updateParams['index'] = $index;
         $updateParams['type'] = $type;
@@ -921,6 +921,8 @@ class ESClient {
         );
         if ($from >= 0 && $size > 0) {
             $searchParams['body']['from'] = $from;
+            $searchParams['body']['size'] = $size;
+        } elseif ($size > 0) {
             $searchParams['body']['size'] = $size;
         }
         try {

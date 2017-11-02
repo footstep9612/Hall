@@ -371,11 +371,11 @@ class BrandModel extends PublicModel {
         $objPHPExcel->setActiveSheetIndex(0);    //设置工作表
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        $objSheet->getStyle("A1:M1")
+        $objSheet->getStyle("A1:F1")
                 ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        $objSheet->getStyle("A1:M1")->getFont()->setSize(11)->setBold(true);    //粗体
-        $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+        $objSheet->getStyle("A1:F1")->getFont()->setSize(11)->setBold(true);    //粗体
+        $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F'];
         foreach ($column_width_25 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(25);
         }
@@ -383,21 +383,13 @@ class BrandModel extends PublicModel {
 
         $objSheet->setTitle('品牌');
         $objSheet->setCellValue("A1", "序号");
-        $objSheet->setCellValue("B1", "品牌编码");
-        $objSheet->setCellValue("C1", "中文品牌名称");
-        $objSheet->setCellValue("D1", "中文品牌LOGO");
-        $objSheet->setCellValue("E1", "英文品牌名称");
-        $objSheet->setCellValue("F1", "英语品牌LOGO");
-        $objSheet->setCellValue("G1", "西语品牌名称");
-        $objSheet->setCellValue("H1", "西语品牌LOGO");
-        $objSheet->setCellValue("I1", "俄语品牌名称");
-        $objSheet->setCellValue("J1", "俄语品牌LOGO");
-        $objSheet->setCellValue("K1", "状态");
-        $objSheet->setCellValue("L1", "创建人");
-        $objSheet->setCellValue("M1", "创建时间");
+        $objSheet->setCellValue("B1", "品牌ID");
+        $objSheet->setCellValue("C1", "品牌名称(中)");
+        $objSheet->setCellValue("D1", "品牌名称(英)");
+        $objSheet->setCellValue("E1", "品牌名称(西)");
+        $objSheet->setCellValue("F1", "品牌名称(俄)");
+
         $j = 2;    //excel控制输出
-
-
         $result = $this->listall($input, null, 'id,brand,status,created_by,created_at');
         $this->_setUserName($result);
         if ($result) {
@@ -408,48 +400,25 @@ class BrandModel extends PublicModel {
                 foreach ($brand_ary as $val) {
                     if ($val['lang'] == 'zh') {
                         $objSheet->setCellValue("C" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("D" . $j, isset($val['logo']) ? $val['logo'] : '');
                     } elseif ($val['lang'] == 'en') {
-                        $objSheet->setCellValue("E" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("F" . $j, isset($val['logo']) ? $val['logo'] : '');
+                        $objSheet->setCellValue("D" . $j, isset($val['name']) ? $val['name'] : '');
                     } elseif ($val['lang'] == 'es') {
-                        $objSheet->setCellValue("G" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("H" . $j, isset($val['logo']) ? $val['logo'] : '');
+                        $objSheet->setCellValue("E" . $j, isset($val['name']) ? $val['name'] : '');
                     } elseif ($val['lang'] == 'ru') {
-                        $objSheet->setCellValue("I" . $j, isset($val['name']) ? $val['name'] : '');
-                        $objSheet->setCellValue("J" . $j, isset($val['logo']) ? $val['logo'] : '');
+                        $objSheet->setCellValue("F" . $j, isset($val['name']) ? $val['name'] : '');
                     }
                 }
 
-                $status = '';
-                switch ($r['status']) {
-                    case self::STATUS_APPROVING:
-                        $status = '审核中';
-                        break;
-                    case self::STATUS_DRAFT:
-                        $status = '草稿';
-                        break;
-                    case self::STATUS_VALID:
-                        $status = '通过';
-                        break;
-                    case self::STATUS_DELETED:
-                        $status = '已删除';
-                        break;
-                    default:
-                        $status = $r['status'];
-                        break;
-                }
-                $objSheet->setCellValue("K" . $j, $status);
-                $objSheet->setCellValue("L" . $j, isset($r['created_by_name']) ? $r['created_by_name'] : '');
-                $objSheet->setCellValue("M" . $j, isset($r['created_at']) ? $r['created_at'] : '');
                 $j++;
             }
         }
+
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:M' . $j)->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:F' . $j)->applyFromArray($styleArray);
+        $objSheet->freezePaneByColumnAndRow(2, 2);
 //保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Brand_' . time() . '.xls');
+        $localDir = ExcelHelperTrait::createExcelToLocalDir($objWriter, 'Brand_' . date('YmdHis') . '.xls');
 
 //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
@@ -461,7 +430,7 @@ class BrandModel extends PublicModel {
         $fileId = postfile($data, $url);
         if ($fileId) {
             unlink($localDir);
-            return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'] . '.xls', 'name' => $fileId['name']);
         }
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
         return false;

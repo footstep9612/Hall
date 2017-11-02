@@ -211,27 +211,27 @@ class ProductModel extends PublicModel {
         if (empty($input)) {
             return false;
         }
-        if(empty($input['zh']['name']) && empty($input['en']['name']) && empty($input['es']['name']) && empty($input['ru']['name']) ){
-            jsonReturn('', ErrorMsg::FAILED ,'名称不能为空');
+        if (empty($input['zh']['name']) && empty($input['en']['name']) && empty($input['es']['name']) && empty($input['ru']['name'])) {
+            jsonReturn('', ErrorMsg::FAILED, '名称不能为空');
         }
         $material_cat_no = (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) ? $input['material_cat_no'] : ((isset($input['zh']['material_cat_no']) && !empty($input['zh']['material_cat_no'])) ? $input['zh']['material_cat_no'] : ((isset($input['en']['material_cat_no']) && !empty($input['en']['material_cat_no'])) ? $input['en']['material_cat_no'] : ((isset($input['es']['material_cat_no']) && !empty($input['es']['material_cat_no'])) ? $input['es']['material_cat_no'] : ((isset($input['ru']['material_cat_no']) && !empty($input['ru']['material_cat_no'])) ? $input['ru']['material_cat_no'] : ''))));
-        if(empty($material_cat_no)){
-            jsonReturn('', ErrorMsg::FAILED ,'物料分类不能为空');
+        if (empty($material_cat_no)) {
+            jsonReturn('', ErrorMsg::FAILED, '物料分类不能为空');
         }
-        $fp = fopen(MYPATH . '/public/file/spuedit.lock','r');
-        if(flock($fp,LOCK_EX | LOCK_NB)) {
-            $spu = ( isset( $input[ 'spu' ] ) && !empty( $input[ 'spu' ] ) ) ? trim( $input[ 'spu' ] ) : $this->createSpu( $material_cat_no ); //不存在生产spu
-            flock( $fp , LOCK_UN );
+        $fp = fopen(MYPATH . '/public/file/spuedit.lock', 'r');
+        if (flock($fp, LOCK_EX | LOCK_NB)) {
+            $spu = ( isset($input['spu']) && !empty($input['spu']) ) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
+            flock($fp, LOCK_UN);
         }
         fclose($fp);
-        if ( empty( $spu ) || $spu === false ) {
-            jsonReturn( '' , ErrorMsg::FAILED , '生成SPU编码失败' );
+        if (empty($spu) || $spu === false) {
+            jsonReturn('', ErrorMsg::FAILED, '生成SPU编码失败');
         }
 
         //解锁  由于存在数据库的读写分离，在高并发情况下存在数据同步延迟，所以这块后期计划任务统一删除
-       /* if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
-            unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-        }*/
+        /* if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+          unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
+          } */
 
         $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
         $this->startTrans();
@@ -249,7 +249,7 @@ class ProductModel extends PublicModel {
                         jsonReturn('', ErrorMsg::FAILED, '物料分类编码不存在');
                     }
                     $data['lang'] = $key;
-                    if(empty($data['material_cat_no'])){
+                    if (empty($data['material_cat_no'])) {
                         $data['material_cat_no'] = $material_cat_no;
                     }
                     $data['bizline_id'] = $bizline_id;
@@ -341,15 +341,15 @@ class ProductModel extends PublicModel {
                                 $this->rollback();
                                 return false;
                             }/* else{
-                          $ids[] = $attach;
-                          }
-                          //删除其他附件
-                          $update_condition = array(
-                          'spu' => $spu,
-                          'id' => array('notin',$ids)
-                          );
-                          $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
-                         */
+                              $ids[] = $attach;
+                              }
+                              //删除其他附件
+                              $update_condition = array(
+                              'spu' => $spu,
+                              'id' => array('notin',$ids)
+                              );
+                              $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+                             */
                         }
                     } else {
                         if ($input['status'] != 'DRAFT') {
@@ -939,7 +939,7 @@ class ProductModel extends PublicModel {
                 $fileId = postfile($data, $url);
                 if ($fileId) {
                     //unlink($localDir);    //清理本地空间
-                    $data = array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                    $data = array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
                     redisHashSet('spu', 'sputemplate', json_encode($data));
                     return $data;
                 }
@@ -995,188 +995,188 @@ class ProductModel extends PublicModel {
                 redisSet($progress_key, json_encode($progress_redis));
                 try {
                     $workText = '';
-                    if ( $key < 1 ) {
+                    if ($key < 1) {
                         continue;
                     }
 
-                    $data_tmp = [ ];
-                    $input_spu = trim( $r[ 2 ] );    //excel输入的spu
-                    if(!empty($input_spu) && strlen($input_spu) != 16){
+                    $data_tmp = [];
+                    $input_spu = trim($r[2]);    //excel输入的spu
+                    if (!empty($input_spu) && strlen($input_spu) != 16) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[产品编码有误]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[产品编码有误]');
                         continue;
                     }
-                    $data_tmp[ 'lang' ] = $lang;
-                    $data_tmp[ 'material_cat_no' ] = trim( $r[ 3 ] );    //物料分类
-                    if ( empty( $data_tmp[ 'material_cat_no' ] ) ) {
+                    $data_tmp['lang'] = $lang;
+                    $data_tmp['material_cat_no'] = trim($r[3]);    //物料分类
+                    if (empty($data_tmp['material_cat_no'])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[物料分类编码不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[物料分类编码不能为空]');
                         continue;
                     }
                     //检查物料分类
-                    $mexist = $mcatModel->info( $data_tmp[ 'material_cat_no' ] , $lang );
-                    if ( !$mexist ) {
+                    $mexist = $mcatModel->info($data_tmp['material_cat_no'], $lang);
+                    if (!$mexist) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[物料分类编码不存在]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[物料分类编码不存在]');
                         continue;
                     }
-                    $data_tmp[ 'name' ] = trim( $r[ 4 ] );    //名称
-                    if ( empty( $data_tmp[ 'name' ] ) ) {
+                    $data_tmp['name'] = trim($r[4]);    //名称
+                    if (empty($data_tmp['name'])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[产品名称不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[产品名称不能为空]');
                         continue;
                     }
-                    $data_tmp[ 'show_name' ] = trim( $r[ 5 ] );    //展示名称
+                    $data_tmp['show_name'] = trim($r[5]);    //展示名称
                     //$r[6];    //产品组
-                    if ( empty( $r[ 6 ] ) ) {
+                    if (empty($r[6])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[产品组不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[产品组不能为空]');
                         continue;
                     } else {
                         $bizline_model = new BizlineModel();
-                        $bizline = $bizline_model->field( 'id' )->where( [ 'name' => trim( $r[ 6 ] ) ] )->find();
-                        $data_tmp[ 'bizline_id' ] = isset( $bizline[ 'id' ] ) ? $bizline[ 'id' ] : 0;
+                        $bizline = $bizline_model->field('id')->where(['name' => trim($r[6])])->find();
+                        $data_tmp['bizline_id'] = isset($bizline['id']) ? $bizline['id'] : 0;
                     }
                     //品牌
-                    if ( empty( $r[ 7 ] ) ) {
+                    if (empty($r[7])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[产品品牌不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[产品品牌不能为空]');
                         continue;
                     }
                     $condition_brand = array(
-                        'brand' => array( 'like' , '%"name":"' . trim( $r[ 7 ] ) . '"%' )
+                        'brand' => array('like', '%"name":"' . trim($r[7]) . '"%')
                     );
-                    $brand_id = $brandModel->field( 'id' )->where( $condition_brand )->find();
-                    if ( !$brand_id ) {
+                    $brand_id = $brandModel->field('id')->where($condition_brand)->find();
+                    if (!$brand_id) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[产品品牌不存在]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[产品品牌不存在]');
                         continue;
                     }
-                    $brand_ary = array( 'name' => trim( $r[ 7 ] ) , 'style' => 'TEXT' , 'label' => trim( $r[ 7 ] ) , 'logo' => '' );
-                    ksort( $brand_ary );
-                    $data_tmp[ 'brand' ] = json_encode( $brand_ary , JSON_UNESCAPED_UNICODE );
-                    $data_tmp[ 'description' ] = trim( $r[ 8 ] );    //产品介绍
-                    if ( empty( $data_tmp[ 'description' ] ) ) {
+                    $brand_ary = array('name' => trim($r[7]), 'style' => 'TEXT', 'label' => trim($r[7]), 'logo' => '');
+                    ksort($brand_ary);
+                    $data_tmp['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                    $data_tmp['description'] = trim($r[8]);    //产品介绍
+                    if (empty($data_tmp['description'])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[产品介绍不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[产品介绍不能为空]');
                         continue;
                     }
                     // $data_tmp['advantages'] = $r[6];
-                    $data_tmp[ 'tech_paras' ] = trim( $r[ 9 ] );    //技术参数
-                    if ( empty( $data_tmp[ 'tech_paras' ] ) ) {
+                    $data_tmp['tech_paras'] = trim($r[9]);    //技术参数
+                    if (empty($data_tmp['tech_paras'])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[技术参数不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[技术参数不能为空]');
                         continue;
                     }
-                    $data_tmp[ 'exe_standard' ] = trim( $r[ 10 ] );   //执行标准
-                    if ( empty( $data_tmp[ 'exe_standard' ] ) ) {
+                    $data_tmp['exe_standard'] = trim($r[10]);   //执行标准
+                    if (empty($data_tmp['exe_standard'])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[执行标准不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[执行标准不能为空]');
                         continue;
                     }
-                    $data_tmp[ 'warranty' ] = trim( $r[ 11 ] );    //质保期
-                    if ( empty( $data_tmp[ 'warranty' ] ) ) {
+                    $data_tmp['warranty'] = trim($r[11]);    //质保期
+                    if (empty($data_tmp['warranty'])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[质保期不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[质保期不能为空]');
                         continue;
                     }
-                    $data_tmp[ 'keywords' ] = trim( $r[ 12 ] );    //关键字
-                    if ( empty( $data_tmp[ 'keywords' ] ) ) {
+                    $data_tmp['keywords'] = trim($r[12]);    //关键字
+                    if (empty($data_tmp['keywords'])) {
                         $faild++;
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[关键字不能为空]' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), '操作失败[关键字不能为空]');
                         continue;
                     }
-                    $data_tmp[ 'source' ] = 'ERUI';
-                    $data_tmp[ 'source_detail' ] = 'Excel批量导入';
-                    $data_tmp[ 'created_by' ] = isset( $userInfo[ 'id' ] ) ? $userInfo[ 'id' ] : null;
-                    $data_tmp[ 'created_at' ] = date( 'Y-m-d H:i:s' );
+                    $data_tmp['source'] = 'ERUI';
+                    $data_tmp['source_detail'] = 'Excel批量导入';
+                    $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
+                    $data_tmp['created_at'] = date('Y-m-d H:i:s');
 
                     //根据lang,material_cat_no,brand查询name是否存在
                     $condition = array(
-                        'material_cat_no' => $data_tmp[ 'material_cat_no' ] ,
-                        'name' => $data_tmp[ 'name' ] ,
-                        'lang' => $lang ,
-                        'brand' => $data_tmp[ 'brand' ] ,
-                        'deleted_flag' => 'N' ,
+                        'material_cat_no' => $data_tmp['material_cat_no'],
+                        'name' => $data_tmp['name'],
+                        'lang' => $lang,
+                        'brand' => $data_tmp['brand'],
+                        'deleted_flag' => 'N',
                     );
-                    $exist = $this->field( 'spu' )->where( $condition )->select();
-                    if ( $exist ) {
-                        if ( empty( $input_spu )) {    //存在且没有传递spu 提示错误
+                    $exist = $this->field('spu')->where($condition)->select();
+                    if ($exist) {
+                        if (empty($input_spu)) {    //存在且没有传递spu 提示错误
                             $faild++;
-                            $objPHPExcel->setActiveSheetIndex( 0 )
-                                ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[已存在]' );
+                            $objPHPExcel->setActiveSheetIndex(0)
+                                    ->setCellValue('N' . ( $key + 1 ), '操作失败[已存在]');
                             continue;
                         } else {    //存在且传递了spu 则按修改操作
-                            $newspu = array('spu'=>$input_spu);
-                            if(in_array($newspu,$exist)){
+                            $newspu = array('spu' => $input_spu);
+                            if (in_array($newspu, $exist)) {
                                 $workText = '修改';
                                 $condition_update = array(
-                                    'spu' => $input_spu ,
+                                    'spu' => $input_spu,
                                     'lang' => $lang
                                 );
-                                $result = $this->where( $condition_update )->save( $data_tmp );
-                            }else{
+                                $result = $this->where($condition_update)->save($data_tmp);
+                            } else {
                                 $faild++;
-                                $objPHPExcel->setActiveSheetIndex( 0 )
-                                    ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[已存在]' );
+                                $objPHPExcel->setActiveSheetIndex(0)
+                                        ->setCellValue('N' . ( $key + 1 ), '操作失败[已存在]');
                                 continue;
                             }
                         }
                     } else {
-                        $data_tmp[ 'status' ] = $this::STATUS_DRAFT;
+                        $data_tmp['status'] = $this::STATUS_DRAFT;
                         $workText = '新增';
 
-                        $fp = fopen(MYPATH . '/public/file/spuedit.lock','r');
-                        if(flock($fp,LOCK_EX )) {
-                            $input_spu = $input_spu ? $input_spu : $this->createSpu( $r[ 3 ] );    //生成spu
-                            flock($fp,LOCK_UN);
+                        $fp = fopen(MYPATH . '/public/file/spuedit.lock', 'r');
+                        if (flock($fp, LOCK_EX)) {
+                            $input_spu = $input_spu ? $input_spu : $this->createSpu($r[3]);    //生成spu
+                            flock($fp, LOCK_UN);
                         }
                         fclose($fp);
 
-                        if ( $input_spu === false ) {
+                        if ($input_spu === false) {
                             $faild++;
-                            $objPHPExcel->setActiveSheetIndex( 0 )
-                                ->setCellValue( 'N' . ( $key + 1 ) , '操作失败[生成spu编码失败]' );
+                            $objPHPExcel->setActiveSheetIndex(0)
+                                    ->setCellValue('N' . ( $key + 1 ), '操作失败[生成spu编码失败]');
                             continue;
                         }
 
-                        $data_tmp[ 'spu' ] = $input_spu;
-                        $result = $this->add( $this->create( $data_tmp ) );
+                        $data_tmp['spu'] = $input_spu;
+                        $result = $this->add($this->create($data_tmp));
                     }
 
-                    if ( $result ) {
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'C' . ( $key + 1 ) , ' ' . $input_spu );
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , $workText . '操作成功' );
+                    if ($result) {
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('C' . ( $key + 1 ), ' ' . $input_spu);
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), $workText . '操作成功');
                         $success++;
 
                         //更新es
-                        $es_product_model->create_data( $input_spu , $lang );
+                        $es_product_model->create_data($input_spu, $lang);
                     } else {
-                        $objPHPExcel->setActiveSheetIndex( 0 )
-                            ->setCellValue( 'N' . ( $key + 1 ) , $workText . '操作失败' );
+                        $objPHPExcel->setActiveSheetIndex(0)
+                                ->setCellValue('N' . ( $key + 1 ), $workText . '操作失败');
                         $faild++;
                     }
                     $input_spu = null;
-                    unset( $input_spu );
-                } catch ( Exception $e ) {
-                    $objPHPExcel->setActiveSheetIndex( 0 )
-                        ->setCellValue( 'N' . ( $key + 1 ) , '操作失败-请检查数据' );
+                    unset($input_spu);
+                } catch (Exception $e) {
+                    $objPHPExcel->setActiveSheetIndex(0)
+                            ->setCellValue('N' . ( $key + 1 ), '操作失败-请检查数据');
                     $faild++;
-                    Log::write( __CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage() , Log::ERR );
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $e->getMessage(), Log::ERR);
                 }
             }
 
@@ -1192,7 +1192,7 @@ class ProductModel extends PublicModel {
             $fileId = postfile($data_fastDFS, $url);
             if ($fileId) {
                 unlink($localFile);
-                return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
             return false;

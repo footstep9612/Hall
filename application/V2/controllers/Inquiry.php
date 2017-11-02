@@ -225,7 +225,7 @@ class InquiryController extends PublicController {
         $inquiryList = $inquiryModel->getList_($condition);
         
         foreach ($inquiryList as &$inquiry) {
-            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn']])->find();
+            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh'])->find();
             $inquiry['country_name'] = $country['name'];
             $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
             $inquiry['agent_name'] = $agent['name'];
@@ -308,7 +308,7 @@ class InquiryController extends PublicController {
             if ($roleNo == $inquiry::marketAgentRole ) {
                 $isAgent = 'Y';
             }
-            if ($roleNo == $inquiry::inquiryIssueRole) {
+            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::inquiryIssueAuxiliaryRole) {
                 $isErui = 'Y';
             }
             if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
@@ -324,9 +324,9 @@ class InquiryController extends PublicController {
         
         if ($isAgent == 'Y') {
             $orgModel = new OrgModel();
-            
-            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ? : ['-1']], 'org_node' => 'ub'])->order('id DESC')->find();
-            
+
+            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ? : ['-1']], 'org_node' => ['in',['ub','erui']]])->order('id DESC')->find();
+
             // 事业部id和名称
             $data['ub_id'] = $org['id'];
             $data['ub_name'] = $org['name'];
@@ -558,10 +558,6 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
 
-        if($data['status'] == 'BIZ_DISPATCHING'){
-            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], $inquiry::quoteIssueMainRole);
-        }
-
         $results = $inquiry->updateData($data);
         $this->jsonReturn($results);
     }
@@ -575,6 +571,10 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
+
+        if($data['status'] == 'BIZ_DISPATCHING'){
+            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], $inquiry::quoteIssueMainRole);
+        }
 
         $results = $inquiry->updateStatus($data);
         $this->jsonReturn($results);

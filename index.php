@@ -26,16 +26,19 @@ if (file_exists(MYPATH . DS . 'application' . DS . $module) && $module) {
     die('{"code":"-1","message":"系统错误!"}');
 }
 define('COMMON_PATH', MYPATH . DS . 'common');
-
+$environments = ['pro', 'beta', 'dev'];
+$application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application.ini';
+foreach ($environments as $environment) {
+    if (file_exists('/var/conf/' . $environment)) {
+        $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application_' . $environment . '.ini';
+        break;
+    }
+}
 /**
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节
  * 另外在配置文件中, 可以替换PHP的常量, 比如此处的APPLICATION_PATH
  */
-if (file_exists(APPLICATION_PATH) && file_exists(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini')) {
-    $application = new Yaf_Application(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini');
-} else {
-    $application = new Yaf_Application(MYPATH . DS . 'conf' . DS . 'application.ini');
-}
+$application = new Yaf_Application($application_path);
 
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端
  * 而不会写入Response对象

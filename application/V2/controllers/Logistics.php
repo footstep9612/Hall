@@ -207,19 +207,19 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] / $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
     	        	
     	        $overlandInsuFee = $this->_getOverlandInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['overland_insu_rate']);
-    	        $quoteLogiFee['overland_insu'] = $overlandInsuFee['USD'];
+    	        $quoteLogiFee['overland_insu'] = $overlandInsuFee['CNY'];
     	        $shippingInsuFee = $this->_getShippingInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['shipping_insu_rate']);
-    	        $quoteLogiFee['shipping_insu'] = $shippingInsuFee['USD'];
+    	        $quoteLogiFee['shipping_insu'] = $shippingInsuFee['CNY'];
     	        
-    	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $quoteLogiFee['overland_insu'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
+    	        $tmpTotalFee = $quoteLogiFee['total_exw_price'] + $quoteLogiFee['land_freight_usd'] + $overlandInsuFee['USD'] + $quoteLogiFee['port_surcharge_usd'] + $quoteLogiFee['inspection_fee_usd'] + $quoteLogiFee['inter_shipping_usd'];
     	        
     	        $quoteLogiFee['dest_tariff_fee'] = round($tmpTotalFee * $quoteLogiFee['dest_tariff_rate'] / 100, 8);
     	        $quoteLogiFee['dest_va_tax_fee'] = round($tmpTotalFee * (1 + $quoteLogiFee['dest_tariff_rate'] / 100) * $quoteLogiFee['dest_va_tax_rate'] / 100, 8);
     	        
-    	        $user = $this->getUserInfo();
+    	        /*$user = $this->getUserInfo();
     	        $quoteLogiFee['current_name'] = $user['name'];
     	        
-    	        /*$quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id'] ? : $this->user['id']);
+    	        $quoteLogiFee['agent_check_org_id'] = $this->_getOrgIds($quoteLogiFee['logi_agent_id'] ? : $this->user['id']);
     	        
     	        $outField = 'logi_quote_org_id';
     	        $findFields = ['logi_check_org_id', $outField];
@@ -302,7 +302,7 @@ class LogisticsController extends PublicController {
 	            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 8) : 0;
 	            
 	            if ($quoteItem['quote_unit_price'] != $quoteUnitPrice) {
-	                $tmpRes = $this->quoteItemModel->updateItem(['id' => $quoteItem['id']], ['quote_unit_price' => $quoteUnitPrice]);
+	                $tmpRes = $this->quoteItemModel->where(['id' => $quoteItem['id']])->save(['quote_unit_price' => $quoteUnitPrice]);
 	                if (!$tmpRes) {
 	                    $res3 = false;
 	                    break;

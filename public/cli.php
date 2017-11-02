@@ -17,14 +17,15 @@ if (file_exists(MYPATH . DS . 'application' . DS . $module)) {
     die('{"code":"-1","message":"系统错误!"}');
 }
 define('COMMON_PATH', MYPATH . DS . 'common');
-
-if (file_exists(APPLICATION_PATH) && file_exists(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini')) {
-    $application = new Yaf_Application(APPLICATION_PATH . DS . 'conf' . DS . 'application.ini');
-} else {
-    die('{"code":"-1","message":"系统错误!"}');
+$environments = ['pro', 'beta', 'dev'];
+$application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application.ini';
+foreach ($environments as $environment) {
+    if (file_exists('/var/conf/' . $environment)) {
+        $application_path = APPLICATION_PATH . DS . 'conf' . DS . 'application_' . $environment . '.ini';
+        break;
+    }
 }
-
-
+$application = new Yaf_Application($application_path);
 $response = $application
         ->bootstrap()/* bootstrap是可选的调用 */
         ->run()/* 执行 */;
