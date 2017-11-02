@@ -142,4 +142,58 @@ class OrgMemberModel extends PublicModel {
 
 		return $this->where($where)->delete();
 	}
+
+	/*
+	 * @param array $condition
+     * @return array
+     * @author zhangyuliang
+     * @time 2017-11-02
+	 */
+	public function getOrguserlist($condition = []){
+		if(empty($condition['org_id'])) {
+			return ['code'=>'-104','message'=>'部门ID必填'];
+		}else{
+			$where['a.org_id'] = $condition['org_id'];
+		}
+		if(!empty($condition['role_no'])){
+			return ['code'=>'-104','message'=>'角色编码必填'];
+		}else{
+			$where['c.role_no'] = $condition['role_no'];
+		}
+
+		$where['d.status'] = 'NORMAL';
+
+		try {
+			$fields = 'd.id,d.user_no,d.name,c.name as role_name';
+			$list = $this->alias('a')
+					->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
+					->join('erui_sys.role c ON b.role_id = c.id','left')
+					->join('erui_sys.employee d ON a.employee_id = d.id','left')
+					->field($fields)
+					->where($where)
+					->order('a.id DESC')
+					->select();
+			$count = $this->alias('a')
+					->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
+					->join('erui_sys.role c ON b.role_id = c.id','left')
+					->join('erui_sys.employee d ON a.employee_id = d.id','left')
+					->where($where)
+					->count('a.id');
+
+			if($list){
+				$results['code'] = '1';
+				$results['message'] = '成功！';
+				$results['count'] = $count;
+				$results['data'] = $list;
+			}else{
+				$results['code'] = '-101';
+				$results['message'] = '没有找到相关信息!';
+			}
+			return $results;
+		} catch (Exception $e) {
+			$results['code'] = $e->getCode();
+			$results['message'] = $e->getMessage();
+			return $results;
+		}
+	}
 }
