@@ -87,13 +87,14 @@ class EsproductController extends PublicController {
         $keyword = $this->getPut('keyword');
         if ($lang == 'zh') {
             $analyzer = 'ik';
-        } elseif (in_array($analyzer, ['zh', 'en', 'es', 'ru'])) {
+        } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
             $analyzer = $lang;
         } else {
             $analyzer = 'ik';
         }
         foreach ($data['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
+
             if (isset($item['highlight']['show_name.' . $analyzer][0]) && $item['highlight']['show_name.' . $analyzer][0]) {
                 $list[$key]['highlight_show_name'] = $item['highlight']['show_name.' . $analyzer][0];
             } elseif (!$list[$key]['show_name'] && isset($item['highlight']['name.' . $analyzer][0]) && $item['highlight']['name.' . $analyzer][0]) {

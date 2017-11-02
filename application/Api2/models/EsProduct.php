@@ -188,7 +188,7 @@ class EsProductModel extends Model {
         $body = [];
         if ($lang == 'zh') {
             $analyzer = 'ik';
-        } elseif (in_array($analyzer, ['zh', 'en', 'es', 'ru'])) {
+        } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
             $analyzer = $lang;
         } else {
             $analyzer = 'ik';
@@ -340,6 +340,15 @@ class EsProductModel extends Model {
     public function getProducts($condition, $_source = null, $lang = 'en') {
 
         try {
+            if ($lang == 'zh') {
+                $analyzer = 'ik';
+            } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+                $analyzer = $lang;
+            } else {
+                $analyzer = 'ik';
+            }
+
+
             $body = $this->getCondition($condition, $lang);
             $pagesize = 10;
             $current_no = 1;
