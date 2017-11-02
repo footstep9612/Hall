@@ -1958,6 +1958,18 @@ class GoodsModel extends PublicModel {
                 continue;
             }
 
+            $col_value = 0;    //处理空行额外增加了个for循环
+            for ($index = 0; $index < $columnsIndex; $index++) {
+                $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
+                $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
+                if(!empty($value)){
+                    $col_value++;
+                }
+            }
+            if($col_value==0){
+                continue;
+            }
+
             $data = array();
             for ($index = 0; $index < $columnsIndex; $index++) {
                 $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
