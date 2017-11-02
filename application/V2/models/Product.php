@@ -21,12 +21,20 @@ class ProductModel extends PublicModel {
     const DELETE_Y = 'Y';
     const DELETE_N = 'N';
 
+    protected $lang_ary = array(
+        'zh' => "中文",
+        'en' => "英文",
+        'ru' => "俄文",
+        'es' => "西文"
+    );
+
     //定义校验规则
     protected $field = array(
         //'lang' => array('method','checkLang','语言'),
-        'material_cat_no' => array('required', '', '物料分类不能为空'),
-        'name' => array('required', '', '名称不能为空'),
-        'brand' => array('required', '', '品牌不能为空'),
+        'material_cat_no' => array('required', '', '请输入物料分类'),
+        'name' => array('required', '', '请输入名称'),
+        'brand' => array('required', '', '请输入品牌'),
+        //'description' => array('required', '', '请输入详情介绍'),
     );
 
     /**
@@ -212,11 +220,11 @@ class ProductModel extends PublicModel {
             return false;
         }
         if (empty($input['zh']['name']) && empty($input['en']['name']) && empty($input['es']['name']) && empty($input['ru']['name'])) {
-            jsonReturn('', ErrorMsg::FAILED, '名称不能为空');
+            jsonReturn('', ErrorMsg::FAILED, '请输出名称');
         }
         $material_cat_no = (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) ? $input['material_cat_no'] : ((isset($input['zh']['material_cat_no']) && !empty($input['zh']['material_cat_no'])) ? $input['zh']['material_cat_no'] : ((isset($input['en']['material_cat_no']) && !empty($input['en']['material_cat_no'])) ? $input['en']['material_cat_no'] : ((isset($input['es']['material_cat_no']) && !empty($input['es']['material_cat_no'])) ? $input['es']['material_cat_no'] : ((isset($input['ru']['material_cat_no']) && !empty($input['ru']['material_cat_no'])) ? $input['ru']['material_cat_no'] : ''))));
         if (empty($material_cat_no)) {
-            jsonReturn('', ErrorMsg::FAILED, '物料分类不能为空');
+            jsonReturn('', ErrorMsg::FAILED, '请输入物料分类');
         }
         $fp = fopen(MYPATH . '/public/file/spuedit.lock', 'r');
         if (flock($fp, LOCK_EX | LOCK_NB)) {
@@ -246,7 +254,7 @@ class ProductModel extends PublicModel {
                     }
                     $mexist = $mcatModel->info($material_cat_no, $key);
                     if (!$mexist) {
-                        jsonReturn('', ErrorMsg::FAILED, '物料分类编码不存在');
+                        jsonReturn('', ErrorMsg::FAILED, $this->lang_ary[$key].'物料分类编码不存在');
                     }
                     $data['lang'] = $key;
                     if (empty($data['material_cat_no'])) {
@@ -256,6 +264,27 @@ class ProductModel extends PublicModel {
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     $this->checkParam($data, $this->field);     //字段校验
+                  /*  if($key == 'en'){
+                        if(!empty($data['name']) && checkLang($data['name']) != 'en'){
+                            jsonReturn('', ErrorMsg::FAILED, '英文名称中含有其他语种，请检查');
+                        }
+                        if(!empty($data['show_name']) && checkLang($data['show_name']) != 'en'){
+                            jsonReturn('', ErrorMsg::FAILED, '英文展示名称中含有其他语种，请检查');
+                        }
+                        if(!empty($data['exe_standard']) && checkLang($data['exe_standard']) != 'en'){
+                            jsonReturn('', ErrorMsg::FAILED, '英文执行标准中含有其他语种，请检查');
+                        }
+                        if(!empty($data['description']) && checkLang($data['description']) != 'en'){
+                            jsonReturn('', ErrorMsg::FAILED, '英文详情介绍中含有其他语种，请检查');
+                        }
+                        if(!empty($data['tech_paras']) && checkLang($data['tech_paras']) != 'en'){
+                            jsonReturn('', ErrorMsg::FAILED, '英文技术参数中含有其他语种，请检查');
+                        }
+                        if(!empty($data['warranty']) && checkLang($data['warranty']) != 'en'){
+                            jsonReturn('', ErrorMsg::FAILED, '英文质保期中含有其他语种，请检查');
+                        }
+                    }*/
+
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $key,
