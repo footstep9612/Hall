@@ -827,6 +827,7 @@ class EsProductModel extends Model {
                         flush();
                     }
                 } else {
+                    $this->_delcache();
                     return false;
                 }
             }
@@ -960,6 +961,7 @@ class EsProductModel extends Model {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
         $k++;
+
         return $flag;
     }
 
@@ -1399,6 +1401,7 @@ class EsProductModel extends Model {
                 }
             }
             $es->refresh($this->dbName);
+            $this->_delcache();
             return true;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1430,6 +1433,7 @@ class EsProductModel extends Model {
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
             if ($flag['_shards']['successful'] !== 1) {
                 LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
+                $this->_delcache();
                 return true;
             } else {
                 return false;
@@ -1640,6 +1644,7 @@ class EsProductModel extends Model {
         }
         $type = $this->tableName . '_' . $lang;
         $es->update_document($this->dbName, $type, $data, $id);
+
         return true;
     }
 
@@ -1704,6 +1709,7 @@ class EsProductModel extends Model {
         ];
         $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
         $es->refresh($this->dbName);
+
         return true;
     }
 
@@ -1730,6 +1736,7 @@ class EsProductModel extends Model {
         $id = $spu;
         $type = $this->tableName . '_' . $lang;
         $es->update_document($this->dbName, $type, $data, $id);
+        $this->_delcache();
         return true;
     }
 
@@ -1793,6 +1800,7 @@ class EsProductModel extends Model {
             $es->bulk($updateParams);
         }
         $es->refresh($this->dbName);
+        $this->_delcache();
         return true;
     }
 
@@ -1826,6 +1834,7 @@ class EsProductModel extends Model {
                     'deleted_flag' => 'Y']];
         }
         $es->bulk($updateParams);
+        $this->_delcache();
         return true;
     }
 
@@ -1862,6 +1871,7 @@ class EsProductModel extends Model {
             }
             $es->bulk($updateParams);
         }
+        $this->_delcache();
         return true;
     }
 
@@ -1928,6 +1938,7 @@ class EsProductModel extends Model {
             $ret = $es->bulk($updateParams);
         }
         $es->refresh($this->dbName);
+        $this->_delcache();
         return true;
     }
 
@@ -1972,6 +1983,7 @@ class EsProductModel extends Model {
             }
             $ret = $es->bulk($updateParams);
         }
+        $this->_delcache();
         $es->refresh($this->dbName);
         return true;
     }
@@ -2060,6 +2072,25 @@ class EsProductModel extends Model {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::ERR);
             return false;
         }
+    }
+
+    /*
+     * 删除缓存
+     */
+
+    private function _delcache() {
+
+        $redis = new phpredis();
+        $treekeys = $redis->getKeys('spu_*');
+        $redis->delete($treekeys);
+        unset($redis);
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $keys = $redis3->getKeys('spu_*');
+        $redis3->delete($keys);
+        unset($redis3);
     }
 
     /*
