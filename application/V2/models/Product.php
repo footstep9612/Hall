@@ -264,27 +264,26 @@ class ProductModel extends PublicModel {
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     $this->checkParam($data, $this->field);     //字段校验
-                  /*  if($key == 'en'){
-                        if(!empty($data['name']) && checkLang($data['name']) != 'en'){
-                            jsonReturn('', ErrorMsg::FAILED, '英文名称中含有其他语种，请检查');
+                    if($key == 'en'){
+                        if(!empty($data['name']) && haveZh($data['name'])){
+                            jsonReturn('', ErrorMsg::FAILED, '英文名称中含有中文，请检查');
                         }
-                        if(!empty($data['show_name']) && checkLang($data['show_name']) != 'en'){
-                            jsonReturn('', ErrorMsg::FAILED, '英文展示名称中含有其他语种，请检查');
+                        if(!empty($data['show_name']) && haveZh($data['show_name'])){
+                            jsonReturn('', ErrorMsg::FAILED, '英文展示名称中含有中文，请检查');
                         }
-                        if(!empty($data['exe_standard']) && checkLang($data['exe_standard']) != 'en'){
-                            jsonReturn('', ErrorMsg::FAILED, '英文执行标准中含有其他语种，请检查');
+                        if(!empty($data['exe_standard']) && haveZh($data['exe_standard'])){
+                            jsonReturn('', ErrorMsg::FAILED, '英文执行标准中含有中文，请检查');
                         }
-                        if(!empty($data['description']) && checkLang($data['description']) != 'en'){
-                            jsonReturn('', ErrorMsg::FAILED, '英文详情介绍中含有其他语种，请检查');
+                        if(!empty($data['description']) && haveZh($data['description'])){
+                            jsonReturn('', ErrorMsg::FAILED, '英文详情介绍中含有中文，请检查');
                         }
-                        if(!empty($data['tech_paras']) && checkLang($data['tech_paras']) != 'en'){
-                            jsonReturn('', ErrorMsg::FAILED, '英文技术参数中含有其他语种，请检查');
+                        if(!empty($data['tech_paras']) && haveZh($data['tech_paras'])){
+                            jsonReturn('', ErrorMsg::FAILED, '英文技术参数中含有中文，请检查');
                         }
-                        if(!empty($data['warranty']) && checkLang($data['warranty']) != 'en'){
-                            jsonReturn('', ErrorMsg::FAILED, '英文质保期中含有其他语种，请检查');
+                        if(!empty($data['warranty']) && haveZh($data['warranty'])){
+                            jsonReturn('', ErrorMsg::FAILED, '英文质保期中含有中文，请检查');
                         }
-                    }*/
-
+                    }
                     if ($input['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $key,
