@@ -501,5 +501,18 @@ class UserController extends PublicController {
         }
     }
 
+    /*
+     * 根据部门和角色获取用户列表
+     * 张玉良
+     * 2017-11-02
+     */
+    public function OrgUserListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $user_modle =new UserModel();
+        $results =$user_modle->getOrguserlist($data);
+
+        return $results;
+    }
 
 }
