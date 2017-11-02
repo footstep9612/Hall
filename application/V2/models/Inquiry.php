@@ -22,6 +22,8 @@ class InquiryModel extends PublicModel {
     const logiQuoterRole = 'A009'; //物流报价人角色编号
     const logiCheckRole = 'A010'; //物流报价审核人角色编号
     const inquiryIssueAuxiliaryRole = 'A011'; //易瑞辅分单员角色编号
+    const viewAllRole = 'A012'; //查看全部询单角色编号
+    const viewBizDeptRole = 'A013'; //查看事业部询单角色编号
     
     public $inquiryStatus = [
         'DRAFT' => '草稿',
@@ -92,7 +94,7 @@ class InquiryModel extends PublicModel {
      */
     public function getWhere($condition = []) {
          
-        $where = [];
+        $where['deleted_flag'] = 'N';
         
         if (!empty($condition['status'])) {
             $where['status'] = $condition['status'];    //项目状态
@@ -175,8 +177,53 @@ class InquiryModel extends PublicModel {
                 $where[] = $map;
             }
         }
+         
+        return $where;
+    }
     
+    /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-11-02
+     */
+    public function getViewWhere($condition = []) {
+        
+        $where['status'] = ['neq', 'DRAFT'];
         $where['deleted_flag'] = 'N';
+    
+        if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
+            $where['status'] = $condition['status'];    //项目状态
+        }
+    
+        if (!empty($condition['country_bn'])) {
+            $where['country_bn'] = $condition['country_bn'];    //国家
+        }
+    
+        if (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];  //流程编码
+        }
+    
+        if (!empty($condition['buyer_name'])) {
+            $where['buyer_name'] = $condition['buyer_name'];  //客户名称
+        }
+    
+        if (!empty($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        }
+        
+        if (!empty($condition['org_id'])) {
+            $where['org_id'] = ['in', $condition['org_id']]; //事业部
+        }
+    
+        if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
+            $where['created_at'] = [
+                ['egt', date('Y-m-d H:i:s', $condition['start_time'])],
+                ['elt', date('Y-m-d H:i:s', $condition['end_time'] + 24 * 3600 - 1)]
+            ];
+        }
          
         return $where;
     }
@@ -206,6 +253,23 @@ class InquiryModel extends PublicModel {
     public function getCount_($condition = []) {
          
         $where = $this->getWhere($condition);
+         
+        $count = $this->where($where)->count('id');
+         
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-11-02
+     */
+    public function getViewCount($condition = []) {
+         
+        $where = $this->getViewWhere($condition);
          
         $count = $this->where($where)->count('id');
          
@@ -296,6 +360,29 @@ class InquiryModel extends PublicModel {
     public function getList_($condition = [], $field = '*') {
     
         $where = $this->getWhere($condition);
+         
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+         
+        return $this->field($field)
+                            ->where($where)
+                            ->page($currentPage, $pageSize)
+                            ->order('id DESC')
+                            ->select();
+    }
+    
+    /**
+     * @desc 获取列表
+     *
+     * @param array $condition
+     * @param string $field
+     * @return array
+     * @author liujf
+     * @time 2017-11-02
+     */
+    public function getViewList($condition = [], $field = '*') {
+    
+        $where = $this->getViewWhere($condition);
          
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
