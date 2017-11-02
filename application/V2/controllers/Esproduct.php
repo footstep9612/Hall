@@ -527,15 +527,7 @@ class EsproductController extends PublicController {
 
 
         $int_analyzed = ['type' => 'integer',];
-        $int_analyzed = [
-            'type' => $type,
-            'index' => 'no',
-            'fields' => [
-                'all' => [
-                    'index' => 'not_analyzed',
-                    'type' => $type
-                ]]
-        ];
+
         $ik_analyzed = [
             'index' => 'no',
             'type' => $type,
