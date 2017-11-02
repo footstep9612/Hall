@@ -190,6 +190,11 @@ class EsGoodsModel extends Model {
 
     private function getCondition($condition, $lang = 'en') {
         $body = [];
+        //if ($lang == 'zh') {
+        $analyzer = 'ik';
+        // } else {
+        //    $analyzer = $lang;
+        //}
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
@@ -219,11 +224,11 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.supplier_name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers.supplier_id');
-        //  $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.ik');
+        //  $this->_getQurey($condition, $body, ESClient::MATCH, 'brand', 'brand.'.$analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'cat_name', 'show_cats.all');
@@ -309,8 +314,8 @@ class EsGoodsModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $show_name = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.ik' => ['query' => $show_name, 'boost' => 7]]],
-                        [ESClient::MATCH => ['show_name.ik' => ['query' => $show_name, 'boost' => 7]]],
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::TERM => ['sku' => $show_name]],
                         [ESClient::TERM => ['spu' => $show_name]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],

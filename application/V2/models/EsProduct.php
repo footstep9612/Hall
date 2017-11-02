@@ -189,6 +189,11 @@ class EsProductModel extends Model {
 
     private function getCondition($condition, $lang = 'en') {
         $body = [];
+        //if ($lang == 'zh') {
+        $analyzer = 'ik';
+        // } else {
+        //    $analyzer = $lang;
+        //}
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
@@ -229,12 +234,12 @@ class EsProductModel extends Model {
 
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope', 'app_scope.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages', 'advantages.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope', 'app_scope.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages', 'advantages.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.' . $analyzer);
 
 
 
@@ -284,7 +289,7 @@ class EsProductModel extends Model {
         if (isset($condition['show_name']) && $condition['show_name']) {
             $show_name = trim($condition['show_name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['show_name.ik' => $show_name]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => $show_name]],
                         [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
             ]]];
         }
@@ -292,7 +297,7 @@ class EsProductModel extends Model {
         if (isset($condition['name']) && $condition['name']) {
             $name = trim($condition['name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-// [ESClient::MATCH => ['name.ik' => $name]],
+// [ESClient::MATCH => ['name.'.$analyzer => $name]],
                         [ESClient::WILDCARD => ['name.all' => '*' . $name . '*']],
             ]]];
         }
@@ -317,13 +322,13 @@ class EsProductModel extends Model {
             ]]];
         }
 
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = trim($condition['keyword']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.ik' => ['query' => $keyword, 'boost' => 7]]],
-                        [ESClient::MATCH => ['show_name.ik' => ['query' => $keyword, 'boost' => 7]]],
-                        [ESClient::MATCH => ['keywords.ik' => ['query' => $keyword, 'boost' => 2]]],
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
                         [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
@@ -391,7 +396,7 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
 
-        $es->setaggs('image_count.no', 'image_count', 'terms', 0);
+        $es->setaggs('image_count', 'image_count', 'terms', 0);
         $es->setfields(['image_count']);
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $image_count = 0;
@@ -412,24 +417,33 @@ class EsProductModel extends Model {
 
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
+        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
+        if (redisExist($redis_key)) {
+            return redisGet($redis_key);
+        }
         $es = new ESClient();
         $es->setbody($body);
-
-        $es->setaggs('sku_count.no', 'sku_count', 'terms', 0);
         $es->setfields(['sku_count']);
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
         $sku_count = 0;
-
-        if (isset($ret['aggregations']['sku_count']['buckets'])) {
-            foreach ($ret['aggregations']['sku_count']['buckets'] as $item) {
-                $sku_count += intval($item['key']) * intval($item['doc_count']);
+        if (isset($ret['hits']['hits'])) {
+            foreach ($ret['hits']['hits'] as $item) {
+                $sku_count += $item['_source']['sku_count'];
             }
         }
-
-
+        if (isset($ret['hits']['total']) && $ret['hits']['total'] > 1000) {
+            for ($i = 1000; $i <= $ret['hits']['total']; $i += 1000) {
+                $ret1 = $es->search($this->dbName, $this->tableName . '_' . $lang, $i, 1000);
+                if (isset($ret1['hits']['hits'])) {
+                    foreach ($ret1['hits']['hits'] as $item) {
+                        $sku_count += $item['_source']['sku_count'];
+                    }
+                }
+            }
+        }
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
-
+        redisSet($redis_key, $sku_count, 3600);
         return $sku_count;
     }
 
