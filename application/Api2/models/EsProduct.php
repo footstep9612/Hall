@@ -370,7 +370,7 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
 
-        $es->setaggs('sku_count', 'sku_count', 'terms', 0);
+        $es->setaggs('sku_count.no', 'sku_count', 'terms', 0);
         $es->setfields(['sku_count']);
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $sku_count = 0;
