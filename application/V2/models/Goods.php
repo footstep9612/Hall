@@ -2198,19 +2198,28 @@ class GoodsModel extends PublicModel {
                     continue;
                 } else {
                     if (!empty($input_sku)) {
-                        $exist_sku = $this->field('id')->where(['sku'=>$input_sku,'lang'=>$lang])->find();
+                        $exist_sku = $this->field('id')->where(['sku'=>$input_sku])->find();
                         if(!$exist_sku){
                             $faild++;
                             $this->rollback();
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '更新失败[SKU不存在]');
                             continue;
                         }
-                        $workType = '更新';
-                        $condition_update = array(
-                            'sku' => $input_sku,
-                            'lang' => $lang
-                        );
-                        $result = $this->where($condition_update)->save($data_tmp);
+                        $exist_langsku = $this->field('id')->where(['sku'=>$input_sku,'lang'=>$lang])->find();
+                        if($exist_langsku){
+                            $workType = '更新';
+                            $condition_update = array(
+                                'sku' => $input_sku,
+                                'lang' => $lang
+                            );
+                            $result = $this->where($condition_update)->save($data_tmp);
+                        }else{
+                            $workType = '添加';
+                            $data_tmp['status'] = $this::STATUS_DRAFT;
+                            $data_tmp['sku'] = $input_sku;
+                            $data_tmp['lang'] = $lang;
+                            $result = $this->add($this->create($data_tmp));
+                        }
                     }else{
                         $workType = '添加';
                         $data_tmp['status'] = $this::STATUS_DRAFT;
