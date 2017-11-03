@@ -795,7 +795,7 @@ class EsProductModel extends Model {
                                     ])->limit(0, 100)
                                     ->order('id ASC')->select();
                 } else {
-                    $products = $this->where(['lang' => $lang, 'id' => ['lt', $max_id]
+                    $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
                                     ])->limit(0, 100)
                                     ->order('id ASC')->select();
                 }
