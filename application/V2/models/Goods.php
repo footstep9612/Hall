@@ -977,6 +977,7 @@ class GoodsModel extends PublicModel {
         $userInfo = getLoinInfo();
         if ($skuObj && is_array($skuObj)) {
             try {
+                $es_product_model = new EsProductModel();
                 $skuary = [];
                 $error_date = '';
                 foreach ($skuObj as $sku) {
@@ -1030,6 +1031,8 @@ class GoodsModel extends PublicModel {
                                     }
                                     $result_spu = $pModel->where($spuWhere)->save(array('status' => $pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s', time())));
                                     if ($result_spu) {
+                                        //更新es
+                                        $es_product_model->create_data($spuCode['spu'], $lang);
                                         $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
                                     }
                                 }
