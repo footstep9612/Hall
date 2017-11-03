@@ -518,7 +518,7 @@ class EsGoodsModel extends Model {
     public function importgoodss($lang = 'en') {
         try {
             ob_clean();
-            $min_id = 0;
+            $max_id = 0;
             $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]])->count('id');
 
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -533,12 +533,12 @@ class EsGoodsModel extends Model {
                 flush();
 
                 $time1 = microtime(true);
-                if ($min_id === 0) {
+                if ($max_id === 0) {
                     $goods = $this->where(['lang' => $lang, 'id' => ['gt', 0]])
-                                    ->limit(0, 100)->order('id DESC')->select();
+                                    ->limit(0, 100)->order('id ASC')->select();
                 } else {
-                    $goods = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]])
-                                    ->limit(0, 100)->order('id DESC')->select();
+                    $goods = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])
+                                    ->limit(0, 100)->order('id ASC')->select();
                 }
 
                 $spus = $skus = [];
@@ -583,7 +583,7 @@ class EsGoodsModel extends Model {
                 foreach ($goods as $key => $item) {
                     $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
                     if ($key === 99) {
-                        $min_id = $item['id'];
+                        $max_id = $item['id'];
                     }
                     print_r($flag);
                     ob_flush();
