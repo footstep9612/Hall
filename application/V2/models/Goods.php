@@ -300,7 +300,7 @@ class GoodsModel extends PublicModel {
      * @author
      */
     public function getSkus($spu) {
-        $result = $this->field('sku')->where(array('spu'=>$spu))->order('sku DESC')->find();
+        $result = $this->field('sku')->where(array('spu' => $spu))->order('sku DESC')->find();
         return $result ? $result['sku'] : false;
     }
 
@@ -605,7 +605,7 @@ class GoodsModel extends PublicModel {
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-                    
+
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
@@ -792,12 +792,12 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
             }
-            if($success){
+            if ($success) {
                 $this->commit();
                 return $sku;
-            }else{
+            } else {
                 $this->rollback();
-                jsonReturn('', ErrorMsg::FAILED , '亲，不留下点东西？');
+                jsonReturn('', ErrorMsg::FAILED, '亲，不留下点东西？');
                 //return false;
             }
         } catch (Exception $ex) {
@@ -837,18 +837,18 @@ class GoodsModel extends PublicModel {
      */
     private function _checkExit($condition, $attr, $boolen = false) {
         $exist = $this->field('spu,sku,lang')->where($condition)->select();
-        if($exist){
+        if ($exist) {
             $attr_model = new GoodsAttrModel();
-            foreach ($exist as $item){
-                $condition_attr = ['spu'=>$item['spu'], 'sku'=>$item['sku'],'lang'=>$item['lang']];
+            foreach ($exist as $item) {
+                $condition_attr = ['spu' => $item['spu'], 'sku' => $item['sku'], 'lang' => $item['lang']];
                 $spesc = $attr_model->field('spec_attrs')->where($condition_attr)->find();
-                if(empty($attr['spec_attrs']) && empty($spesc)){
+                if (empty($attr['spec_attrs']) && empty($spesc)) {
                     if ($boolen) {
                         return false;
                     } else {
                         jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
                     }
-                }else{
+                } else {
                     $fspesc = json_decode($spesc['spec_attrs'], true);
                     $result1 = array_diff_assoc($fspesc, $attr['spec_attrs']);
                     $result2 = array_diff_assoc($attr['spec_attrs'], $fspesc);
@@ -865,44 +865,44 @@ class GoodsModel extends PublicModel {
             }
         }
 
-        /*$exist = $this->field('id')->where($condition)->find();
-        if ($exist) {
-            $where = array(
-                'lang' => $condition['lang'],
-                'spu' => $condition['spu'],
-                'deleted_flag' => 'N'
-            );
-            if (!empty($condition['sku'])) {
-                $where['sku'] = $condition['sku'];
-            }
-            $attr_model = new GoodsAttrModel();
-            $other_attr = $attr_model->where($where)->select();
+        /* $exist = $this->field('id')->where($condition)->find();
+          if ($exist) {
+          $where = array(
+          'lang' => $condition['lang'],
+          'spu' => $condition['spu'],
+          'deleted_flag' => 'N'
+          );
+          if (!empty($condition['sku'])) {
+          $where['sku'] = $condition['sku'];
+          }
+          $attr_model = new GoodsAttrModel();
+          $other_attr = $attr_model->where($where)->select();
 
-            if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
-                if ($boolen) {
-                    return false;
-                } else {
-                    jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
-                }
-            } else {
-                foreach ($other_attr as $key => $item) {
-                    $other = json_decode($item['spec_attrs'], true);
-                    $otherAttr = $other ? $other : [];
-                    $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
-                    $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
+          if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
+          if ($boolen) {
+          return false;
+          } else {
+          jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
+          }
+          } else {
+          foreach ($other_attr as $key => $item) {
+          $other = json_decode($item['spec_attrs'], true);
+          $otherAttr = $other ? $other : [];
+          $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
+          $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
 
-                    if (empty($result1) && empty($result2)) {
-                        if ($boolen) {
-                            return false;
-                        } else {
-                            jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
-                        }
-                    } else {
-                        continue;
-                    }
-                }
-            }
-        }*/
+          if (empty($result1) && empty($result2)) {
+          if ($boolen) {
+          return false;
+          } else {
+          jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
+          }
+          } else {
+          continue;
+          }
+          }
+          }
+          } */
     }
 
     /**
@@ -1429,7 +1429,7 @@ class GoodsModel extends PublicModel {
                 $fileId = postfile($data, $url);
                 if ($fileId) {
                     //unlink($localDir);    //清理本地空间
-                    $data = array('url' => $fastDFSServer . $fileId['url'].'?filename=' . $fileId['name'], 'name' => $fileId['name']);
+                    $data = array('url' => $fastDFSServer . $fileId['url'] . '?filename=skuTemplate.xls', 'name' => $fileId['name']);
                     redisHashSet('sku', 'skuTemplate', json_encode($data));
                     return $data;
                 }
@@ -1669,7 +1669,7 @@ class GoodsModel extends PublicModel {
             $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
             $fileId = postfile($data, $url);
             if ($fileId) {
-                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
             return false;
@@ -1855,7 +1855,7 @@ class GoodsModel extends PublicModel {
             $fileId = postfile($data, $url);
             if ($fileId) {
                 unlink($dirName . '.zip');
-                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
             return false;
@@ -1962,11 +1962,11 @@ class GoodsModel extends PublicModel {
             for ($index = 0; $index < $columnsIndex; $index++) {
                 $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
                 $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $i)->getValue()); //转码
-                if(!empty($value)){
+                if (!empty($value)) {
                     $col_value++;
                 }
             }
-            if($col_value==0){
+            if ($col_value == 0) {
                 continue;
             }
 
@@ -2025,9 +2025,9 @@ class GoodsModel extends PublicModel {
             $data_tmp = [];
             $data_tmp['spu'] = $spu;
             $input_sku = $data['订货号'];    //输入的sku  订货号
-            if(!empty($input_sku) && strlen($input_sku) != 16){
+            if (!empty($input_sku) && strlen($input_sku) != 16) {
                 $faild++;
-                $objPHPExcel->getSheet(0)->setCellValue( $maxCol . $i , '操作失败[商品编码有误]' );
+                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[商品编码有误]');
                 continue;
             }
             $data_tmp['lang'] = $lang;
@@ -2198,29 +2198,29 @@ class GoodsModel extends PublicModel {
                     continue;
                 } else {
                     if (!empty($input_sku)) {
-                        $exist_sku = $this->field('id')->where(['sku'=>$input_sku])->find();
-                        if(!$exist_sku){
+                        $exist_sku = $this->field('id')->where(['sku' => $input_sku])->find();
+                        if (!$exist_sku) {
                             $faild++;
                             $this->rollback();
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '更新失败[SKU不存在]');
                             continue;
                         }
-                        $exist_langsku = $this->field('id')->where(['sku'=>$input_sku,'lang'=>$lang])->find();
-                        if($exist_langsku){
+                        $exist_langsku = $this->field('id')->where(['sku' => $input_sku, 'lang' => $lang])->find();
+                        if ($exist_langsku) {
                             $workType = '更新';
                             $condition_update = array(
                                 'sku' => $input_sku,
                                 'lang' => $lang
                             );
                             $result = $this->where($condition_update)->save($data_tmp);
-                        }else{
+                        } else {
                             $workType = '添加';
                             $data_tmp['status'] = $this::STATUS_DRAFT;
                             $data_tmp['sku'] = $input_sku;
                             $data_tmp['lang'] = $lang;
                             $result = $this->add($this->create($data_tmp));
                         }
-                    }else{
+                    } else {
                         $workType = '添加';
                         $data_tmp['status'] = $this::STATUS_DRAFT;
                         $fp = fopen(MYPATH . '/public/file/skuedit.lock', 'r');
@@ -2229,7 +2229,7 @@ class GoodsModel extends PublicModel {
                             flock($fp, LOCK_UN);
                         }
                         fclose($fp);
-                        if(!$input_sku){
+                        if (!$input_sku) {
                             $faild++;
                             $this->rollback();
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $i, '操作失败[生成SKU编码失败]');
