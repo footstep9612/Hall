@@ -84,7 +84,7 @@ class BrandController extends PublicController {
             foreach ($brands as $val) {
                 $name = strtoupper($name);
                 if ($val['lang'] === $lang && $item['id'] != $id && strpos(strtoupper($val['name']), $name) !== false) {
-                    $ret[$val['name']] = ['name' => $val['name']];
+                    $ret[trim($val['name'])] = ['name' => trim($val['name'])];
                 }
             }
         }
