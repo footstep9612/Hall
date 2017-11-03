@@ -774,7 +774,7 @@ class EsProductModel extends Model {
     public function importproducts($lang = 'en') {
         try {
             $max_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', $min_id]
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]
                     ])->count('id');
 
 
@@ -972,7 +972,7 @@ class EsProductModel extends Model {
         $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
         if ($es_product) {
-            $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         } if (!isset($flag['_version'])) {
