@@ -34,7 +34,6 @@ class BuyerController extends PublicController {
                 $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
             }
             $where['country_bn'] = rtrim($where['country_bn'], ",");
-            var_dump($where);
         }
         if (!empty($data['country_name'])) {
 
