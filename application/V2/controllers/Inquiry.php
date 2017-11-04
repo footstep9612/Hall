@@ -518,7 +518,8 @@ class InquiryController extends PublicController {
         //$auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $employee = new EmployeeModel();
-        //$area = new MarketAreaCountryModel();
+        $countryModel = new CountryModel();
+        $marketAreaModel = new MarketAreaModel();
         $org = new OrgModel();
         
         $where = $this->put_data;
@@ -556,11 +557,6 @@ class InquiryController extends PublicController {
             $rs4 = $employee->field('name')->where('id=' . $results['data']['quote_id'])->find();
             $results['data']['quote_name'] = $rs4['name'];
         }
-        //询单所在区域
-        /*if (!empty($results['data']['country_bn'])) {
-            $rs4 = $area->field('market_area_bn')->where(['country_bn' => $results['data']['country_bn']])->find();
-            $results['data']['market_area_bn'] = $rs4['market_area_bn'];
-        }*/
         //事业部
         if (!empty($results['data']['org_id'])) {
             $rs5 = $org->field('name')->where('id=' . $results['data']['org_id'])->find();
@@ -586,6 +582,16 @@ class InquiryController extends PublicController {
             $rs9 = $employee->field('name')->where('id=' . $results['data']['now_agent_id'])->find();
             $results['data']['current_name'] = $rs9['name'];
         }
+        //询单所在国家
+        if (!empty($results['data']['country_bn'])) {
+         $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+         $results['data']['country_name'] = $rs10['name'];
+         }
+         //询单所在区域
+         if (!empty($results['data']['area_bn'])) {
+             $rs11 = $marketAreaModel->field('name')->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+             $results['data']['area_name'] = $rs11['name'];
+         }
         
         $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
 
