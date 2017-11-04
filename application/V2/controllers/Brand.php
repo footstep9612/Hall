@@ -76,19 +76,26 @@ class BrandController extends PublicController {
         }
         $brand_model = new BrandModel();
         unset($condition['id']);
-        $arr = $brand_model->getlist($condition, $lang);
+        $arr = $brand_model->listall($condition, $lang);
 
         $ret = [];
         foreach ($arr as $item) {
             $brands = json_decode($item['brand'], true);
             foreach ($brands as $val) {
-                if ($val['lang'] === $lang && $item['id'] != $id) {
-                    $ret[] = ['name' => $val['name']];
+                $name = strtoupper($name);
+                if ($val['lang'] === $lang && $item['id'] != $id && strpos(strtoupper($val['name']), $name) !== false) {
+                    $ret[trim($val['name'])] = ['name' => trim($val['name'])];
                 }
             }
         }
 
+        rsort($ret);
+
+
         if (!empty($ret)) {
+            if (count($ret) > 10) {
+                $ret = array_slice($ret, 0, 10);
+            }
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($ret);
         } elseif ($arr === null || ($arr && $ret == [])) {

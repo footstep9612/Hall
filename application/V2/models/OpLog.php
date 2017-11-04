@@ -90,7 +90,7 @@ class OpLogModel extends PublicModel {
     public function update_data($create = [], $id = 0, $uid = 0) {
         try {
             $create['op_id'] = defined('UID') ? UID : 0;
-
+            $create['created_at'] = $create['op_at'] = date('Y-m-d H:i:s');
             if (is_array($create['op_note'])) {
                 $create['op_note'] = json_encode($create['op_note'], 256);
             } else {

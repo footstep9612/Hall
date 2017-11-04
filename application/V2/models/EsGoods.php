@@ -190,11 +190,13 @@ class EsGoodsModel extends Model {
 
     private function getCondition($condition, $lang = 'en') {
         $body = [];
-        //if ($lang == 'zh') {
-        $analyzer = 'ik';
-        // } else {
-        //    $analyzer = $lang;
-        //}
+        if ($lang == 'zh') {
+            $analyzer = 'ik';
+        } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+            $analyzer = $lang;
+        } else {
+            $analyzer = 'ik';
+        }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
@@ -516,7 +518,7 @@ class EsGoodsModel extends Model {
     public function importgoodss($lang = 'en') {
         try {
             ob_clean();
-            $min_id = 0;
+            $max_id = 0;
             $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]])->count('id');
 
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -531,12 +533,12 @@ class EsGoodsModel extends Model {
                 flush();
 
                 $time1 = microtime(true);
-                if ($min_id === 0) {
+                if ($max_id === 0) {
                     $goods = $this->where(['lang' => $lang, 'id' => ['gt', 0]])
-                                    ->limit(0, 100)->order('id DESC')->select();
+                                    ->limit(0, 100)->order('id ASC')->select();
                 } else {
-                    $goods = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]])
-                                    ->limit(0, 100)->order('id DESC')->select();
+                    $goods = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])
+                                    ->limit(0, 100)->order('id ASC')->select();
                 }
 
                 $spus = $skus = [];
@@ -581,7 +583,7 @@ class EsGoodsModel extends Model {
                 foreach ($goods as $key => $item) {
                     $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
                     if ($key === 99) {
-                        $min_id = $item['id'];
+                        $max_id = $item['id'];
                     }
                     print_r($flag);
                     ob_flush();
@@ -1237,24 +1239,34 @@ class EsGoodsModel extends Model {
         $type = 'goods_' . $lang;
         if (is_string($skus)) {
 
+            $goods_model = new GoodsModel();
+            $goods_info = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status')
+                            ->where(['sku' => $skus, 'lang' => $lang])->find();
             $sku = $skus;
             $data = [];
-            $data['deleted_flag'] = 'N';
-            $data['checked_by'] = $checked_by;
-            $data['checked_at'] = date('Y-m-d H:i:s');
-            $data['status'] = $status;
+            $data['deleted_flag'] = $goods_info['deleted_flag'];
+            $data['checked_by'] = $goods_info['checked_by'];
+            $data['checked_at'] = $goods_info['checked_at'];
+            $data['updated_by'] = $goods_info['updated_by'];
+            $data['updated_at'] = $goods_info['updated_at'];
+            $data['status'] = $goods_info['status'];
             $type = $this->tableName . '_' . $lang;
             $es->update_document($this->dbName, $type, $data, $sku);
         } elseif (is_array($skus)) {
             $updateParams = [];
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'goods_' . $lang;
-            foreach ($skus as $sku) {
+            $goods_model = new GoodsModel();
+            $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status')
+                            ->where(['sku' => ['in', $skus], 'lang' => $lang])->select();
+            foreach ($goods_list as $goods_info) {
                 $data = [];
-                $data['deleted_flag'] = 'N';
-                $data['checked_by'] = $checked_by;
-                $data['checked_at'] = date('Y-m-d H:i:s');
-                $data['status'] = $status;
+                $data['deleted_flag'] = $goods_info['deleted_flag'];
+                $data['checked_by'] = $goods_info['checked_by'];
+                $data['checked_at'] = $goods_info['checked_at'];
+                $data['updated_by'] = $goods_info['updated_by'];
+                $data['updated_at'] = $goods_info['updated_at'];
+                $data['status'] = $goods_info['status'];
                 $updateParams['body'][] = ['update' => ['_id' => $sku]];
                 $updateParams['body'][] = ['doc' => $data];
             }
@@ -1426,7 +1438,7 @@ class EsGoodsModel extends Model {
             $data = [];
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
-            $data['show_cats'] = [];
+
 
             $data['status'] = self::STATUS_DELETED;
             $type = $this->tableName . '_' . $lang;
@@ -1460,7 +1472,7 @@ class EsGoodsModel extends Model {
                 $data = [];
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
-                $data['show_cats'] = [];
+
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $sku]];
                 $updateParams['body'][] = ['doc' => $data];

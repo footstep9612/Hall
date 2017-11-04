@@ -318,7 +318,7 @@ class BrandModel extends PublicModel {
 
                 $data['logo'] = $create[$lang]['logo'];
                 $data['lang'] = $lang;
-                $data['name'] = $create[$lang]['name'];
+                $data['name'] = trim($create[$lang]['name']);
             }
             $datalist[] = $data;
         }

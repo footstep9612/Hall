@@ -300,7 +300,7 @@ class GoodsModel extends PublicModel {
      * @author
      */
     public function getSkus($spu) {
-        $result = $this->field('sku')->where(array('spu'=>$spu))->order('sku DESC')->find();
+        $result = $this->field('sku')->where(array('spu' => $spu))->order('sku DESC')->find();
         return $result ? $result['sku'] : false;
     }
 
@@ -605,7 +605,7 @@ class GoodsModel extends PublicModel {
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
                     $status = $this->checkSkuStatus($input['status']);
                     $input['status'] = $status;
-                    
+
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     if ($input['status'] != 'DRAFT') {
@@ -792,12 +792,12 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
             }
-            if($success){
+            if ($success) {
                 $this->commit();
                 return $sku;
-            }else{
+            } else {
                 $this->rollback();
-                jsonReturn('', ErrorMsg::FAILED , '亲，不留下点东西？');
+                jsonReturn('', ErrorMsg::FAILED, '亲，不留下点东西？');
                 //return false;
             }
         } catch (Exception $ex) {
@@ -837,18 +837,18 @@ class GoodsModel extends PublicModel {
      */
     private function _checkExit($condition, $attr, $boolen = false) {
         $exist = $this->field('spu,sku,lang')->where($condition)->select();
-        if($exist){
+        if ($exist) {
             $attr_model = new GoodsAttrModel();
-            foreach ($exist as $item){
-                $condition_attr = ['spu'=>$item['spu'], 'sku'=>$item['sku'],'lang'=>$item['lang']];
+            foreach ($exist as $item) {
+                $condition_attr = ['spu' => $item['spu'], 'sku' => $item['sku'], 'lang' => $item['lang']];
                 $spesc = $attr_model->field('spec_attrs')->where($condition_attr)->find();
-                if(empty($attr['spec_attrs']) && empty($spesc)){
+                if (empty($attr['spec_attrs']) && empty($spesc)) {
                     if ($boolen) {
                         return false;
                     } else {
                         jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
                     }
-                }else{
+                } else {
                     $fspesc = json_decode($spesc['spec_attrs'], true);
                     $result1 = array_diff_assoc($fspesc, $attr['spec_attrs']);
                     $result2 = array_diff_assoc($attr['spec_attrs'], $fspesc);
@@ -865,44 +865,44 @@ class GoodsModel extends PublicModel {
             }
         }
 
-        /*$exist = $this->field('id')->where($condition)->find();
-        if ($exist) {
-            $where = array(
-                'lang' => $condition['lang'],
-                'spu' => $condition['spu'],
-                'deleted_flag' => 'N'
-            );
-            if (!empty($condition['sku'])) {
-                $where['sku'] = $condition['sku'];
-            }
-            $attr_model = new GoodsAttrModel();
-            $other_attr = $attr_model->where($where)->select();
+        /* $exist = $this->field('id')->where($condition)->find();
+          if ($exist) {
+          $where = array(
+          'lang' => $condition['lang'],
+          'spu' => $condition['spu'],
+          'deleted_flag' => 'N'
+          );
+          if (!empty($condition['sku'])) {
+          $where['sku'] = $condition['sku'];
+          }
+          $attr_model = new GoodsAttrModel();
+          $other_attr = $attr_model->where($where)->select();
 
-            if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
-                if ($boolen) {
-                    return false;
-                } else {
-                    jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
-                }
-            } else {
-                foreach ($other_attr as $key => $item) {
-                    $other = json_decode($item['spec_attrs'], true);
-                    $otherAttr = $other ? $other : [];
-                    $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
-                    $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
+          if (empty($attr['spec_attrs']) && !$other_attr['spec_attrs']) {
+          if ($boolen) {
+          return false;
+          } else {
+          jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '],型号：[' . $condition['model'] . ']已存在');
+          }
+          } else {
+          foreach ($other_attr as $key => $item) {
+          $other = json_decode($item['spec_attrs'], true);
+          $otherAttr = $other ? $other : [];
+          $result1 = array_diff_assoc($otherAttr, $attr['spec_attrs']);
+          $result2 = array_diff_assoc($attr['spec_attrs'], $otherAttr);
 
-                    if (empty($result1) && empty($result2)) {
-                        if ($boolen) {
-                            return false;
-                        } else {
-                            jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
-                        }
-                    } else {
-                        continue;
-                    }
-                }
-            }
-        }*/
+          if (empty($result1) && empty($result2)) {
+          if ($boolen) {
+          return false;
+          } else {
+          jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
+          }
+          } else {
+          continue;
+          }
+          }
+          }
+          } */
     }
 
     /**
@@ -1432,7 +1432,7 @@ class GoodsModel extends PublicModel {
                 $fileId = postfile($data, $url);
                 if ($fileId) {
                     //unlink($localDir);    //清理本地空间
-                    $data = array('url' => $fastDFSServer . $fileId['url'].'?filename=' . $fileId['name'], 'name' => $fileId['name']);
+                    $data = array('url' => $fastDFSServer . $fileId['url'] . '?filename=skuTemplate.xls', 'name' => $fileId['name']);
                     redisHashSet('sku', 'skuTemplate', json_encode($data));
                     return $data;
                 }
@@ -1672,7 +1672,7 @@ class GoodsModel extends PublicModel {
             $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
             $fileId = postfile($data, $url);
             if ($fileId) {
-                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
             return false;
@@ -1858,7 +1858,7 @@ class GoodsModel extends PublicModel {
             $fileId = postfile($data, $url);
             if ($fileId) {
                 unlink($dirName . '.zip');
-                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
             return false;
@@ -1892,7 +1892,7 @@ class GoodsModel extends PublicModel {
      * @param string $process
      * @return array|bool
      */
-    public function import($spu = '', $url = '', $lang = '', $process = '') {
+   public function import($spu = '', $url = '', $lang = '', $process = '') {
         if (empty($spu) || empty($url) || empty($lang)) {
             return false;
         }
@@ -2391,5 +2391,4 @@ class GoodsModel extends PublicModel {
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
         return false;
     }
-
 }

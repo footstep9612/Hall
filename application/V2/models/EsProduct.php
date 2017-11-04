@@ -189,11 +189,13 @@ class EsProductModel extends Model {
 
     private function getCondition($condition, $lang = 'en') {
         $body = [];
-        //if ($lang == 'zh') {
-        $analyzer = 'ik';
-        // } else {
-        //    $analyzer = $lang;
-        //}
+        if ($lang == 'zh') {
+            $analyzer = 'ik';
+        } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+            $analyzer = $lang;
+        } else {
+            $analyzer = 'ik';
+        }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
@@ -269,6 +271,7 @@ class EsProductModel extends Model {
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
             $userids = $employee_model->getUseridsByUserName(trim($condition['checked_by_name']));
+
             foreach ($userids as $checked_by) {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
@@ -423,27 +426,42 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['sku_count']);
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
+        /*         * ******************sku_count 报错 可以注释这段************************** */
+        $es->setaggs('sku_count', 'sku_count', 'sum');
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+
         $sku_count = 0;
-        if (isset($ret['hits']['hits'])) {
-            foreach ($ret['hits']['hits'] as $item) {
-                $sku_count += $item['_source']['sku_count'];
-            }
+        if (isset($ret['aggregations']['sku_count']['value'])) {
+
+            $sku_count = $ret['aggregations']['sku_count']['value'];
         }
-        if (isset($ret['hits']['total']) && $ret['hits']['total'] > 1000) {
-            for ($i = 1000; $i <= $ret['hits']['total']; $i += 1000) {
-                $ret1 = $es->search($this->dbName, $this->tableName . '_' . $lang, $i, 1000);
-                if (isset($ret1['hits']['hits'])) {
-                    foreach ($ret1['hits']['hits'] as $item) {
-                        $sku_count += $item['_source']['sku_count'];
-                    }
-                }
-            }
-        }
+
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
-        redisSet($redis_key, $sku_count, 600);
+        redisSet($redis_key, $sku_count, 180);
         return $sku_count;
+        /*         * **************************sku_count 报错 可以恢复这段************************** */
+        /* $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
+          $sku_count = 0;
+          if (isset($ret['hits']['hits'])) {
+          foreach ($ret['hits']['hits'] as $item) {
+          $sku_count += $item['_source']['sku_count'];
+          }
+          }
+          if (isset($ret['hits']['total']) && $ret['hits']['total'] > 1000) {
+          for ($i = 1000; $i <= $ret['hits']['total']; $i += 1000) {
+          $ret1 = $es->search($this->dbName, $this->tableName . '_' . $lang, $i, 1000);
+          if (isset($ret1['hits']['hits'])) {
+          foreach ($ret1['hits']['hits'] as $item) {
+          $sku_count += $item['_source']['sku_count'];
+          }
+          }
+          }
+          }
+          $ret1 = $ret = $es = null;
+          unset($ret1, $ret, $es);
+          redisSet($redis_key, $sku_count, 3600);
+          return $sku_count; */
     }
 
     /* 通过搜索条件获取数据列表
@@ -755,8 +773,8 @@ class EsProductModel extends Model {
 
     public function importproducts($lang = 'en') {
         try {
-            $min_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', $min_id]
+            $max_id = 0;
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]
                     ])->count('id');
 
 
@@ -772,14 +790,14 @@ class EsProductModel extends Model {
                 }
 
 
-                if ($min_id === 0) {
+                if ($max_id === 0) {
                     $products = $this->where(['lang' => $lang, 'id' => ['gt', 0]
                                     ])->limit(0, 100)
-                                    ->order('id desc')->select();
+                                    ->order('id ASC')->select();
                 } else {
-                    $products = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]
+                    $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
                                     ])->limit(0, 100)
-                                    ->order('id desc')->select();
+                                    ->order('id ASC')->select();
                 }
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
@@ -820,7 +838,7 @@ class EsProductModel extends Model {
                     foreach ($products as $key => $item) {
                         $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr);
                         if ($key === 99) {
-                            $min_id = $item['id'];
+                            $max_id = $item['id'];
                         }
                         print_r($flag);
                         ob_flush();
@@ -954,7 +972,7 @@ class EsProductModel extends Model {
         $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
         if ($es_product) {
-            $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
             $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         } if (!isset($flag['_version'])) {
