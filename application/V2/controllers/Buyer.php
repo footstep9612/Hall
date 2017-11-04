@@ -129,12 +129,13 @@ class BuyerController extends PublicController {
         $model = new BuyerModel();
 
         $data = $model->getlist($where);
+
         $this->_setArea($data['data'], 'area');
         $this->_setCountry($data['data'], 'country');
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['count'] = $data['count'];
-            $datajson['data'] = $data;
+            $datajson['data'] = $data['data'];
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
