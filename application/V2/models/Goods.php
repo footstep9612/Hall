@@ -2023,7 +2023,7 @@ class GoodsModel extends PublicModel {
                         }
                     } else {
                         $faild++;
-                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[' .$this->lang_ary[$lang] . ' SPU不存在]');
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[' .$this->lang_ary[$lang] . ' SPU:'.$spu.'不存在]');
                         $start_row++;
                         continue;
                     }
