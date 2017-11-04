@@ -109,7 +109,12 @@ class BuyerController extends PublicController {
             $where['credit_status'] = $data['credit_status'];
         }
         $model = new BuyerModel();
+        $countryModel = new CountryModel();
         $data = $model->getlist($where);
+        foreach ($data as &$v) {
+            $country = $countryModel->field('name')->where(['bn' => $v['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $v['country_name'] = $country['name'];
+        }
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['count'] = $data['count'];
@@ -130,6 +135,16 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new BuyerModel();
         $res = $model->info($data);
+        $countryModel = new CountryModel();
+        $marketAreaModel = new MarketAreaModel();
+        if (!empty($res['country_bn'])) {
+            $country = $countryModel->field('name')->where(['bn' => $res['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $res['country_name'] = $country['name'];
+        }
+        if (!empty($res['area_bn'])) {
+            $area = $marketAreaModel->field('name')->where(['bn' => $res['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $res['area_name'] = $area['name'];
+        }
         if (!empty($res)) {
             $datajson['code'] = 1;
             $datajson['data'] = $res;
