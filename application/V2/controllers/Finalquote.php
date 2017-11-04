@@ -188,9 +188,9 @@ class FinalquoteController extends PublicController {
             }
 
             $finaldata['inquiry_id'] = $data['id'];
-            $finaldata['payment_period'] = $data['payment_period'];
+            $finaldata['payment_period'] = $data['payment_period'];     //回款周期
             $finaldata['delivery_period'] = $data['delivery_period'];
-            $finaldata['fund_occupation_rate'] = $data['fund_occupation_rate'];
+            $finaldata['fund_occupation_rate'] = $data['fund_occupation_rate']; //赊销比例
             if($total_exw_price>0){
                 $finaldata['total_exw_price'] =$total_exw_price;   //市场报出EXW价格合计
             }
