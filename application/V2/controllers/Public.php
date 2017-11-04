@@ -76,6 +76,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "role_no" => $userinfo['role_no'],
                         );
                         $this->_setUid($userinfo);
+                        redisSet('user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
                     }
                     //权限控制
 //                        if(redisExist('role_user_'.$userinfo['id'])){
