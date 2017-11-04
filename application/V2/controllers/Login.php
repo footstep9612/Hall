@@ -1,4 +1,5 @@
 <?php
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -21,17 +22,17 @@ class LoginController extends Yaf_Controller_Abstract {
      * @update_date 2017-06-15
      * @author jhw
      */
-    public function loginAction(){
+    public function loginAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['password'])){
+        if (!empty($data['password'])) {
             $arr['password'] = $data['password'];
-        }else{
+        } else {
             echo json_encode(array("code" => "-101", "message" => "密码不可以都为空"));
             exit();
         }
-        if(!empty($data['user_name'])){
+        if (!empty($data['user_name'])) {
             $arr['user_no'] = $data['user_name'];
-        }else{
+        } else {
             echo json_encode(array("code" => "-101", "message" => "帐号不可以都为空"));
             exit();
         }
@@ -39,33 +40,35 @@ class LoginController extends Yaf_Controller_Abstract {
         $info = $model->login($arr);
         if ($info) {
             $info['group_id'] = array();
-            $info['group_org'] = array() ;
+            $info['group_org'] = array();
             $group_model = new GroupModel();
-            $group_where['em.id']=$info['id'];
-            $list = $group_model->getlist($group_where,"");
-            if($list){
-                for($i=0;$i<count($list);$i++){
-                    $info['group_id'][] =$list[$i]['id'] ;
-                    $info['group_org'][] =$list[$i]['org'] ;
+            $group_where['em.id'] = $info['id'];
+            $list = $group_model->getlist($group_where, "");
+            if ($list) {
+                for ($i = 0; $i < count($list); $i++) {
+                    $info['group_id'][] = $list[$i]['id'];
+                    $info['group_org'][] = $list[$i]['org'];
                 }
             }
-            $info['role_id'] = array();;
-            $info['role_no'] = array(); ;
+            $info['role_id'] = array();
+            ;
+            $info['role_no'] = array();
+            ;
             $role_model = new RoleModel();
-            $role_where['em.id']=$info['id'];
-            $list_role = $role_model->getlist($group_where,"");
-            if($list_role){
-                for($i=0;$i<count($list_role);$i++){
-                    $info['role_id'][] =$list_role[$i]['id'] ;
-                    $info['role_no'][] =$list_role[$i]['role_no'] ;
+            $role_where['em.id'] = $info['id'];
+            $list_role = $role_model->getlist($group_where, "");
+            if ($list_role) {
+                for ($i = 0; $i < count($list_role); $i++) {
+                    $info['role_id'][] = $list_role[$i]['id'];
+                    $info['role_no'][] = $list_role[$i]['role_no'];
                 }
             }
             $info['country_bn'] = array();
             $country_model = new CountryUserModel();
             $list_country = $country_model->userCountry($info['id']);
-            if($list_country){
-                for($i=0;$i<count($list_country);$i++){
-                    $info['country_bn'][] =$list_country[$i]['bn'] ;
+            if ($list_country) {
+                for ($i = 0; $i < count($list_country); $i++) {
+                    $info['country_bn'][] = $list_country[$i]['bn'];
                 }
             }
             $jwtclient = new JWTClient();
@@ -85,7 +88,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $datajson['password_status'] = $info['password_status'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
             //var_dump($info);
-            redisSet('user_info_'.$info['id'],json_encode($info),18000);
+            redisSet('user_info_' . $info['id'], json_encode($info), 86400);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
@@ -93,50 +96,51 @@ class LoginController extends Yaf_Controller_Abstract {
             echo json_encode(array("code" => "-104", "data" => $datajson, "message" => "登录失败"));
         }
     }
+
     /**
      * 用户注册
      * @created_date 2017-06-15
      * @update_date 2017-06-15
      * @author jhw
      */
-    public function registerAction(){
+    public function registerAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if(!empty($data['description'])){
+        if (!empty($data['description'])) {
             $arr['description'] = $data['description'];
         }
-        if(!empty($data['password'])) {
+        if (!empty($data['password'])) {
             $arr['password_hash'] = md5($data['password']);
-        }else{
+        } else {
             echo json_encode(array("code" => "-101", "message" => "密码不可以都为空"));
             exit();
         }
-        if(empty($data['group_id'])){
+        if (empty($data['group_id'])) {
             echo json_encode(array("code" => "-101", "message" => "部门不能为空"));
             exit();
         }
-        if(!empty($data['mobile'])) {
+        if (!empty($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
-            if(!isMobile($arr['mobile'])){
+            if (!isMobile($arr['mobile'])) {
                 echo json_encode(array("code" => "-101", "message" => "手机格式不正确"));
                 exit();
             }
-        }else{
+        } else {
             echo json_encode(array("code" => "-101", "message" => "手机不可以都为空"));
             exit();
         }
-        if(!empty($data['email'])) {
+        if (!empty($data['email'])) {
             $arr['email'] = $data['email'];
-            if(!isEmail($arr['email'])){
+            if (!isEmail($arr['email'])) {
                 echo json_encode(array("code" => "-101", "message" => "邮箱格式不正确"));
                 exit();
             }
-        }else{
+        } else {
             echo json_encode(array("code" => "-101", "message" => "邮箱不可以都为空"));
             exit();
         }
-        if(!empty($data['name'])) {
+        if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
-        }else{
+        } else {
             echo json_encode(array("code" => "-101", "message" => "用户名不能为空"));
             exit();
         }
@@ -144,89 +148,90 @@ class LoginController extends Yaf_Controller_Abstract {
         $login_arr['email'] = $data['email'];
         $login_arr['mobile'] = $data['mobile'];
         $check = $model->Exist($login_arr);
-        if($check){
+        if ($check) {
             echo json_encode(array("code" => "-101", "message" => "手机或账号已存在"));
             exit();
         }
         // 生成用户编码
-        $condition['page']=0;
-        $condition['countPerPage']=1;
+        $condition['page'] = 0;
+        $condition['countPerPage'] = 1;
         $data_user = $model->getlist($condition); //($this->put_data);
-        if($data_user&&substr($data_user[0]['user_no'],1,6) == date("ymd")){
-            $no=substr($data_user[0]['user_no'],-1,3);
+        if ($data_user && substr($data_user[0]['user_no'], 1, 6) == date("ymd")) {
+            $no = substr($data_user[0]['user_no'], -1, 3);
             $no++;
-        }else{
-            $no=1;
+        } else {
+            $no = 1;
         }
         $temp_num = 1000;
         $new_num = $no + $temp_num;
-        $real_num = "U".date("ymd").substr($new_num,1,3); //即截取掉最前面的“1”
+        $real_num = "U" . date("ymd") . substr($new_num, 1, 3); //即截取掉最前面的“1”
         $arr['user_no'] = $real_num;
-        $id=$model->create_data($arr);
-        if($id){
+        $id = $model->create_data($arr);
+        if ($id) {
             //添加部门
             $group['group_id'] = $data['group_id'];
             $group['user_id'] = $id;
             $group_user_model = new GroupUserModel();
-            $group_user_model -> create_data($group);
+            $group_user_model->create_data($group);
             $arr['id'] = $id;
-            echo json_encode(array("code" => "1", "data"=>$arr, "message" => "提交成功"));
+            echo json_encode(array("code" => "1", "data" => $arr, "message" => "提交成功"));
             exit();
-        }else{
+        } else {
             echo json_encode(array("code" => "-101", "message" => "数据添加失败"));
             exit();
         }
     }
+
     //获取部门信息
     public function groupListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
-        if(!empty($data['parent_id'])){
+        if (!empty($data['parent_id'])) {
             $where['parent_id'] = $data['parent_id'];
         }
-        if(!empty($data['name'])){
+        if (!empty($data['name'])) {
             $where['name'] = $data['name'];
         }
-        if(!empty($data['page'])){
+        if (!empty($data['page'])) {
             $limit['page'] = $data['page'];
         }
-        if(!empty($data['countPerPage'])){
+        if (!empty($data['countPerPage'])) {
             $limit['num'] = $data['countPerPage'];
         }
         $model_group = new GroupModel();
-        $data = $model_group ->getlist($where,$limit); //($this->put_data);
-        $count = count($data) ;
+        $data = $model_group->getlist($where, $limit); //($this->put_data);
+        $count = count($data);
         $j = 0;
         $parent_id = 0;
-        if(isset($where['parent_id'])){
+        if (isset($where['parent_id'])) {
             $parent_id = $where['parent_id'];
         }
-        for($i = 0 ;$i < $count ; $i++){
-            if($data[$i]['parent_id'] == $parent_id ){
+        for ($i = 0; $i < $count; $i++) {
+            if ($data[$i]['parent_id'] == $parent_id) {
                 $data_arr[$j]['value'] = $data[$i]['id'];
                 $data_arr[$j]['label'] = $data[$i]['name'];
-                $j ++ ;
+                $j ++;
             }
         }
         $count_arr = count($data_arr);
-        for($k =0 ; $k < $count_arr ;$k++){
+        for ($k = 0; $k < $count_arr; $k++) {
             $j = 0;
-            for($i = 0 ;$i < $count ; $i++){
-                if($data[$i]['parent_id'] == $data_arr[$k]['value'] ){
+            for ($i = 0; $i < $count; $i++) {
+                if ($data[$i]['parent_id'] == $data_arr[$k]['value']) {
                     $data_arr[$k]['children'][$j]['value'] = $data[$i]['id'];
                     $data_arr[$k]['children'][$j]['label'] = $data[$i]['name'];
                     $j++;
                 }
             }
         }
-        for($k =0 ; $k < $count_arr ;$k++){
-            if(isset($data_arr[$k]['children'])){
-                $count_arr_children =count($data_arr[$k]['children']);
-                for($z = 0 ; $z < $count_arr_children ; $z++){
+        for ($k = 0; $k < $count_arr; $k++) {
+            if (isset($data_arr[$k]['children'])) {
+                $count_arr_children = count($data_arr[$k]['children']);
+                for ($z = 0; $z < $count_arr_children; $z++) {
                     $j = 0;
-                    for($i = 0 ;$i < $count ; $i++){
-                        if($data[$i]['parent_id'] == $data_arr[$k]['children'][$z]['value'] ){
+                    for ($i = 0; $i < $count; $i++) {
+                        if ($data[$i]['parent_id'] == $data_arr[$k]['children'][$z]['value']) {
                             $data_arr[$k]['children'][$z]['children'][$j]['value'] = $data[$i]['id'];
                             $data_arr[$k]['children'][$z]['children'][$j]['label'] = $data[$i]['name'];
                             $j++;
@@ -235,10 +240,10 @@ class LoginController extends Yaf_Controller_Abstract {
                 }
             }
         }
-        if(!empty($data)){
+        if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data_arr;
-        }else{
+        } else {
             $datajson['code'] = -101;
             $datajson['data'] = $data_arr;
             $datajson['message'] = '数据为空!';
