@@ -181,12 +181,12 @@ class BuyerController extends PublicController {
             $marketarea_model = new MarketAreaModel();
             $bns = [];
             foreach ($arr as $key => $val) {
-                $bns[] = $val[$filed . '_bn'];
+                $bns[] = trim($val[$filed . '_bn']);
             }
             $area_names = $marketarea_model->getNamesBybns($bns);
             foreach ($arr as $key => $val) {
-                if ($val[$filed . '_bn'] && isset($area_names[$val[$filed . '_bn']])) {
-                    $val[$filed . '_name'] = $area_names[$val[$filed . '_bn']];
+                if (trim($val[$filed . '_bn']) && isset($area_names[trim($val[$filed . '_bn'])])) {
+                    $val[$filed . '_name'] = $area_names[trim($val[$filed . '_bn'])];
                 } else {
                     $val[$filed . '_name'] = '';
                 }
@@ -209,12 +209,12 @@ class BuyerController extends PublicController {
             $country_model = new CountryModel();
             $country_bns = [];
             foreach ($arr as $key => $val) {
-                $country_bns[] = $val[$filed . '_bn'];
+                $country_bns[] = trim($val[$filed . '_bn']);
             }
             $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
             foreach ($arr as $key => $val) {
-                if ($val[$filed . '_bn'] && isset($countrynames[$val[$filed . '_bn']])) {
-                    $val[$filed . '_name'] = $countrynames[$val[$filed . '_bn']];
+                if (trim($val[$filed . '_bn']) && isset($countrynames[trim($val[$filed . '_bn'])])) {
+                    $val[$filed . '_name'] = $countrynames[trim($val[$filed . '_bn'])];
                 } else {
                     $val[$filed . '_name'] = '';
                 }

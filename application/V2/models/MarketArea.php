@@ -292,10 +292,13 @@ class MarketAreaModel extends PublicModel {
             }
             $where['lang'] = 'zh';
             $areas = $this->where($where)->field('bn,name')->select();
+
+
             $area_names = [];
             foreach ($areas as $area) {
-                $area_names[$area['bn']] = $area['name'];
+                $area_names[trim($area['bn'])] = $area['name'];
             }
+            var_dump($area_names);
             return $area_names;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -310,13 +313,13 @@ class MarketAreaModel extends PublicModel {
      * @param string $bn
      * @return array|bool
      */
-    public function getInfoByBn($bn=''){
-        if(empty($bn)){
+    public function getInfoByBn($bn = '') {
+        if (empty($bn)) {
             return false;
         }
 
         try {
-            $where = ['bn'=>$bn, 'deleted_flag'=>'N'];
+            $where = ['bn' => $bn, 'deleted_flag' => 'N'];
             $areas = $this->field('lang,bn,name')->where($where)->select();
             $area_names = [];
             foreach ($areas as $area) {
