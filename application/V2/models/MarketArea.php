@@ -298,7 +298,7 @@ class MarketAreaModel extends PublicModel {
             foreach ($areas as $area) {
                 $area_names[trim($area['bn'])] = $area['name'];
             }
-            var_dump($area_names);
+
             return $area_names;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
