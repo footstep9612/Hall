@@ -476,12 +476,15 @@ class CountryModel extends PublicModel {
             return json_decode(redisHashGet('Country', $name), true);
         }
         try {
+
             $condition = array(
                 'name' => ['like', '%' . $name . '%'],
                 'status' => self::STATUS_VALID
             );
+
             $field = 'bn';
             $result = $this->field($field)->where($condition)->select();
+
             $bns = [];
             if ($result) {
                 foreach ($result as $bn) {
@@ -588,23 +591,23 @@ class CountryModel extends PublicModel {
      * @param string $bn
      * @return array|bool
      */
-    public function getInforByBn($bn=''){
-        if(empty($bn)){
+    public function getInforByBn($bn = '') {
+        if (empty($bn)) {
             return false;
         }
 
-        try{
-            $where = ['bn'=>$bn , 'deleted_flag' => 'N' , 'status' =>'VALID'];
+        try {
+            $where = ['bn' => $bn, 'deleted_flag' => 'N', 'status' => 'VALID'];
             $result = $this->field('lang,bn,name')->where($where)->select();
-            if($result){
+            if ($result) {
                 $country = [];
-                foreach($result as $item){
+                foreach ($result as $item) {
                     $country[$item['lang']] = $item;
                 }
                 return $country;
             }
             return [];
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return [];
         }
     }

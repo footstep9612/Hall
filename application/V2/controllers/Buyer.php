@@ -34,7 +34,26 @@ class BuyerController extends PublicController {
                 $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
             }
             $where['country_bn'] = rtrim($where['country_bn'], ",");
+            var_dump($where);
         }
+        if (!empty($data['country_name'])) {
+
+            $country_name = trim($data['country_name']);
+            $country_model = new CountryModel();
+            $country_bns = $country_model->getBnByName($country_name);
+            if ($country_bns) {
+                foreach ($country_bns as $country_bn) {
+                    $where['country_bn'] = $where['country_bn'] . '\'' . $country_bn . '\',';
+                }
+                $where['country_bn'] = rtrim($where['country_bn'], ',');
+            } else {
+                $datajson['code'] = -104;
+                $datajson['data'] = "";
+                $datajson['message'] = '数据为空!';
+            }
+        }
+
+
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
@@ -108,7 +127,7 @@ class BuyerController extends PublicController {
             $where['credit_status'] = $data['credit_status'];
         }
         $model = new BuyerModel();
-        $countryModel = new CountryModel();
+
         $data = $model->getlist($where);
         $this->_setArea($data['data'], 'area');
         $this->_setCountry($data['data'], 'country');
