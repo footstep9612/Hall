@@ -1240,7 +1240,7 @@ class EsGoodsModel extends Model {
         if (is_string($skus)) {
 
             $goods_model = new GoodsModel();
-            $goods_info = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status')
+            $goods_info = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku')
                             ->where(['sku' => $skus, 'lang' => $lang])->find();
             $sku = $skus;
             $data = [];
@@ -1257,7 +1257,7 @@ class EsGoodsModel extends Model {
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'goods_' . $lang;
             $goods_model = new GoodsModel();
-            $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status')
+            $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku')
                             ->where(['sku' => ['in', $skus], 'lang' => $lang])->select();
             foreach ($goods_list as $goods_info) {
                 $data = [];
@@ -1267,7 +1267,7 @@ class EsGoodsModel extends Model {
                 $data['updated_by'] = $goods_info['updated_by'];
                 $data['updated_at'] = $goods_info['updated_at'];
                 $data['status'] = $goods_info['status'];
-                $updateParams['body'][] = ['update' => ['_id' => $sku]];
+                $updateParams['body'][] = ['update' => ['_id' => $goods_info['sku']]];
                 $updateParams['body'][] = ['doc' => $data];
             }
             $es->bulk($updateParams);
