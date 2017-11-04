@@ -40,7 +40,7 @@ class BuyerModel extends PublicModel {
         $sql = 'SELECT `erui_sys`.`employee`.`id` as employee_id,`erui_sys`.`employee`.`name` as employee_name,`erui_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_code`,`buyer`.`country_bn`,`erui_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
         $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`first_name`,`erui_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`buyer`.`credit_cur_bn`,`buyer_level`,`credit_level`,';
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
-        $sql .= '`erui_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status ';
+        $sql .= '`erui_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status,`buyer`.buyer_code ';
         $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
@@ -126,7 +126,7 @@ class BuyerModel extends PublicModel {
         }
         if ($where) {
             $sql .= $where;
-           // $sql_count .= $where;
+            // $sql_count .= $where;
         }
         $sql .= ' Group By `erui_buyer`.`buyer`.`id`';
         //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
@@ -806,7 +806,8 @@ class BuyerModel extends PublicModel {
             return [];
         }
     }
- /*
+
+    /*
      * 根据用户ID 获取用户姓名
      * @param array $user_ids // 用户ID
      * @return mix
@@ -831,7 +832,7 @@ class BuyerModel extends PublicModel {
             $buyers = $this->where($where)->field('id,name,buyer_no')->select();
 
             $buyer_names = [];
-            foreach ($buyers as $buyer) {               
+            foreach ($buyers as $buyer) {
                 $buyer_arr[$buyer['id']] = $buyer['buyer_no'];
             }
             return $buyer_arr;
