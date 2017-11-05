@@ -224,6 +224,18 @@ class LogisticsController extends PublicController {
     	        $outField = 'logi_quote_org_id';
     	        $findFields = ['logi_check_org_id', $outField];
     	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);*/
+    	        
+    	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : '暂无';
+    	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : '暂无';
+    	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : '暂无';
+    	        $quoteLogiFee['to_country'] = $quoteLogiFee['to_country'] ? : '暂无';
+    	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : '暂无';
+    	        $quoteLogiFee['to_country'] = $quoteLogiFee['to_country'] ? : '暂无';
+    	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : '暂无';
+    	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : '暂无';
+    	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : '暂无';
+    	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : '暂无';
+    	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : '暂无';
     	    }
     	
     	    $this->jsonReturn($quoteLogiFee);

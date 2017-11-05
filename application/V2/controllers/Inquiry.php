@@ -593,7 +593,12 @@ class InquiryController extends PublicController {
              $results['data']['area_name'] = $rs11['name'];
          }
         
-        $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
+         if (!empty($results['data'])) {
+            $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
+            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ? : '暂无';
+            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ? : '暂无';
+            $results['data']['project_name'] = $results['data']['project_name'] ? : '暂无';
+         }
 
         //权限
         //$results['auth'] = $auth['code'];
