@@ -592,15 +592,7 @@ class InquiryController extends PublicController {
             $rs11 = $marketAreaModel->field('name')->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
             $results['data']['area_name'] = $rs11['name'];
         }
-        if (!empty($results['data']['from_country'])) {
-            $rs12 = $countryModel->field('name')->where(['bn' => $results['data']['from_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $results['data']['from_country'] = $rs12['name'];
-        }
-        //询单所在区域
-        if (!empty($results['data']['to_country'])) {
-            $rs13 = $marketAreaModel->field('name')->where(['bn' => $results['data']['to_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $results['data']['to_country'] = $rs13['name'];
-        }
+
         $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
 
         //权限
