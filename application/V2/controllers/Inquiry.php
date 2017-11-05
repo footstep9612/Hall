@@ -572,8 +572,8 @@ class InquiryController extends PublicController {
         }
         //询单所在国家
         if (!empty($results['data']['country_bn'])) {
-         $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-         $results['data']['country_name'] = $rs10['name'];
+             $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+             $results['data']['country_name'] = $rs10['name'];
          }
          //询单所在区域
          if (!empty($results['data']['area_bn'])) {
