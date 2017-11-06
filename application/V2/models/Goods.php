@@ -2204,7 +2204,7 @@ class GoodsModel extends PublicModel {
                                     $start_row++;
                                     continue;
                                 }
-                                $exist_langsku = $this->field('id')->where(['sku' => $input_sku, 'lang' => $lang])->find();
+                                $exist_langsku = $this->field('id')->where(['sku' => $input_sku, 'lang' => $lang, 'deleted_flag' => 'N'])->find();
                                 if ($exist_langsku) {
                                     $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                                     $data['updated_at'] = date('Y-m-d H:i:s');
