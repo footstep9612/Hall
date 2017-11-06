@@ -1929,7 +1929,7 @@ class EsProductModel extends Model {
             $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
         } elseif (is_array($spus)) {
             $show_cat_product_model = new ShowCatProductModel();
-            $scats = $show_cat_product_model->getshow_catsbyspus([$spu], $lang);
+            $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang);
             $updateParams = [];
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'product_' . $lang;
@@ -1943,6 +1943,7 @@ class EsProductModel extends Model {
                     $data['show_cats'] = [];
                 }
 
+                rsort($data['show_cats']);
                 $data['onshelf_at'] = date('Y-m-d H:i:s');
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
