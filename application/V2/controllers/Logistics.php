@@ -1011,7 +1011,7 @@ class LogisticsController extends PublicController {
 	   
 	   $overlandInsuCNY = round($tmpPrice * $rate, 8);
 	   
-	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
+	   if ($overlandInsuCNY < 50) {
 	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
 	       $overlandInsuCNY = 50;
 	   } else {
@@ -1039,7 +1039,7 @@ class LogisticsController extends PublicController {
 	    
 	    $shippingInsuCNY = round($tmpPrice * $rate, 8);
 	    
-	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
+	    if ($shippingInsuCNY < 50) {
 	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
 	        $shippingInsuCNY = 50;
 	    } else {
