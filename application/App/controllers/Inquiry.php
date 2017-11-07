@@ -8,6 +8,12 @@
 class InquiryController extends PublicController
 {
 
+    private $inquiryModel;
+
+    public function init()
+    {
+        $this->inquiryModel = new InquiryModel();
+    }
     /**
      * 首页信息(统计，轮播，列表[最新3条数据])
      */
@@ -19,9 +25,9 @@ class InquiryController extends PublicController
         $data = [];
 
         $data['statistics'] = [
-            'todayCount'  => 12,
-            'totalCount'  => 3435,
-            'quotedCount' => 453
+            'todayCount'  => $this->inquiryModel->getStatisticsByType('TODAY'),
+            'totalCount'  => $this->inquiryModel->getStatisticsByType('TOTAL'),
+            'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED')
         ];
 
         $data['carousel'] = [
@@ -29,9 +35,7 @@ class InquiryController extends PublicController
             ['id'=>2,'buyer_code'=>'BC20171108']
         ];
 
-        $data['list'] = [
-            ['id'=>1,'buyer_name'=>'易瑞国家','created_at'=>'2017-10-30 01:08:49','serial_no'=>'INQ_20171030_00018','status'=>'BIZ_DISPATCHING','now_agent'=>'买买提']
-        ];
+        $data['list'] = $this->inquiryModel->getNewItems($this->user['id']);
 
         $this->jsonReturn($data);
     }
