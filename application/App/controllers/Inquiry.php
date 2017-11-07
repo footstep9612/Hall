@@ -40,6 +40,18 @@ class InquiryController extends PublicController
         $this->jsonReturn($data);
     }
 
+    /*
+     * 创建询价单流程编码
+     */
+
+    public function createSerialNoAction()
+    {
+
+        $data['serial_no'] = InquirySerialNo::getInquirySerialNo();
+        $data['created_by'] = $this->user['id'];
+        $this->jsonReturn($this->inquiryModel->addData($data));
+
+    }
 
 }
 

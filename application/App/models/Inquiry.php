@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @desc   询单模型
+ * @Author 买买提
+ */
 class InquiryModel extends PublicModel
 {
 
@@ -10,6 +14,11 @@ class InquiryModel extends PublicModel
         parent::__construct();
     }
 
+    /**
+     * 获取统计数据
+     * @param $type 类型
+     * @return mixed
+     */
     public function getStatisticsByType($type)
     {
         switch ($type)
@@ -28,7 +37,12 @@ class InquiryModel extends PublicModel
         return $data;
     }
 
-
+    /**
+     * 获取指定数的记录
+     * @param string $uid 用户
+     * @param int $limit 数量
+     * @return mixed
+     */
     public function getNewItems($uid, $limit=3)
     {
         $where = [];
@@ -40,4 +54,45 @@ class InquiryModel extends PublicModel
                     ->order('a.created_at DESC')
                     ->select();
     }
+
+    /**
+     * 创建对象
+     * @param array $condition 数据
+     * @return array
+     */
+    public function addData($condition = [])
+    {
+
+        $data = $this->create($condition);
+        $time = $this->getTime();
+        $data['quote_status'] = 'NOT_QUOTED';
+        $data['inflow_time'] = $time;
+        $data['created_at'] = $time;
+
+        try {
+            $id = $this->add($data);
+            if($id){
+                $results = ['id'=>$id,'serial_no'=>$data['serial_no']];
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '添加失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+
+    }
+
+    /**
+     * 格式化返回当前时间
+     * @return false|string
+     */
+    private function getTime()
+    {
+        return date('Y-m-d H:i:s',time());
+    }
+
 }
