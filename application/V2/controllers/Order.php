@@ -30,15 +30,16 @@ class OrderController extends PublicController {
         if (isset($groupid)) {
             $maketareateam = new MarketAreaTeamModel();
             $users = [];
-
-            if (is_array($groupid)&&$groupid) {
-                //查询是否是市场人员
-                $agent = $maketareateam->where('market_org_id in(' . implode(',', $groupid) . ')')->count('id');
-            } else {
-                //查询是否是市场人员
-                $agent = $maketareateam->where('market_org_id=' . $groupid)->count('id');
+            $agent =0;
+            if($groupid){
+                if (is_array($groupid)) {
+                    //查询是否是市场人员
+                    $agent = $maketareateam->where('market_org_id in(' . implode(',', $groupid) . ')')->count('id');
+                } else {
+                    //查询是否是市场人员
+                    $agent = $maketareateam->where('market_org_id=' . $groupid)->count('id');
+                }
             }
-
             if ($agent > 0) {
                 $results['code'] = '2';
                 $results['message'] = '市场人员！';
