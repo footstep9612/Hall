@@ -55,8 +55,7 @@ class ExcelmanagerController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'data' => [
-                //'url' => 'http://file01.erui.com/group1/M00/00/03/rBFgyFmegqKAIt1pAAAm7A4b9LA55.xlsx'
-                'url' => 'http://172.18.18.196:85/group1/M00/00/42/rBISxFn6wlyAejHWAAAm5shBeOo87.xlsx'
+                'url' => 'http://file01.erui.com/group1/M00/00/25/rBFgyFn_zU2ADFqLAAAm5shBeOo63.xlsx'
             ]
         ]);
     }
@@ -281,7 +280,7 @@ class ExcelmanagerController extends PublicController {
     private function getCommercialQuoteData($inquiry_id) {
 
         $quoteModel = new QuoteModel();
-        $info = $quoteModel->where(['id' => $inquiry_id])->field('quote_no,biz_quote_by,biz_quote_at,period_of_validity')->find();
+        $info = $quoteModel->where(['inquiry_id' => $inquiry_id])->field('quote_no,biz_quote_by,biz_quote_at,period_of_validity')->find();
 
         $employee = new EmployeeModel();
         $info['quote_info'] =  $employee->where(['id'=>$info['biz_quote_by']])->field('name,email,mobile')->find();
@@ -316,7 +315,7 @@ class ExcelmanagerController extends PublicController {
         $info['list'] = $list;
 
         return $info;
-//        p($info);
+        //p($info);
 
     }
 
@@ -541,12 +540,26 @@ class ExcelmanagerController extends PublicController {
         $objSheet->setCellValue("B3", '        Fax: +86-0546-8375185           http://www.erui.com')->mergeCells("B3:G3");
         //$objSheet->getStyle("A4:G5")->applyFromArray($styleArray);
 
+        //添加logo
+        $objDrawing = new PHPExcel_Worksheet_Drawing();
+        $objDrawing->setName('Logo');
+        $objDrawing->setDescription('Logo');
+        $objDrawing->setPath('./public/images/logo.png');
+        $objDrawing->setHeight(36);
+        $objDrawing->setWidth(200);
+        $objDrawing->setCoordinates('A1');
+        $objDrawing->setOffsetX(130);
+        $objDrawing->setOffsetY(13);
+        $objDrawing->setRotation(25);
+        $objDrawing->getShadow()->setVisible(true);
+        $objDrawing->getShadow()->setDirection(45);
+        $objDrawing->setWorksheet($objSheet);
 
         $objSheet->getStyle("A1:H1")->getFont()->setSize(16)->setBold(true);
         $objSheet->mergeCells("A4:H4");
 
         /* 设置A1~R1的文字属性 */
-        $objSheet->getCell("A1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $objSheet->getCell("A1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
         //设置全局文字居中
         $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
@@ -670,6 +683,18 @@ class ExcelmanagerController extends PublicController {
         $objSheet->setCellValue("A1", '易瑞国际电子商务有限公司商务技术部')->mergeCells("A1:R2");
         $objSheet->getStyle("A3:R5")->applyFromArray($styleArray);
 
+        //添加logo
+        $objDrawing = new PHPExcel_Worksheet_Drawing();
+        $objDrawing->setName('Logo');
+        $objDrawing->setDescription('Logo');
+        $objDrawing->setPath('./public/images/logo.png');
+        $objDrawing->setHeight(36);
+        $objDrawing->setCoordinates('A1');
+        $objDrawing->setOffsetX(110);
+        $objDrawing->setRotation(25);
+        $objDrawing->getShadow()->setVisible(true);
+        $objDrawing->getShadow()->setDirection(45);
+        $objDrawing->setWorksheet($objSheet);
 
         $objSheet->getStyle("A1:R2")
                 ->getFont()

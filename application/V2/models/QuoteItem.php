@@ -36,7 +36,6 @@ class QuoteItemModel extends PublicModel {
             ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
             ->field($fields)
             ->where($where)
-            ->order('a.id DESC')
             ->select();
 
     }

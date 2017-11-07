@@ -39,16 +39,22 @@ class QuoteController extends PublicController{
 
         $exchangeRateModel = new ExchangeRateModel();
         $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
+        $info['exchange_rate'] = $info['exchange_rate'] ? : '暂无';
 
         $info['trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
 
         $transMode = new TransModeModel();
         $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
+        $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
 
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,status')->find();
 
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
+        $info['inquiry_dispatch_place'] = $info['inquiry_dispatch_place'] ? : '暂无';
         $info['inquiry_delivery_addr']  = $logiInfo['destination'];
+        $info['inquiry_delivery_addr'] = $info['inquiry_delivery_addr'] ? : '暂无';
+        $info['total_bank_fee'] = $info['total_bank_fee'] ? : '暂无';
+        $info['total_exw_price'] = $info['total_exw_price'] ? : '暂无';
         $info['inflow_time'] = $logiInfo['inflow_time'];
         $info['status']  = $logiInfo['status'];
 
@@ -74,6 +80,15 @@ class QuoteController extends PublicController{
         $request['biz_quote_by'] = $this->user['id'];
         $request['biz_quote_at'] = date('Y-m-d H:i:s');
 
+        if($request['trans_mode_bn'] == '暂无'){
+            unset($request['trans_mode_bn']);
+        }
+        if($request['total_bank_fee'] == '暂无'){
+            unset($request['total_bank_fee']);
+        }
+        if($request['total_exw_price'] == '暂无'){
+            unset($request['total_exw_price']);
+        }
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         //这个操作设计到计算
         $result = $this->quoteModel->updateGeneralInfo($condition,$request);

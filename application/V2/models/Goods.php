@@ -745,7 +745,8 @@ class GoodsModel extends PublicModel {
                         'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs'], JSON_UNESCAPED_UNICODE) : null,
                         'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs'], JSON_UNESCAPED_UNICODE) : null,
                         'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs'], JSON_UNESCAPED_UNICODE) : null,
-                        'status' => $gattr::STATUS_VALID
+                        'status' => $gattr::STATUS_VALID,
+                        'deleted_flag' => 'N',
                     );
                     if (isset($input['sku']) && !empty($input['sku']) && $input['sku'] !== 'false') {
                         $attr_obj['sku'] = trim($input['sku']);
@@ -1892,7 +1893,7 @@ class GoodsModel extends PublicModel {
      * @param string $process
      * @return array|bool
      */
-   public function import($spu = '', $url = '', $lang = '', $process = '') {
+    public function import($spu = '', $url = '', $lang = '', $process = '') {
         if (empty($spu) || empty($url) || empty($lang)) {
             return false;
         }
@@ -1911,7 +1912,7 @@ class GoodsModel extends PublicModel {
         $columnsIndex = PHPExcel_Cell::columnIndexFromString($columns);    //获取总列数
         $maxCol = PHPExcel_Cell::stringFromColumnIndex($columnsIndex); //由列数反转列名(0->'A')
         $objPHPExcel->getSheet(0)->setCellValue($maxCol . '1', '导入结果');
-        $objPHPExcel->getSheet(0)->getStyle($maxCol. '1')->getFont()->setBold(true);    //粗体
+        $objPHPExcel->getSheet(0)->getStyle($maxCol . '1')->getFont()->setBold(true);    //粗体
         /** 处理标头 */
         $faild = $success = $ext_goods_start = $ext_goods_end = $ext_hs_start = 0;
         $itemNo = '';    //sku编号列
@@ -1950,14 +1951,14 @@ class GoodsModel extends PublicModel {
         $start_row = 3;    //从第三行开始取
         $null_row = 0;
         $success = $faild = 0;
-        do{
-            try{
+        do {
+            try {
                 $data_tmp = $data = [];
                 $data_tmp['spu'] = $spu;
                 $col_value = 0;
                 for ($index = 0; $index < $columnsIndex; $index++) {
-                    $col_name = PHPExcel_Cell::stringFromColumnIndex( $index ); //由列数反转列名(0->'A')
-                    $value = trim($objPHPExcel->getSheet( 0 )->getCell( $col_name . $start_row )->getValue()); //转码
+                    $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
+                    $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $start_row)->getValue()); //转码
                     $data_tmp[$title_ary[$index]] = $value;
                     if (!empty($value)) {
                         $col_value++;
@@ -1990,11 +1991,11 @@ class GoodsModel extends PublicModel {
                     $data_tmp[$title_ary[$index]] = $value;
                 }
 
-                if($col_value > 0){    //非空行进行数据验证与处理
+                if ($col_value > 0) {    //非空行进行数据验证与处理
                     $supplie = $data_tmp['供应商名称'];    //先处理供应商 必填
                     if (empty($data_tmp['供应商名称'])) {
                         $faild++;
-                        $objPHPExcel->getSheet( 0 )->setCellValue( $maxCol . $start_row , '操作失败[请输入供应商]' );
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入供应商]');
                         $start_row++;
                         continue;
                     }
@@ -2023,7 +2024,7 @@ class GoodsModel extends PublicModel {
                         }
                     } else {
                         $faild++;
-                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[' .$this->lang_ary[$lang] . ' SPU:'.$spu.'不存在]');
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[' . $this->lang_ary[$lang] . ' SPU:' . $spu . '不存在]');
                         $start_row++;
                         continue;
                     }
@@ -2250,7 +2251,7 @@ class GoodsModel extends PublicModel {
                         $faild++;
                         $start_row++;
                         $this->rollback();
-                        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL .'Import Faild:'.$e, Log::ERR);
+                        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Import Faild:' . $e, Log::ERR);
                         continue;
                     }
 
@@ -2350,20 +2351,20 @@ class GoodsModel extends PublicModel {
                         $es_goods_model->create_data($input_sku, $lang);
 
                         $objPHPExcel->getSheet(0)->setCellValue($itemNo . $start_row, ' ' . $input_sku);
-                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, $workType.'操作成功');
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, $workType . '操作成功');
                         $success++;
                         $this->commit();
                     } else {
                         $faild++;
                         $this->rollback();
-                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, $workType.'操作失败');
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, $workType . '操作失败');
                         $start_row++;
                         continue;
                     }
-                }else{
+                } else {
                     $null_row++;
                 }
-            }catch (Exception $e){
+            } catch (Exception $e) {
                 $faild++;
                 $this->rollback();
                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败');
@@ -2371,7 +2372,7 @@ class GoodsModel extends PublicModel {
                 continue;
             };
             $start_row++;
-        }while(($null_row < 1) && ($col_value > 0));
+        } while (($null_row < 1) && ($col_value > 0));
         $es_product_model = new EsProductModel();
         $es_product_model->create_data($spu, $lang);
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
@@ -2391,4 +2392,5 @@ class GoodsModel extends PublicModel {
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
         return false;
     }
+
 }

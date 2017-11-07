@@ -72,7 +72,7 @@ class CountryModel extends PublicModel {
                     ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
                     ->join('erui_dict.region r on r.bn=c.region_bn and r.lang=c.lang', 'left')
                     ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,r.name as region_name,'
-                            . 'ma.name as market_area_name ,mac.market_area_bn')
+                            . 'ma.name as market_area_name ,mac.market_area_bn,c.int_tel_code')
                     ->where($where);
             if ($type) {
                 $this->limit($from . ',' . $pagesize);
@@ -121,7 +121,7 @@ class CountryModel extends PublicModel {
                             ->order($order)
                             ->select();
         } else {
-            return $this->field('id,lang,bn,name,time_zone,region,pinyin')
+            return $this->field('id,lang,bn,name,time_zone,region,pinyin,int_tel_code')
                             ->where($data)
                             ->order($order)
                             ->select();
@@ -138,7 +138,7 @@ class CountryModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             $row = $this->where($where)
-                    ->field('id,lang,bn,name,time_zone,region,pinyin')
+                    ->field('id,lang,bn,name,time_zone,region,pinyin,int_tel_code')
                     ->find();
             return $row;
         } else {
@@ -476,12 +476,15 @@ class CountryModel extends PublicModel {
             return json_decode(redisHashGet('Country', $name), true);
         }
         try {
+
             $condition = array(
                 'name' => ['like', '%' . $name . '%'],
                 'status' => self::STATUS_VALID
             );
+
             $field = 'bn';
             $result = $this->field($field)->where($condition)->select();
+
             $bns = [];
             if ($result) {
                 foreach ($result as $bn) {
@@ -588,23 +591,23 @@ class CountryModel extends PublicModel {
      * @param string $bn
      * @return array|bool
      */
-    public function getInforByBn($bn=''){
-        if(empty($bn)){
+    public function getInforByBn($bn = '') {
+        if (empty($bn)) {
             return false;
         }
 
-        try{
-            $where = ['bn'=>$bn , 'deleted_flag' => 'N' , 'status' =>'VALID'];
+        try {
+            $where = ['bn' => $bn, 'deleted_flag' => 'N', 'status' => 'VALID'];
             $result = $this->field('lang,bn,name')->where($where)->select();
-            if($result){
+            if ($result) {
                 $country = [];
-                foreach($result as $item){
+                foreach ($result as $item) {
                     $country[$item['lang']] = $item;
                 }
                 return $country;
             }
             return [];
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return [];
         }
     }

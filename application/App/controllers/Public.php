@@ -13,7 +13,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     protected $send = [];
     protected $message = '';
     protected $lang = '';
-    protected $token = true;
 
     /*
      * 初始化
@@ -22,113 +21,92 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
-        $lang = $this->header('lang', 'en');
+
+
+        $this->headers = getHeaders();
+        $token = isset($this->headers['token']) ? $this->headers['token'] : '';
+        //Log::write('Method:'.$this->getMethod().' Token:'.$this->getQuery('token',''),Log::INFO);
+        if ($this->getMethod() == 'GET') {
+            $token = $this->getQuery('token', '');
+        }
+
+        $this->put_data = $jsondata = $data = $this->getPut();
+        $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
-        if ($this->token) {
-            $this->_token();
-        }
-    }
 
-    protected function _getUser() {
-        $token = $this->header('token');
-        if (!$token) {
-            $token = $this->getPut('token');
-        }
-        if (!$token) {
-            $token = $this->getPost('token');
-        }
+        if ($this->getRequest()->getModuleName() == 'V1' &&
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
 
-        if (!empty($token)) {
-            $tks = explode('.', $token);
-            $tokeninfo = JwtInfo($token); //解析token
-            $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
-
-            if (!empty($userinfo)) {
-                $this->user = array(
-                    "buyer_id" => $userinfo["buyer_id"],
-                    "user_name" => $tokeninfo["user_name"],
-                    "email" => $userinfo["email"],
-                    "id" => $userinfo["id"],
-                    "token" => $token, //token
-                );
-                $this->_setUid($userinfo);
-                redisSet('shopmall_user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
-            }
-        }
-    }
-
-    protected function _token() {
-        $this->put_data = $this->getPut();
-        $token = $this->header('token');
-        if (!$token) {
-            $token = $this->getPut('token');
-        }
-        if (!$token) {
-            $token = $this->getPost('token');
-        }
-
-        if (!empty($token)) {
-            $tks = explode('.', $token);
-            $tokeninfo = JwtInfo($token); //解析token
-
-            $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
-
-            if (empty($userinfo)) {
-                echo json_encode(array("code" => "-104", "message" => "用户不存在"));
-                exit;
-            } else {
-                $this->user = array(
-                    "buyer_id" => $userinfo["buyer_id"],
-                    "user_name" => $tokeninfo["user_name"],
-                    "email" => $userinfo["email"],
-                    "id" => $userinfo["id"],
-                    "token" => $token, //token
-                );
-                $this->_setUid($userinfo);
-            }
         } else {
-            echo json_encode(array("code" => "-104", "message" => "token不存在"));
-            exit;
-        }
-    }
-
-    /**
-     * 设置或者获取当前的Header
-     * @access public
-     * @param string|array  $name header名称
-     * @param string        $default 默认值
-     * @return string
-     */
-    public function header($name = '', $default = null) {
-        if (empty($this->header)) {
-            $header = [];
-            if (function_exists('apache_request_headers') && $result = apache_request_headers()) {
-                $header = $result;
-            } else {
-                $server = $this->server ?: $_SERVER;
-                foreach ($server as $key => $val) {
-                    if (0 === strpos($key, 'HTTP_')) {
-                        $key = str_replace('_', '-', strtolower(substr($key, 5)));
-                        $header[$key] = $val;
-                    }
-                }
-                if (isset($server['CONTENT_TYPE'])) {
-                    $header['content-type'] = $server['CONTENT_TYPE'];
-                }
-                if (isset($server['CONTENT_LENGTH'])) {
-                    $header['content-length'] = $server['CONTENT_LENGTH'];
-                }
+            if (!empty($jsondata["token"])) {
+                $token = $jsondata["token"];
             }
-            $this->header = array_change_key_case($header);
+            $data = $this->getRequest()->getPost();
+
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            $model = new UserModel();
+            if (!empty($jsondata["token"])) {
+                $token = $jsondata["token"];
+            }
+            $data = $this->getRequest()->getPost();
+
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            if (!empty($token)) {
+                try {
+                    //$tks = explode('.', $token);
+                    $tokeninfo = JwtInfo($token); //解析token
+                    $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
+                    if (empty($userinfo)) {
+                        echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+                        exit;
+                    } else {
+                        $this->user = array(
+                            "id" => $userinfo["id"],
+                            "name" => $tokeninfo["name"],
+                            "token" => $token, //token
+                            "group_id" => $userinfo["group_id"],
+                            "group_org" => $userinfo["group_org"],
+                            "country_bn" => $userinfo['country_bn'],
+                            "role_id" => $userinfo['role_id'],
+                            "role_no" => $userinfo['role_no'],
+                        );
+                        $this->_setUid($userinfo);
+                        redisSet('user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
+                    }
+                    //权限控制
+//                        if(redisExist('role_user_'.$userinfo['id'])){
+//                            $arr = json_decode(redisGet('role_user_'.$userinfo['user_id']),true);
+//                        }else{
+//                            $role_user = new RoleUserModel();
+//                            $where['user_id'] = $userinfo['id'];
+//                            $data = $role_user->getRolesArray($where);
+//                            $arr = [];
+//                            if($data[0]['url'] ){
+//                                $arr=explode(',',$data[0]['url'] );
+//                                //redisSet('role_user_'.$userinfo['id'],json_encode($arr),300);
+//                            }
+                    //}
+//                        if(!in_array(strtolower($jsondata['action_url']),$arr)){
+//                            echo json_encode(array("code" => "-1111", "message" => "未获得授权"));
+//                            exit;
+//                        }
+                    //}
+                    //}
+                } catch (Exception $e) {
+                    LOG::write($e->getMessage());
+                    $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
+                    exit;
+                }
+            } else {
+                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
+                exit;
+            }
         }
-        if (is_array($name)) {
-            return $this->header = array_merge($this->header, $name);
-        }
-        if ('' === $name) {
-            return $this->header;
-        }
-        $name = str_replace('_', '-', strtolower($name));
-        return isset($this->header[$name]) ? $this->header[$name] : $default;
     }
 
     /*
@@ -139,7 +117,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
     protected function _setUid($userinfo) {
         if (!defined('UID') && $userinfo) {
-            define('UID', $userinfo["buyer_id"]);
+            define('UID', $userinfo["id"]);
         }
     }
 
@@ -252,7 +230,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
         if ($name) {
-            $data = isset($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            $data = isset($this->put_data [$name]) && !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
             return $data;
         } else {
             $data = $this->put_data;
@@ -269,7 +247,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function getParam($name, $default = null) {
+    public function getParam($name = null, $default = null) {
 
         return $this->getRequest()->getParam($name, $default);
     }
@@ -286,7 +264,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
     public function get($name = null, $default = null) {
         if ($name) {
-            return $this->getRequest()->get($name, $default);
+            return isset($_GET[$name]) && $_GET[$name] ? $_GET[$name] : $default;
         } else {
             return $_GET;
         }
@@ -302,7 +280,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function getQuery($name, $default = null) {
+    public function getQuery($name = null, $default = null) {
 
         return $this->getRequest()->getQuery($name, $default);
     }
@@ -317,9 +295,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      *
      * @return mixed
      */
-    public function getPost($name, $default = null) {
+    public function getPost($name = null, $default = null) {
 
-        return $this->getRequest()->getPost($name, $default);
+        if ($name) {
+            return isset($_POST[$name]) && $_POST[$name] ? $_POST[$name] : $default;
+        } else {
+            return $_POST;
+        }
     }
 
     /**
@@ -589,6 +571,26 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
 
         return $inquiryCheckLogModel->addAll($checkLogList);
+    }
+
+    /**
+     * @desc 验证请求参数
+     * @param string $params
+     * @author 买买提
+     * @time 2017-11-07
+     * @return array|mixed|null
+     */
+    public function validateRequestParams($params=''){
+        $request = $this->getPut();
+        unset($request['token']);
+
+        if ($params){
+            $params = explode(',',$params);
+            foreach ($params as $param){
+                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少['.$param.']参数']);
+            }
+        }
+        return $request;
     }
 
 }
