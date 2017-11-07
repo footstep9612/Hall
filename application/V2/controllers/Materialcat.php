@@ -60,6 +60,39 @@ class MaterialcatController extends PublicController {
         $this->jsonReturn($data);
     }
 
+    /*
+     * 获取分类树形数据
+     */
+
+    public function twotreeAction() {
+        $lang = $this->getPut('lang', 'zh');
+
+        $jsondata = ['lang' => $lang];
+        $jsondata['level_no'] = 1;
+        $condition = $jsondata;
+        $redis_key = 'Material_cat_tree_' . $lang;
+        $data = json_decode(redisGet($redis_key), true);
+        if (!$data) {
+            $arr = $this->_model->tree($jsondata);
+            if ($arr) {
+                $this->setCode(MSG::MSG_SUCCESS);
+                foreach ($arr as $key => $val) {
+                    $arr[$key]['children'] = $this->_model->tree(['parent_cat_no' => $val['value'], 'level_no' => 2, 'lang' => $lang]);
+                }
+                redisSet($redis_key, json_encode($arr), 86400);
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->_setCount($lang);
+                $this->jsonReturn($arr);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        }
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->_setCount($lang);
+        $this->jsonReturn($data);
+    }
+
     /**
      * 根据条件获取分类数量
      * @param string $lang 语言

@@ -14,7 +14,7 @@
 class BuyerController extends PublicController {
 
     public function __init() {
-          parent::__init();
+        parent::__init();
     }
 
     /*
@@ -29,17 +29,34 @@ class BuyerController extends PublicController {
             $where['name'] = $data['name'];
         }
         if (!empty($data['country_bn'])) {
-            $pieces = explode(",",$data['country_bn']);
-            for($i=0;$i<count($pieces);$i++){
-                $where['country_bn']=$where['country_bn']."'".$pieces[$i]."',";
-
+            $pieces = explode(",", $data['country_bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
             }
-            $where['country_bn'] =rtrim($where['country_bn'], ",");
+            $where['country_bn'] = rtrim($where['country_bn'], ",");
         }
+        if (!empty($data['country_name'])) {
+
+            $country_name = trim($data['country_name']);
+            $country_model = new CountryModel();
+            $country_bns = $country_model->getBnByName($country_name);
+            if ($country_bns) {
+                foreach ($country_bns as $country_bn) {
+                    $where['country_bn'] = $where['country_bn'] . '\'' . $country_bn . '\',';
+                }
+                $where['country_bn'] = rtrim($where['country_bn'], ',');
+            } else {
+                $datajson['code'] = -104;
+                $datajson['data'] = "";
+                $datajson['message'] = '数据为空!';
+            }
+        }
+
+
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
-        if(!empty($data['agent_id'])){
+        if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
         if (!empty($data['buyer_no'])) {
@@ -93,7 +110,7 @@ class BuyerController extends PublicController {
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }
-        if (!empty($data['currentPage'])){
+        if (!empty($data['currentPage'])) {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }
         if (!empty($data['credit_checked_name'])) {
@@ -109,11 +126,15 @@ class BuyerController extends PublicController {
             $where['credit_status'] = $data['credit_status'];
         }
         $model = new BuyerModel();
+
         $data = $model->getlist($where);
+
+        $this->_setArea($data['data'], 'area');
+        $this->_setCountry($data['data'], 'country');
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['count'] = $data['count'];
-            $datajson['data'] = $data;
+            $datajson['data'] = $data['data'];
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
@@ -130,15 +151,76 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new BuyerModel();
         $res = $model->info($data);
-        if (!empty($res)) {
+        $countryModel = new CountryModel();
+        $marketAreaModel = new MarketAreaModel();
+        $res_arr = [$res];
+        $this->_setArea($res_arr, 'area');
+        $this->_setCountry($res_arr, 'country');
+        if (!empty($res_arr[0])) {
             $datajson['code'] = 1;
-            $datajson['data'] = $res;
+            $datajson['data'] = $res_arr[0];
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
             $datajson['message'] = '数据为空!';
         }
         $this->jsonReturn($datajson);
+    }
+
+    /*
+     * Description of 获取营销区域
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setArea(&$arr, $filed) {
+        if ($arr) {
+            $marketarea_model = new MarketAreaModel();
+            $bns = [];
+            foreach ($arr as $key => $val) {
+                $bns[] = trim($val[$filed . '_bn']);
+            }
+            $area_names = $marketarea_model->getNamesBybns($bns);
+            foreach ($arr as $key => $val) {
+                if (trim($val[$filed . '_bn']) && isset($area_names[trim($val[$filed . '_bn'])])) {
+                    $val[$filed . '_name'] = $area_names[trim($val[$filed . '_bn'])];
+                } else {
+                    $val[$filed . '_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setCountry(&$arr, $filed) {
+        if ($arr) {
+            $country_model = new CountryModel();
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = trim($val[$filed . '_bn']);
+            }
+            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
+            foreach ($arr as $key => $val) {
+                if (trim($val[$filed . '_bn']) && isset($countrynames[trim($val[$filed . '_bn'])])) {
+                    $val[$filed . '_name'] = $countrynames[trim($val[$filed . '_bn'])];
+                } else {
+                    $val[$filed . '_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
     /*
@@ -282,7 +364,6 @@ class BuyerController extends PublicController {
         $condition['countPerPage'] = 1;
 
         $data_t_buyer = $model->getlist($condition); //($this->put_data);
-
         //var_dump($data_t_buyer);die;
         if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
             $no = substr($data_t_buyer['data'][0]['buyer_no'], 9, 6);
@@ -296,7 +377,7 @@ class BuyerController extends PublicController {
         $arr['buyer_no'] = $real_num;
         if (!empty($data['serial_no'])) {
             $arr['serial_no'] = $data['serial_no'];
-        }else{
+        } else {
             $arr['serial_no'] = $arr['buyer_no'];
         }
         $arr['created_by'] = $this->user['id'];
@@ -326,24 +407,22 @@ class BuyerController extends PublicController {
             //获取营销区域信息 -- link 2017-10-31
             //$mareaModel = new MarketAreaModel();
             //$areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
-
             //获取营销国家信息 -- link 2017-10-31
             //$countryModel = new CountryModel();
             //$countryInfo = $countryModel->getInforByBn($arr['country_bn']);
-
             //获取市场经办人信息 -- link 2017-10-31
             $userInfo = new UserModel();
-            $agentInfo = $userInfo->info($data['agent_id'], ['deleted_flag'=>'N', 'status'=>'NORMAL'], 'name');
+            $agentInfo = $userInfo->info($data['agent_id'], ['deleted_flag' => 'N', 'status' => 'NORMAL'], 'name');
 
             $datajson['code'] = 1;
             $datajson['id'] = $id;
             $datajson['buyer_code'] = $data['buyer_code'];
             $datajson['buyer_no'] = $arr['buyer_no'];
             $datajson['name'] = $arr['name'];    //-- link 2017-10-31
-            $datajson['area'] = $arr['area_bn'];//$areaInfo;    //-- link 2017-10-31
+            $datajson['area'] = $arr['area_bn']; //$areaInfo;    //-- link 2017-10-31
             $datajson['agent_id'] = $data['agent_id'];
             $datajson['agent'] = $agentInfo ? $agentInfo['name'] : '';    //-- link 2017-10-31
-            $datajson['country'] = $arr['country_bn'];//$countryInfo;    //-- link 2017-10-31
+            $datajson['country'] = $arr['country_bn']; //$countryInfo;    //-- link 2017-10-31
             $datajson['message'] = '成功';
         } else {
             $datajson['code'] = -104;
@@ -453,8 +532,8 @@ class BuyerController extends PublicController {
         if (!empty($data['email'])) {
             $arr['official_email'] = $data['email'];
             $account['email'] = $data['email'];
-            $buyer_id = $buyer_account_model->where(['email'=>$data['email']])->getField('buyer_id');
-            if($buyer_id >0 && $buyer_id != $data['id']){
+            $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
+            if ($buyer_id > 0 && $buyer_id != $data['id']) {
                 $this->jsonReturn(array("code" => "-101", "message" => "该邮箱已经被其他账号使用"));
             }
         }
@@ -480,10 +559,10 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
-        
+
         if (!empty($data['password'])) {
             $account['password_hash'] = $data['password'];
-           // $buyer_account_model->update_data($arr_account, $where_account);
+            // $buyer_account_model->update_data($arr_account, $where_account);
         }
         $buyer_attach_model = new BuyerattachModel();
         if (!empty($data['attach_url'])) {
@@ -495,10 +574,10 @@ class BuyerController extends PublicController {
         }
         if (!empty($buyer_address_data)) {
             $buyer_address_model = new BuyerAddressModel();
-            $buyer_address_model->update_data($buyer_address_data,$where_address);
+            $buyer_address_model->update_data($buyer_address_data, $where_address);
         }
         //$model = new UserModel();
-        if(!empty($account)){
+        if (!empty($account)) {
             $buyer_account_model->update_data($account, $where_account);
         }
         if ($res !== false) {
@@ -530,6 +609,7 @@ class BuyerController extends PublicController {
             );
         }
     }
+
 //    public function creditAction() {
 //        $data = json_decode(file_get_contents("php://input"), true);
 //        $role_user = new RoleUserModel();

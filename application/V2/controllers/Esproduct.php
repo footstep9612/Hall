@@ -134,17 +134,17 @@ class EsproductController extends PublicController {
                 $condition['onshelf_flag'] = 'N';
                 $condition['sku_count'] = 'Y';
                 $condition['pagesize'] = 0;
-                $ret_N = $model->getProducts($condition, $lang);
+                $ret_N = $model->getProducts($condition, null, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
                 //    $send['onshelf_sku_count_N'] =$model->getSkuCountByCondition($condition, $lang);
                 $condition['onshelf_flag'] = 'Y';
-                $ret_y = $model->getProducts($condition, $lang);
+                $ret_y = $model->getProducts($condition, null, $lang);
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
                 //  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
             }
             $condition['deleted_flag'] = 'Y';
             $condition['onshelf_flag'] = 'A';
-            $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
+            //  $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
             $send['data'] = $list;
 
             $this->setCode(MSG::MSG_SUCCESS);
@@ -469,9 +469,9 @@ class EsproductController extends PublicController {
             $product_properties = $this->productAction($lang);
             $goods_properties = $this->goodsAction($lang);
             $body['mappings']['goods_' . $lang]['properties'] = $goods_properties;
-            $body['mappings']['goods_' . $lang]['_all'] = ['enabled' => false];
+            $body['mappings']['goods_' . $lang]['_all'] = ['enabled' => true];
             $body['mappings']['product_' . $lang]['properties'] = $product_properties;
-            $body['mappings']['product_' . $lang]['_all'] = ['enabled' => false];
+            $body['mappings']['product_' . $lang]['_all'] = ['enabled' => true];
         }
         $es = new ESClient();
         $state = $es->getstate();
@@ -525,26 +525,9 @@ class EsproductController extends PublicController {
      */
     public function goodsAction($lang) {
 
-//        $info = $es->getversion();
-//        if (substr($info['version']['number'], 0, 1) == 1) {
-//            $analyzer = 'ik';
-//            $type = 'string';
-//        } else {
-//            $analyzer = 'ik_max_word';
-//            $type = 'text';
-//        }
-        if ($lang == 'en') {
-            $analyzer = 'english';
-        } elseif ($lang == 'es') {
-            $analyzer = 'spanish';
-        } elseif ($lang == 'ru') {
-            $analyzer = 'russian';
-        } else {
-            $analyzer = 'ik';
-        }
 
+        $int_analyzed = ['type' => 'integer',];
         $type = 'string';
-        $int_analyzed = ['type' => 'integer'];
         $ik_analyzed = [
             'index' => 'no',
             'type' => $type,
@@ -562,13 +545,21 @@ class EsproductController extends PublicController {
                     'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => $analyzer,
+                    'analyzer' => 'ik',
                     'type' => $type
                 ],
-                'whitespace' => [
-                    'analyzer' => 'whitespace',
+                'en' => [
+                    'analyzer' => 'english',
                     'type' => $type
-                ]
+                ],
+                'es' => [
+                    'analyzer' => 'spanish',
+                    'type' => $type
+                ],
+                'ru' => [
+                    'analyzer' => 'russian',
+                    'type' => $type
+                ],
             ]
         ];
 
@@ -715,26 +706,9 @@ class EsproductController extends PublicController {
      */
     public function productAction($lang = 'en') {
 
-//        $info = $es->getversion();
-//        if (substr($info['version']['number'], 0, 1) == 1) {
-//            $analyzer = 'ik';
-//            $type = 'string';
-//        } else {
-//            $analyzer = 'ik_max_word';
-//            $type = 'text';
-//        }
 
-        if ($lang == 'en') {
-            $analyzer = 'english';
-        } elseif ($lang == 'es') {
-            $analyzer = 'spanish';
-        } elseif ($lang == 'ru') {
-            $analyzer = 'russian';
-        } else {
-            $analyzer = 'ik';
-        }
         $type = 'string';
-        $int_analyzed = ['type' => 'integer'];
+        $int_analyzed = ['type' => 'integer',];
         $ik_analyzed = [
             'index' => 'no',
             'type' => $type,
@@ -752,7 +726,19 @@ class EsproductController extends PublicController {
                     'type' => $type
                 ],
                 'ik' => [
-                    'analyzer' => $analyzer,
+                    'analyzer' => 'ik',
+                    'type' => $type
+                ],
+                'en' => [
+                    'analyzer' => 'english',
+                    'type' => $type
+                ],
+                'es' => [
+                    'analyzer' => 'spanish',
+                    'type' => $type
+                ],
+                'ru' => [
+                    'analyzer' => 'russian',
                     'type' => $type
                 ],
                 'whitespace' => [

@@ -32,16 +32,14 @@ class FinalquoteController extends PublicController {
 
             //获取询单基本信息
             $inquirywhere['id'] = $where['id'];
-            $inquiryinfo = $inquiry->field('serial_no,agent_id')->where($inquirywhere)->find();
+            $inquiryinfo = $inquiry->field('serial_no,agent_id,inflow_time,status as inquiry_status')->where($inquirywhere)->find();
 
             if(isset($inquiryinfo)){
-
-                //查询项目经理名称
-                //$rs = $employee->field('name')->where('id='.$inquiryinfo['pm_id'])->find();
-                //$inquiryinfo['pm_name'] = $rs['name'];
-
                 //当前用户姓名
                 $inquiryinfo['user_name'] = $this->user['name'];
+
+                //更改询单状态
+                $results['data']['status'] = $inquiryinfo['inquiry_status'];
 
                 $results['data'] =  array_merge($results['data'],$inquiryinfo);
             }
@@ -190,9 +188,9 @@ class FinalquoteController extends PublicController {
             }
 
             $finaldata['inquiry_id'] = $data['id'];
-            $finaldata['payment_period'] = $data['payment_period'];
+            $finaldata['payment_period'] = $data['payment_period'];     //回款周期
             $finaldata['delivery_period'] = $data['delivery_period'];
-            $finaldata['fund_occupation_rate'] = $data['fund_occupation_rate'];
+            $finaldata['fund_occupation_rate'] = $data['fund_occupation_rate']; //赊销比例
             if($total_exw_price>0){
                 $finaldata['total_exw_price'] =$total_exw_price;   //市场报出EXW价格合计
             }

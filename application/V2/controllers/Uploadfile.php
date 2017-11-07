@@ -20,13 +20,11 @@ class UploadfileController extends PublicController {
     public function UploadAction() {
         $file = $this->getRequest()->getFiles();
         $upload_type = $this->getPost('upload_type', '');
-        $max_size = $this->getPost('max_size', '');
+        $max_size = $this->getPost('max_size', '20');
 
         if (empty($file)) {
             return false;
         }
-
-
         if ($upload_type && in_array($upload_type, ['spu', 'sku'])) {
             $max_size = 1048576;
             $file_size = $file['upFile']['size'];

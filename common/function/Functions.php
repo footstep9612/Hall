@@ -1005,8 +1005,9 @@ function redisSet($name, $value, $second = 0) {
     if ($reids->exists($name)) {
         $reids->delete($name);
     }
+    $second = intval($second);
     if (is_int($second) && $second > 0) {
-        $result = $reids->set($name, $value, $second);
+        $result = $reids->set($name, $value, 0, 0, $second);
     } else {
         $result = $reids->set($name, $value);
     }
@@ -1809,6 +1810,20 @@ function isNum($str) {
     if (preg_match($mode, $str)) {
         return true;
     } else {
+        return false;
+    }
+}
+
+/**
+ * 检测是否含有中文
+ * @author link    2017-11-01
+ * @param $str
+ * @return string
+ */
+function haveZh($str){
+    if(preg_match("/[\x{4e00}-\x{9fa5}]/u" , $str)){
+        return true;
+    }else{
         return false;
     }
 }

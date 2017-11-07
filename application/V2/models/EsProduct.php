@@ -189,6 +189,13 @@ class EsProductModel extends Model {
 
     private function getCondition($condition, $lang = 'en') {
         $body = [];
+        if ($lang == 'zh') {
+            $analyzer = 'ik';
+        } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+            $analyzer = $lang;
+        } else {
+            $analyzer = 'ik';
+        }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
@@ -229,12 +236,12 @@ class EsProductModel extends Model {
 
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope', 'app_scope.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages', 'advantages.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.ik');
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope', 'app_scope.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages', 'advantages.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.' . $analyzer);
 
 
 
@@ -264,6 +271,7 @@ class EsProductModel extends Model {
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
             $userids = $employee_model->getUseridsByUserName(trim($condition['checked_by_name']));
+
             foreach ($userids as $checked_by) {
                 $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
             }
@@ -284,7 +292,7 @@ class EsProductModel extends Model {
         if (isset($condition['show_name']) && $condition['show_name']) {
             $show_name = trim($condition['show_name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['show_name.ik' => $show_name]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => $show_name]],
                         [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
             ]]];
         }
@@ -292,7 +300,7 @@ class EsProductModel extends Model {
         if (isset($condition['name']) && $condition['name']) {
             $name = trim($condition['name']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-// [ESClient::MATCH => ['name.ik' => $name]],
+// [ESClient::MATCH => ['name.'.$analyzer => $name]],
                         [ESClient::WILDCARD => ['name.all' => '*' . $name . '*']],
             ]]];
         }
@@ -317,13 +325,13 @@ class EsProductModel extends Model {
             ]]];
         }
 
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.ik');
+        $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = trim($condition['keyword']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.ik' => ['query' => $keyword, 'boost' => 7]]],
-                        [ESClient::MATCH => ['show_name.ik' => ['query' => $keyword, 'boost' => 7]]],
-                        [ESClient::MATCH => ['keywords.ik' => ['query' => $keyword, 'boost' => 2]]],
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
                         [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
@@ -391,14 +399,13 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
 
-        $es->setaggs('image_count', 'image_count', 'terms', 0);
+        $es->setaggs('image_count', 'image_count', 'sum');
         $es->setfields(['image_count']);
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+
         $image_count = 0;
-        if (isset($ret['aggregations']['image_count']['buckets'])) {
-            foreach ($ret['aggregations']['image_count']['buckets'] as $item) {
-                $image_count += intval($item['key']) * intval($item['doc_count']);
-            }
+        if (isset($ret['aggregations']['image_count']['value'])) {
+            $image_count = $ret['aggregations']['image_count']['value'];
         }
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
@@ -412,22 +419,49 @@ class EsProductModel extends Model {
 
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
+        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
+        if (redisExist($redis_key)) {
+            return redisGet($redis_key);
+        }
         $es = new ESClient();
         $es->setbody($body);
-
-        $es->setaggs('sku_count', 'sku_count', 'terms', 0);
         $es->setfields(['sku_count']);
+        /*         * ******************sku_count 报错 可以注释这段************************** */
+        $es->setaggs('sku_count', 'sku_count', 'sum');
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+
         $sku_count = 0;
-        if (isset($ret['aggregations']['sku_count']['buckets'])) {
-            foreach ($ret['aggregations']['sku_count']['buckets'] as $item) {
-                $sku_count += intval($item['key']) * intval($item['doc_count']);
-            }
+        if (isset($ret['aggregations']['sku_count']['value'])) {
+
+            $sku_count = $ret['aggregations']['sku_count']['value'];
         }
+
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
-
+        redisSet($redis_key, $sku_count, 180);
         return $sku_count;
+        /*         * **************************sku_count 报错 可以恢复这段************************** */
+        /* $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
+          $sku_count = 0;
+          if (isset($ret['hits']['hits'])) {
+          foreach ($ret['hits']['hits'] as $item) {
+          $sku_count += $item['_source']['sku_count'];
+          }
+          }
+          if (isset($ret['hits']['total']) && $ret['hits']['total'] > 1000) {
+          for ($i = 1000; $i <= $ret['hits']['total']; $i += 1000) {
+          $ret1 = $es->search($this->dbName, $this->tableName . '_' . $lang, $i, 1000);
+          if (isset($ret1['hits']['hits'])) {
+          foreach ($ret1['hits']['hits'] as $item) {
+          $sku_count += $item['_source']['sku_count'];
+          }
+          }
+          }
+          }
+          $ret1 = $ret = $es = null;
+          unset($ret1, $ret, $es);
+          redisSet($redis_key, $sku_count, 3600);
+          return $sku_count; */
     }
 
     /* 通过搜索条件获取数据列表
@@ -739,8 +773,8 @@ class EsProductModel extends Model {
 
     public function importproducts($lang = 'en') {
         try {
-            $min_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', $min_id]
+            $max_id = 0;
+            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]
                     ])->count('id');
 
 
@@ -756,14 +790,14 @@ class EsProductModel extends Model {
                 }
 
 
-                if ($min_id === 0) {
+                if ($max_id === 0) {
                     $products = $this->where(['lang' => $lang, 'id' => ['gt', 0]
                                     ])->limit(0, 100)
-                                    ->order('id desc')->select();
+                                    ->order('id ASC')->select();
                 } else {
-                    $products = $this->where(['lang' => $lang, 'id' => ['lt', $min_id]
+                    $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
                                     ])->limit(0, 100)
-                                    ->order('id desc')->select();
+                                    ->order('id ASC')->select();
                 }
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
@@ -804,13 +838,14 @@ class EsProductModel extends Model {
                     foreach ($products as $key => $item) {
                         $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr);
                         if ($key === 99) {
-                            $min_id = $item['id'];
+                            $max_id = $item['id'];
                         }
                         print_r($flag);
                         ob_flush();
                         flush();
                     }
                 } else {
+                    $this->_delcache();
                     return false;
                 }
             }
@@ -847,11 +882,11 @@ class EsProductModel extends Model {
         $body['image_count'] = strval($body['image_count']);
         if (isset($body['sku_count']) && intval($body['sku_count']) > 0) {
 
-            $body['sku_count'] = strval(intval($body['sku_count']));
+            $body['sku_count'] = $body['sku_count'];
         } else {
             $body['sku_count'] = '0';
         }
-        $body['sku_count'] = strval($body['sku_count']);
+        $body['sku_count'] = intval($body['sku_count']);
         $material_cat_no = $item['material_cat_no'];
         if (isset($mcats[$material_cat_no])) {
             $body['material_cat'] = $mcats[$item['material_cat_no']];
@@ -937,13 +972,14 @@ class EsProductModel extends Model {
         $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
         if ($es_product) {
-            $es->add_document($this->dbName, $this->tableName . '_' . $lang, $id);
-        } else {
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+        } else {
+            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
         } if (!isset($flag['_version'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
         $k++;
+
         return $flag;
     }
 
@@ -1383,6 +1419,7 @@ class EsProductModel extends Model {
                 }
             }
             $es->refresh($this->dbName);
+            $this->_delcache();
             return true;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1414,6 +1451,7 @@ class EsProductModel extends Model {
             $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
             if ($flag['_shards']['successful'] !== 1) {
                 LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
+                $this->_delcache();
                 return true;
             } else {
                 return false;
@@ -1624,6 +1662,7 @@ class EsProductModel extends Model {
         }
         $type = $this->tableName . '_' . $lang;
         $es->update_document($this->dbName, $type, $data, $id);
+
         return true;
     }
 
@@ -1688,6 +1727,7 @@ class EsProductModel extends Model {
         ];
         $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
         $es->refresh($this->dbName);
+
         return true;
     }
 
@@ -1714,6 +1754,7 @@ class EsProductModel extends Model {
         $id = $spu;
         $type = $this->tableName . '_' . $lang;
         $es->update_document($this->dbName, $type, $data, $id);
+        $this->_delcache();
         return true;
     }
 
@@ -1740,7 +1781,7 @@ class EsProductModel extends Model {
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
             $data['show_cats'] = [];
-            $data['sku_count'] = '0';
+
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
@@ -1761,7 +1802,7 @@ class EsProductModel extends Model {
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['show_cats'] = [];
-                $data['sku_count'] = '0';
+
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
@@ -1777,6 +1818,7 @@ class EsProductModel extends Model {
             $es->bulk($updateParams);
         }
         $es->refresh($this->dbName);
+        $this->_delcache();
         return true;
     }
 
@@ -1810,6 +1852,7 @@ class EsProductModel extends Model {
                     'deleted_flag' => 'Y']];
         }
         $es->bulk($updateParams);
+        $this->_delcache();
         return true;
     }
 
@@ -1846,6 +1889,7 @@ class EsProductModel extends Model {
             }
             $es->bulk($updateParams);
         }
+        $this->_delcache();
         return true;
     }
 
@@ -1885,7 +1929,7 @@ class EsProductModel extends Model {
             $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
         } elseif (is_array($spus)) {
             $show_cat_product_model = new ShowCatProductModel();
-            $scats = $show_cat_product_model->getshow_catsbyspus([$spu], $lang);
+            $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang);
             $updateParams = [];
             $updateParams['index'] = $this->dbName;
             $updateParams['type'] = 'product_' . $lang;
@@ -1899,6 +1943,7 @@ class EsProductModel extends Model {
                     $data['show_cats'] = [];
                 }
 
+                rsort($data['show_cats']);
                 $data['onshelf_at'] = date('Y-m-d H:i:s');
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
@@ -1912,6 +1957,7 @@ class EsProductModel extends Model {
             $ret = $es->bulk($updateParams);
         }
         $es->refresh($this->dbName);
+        $this->_delcache();
         return true;
     }
 
@@ -1956,6 +2002,7 @@ class EsProductModel extends Model {
             }
             $ret = $es->bulk($updateParams);
         }
+        $this->_delcache();
         $es->refresh($this->dbName);
         return true;
     }
@@ -2044,6 +2091,25 @@ class EsProductModel extends Model {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::ERR);
             return false;
         }
+    }
+
+    /*
+     * 删除缓存
+     */
+
+    private function _delcache() {
+
+        $redis = new phpredis();
+        $treekeys = $redis->getKeys('spu_*');
+        $redis->delete($treekeys);
+        unset($redis);
+        $config = Yaf_Registry::get("config");
+        $rconfig = $config->redis->config->toArray();
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $keys = $redis3->getKeys('spu_*');
+        $redis3->delete($keys);
+        unset($redis3);
     }
 
     /*

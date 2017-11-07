@@ -331,7 +331,7 @@ class ShowcatController extends PublicController {
 
     private function _delCache() {
         $redis = new phpredis();
-        $keys = $redis->getKeys('Material_cat*');
+        $keys = $redis->getKeys('ShowCat*');
 
         $redis->delete($keys);
     }

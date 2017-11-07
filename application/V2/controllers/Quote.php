@@ -39,16 +39,24 @@ class QuoteController extends PublicController{
 
         $exchangeRateModel = new ExchangeRateModel();
         $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
+        $info['exchange_rate'] = $info['exchange_rate'] ? : '暂无';
 
         $info['trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
 
         $transMode = new TransModeModel();
         $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
+        $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
 
-        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination')->find();
+        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,status')->find();
 
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
+        $info['inquiry_dispatch_place'] = $info['inquiry_dispatch_place'] ? : '暂无';
         $info['inquiry_delivery_addr']  = $logiInfo['destination'];
+        $info['inquiry_delivery_addr'] = $info['inquiry_delivery_addr'] ? : '暂无';
+        $info['total_bank_fee'] = $info['total_bank_fee'] ? : '暂无';
+        $info['total_exw_price'] = $info['total_exw_price'] ? : '暂无';
+        $info['inflow_time'] = $logiInfo['inflow_time'];
+        $info['status']  = $logiInfo['status'];
 
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuote = $finalQuoteModel->where($condition)->field('total_exw_price,total_quote_price')->find();

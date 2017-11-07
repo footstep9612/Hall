@@ -52,6 +52,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     "token" => $token, //token
                 );
                 $this->_setUid($userinfo);
+                redisSet('shopmall_user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
             }
         }
     }
