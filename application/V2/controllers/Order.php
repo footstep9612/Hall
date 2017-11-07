@@ -666,7 +666,8 @@ class OrderController extends PublicController {
             }
         }
         if (!isset($data['po_no']) || empty($data['po_no']) || trim($data['po_no']) == '') {
-            return ['code' => -101, 'message' => 'PO号不能为空'];
+            //modify at 2017-11-07 14:53 by zhengkq
+            //return ['code' => -101, 'message' => 'PO号不能为空'];
         }
         if (!isset($data['execute_no']) || empty($data['execute_no']) || trim($data['execute_no']) == '') {
             return ['code' => -101, 'message' => '执行单号不能为空'];
