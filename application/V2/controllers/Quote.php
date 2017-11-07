@@ -80,6 +80,15 @@ class QuoteController extends PublicController{
         $request['biz_quote_by'] = $this->user['id'];
         $request['biz_quote_at'] = date('Y-m-d H:i:s');
 
+        if($request['trans_mode_bn'] == '暂无'){
+            unset($request['trans_mode_bn']);
+        }
+        if($request['total_bank_fee'] == '暂无'){
+            unset($request['total_bank_fee']);
+        }
+        if($request['total_exw_price'] == '暂无'){
+            unset($request['total_exw_price']);
+        }
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         //这个操作设计到计算
         $result = $this->quoteModel->updateGeneralInfo($condition,$request);
