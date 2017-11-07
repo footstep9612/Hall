@@ -224,18 +224,29 @@ class LogisticsController extends PublicController {
     	        $outField = 'logi_quote_org_id';
     	        $findFields = ['logi_check_org_id', $outField];
     	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);*/
-    	        
+    	        $countryModel = New CountryModel();
     	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : '暂无';
     	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : '暂无';
     	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : '暂无';
-    	        $quoteLogiFee['to_country'] = $quoteLogiFee['to_country'] ? : '暂无';
+				if(empty($quoteLogiFee['from_country'])){
+					$quoteLogiFee['from_country'] = '暂无';	//如果是空值赋值暂无
+				}else{
+					$from_country_name = $countryModel->field('name')->where(['bn' => $quoteLogiFee['from_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+					$quoteLogiFee['from_country'] = $from_country_name['name']; //否则改成中文
+				}
     	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : '暂无';
-    	        $quoteLogiFee['to_country'] = $quoteLogiFee['to_country'] ? : '暂无';
+				if(empty($quoteLogiFee['to_country'])){
+					$quoteLogiFee['to_country'] = '暂无';	//如果是空值赋值暂无
+				}else{
+					$from_country_name = $countryModel->field('name')->where(['bn' => $quoteLogiFee['to_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+					$quoteLogiFee['to_country'] = $from_country_name['name']; //否则改成中文
+				}
     	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : '暂无';
     	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : '暂无';
     	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : '暂无';
     	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : '暂无';
     	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : '暂无';
+
     	    }
     	
     	    $this->jsonReturn($quoteLogiFee);
@@ -1000,7 +1011,7 @@ class LogisticsController extends PublicController {
 	   
 	   $overlandInsuCNY = round($tmpPrice * $rate, 8);
 	   
-	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
+	   if ($overlandInsuCNY < 50) {
 	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
 	       $overlandInsuCNY = 50;
 	   } else {
@@ -1028,7 +1039,7 @@ class LogisticsController extends PublicController {
 	    
 	    $shippingInsuCNY = round($tmpPrice * $rate, 8);
 	    
-	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
+	    if ($shippingInsuCNY < 50) {
 	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
 	        $shippingInsuCNY = 50;
 	    } else {

@@ -30,15 +30,16 @@ class OrderController extends PublicController {
         if (isset($groupid)) {
             $maketareateam = new MarketAreaTeamModel();
             $users = [];
-
-            if (is_array($groupid)) {
-                //查询是否是市场人员
-                $agent = $maketareateam->where('market_org_id in(' . implode(',', $groupid) . ')')->count('id');
-            } else {
-                //查询是否是市场人员
-                $agent = $maketareateam->where('market_org_id=' . $groupid)->count('id');
+            $agent =0;
+            if($groupid){
+                if (is_array($groupid)) {
+                    //查询是否是市场人员
+                    $agent = $maketareateam->where('market_org_id in(' . implode(',', $groupid) . ')')->count('id');
+                } else {
+                    //查询是否是市场人员
+                    $agent = $maketareateam->where('market_org_id=' . $groupid)->count('id');
+                }
             }
-
             if ($agent > 0) {
                 $results['code'] = '2';
                 $results['message'] = '市场人员！';
@@ -665,7 +666,8 @@ class OrderController extends PublicController {
             }
         }
         if (!isset($data['po_no']) || empty($data['po_no']) || trim($data['po_no']) == '') {
-            return ['code' => -101, 'message' => 'PO号不能为空'];
+            //modify at 2017-11-07 14:53 by zhengkq
+            //return ['code' => -101, 'message' => 'PO号不能为空'];
         }
         if (!isset($data['execute_no']) || empty($data['execute_no']) || trim($data['execute_no']) == '') {
             return ['code' => -101, 'message' => '执行单号不能为空'];
@@ -740,9 +742,6 @@ class OrderController extends PublicController {
     public function listAction() {
         $auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
-        if ($auth['code'] == '2') {
-            $condition['agent_id'] = $this->user['id'];
-        }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
