@@ -244,7 +244,15 @@ class BuyerModel extends PublicModel {
         if (isset($create['city'])) {
             $data['city'] = $create['city'];
         }
-
+        if (isset($create['biz_scope'])) {
+            $data['biz_scope'] = $create['biz_scope'];
+        }
+        if (isset($create['intent_product'])) {
+            $data['intent_product'] = $create['intent_product'];
+        }
+        if (isset($create['purchase_amount'])) {
+            $data['purchase_amount'] = $create['purchase_amount'];
+        }
         if (isset($create['brand'])) {
             $data['brand'] = $create['brand'];
         }
@@ -392,6 +400,15 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['checked_at'])) {
             $data['checked_at'] = $create['checked_at'];
+        }
+        if (isset($create['biz_scope'])) {
+            $data['biz_scope'] = $create['biz_scope'];
+        }
+        if (isset($create['intent_product'])) {
+            $data['intent_product'] = $create['intent_product'];
+        }
+        if (isset($create['purchase_amount'])) {
+            $data['purchase_amount'] = $create['purchase_amount'];
         }
         if (isset($create['status'])) {
             switch ($create['status']) {

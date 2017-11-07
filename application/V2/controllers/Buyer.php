@@ -237,11 +237,11 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
-        if (isset($create['buyer_no'])) {
-            $data['buyer_no'] = $create['buyer_no'];
+        if (isset($data['buyer_no'])) {
+            $arr['buyer_no'] = $data['buyer_no'];
         }
-        if (isset($create['buyer_code'])) {
-            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
+        if (isset($data['buyer_code'])) {
+            $arr['buyer_code'] = $data['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['zipcode'])) {
             $buyer_address_data['zipcode'] = $data['zipcode'];
@@ -249,8 +249,15 @@ class BuyerController extends PublicController {
         if (!empty($data['address'])) {
             $buyer_address_data['address'] = $data['address'];
         }
-
-
+        if (!empty($data['biz_scope'])) {
+            $arr['biz_scope'] = $data['biz_scope'];
+        }
+        if (!empty($data['intent_product'])) {
+            $arr['intent_product'] = $data['intent_product'];
+        }
+        if (!empty($data['purchase_amount'])) {
+            $arr['purchase_amount'] = $data['purchase_amount'];
+        }
         $arr['created_by'] = $this->user['id'];
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
@@ -432,6 +439,15 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
             $account['last_name'] = $data['last_name'];
+        }
+        if (!empty($data['biz_scope'])) {
+            $arr['biz_scope'] = $data['biz_scope'];
+        }
+        if (!empty($data['intent_product'])) {
+            $arr['intent_product'] = $data['intent_product'];
+        }
+        if (!empty($data['purchase_amount'])) {
+            $arr['purchase_amount'] = $data['purchase_amount'];
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {

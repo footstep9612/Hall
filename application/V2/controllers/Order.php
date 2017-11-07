@@ -31,7 +31,7 @@ class OrderController extends PublicController {
             $maketareateam = new MarketAreaTeamModel();
             $users = [];
 
-            if (is_array($groupid)) {
+            if (is_array($groupid)&&$groupid) {
                 //查询是否是市场人员
                 $agent = $maketareateam->where('market_org_id in(' . implode(',', $groupid) . ')')->count('id');
             } else {
@@ -740,9 +740,6 @@ class OrderController extends PublicController {
     public function listAction() {
         $auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
-        if ($auth['code'] == '2') {
-            $condition['agent_id'] = $this->user['id'];
-        }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
