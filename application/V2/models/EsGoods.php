@@ -361,7 +361,7 @@ class EsGoodsModel extends Model {
             $es = new ESClient();
 
             return [$es->setbody($body)
-                        ->setsort('_score', 'desc')
+                        //   ->setsort('_score', 'desc')
                         ->setsort('created_at', 'desc')
                         ->setsort('sku', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
