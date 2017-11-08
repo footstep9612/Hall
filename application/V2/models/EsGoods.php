@@ -361,9 +361,11 @@ class EsGoodsModel extends Model {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
-            return [$es->setbody($body)
-                        //   ->setsort('_score', 'desc')
-                        ->setsort('created_at', 'desc')
+            $es->setbody($body);
+            if (isset($condition['keyword']) && $condition['keyword']) {
+                $es->setsort('_score', 'desc');
+            }
+            return [$es->setsort('created_at', 'desc')
                         ->setsort('sku', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
         } catch (Exception $ex) {
