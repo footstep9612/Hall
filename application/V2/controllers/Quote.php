@@ -128,12 +128,12 @@ class QuoteController extends PublicController{
     public function rejectLogisticAction(){
 
         $request = $this->validateRequests('inquiry_id');
-
+        $condition['id'] = $request['inquiry_id'];
         $inquiryModel = new InquiryModel();
         $now_agent_id = $inquiryModel->where(['id'=>$request['inquiry_id']])->getField('logi_agent_id');
         $inquiryModel->where($condition)->save(['now_agent_id'=>$now_agent_id]);
 
-        $this->changeInquiryStatus($request['inquiry_id'],'LOGI_QUOTING');
+        $result = $this->changeInquiryStatus($request['inquiry_id'],'LOGI_QUOTING');
 
         $this->jsonReturn($result);
     }
@@ -142,13 +142,13 @@ class QuoteController extends PublicController{
      * 提交报价审核
      */
     public function submitQuoteAuditorAction(){
-
+        $condition = $this->put_data;
         $request = $this->validateRequests('inquiry_id');
 
         $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
 
         $inquiryModel = new InquiryModel();
-        $check_org_id = $inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
+        $check_org_id = $condition['check_org_id'];//$inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
 
         $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
             'quote_status' => 'QUOTED',
