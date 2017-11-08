@@ -340,6 +340,7 @@ class ProductModel extends PublicModel {
                                 return false;
                             }
                         } else {    //添加
+                            $data['status'] = empty($data['status']) ? self::STATUS_DRAFT : $data['status'];
                             $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
                             $data['spu'] = $spu;
                             $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
