@@ -144,7 +144,7 @@ class InquiryModel extends PublicModel {
                             if ($orgId) $map[] = ['erui_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id']);
+                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub','erui']]);
                             
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
@@ -196,6 +196,9 @@ class InquiryModel extends PublicModel {
     
         if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
             $where['status'] = $condition['status'];    //项目状态
+        }
+        if (!empty($condition['quote_status'])) {
+            $where['quote_status'] = $condition['quote_status'];    //报价状态
         }
     
         if (!empty($condition['country_bn'])) {
