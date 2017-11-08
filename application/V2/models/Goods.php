@@ -1061,7 +1061,13 @@ class GoodsModel extends PublicModel {
                                     $result_spu = $pModel->where($spuWhere)->save(array('status' => $pModel::STATUS_VALID, 'checked_by' => $userInfo['id'], 'checked_at' => date('Y-m-d H:i:s', time())));
                                     if ($result_spu) {
                                         //更新es
-                                        $es_product_model->create_data($spuCode['spu'], $lang);
+                                        if(empty($lang)){
+                                            foreach(array('en','zh','es','ru') as $language){
+                                                $es_product_model->create_data($spuCode['spu'], $language);
+                                            }
+                                        }else{
+                                            $es_product_model->create_data($spuCode['spu'], $lang);
+                                        }
                                         $skuary[] = array('spu' => $spuCode['spu'], 'lang' => $lang, 'remarks' => $remark);
                                     }
                                 }
