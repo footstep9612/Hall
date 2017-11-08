@@ -319,6 +319,7 @@ class EsGoodsModel extends Model {
                         [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::TERM => ['sku' => $show_name]],
+                        [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $show_name]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
