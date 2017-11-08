@@ -229,179 +229,211 @@ class ProductModel extends PublicModel {
         $fp = fopen(MYPATH . '/public/file/spuedit.lock', 'r');
         if (flock($fp, LOCK_EX | LOCK_NB)) {
             $spu = ( isset($input['spu']) && !empty($input['spu']) ) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
-            flock($fp, LOCK_UN);
-        }
-        fclose($fp);
-        if (empty($spu) || $spu === false) {
-            jsonReturn('', ErrorMsg::FAILED, '生成SPU编码失败');
-        }
+            if (empty($spu) || $spu === false) {
+                flock($fp, LOCK_UN);
+                fclose($fp);
+                jsonReturn('', ErrorMsg::FAILED, '生成SPU编码失败');
+            }
 
-        //解锁  由于存在数据库的读写分离，在高并发情况下存在数据同步延迟，所以这块后期计划任务统一删除
-        /* if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
-          unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
-          } */
+            //解锁  由于存在数据库的读写分离，在高并发情况下存在数据同步延迟，所以这块后期计划任务统一删除
+            /* if (file_exists(MYPATH . '/public/tmp/' . $spu . '.lock')) {
+              unlink(MYPATH . '/public/tmp/' . $spu . '.lock');
+              } */
 
-        $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
-        $this->startTrans();
-        try {
-            $userInfo = getLoinInfo(); //获取当前用户信息
-            $mcatModel = new MaterialCatModel();
-            foreach ($input as $key => $item) {
-                if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
-                    $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
-                    if (empty($data) || empty($data['name'])) {
-                        continue;
-                    }
-                    $mexist = $mcatModel->info($material_cat_no, $key);
-                    if (!$mexist) {
-                        jsonReturn('', ErrorMsg::FAILED, $this->lang_ary[$key].'物料分类编码不存在');
-                    }
-                    $data['lang'] = $key;
-                    if (empty($data['material_cat_no'])) {
-                        $data['material_cat_no'] = $material_cat_no;
-                    }
-                    $data['bizline_id'] = $bizline_id;
-                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                    //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
-                    $this->checkParam($data, $this->field);     //字段校验
-                    if($key == 'en'){
-                        if(!empty($data['name']) && haveZh($data['name'])){
-                            jsonReturn('', ErrorMsg::FAILED, '英文名称中含有中文，请检查');
+            $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
+            $this->startTrans();
+            try {
+                $userInfo = getLoinInfo(); //获取当前用户信息
+                $mcatModel = new MaterialCatModel();
+                foreach ($input as $key => $item) {
+                    if (in_array($key, array('zh', 'en', 'ru', 'es'))) {
+                        $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $key);
+                        if (empty($data) || empty($data['name'])) {
+                            continue;
                         }
-                        if(!empty($data['show_name']) && haveZh($data['show_name'])){
-                            jsonReturn('', ErrorMsg::FAILED, '英文展示名称中含有中文，请检查');
+                        $mexist = $mcatModel->info($material_cat_no, $key);
+                        if (!$mexist) {
+                            flock($fp, LOCK_UN);
+                            fclose($fp);
+                            jsonReturn('', ErrorMsg::FAILED, $this->lang_ary[$key].'物料分类编码不存在');
                         }
-                        if(!empty($data['exe_standard']) && haveZh($data['exe_standard'])){
-                            jsonReturn('', ErrorMsg::FAILED, '英文执行标准中含有中文，请检查');
+                        $data['lang'] = $key;
+                        if (empty($data['material_cat_no'])) {
+                            $data['material_cat_no'] = $material_cat_no;
                         }
-                        if(!empty($data['description']) && haveZh($data['description'])){
-                            jsonReturn('', ErrorMsg::FAILED, '英文详情介绍中含有中文，请检查');
+                        $data['bizline_id'] = $bizline_id;
+                        //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
+                        //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
+                        $this->checkParam($data, $this->field);     //字段校验
+                        if($key == 'en'){
+                            if(!empty($data['name']) && haveZh($data['name'])){
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', ErrorMsg::FAILED, '英文名称中含有中文，请检查');
+                            }
+                            if(!empty($data['show_name']) && haveZh($data['show_name'])){
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', ErrorMsg::FAILED, '英文展示名称中含有中文，请检查');
+                            }
+                            if(!empty($data['exe_standard']) && haveZh($data['exe_standard'])){
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', ErrorMsg::FAILED, '英文执行标准中含有中文，请检查');
+                            }
+                            if(!empty($data['description']) && haveZh($data['description'])){
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', ErrorMsg::FAILED, '英文详情介绍中含有中文，请检查');
+                            }
+                            if(!empty($data['tech_paras']) && haveZh($data['tech_paras'])){
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', ErrorMsg::FAILED, '英文技术参数中含有中文，请检查');
+                            }
+                            if(!empty($data['warranty']) && haveZh($data['warranty'])){
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', ErrorMsg::FAILED, '英文质保期中含有中文，请检查');
+                            }
                         }
-                        if(!empty($data['tech_paras']) && haveZh($data['tech_paras'])){
-                            jsonReturn('', ErrorMsg::FAILED, '英文技术参数中含有中文，请检查');
-                        }
-                        if(!empty($data['warranty']) && haveZh($data['warranty'])){
-                            jsonReturn('', ErrorMsg::FAILED, '英文质保期中含有中文，请检查');
-                        }
-                    }
-                    if ($input['status'] != 'DRAFT') {
-                        $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
-                            'lang' => $key,
-                            'name' => $data['name'],
-                            //'material_cat_no' => $data['material_cat_no'],
-                            //'brand' => $data['brand'],
-                            'deleted_flag' => 'N',
-                            'status' => array('neq', 'DRAFT')
-                        );
-                        if (isset($input['spu'])) {
-                            $exist_condition['spu'] = array('neq', $spu);
-                        }
-                        $exist = $this->field('id,brand')->where($exist_condition)->select();
-                        if ($exist) {
-                            $brand_ary = json_decode($data['brand'], true);
-                            foreach ($exist as $r) {
-                                $brand_exist = json_decode($r['brand'], true);
-                                if ($brand_ary['name'] == $brand_exist['name']) {
-                                    jsonReturn('', ErrorMsg::EXIST);
+                        if ($input['status'] != 'DRAFT') {
+                            $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
+                                'lang' => $key,
+                                'name' => $data['name'],
+                                //'material_cat_no' => $data['material_cat_no'],
+                                //'brand' => $data['brand'],
+                                'deleted_flag' => 'N',
+                                'status' => array('neq', 'DRAFT')
+                            );
+                            if (isset($input['spu'])) {
+                                $exist_condition['spu'] = array('neq', $spu);
+                            }
+                            $exist = $this->field('id,brand')->where($exist_condition)->select();
+                            if ($exist) {
+                                $brand_ary = json_decode($data['brand'], true);
+                                foreach ($exist as $r) {
+                                    $brand_exist = json_decode($r['brand'], true);
+                                    if ($brand_ary['name'] == $brand_exist['name']) {
+                                        flock($fp, LOCK_UN);
+                                        fclose($fp);
+                                        jsonReturn('', ErrorMsg::EXIST);
+                                    }
                                 }
                             }
                         }
-                    }
-                    $data['status'] = $item['status'];
+                        $data['status'] = $item['status'];
 
-                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
-                    if (isset($input['spu'])) {
-                        $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());
-                    }
-                    if ($exist_check) {    //修改
-                        $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
-                        $data['updated_at'] = date('Y-m-d H:i:s', time());
-                        $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
-                        if (!$result) {
-                            $this->rollback();
-                            return false;
+                        $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
+                        if (isset($input['spu'])) {
+                            $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+                            $data['updated_at'] = date('Y-m-d H:i:s', time());
                         }
-                    } else {    //添加
-                        $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
-                        $data['spu'] = $spu;
-                        $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
-                        $data['created_at'] = date('Y-m-d H:i:s', time());
-                        $result = $this->add($data);
-                        if (!$result) {
-                            $this->rollback();
-                            return false;
-                        }
-                    }
-                } elseif ($key == 'attachs') {
-                    if ($item) {
-                        //if (!isset($input['spu'])) {
-                        if (!$this->checkAttachImage($item)) {
-                            jsonReturn('', '1000', '产品图不能为空');
-                        }
-                        //}
-
-                        $pattach = new ProductAttachModel();
-
-                        $update_condition = array(
-                            'spu' => $spu
-                        );
-                        $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
-
-                        //$ids = [];
-
-                        foreach ($item as $atta) {
-                            $data = array(
-                                'spu' => $spu,
-                                'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
-                                'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : $atta['attach_url'],
-                                'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
-                                'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
-                            );
-                            if (isset($input['spu'])) {    //修改
-                                $data['id'] = isset($atta['id']) ? $atta['id'] : '';
-                            }
-                            if (empty($data['attach_url'])) {
-                                continue;
-                            }
-                            $attach = $pattach->addAttach($data);
-                            if (!$attach) {
+                        if ($exist_check) {    //修改
+                            $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
+                            $data['updated_at'] = date('Y-m-d H:i:s', time());
+                            $result = $this->where(array('spu' => $spu, 'lang' => $key))->save($data);
+                            if (!$result) {
                                 $this->rollback();
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
                                 return false;
-                            }/* else{
-                              $ids[] = $attach;
-                              }
-                              //删除其他附件
-                              $update_condition = array(
-                              'spu' => $spu,
-                              'id' => array('notin',$ids)
-                              );
-                              $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
-                             */
+                            }
+                        } else {    //添加
+                            $data['qrcode'] = createQrcode('/product/info/' . $data['spu']);    //生成spu二维码  注意模块    冗余字段这块还要看后期需求是否分语言
+                            $data['spu'] = $spu;
+                            $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //创建人
+                            $data['created_at'] = date('Y-m-d H:i:s', time());
+                            $result = $this->add($data);
+                            if (!$result) {
+                                $this->rollback();
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                return false;
+                            }
+                        }
+                    } elseif ($key == 'attachs') {
+                        if ($item) {
+                            //if (!isset($input['spu'])) {
+                            if (!$this->checkAttachImage($item)) {
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', '1000', '产品图不能为空');
+                            }
+                            //}
+
+                            $pattach = new ProductAttachModel();
+
+                            $update_condition = array(
+                                'spu' => $spu
+                            );
+                            $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
+
+                            //$ids = [];
+
+                            foreach ($item as $atta) {
+                                $data = array(
+                                    'spu' => $spu,
+                                    'attach_type' => isset($atta['attach_type']) ? $atta['attach_type'] : '',
+                                    'attach_name' => isset($atta['attach_name']) ? $atta['attach_name'] : $atta['attach_url'],
+                                    'attach_url' => isset($atta['attach_url']) ? $atta['attach_url'] : '',
+                                    'default_flag' => (isset($atta['default_flag']) && $atta['default_flag']) ? 'Y' : 'N',
+                                );
+                                if (isset($input['spu'])) {    //修改
+                                    $data['id'] = isset($atta['id']) ? $atta['id'] : '';
+                                }
+                                if (empty($data['attach_url'])) {
+                                    continue;
+                                }
+                                $attach = $pattach->addAttach($data);
+                                if (!$attach) {
+                                    $this->rollback();
+                                    flock($fp, LOCK_UN);
+                                    fclose($fp);
+                                    return false;
+                                }/* else{
+                                  $ids[] = $attach;
+                                  }
+                                  //删除其他附件
+                                  $update_condition = array(
+                                  'spu' => $spu,
+                                  'id' => array('notin',$ids)
+                                  );
+                                  $pattach ->where($update_condition)->save(array('status'=>$pattach::STATUS_DELETED,'deleted_flag'=>$pattach::DELETED_Y));
+                                 */
+                            }
+                        } else {
+                            if ($input['status'] != 'DRAFT') {
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                jsonReturn('', '1000', 'SPU图片不能为空');
+                            } else {
+                                if (isset($input['spu'])) {
+                                    $pattach = new ProductAttachModel();
+                                    $update_condition = array(
+                                        'spu' => trim($input['spu'])
+                                    );
+                                    $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
+                                }
+                            }
                         }
                     } else {
-                        if ($input['status'] != 'DRAFT') {
-                            jsonReturn('', '1000', 'SPU图片不能为空');
-                        } else {
-                            if (isset($input['spu'])) {
-                                $pattach = new ProductAttachModel();
-                                $update_condition = array(
-                                    'spu' => trim($input['spu'])
-                                );
-                                $pattach->where($update_condition)->save(array('status' => $pattach::STATUS_DELETED, 'deleted_flag' => $pattach::DELETED_Y));
-                            }
-                        }
+                        continue;
                     }
-                } else {
-                    continue;
                 }
+                $this->commit();
+                flock($fp, LOCK_UN);
+                fclose($fp);
+                return $spu;
+            } catch (Exception $e) {
+                $this->rollback();
+                flock($fp, LOCK_UN);
+                fclose($fp);
+                return false;
             }
-            $this->commit();
-            return $spu;
-        } catch (Exception $e) {
-            $this->rollback();
-            return false;
+            flock($fp, LOCK_UN);
         }
+        fclose($fp);
     }
 
     /**
