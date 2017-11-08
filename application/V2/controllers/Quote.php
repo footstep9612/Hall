@@ -47,7 +47,7 @@ class QuoteController extends PublicController{
         $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
         $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
 
-        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,status')->find();
+        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,org_id,status')->find();
 
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
         $info['inquiry_dispatch_place'] = $info['inquiry_dispatch_place'] ? : '暂无';
@@ -56,6 +56,7 @@ class QuoteController extends PublicController{
         $info['total_bank_fee'] = $info['total_bank_fee'] ? : '暂无';
         $info['total_exw_price'] = $info['total_exw_price'] ? : '暂无';
         $info['inflow_time'] = $logiInfo['inflow_time'];
+        $info['org_id']  = $logiInfo['org_id'];
         $info['status']  = $logiInfo['status'];
 
         $finalQuoteModel = new FinalQuoteModel();
