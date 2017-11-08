@@ -86,6 +86,34 @@ class InquiryModel extends PublicModel
 
     }
 
+    public function updateData($data = [])
+    {
+
+        $data = $this->create($data);
+
+        if (!empty($data['status'])) $data['inflow_time'] = $time;
+        if (!empty($data['agent_id'])) $data['now_agent_id'] = $data['agent_id'];
+
+        $data['updated_at'] = $this->getTime();
+
+        try{
+            $id = $this->save($data);
+            if($id){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '修改失败!';
+            }
+        }catch (Exception $exception){
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+        }
+
+        return $results;
+
+    }
+
     /**
      * 格式化返回当前时间
      * @return false|string
