@@ -160,15 +160,16 @@ class ProductAttachModel extends PublicModel {
         }
 
         //读取redis缓存
-        if (redisHashExist('Attach', $spu . '_' . $type . '_' . $status)) {
-            return json_decode(redisHashGet('Attach', $spu . '_' . $type . '_' . $status), true);
-        }
+//        if (redisHashExist('Attach', $spu . '_' . $type . '_' . $status)) {
+//            return json_decode(redisHashGet('Attach', $spu . '_' . $type . '_' . $status), true);
+//        }
 
         try {
             $field = 'attach_type,attach_name,attach_url,status,created_at';
             $result = $this->field($field)->where($where)
                     ->order('default_flag desc ,sort_order desc')
                     ->select();
+
             if ($result) {
                 $data = array();
                 //按类型分组
@@ -184,6 +185,8 @@ class ProductAttachModel extends PublicModel {
             }
             return array();
         } catch (Exception $e) {
+
+            echo $e->getMessage();
             return false;
         }
     }
