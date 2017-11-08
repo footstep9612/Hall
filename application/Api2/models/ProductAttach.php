@@ -142,6 +142,7 @@ class ProductAttachModel extends PublicModel {
 
         $where = array(
             'spu' => $spu,
+            'deleted_flag' => 'N'
         );
         $type = isset($condition['attach_type']) ? strtoupper($condition['attach_type']) : '';
         if ($type) {
@@ -165,7 +166,9 @@ class ProductAttachModel extends PublicModel {
 
         try {
             $field = 'attach_type,attach_name,attach_url,status,created_at';
-            $result = $this->field($field)->where($where)->select();
+            $result = $this->field($field)->where($where)
+                    ->order('default_flag desc ,sort_order desc')
+                    ->select();
             if ($result) {
                 $data = array();
                 //按类型分组
