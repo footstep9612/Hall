@@ -1481,220 +1481,248 @@ class GoodsModel extends PublicModel {
      * sku导出
      */
     public function export($input = []) {
-        //$input['spu'] = '1303040000100000';
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
 
-        $lang_ary = (isset($input['lang']) && !empty($input['lang'])) ? array($input['lang']) : array('zh', 'en', 'es', 'ru');
-        $userInfo = getLoinInfo();
-        $userModel = new UserModel();
+        if(empty($input['lang'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '请传递语言');
+        }
+        if(empty($input['spus']) || !is_array($input['spus'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择要导出的SPU');
+        }
 
         //目录
         $tmpDir = MYPATH . '/public/tmp/';
-        $dirName = $tmpDir . time();
+        $dirName = $tmpDir .time();
         if (!is_dir($dirName)) {
             if (!mkdir($dirName, 0777, true)) {
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
             }
         }
 
-        foreach ($lang_ary as $key => $lang) {
-            $num = 1;    //控制文件名
-            $i = 0;    //用来控制分页查询
-            $j = 3;    //excel控制输出
-            $l = 0;    //控制结束
-            $length = 100;    //分页取
+        $attrModel = new GoodsAttrModel();
+        $gsModel = new GoodsSupplierModel();
+        $supplierModel = new SupplierModel();
+        $condition = array('lang' => $input['lang']);
+        foreach($input['spus'] as $spu){
+            $condition['spu'] = $spu;
+            if(isset($input['skus']) && is_array($input['skus'])){    //勾选了sku
+                $condition['sku'] = array('in',$input['skus']);
+            }else{
+                if (isset($input['sku']) && !empty($input['sku']) && is_string($input['sku'])) {    //sku编码
+                    $condition['sku'] = $input['sku'];
+                }
+                if (isset($input['name']) && !empty($input['name'])) {    //名称
+                    $condition['name'] = array('like', '%' . $input['name'] . '%');
+                }
 
-            $condition = array('lang' => $lang);
-            if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
-                $condition['spu'] = $input['spu'];
+                if (isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核不取草稿状态。
+                    $condition['status'] = array('neq', 'DRAFT');
+                }
+
+                if (isset($input['status']) && !empty($input['status'])) {
+                    $condition['status'] = $input['status'];
+                }
+
+                if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
+                    $empModel = new EmployeeModel();
+                    $userInfo = $empModel->field('id')->where(['name'=>trim($input['created_by'])])->find();
+                    $condition['created_by'] = $userInfo['id'];
+                }
+
+                if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                    $time_ary = explode(' - ', $input['created_at']);
+                    $condition['created_at'] = array('between', $time_ary);
+                    unset($time_ary);
+                }
+
+                if(isset($input['supplier']) && !empty($input['supplier'])){    //供应商
+                    $supplierInfo = $supplierModel->field('id')->where(['name'=>trim($input['supplier']), 'deleted_flag'=>'N'])->find();
+                    $skuAry = [];
+                    if($supplierInfo){
+                        $gskus = $gsModel->field('sku')->where(['supplier_id'=>$supplierInfo['id']])->select();
+                        if($gskus){
+                            foreach($gskus as $r){
+                                $skuAry[] = $r['sku'];
+                            }
+                        }
+                    }
+                    $condition['sku'] = $skuAry ? array('in',$skuAry) : false;
+                }
             }
 
-            if (isset($input['sku']) && !empty($input['sku'])) {    //spu编码
-                $condition['sku'] = $input['sku'];
-            }
-
-            if (isset($input['name']) && !empty($input['name'])) {    //名称
-                $condition['name'] = array('like', '%' . $input['name'] . '%');
-            }
-
-            if (isset($input['type']) && $input['type'] == 'CHECKING') {    //类型：CHECKING->审核不取草稿状态。
-                $condition['status'] = array('neq', 'DRAFT');
-            }
-
-            if (isset($input['status']) && !empty($input['status'])) {    //上架状态
-                $condition['status'] = $input['status'];
-            }
-            if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
-                $condition['created_by'] = $input['created_by'];
-            }
-            if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
-                $time_ary = explode(' - ', $input['created_at']);
-                $condition['created_at'] = array('between', $time_ary);
-                unset($time_ary);
-            }
-            do {
+            $data_title = [
+                [
+                    'item' => '序号',
+                    'sku' => '订货号',
+                    'name' => '名称',
+                    'model' => '型号',
+                    'supplier' => '供应商名称',
+                    'exw_days' => '出货周期(天)',
+                    'min_pack_naked_qty' => '最小包装内裸货商品数量',
+                    'nude_cargo_unit' => '商品裸货单位',
+                    'min_pack_unit' => '最小包装单位',
+                    'min_order_qty' => '最小订货数量',
+                    'purchase_price' => '供应商供货价',
+                    'purchase_price_cur_bn' => '币种',
+                    1 => '物流信息',
+                    'nude_cargo_l_mm' => '裸货尺寸长(mm)',
+                    'nude_cargo_w_mm' => '裸货尺寸宽(mm)',
+                    'nude_cargo_h_mm' => '裸货尺寸高(mm)',
+                    'min_pack_l_mm' => '最小包装后尺寸长(mm)',
+                    'min_pack_w_mm' => '最小包装后尺寸宽(mm)',
+                    'min_pack_h_mm' => '最小包装后尺寸高(mm)',
+                    'net_weight_kg' => '净重(kg)',
+                    'gross_weight_kg' => '毛重(kg)',
+                    'compose_require_pack' => '仓储运输包装及其他要求',
+                    'pack_type' => '包装类型',
+                    2 => '申报要素',
+                    'name_customs' => '中文品名(报关用)',
+                    'hs_code' => '海关编码',
+                    'tx_unit' => '成交单位',
+                    'tax_rebates_pct' => '退税率(%)',
+                    'regulatory_conds' => '监管条件',
+                    'commodity_ori_place' => '境内货源地',
+                ],
+                [
+                    'item' => '',
+                    'sku' => 'Item No.',
+                    'name' => 'name',
+                    'model' => 'Model',
+                    'supplier'=> 'Supplier',
+                    'exw_days' => 'EXW(day)',
+                    'min_pack_naked_qty' => 'Minimum packing Naked quantity',
+                    'nude_cargo_unit' => 'Goods nude cargo units',
+                    'min_pack_unit' => 'Minimum packing unit',
+                    'min_order_qty' => 'Minimum order quantity',
+                    'purchase_price' => 'Supply price',
+                    'purchase_price_cur_bn' => 'Currency',
+                    1 => '',
+                    'nude_cargo_l_mm' => 'Length of nude cargo(mm)',
+                    'nude_cargo_w_mm' => 'Width of nude cargo(mm)',
+                    'nude_cargo_h_mm' => 'Height of nude cargo(mm)',
+                    'min_pack_l_mm' => 'Minimum packing Length size (mm)',
+                    'min_pack_w_mm' => 'Minimum packing Width size (mm)',
+                    'min_pack_h_mm' => 'Minimum packing Height size (mm)',
+                    'net_weight_kg' => 'Net Weight(kg)',
+                    'gross_weight_kg' => 'Gross Weight(kg)',
+                    'compose_require_pack' => 'Compose Require',
+                    'pack_type' => 'Packing type',
+                    2 => '',
+                    'name_customs' => 'Name (customs)',
+                    'hs_code' => 'HS CODE',
+                    'tx_unit' => 'Transaction Unit',
+                    'tax_rebates_pct' => 'Tax rebates(%)',
+                    'regulatory_conds' => 'Regulatory conditions',
+                    'commodity_ori_place' => 'Domestic supply of goods to',
+                ]
+            ];
+            $i = 0;
+            $length = 1000;    //分页取
+            $spec_ary = $hs_ary = [];
+            $goods_val = [];
+            do{
                 $field = 'spu,sku,name,model,show_name,description,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail,status,created_by,created_at';
                 $result = $this->field($field)->where($condition)->limit($i * $length, $length)->select();
-                $count = count($result);
-                if ($result) {
-                    foreach ($result as $r) {
-                        if (!isset($objPHPExcel) || !$objPHPExcel) {
-                            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
-                            $objPHPExcel = new PHPExcel();
-                            $objPHPExcel->getProperties()->setCreator($userInfo['name']);
-                            $objPHPExcel->getProperties()->setTitle("Product List");
-                            $objPHPExcel->getProperties()->setLastModifiedBy($userInfo['name']);
+                if(empty($result)){
+                    jsonReturn('' , ErrorMsg::FAILED, '无数据可导');
+                }
 
-                            //$objPHPExcel->createSheet();    //创建工作表
-                            //$objPHPExcel->setActiveSheetIndex($key);    //设置工作表
-                            //$objSheet = $objPHPExcel->getActiveSheet(0);    //当前sheet
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("A1", '商品信息')->mergeCells("A1:N1");
-                            $objPHPExcel->getActiveSheet(0)->getStyle('A1:N1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("O1", '物流信息')->mergeCells("O1:X1");
-                            $objPHPExcel->getActiveSheet(0)->getStyle('O1:X1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('00C957');
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("Y1", '申报要素')->mergeCells("Y1:AD1");
-                            $objPHPExcel->getActiveSheet(0)->getStyle('Y1:AD1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('00FF00');
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AE1", '其他信息')->mergeCells("AE1:AI1");
-                            $objPHPExcel->getActiveSheet(0)->getStyle('AE1:AI1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
-                            $objPHPExcel->getActiveSheet(0)->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-                            $objPHPExcel->getActiveSheet(0)->getStyle("A1:AI2")
-                                    ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                            $objPHPExcel->getActiveSheet(0)->getStyle("A1:AI2")->getFont()->setSize(11)->setBold(true);    //粗体
-                            $objPHPExcel->getActiveSheet(0)->getStyle('A2:AI2')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('4F94CD');
-                            $objPHPExcel->getActiveSheet(0)->getRowDimension(1)->setRowHeight(20);
-                            $objPHPExcel->getActiveSheet(0)->getRowDimension(2)->setRowHeight(20);
-                            $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
-                            foreach ($column_width_25 as $column) {
-                                $objPHPExcel->getActiveSheet(0)->getColumnDimension($column)->setWidth(25);
-                            }
-
-                            $objPHPExcel->getActiveSheet(0)->setTitle($lang);
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("A2", "序号");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("B2", "SPU");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("C2", "SKU");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("D2", "商品名称");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("E2", "展示名称");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("F2", "型号");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("G2", "描述");    //对应产品优势（李志确认）
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("H2", "出货周期（天）");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("I2", "最小包装内裸货商品数量");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("J2", "商品裸货单位");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("K2", "最小包装单位");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("L2", "最小订货数量");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("M2", "进货价格");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("N2", "进货价格币种");
-
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("O2", "裸货尺寸长(mm)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("P2", "裸货尺寸宽(mm)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("Q2", "裸货尺寸高(mm)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("R2", "最小包装后尺寸长(mm)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("S2", "最小包装后尺寸宽(mm)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("T2", "最小包装后尺寸高(mm)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("U2", "净重(kg)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("V2", "毛重(kg)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("W2", "仓储运输包装及其他要求");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("X2", "包装类型");
-
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("Y2", "报关名称");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("Z2", "海关编码");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AA2", "成交单位");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AB2", "退税率(%)");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AC2", "监管条件");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AD2", "境内货源地");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AE2", "数据来源");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AF2", "数据来源详情");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AG2", "状态");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AH2", "创建人");
-                            $objPHPExcel->getActiveSheet(0)->setCellValue("AI2", "创建时间");
+                foreach($result as $r){
+                    $condition_attr = ['sku'=>$r['sku'],'lang'=>$input['lang'],'deleted_flag'=>'N'];
+                    $attrs = $attrModel->field('spec_attrs,ex_hs_attrs')->where($condition_attr)->find();
+                    $spec = json_decode($attrs['spec_attrs'],true);
+                    foreach($spec as $ak=>$av){
+                        if(!isset($spec_ary[0][$ak])){
+                            $spec_ary[0][$ak] = $ak;
                         }
+                        if(!isset($spec_ary[1][$ak])){
+                            $spec_ary[1][$ak] = $ak;
+                        }
+                        $r[$ak] = $av;
+                    }
+                    $hs = json_decode($attrs['ex_hs_attrs'],true);
+                    foreach($hs as $hk=>$hv){
+                        if(!isset($hs_ary[0][$hk])){
+                            $hs_ary[0][$hk] = $hk;
+                        }
+                        if(!isset($hs_ary[1][$hk])){
+                            $hs_ary[1][$hk] = $hk;
+                        }
+                        $r[$hk] = $hv;
+                    }
 
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("A" . $j, $j - 2);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("B" . $j, ' ' . $r['spu']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("C" . $j, ' ' . $r['sku']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("D" . $j, $r['name']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("E" . $j, $r['show_name']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("F" . $j, $r['model']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("G" . $j, $r['description']);    //对应产品优势（李志确认）
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("H" . $j, $r['exw_days']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("I" . $j, $r['min_pack_naked_qty']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("J" . $j, $r['nude_cargo_unit']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("K" . $j, $r['min_pack_unit']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("L" . $j, $r['min_order_qty']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("M" . $j, $r['purchase_price']);
+                    //查询供应商 - 这里暂时随机取一个 - 后期根据需求可能需要改
+                    $gsInfo = $gsModel->field('supplier_id')->where(['sku'=>$r['sku']])->find();
+                    if($gsInfo){
+                        $supplierInfo = $supplierModel->field('name')->where(array('deleted_flag' => 'N','id'=>$gsInfo['supplier_id']))->find();
+                        if($supplierInfo){
+                            $r['supplier'] = $supplierInfo['name'];
+                        }
+                    }
+                    $goods_val[] = $r;
+                }
+            }while(count($result) >= $length);
+            array_splice($data_title[0],12,0,$spec_ary[0]);
+            array_splice($data_title[1],12,0,$spec_ary[1]);
+            $hscount = count($data_title[0]);
+            array_splice($data_title[0],$hscount,0,$hs_ary[0]);
+            array_splice($data_title[1],$hscount,0,$hs_ary[1]);
 
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("N" . $j, $r['purchase_price_cur_bn']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("O" . $j, $r['nude_cargo_l_mm']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("P" . $j, $r['nude_cargo_w_mm']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("Q" . $j, $r['nude_cargo_h_mm']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("R" . $j, $r['min_pack_l_mm']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("S" . $j, $r['min_pack_w_mm']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("T" . $j, $r['min_pack_h_mm']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("U" . $j, $r['net_weight_kg']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("V" . $j, $r['gross_weight_kg']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("W" . $j, $r['compose_require_pack']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("X" . $j, $r['pack_type']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("Y" . $j, $r['name_customs']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("Z" . $j, $r['hs_code']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AA" . $j, $r['tx_unit']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AB" . $j, $r['tax_rebates_pct']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AC" . $j, $r['regulatory_conds']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AD" . $j, $r['commodity_ori_place']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AE" . $j, $r['source']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AF" . $j, $r['source_detail']);
+            PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+            $objPHPExcel = new PHPExcel();
+            $col_status = PHPExcel_Cell::stringFromColumnIndex(count($data_title[0]));    //状态
+            $objPHPExcel->getSheet(0)->setCellValue($col_status.'1', '审核状态');
+            //设置表头
+            $excel_index = 0;
+            foreach($data_title[0] as $title_key => $title_value){
+                $colname = PHPExcel_Cell::stringFromColumnIndex($excel_index); //由列数反转列名(0->'A')
+                $objPHPExcel->getSheet(0)->setCellValue($colname.'1', $title_value);
+                $objPHPExcel->getSheet(0)->setCellValue($colname.'2', $data_title[1][$title_key]);
+                $excel_index++;
+                $row = 3;    //内容起始行
+                foreach($goods_val as $r){
+                    if(isset($r[$title_key])){
+                        $objPHPExcel->getSheet(0)->setCellValue($colname.$row, ' '.$r[$title_key]);
+                    }elseif(isset($r[$title_value])){
+                        $objPHPExcel->getSheet(0)->setCellValue($colname.$row, ' '.$r[$title_value]);
+                    }else{
+                        $objPHPExcel->getSheet(0)->setCellValue($colname.$row, '');
+                    }
+                    if($excel_index == count($data_title[0])){
                         $status = '';
-                        switch ($r['status']) {
+                        switch($r['status']){
                             case 'VALID':
                                 $status = '通过';
+                                break;
+                            case 'CHECKING':
+                                $status = '报审';
+                                break;
+                            case 'DRAFT':
+                                $status = '暂存';
                                 break;
                             case 'INVALID':
                                 $status = '驳回';
                                 break;
-                            case 'CHECKING':
-                                $status = '待审核';
-                                break;
-                            case 'DRAFT':
-                                $status = '草稿';
-                                break;
-                            default:
-                                $status = $r['status'];
-                                break;
                         }
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AG" . $j, $status);
-                        unset($status);
-                        $createbyInfo = $userModel->info($r['created_by']);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AH" . $j, $createbyInfo ? $createbyInfo['name'] : $r['created_by']);
-                        unset($createbyInfo);
-                        $objPHPExcel->getActiveSheet(0)->setCellValue("AI" . $j, $r['created_at']);
-                        $j++;
-                        if ($j > 2002) {    //2000条
-                            //保存文件
-                            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-                            $objWriter->save($dirName . '/' . $lang . '_' . $num . '.xls');
-                            unset($objWriter);
-                            unset($objPHPExcel);
-                            $j = 3;
-                            $num ++;
-                        } else {
-                            if ($count < $length) {
-                                $l++;
-                            }
-                            if ($l == $count) {
-                                $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-                                $objWriter->save($dirName . '/' . $lang . '_' . $num . '.xls');
-                                unset($objWriter);
-                                unset($objPHPExcel);
-                            }
-                        }
-                        array_shift($result);
+                        $objPHPExcel->getSheet(0)->setCellValue($col_status.$row, $status);
                     }
+                    $row++;
                 }
-                $i++;
-                unset($result);
-            } while ($count >= $length);
-        }
+                $objPHPExcel->getActiveSheet()->getColumnDimension($colname)->setAutoSize(true);    //自适应宽
+            }
+            $objPHPExcel->getActiveSheet()->getStyle("A1:".$col_status."2")->getFont()->setSize(11)->setBold(true);    //粗体
+            $objPHPExcel->getActiveSheet()->getStyle("A1:".$colname."2")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
+            $objPHPExcel->getActiveSheet()->getStyle($col_status.'1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('ff6600');
+            $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
+            $objPHPExcel->getActiveSheet()->getStyle("A1:$col_status" .($row-1))->applyFromArray($styleArray);
+            $objPHPExcel->getActiveSheet()->freezePaneByColumnAndRow(2, 3);
+            $objPHPExcel->getActiveSheet()->getStyle("A1:$col_status" . ($row-1))->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            $objPHPExcel->getActiveSheet()->getStyle("A1:$col_status" . ($row-1))->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+            $objWriter->save($dirName.'/'.$spu.'.xls');    //文件保存
+        }
         ZipHelper::zipDir($dirName, $dirName . '.zip');
         ZipHelper::removeDir($dirName);    //清除目录
         if (file_exists($dirName . '.zip')) {
@@ -2020,7 +2048,8 @@ class GoodsModel extends PublicModel {
                             } else {
                                 $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue()); //转码
                             }
-                            if (!empty($key_attr) && !empty($value)) {
+
+                            if (!empty($key_attr) && !empty($value) && !in_array($value,array('导入结果','审核状态'))) {
                                 $data_tmp['ex_hs_attrs'][$key_attr] = $value;
                             }
                             unset($key_attr);
