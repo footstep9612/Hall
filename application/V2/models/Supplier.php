@@ -311,4 +311,59 @@ class SupplierModel extends PublicModel {
         return $this->where($where)->save($data);
     }
 
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getSkuSupplierList($condition = []){
+        if(empty($condition['sku'])){
+            $results['code'] = '-104';
+            $results['message'] = '没有SKU信息!';
+            return $results;die;
+        }
+        $where = ' where 1=1 ';
+        if(!empty($condition['name'])){
+            $where = 'and s.name like "%'.$condition['name'].'%"';
+        }
+        if(!empty($condition['sec_ex_listed_on'])){
+            $where = 'and s.sec_ex_listed_on like "%'.$condition['sec_ex_listed_on'].'%"';
+        }
+
+        $currentPage = !empty($condition['currentPage'])?$condition['currentPage']:1;
+        $pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
+        $num = $pagesize;
+        $page = ($currentPage - 1) * $pagesize;
+
+
+        $sql = 'SELECT s.id,s.name,s.brand,s.sec_ex_listed_on,t.* FROM erui_supplier.supplier s ';
+        $sql .= 'LEFT JOIN (SELECT gs.supplier_id,gs.spu,gs.sku,p.price,p.price_cur_bn FROM erui_goods.goods_supplier gs ';
+        $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
+        $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
+        $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY sku ';
+        $sql .= ') t ON t.supplier_id = s.id '.$where;
+        $sql_count = $sql;
+
+        $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
+        try {
+            $list = $this->query($sql_count);
+            $data = $this->query($sql);
+
+            if($list){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+                $results['count'] = count($list);
+                $results['data'] = $data;
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息!';
+            }
+            return $results;
+        }catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
 }
