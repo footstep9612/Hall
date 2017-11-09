@@ -510,7 +510,7 @@ class UserController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         $org_modle =new OrgMemberModel();
-        $results =$org_modle->getOrguserlist($data);
+        $results =$org_modle->getOrgUserlist($data);
 
         $this->jsonReturn($results);
     }
