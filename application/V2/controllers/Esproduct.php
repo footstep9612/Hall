@@ -80,31 +80,8 @@ class EsproductController extends PublicController {
         $model = new EsProductModel();
         $lang = $this->getPut('lang', 'zh');
         $condition = $this->getPut();
-        switch ($condition['user_type']) {
-            case 'create':
-                $condition['created_by_name'] = $condition['user_name'];
-                break;
-            case 'updated':
-                $condition['updated_by_name'] = $condition['user_name'];
-                break;
-            case 'checked':
-                $condition['checked_by_name'] = $condition['user_name'];
-                break;
-        }
-        switch ($condition['date_type']) {
-            case 'create':
-                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
-                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-                break;
-            case 'updated':
-                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
-                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-                break;
-            case 'checked':
-                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
-                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-                break;
-        }
+
+        $this->_handleCondition($condition);
         $ret = $model->getProducts($condition, null, $lang);
 
         if ($ret) {
@@ -158,17 +135,10 @@ class EsproductController extends PublicController {
     }
 
     /*
-     * 获取回收站列表
-     * @author  zhongyg
-     * @date    2017-8-1 16:50:09
-     * @version V2.0
-     * @desc   ES 产品
+     * 搜索条件处理
      */
 
-    public function recycledAction() {
-        $model = new EsProductModel();
-        $lang = $this->getPut('lang', 'zh');
-        $condition = $this->getPut();
+    private function _handleCondition(&$condition) {
         switch ($condition['user_type']) {
             case 'create':
                 $condition['created_by_name'] = $condition['user_name'];
@@ -194,6 +164,22 @@ class EsproductController extends PublicController {
                 $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
                 break;
         }
+    }
+
+    /*
+     * 获取回收站列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function recycledAction() {
+        $model = new EsProductModel();
+        $lang = $this->getPut('lang', 'zh');
+        $condition = $this->getPut();
+
+        $this->_handleCondition($condition);
         $condition['deleted_flag'] = 'Y';
         $condition['onshelf_flag'] = 'A';
         $ret = $model->getProducts($condition, null, $lang);
@@ -891,31 +877,7 @@ class EsproductController extends PublicController {
         $condition = $this->getPut();
         $process = $this->getPut('process', '');
         $lang = $this->getPut('lang');
-        switch ($condition['user_type']) {
-            case 'create':
-                $condition['created_by_name'] = $condition['user_name'];
-                break;
-            case 'updated':
-                $condition['updated_by_name'] = $condition['user_name'];
-                break;
-            case 'checked':
-                $condition['checked_by_name'] = $condition['user_name'];
-                break;
-        }
-        switch ($condition['date_type']) {
-            case 'create':
-                $condition['created_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
-                $condition['created_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-                break;
-            case 'updated':
-                $condition['updated_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
-                $condition['updated_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-                break;
-            case 'checked':
-                $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
-                $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
-                break;
-        }
+        $this->_handleCondition($condition);
         if (empty($lang)) {
             jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
         }
