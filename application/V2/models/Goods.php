@@ -1973,7 +1973,9 @@ class GoodsModel extends PublicModel {
         $columns = $objPHPExcel->getSheet(0)->getHighestColumn();    //最后一列
         $columnsIndex = PHPExcel_Cell::columnIndexFromString($columns);    //获取总列数
         $maxCol = PHPExcel_Cell::stringFromColumnIndex($columnsIndex); //由列数反转列名(0->'A')
-        $objPHPExcel->getSheet(0)->setCellValue($maxCol . '1', '导入结果');
+        if(trim($objPHPExcel->getSheet(0)->getCell($columns . 1)->getValue()) != '导入结果'){
+            $objPHPExcel->getSheet(0)->setCellValue($maxCol . '1', '导入结果');
+        }
         $objPHPExcel->getSheet(0)->getStyle($maxCol . '1')->getFont()->setBold(true);    //粗体
         /** 处理标头 */
         $faild = $success = $ext_goods_start = $ext_goods_end = $ext_hs_start = 0;
