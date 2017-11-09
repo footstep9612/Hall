@@ -605,6 +605,13 @@ class SupplierController extends PublicController {
         $model = new SupplierModel();
         $data =$model->getSkuSupplierList($data);
 
+        foreach($data['data'] as $key=>$val){
+            if($val['brand']){
+                $brand = json_decode($val['brand'],true);
+                $data['data'][$key]['brand'] = $brand['name'];
+            }
+        }
+
         $this->jsonReturn($data);
     }
 }

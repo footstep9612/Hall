@@ -337,8 +337,8 @@ class SupplierModel extends PublicModel {
         $page = ($currentPage - 1) * $pagesize;
 
 
-        $sql = 'SELECT s.id,s.name,s.brand,s.sec_ex_listed_on,t.* FROM erui_supplier.supplier s ';
-        $sql .= 'LEFT JOIN (SELECT gs.supplier_id,gs.spu,gs.sku,p.price,p.price_cur_bn FROM erui_goods.goods_supplier gs ';
+        $sql = 'SELECT s.id,s.name,s.sec_ex_listed_on,t.* FROM erui_supplier.supplier s ';
+        $sql .= 'LEFT JOIN (SELECT gs.supplier_id,gs.spu,gs.sku,gs.brand,p.price,p.price_cur_bn FROM erui_goods.goods_supplier gs ';
         $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
         $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
         $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY sku ';
