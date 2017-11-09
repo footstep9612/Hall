@@ -1014,6 +1014,7 @@ class EsProductModel extends Model {
         } else {
             $ret['other_attrs'] = [];
         }
+        return $ret;
     }
 
     /* 属性格式化
