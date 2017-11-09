@@ -74,6 +74,7 @@ Trait Curl
                 'Content-Type: application/json',
                 'Content-Length: ' . strlen($postData))
         );
+        var_dump(curl_error($ch));
         if ( ! curl_exec( $ch ) ) {
             $data = 'curl not response';
         } else {
