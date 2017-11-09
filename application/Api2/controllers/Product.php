@@ -63,13 +63,15 @@ class ProductController extends PublicController {
      * @author klp
      * @return array
      */
-    private function _updateView($spu = '') {
+    private function _updateView($spu = '', $lang = 'en') {
         if (empty($spu)) {
             return false;
         }
         try {
             $productModel = new ProductModel();
-            $results = $productModel->where(['spu' => $spu])->setInc('view_count', 1);
+            $esproduct_moewl = new EsProductModel();
+            $results = $productModel->where(['spu' => $spu, 'lang' => $lang])->setInc('view_count', 1);
+            $esproduct_moewl->UpdateViewCount($spu, $lang);
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();

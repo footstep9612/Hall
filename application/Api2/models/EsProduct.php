@@ -637,4 +637,35 @@ class EsProductModel extends Model {
         }
     }
 
+    /* 更新物料分类
+     * @param string $material_cat_no  物料分类
+     * @param string $spu  SPU
+     * @param string $lang 语言
+     * @param string $new_cat_no  新的物料分类
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function UpdateViewCount($spu, $lang) {
+        $es = new ESClient();
+        if (empty($spu)) {
+            return false;
+        }
+
+        $type = 'product_' . $lang;
+        $data = [];
+        $pinfo = $this->field('view_count')->where(['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'])
+                ->find();
+        $view_count = intval($pinfo['view_count']) ? intval($pinfo['view_count']) : 1;
+        $data['view_count'] = strval($view_count);
+        $type = $this->tableName . '_' . $lang;
+        $es->update_document($this->dbName, $type, $data, $spu);
+
+        $this->_delcache();
+        $es->refresh($this->dbName);
+        return true;
+    }
+
 }
