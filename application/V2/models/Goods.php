@@ -1983,7 +1983,7 @@ class GoodsModel extends PublicModel {
         $title_ary = [];
         for ($index = 0; $index < $columnsIndex; $index++) {
             $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
-            $key = trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue()); //转码
+            $key = addslashes(trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue())); //转码
             if ($index == $columnsIndex - 1 && $key == '导入结果') {
                 $maxCol = $col_name;
             }
@@ -2024,7 +2024,7 @@ class GoodsModel extends PublicModel {
                     $col_value = 0;
                     for ($index = 0; $index < $columnsIndex; $index++) {
                         $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
-                        $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $start_row)->getValue()); //转码
+                        $value = addslashes(trim($objPHPExcel->getSheet(0)->getCell($col_name . $start_row)->getValue())); //转码
                         $data_tmp[$title_ary[$index]] = $value;
                         if (!empty($value)) {
                             $col_value++;
@@ -2033,7 +2033,7 @@ class GoodsModel extends PublicModel {
                             if ($lang == 'zh') {
                                 $key_attr = $title_ary[$index];
                             } else {
-                                $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue()); //转码
+                                $key_attr = addslashes(trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue())); //转码
                             }
                             if (!empty($key_attr) && !empty($value)) {
                                 $data_tmp['spec_attrs'][$key_attr] = $value;
@@ -2048,7 +2048,7 @@ class GoodsModel extends PublicModel {
                             if ($lang == 'zh') {
                                 $key_attr = $title_ary[$index];
                             } else {
-                                $key_attr = trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue()); //转码
+                                $key_attr = addslashes(trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue())); //转码
                             }
 
                             if (!empty($key_attr) && !empty($value) && !in_array($value,array('导入结果','审核状态'))) {
