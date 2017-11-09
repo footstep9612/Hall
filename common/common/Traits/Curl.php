@@ -74,11 +74,12 @@ Trait Curl
                 'Content-Length: ' . strlen($postData))
         );
         if ( ! curl_exec( $ch ) ) {
-            $data = '';
+            $data = 'curl not response';
         } else {
             $data = curl_multi_getcontent( $ch );
         }
         curl_close( $ch );
+        p($data);
         return $data;
 
     }

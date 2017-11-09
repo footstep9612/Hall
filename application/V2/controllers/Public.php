@@ -617,7 +617,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
 
         $response = json_decode(MailHelper::sendSms($data),true);
-        p($response);
+
         //记录短信
         if ($response['code'] == 200){
 
