@@ -284,6 +284,13 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
         }
 
+        if (!empty($condition['min_exw_day']) && intval($condition['min_exw_day']) > 0) {
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['min_exw_day' => ['lte' => intval($condition['min_exw_day']),]]];
+        }
+        if (!empty($condition['minimumorderouantity']) && intval($condition['minimumorderouantity']) > 0) {
+            $body['query']['bool']['must'][] = [ESClient::RANGE => ['minimumorderouantity' => ['lte' => intval($condition['minimumorderouantity']),]]];
+        }
+
 
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.' . $analyzer);
@@ -300,7 +307,7 @@ class EsProductModel extends Model {
                         [ESClient::WILDCARD => ['attrs.other_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
-        if (isset($condition['attrs']) && $condition['attrs']) {
+        if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
             $attrs = trim($condition['attrs']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
@@ -402,8 +409,6 @@ class EsProductModel extends Model {
             } else {
                 $analyzer = 'ik';
             }
-
-
             $body = $this->getCondition($condition, $lang);
             $pagesize = 10;
             $current_no = 1;
@@ -422,8 +427,10 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('_score');
-
+            $es->setbody($body);
+            if (isset($condition['keyword']) && $condition['keyword']) {
+                $es->setsort('_score');
+            }
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);

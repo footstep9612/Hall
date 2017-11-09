@@ -220,7 +220,7 @@ class EsproductController extends PublicController {
         $model = new EsProductModel();
         $condition = $this->getPut();
         unset($condition['token']);
-        $data = $model->getCatList($condition, $this->getLang());
+        $data = $model->getSpecsList($condition, $this->getLang());
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
