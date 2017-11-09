@@ -75,6 +75,8 @@ Trait Curl
                 'Content-Length: ' . strlen($postData))
         );
         var_dump(curl_error($ch));
+        $output = curl_exec( $ch );
+        var_dump($output);
         if ( ! curl_exec( $ch ) ) {
             $data = 'curl not response';
         } else {
