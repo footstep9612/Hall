@@ -588,5 +588,23 @@ class SupplierController extends PublicController {
         }
     }
 
+    /*
+     * 询报价选择关联SKU供应商列表
+     * 张玉良
+     * 2017-11-09
+     */
+    public function getSkuSupplierListAction() {
+        $data = $this->put_data;
 
+        if(empty($data['sku'])) {
+            $datajson['code'] = -104;
+            $datajson['message'] = 'SKU为空!';
+            $this->jsonReturn($datajson);
+        }
+
+        $model = new SupplierModel();
+        $data =$model->getSkuSupplierList($data);
+
+        $this->jsonReturn($data);
+    }
 }
