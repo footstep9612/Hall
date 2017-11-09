@@ -252,6 +252,7 @@ class ShowCatProductModel extends PublicModel {
                         ->field('scp.cat_no,scp.spu,scp.onshelf_flag')
                         ->where(['scp.spu' => ['in', $spus],
                             'scp.status' => 'VALID',
+                            'scp.lang' => $lang,
                             'sc.status' => 'VALID',
                             'sc.lang' => $lang,
                             'sc.id>0',
@@ -305,6 +306,7 @@ class ShowCatProductModel extends PublicModel {
                         ->field('scp.cat_no')
                         ->where(['scp.spu' => $spu,
                             'scp.status' => 'VALID',
+                            'scp.lang' => $lang,
                             'sc.status' => 'VALID',
                             'sc.lang' => $lang,
                             'sc.id>0',
