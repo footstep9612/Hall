@@ -893,7 +893,7 @@ class EsproductController extends PublicController {
         $lang = $this->getPut('lang');
         switch ($condition['user_type']) {
             case 'create':
-                $condition['create_by_name'] = $condition['user_name'];
+                $condition['created_by_name'] = $condition['user_name'];
                 break;
             case 'updated':
                 $condition['updated_by_name'] = $condition['user_name'];
