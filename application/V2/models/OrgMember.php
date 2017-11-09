@@ -160,11 +160,11 @@ class OrgMemberModel extends PublicModel {
 		}else{
 			$where['c.role_no'] = $condition['role_no'];
 		}
-		if(!empty($data['user_no'])){
-			$where['a.user_no'] = array('like',$data['user_no']);
+		if(!empty($condition['user_no'])){
+			$where['d.user_no'] = array('like',$condition['user_no']);
 		}
-		if(!empty($data['username'])){
-			$where['a.username'] = array('like',$data['username']);
+		if(!empty($condition['username'])){
+			$where['d.name'] = array('like',$condition['username']);
 		}
 
 		$page = !empty($condition['currentPage'])?$condition['currentPage']:1;
