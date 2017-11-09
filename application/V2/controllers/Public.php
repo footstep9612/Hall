@@ -615,9 +615,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data['tplParas'] = '["'.$receiver.'","'.$serial_no.'","'.$from.'"]';
         }
 
-        p($data);
-        $response = json_decode(MailHelper::sendSms($data),true);
 
+        $response = json_decode(MailHelper::sendSms($data),true);
+        p($response);
         //记录短信
         if ($response['code'] == 200){
 
