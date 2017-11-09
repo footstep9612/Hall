@@ -71,23 +71,23 @@ Trait Curl
         curl_setopt($ch,CURLOPT_POST,1);
         curl_setopt($ch,CURLOPT_POSTFIELDS,$postData);
         curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                 'Content-Type: application/json; charset=utf-8',
                 'Content-Length: ' . strlen($postData)
             )
         );
+
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-        var_dump(curl_errno($ch));
-        $output = curl_exec( $ch );
-        var_dump($output);
         if ( ! curl_exec( $ch ) ) {
             $data = 'curl not response';
         } else {
             $data = curl_multi_getcontent( $ch );
         }
+
         curl_close( $ch );
-        p($data);
+
         return $data;
 
     }
