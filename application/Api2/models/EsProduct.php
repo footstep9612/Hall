@@ -381,6 +381,179 @@ class EsProductModel extends Model {
         }
     }
 
+    /* 通过搜索条件获取数据列表
+     * @param mix $condition // 搜索条件
+     * @param string $lang // 语言
+     * @param mix  $_source //要搜索的字段
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getNewProducts($condition, $_source = null, $lang = 'en') {
+
+        try {
+            if ($lang == 'zh') {
+                $analyzer = 'ik';
+            } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+                $analyzer = $lang;
+            } else {
+                $analyzer = 'ik';
+            }
+
+
+            $body = $this->getCondition($condition, $lang);
+            $pagesize = 10;
+            $current_no = 1;
+            if (isset($condition['current_no'])) {
+                $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+            }
+
+            if (isset($condition['pagesize'])) {
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+            }
+
+            $from = ($current_no - 1) * $pagesize;
+
+            $es = new ESClient();
+            unset($condition['source']);
+            if (!$body) {
+                $body['query']['bool']['must'][] = ['match_all' => []];
+            }
+            $es->setbody($body)->setsort('_score');
+
+            $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
+                'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
+            $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
+            $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+            $es->body = $body = $es = null;
+            unset($es, $body);
+            return $data;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    public function getCatList($condition, $lang) {
+        unset($condition['show_cat_no']);
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body);
+        $es->setfields(['spu']);
+        $es->body['aggs']['cat_no2'] = [
+            'terms' => [
+                'field' => 'show_cats.cat_no2',
+                'size' => 10,
+                'order' => ['_count' => 'desc']
+            ],
+            'aggs' => ['cat_no3' => [
+                    'terms' => [
+                        'field' => 'show_cats.cat_no3',
+                        'size' => 10,
+                        'order' => ['_count' => 'desc']
+                    ]
+                ]
+            ]
+        ];
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $show_cat_nos = [];
+        $show_cats = [];
+        if (isset($ret['aggregations']['cat_no2']['buckets'])) {
+            foreach ($ret['aggregations']['cat_no2']['buckets'] as $cats) {
+                $show_cat_nos[] = $cats['key'];
+                $show_cats[$cats['key']] = [
+                    'name' => '',
+                    'cat_no' => $cats['key'],
+                    'count' => $cats['doc_count'],
+                    'childs' => []
+                ];
+                if (isset($cats['cat_no3']['buckets'])) {
+                    $child_cats = [];
+                    foreach ($cats['cat_no3']['buckets'] as $cat) {
+                        $show_cat_nos[] = $cat['key'];
+                        $child_cats[$cat['key']] = [
+                            'name' => '',
+                            'cat_no' => $cat['key'],
+                            'count' => $cat['doc_count'],
+                        ];
+                    }
+                    $show_cats[$cats['key']]['childs'] = $child_cats;
+                }
+            }
+        }
+        if ($show_cat_nos) {
+            $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $lang;
+            $newshowcats = json_decode(redisGet($catno_key), true);
+            $newshow_cats = [];
+            if (!$newshowcats) {
+                $showcatmodel = new ShowCatModel();
+                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false);
+                foreach ($showcats as $showcat) {
+                    $newshow_cats[$showcat['cat_no']] = $showcat['name'];
+                }
+            } else {
+                return $newshowcats;
+            }
+            foreach ($show_cats as $key => $show_cat) {
+
+                if (isset($newshow_cats[$show_cat['cat_no']])) {
+                    $show_cat['name'] = $newshow_cats[$show_cat['cat_no']];
+                }
+                foreach ($show_cat['childs'] as $key => $child_showcat) {
+                    if (isset($newshow_cats[$child_showcat['cat_no']])) {
+                        $child_showcat['name'] = $newshow_cats[$child_showcat['cat_no']];
+                    }
+                    $show_cat['childs'][$key] = $child_showcat;
+                }
+                rsort($show_cat['childs']);
+                $newshowcats[] = $show_cat;
+            }
+
+            redisSet($catno_key, json_encode($newshowcats), 3600);
+            return $newshowcats;
+        } else {
+            return [];
+        }
+    }
+
+    public function getBrandsList($condition, $lang = 'en') {
+        unset($condition['brand_name']);
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body);
+        $es->setfields(['spu']);
+        $es->setaggs('brand.name.all', 'brand_name', 'terms', 10);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $brand_names = [];
+        if (isset($ret['aggregations']['brand_name']['buckets'])) {
+            foreach ($ret['aggregations']['brand_name']['buckets'] as $brand_name) {
+                $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
+            }
+        }
+        return $brand_names;
+    }
+
+    public function getSpecsList($condition, $lang = 'en') {
+        unset($condition['show_cat_no']);
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body);
+        $es->setfields(['spu']);
+        $es->setaggs('attrs.spec_attrs.name.all', 'spec_name', 'terms', 20);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $spec_names = [];
+        if (isset($ret['aggregations']['spec_name']['buckets'])) {
+            foreach ($ret['aggregations']['spec_name']['buckets'] as $spec_name) {
+                $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count']];
+            }
+        }
+        return $spec_names;
+    }
+
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
         $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
