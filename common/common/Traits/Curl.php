@@ -66,6 +66,7 @@ Trait Curl
     public static function postJson( $url, $postData ) {
 
         $ch = curl_init($url);
+        var_dump($ch);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS,$postData);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
@@ -75,7 +76,7 @@ Trait Curl
                 'Content-Type: application/json',
                 'Content-Length: ' . strlen($postData))
         );
-        var_dump(curl_error($ch));
+        var_dump(curl_errno($ch));
         $output = curl_exec( $ch );
         var_dump($output);
         if ( ! curl_exec( $ch ) ) {
