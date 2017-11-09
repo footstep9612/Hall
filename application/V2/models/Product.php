@@ -11,7 +11,7 @@ class ProductModel extends PublicModel {
     const STATUS_NORMAL = 'NORMAL'; //发布
     const STATUS_DRAFT = 'DRAFT';          //草稿
     const STATUS_CLOSED = 'CLOSED'; //关闭
-    const STATUS_VALID = 'VALID'; //有效
+    const STATUS_VALID = 'VALID'; //有NORMAL效
     const STATUS_TEST = 'TEST'; //测试  暂存；
     const STATUS_CHECKING = 'CHECKING'; //审核中；
     const STATUS_INVALID = 'INVALID'; //无效
@@ -27,14 +27,13 @@ class ProductModel extends PublicModel {
         'ru' => "俄文",
         'es' => "西文"
     );
-
     //定义校验规则
     protected $field = array(
         //'lang' => array('method','checkLang','语言'),
         'material_cat_no' => array('required', '', '请输入物料分类'),
         'name' => array('required', '', '请输入名称'),
         'brand' => array('required', '', '请输入品牌'),
-        //'description' => array('required', '', '请输入详情介绍'),
+            //'description' => array('required', '', '请输入详情介绍'),
     );
 
     /**
@@ -254,7 +253,7 @@ class ProductModel extends PublicModel {
                     }
                     $mexist = $mcatModel->info($material_cat_no, $key);
                     if (!$mexist) {
-                        jsonReturn('', ErrorMsg::FAILED, $this->lang_ary[$key].'物料分类编码不存在');
+                        jsonReturn('', ErrorMsg::FAILED, $this->lang_ary[$key] . '物料分类编码不存在');
                     }
                     $data['lang'] = $key;
                     if (empty($data['material_cat_no'])) {
@@ -264,23 +263,23 @@ class ProductModel extends PublicModel {
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //$input['status'] = (isset($input['status']) && in_array(strtoupper($input['status']), array('DRAFT', 'TEST', 'VALID', 'CHECKING'))) ? strtoupper($input['status']) : 'DRAFT';
                     $this->checkParam($data, $this->field);     //字段校验
-                    if($key == 'en'){
-                        if(!empty($data['name']) && haveZh($data['name'])){
+                    if ($key == 'en') {
+                        if (!empty($data['name']) && haveZh($data['name'])) {
                             jsonReturn('', ErrorMsg::FAILED, '英文名称中含有中文，请检查');
                         }
-                        if(!empty($data['show_name']) && haveZh($data['show_name'])){
+                        if (!empty($data['show_name']) && haveZh($data['show_name'])) {
                             jsonReturn('', ErrorMsg::FAILED, '英文展示名称中含有中文，请检查');
                         }
-                        if(!empty($data['exe_standard']) && haveZh($data['exe_standard'])){
+                        if (!empty($data['exe_standard']) && haveZh($data['exe_standard'])) {
                             jsonReturn('', ErrorMsg::FAILED, '英文执行标准中含有中文，请检查');
                         }
-                        if(!empty($data['description']) && haveZh($data['description'])){
+                        if (!empty($data['description']) && haveZh($data['description'])) {
                             jsonReturn('', ErrorMsg::FAILED, '英文详情介绍中含有中文，请检查');
                         }
-                        if(!empty($data['tech_paras']) && haveZh($data['tech_paras'])){
+                        if (!empty($data['tech_paras']) && haveZh($data['tech_paras'])) {
                             jsonReturn('', ErrorMsg::FAILED, '英文技术参数中含有中文，请检查');
                         }
-                        if(!empty($data['warranty']) && haveZh($data['warranty'])){
+                        if (!empty($data['warranty']) && haveZh($data['warranty'])) {
                             jsonReturn('', ErrorMsg::FAILED, '英文质保期中含有中文，请检查');
                         }
                     }

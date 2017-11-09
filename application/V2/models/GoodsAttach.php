@@ -255,12 +255,12 @@ class GoodsAttachModel extends PublicModel {
         }
         $where['deleted_flag'] = self::DELETE_N;
         //redis
-       /* if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
-            $data = json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
-            if ($data) {
-                return $data;
-            }
-        }*/
+        /* if (redisHashExist('SkuAttachs', md5(json_encode($where)))) {
+          $data = json_decode(redisHashGet('SkuAttachs', md5(json_encode($where))), true);
+          if ($data) {
+          return $data;
+          }
+          } */
         $field = 'id, sku, supplier_id, attach_type, attach_name, attach_url, default_flag, sort_order, status, created_by,  created_at, updated_by, updated_at, checked_by, checked_at';
         try {
             $result = $this->field($field)->where($where)->select();
@@ -294,8 +294,8 @@ class GoodsAttachModel extends PublicModel {
                 $where = array('sku' => $sku);
                 $resach = $this->field('sku')->where($where)->find();
                 if ($resach) {
-                    $resOut = $this->where($where)->save(['status'=> self::STATUS_DELETED,'deleted_flag' => 'N']);
-                    if(!$resOut){
+                    $resOut = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'N']);
+                    if (!$resOut) {
                         return false;
                     }
                 }
@@ -463,7 +463,7 @@ class GoodsAttachModel extends PublicModel {
         }
         if (isset($param['attach_name']) && !empty($param['attach_name'])) {
             $data['attach_name'] = $param['attach_name'];
-        }else{
+        } else {
             if (isset($param['attach_url']) && !empty($param['attach_url'])) {
                 $data['attach_name'] = $param['attach_url'];
             }
@@ -503,8 +503,10 @@ class GoodsAttachModel extends PublicModel {
                     ->field('id,attach_type,attach_url,attach_name,attach_url,sku,default_flag')
                     ->where(['sku' => ['in', $skus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
-                        'status' => 'VALID'])
-                    ->order('default_flag desc')
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])
+                    ->order('default_flag desc,sort_order desc')
                     ->select();
             $ret = [];
             if ($goods_attachs) {

@@ -567,7 +567,7 @@ class LogisticsController extends PublicController {
 	        
 	        $inquiryModel = $this->inquiryModel;
 	        
-	        $logiCheckId = $this->inquiryModel->getRoleUserId($this->user['group_id'], $inquiryModel::logiCheckRole, 'lg');
+	        $logiCheckId = $condition['logi_check_id'];//$this->inquiryModel->getRoleUserId($this->user['group_id'], $inquiryModel::logiCheckRole, 'lg');
 	        
 	        $this->inquiryModel->startTrans();
 	        $this->quoteModel->startTrans();

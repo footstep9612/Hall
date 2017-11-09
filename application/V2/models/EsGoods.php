@@ -319,6 +319,7 @@ class EsGoodsModel extends Model {
                         [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::TERM => ['sku' => $show_name]],
+                        [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $show_name]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
@@ -360,9 +361,11 @@ class EsGoodsModel extends Model {
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
-            return [$es->setbody($body)
-                        ->setsort('_score', 'desc')
-                        ->setsort('created_at', 'desc')
+            $es->setbody($body);
+            if (isset($condition['keyword']) && $condition['keyword']) {
+                $es->setsort('_score', 'desc');
+            }
+            return [$es->setsort('created_at', 'desc')
                         ->setsort('sku', 'desc')
                         ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
         } catch (Exception $ex) {

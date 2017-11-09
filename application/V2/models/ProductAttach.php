@@ -91,9 +91,9 @@ class ProductAttachModel extends PublicModel {
         $data['created_at'] = date('Y-m-d H:i:s', time());
         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : '';
         if (isset($input['id']) && !empty($input['id'])) {    //修改
-            if($this->where(array('id' => $input['id']))->save($data)){
-                return  $input['id'];
-            }else{
+            if ($this->where(array('id' => $input['id']))->save($data)) {
+                return $input['id'];
+            } else {
                 return false;
             }
         }
@@ -116,8 +116,10 @@ class ProductAttachModel extends PublicModel {
             $product_attachs = $this->field('id,attach_type,attach_url,attach_name,attach_url,spu,default_flag')
                     ->where(['spu' => ['in', $spus],
                         'attach_type' => ['in', ['BIG_IMAGE', 'MIDDLE_IMAGE', 'SMALL_IMAGE', 'DOC']],
-                        'status' => 'VALID'])
-                    ->order('default_flag desc')
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])
+                    ->order('default_flag desc,sort_order desc')
                     ->select();
             $ret = [];
             if ($product_attachs) {
