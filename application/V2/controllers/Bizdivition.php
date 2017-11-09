@@ -160,4 +160,9 @@ class BizdivitionController extends PublicController{
 
     }
 
+    public function smsAction()
+    {
+        $result = $this->sendSms('提交','["17326916890"]',"测试内容");
+        p($result);
+    }
 }

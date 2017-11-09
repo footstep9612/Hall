@@ -573,4 +573,28 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return $inquiryCheckLogModel->addAll($checkLogList);
     }
 
+    /**
+     * 发送短信
+     * @param        $useType 发送用途 例如：Order、Customer、System等
+     * @param        $to      接受人数组 [“13888888888”,“15888888888”]
+     * @param        $content 内容
+     * @param string $areaCode 区号86,不需要增加00
+     * @param int    $subType
+     * @param int    $groupSending 类型：0为单独发送，1为批量发送
+     * @author 买买提
+     * @return string
+     */
+    public function sendSms($useType, $to, $content, $areaCode="86", $subType=0, $groupSending=0)
+    {
+        $data = [
+            'useType'       => $useType,
+            'to'            => $to,
+            'content'       => $content,
+            'areaCode'      => $areaCode,
+            'subType'       => $subType,
+            'groupSending'  => $groupSending,
+        ];
+
+        return MailHelper::sendSms($data);
+    }
 }
