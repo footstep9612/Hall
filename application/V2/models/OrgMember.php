@@ -149,7 +149,7 @@ class OrgMemberModel extends PublicModel {
      * @author zhangyuliang
      * @time 2017-11-02
 	 */
-	public function getOrguserlist($condition = []){
+	public function getOrgUserlist($condition = []){
 		if(empty($condition['org_id'])) {
 			return ['code'=>'-104','message'=>'部门ID必填'];
 		}else{
@@ -160,6 +160,15 @@ class OrgMemberModel extends PublicModel {
 		}else{
 			$where['c.role_no'] = $condition['role_no'];
 		}
+		if(!empty($condition['user_no'])){
+			$where['d.user_no'] = array('like',$condition['user_no']);
+		}
+		if(!empty($condition['username'])){
+			$where['d.name'] = array('like',$condition['username']);
+		}
+
+		$page = !empty($condition['currentPage'])?$condition['currentPage']:1;
+		$pagesize = !empty($condition['pageSize'])?$condition['pageSize']:10;
 
 		$where['d.status'] = 'NORMAL';
 
@@ -171,6 +180,7 @@ class OrgMemberModel extends PublicModel {
 					->join('erui_sys.employee d ON a.employee_id = d.id','left')
 					->field($fields)
 					->where($where)
+					->page($page, $pagesize)
 					->order('a.id DESC')
 					->select();
 			$count = $this->alias('a')

@@ -301,18 +301,94 @@ class ProductAttrModel extends PublicModel {
             return [];
         }
         try {
-            $product_attrs = $this->field('*')
+
+            $goods_model = new GoodsAttrModel();
+
+            $product_attrs = $goods_model->field('spu,spec_attrs,ex_goods_attrs,ex_hs_attrs,other_attrs')
                     ->where(['spu' => ['in', $spus],
                         'lang' => $lang,
-                        'status' => 'VALID'])
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])
                     ->select();
 
             $ret = [];
             if ($product_attrs) {
                 foreach ($product_attrs as $item) {
-                    $ret[$item['spu']] = $item;
+                    if (isset($ret[$item['spu']]['spec_attrs']) && $ret[$item['spu']]['spec_attrs'] && $item['spec_attrs']) {
+                        if (json_decode($item['spec_attrs'], true)) {
+                            $ret[$item['spu']]['spec_attrs'] = array_merge($ret[$item['spu']]['spec_attrs'], json_decode($item['spec_attrs'], true));
+                        }
+                    } elseif (isset($ret[$item['spu']]['spec_attrs']) && $ret[$item['spu']]['spec_attrs']) {
+
+                    } elseif ($item['spec_attrs']) {
+                        $ret[$item['spu']]['spec_attrs'] = json_decode($item['spec_attrs'], true);
+                    } else {
+                        $ret[$item['spu']]['spec_attrs'] = [];
+                    }
+                    if (isset($ret[$item['spu']]['ex_hs_attrs']) && $ret[$item['spu']]['ex_hs_attrs'] && $item['ex_hs_attrs']) {
+                        if (json_decode($item['ex_hs_attrs'], true)) {
+                            $ret[$item['spu']]['ex_hs_attrs'] = array_merge($ret[$item['spu']]['ex_hs_attrs'], json_decode($item['ex_hs_attrs'], true));
+                        }
+                    } elseif (isset($ret[$item['spu']]['ex_hs_attrs']) && $ret[$item['spu']]['ex_hs_attrs']) {
+
+                    } elseif ($item['ex_hs_attrs']) {
+                        $ret[$item['spu']]['ex_hs_attrs'] = json_decode($item['ex_hs_attrs'], true);
+                    } else {
+                        $ret[$item['spu']]['ex_hs_attrs'] = [];
+                    }
+                    if (isset($ret[$item['spu']]['other_attrs']) && $ret[$item['spu']]['other_attrs'] && $item['other_attrs']) {
+                        if (json_decode($item['other_attrs'], true)) {
+                            $ret[$item['spu']]['other_attrs'] = array_merge($ret[$item['spu']]['other_attrs'], json_decode($item['other_attrs'], true));
+                        }
+                    } elseif (isset($ret[$item['spu']]['other_attrs']) && $ret[$item['spu']]['other_attrs']) {
+
+                    } elseif ($item['other_attrs']) {
+                        $ret[$item['spu']]['other_attrs'] = json_decode($item['other_attrs'], true);
+                    } else {
+                        $ret[$item['spu']]['other_attrs'] = [];
+                    }
+
+                    if (isset($ret[$item['spu']]['ex_goods_attrs']) && $ret[$item['spu']]['ex_goods_attrs'] && $item['ex_goods_attrs']) {
+                        if (json_decode($item['ex_goods_attrs'], true)) {
+                            $ret[$item['spu']]['ex_goods_attrs'] = array_merge($ret[$item['spu']]['ex_goods_attrs'], json_decode($item['ex_goods_attrs'], true));
+                        }
+                    } elseif (isset($ret[$item['spu']]['ex_goods_attrs']) && $ret[$item['spu']]['ex_goods_attrs']) {
+
+                    } elseif ($item['ex_goods_attrs']) {
+                        $ret[$item['spu']]['ex_goods_attrs'] = json_decode($item['ex_goods_attrs'], true);
+                    } else {
+                        $ret[$item['spu']]['ex_goods_attrs'] = [];
+                    }
                 }
             }
+
+            foreach ($ret as $spu => $attr) {
+
+                if ($attr['spec_attrs']) {
+                    $attr['spec_attrs'] = json_encode($attr['spec_attrs'], 256);
+                } else {
+                    $attr['spec_attrs'] = new stdClass();
+                }
+                if ($attr['ex_goods_attrs']) {
+                    $attr['ex_goods_attrs'] = json_encode($attr['ex_goods_attrs'], 256);
+                } else {
+                    $attr['ex_goods_attrs'] = new stdClass();
+                }
+                if ($attr['ex_hs_attrs']) {
+                    $attr['ex_hs_attrs'] = json_encode($attr['ex_hs_attrs'], 256);
+                } else {
+                    $attr['ex_hs_attrs'] = new stdClass();
+                }
+
+                if ($attr['other_attrs']) {
+                    $attr['other_attrs'] = json_encode($attr['other_attrs'], 256);
+                } else {
+                    $attr['other_attrs'] = new stdClass();
+                }
+                $ret[$spu] = $attr;
+            }
+
             return $ret;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

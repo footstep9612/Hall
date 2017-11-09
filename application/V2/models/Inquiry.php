@@ -174,8 +174,11 @@ class InquiryModel extends PublicModel {
             
             if ($map) {
                 $map['_logic'] = 'or';
-                $where[] = $map;
+            } else {
+                $map['id'] = '-1';
             }
+            
+            $where[] = $map;
         }
          
         return $where;
