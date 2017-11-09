@@ -30,10 +30,7 @@ class CountryUserModel extends PublicModel {
             for ($i = 0; $i < count($country_arr); $i++) {
                 $arr['country_bn'] = $country_arr[$i];
                 $arr['employee_id'] = $data['user_id'];
-                $info = $this->where($arr)->select();
-                if (!$info) {
-                    $this->create_data($arr);
-                }
+                $this->create_data($arr);
             }
         }
         return true ;

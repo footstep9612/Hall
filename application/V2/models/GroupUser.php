@@ -42,10 +42,7 @@ class GroupUserModel extends PublicModel {
             for ($i = 0; $i < count($group_arr); $i++) {
                 $arr['org_id'] = $group_arr[$i];
                 $arr['employee_id'] = $data['user_id'];
-                $info = $this->where($arr)->select();
-                if (!$info) {
-                    $this->create_data($arr);
-                }
+                $this->create_data($arr);
             }
             return true;
         }
