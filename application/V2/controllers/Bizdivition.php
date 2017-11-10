@@ -160,6 +160,14 @@ class BizdivitionController extends PublicController{
 
     }
 
+    /**
+     * 发送短信测试
+     *
+     * 参数说明
+     * 收信手机号,操作类型,收信人名称,流程编吗,发送人名称,当前环节,流转环节
+     * 更多说明请看Public控制sendSms()方法
+     *
+     */
     public function smsAction()
     {
 
