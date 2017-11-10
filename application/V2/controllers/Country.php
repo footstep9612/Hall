@@ -76,27 +76,33 @@ class CountryController extends PublicController {
         $data['lang'] = 'zh';
         $country_model = new CountryModel();
         $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
-        for ($i = 65; $i <= 90; $i++) {
-            $re[chr($i)] = [];
-        }
+
         if ($arr) {
             foreach ($arr as $country) {
                 $letter = $this->_getFirstCharter($country['name']);
                 $re[$letter][] = [
                     'name' => $country['name'],
                     'bn' => $country['bn'],
+                    'letter' => $letter,
                 ];
             }
         }
 
-        if (!empty($re)) {
+        $return = [];
+        for ($i = 65; $i <= 90; $i++) {
+
+            if (!empty($re[chr($i)])) {
+                $return[] = $re[chr($i)];
+            }
+        }
+        if (!empty($return)) {
             $this->setCode(MSG::MSG_SUCCESS);
-        } elseif ($re === []) {
+        } elseif ($return === []) {
             $this->setCode(MSG::ERROR_EMPTY);
         } else {
             $this->setCode(MSG::MSG_FAILED);
         }
-        $this->jsonReturn($re);
+        $this->jsonReturn($return);
     }
 
     /**
