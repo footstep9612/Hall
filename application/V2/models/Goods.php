@@ -2051,7 +2051,7 @@ class GoodsModel extends PublicModel {
                                 $key_attr = addslashes(trim($objPHPExcel->getSheet(0)->getCell($col_name . 2)->getValue())); //转码
                             }
 
-                            if (!empty($key_attr) && !empty($value) && !in_array($value,array('导入结果','审核状态'))) {
+                            if (!empty($key_attr) && !empty($value) && !in_array($key_attr,array('导入结果','审核状态'))) {
                                 $data_tmp['ex_hs_attrs'][$key_attr] = $value;
                             }
                             unset($key_attr);
