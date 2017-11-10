@@ -63,7 +63,7 @@ class SupplierCheckLogModel extends PublicModel {
             }
             if ($org_ids) {
                 $org_model = new OrgModel();
-                $orgs = $org_model->field('id,name')->where(['id' => $org_ids,
+                $orgs = $org_model->field('id,name')->where(['id' => ['in', $org_ids],
                             'deleted_flag' => 'N', 'status' => 'NORMAL'])->select();
                 $orgnames = [];
                 if ($orgs) {
@@ -95,8 +95,8 @@ class SupplierCheckLogModel extends PublicModel {
         if ($data) {
             $checked_bys = [];
             foreach ($data as $item) {
-                if ($item['checked_by']) {
-                    $checked_bys[] = $item['checked_by'];
+                if ($item['created_by']) {
+                    $checked_bys[] = $item['created_by'];
                 }
             }
             if ($checked_bys) {
@@ -104,10 +104,10 @@ class SupplierCheckLogModel extends PublicModel {
                 $usernames = $employee_model->getUserNamesByUserids($checked_bys);
             }
             foreach ($data as $key => $val) {
-                if ($val['checked_by'] && isset($usernames[$val['checked_by']])) {
-                    $val['checked_name'] = $usernames[$val['checked_by']];
+                if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                    $val['created_name'] = $usernames[$val['created_by']];
                 } else {
-                    $val['checked_name'] = '';
+                    $val['created_name'] = '';
                 }
 
                 $data[$key] = $val;

@@ -319,7 +319,7 @@ class SupplierChainModel extends PublicModel {
             }
             if ($org_ids) {
                 $org_model = new OrgModel();
-                $orgs = $org_model->field('id,name')->where(['id' => $org_ids,
+                $orgs = $org_model->field('id,name')->where(['id' => ['in', $org_ids],
                             'deleted_flag' => 'N', 'status' => 'NORMAL'])->select();
                 $orgnames = [];
                 if ($orgs) {
@@ -388,13 +388,13 @@ class SupplierChainModel extends PublicModel {
             $condition['status'] = 'VALID';
             $condition['erui_member_flag'] = $data['is_erui'];
             $condition['supplier_id'] = $supplier_id;
-            $condition['org_id'] = '';
+            $condition['org_id'] = $info['org_id'];
             $condition['rating'] = $supplier_level;
             $flag_log = $supplierchecklog_model->create_data($condition);
             if (!$flag_log && $this->error) {
                 $this->rollback();
                 jsonReturn(null, MSG::MSG_FAILED, $this->error);
-            } elseif ($flag_log) {
+            } elseif (!$flag_log) {
                 $this->rollback();
                 jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
             } else {
