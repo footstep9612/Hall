@@ -76,7 +76,7 @@ class CountryController extends PublicController {
         $data['lang'] = 'zh';
         $country_model = new CountryModel();
         $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
-
+        $re = [];
         if ($arr) {
             foreach ($arr as $country) {
                 $letter = $this->_getFirstCharter($country['name']);
@@ -92,7 +92,7 @@ class CountryController extends PublicController {
         for ($i = 65; $i <= 90; $i++) {
 
             if (!empty($re[chr($i)])) {
-                $return[] = $re[chr($i)];
+                $return[chr($i)] = $re[chr($i)];
             }
         }
         if (!empty($return)) {
