@@ -485,9 +485,19 @@ class ProductModel extends PublicModel {
                         if ($result) {
                             $spuary[] = array('spu' => $r, 'lang' => $lang, 'remarks' => $remark);
                         } else {
-                            //$this->rollback();
-                            $faild_ary[][$r] = '失败';
-                            continue;
+                            if($status == self::STATUS_CHECKING){
+                                $where['status'] = self::STATUS_CHECKING;
+                                $checkInfo = $this->field('id')->where($where)->select();
+                                if($checkInfo){
+                                    $spuary[] = array('spu' => $r, 'lang' => $lang, 'remarks' => $remark);
+                                }else{
+                                    $faild_ary[][$r] = '失败';
+                                    continue;
+                                }
+                            }else{
+                                $faild_ary[][$r] = '失败';
+                                continue;
+                            }
                         }
                     }
                 } else {
@@ -519,10 +529,19 @@ class ProductModel extends PublicModel {
                     if ($result) {
                         $spuary[] = array('spu' => $spu, 'lang' => $lang, 'remarks' => $remark);
                     } else {
-                        //$this->rollback();
-                        //return false;
-                        $faild_ary[][$spu] = '失败';
-                        return $faild_ary;
+                        if($status == self::STATUS_CHECKING){
+                            $where['status'] = self::STATUS_CHECKING;
+                            $checkInfo = $this->field('id')->where($where)->select();
+                            if($checkInfo){
+                                $spuary[] = array('spu' => $spu, 'lang' => $lang, 'remarks' => $remark);
+                            }else{
+                                $faild_ary[][$spu] = '失败';
+                                return $faild_ary;
+                            }
+                        }else{
+                            $faild_ary[][$spu] = '失败';
+                            return $faild_ary;
+                        }
                     }
                 }
                 switch ($status) {
