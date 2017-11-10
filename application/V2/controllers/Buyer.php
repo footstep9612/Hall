@@ -322,11 +322,19 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
-        if (isset($data['buyer_no'])) {
+        if (!empty($data['buyer_no'])) {
             $arr['buyer_no'] = $data['buyer_no'];
         }
-        if (isset($data['buyer_code'])) {
+        if (!empty($data['buyer_code'])) {
             $arr['buyer_code'] = $data['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
+        } else {
+            jsonReturn('', -101, 'crm编码为必填项!');
+        }
+        $model = new BuyerModel();
+        $buyer_account_model = new BuyerAccountModel();
+        $checkcrm = $model->where("buyer_code='" . $arr['buyer_code'] . "'")->find();
+        if ($checkcrm) {
+            jsonReturn('', -103, 'crm编码已经存在');
         }
         if (!empty($data['zipcode'])) {
             $buyer_address_data['zipcode'] = $data['zipcode'];
@@ -344,9 +352,6 @@ class BuyerController extends PublicController {
             $arr['purchase_amount'] = $data['purchase_amount'];
         }
         $arr['created_by'] = $this->user['id'];
-        $model = new BuyerModel();
-        $buyer_account_model = new BuyerAccountModel();
-
         $login_email['email'] = $data['email'];
         $login_email['user_name'] = $data['email'];
         $check_email = $buyer_account_model->Exist($login_email,'or');
