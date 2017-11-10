@@ -56,6 +56,9 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
+        if (!empty($data['created_by'])) {
+            $where['created_by'] = $data['created_by'];
+        }
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
@@ -345,12 +348,14 @@ class BuyerController extends PublicController {
         $buyer_account_model = new BuyerAccountModel();
 
         $login_email['email'] = $data['email'];
-        $check_email = $buyer_account_model->Exist($login_email);
+        $login_email['user_name'] = $data['email'];
+        $check_email = $buyer_account_model->Exist($login_email,'or');
         if ($check_email) {
             jsonReturn('', -101, '公司邮箱已经存在!');
         }
+        $login_uname['email'] = $data['user_name'];
         $login_uname['user_name'] = $data['user_name'];
-        $check_uname = $buyer_account_model->Exist($login_uname);
+        $check_uname = $buyer_account_model->Exist($login_uname,'or');
         if ($check_uname) {
             jsonReturn('', -102, '用户名已经存在!');
         }
