@@ -71,12 +71,14 @@ class CountryController extends PublicController {
      */
 
     public function listByLetterAction() {
-        $data = $this->getPut();
+        //$data = $this->getPut();
 
-        $data['lang'] = $this->getPut('lang', 'zh');
+        $data['lang'] = 'zh';
         $country_model = new CountryModel();
         $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
-        $re = [];
+        for ($i = 65; $i <= 90; $i++) {
+            $re[chr($i)] = [];
+        }
         if ($arr) {
             foreach ($arr as $country) {
                 $letter = $this->_getFirstCharter($country['name']);
@@ -86,6 +88,7 @@ class CountryController extends PublicController {
                 ];
             }
         }
+
         if (!empty($re)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } elseif ($re === []) {
@@ -105,8 +108,9 @@ class CountryController extends PublicController {
     private function _getFirstCharter($str) {
         if (empty($str)) {
             return '';
+        } elseif ($str === '斐济') {
+            return 'F';
         }
-
         $fchar = ord($str{0});
         if ($fchar >= ord('A') && $fchar <= ord('z')) {
             return strtoupper($str{0});
@@ -114,7 +118,8 @@ class CountryController extends PublicController {
         $s1 = iconv('UTF-8', 'gb2312', $str);
         $s2 = iconv('gb2312', 'UTF-8', $s1);
         $s = $s2 == $str ? $s1 : $str;
-        $ascs = [-20319, -20283, -19775, -19218, -18710, -18526, -18239, -17922, - 17417, -16474, -16212, -15640, -15165, -14922, -14914, -14630, -14149, -14090, - 13318, -12838, -12556, -11847, -11055, -10247];
+
+        $ascs = [-20319, -20283, -19775, -19218, -18710, -18526, -18239, -17922, - 17417, -16474, -16212, -15640, -15165, -14922, -14914, -14630, -14149, -14090, -13318, -12838, -12556, -11847, -11055, -10247];
         $asc = ord($s{0}) * 256 + ord($s{1}) - 65536;
         for ($i = 0; $i < 26; $i++) {
             if ($asc >= $ascs[$i] && $asc < $ascs[$i + 1]) {
