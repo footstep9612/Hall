@@ -1734,7 +1734,7 @@ class GoodsModel extends PublicModel {
             $objPHPExcel->getActiveSheet()->getStyle("A1:$col_status" . ($row-1))->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-            $objWriter->save($dirName.'/'.$spu.'.xls');    //文件保存
+            $objWriter->save($dirName.'/'.$spu.'_'.$input['lang'].'.xls');    //文件保存
         }
         ZipHelper::zipDir($dirName, $dirName . '.zip');
         ZipHelper::removeDir($dirName);    //清除目录
