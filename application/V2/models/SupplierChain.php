@@ -284,7 +284,7 @@ class SupplierChainModel extends PublicModel {
             $checked_bys = [];
             foreach ($data as $item) {
                 if ($item['checked_by']) {
-                    $erui_checked_bys[] = $item['checked_by'];
+                    $checked_bys[] = $item['checked_by'];
                 }
             }
             if ($checked_bys) {
@@ -378,7 +378,29 @@ class SupplierChainModel extends PublicModel {
             $data['erui_status'] = self::ERUI_STATUS_VALID;
             $data['erui_checked_at'] = date('Y-m-d H:i:s');
             $data['erui_checked_by'] = defined('UID') ? UID : 0;
-            return $this->where($where)->save($data);
+            $this->startTrans();
+            $flag = $this->where($where)->save($data);
+            if (!$flag) {
+                $this->rollback();
+                return FALSE;
+            }
+            $supplierchecklog_model = new SupplierCheckLogModel();
+            $condition['status'] = 'VALID';
+            $condition['erui_member_flag'] = $data['is_erui'];
+            $condition['supplier_id'] = $supplier_id;
+            $condition['org_id'] = '';
+            $condition['rating'] = $supplier_level;
+            $flag_log = $supplierchecklog_model->create_data($condition);
+            if (!$flag_log && $this->error) {
+                $this->rollback();
+                jsonReturn(null, MSG::MSG_FAILED, $this->error);
+            } elseif ($flag_log) {
+                $this->rollback();
+                jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
+            } else {
+                $this->commit();
+                return true;
+            }
         } elseif ($info) {
             jsonReturn($data, MSG::MSG_FAILED, '供应商审核未通过,不能进行供应链审核!');
         } else {
