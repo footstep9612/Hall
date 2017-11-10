@@ -27,6 +27,31 @@ class SupplierchainController extends PublicController {
      * @version V2.0
      * @desc
      */
+    public function listChainAction() {
+        $condition = $this->getPut();
+        $supplier_model = new SupplierChainModel();
+        $data = $supplier_model->getListChain($condition);
+        if ($data) {
+            $this->setvalue('count', $supplier_model->getCountChain($condition));
+            $this->jsonReturn($data);
+        } elseif ($data === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('数据为空!');
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('获取失败!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 供应链列表
+     * @author  zhongyg
+     * @date    2017-11-10 13:32:36
+     * @version V2.0
+     * @desc
+     */
     public function listAction() {
         $condition = $this->getPut();
         $supplier_model = new SupplierChainModel();

@@ -39,24 +39,45 @@ class SupplierChainModel extends PublicModel {
      * @author zyg
      *
      */
-    protected function _getcondition($condition = [], &$where = []) {
-
-        $where = ['deleted_flag' => 'N',
-            'status' => ['in', ['APPROVED', 'VALID']]
-        ];
+    protected function _getcondition($condition = [], &$where = [], $is_Chain = true) {
+        if ($is_Chain) {
+            $where = ['deleted_flag' => 'N',
+                'status' => ['in', ['APPROVED', 'VALID']]
+            ];
+        } else {
+            $where = ['deleted_flag' => 'N',
+                'status' => ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']]
+            ];
+        }
         $this->_getValue($where, $condition, 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
         $this->_getValue($where, $condition, 'erui_status');
         $this->_getValue($where, $condition, 'is_erui', 'bool');
-        $this->_getValue($where, $condition, 'erui_checked_at', 'between');
+        if ($is_Chain) {
+            $this->_getValue($where, $condition, 'erui_checked_at', 'between');
+        } else {
+            $this->_getValue($where, $condition, 'checked_at', 'between');
+        }
         $this->_getValue($where, $condition, 'created_at', 'between');
-        if (!empty($condition['erui_checked_name'])) {
-            $employee_model = new EmployeeModel();
-            $userids = $employee_model->getUseridsByUserName(trim($condition['created_by_name']));
-            if ($userids) {
-                $where['erui_checked_by'] = ['in', $userids];
-            } else {
-                $where['erui_checked_by'] = '-1';
+        if ($is_Chain) {
+            if (!empty($condition['erui_checked_name'])) {
+                $employee_model = new EmployeeModel();
+                $userids = $employee_model->getUseridsByUserName(trim($condition['erui_checked_name']));
+                if ($userids) {
+                    $where['erui_checked_by'] = ['in', $userids];
+                } else {
+                    $where['erui_checked_by'] = '-1';
+                }
+            }
+        } else {
+            if (!empty($condition['checked_name'])) {
+                $employee_model = new EmployeeModel();
+                $userids = $employee_model->getUseridsByUserName(trim($condition['checked_name']));
+                if ($userids) {
+                    $where['checked_by'] = ['in', $userids];
+                } else {
+                    $where['checked_by'] = '-1';
+                }
             }
         }
     }
@@ -68,6 +89,28 @@ class SupplierChainModel extends PublicModel {
      * @author zyg
      */
     public function getList($condition = [], $order = " id desc") {
+        $where = [];
+        $this->_getcondition($condition, $where, false);
+        list($offset, $size) = $this->_getPage($condition);
+        $data = $this->field('id,supplier_no,serial_no,name,erui_status,checked_at,checked_by,'
+                        . 'org_id')
+                ->limit($offset, $size)
+                ->where($where)
+                ->order($order)
+                ->select();
+        $this->_setStatus($data);
+        $this->_setCheckedName($data);
+
+        return $data;
+    }
+
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getListChain($condition = [], $order = " id desc") {
         $where = [];
         $this->_getcondition($condition, $where);
         list($offset, $size) = $this->_getPage($condition);
@@ -90,6 +133,22 @@ class SupplierChainModel extends PublicModel {
      * @author zyg
      */
     public function getCount($condition = []) {
+        $where = [];
+        $this->_getcondition($condition, $where, false);
+        $count = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,'
+                        . 'org_id,is_erui')
+                ->where($where)
+                ->count();
+        return $count;
+    }
+
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getCountChain($condition = []) {
         $where = [];
         $this->_getcondition($condition, $where);
         $count = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,'
@@ -149,6 +208,51 @@ class SupplierChainModel extends PublicModel {
      * @return
      * @author zyg
      */
+    private function _setStatus(&$data) {
+        if ($data) {
+            foreach ($data as $key => $item) {
+
+                switch ($item['status']) {
+                    case 'APPLING':
+                        $item['status'] = '待审核';
+                        break;
+                    case 'APPROVED':
+                        $item['status'] = '已通过';
+                        break;
+                    case 'VALID':
+                        $item['status'] = '已通过';
+                        break;
+                    case 'DRAFT':
+                        $item['status'] = '暂存';
+                        break;
+                    default :
+                        $item['status'] = '';
+                        break;
+                }
+                if (empty($item['checked_at'])) {
+                    $item['checked_at'] = '';
+                }
+
+                if (empty($item['checked_by'])) {
+                    $item['checked_by'] = '';
+                }
+                if (empty($item['serial_no'])) {
+                    $item['serial_no'] = '';
+                }
+                if (empty($item['supplier_no'])) {
+                    $item['supplier_no'] = '';
+                }
+                $data[$key] = $item;
+            }
+        }
+    }
+
+    /**
+     * 获取易瑞处理状态
+     * @param mix $data
+     * @return
+     * @author zyg
+     */
     private function _setEruiCheckedName(&$data) {
         if ($data) {
             $erui_checked_bys = [];
@@ -166,6 +270,36 @@ class SupplierChainModel extends PublicModel {
                     $val['erui_checked_name'] = $usernames[$val['erui_checked_by']];
                 } else {
                     $val['erui_checked_name'] = '';
+                }
+
+                $data[$key] = $val;
+            }
+        }
+    }
+
+    /**
+     * 获取处理状态
+     * @param mix $data
+     * @return
+     * @author zyg
+     */
+    private function _setCheckedName(&$data) {
+        if ($data) {
+            $checked_bys = [];
+            foreach ($data as $item) {
+                if ($item['checked_by']) {
+                    $erui_checked_bys[] = $item['checked_by'];
+                }
+            }
+            if ($checked_bys) {
+                $employee_model = new EmployeeModel();
+                $usernames = $employee_model->getUserNamesByUserids($checked_bys);
+            }
+            foreach ($data as $key => $val) {
+                if ($val['checked_by'] && isset($usernames[$val['checked_by']])) {
+                    $val['checked_name'] = $usernames[$val['checked_by']];
+                } else {
+                    $val['checked_name'] = '';
                 }
 
                 $data[$key] = $val;
