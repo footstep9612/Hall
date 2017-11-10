@@ -220,7 +220,9 @@ class SupplierChainModel extends PublicModel {
      */
     public function batchUpdateLevel($supplier_ids, $supplier_level) {
 
-        $where = ['deleted_flag' => 'N', 'id' => $supplier_ids];
+        $where = ['deleted_flag' => 'N',
+            'id' => ['in', $supplier_ids]
+            , 'status' => ['in', ['APPROVED', 'VALID']]];
         $data['supplier_level'] = $supplier_level;
         return $this->where($where)->save($data);
     }
@@ -234,13 +236,24 @@ class SupplierChainModel extends PublicModel {
      */
     public function Checked($supplier_id, $supplier_level, $is_erui = 'N') {
 
-        $where = ['deleted_flag' => 'N', 'id' => $supplier_id];
-        $data['supplier_level'] = $supplier_level;
-        $data['is_erui'] = $is_erui === 'Y' ? 'Y' : 'N';
-        $data['erui_status'] = self::ERUI_STATUS_VALID;
-        $data['erui_checked_at'] = date('Y-m-d H:i:s');
-        $data['erui_checked_by'] = defined('UID') ? UID : 0;
-        return $this->where($where)->save($data);
+        $where = ['deleted_flag' => 'N',
+            'id' => $supplier_id,
+                // 'status' => ['in', ['APPROVED', 'VALID']]
+        ];
+
+        $info = $this->field('status')->where($where)->find();
+        if (in_array($info['status'], ['APPROVED', 'VALID'])) {
+            $data['supplier_level'] = $supplier_level;
+            $data['is_erui'] = $is_erui === 'Y' ? 'Y' : 'N';
+            $data['erui_status'] = self::ERUI_STATUS_VALID;
+            $data['erui_checked_at'] = date('Y-m-d H:i:s');
+            $data['erui_checked_by'] = defined('UID') ? UID : 0;
+            return $this->where($where)->save($data);
+        } elseif ($info) {
+            jsonReturn($data, MSG::MSG_FAILED, '供应商审核未通过,不能进行供应链审核!');
+        } else {
+            jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
+        }
     }
 
 }
