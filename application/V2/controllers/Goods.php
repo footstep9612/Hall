@@ -585,6 +585,16 @@ class GoodsController extends PublicController {
         }
     }
 
+    public function exportallAction() {
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->exportAll($this->put_data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
     /**
      * 产品导出csv
      */
