@@ -46,7 +46,7 @@ class SupplierChainModel extends PublicModel {
             ];
         } else {
             $where = ['deleted_flag' => 'N',
-                'status' => ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']]
+                'status' => ['in', ['APPROVED', 'VALID', 'INVALID', 'APPLING']]
             ];
         }
         $this->_getValue($where, $condition, 'supplier_no');
@@ -92,8 +92,8 @@ class SupplierChainModel extends PublicModel {
         $where = [];
         $this->_getcondition($condition, $where, false);
         list($offset, $size) = $this->_getPage($condition);
-        $data = $this->field('id,supplier_no,serial_no,name,erui_status,checked_at,checked_by,'
-                        . 'org_id')
+        $data = $this->field('id,supplier_no,serial_no,name,status,checked_at,checked_by,'
+                        . 'created_at')
                 ->limit($offset, $size)
                 ->where($where)
                 ->order($order)
@@ -115,7 +115,7 @@ class SupplierChainModel extends PublicModel {
         $this->_getcondition($condition, $where);
         list($offset, $size) = $this->_getPage($condition);
         $data = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,'
-                        . 'org_id,is_erui')
+                        . 'org_id,is_erui,created_at')
                 ->limit($offset, $size)
                 ->where($where)
                 ->order($order)
@@ -135,9 +135,7 @@ class SupplierChainModel extends PublicModel {
     public function getCount($condition = []) {
         $where = [];
         $this->_getcondition($condition, $where, false);
-        $count = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,'
-                        . 'org_id,is_erui')
-                ->where($where)
+        $count = $this->where($where)
                 ->count();
         return $count;
     }
@@ -151,9 +149,7 @@ class SupplierChainModel extends PublicModel {
     public function getCountChain($condition = []) {
         $where = [];
         $this->_getcondition($condition, $where);
-        $count = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,'
-                        . 'org_id,is_erui')
-                ->where($where)
+        $count = $this->where($where)
                 ->count();
         return $count;
     }
