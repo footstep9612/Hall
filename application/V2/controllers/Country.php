@@ -92,7 +92,7 @@ class CountryController extends PublicController {
         for ($i = 65; $i <= 90; $i++) {
 
             if (!empty($re[chr($i)])) {
-                $return[chr($i)] = $re[chr($i)];
+                $return[] = [chr($i) => $re[chr($i)]];
             }
         }
         if (!empty($return)) {
