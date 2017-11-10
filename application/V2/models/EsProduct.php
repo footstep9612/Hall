@@ -475,7 +475,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function getList($condition, $_source, $lang = 'en', $from = 0, $pagesize = 1000) {
+    public function getList($condition, $_source, $lang = 'en', $from = 0, $pagesize = 1000, &$total = 0) {
 
         try {
             $body = $this->getCondition($condition);
@@ -486,6 +486,7 @@ class EsProductModel extends Model {
             $es->setbody($body)->setfields($_source)->setsort('id', 'desc');
             $data = $es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize);
 
+            $total = isset($data['hits']['total']) ? $data['hits']['total'] : 0;
             if (isset($data['hits']['hits'])) {
                 $ret = [];
                 foreach ($data['hits']['hits'] as $item) {
@@ -1014,6 +1015,7 @@ class EsProductModel extends Model {
         } else {
             $ret['other_attrs'] = [];
         }
+        return $ret;
     }
 
     /* 属性格式化

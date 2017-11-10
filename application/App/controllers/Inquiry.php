@@ -12,6 +12,8 @@ class InquiryController extends PublicController
 
     public function init()
     {
+        parent::init();
+
         $this->inquiryModel = new InquiryModel();
     }
     /**
@@ -40,6 +42,30 @@ class InquiryController extends PublicController
         $this->jsonReturn($data);
     }
 
+    /*
+     * 创建询价单流程编码
+     */
+
+    public function createSerialNoAction()
+    {
+
+        $data['serial_no'] = InquirySerialNo::getInquirySerialNo();
+        $data['created_by'] = $this->user['id'];
+        $this->jsonReturn($this->inquiryModel->addData($data));
+
+    }
+
+    /**
+     * 创建询单
+     */
+    public function updateAction()
+    {
+
+        $data = $this->validateRequestParams();
+        $data['updated_by'] = $this->user['id'];
+        $this->jsonReturn($this->inquiryModel->updateData($data));
+
+    }
 
 }
 

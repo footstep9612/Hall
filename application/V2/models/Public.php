@@ -149,15 +149,15 @@ class PublicModel extends Model {
         } elseif ($type == 'between') {
 
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
-                $created_at_end = $condition[$name . '_end'];
+                $created_at_start = trim($condition[$name . '_start']);
+                $created_at_end = trim($condition[$name . '_end']);
                 $where[$field] = ['between', $created_at_start . ',' . $created_at_end,];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
-                $created_at_start = $condition[$name . '_start'];
+                $created_at_start = trim($condition[$name . '_start']);
 
                 $where[$field] = ['egt', $created_at_start,];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
-                $created_at_end = $condition[$name . '_end'];
+                $created_at_end = trim($condition[$name . '_end']);
                 $where[$field] = ['elt', $created_at_start,];
             }
         }

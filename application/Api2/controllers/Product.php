@@ -50,11 +50,36 @@ class ProductController extends PublicController {
             $data = array(
                 'data' => $result
             );
+            $this->_updateView($spu);
             jsonReturn($data);
         } else {
             jsonReturn('', '-1002', '失败');
         }
         exit;
+    }
+
+    /**
+     * spu 新增浏览数量
+     * @author klp
+     * @return array
+     */
+    private function _updateView($spu = '') {
+        if (empty($spu)) {
+            return false;
+        }
+        try {
+            $productModel = new ProductModel();
+            $esproduct_moewl = new EsProductModel();
+            $results = $productModel->where(['spu' => $spu])->setInc('view_count', 1);
+            foreach (['zh', 'en', 'es', 'ru'] as $lang) {
+                $esproduct_moewl->UpdateViewCount($spu, $lang);
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
     }
 
     function _getSysUser($user_token) {

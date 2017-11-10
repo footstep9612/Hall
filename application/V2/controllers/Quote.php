@@ -47,7 +47,7 @@ class QuoteController extends PublicController{
         $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
         $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
 
-        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,status')->find();
+        $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,org_id,status')->find();
 
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
         $info['inquiry_dispatch_place'] = $info['inquiry_dispatch_place'] ? : '暂无';
@@ -56,6 +56,7 @@ class QuoteController extends PublicController{
         $info['total_bank_fee'] = $info['total_bank_fee'] ? : '暂无';
         $info['total_exw_price'] = $info['total_exw_price'] ? : '暂无';
         $info['inflow_time'] = $logiInfo['inflow_time'];
+        $info['org_id']  = $logiInfo['org_id'];
         $info['status']  = $logiInfo['status'];
 
         $finalQuoteModel = new FinalQuoteModel();
@@ -127,12 +128,12 @@ class QuoteController extends PublicController{
     public function rejectLogisticAction(){
 
         $request = $this->validateRequests('inquiry_id');
-
+        $condition['id'] = $request['inquiry_id'];
         $inquiryModel = new InquiryModel();
         $now_agent_id = $inquiryModel->where(['id'=>$request['inquiry_id']])->getField('logi_agent_id');
         $inquiryModel->where($condition)->save(['now_agent_id'=>$now_agent_id]);
 
-        $this->changeInquiryStatus($request['inquiry_id'],'LOGI_QUOTING');
+        $result = $this->changeInquiryStatus($request['inquiry_id'],'LOGI_QUOTING');
 
         $this->jsonReturn($result);
     }
@@ -141,13 +142,13 @@ class QuoteController extends PublicController{
      * 提交报价审核
      */
     public function submitQuoteAuditorAction(){
-
+        $condition = $this->put_data;
         $request = $this->validateRequests('inquiry_id');
 
         $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
 
         $inquiryModel = new InquiryModel();
-        $check_org_id = $inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
+        $check_org_id = $condition['check_org_id'];//$inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
 
         $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
             'quote_status' => 'QUOTED',

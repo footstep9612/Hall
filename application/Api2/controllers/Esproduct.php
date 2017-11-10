@@ -83,6 +83,36 @@ class EsproductController extends PublicController {
         }
     }
 
+    /*
+     * 门户新需求 产品列表
+     */
+
+    public function listNewAction() {
+        $model = new EsProductModel();
+        $condition = $this->getPut();
+        $ret = $model->getNewProducts($condition, null, $this->getLang());
+
+        if ($ret) {
+            $data = $ret[0];
+            $list = $this->getdata($data, $this->getLang());
+            $this->setvalue('count', intval($data['hits']['total']));
+            $this->setvalue('current_no', intval($ret[1]));
+            $this->setvalue('pagesize', intval($ret[2]));
+            $sku_count = $model->getSkuCountByCondition($condition, $this->getLang());
+            $this->setvalue('sku_count', $sku_count);
+            $this->update_keywords();
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($list);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 数据处理
+     */
+
     private function getdata($data, $lang = 'en') {
         $keyword = $this->getPut('keyword');
         if ($lang == 'zh') {
@@ -119,6 +149,10 @@ class EsproductController extends PublicController {
         return $list;
     }
 
+    /*
+     * 获取分类列表
+     */
+
     private function getcatlist($show_cat_nos, $show_cats) {
         ksort($show_cat_nos);
         $condition = $this->getPut();
@@ -139,8 +173,61 @@ class EsproductController extends PublicController {
             }
         }
         rsort($new_showcats3);
-
         return $new_showcats3;
+    }
+
+    /*
+     * h获取品牌列表
+     */
+
+    public function getBrandsAction() {
+        $model = new EsProductModel();
+        $condition = $this->getPut();
+        unset($condition['token']);
+        $data = $model->getBrandsList($condition, $this->getLang());
+        if ($data) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 获取分类列表
+     */
+
+    public function getCastsAction() {
+        $model = new EsProductModel();
+        $condition = $this->getPut();
+        unset($condition['token']);
+        $data = $model->getCatList($condition, $this->getLang());
+        if ($data) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 获取规格列表
+     */
+
+    public function getSpecsAction() {
+        $model = new EsProductModel();
+        $condition = $this->getPut();
+        unset($condition['token']);
+        $data = $model->getSpecsList($condition, $this->getLang());
+        if ($data) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
     }
 
     private function update_keywords() {

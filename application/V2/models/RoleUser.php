@@ -120,10 +120,7 @@ class RoleUserModel extends PublicModel {
                 $role_arr = explode(',',$data['role_ids']);
                 $count = count($role_arr);
                 for($i=0;$i<$count;$i++){
-                    $info = $this -> where(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ])->select();
-                    if(!$info){
-                        $this -> create_data(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ]);
-                    }
+                    $this -> create_data(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ]);
                 }
             }
         }

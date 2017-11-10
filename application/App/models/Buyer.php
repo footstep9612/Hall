@@ -94,9 +94,6 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['checked_at_end'])) {
             $where .= ' And `erui_buyer`.`buyer`.checked_at  <="' . $condition['checked_at_end'] . '"';
         }
-        if (!empty($condition['created_by'])) {
-            $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
-        }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
         }

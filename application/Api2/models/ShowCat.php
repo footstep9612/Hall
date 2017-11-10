@@ -27,7 +27,7 @@ class ShowCatModel extends PublicModel {
      *
      */
 
-    public function getshowcatsByshowcatnos($show_cat_nos, $lang = 'en') {
+    public function getshowcatsByshowcatnos($show_cat_nos, $lang = 'en', $page_flag = true) {
 
         try {
 
@@ -39,12 +39,15 @@ class ShowCatModel extends PublicModel {
                     'status' => 'VALID',
                     'lang' => $lang,
                 ];
-                $flag = $this
+                $this
                         ->where($where)
                         ->field('cat_no,name')
-                        ->group('cat_no')
-                        ->limit(0, 20)
-                        ->select();
+                        ->group('cat_no');
+                if ($page_flag) {
+                    $this->limit(0, 20);
+                }
+
+                $flag = $this->select();
 
                 return $flag;
             } else {

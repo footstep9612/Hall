@@ -166,7 +166,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
 
     public function getLang() {
-        return $this->lang;
+        return $this->lang ? $this->lang : $this->getPut('lang', 'en');
     }
 
     /*

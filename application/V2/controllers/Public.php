@@ -573,4 +573,70 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return $inquiryCheckLogModel->addAll($checkLogList);
     }
 
+//    /**
+//     * @param        $to            收信人手机号
+//     * @param        $action        操作说明 SUBMIT(询报价提交) REJECT(询报价退回)
+//     * @param        $receiver      收信人名称 如:买买提
+//     * @param        $serial_no     询单流程编码
+//     * @param        $from          发信人名称
+//     * @param string $areaCode      手机所属区号 默认86
+//     * @param int    $subType       短信发送方式  0普通文本 1模板
+//     * @param int    $groupSending  类型：0为单独发送，1为批量发送
+//     * @param string $useType       发送用途： 例如：Order、Customer、System等
+//     * @author 买买提
+//     * @return string
+//     */
+
+
+    public function sendSms($to, $action, $receiver, $serial_no, $from, $in_node, $out_node, $areaCode="86", $subType=1, $groupSending=0, $useType="询报价系统")
+    {
+
+        if (empty($receiver)){
+            $this->jsonReturn(['code'=>-104,'message'=>'收信人名字不能为空']);
+        }
+
+        if (empty($serial_no)){
+            $this->jsonReturn(['code'=>-104,'message'=>'询单流程编码不能为空']);
+        }
+
+        $data = [
+            'useType'       => $useType,
+            'to'            => '["'.$to.'"]',
+            'areaCode'      => $areaCode,
+            'subType'       => $subType,
+            'groupSending'  => $groupSending,
+        ];
+
+        if ($action=="SUBMIT"){
+            $data['tplId'] = '55047';
+            $data['tplParas'] = '["'.$receiver.'","'.$from.'","'.$serial_no.'"]';
+        }elseif ($action=="REJECT"){
+            $data['tplId'] = '55048';
+            $data['tplParas'] = '["'.$receiver.'","'.$serial_no.'","'.$from.'"]';
+        }
+
+
+        $response = json_decode(MailHelper::sendSms($data),true);
+
+        //记录短信
+        if ($response['code'] == 200){
+
+            $smsLog = new SmsLogModel();
+            $smsLog->add($smsLog->create([
+                'serial_no' => $serial_no,
+                'sms_id'    => $response['message'],
+                'mobile'    => $to,
+                'receiver'    => $receiver,
+                'from'    => $from,
+                'action'    => $action,
+                'in_node'    => $in_node,
+                'out_node'    => $out_node,
+                'send_at'    => date('Y-m-d H:i:s')
+            ]));
+
+        }
+
+        return;
+
+    }
 }

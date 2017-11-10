@@ -56,9 +56,6 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['created_by'])) {
-            $where['created_by'] = $data['created_by'];
-        }
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
@@ -322,19 +319,11 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $arr['last_name'] = $data['last_name'];
         }
-        if (!empty($data['buyer_no'])) {
+        if (isset($data['buyer_no'])) {
             $arr['buyer_no'] = $data['buyer_no'];
         }
-        if (!empty($data['buyer_code'])) {
+        if (isset($data['buyer_code'])) {
             $arr['buyer_code'] = $data['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
-        } else {
-            jsonReturn('', -101, 'crm编码为必填项!');
-        }
-        $model = new BuyerModel();
-        $buyer_account_model = new BuyerAccountModel();
-        $checkcrm = $model->where("buyer_code='" . $arr['buyer_code'] . "'")->find();
-        if ($checkcrm) {
-            jsonReturn('', -103, 'crm编码已经存在');
         }
         if (!empty($data['zipcode'])) {
             $buyer_address_data['zipcode'] = $data['zipcode'];
@@ -352,15 +341,16 @@ class BuyerController extends PublicController {
             $arr['purchase_amount'] = $data['purchase_amount'];
         }
         $arr['created_by'] = $this->user['id'];
+        $model = new BuyerModel();
+        $buyer_account_model = new BuyerAccountModel();
+
         $login_email['email'] = $data['email'];
-        $login_email['user_name'] = $data['email'];
-        $check_email = $buyer_account_model->Exist($login_email,'or');
+        $check_email = $buyer_account_model->Exist($login_email);
         if ($check_email) {
             jsonReturn('', -101, '公司邮箱已经存在!');
         }
-        $login_uname['email'] = $data['user_name'];
         $login_uname['user_name'] = $data['user_name'];
-        $check_uname = $buyer_account_model->Exist($login_uname,'or');
+        $check_uname = $buyer_account_model->Exist($login_uname);
         if ($check_uname) {
             jsonReturn('', -102, '用户名已经存在!');
         }
