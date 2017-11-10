@@ -32,8 +32,10 @@ class SupplierinquiryController extends PublicController {
         if ($data) {
             $suppliercount = $supplier_inquiry_model->getSupplierCount();
             $inquirycount = $supplier_inquiry_model->getInquiryCount();
+            $count = $supplier_inquiry_model->getCount($condition);
             $this->setvalue('suppliercount', $suppliercount);
             $this->setvalue('inquirycount', $inquirycount);
+            $this->setvalue('count', $count);
             $this->jsonReturn($data);
         } elseif ($data === []) {
             $this->setCode(MSG::ERROR_EMPTY);

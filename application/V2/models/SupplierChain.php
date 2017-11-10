@@ -21,8 +21,8 @@ class SupplierChainModel extends PublicModel {
 
     const STATUS_VALID = 'APPROVED'; //有效,通过
     const STATUS_INVALID = 'INVALID'; //无效；
-    const STATUS_TEST = 'TEST'; //待报审；
-    const STATUS_CHECKING = 'STATUS_CHECKING'; //审核；
+    const STATUS_DRAFT = 'DRAFT'; //待报审；
+    const STATUS_CHECKING = 'APPLING'; //审核；
     const STATUS_DELETED = 'DELETED'; //删除；
     const ERUI_STATUS_VALID = 'VALID';          //有效
     const ERUI_STATUS_CHECKING = 'CHECKING';          //审核中
@@ -358,17 +358,16 @@ class SupplierChainModel extends PublicModel {
     }
 
     /**
-     * 批量更新供应商等级
+     * 供应链审核
      * @param int $supplier_id 供应商ID 数组
      * @param int $supplier_level 供应商等级
      * @return
      * @author zyg
      */
-    public function Checked($supplier_id, $supplier_level, $is_erui = 'N') {
+    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N') {
 
         $where = ['deleted_flag' => 'N',
             'id' => $supplier_id,
-                // 'status' => ['in', ['APPROVED', 'VALID']]
         ];
 
         $info = $this->field('status')->where($where)->find();
@@ -403,6 +402,57 @@ class SupplierChainModel extends PublicModel {
             }
         } elseif ($info) {
             jsonReturn($data, MSG::MSG_FAILED, '供应商审核未通过,不能进行供应链审核!');
+        } else {
+            jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
+        }
+    }
+
+    /**
+     * 供应商审核
+     * @param int $supplier_id 供应商ID 数组
+     * @param int $supplier_level 供应商等级
+     * @return
+     * @author zyg
+     */
+    public function Checked($supplier_id, $status, $note = '') {
+
+        $where = ['deleted_flag' => 'N',
+            'id' => $supplier_id,
+        ];
+
+        $info = $this->field('status')->where($where)->find();
+        if ($info['status'] == 'APPLING') {
+            $data['status'] = ($status == 'VALID' ? 'VALID' : 'INVALID');
+            $data['checked_at'] = date('Y-m-d H:i:s');
+            $data['checked_by'] = defined('UID') ? UID : 0;
+            $this->startTrans();
+            $flag = $this->where($where)->save($data);
+            if (!$flag) {
+                $this->rollback();
+                return FALSE;
+            }
+            $supplierchecklog_model = new SupplierCheckLogModel();
+            $condition['status'] = $status == 'VALID' ? 'VALID' : 'INVALID';
+            $condition['supplier_id'] = $supplier_id;
+            $condition['org_id'] = $info['org_id'];
+            $condition['note'] = $note;
+            $flag_log = $supplierchecklog_model->create_data($condition);
+            if (!$flag_log && $this->error) {
+                $this->rollback();
+                jsonReturn(null, MSG::MSG_FAILED, $this->error);
+            } elseif (!$flag_log) {
+                $this->rollback();
+                jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
+            } else {
+                $this->commit();
+                return true;
+            }
+        } elseif ($info && $info['status'] === 'VALID') {
+            jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
+        } elseif ($info && $info['status'] === 'APPROVED') {
+            jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
+        } elseif ($info && $info['status'] !== 'APPLING') {
+            jsonReturn($data, MSG::MSG_FAILED, '未报审的供应商不能审核!');
         } else {
             jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
         }
