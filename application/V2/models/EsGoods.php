@@ -316,14 +316,14 @@ class EsGoodsModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $show_name = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
-                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
+                        //  [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
+                        //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::TERM => ['sku' => $show_name]],
                         [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $show_name]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 5]]],
                         [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
             ]]];
