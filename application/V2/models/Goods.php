@@ -1503,6 +1503,7 @@ class GoodsModel extends PublicModel {
         $attrModel = new GoodsAttrModel();
         $gsModel = new GoodsSupplierModel();
         $supplierModel = new SupplierModel();
+        $productModel = new ProductModel();
         $condition = array('lang' => $input['lang']);
         foreach($input['spus'] as $spu){
             $condition['spu'] = $spu;
@@ -1555,6 +1556,9 @@ class GoodsModel extends PublicModel {
                 [
                     'item' => '序号',
                     'sku' => '订货号',
+                    'spu' => 'SPU编码',
+                    'spu_showname' => 'SPU展示名称(中文)',
+                    'brand' => '品牌(中文)',
                     'name' => '名称',
                     'model' => '型号',
                     'supplier' => '供应商名称',
@@ -1564,6 +1568,7 @@ class GoodsModel extends PublicModel {
                     'min_pack_unit' => '最小包装单位',
                     'min_order_qty' => '最小订货数量',
                     'purchase_price' => '供应商供货价',
+                    'price_validity' => '有效期',
                     'purchase_price_cur_bn' => '币种',
                     1 => '物流信息',
                     'nude_cargo_l_mm' => '裸货尺寸长(mm)',
@@ -1587,6 +1592,9 @@ class GoodsModel extends PublicModel {
                 [
                     'item' => '',
                     'sku' => 'Item No.',
+                    'spu' => 'SPU',
+                    'spu_showname' => 'Spu show Name',
+                    'brand' => 'Brand',
                     'name' => 'name',
                     'model' => 'Model',
                     'supplier'=> 'Supplier',
@@ -1596,6 +1604,7 @@ class GoodsModel extends PublicModel {
                     'min_pack_unit' => 'Minimum packing unit',
                     'min_order_qty' => 'Minimum order quantity',
                     'purchase_price' => 'Supply price',
+                    'price_validity' => 'Price validity',
                     'purchase_price_cur_bn' => 'Currency',
                     1 => '',
                     'nude_cargo_l_mm' => 'Length of nude cargo(mm)',
@@ -1622,14 +1631,18 @@ class GoodsModel extends PublicModel {
             $spec_ary = $hs_ary = [];
             $goods_val = [];
             do{
-                $field = 'spu,sku,name,model,show_name,description,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail,status,created_by,created_at';
+                $field = 'spu,sku,lang,name,model,show_name,description,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,purchase_price,purchase_price_cur_bn,nude_cargo_l_mm,nude_cargo_w_mm,nude_cargo_h_mm,min_pack_l_mm,min_pack_w_mm,min_pack_h_mm,net_weight_kg,gross_weight_kg,compose_require_pack,pack_type,name_customs,hs_code,tx_unit,tax_rebates_pct,regulatory_conds,commodity_ori_place,source,source_detail,status,created_by,created_at';
                 $result = $this->field($field)->where($condition)->limit($i * $length, $length)->select();
                 if(empty($result)){
                     jsonReturn('' , ErrorMsg::FAILED, '无数据可导');
                 }
 
                 foreach($result as $r){
-                    $condition_attr = ['sku'=>$r['sku'],'lang'=>$input['lang'],'deleted_flag'=>'N'];
+                    $productInfo = $productModel->field('show_name,brand')->where(['spu'=>$r['spu'],'lang'=>$r['lang'],'deleted_flag'=>'N'])->find();
+                    $r['spu_showname'] = $productInfo ? $productInfo['show_name'] : '';
+                    $brandInfo = $productInfo ? json_decode($productInfo['brand'],true) : '';
+                    $r['brand'] = $brandInfo ? $brandInfo['name'] : '';
+                    $condition_attr = ['sku'=>$r['sku'],'lang'=>$r['lang'],'deleted_flag'=>'N'];
                     $attrs = $attrModel->field('spec_attrs,ex_hs_attrs')->where($condition_attr)->find();
                     $spec = json_decode($attrs['spec_attrs'],true);
                     foreach($spec as $ak=>$av){
@@ -1663,8 +1676,8 @@ class GoodsModel extends PublicModel {
                     $goods_val[] = $r;
                 }
             }while(count($result) >= $length);
-            array_splice($data_title[0],12,0,$spec_ary[0]);
-            array_splice($data_title[1],12,0,$spec_ary[1]);
+            array_splice($data_title[0],16,0,$spec_ary[0]);
+            array_splice($data_title[1],16,0,$spec_ary[1]);
             $hscount = count($data_title[0]);
             array_splice($data_title[0],$hscount,0,$hs_ary[0]);
             array_splice($data_title[1],$hscount,0,$hs_ary[1]);
