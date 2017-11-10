@@ -326,6 +326,8 @@ class EsGoodsModel extends Model {
                         [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 5]]],
                         [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['show_name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
             ]]];
         }
 
