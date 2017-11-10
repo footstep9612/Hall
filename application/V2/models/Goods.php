@@ -1507,7 +1507,7 @@ class GoodsModel extends PublicModel {
         $condition = array('lang' => $input['lang']);
         foreach($input['spus'] as $spu){
             $condition['spu'] = $spu;
-            if(isset($input['skus']) && is_array($input['skus'])){    //勾选了sku
+            if(isset($input['skus']) && !empty($input['skus']) && is_array($input['skus'])){    //勾选了sku
                 $condition['sku'] = array('in',$input['skus']);
             }else{
                 if (isset($input['sku']) && !empty($input['sku']) && is_string($input['sku'])) {    //sku编码
