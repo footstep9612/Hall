@@ -1526,9 +1526,14 @@ class GoodsModel extends PublicModel {
                 }
 
                 if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
-                    $empModel = new EmployeeModel();
-                    $userInfo = $empModel->field('id')->where(['name'=>trim($input['created_by'])])->find();
-                    $condition['created_by'] = $userInfo['id'];
+                    if(is_numeric($input['created_by'])){
+                        $created_by = intval($input['created_by']);
+                    }else{
+                        $empModel = new EmployeeModel();
+                        $userInfo = $empModel->field('id')->where(['name'=>trim($input['created_by'])])->find();
+                        $created_by = $userInfo['id'];
+                    }
+                    $condition['created_by'] = $created_by;
                 }
 
                 if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
