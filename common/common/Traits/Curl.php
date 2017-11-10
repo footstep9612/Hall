@@ -66,19 +66,13 @@ Trait Curl
     public static function postJson( $url, $postData ) {
 
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch,CURLOPT_POST,1);
-        curl_setopt($ch,CURLOPT_POSTFIELDS,$postData);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS,$postData);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json; charset=utf-8',
-                'Content-Length: ' . strlen($postData)
-            )
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($postData))
         );
-
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         if ( ! curl_exec( $ch ) ) {
             $data = 'curl not response';
