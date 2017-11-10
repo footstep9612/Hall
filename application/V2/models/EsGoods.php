@@ -268,11 +268,11 @@ class EsGoodsModel extends Model {
         if (empty($condition['deleted_flag'])) {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => $condition['deleted_flag'] === 'Y' ? 'Y' : 'N']];
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => trim($condition['deleted_flag']) === 'Y' ? 'Y' : 'N']];
         }
 
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
-            $onshelf_flag = $condition['onshelf_flag'] == 'N' ? 'N' : 'Y';
+            $onshelf_flag = trim($condition['onshelf_flag']) == 'N' ? 'N' : 'Y';
             if ($condition['onshelf_flag'] === 'A') {
 
             } elseif ($onshelf_flag === 'N') {
@@ -314,7 +314,7 @@ class EsGoodsModel extends Model {
             }
         }
         if (isset($condition['keyword']) && $condition['keyword']) {
-            $show_name = $condition['keyword'];
+            $show_name = trim($condition['keyword']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         //  [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
