@@ -146,16 +146,11 @@ class SupplierBrandModel extends PublicModel {
      */
     public function getSupplierCount($condition = null) {
 
-        // $where = $this->_getcondition($condition);
+
         try {
 
-            $result = $this->alias('B')
-                    ->join('erui_supplier.supplier S on S.id=B.supplier_id', 'left')
-                    ->field('S.name,B.brand_zh,B.brand_en,B.brand_es,B.brand_ru')
-                    // ->where($where)
-                    ->group('B.supplier_id')
-                    ->select();
-            return count($result);
+            $supplier_model = new SupplierChainModel();
+            return $supplier_model->getCount();
         } catch (Exception $ex) {
             Log::write($ex->getMessage());
             return 0;

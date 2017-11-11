@@ -30,12 +30,13 @@ class SupplierbrandController extends PublicController {
         $supplier_model = new SupplierBrandModel();
         $data = $supplier_model->getList($condition);
 
-        $suppliercount = $supplier_model->getSupplierCount($condition);
+        $suppliercount = $supplier_model->getSupplierCount();
         $brandcount = $supplier_model->getBrandCount($condition);
+        $count = $supplier_model->getBrandsCount($condition);
         if ($data) {
             $this->setvalue('supplier_count', $suppliercount);
             $this->setvalue('brand_count', $brandcount);
-            $this->setvalue('count', $brandcount);
+            $this->setvalue('count', $count);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
         } elseif ($data === null) {
