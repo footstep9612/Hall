@@ -213,8 +213,6 @@ class ProductSupplierModel extends PublicModel {
         $results = array();
         try {
             foreach ($input as $value) {
-
-
                 $data = $this->checkParam($value, $spu);
                 $data['deleted_flag'] = 'N';
                 $data['spu'] = $spu;

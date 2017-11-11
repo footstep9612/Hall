@@ -123,12 +123,13 @@ class GoodsSupplierModel extends PublicModel {
         $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
         $results = array();
         try {
+            $product_supplier_model = new ProductSupplierModel();
+            $product_supplier_model->editSupplier($input, $spu, $admin);
             foreach ($input as $value) {
-
-
                 $data = $this->checkParam($value, $sku);
                 $data['deleted_flag'] = 'N';
                 $data['sku'] = $sku;
+                $data['spu'] = $spu;
                 $data['status'] = 'VALID';
                 $data['supplier_id'] = $data['supplier_id'];
                 if (isset($data['supplier_id']) && $data['supplier_id']) {
@@ -150,6 +151,8 @@ class GoodsSupplierModel extends PublicModel {
                         'id' => $goods_supplier['id'],
                     ];
                     $res = $this->where($where)->save($data);
+
+
                     if ($res) {
                         $results['code'] = '1';
                         $results['message'] = '成功！';
@@ -160,6 +163,8 @@ class GoodsSupplierModel extends PublicModel {
                 } else {
 
                     $data['sku'] = $sku;
+                    $data['spu'] = $spu;
+
                     $data['created_by'] = $admin;
                     $data['created_at'] = date('Y-m-d H:i:s');
                     $res = $this->add($data);
