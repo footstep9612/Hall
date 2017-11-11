@@ -89,7 +89,7 @@ class SupplierBrandModel extends PublicModel {
             $where[] = 'B.id not in (select brand_id from ' . $table . ' where `status`=\'VALID\' AND supplier_id=\'' . $supplier_id . '\')';
         }
         if ($brand_name) {
-            $where['brand'] = ['like', '\'%"name":"%' . trim($brand_name) . '%\''];
+            $where['brand'] = ['like', '%"name":"%' . trim($brand_name) . '%'];
         }
 
         try {
@@ -99,6 +99,7 @@ class SupplierBrandModel extends PublicModel {
                     ->where($where)
                     ->order('id desc')
                     ->select();
+
             $ret = null;
             foreach ($result as $brandinfo) {
                 $brand = json_decode($brandinfo['brand'], true);
