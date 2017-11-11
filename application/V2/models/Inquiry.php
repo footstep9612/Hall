@@ -636,7 +636,7 @@ class InquiryModel extends PublicModel {
      * @desc 获取询单办理部门组ID
      *
      * @param array $groupId 当前用户的全部组ID
-     * @param string $orgNode 部门节点
+     * @param mixed $orgNode 部门节点
      * @return array
      * @author liujf
      * @time 2017-10-20
@@ -664,7 +664,7 @@ class InquiryModel extends PublicModel {
      *
      * @param array $groupId 当前用户的全部组ID
      * @param string $roleNo 角色编号
-     * @param string $orgNode 部门节点
+     * @param mixed $orgNode 部门节点
      * @return array
      * @author liujf
      * @time 2017-10-23
