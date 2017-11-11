@@ -128,7 +128,6 @@ class SupplierchainController extends PublicController {
             $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
         }
         $supplier_id = $this->getPut('supplier_id');
-
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
@@ -142,10 +141,8 @@ class SupplierchainController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择是否符合易瑞!');
         }
-
-
         $supplier_model = new SupplierChainModel();
-        $data = $supplier_model->Checked($supplier_id, $supplier_level, $is_erui);
+        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');
