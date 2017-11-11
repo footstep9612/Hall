@@ -267,7 +267,7 @@ class SupplierBrandModel extends PublicModel {
         $brand_ids = $condition['brand_ids'];
         $supplier_id = $condition['supplier_id'];
         $this->startTrans();
-        $this->where(['brand_id' => ['in', $brand_ids], 'supplier_id' => $supplier_id])->save(['status' => 'DELETED']);
+        $this->where(['brand_id' => ['notin', $brand_ids], 'supplier_id' => $supplier_id])->save(['status' => 'DELETED']);
         foreach ($brand_ids as $brand_id) {
             $flag = $this->create_data(['brand_id' => $brand_id, 'supplier_id' => $supplier_id]);
             if (!$flag) {

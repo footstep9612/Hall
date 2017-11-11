@@ -477,4 +477,44 @@ class SupplierChainModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取供应商基本信息
+     * @param int $supplier_id 供应商ID
+     * @return
+     * @author zyg
+     */
+    public function getBaseInfo($supplier_id) {
+
+        return $this->where(['id' => $supplier_id, 'deleted_flag' => 'N'])
+                        ->field('supplier_type,name,name_en,country_bn,addrss,reg_capital,'
+                                . 'reg_capital_cur_bn,logo,profile,id')
+                        ->find();
+    }
+
+    /**
+     * 获取开户行基本信息
+     * @param int $supplier_id 供应商ID
+     * @return
+     * @author zyg
+     */
+    public function getBankInfo($supplier_id) {
+        $supplier_bankmodel = new SupplierBankInfoModel();
+        return $supplier_bankmodel->where(['supplier_id' => $supplier_id])
+                        ->field('bank_name,bank_account,address,supplier_id')
+                        ->find();
+    }
+
+    /**
+     * 获取联系信息
+     * @param int $supplier_id 供应商ID
+     * @return
+     * @author zyg
+     */
+    public function getContacts($supplier_id) {
+        $supplier_contactmodel = new SupplierContactModel();
+        return $supplier_contactmodel->where(['supplier_id' => $supplier_id])
+                        ->field('contact_name,phone,email,station,title,remarks,supplier_id')
+                        ->select();
+    }
+
 }

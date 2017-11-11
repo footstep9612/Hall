@@ -154,4 +154,35 @@ class SupplierchainController extends PublicController {
         }
     }
 
+    /**
+     * Description of 公司基本信息
+     * @author  zhongyg
+     * @date    2017-11-10 13:32:36
+     * @version V2.0
+     * @desc
+     */
+    public function CompanyInfoAction() {
+
+        $supplier_id = $this->getPut('supplier_id');
+        if (empty($supplier_id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择供应商!');
+        }
+        if (!is_numeric($supplier_id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商ID必须是数字!');
+        }
+        $supplier_model = new SupplierChainModel();
+        $data = $supplier_model->getBaseInfo($supplier_id);
+        if ($data) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->setMessage('更新成功!');
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('更新失败!');
+            $this->jsonReturn();
+        }
+    }
+
 }
