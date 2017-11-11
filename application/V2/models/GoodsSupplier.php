@@ -168,7 +168,7 @@ class GoodsSupplierModel extends PublicModel {
                     $data['created_by'] = $admin;
                     $data['created_at'] = date('Y-m-d H:i:s');
                     $res = $this->add($data);
-                    echo $this->_sql();
+
                     if ($res) {
                         $results['code'] = '1';
                         $results['message'] = '成功！';
