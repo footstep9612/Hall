@@ -262,6 +262,7 @@ class ProductSupplierModel extends PublicModel {
 
             return $results;
         } catch (Exception $e) {
+            Log::write($e->getMessage());
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
