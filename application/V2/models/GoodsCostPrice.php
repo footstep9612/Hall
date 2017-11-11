@@ -74,6 +74,8 @@ class GoodsCostPriceModel extends PublicModel {
 
                 if (isset($value['id']) && !empty($value['id'])) {
                     $data['updated_by'] = $admin;
+                    $data['deleted_flag'] = 'N';
+                    $data['status'] = self::STATUS_VALID;
                     $data['updated_at'] = date('Y-m-d H:i:s', time());
                     $where = [
                         'sku' => $sku,
