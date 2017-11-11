@@ -189,14 +189,16 @@ class GoodsSupplierModel extends PublicModel {
         }
     }
 
-    public function deleteSupplier($sku) {
+    public function deleteSupplier($skus) {
         $goods_model = new GoodsModel();
-        $info = $goods_model->where(['sku' => $sku, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
-        if (!$info) {
-            $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        foreach ($skus as $sku) {
+            $info = $goods_model->where(['sku' => $sku, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
+            if (!$info) {
+                $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+                $Product_supplier_model = new ProductSupplierModel();
+                $Product_supplier_model->deleteSupplierBySku($sku);
+            }
         }
-        $Product_supplier_model = new ProductSupplierModel();
-        $Product_supplier_model->deleteSupplierBySku($sku);
         return true;
     }
 

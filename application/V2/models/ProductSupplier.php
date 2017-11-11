@@ -276,14 +276,16 @@ class ProductSupplierModel extends PublicModel {
 
         if ($deling_supplier) {
             $spu = $deling_supplier['spu'];
-            $goods_suppliers = $goods_supplier_model->field(['supplier_id'])->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => ['VALID']])->select();
+            $goods_suppliers = $goods_supplier_model->field(['supplier_id'])->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => 'VALID'])->select();
 
             $goods_supplierids = [];
             foreach ($goods_suppliers as $goods_supplier) {
                 $goods_supplierids[] = $goods_supplier['supplier_id'];
             }
-            if (!$goods_supplierids) {
-                return $this->where(['spu' => $spu, 'supplier_id' => ['notin', $goods_supplierids]])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+            if ($goods_supplierids) {
+                $this->where(['spu' => $spu, 'supplier_id' => ['notin', $goods_supplierids]])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+            } else {
+                $this->where(['spu' => $spu])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
             }
         }
         return true;

@@ -1239,13 +1239,9 @@ class GoodsModel extends PublicModel {
                 Log::write($input['sku'] . '属性删除失败');
                 return false;
             }
-            $goods_supplier = $goods_supplier_model->deleteSupplier($input['sku'], $lang);        //属性删除
-            if (!$goods_supplier || $goods_supplier['code'] != 1) {
 
-                $this->rollback();
-                Log::write($input['sku'] . '供应商删除失败');
-                return false;
-            }
+            $goods_supplier = $goods_supplier_model->deleteSupplier($input['sku'], $lang);        //属性删除
+
 
             /**
              * 这里为什么要删除呢？附件不分语言，如果你删除了一种语言的sku其他语言的不用附件了吗？
