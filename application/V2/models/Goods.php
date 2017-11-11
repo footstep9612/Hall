@@ -872,6 +872,7 @@ class GoodsModel extends PublicModel {
                 $condition_attr = ['spu' => $item['spu'], 'sku' => $item['sku'], 'lang' => $item['lang']];
                 $spesc = $attr_model->field('spec_attrs')->where($condition_attr)->find();
                 $fspesc = json_decode($spesc['spec_attrs'], true);
+                $fspesc = empty($fspesc) ? array() : $fspesc;
                 if (empty($attr['spec_attrs']) && empty($fspesc)) {
                     if ($boolen) {
                         return false;
