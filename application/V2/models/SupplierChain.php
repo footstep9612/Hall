@@ -69,8 +69,12 @@ class SupplierChainModel extends PublicModel {
         } else {
             if (!empty($condition['status']) && in_array($condition['status'], ['APPROVED', 'VALID'])) {
                 $where['status'] = ['in', ['APPROVED', 'VALID']];
-            } elseif (!empty($condition['status']) && in_array($condition['status'], ['INVALID', 'APPLING'])) {
-                $where['status'] = $condition['status'];
+            } elseif (!empty($condition['status']) && in_array($condition['status'], ['APPLING', 'CHECKING'])) {
+                $where['status'] = ['in', ['APPLING', 'CHECKING']];
+            } elseif (!empty($condition['status']) && $condition['status'] === 'INVALID') {
+                $where['status'] = 'INVALID';
+            } elseif (!empty($condition['status']) && $condition['status'] === 'DRAFT') {
+                $where['status'] = 'DRAFT';
             }
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
