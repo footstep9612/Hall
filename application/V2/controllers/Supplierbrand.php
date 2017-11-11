@@ -200,4 +200,29 @@ class SupplierbrandController extends PublicController {
         }
     }
 
+    /**
+     * 批量更新新增供应商品牌
+     * @date    2017-11-5 10:02:57
+     * @author zyg
+     */
+    public function getBrandsAction() {
+        $brand_name = $this->getPut('brand_name');
+        $supplier_id = $this->getPut('supplier_id');
+        if (empty($supplier_id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商ID不能为空!');
+            $this->jsonReturn();
+        }
+        set_time_limit(0);
+        $supplier_model = new SupplierBrandModel();
+        $data = $supplier_model->getBrands($brand_name, $supplier_id);
+        if ($data) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn(null);
+        }
+    }
+
 }
