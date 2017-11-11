@@ -129,7 +129,7 @@ class SupplierBrandModel extends PublicModel {
 
             $result = $this->alias('B')
                     ->field('B.brand_id,B.brand_zh')
-                    ->where(['supplier_id' => $supplier_id])
+                    ->where(['supplier_id' => $supplier_id, 'status' => 'VALID'])
                     ->select();
             return $result;
         } catch (Exception $ex) {
@@ -267,12 +267,18 @@ class SupplierBrandModel extends PublicModel {
         $brand_ids = $condition['brand_ids'];
         $supplier_id = $condition['supplier_id'];
         $this->startTrans();
-        $this->where(['brand_id' => ['notin', $brand_ids], 'supplier_id' => $supplier_id])->save(['status' => 'DELETED']);
-        foreach ($brand_ids as $brand_id) {
-            $flag = $this->create_data(['brand_id' => $brand_id, 'supplier_id' => $supplier_id]);
-            if (!$flag) {
-                $this->rollback();
-                return false;
+        $where = ['supplier_id' => $supplier_id];
+        if ($brand_ids) {
+            $where['brand_id'] = ['notin', $brand_ids];
+        }
+        $this->where($where)->save(['status' => 'DELETED']);
+        if ($brand_ids) {
+            foreach ($brand_ids as $brand_id) {
+                $flag = $this->create_data(['brand_id' => $brand_id, 'supplier_id' => $supplier_id]);
+                if (!$flag) {
+                    $this->rollback();
+                    return false;
+                }
             }
         }
         $this->commit();
