@@ -270,6 +270,39 @@ class ProductSupplierModel extends PublicModel {
         }
     }
 
+    public function deleteSupplierBySku($sku) {
+        $goods_supplier_model = new GoodsSupplierModel();
+        $deling_supplier = $goods_supplier_model->field(['supplier_id,spu'])->where(['sku' => $sku])->find();
+
+        if ($deling_supplier) {
+            $spu = $deling_supplier['spu'];
+            $goods_suppliers = $goods_supplier_model->field(['supplier_id'])->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => ['VALID']])->select();
+
+            $goods_supplierids = [];
+            foreach ($goods_suppliers as $goods_supplier) {
+                $goods_supplierids[] = $goods_supplier['supplier_id'];
+            }
+            if (!$goods_supplierids) {
+                return $this->where(['spu' => $spu, 'supplier_id' => ['notin', $goods_supplierids]])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+            }
+        }
+        return true;
+    }
+
+    public function deleteSupplierBySpu($spu) {
+        $product_model = new ProductModel();
+        $info = $product_model->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
+        if (!$info) {
+
+            $goods_supplier_model = new GoodsSupplierModel();
+            $goods_supplier_model->deleteSupplierByspu($spu);
+            return $this->where(['spu' => $spu])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        }
+
+
+        return true;
+    }
+
     /**
      * spu 新增浏览数量
      * @author klp

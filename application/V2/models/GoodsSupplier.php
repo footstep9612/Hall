@@ -189,6 +189,27 @@ class GoodsSupplierModel extends PublicModel {
         }
     }
 
+    public function deleteSupplier($sku) {
+        $goods_model = new GoodsModel();
+        $info = $goods_model->where(['sku' => $sku, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
+        if (!$info) {
+            $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        }
+        $Product_supplier_model = new ProductSupplierModel();
+        $Product_supplier_model->deleteSupplierBySku($sku);
+        return true;
+    }
+
+    public function deleteSupplierByspu($spu) {
+        $goods_model = new GoodsModel();
+        $info = $goods_model->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
+        if (!$info) {
+            $this->where(['spu' => $spu])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        }
+
+        return true;
+    }
+
     /**
      * 参数校验,目前只测必须项
      * @author klp

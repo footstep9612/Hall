@@ -1207,7 +1207,7 @@ class GoodsModel extends PublicModel {
                     jsonReturn('', -101, '上架商品不能删除!');
                 }
             }
-            $res = $this->deleteSku($input['sku'], $lang);                 //sku删除
+            $res = $this->deleteSku($input['sku']);                 //sku删除
             if (!$res || $res['code'] != 1) {
 
                 $this->rollback();
@@ -1232,11 +1232,18 @@ class GoodsModel extends PublicModel {
               } */
             $gattr = new GoodsAttrModel();
             $resAttr = $gattr->deleteSkuAttr($input['sku'], $lang);        //属性删除
-
+            $goods_supplier_model = new GoodsSupplierModel();
             if (!$resAttr || $resAttr['code'] != 1) {
 
                 $this->rollback();
                 Log::write($input['sku'] . '属性删除失败');
+                return false;
+            }
+            $goods_supplier = $goods_supplier_model->deleteSupplier($input['sku'], $lang);        //属性删除
+            if (!$goods_supplier || $goods_supplier['code'] != 1) {
+
+                $this->rollback();
+                Log::write($input['sku'] . '供应商删除失败');
                 return false;
             }
 
