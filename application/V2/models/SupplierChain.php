@@ -430,8 +430,17 @@ class SupplierChainModel extends PublicModel {
         $info = $this->field('status')->where($where)->find();
         if ($info['status'] == 'APPLING') {
             $data['status'] = ($status == 'VALID' ? 'VALID' : 'INVALID');
+            $data['erui_status'] = 'CHECKING';
             $data['checked_at'] = date('Y-m-d H:i:s');
             $data['checked_by'] = defined('UID') ? UID : 0;
+            if ($info['org_id'] && $data['status'] == 'VALID') {
+                $org_model = new OrgModel();
+                $orgInfo = $org_model->field('membership,org_node,name')->where(['id' => $info['org_id'], 'deleted_flag' => 'N'])->find();
+                if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
+                    $data['erui_status'] = 'VALID';
+                    $data['is_erui'] = 'Y';
+                }
+            }
             $this->startTrans();
             $flag = $this->where($where)->save($data);
             if (!$flag) {
@@ -442,6 +451,9 @@ class SupplierChainModel extends PublicModel {
             $condition['status'] = $status == 'VALID' ? 'VALID' : 'INVALID';
             $condition['supplier_id'] = $supplier_id;
             $condition['org_id'] = $info['org_id'];
+            if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
+                $data['erui_member_flag'] = 'Y';
+            }
             $condition['note'] = $note;
             $flag_log = $supplierchecklog_model->create_data($condition);
             if (!$flag_log && $this->error) {
