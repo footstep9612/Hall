@@ -51,15 +51,12 @@ class SupplierChainModel extends PublicModel {
         }
         $this->_getValue($where, $condition, 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
-        $this->_getValue($where, $condition, 'erui_status');
-        $this->_getValue($where, $condition, 'is_erui', 'bool');
-        if ($is_Chain) {
-            $this->_getValue($where, $condition, 'erui_checked_at', 'between');
-        } else {
-            $this->_getValue($where, $condition, 'checked_at', 'between');
-        }
+
         $this->_getValue($where, $condition, 'created_at', 'between');
         if ($is_Chain) {
+            $this->_getValue($where, $condition, 'erui_status');
+            $this->_getValue($where, $condition, 'is_erui', 'bool');
+            $this->_getValue($where, $condition, 'erui_checked_at', 'between');
             if (!empty($condition['erui_checked_name'])) {
                 $employee_model = new EmployeeModel();
                 $userids = $employee_model->getUseridsByUserName(trim($condition['erui_checked_name']));
@@ -70,6 +67,12 @@ class SupplierChainModel extends PublicModel {
                 }
             }
         } else {
+            if (!empty($condition['status']) && in_array($condition['status'], ['APPROVED', 'VALID'])) {
+                $where['status'] = ['in', ['APPROVED', 'VALID']];
+            } elseif (!empty($condition['status']) && in_array($condition['status'], ['INVALID', 'APPLING'])) {
+                $where['status'] = $condition['status'];
+            }
+            $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
                 $employee_model = new EmployeeModel();
                 $userids = $employee_model->getUseridsByUserName(trim($condition['checked_name']));
