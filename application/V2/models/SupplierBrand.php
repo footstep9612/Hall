@@ -99,10 +99,9 @@ class SupplierBrandModel extends PublicModel {
                     ->where($where)
                     ->order('id desc')
                     ->select();
-            $ret = [];
+            $ret = null;
             foreach ($result as $brandinfo) {
                 $brand = json_decode($brandinfo['brand'], true);
-
                 foreach ($brand as $brand_lang) {
 
                     if ($brand_lang['lang'] === 'zh') {
@@ -145,7 +144,31 @@ class SupplierBrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getSupplierCount($condition) {
+    public function getSupplierCount($condition = null) {
+
+        // $where = $this->_getcondition($condition);
+        try {
+
+            $result = $this->alias('B')
+                    ->join('erui_supplier.supplier S on S.id=B.supplier_id', 'left')
+                    ->field('S.name,B.brand_zh,B.brand_en,B.brand_es,B.brand_ru')
+                    // ->where($where)
+                    ->group('B.supplier_id')
+                    ->select();
+            return count($result);
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * 根据条件获取品牌数量
+     * @param mix $condition 搜索条件
+     * @return mix
+     * @author zyg
+     */
+    public function getBrandsCount($condition) {
 
         $where = $this->_getcondition($condition);
         try {
@@ -154,7 +177,7 @@ class SupplierBrandModel extends PublicModel {
                     ->join('erui_supplier.supplier S on S.id=B.supplier_id', 'left')
                     ->field('S.name,B.brand_zh,B.brand_en,B.brand_es,B.brand_ru')
                     ->where($where)
-                    ->group('B.supplier_id')
+                    ->group('B.brand_id')
                     ->select();
             return count($result);
         } catch (Exception $ex) {
@@ -171,20 +194,18 @@ class SupplierBrandModel extends PublicModel {
      */
     public function getBrandCount($condition) {
 
-        $where = $this->_getcondition($condition);
-        try {
-
-            $result = $this->alias('B')
-                    ->join('erui_supplier.supplier S on S.id=B.supplier_id', 'left')
-                    ->field('S.name,B.brand_zh,B.brand_en,B.brand_es,B.brand_ru')
-                    ->where($where)
-                    ->group('B.brand_id')
-                    ->select();
-            return count($result);
-        } catch (Exception $ex) {
-            Log::write($ex->getMessage());
-            return 0;
-        }
+        $brand_model = new BrandModel();
+        return $brand_model->getCount(null);
+//        $where = $this->_getcondition($condition);
+//        try {
+//
+//            $result = $this->alias('B')
+//                    ->join('erui_supplier.supplier S on S.id=B.supplier_id', 'left')
+//                    ->field('S.name,B.brand_zh,B.brand_en,B.brand_es,B.brand_ru')
+//                    // ->where($where)
+//                    ->group('B.brand_id')
+//                    ->select();
+//            return count($result);
     }
 
     /**

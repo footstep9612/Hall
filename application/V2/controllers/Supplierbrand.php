@@ -35,6 +35,7 @@ class SupplierbrandController extends PublicController {
         if ($data) {
             $this->setvalue('supplier_count', $suppliercount);
             $this->setvalue('brand_count', $brandcount);
+            $this->setvalue('count', $brandcount);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
         } elseif ($data === null) {
@@ -216,9 +217,14 @@ class SupplierbrandController extends PublicController {
         set_time_limit(0);
         $supplier_model = new SupplierBrandModel();
         $data = $supplier_model->getBrands($brand_name, $supplier_id);
+
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
+        } elseif ($data === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据!');
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn(null);
