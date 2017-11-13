@@ -1040,7 +1040,7 @@ class ProductModel extends PublicModel {
      * @param $data   注意这是excel模板数据
      * @param $lang
      */
-    public function import($url = '', $lang = '', $process = '') {
+    public function import($url = '', $lang = '', $process = '', $filename = '') {
         if (empty($url) || empty($lang)) {
             return false;
         }
@@ -1134,10 +1134,10 @@ class ProductModel extends PublicModel {
                         } else {
                             $bizline_model = new BizlineModel();
                             $bizline = $bizline_model->field('id')->where(['name' => trim($r[6])])->find();
-                            if(!$bizline){
+                            if (!$bizline) {
                                 $faild++;
                                 $objPHPExcel->setActiveSheetIndex(0)
-                                    ->setCellValue('N' . ( $key + 1 ), '操作失败[产品组不存在]');
+                                        ->setCellValue('N' . ( $key + 1 ), '操作失败[产品组不存在]');
                                 flock($fp, LOCK_UN);
                                 fclose($fp);
                                 continue;
@@ -1309,7 +1309,7 @@ class ProductModel extends PublicModel {
             $url = $server . '/V2/Uploadfile/upload';
             $data_fastDFS['tmp_name'] = $localFile;
             $data_fastDFS['type'] = 'application/excel';
-            $data_fastDFS['name'] = pathinfo($localFile, PATHINFO_BASENAME);
+            $data_fastDFS['name'] = !empty($filename) ? $filename : pathinfo($localFile, PATHINFO_BASENAME);
             $fileId = postfile($data_fastDFS, $url);
             if ($fileId) {
                 unlink($localFile);

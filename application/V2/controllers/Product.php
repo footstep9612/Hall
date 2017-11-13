@@ -458,18 +458,18 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '语言错误');
         }
         $process = isset($this->put_data['process']) ? 1 : '';
-
+        $name = $this->getPut('name');
         $productModel = new ProductModel();
-        $result = $productModel->import($this->put_data['xls'], $this->put_data['lang'], $process);
+        $result = $productModel->import($this->put_data['xls'], $this->put_data['lang'], $process, $name);
         if ($result) {
-            if(is_array($result) && isset($result['success']) && $result['success'] == 0 ){
-                jsonReturn($result, ErrorMsg::SUCCESS , '导入失败');
+            if (is_array($result) && isset($result['success']) && $result['success'] == 0) {
+                jsonReturn($result, ErrorMsg::SUCCESS, '导入失败');
             }
-            $message = '成功'.$result['success'].'条';
-            if(isset($result['faild']) && $result['faild']>0){
-                $message = $message.',失败'.$result['faild'].'条。';
+            $message = '成功' . $result['success'] . '条';
+            if (isset($result['faild']) && $result['faild'] > 0) {
+                $message = $message . ',失败' . $result['faild'] . '条。';
             }
-            jsonReturn($result , ErrorMsg::SUCCESS , $message);
+            jsonReturn($result, ErrorMsg::SUCCESS, $message);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
