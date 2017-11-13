@@ -55,6 +55,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['country_bn'])) {
             $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
         }
+        if (!empty($condition['buyer_code'])) {
+            $where .= ' And buyer_code  ="' . $condition['buyer_code'] . '"';
+        }
         if (!empty($condition['area_bn'])) {
             $where .= ' And `buyer`.area_bn ="' . $condition['area_bn'] . '"';
         }
