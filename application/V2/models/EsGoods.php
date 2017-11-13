@@ -1449,13 +1449,17 @@ class EsGoodsModel extends Model {
         $type = 'goods_' . $lang;
 
         if (is_string($skus)) {
+
+            $goods_supplier_model = new GoodsSupplierModel();
+            $suppliers = $goods_supplier_model->getsuppliersbyskus([$skus]);
             $goods = $this->field('spu')->where(['sku' => $skus, 'lang' => $lang])->find();
             $sku = $skus;
             $data = [];
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
-
-
+            if ($suppliers[$sku]) {
+                $data['suppliers'] = $suppliers;
+            }
             $data['status'] = self::STATUS_DELETED;
             $type = $this->tableName . '_' . $lang;
             $es->update_document($this->dbName, $type, $data, $sku);
@@ -1476,6 +1480,7 @@ class EsGoodsModel extends Model {
             $updateParams['type'] = 'goods_' . $lang;
             $product_updateParams['type'] = 'product_' . $lang;
             $goodses = $this->field('spu')->where(['sku' => ['in', $skus], 'lang' => $lang])->group('spu')->select();
+
             $spus = [];
             if ($goodses) {
                 foreach ($goodses as $goods) {
@@ -1494,7 +1499,8 @@ class EsGoodsModel extends Model {
                 $updateParams['body'][] = ['doc' => $data];
             }
             $es->bulk($updateParams);
-
+            $productr_supplier_model = new ProductSupplierModel();
+            $suppliers = $productr_supplier_model->getsupplieridsbyspu($spus);
             foreach ($products as $product) {
                 $data = [];
                 if (isset($product['sku_count']) && intval($product['sku_count']) > 0) {
@@ -1502,6 +1508,7 @@ class EsGoodsModel extends Model {
                 } else {
                     $sku_count = 0;
                 }
+                $data['suppliers'] = $suppliers[$product['spu']];
                 $data['sku_count'] = strval($sku_count);
                 $product_updateParams['body'][] = ['update' => ['_id' => $product['spu']]];
                 $product_updateParams['body'][] = ['doc' => $data];
